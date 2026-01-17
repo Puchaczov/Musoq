@@ -11,22 +11,25 @@ namespace Musoq.Parser.Lexing;
 
 public class Lexer : LexerBase<Token>
 {
-    private readonly bool _skipWhiteSpaces;
-
     private static readonly Regex[] DecimalCandidates =
     [
         new(TokenRegexDefinition.KDecimalWithDot, RegexOptions.Compiled),
         new(TokenRegexDefinition.KDecimalWithSuffix, RegexOptions.Compiled),
         new(TokenRegexDefinition.KDecimalWithDotAndSuffix, RegexOptions.Compiled)
     ];
-    
-    private static readonly Regex HexIntegerRegex = new(TokenRegexDefinition.KHexadecimalInteger, RegexOptions.Compiled);
+
+    private static readonly Regex
+        HexIntegerRegex = new(TokenRegexDefinition.KHexadecimalInteger, RegexOptions.Compiled);
+
     private static readonly Regex BinaryIntegerRegex = new(TokenRegexDefinition.KBinaryInteger, RegexOptions.Compiled);
     private static readonly Regex OctalIntegerRegex = new(TokenRegexDefinition.KOctalInteger, RegexOptions.Compiled);
     private static readonly Regex SignedIntegerRegex = new(TokenRegexDefinition.KSignedInteger, RegexOptions.Compiled);
-    private static readonly Regex UnsignedIntegerRegex = new(TokenRegexDefinition.KUnsignedInteger, RegexOptions.Compiled);
-        
+
+    private static readonly Regex UnsignedIntegerRegex =
+        new(TokenRegexDefinition.KUnsignedInteger, RegexOptions.Compiled);
+
     private readonly List<Token> _alreadyResolvedTokens = [];
+    private readonly bool _skipWhiteSpaces;
 
     /// <summary>
     ///     Initialize instance.
@@ -39,19 +42,8 @@ public class Lexer : LexerBase<Token>
         _skipWhiteSpaces = skipWhiteSpaces;
     }
 
-    private static string ValidateInput(string input)
-    {
-        if (input == null)
-            throw ParserValidationException.ForNullInput();
-        
-        if (string.IsNullOrWhiteSpace(input))
-            throw ParserValidationException.ForEmptyInput();
-        
-        return input;
-    }
-
     /// <summary>
-    /// Gets the part of resolved query
+    ///     Gets the part of resolved query
     /// </summary>
     public string AlreadyResolvedQueryPart
     {
@@ -59,14 +51,25 @@ public class Lexer : LexerBase<Token>
         {
             //get first of last 5 tokens
             var startToken = _alreadyResolvedTokens.TakeLast(5).FirstOrDefault();
-                
+
             if (startToken == null)
                 return string.Empty;
-                
+
             var endToken = _alreadyResolvedTokens.Last();
-                
+
             return Input.Substring(startToken.Span.Start, endToken.Span.End - startToken.Span.Start);
         }
+    }
+
+    private static string ValidateInput(string input)
+    {
+        if (input == null)
+            throw ParserValidationException.ForNullInput();
+
+        if (string.IsNullOrWhiteSpace(input))
+            throw ParserValidationException.ForEmptyInput();
+
+        return input;
     }
 
     /// <summary>
@@ -81,13 +84,13 @@ public class Lexer : LexerBase<Token>
 
         if (regex == TokenRegexDefinition.KComment)
             return TokenType.Comment;
-            
+
         if (regex == TokenRegexDefinition.Function)
             return TokenType.Function;
 
         if (regex == TokenRegexDefinition.KAliasedStar)
             return TokenType.AliasedStar;
-            
+
         switch (loweredToken)
         {
             case DescToken.TokenText:
@@ -202,7 +205,7 @@ public class Lexer : LexerBase<Token>
 
         if (string.IsNullOrWhiteSpace(tokenText))
             return TokenType.WhiteSpace;
-            
+
         if (regex == TokenRegexDefinition.KNotIn)
             return TokenType.NotIn;
         if (regex == TokenRegexDefinition.KNotLike)
@@ -226,7 +229,7 @@ public class Lexer : LexerBase<Token>
         if (regex == TokenRegexDefinition.Function)
             return TokenType.Function;
         var last = Current();
-        if (regex == TokenRegexDefinition.KColumn && last is {TokenType: TokenType.Dot})
+        if (regex == TokenRegexDefinition.KColumn && last is { TokenType: TokenType.Dot })
             return TokenType.Property;
         if (regex == TokenRegexDefinition.KColumn)
             return TokenType.Identifier;
@@ -242,9 +245,9 @@ public class Lexer : LexerBase<Token>
             return TokenType.Word;
         if (regex == TokenRegexDefinition.KFieldLink)
             return TokenType.FieldLink;
-        if (regex != TokenRegexDefinition.KDecimalOrInteger) 
+        if (regex != TokenRegexDefinition.KDecimalOrInteger)
             return TokenType.Word;
-            
+
         if (DecimalCandidates.Any(decimalCandidate => decimalCandidate.IsMatch(tokenText)))
             return TokenType.Decimal;
 
@@ -256,10 +259,10 @@ public class Lexer : LexerBase<Token>
 
         if (OctalIntegerRegex.IsMatch(tokenText))
             return TokenType.OctalInteger;
-                
+
         if (SignedIntegerRegex.IsMatch(tokenText))
             return TokenType.Integer;
-            
+
         if (UnsignedIntegerRegex.IsMatch(tokenText))
             return TokenType.Integer;
 
@@ -326,7 +329,10 @@ public class Lexer : LexerBase<Token>
         public static readonly string KHexadecimalInteger = @"0[xX][0-9a-fA-F]+";
         public static readonly string KBinaryInteger = @"0[bB][01]+";
         public static readonly string KOctalInteger = @"0[oO][0-7]+";
-        public static readonly string KDecimalOrInteger = $"({KDecimalWithDotAndSuffix}|{KDecimalWithDot}|{KDecimalWithSuffix}|{KHexadecimalInteger}|{KBinaryInteger}|{KOctalInteger}|{KUnsignedInteger}|{KSignedInteger})";
+
+        public static readonly string KDecimalOrInteger =
+            $"({KDecimalWithDotAndSuffix}|{KDecimalWithDot}|{KDecimalWithSuffix}|{KHexadecimalInteger}|{KBinaryInteger}|{KOctalInteger}|{KUnsignedInteger}|{KSignedInteger})";
+
         public static readonly string KComment = "--[^\\r\\n]*|/\\*[\\s\\S]*?\\*/";
 
         public static readonly string KMethodAccess =
@@ -416,7 +422,7 @@ public class Lexer : LexerBase<Token>
             new(TokenRegexDefinition.KAliasedStar),
             new(TokenRegexDefinition.KStar),
             new(TokenRegexDefinition.KIs),
-            new(TokenRegexDefinition.KIn), 
+            new(TokenRegexDefinition.KIn),
             new(TokenRegexDefinition.KNull),
             new(TokenRegexDefinition.KWith, RegexOptions.IgnoreCase),
             new(TokenRegexDefinition.KWhere, RegexOptions.IgnoreCase),
@@ -475,9 +481,9 @@ public class Lexer : LexerBase<Token>
         var token = base.Next();
         while (ShouldSkipToken(token))
             token = base.Next();
-            
+
         _alreadyResolvedTokens.Add(token);
-            
+
         return token;
     }
 
@@ -492,9 +498,9 @@ public class Lexer : LexerBase<Token>
         var token = base.NextOf(regex, getToken);
         while (ShouldSkipToken(token))
             token = base.NextOf(regex, getToken);
-            
+
         _alreadyResolvedTokens.Add(token);
-            
+
         return token;
     }
 
@@ -557,7 +563,8 @@ public class Lexer : LexerBase<Token>
                 return new DecimalToken(tokenText.TrimEnd('d'), new TextSpan(Position, tokenText.Length));
             case TokenType.Integer:
                 var abbreviation = GetAbbreviation(tokenText);
-                var unAbbreviatedValue = abbreviation.Length > 0 ? tokenText.Replace(abbreviation, string.Empty) : tokenText;
+                var unAbbreviatedValue =
+                    abbreviation.Length > 0 ? tokenText.Replace(abbreviation, string.Empty) : tokenText;
                 return new IntegerToken(unAbbreviatedValue, new TextSpan(Position, tokenText.Length), abbreviation);
             case TokenType.HexadecimalInteger:
                 return new HexIntegerToken(tokenText, new TextSpan(Position, tokenText.Length));
@@ -692,7 +699,7 @@ public class Lexer : LexerBase<Token>
             return regex == TokenRegexDefinition.KEmptyString
                 ? new WordToken(string.Empty, new TextSpan(Position + 1, 0))
                 : new WordToken(tokenText, new TextSpan(Position, tokenText.Length));
-        
+
         var subValue = match.Groups[0].Value[1..^1];
         var value = subValue.Unescape();
         return new WordToken(
@@ -708,17 +715,11 @@ public class Lexer : LexerBase<Token>
 
     private static string GetAbbreviation(string tokenText)
     {
-        if (tokenText.Length == 1)
-        {
-            return string.Empty;
-        }
-            
+        if (tokenText.Length == 1) return string.Empty;
+
         var position = 1;
-        while (position < tokenText.Length && char.IsDigit(tokenText[position]))
-        {
-            position++;
-        }
-            
+        while (position < tokenText.Length && char.IsDigit(tokenText[position])) position++;
+
         return tokenText[position..];
     }
 

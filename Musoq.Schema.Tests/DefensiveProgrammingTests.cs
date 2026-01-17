@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Exceptions;
@@ -7,12 +8,9 @@ using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
-using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Managers;
-using System.Collections.Generic;
-using System.Reflection;
 
 namespace Musoq.Schema.Tests.DefensiveProgramming;
 
@@ -77,7 +75,7 @@ public class DefensiveProgrammingTests
         var metadata = new MethodsMetadata();
 
         // Act & Assert
-        var exception = Assert.Throws<SchemaArgumentException>(() => 
+        var exception = Assert.Throws<SchemaArgumentException>(() =>
             metadata.GetMethod(null, new Type[0], null));
         Assert.Contains("cannot be empty", exception.Message);
         Assert.Contains("resolving a method", exception.Message);
@@ -91,7 +89,7 @@ public class DefensiveProgrammingTests
         var metadata = new MethodsMetadata();
 
         // Act & Assert
-        var exception = Assert.Throws<SchemaArgumentException>(() => 
+        var exception = Assert.Throws<SchemaArgumentException>(() =>
             metadata.GetMethod("test", null, null));
         Assert.Contains("cannot be null", exception.Message);
         Assert.Contains("resolving a method", exception.Message);
@@ -155,8 +153,9 @@ public class DefensiveProgrammingTests
     public void ToCSharpRewriteTreeVisitor_Should_ThrowMeaningfulException_WhenNullAssemblies()
     {
         // Act & Assert
-        var exception = Assert.Throws<VisitorException>(() => 
-            new ToCSharpRewriteTreeVisitor(null, new Dictionary<string, int[]>(), new Dictionary<SchemaFromNode, ISchemaColumn[]>(), "test", new CompilationOptions()));
+        var exception = Assert.Throws<VisitorException>(() =>
+            new ToCSharpRewriteTreeVisitor(null, new Dictionary<string, int[]>(),
+                new Dictionary<SchemaFromNode, ISchemaColumn[]>(), "test", new CompilationOptions()));
         Assert.Contains("cannot be null", exception.Message);
         Assert.Contains("ToCSharpRewriteTreeVisitor", exception.Message);
     }
@@ -165,8 +164,9 @@ public class DefensiveProgrammingTests
     public void ToCSharpRewriteTreeVisitor_Should_ThrowMeaningfulException_WhenEmptyAssemblyName()
     {
         // Act & Assert
-        var exception = Assert.Throws<VisitorException>(() => 
-            new ToCSharpRewriteTreeVisitor([], new Dictionary<string, int[]>(), new Dictionary<SchemaFromNode, ISchemaColumn[]>(), "", new CompilationOptions()));
+        var exception = Assert.Throws<VisitorException>(() =>
+            new ToCSharpRewriteTreeVisitor([], new Dictionary<string, int[]>(),
+                new Dictionary<SchemaFromNode, ISchemaColumn[]>(), "", new CompilationOptions()));
         Assert.Contains("cannot be null or empty", exception.Message);
         Assert.Contains("assemblyName", exception.Message);
     }
@@ -182,7 +182,14 @@ public class DefensiveProgrammingTests
     {
         protected override string VisitorName => "TestDefensiveVisitor";
 
-        public Node TestSafePop(Stack<Node> nodes) => SafePop(nodes, "TestOperation");
-        public T TestSafeCast<T>(Node node) where T : Node => SafeCast<T>(node, "TestOperation");
+        public Node TestSafePop(Stack<Node> nodes)
+        {
+            return SafePop(nodes, "TestOperation");
+        }
+
+        public T TestSafeCast<T>(Node node) where T : Node
+        {
+            return SafeCast<T>(node, "TestOperation");
+        }
     }
 }

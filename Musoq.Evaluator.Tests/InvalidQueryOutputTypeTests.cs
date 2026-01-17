@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -12,7 +11,7 @@ namespace Musoq.Evaluator.Tests;
 public class InvalidQueryOutputTypeTests : BasicEntityTestBase
 {
     /// <summary>
-    /// Creates and runs a virtual machine with primitive type validation enabled.
+    ///     Creates and runs a virtual machine with primitive type validation enabled.
     /// </summary>
     private CompiledQuery CreateAndRunVirtualMachineWithValidation<T>(
         string script,
@@ -21,7 +20,7 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
     {
         return CreateAndRunVirtualMachine(script, sources, ValidationEnabledCompilationOptions);
     }
-    
+
     [TestMethod]
     public void WhenSelectComplexType_ShouldThrowInvalidQueryExpressionTypeException()
     {
@@ -33,7 +32,8 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     [TestMethod]
@@ -47,7 +47,8 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     [TestMethod]
@@ -61,7 +62,8 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     [TestMethod]
@@ -75,7 +77,8 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     [TestMethod]
@@ -107,7 +110,8 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     [TestMethod]
@@ -121,7 +125,8 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     [TestMethod]
@@ -135,7 +140,8 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     [TestMethod]
@@ -149,7 +155,8 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     [TestMethod]
@@ -167,7 +174,8 @@ select Self from cte";
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     [TestMethod]
@@ -185,7 +193,8 @@ select Array from cte";
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     [TestMethod]
@@ -239,7 +248,8 @@ select Name, City from cte";
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     [TestMethod]
@@ -260,11 +270,12 @@ select Self from cte2";
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
-    
+
     #region Primitive Type Validation - All Supported Types
-    
+
     [TestMethod]
     public void WhenSelectStringType_ShouldSucceed()
     {
@@ -517,7 +528,8 @@ select Self from cte2";
             { "#A", [new BasicEntity("test")] }
         };
 
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     [TestMethod]
@@ -529,7 +541,8 @@ select Self from cte2";
             { "#A", [new BasicEntity("test")] }
         };
 
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     #endregion
@@ -630,7 +643,8 @@ select Self from cte2";
             { "#A", [new BasicEntity("test")] }
         };
 
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     [TestMethod]
@@ -642,7 +656,8 @@ select Self from cte2";
             { "#A", [new BasicEntity("test")] }
         };
 
-        Assert.Throws<InvalidQueryExpressionTypeException>(() => CreateAndRunVirtualMachineWithValidation(query, sources));
+        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+            CreateAndRunVirtualMachineWithValidation(query, sources));
     }
 
     #endregion
@@ -1007,9 +1022,9 @@ select Name, City from cte2";
             { "#A", [new BasicEntity("test")] }
         };
 
-        var exception = Assert.Throws<InvalidQueryExpressionTypeException>(() => 
+        var exception = Assert.Throws<InvalidQueryExpressionTypeException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
-        
+
         Assert.Contains("Self", exception.Message, "Exception message should contain the column name 'Self'");
         Assert.Contains("SELECT", exception.Message, "Exception message should mention SELECT clause");
     }
@@ -1023,9 +1038,9 @@ select Name, City from cte2";
             { "#A", [new BasicEntity("test")] }
         };
 
-        var exception = Assert.Throws<InvalidQueryExpressionTypeException>(() => 
+        var exception = Assert.Throws<InvalidQueryExpressionTypeException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
-        
+
         Assert.Contains("ORDER BY", exception.Message, "Exception message should mention ORDER BY clause");
     }
 
@@ -1038,10 +1053,10 @@ select Name, City from cte2";
             { "#A", [new BasicEntity("test")] }
         };
 
-        var exception = Assert.Throws<InvalidQueryExpressionTypeException>(() => 
+        var exception = Assert.Throws<InvalidQueryExpressionTypeException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
-        
-        Assert.IsTrue(exception.Message.Contains("GROUP BY") || exception.Message.Contains("SELECT"), 
+
+        Assert.IsTrue(exception.Message.Contains("GROUP BY") || exception.Message.Contains("SELECT"),
             "Exception message should mention GROUP BY or SELECT clause");
     }
 

@@ -8,44 +8,43 @@ using Musoq.Evaluator.Tables;
 namespace Musoq.Benchmarks;
 
 /// <summary>
-/// Benchmarks for IN clause (Contains) optimization.
-/// Compares performance of array-based Contains vs HashSet-based lookups.
+///     Benchmarks for IN clause (Contains) optimization.
+///     Compares performance of array-based Contains vs HashSet-based lookups.
 /// </summary>
 [MemoryDiagnoser]
 [ShortRunJob]
 public class InClauseOptimizationBenchmark : BenchmarkBase
 {
-    private CompiledQuery _queryWithSmallInClause = null!;
-    private CompiledQuery _queryWithMediumInClause = null!;
-    private CompiledQuery _queryWithLargeInClause = null!;
-    private CompiledQuery _queryWithEqualityBaseline = null!;
-    private CompiledQuery _queryWithMultipleInClauses = null!;
-    
     private IReadOnlyList<ProfileEntity> _data = null!;
+    private CompiledQuery _queryWithEqualityBaseline = null!;
+    private CompiledQuery _queryWithLargeInClause = null!;
+    private CompiledQuery _queryWithMediumInClause = null!;
+    private CompiledQuery _queryWithMultipleInClauses = null!;
+    private CompiledQuery _queryWithSmallInClause = null!;
 
     [GlobalSetup]
     public void Setup()
     {
         var contentPath = Path.Combine(AppContext.BaseDirectory, "Data", "profiles.csv");
         _data = DataHelpers.ReadProfiles(contentPath).Take(10000).ToList();
-        
-        
+
+
         _queryWithEqualityBaseline = CreateQuery(
             "select FirstName, LastName, Gender from #A.Entities() where Gender = 'Male'");
-        
-        
+
+
         _queryWithSmallInClause = CreateQuery(
             "select FirstName, LastName, Animal from #A.Entities() where Animal in ('Dog', 'Cat', 'Bird')");
-        
-        
+
+
         _queryWithMediumInClause = CreateQuery(
             "select FirstName, LastName, Animal from #A.Entities() where Animal in ('Dog', 'Cat', 'Bird', 'Fish', 'Rabbit', 'Hamster', 'Snake', 'Turtle', 'Horse', 'Pig')");
-        
-        
+
+
         _queryWithLargeInClause = CreateQuery(
             "select FirstName, LastName, Email from #A.Entities() where Gender in ('Male', 'Female', 'Other', 'Unknown', 'Unspecified', 'Non-binary', 'Agender', 'Genderfluid', 'Bigender', 'Two-spirit', 'Androgyne', 'Neutrois', 'Pangender', 'Demigender', 'Genderqueer', 'Third-gender', 'All', 'None', 'Questioning', 'Prefer-not-to-say')");
-        
-        
+
+
         _queryWithMultipleInClauses = CreateQuery(
             "select FirstName, LastName from #A.Entities() where Gender in ('Male', 'Female') and Animal in ('Dog', 'Cat', 'Bird', 'Fish')");
     }
@@ -84,9 +83,9 @@ public class InClauseOptimizationBenchmark : BenchmarkBase
     {
         var sources = new Dictionary<string, IEnumerable<ProfileEntity>>
         {
-            {"#A", _data}
+            { "#A", _data }
         };
-        
+
         return CreateForProfilesWithOptions(script, sources, new CompilationOptions(ParallelizationMode.None));
     }
 }

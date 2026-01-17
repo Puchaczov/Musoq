@@ -11,7 +11,7 @@ public class SchemaMethodFromNode : FromNode
         Method = method;
         Id = $"{nameof(SchemaMethodFromNode)}{schema}{method}";
     }
-        
+
     public SchemaMethodFromNode(string alias, string schema, string method, Type returnType)
         : base(alias, returnType)
     {
@@ -35,7 +35,7 @@ public class SchemaMethodFromNode : FromNode
     {
         if (string.IsNullOrWhiteSpace(Alias))
             return $"{Schema}.{Method}";
-            
+
         return $"{Schema}.{Method} {Alias}";
     }
 }

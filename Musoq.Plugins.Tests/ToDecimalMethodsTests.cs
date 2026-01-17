@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
@@ -132,7 +131,7 @@ public class ToDecimalMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDecimal_WhenSByteProvided_ShouldReturnDecimal()
     {
-        var result = Library.ToDecimal((sbyte)100);
+        var result = Library.ToDecimal(100);
 
         Assert.AreEqual(100m, result);
     }
@@ -148,7 +147,7 @@ public class ToDecimalMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDecimal_WhenNegativeSByteProvided_ShouldReturnDecimal()
     {
-        var result = Library.ToDecimal((sbyte)-50);
+        var result = Library.ToDecimal(-50);
 
         Assert.AreEqual(-50m, result);
     }
@@ -160,7 +159,7 @@ public class ToDecimalMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDecimal_WhenShortProvided_ShouldReturnDecimal()
     {
-        var result = Library.ToDecimal((short)1000);
+        var result = Library.ToDecimal(1000);
 
         Assert.AreEqual(1000m, result);
     }
@@ -176,7 +175,7 @@ public class ToDecimalMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDecimal_WhenNegativeShortProvided_ShouldReturnDecimal()
     {
-        var result = Library.ToDecimal((short)-1000);
+        var result = Library.ToDecimal(-1000);
 
         Assert.AreEqual(-1000m, result);
     }
@@ -188,7 +187,7 @@ public class ToDecimalMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDecimal_WhenUShortProvided_ShouldReturnDecimal()
     {
-        var result = Library.ToDecimal((ushort)50000);
+        var result = Library.ToDecimal(50000);
 
         Assert.AreEqual(50000m, result);
     }
@@ -340,7 +339,7 @@ public class ToDecimalMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDecimal_WhenObjectDecimalProvided_ShouldReturnDecimal()
     {
-        var result = Library.ToDecimal((object)123.456m);
+        var result = Library.ToDecimal(123.456m);
 
         Assert.AreEqual(123.456m, result);
     }

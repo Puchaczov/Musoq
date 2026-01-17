@@ -3,7 +3,7 @@
 namespace Musoq.Plugins.Attributes;
 
 /// <summary>
-/// Represents a method argument that should be injected.
+///     Represents a method argument that should be injected.
 /// </summary>
 public abstract class InjectTypeAttribute : Attribute
 {

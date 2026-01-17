@@ -14,8 +14,8 @@ public class NodesTests
         ]);
 
         Assert.AreEqual("order by col1", node.ToString());
-    } 
-    
+    }
+
     [TestMethod]
     public void WhenOrderByDescendingNode_ShouldReturnString()
     {
@@ -25,7 +25,7 @@ public class NodesTests
 
         Assert.AreEqual("order by col1 desc", node.ToString());
     }
-    
+
     [TestMethod]
     public void WhenOrderByMultipleNodes_ShouldReturnString()
     {
@@ -36,7 +36,7 @@ public class NodesTests
 
         Assert.AreEqual("order by col1, col2", node.ToString());
     }
-    
+
     [TestMethod]
     public void WhenOrderByMultipleNodesWithDifferentOrder_ShouldReturnString()
     {

@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
+
 // ReSharper disable RedundantTypeArgumentsOfMethod
 
 namespace Musoq.Evaluator.Tests;
@@ -52,7 +53,6 @@ public class ArithmeticForMethodCallAndTypeSpecificOperationTests : BasicEntityT
     [TestMethod]
     public void WhenByteMethodCallAndULongUsed_ShouldHaveColumnOfThatType()
     {
-        
         TestMethodTemplate<ulong>("DoNothing(1ub) + 1ul", 2);
     }
 
@@ -61,7 +61,7 @@ public class ArithmeticForMethodCallAndTypeSpecificOperationTests : BasicEntityT
     {
         TestMethodTemplate<decimal>("DoNothing(1ub) + 1d", 2);
     }
-    
+
     [TestMethod]
     public void WhenSByteMethodCallAndByteUsed_ShouldHaveColumnOfThatType()
     {
@@ -109,7 +109,7 @@ public class ArithmeticForMethodCallAndTypeSpecificOperationTests : BasicEntityT
     {
         TestMethodTemplate<decimal>("DoNothing(1b) + 1d", 2);
     }
-    
+
     [TestMethod]
     public void WhenShortMethodCallAndByteUsed_ShouldHaveColumnOfThatType()
     {
@@ -157,7 +157,7 @@ public class ArithmeticForMethodCallAndTypeSpecificOperationTests : BasicEntityT
     {
         TestMethodTemplate<decimal>("DoNothing(1s) + 1d", 2);
     }
-    
+
     [TestMethod]
     public void WhenUShortMethodCallAndByteUsed_ShouldHaveColumnOfThatType()
     {
@@ -211,7 +211,7 @@ public class ArithmeticForMethodCallAndTypeSpecificOperationTests : BasicEntityT
     {
         TestMethodTemplate<decimal>("DoNothing(1us) + 1d", 2);
     }
-    
+
     [TestMethod]
     public void WhenIntMethodCallAndByteUsed_ShouldHaveColumnOfThatType()
     {
@@ -259,7 +259,7 @@ public class ArithmeticForMethodCallAndTypeSpecificOperationTests : BasicEntityT
     {
         TestMethodTemplate<decimal>("DoNothing(1) + 1d", 2);
     }
-    
+
     [TestMethod]
     public void WhenUIntMethodCallAndByteUsed_ShouldHaveColumnOfThatType()
     {
@@ -313,7 +313,7 @@ public class ArithmeticForMethodCallAndTypeSpecificOperationTests : BasicEntityT
     {
         TestMethodTemplate<decimal>("DoNothing(1ui) + 1d", 2);
     }
-    
+
     [TestMethod]
     public void WhenLongMethodCallAndByteUsed_ShouldHaveColumnOfThatType()
     {
@@ -361,7 +361,7 @@ public class ArithmeticForMethodCallAndTypeSpecificOperationTests : BasicEntityT
     {
         TestMethodTemplate<decimal>("DoNothing(1l) + 1d", 2);
     }
-    
+
     [TestMethod]
     public void WhenULongMethodCallAndByteUsed_ShouldHaveColumnOfThatType()
     {
@@ -391,7 +391,7 @@ public class ArithmeticForMethodCallAndTypeSpecificOperationTests : BasicEntityT
     {
         TestMethodTemplate<decimal>("DoNothing(1ul) + 1d", 2);
     }
-    
+
     [TestMethod]
     public void WhenDecimalMethodCallAndByteUsed_ShouldHaveColumnOfThatType()
     {

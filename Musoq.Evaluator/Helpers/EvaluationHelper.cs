@@ -1,33 +1,36 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 using Musoq.Evaluator.Tables;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins;
+using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
 using Musoq.Schema.Reflection;
+using Group = Musoq.Plugins.Group;
 
 namespace Musoq.Evaluator.Helpers;
 
 public static class EvaluationHelper
 {
     private static readonly ConcurrentDictionary<Type, string> CastableTypeCache = new();
+
     public static RowSource ConvertEnumerableToSource<T>(IEnumerable<T> enumerable)
     {
         if (typeof(T).IsPrimitive || typeof(T) == typeof(string))
-        {
             return new GenericRowsSource<PrimitiveTypeEntity<T>>(enumerable.Select(f => new PrimitiveTypeEntity<T>(f)));
-        }
-            
+
         return new GenericRowsSource<T>(enumerable);
     }
-        
+
     public static RowSource ConvertTableToSource(Table table, bool skipContext)
     {
         return new TableRowSource(table, skipContext);
@@ -47,13 +50,8 @@ public static class EvaluationHelper
         ]);
 
         foreach (var column in table.Columns)
-        {
-            foreach (var complexField in CreateTypeComplexDescription(column.ColumnName, column.ColumnType))
-            {
-                newTable.Add(new ObjectsRow([complexField.FieldName, column.ColumnIndex, complexField.Type.FullName]));
-            }
-                
-        }
+        foreach (var complexField in CreateTypeComplexDescription(column.ColumnName, column.ColumnType))
+            newTable.Add(new ObjectsRow([complexField.FieldName, column.ColumnIndex, complexField.Type.FullName]));
 
         return newTable;
     }
@@ -63,7 +61,8 @@ public static class EvaluationHelper
         return CreateTableFromConstructors(() => schema.GetRawConstructors(runtimeContext));
     }
 
-    public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName, RuntimeContext runtimeContext)
+    public static Table GetConstructorsForSpecificMethod(ISchema schema, string methodName,
+        RuntimeContext runtimeContext)
     {
         return CreateTableFromConstructors(() => schema.GetRawConstructors(methodName, runtimeContext));
     }
@@ -71,7 +70,7 @@ public static class EvaluationHelper
     public static Table GetMethodsForSchema(ISchema schema, RuntimeContext runtimeContext)
     {
         runtimeContext.EndWorkToken.ThrowIfCancellationRequested();
-        
+
         var libraryMethods = schema.GetAllLibraryMethods();
 
         var newTable = new Table("desc", [
@@ -80,23 +79,21 @@ public static class EvaluationHelper
         ]);
 
         foreach (var (methodName, methodInfos) in libraryMethods.OrderBy(kvp => kvp.Key))
+        foreach (var methodInfo in methodInfos)
         {
-            foreach (var methodInfo in methodInfos)
-            {
-                runtimeContext.EndWorkToken.ThrowIfCancellationRequested();
-                
-                var bindableAttr = methodInfo.GetCustomAttribute<Plugins.Attributes.BindableMethodAttribute>();
-                if (bindableAttr?.IsInternal == true)
-                    continue;
-                
-                if (methodInfo.GetCustomAttribute<Plugins.Attributes.AggregationSetMethodAttribute>() != null)
-                    continue;
-                
-                var signature = CSharpTypeNameHelper.FormatMethodSignature(methodInfo);
-                var description = GetXmlDocumentation(methodInfo);
-                
-                newTable.Add(new ObjectsRow([signature, description]));
-            }
+            runtimeContext.EndWorkToken.ThrowIfCancellationRequested();
+
+            var bindableAttr = methodInfo.GetCustomAttribute<BindableMethodAttribute>();
+            if (bindableAttr?.IsInternal == true)
+                continue;
+
+            if (methodInfo.GetCustomAttribute<AggregationSetMethodAttribute>() != null)
+                continue;
+
+            var signature = CSharpTypeNameHelper.FormatMethodSignature(methodInfo);
+            var description = GetXmlDocumentation(methodInfo);
+
+            newTable.Add(new ObjectsRow([signature, description]));
         }
 
         return newTable;
@@ -114,8 +111,8 @@ public static class EvaluationHelper
             if (string.IsNullOrEmpty(assemblyPath))
                 return string.Empty;
 
-            var xmlPath = System.IO.Path.ChangeExtension(assemblyPath, ".xml");
-            if (!System.IO.File.Exists(xmlPath))
+            var xmlPath = Path.ChangeExtension(assemblyPath, ".xml");
+            if (!File.Exists(xmlPath))
                 return string.Empty;
 
             var xmlDoc = new XmlDocument();
@@ -123,13 +120,13 @@ public static class EvaluationHelper
 
             var memberName = GetMemberName(methodInfo);
             var node = xmlDoc.SelectSingleNode($"//member[@name='{memberName}']/summary");
-            
+
             if (node == null)
                 return string.Empty;
 
             var text = node.InnerText.Trim();
-            text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ");
-            
+            text = Regex.Replace(text, @"\s+", " ");
+
             return text;
         }
         catch
@@ -151,18 +148,19 @@ public static class EvaluationHelper
         sb.Append(method.Name);
 
         var parameters = method.GetParameters();
-        if (parameters.Length <= 0) 
+        if (parameters.Length <= 0)
             return sb.ToString();
-        
+
         sb.Append('(');
-        for (int i = 0; i < parameters.Length; i++)
+        for (var i = 0; i < parameters.Length; i++)
         {
             if (i > 0)
                 sb.Append(',');
-                
+
             var paramType = parameters[i].ParameterType;
             sb.Append(GetTypeName(paramType));
         }
+
         sb.Append(')');
 
         return sb.ToString();
@@ -181,12 +179,11 @@ public static class EvaluationHelper
             return $"{genericTypeName}{{{string.Join(",", genericArgs.Select(GetTypeName))}}}";
         }
 
-        if (!type.IsArray) 
+        if (!type.IsArray)
             return type.FullName ?? type.Name;
-        
+
         var elementType = type.GetElementType();
         return GetTypeName(elementType) + "[]";
-
     }
 
     private static Table CreateTableFromConstructors(Func<SchemaMethodInfo[]> getConstructors)
@@ -205,35 +202,23 @@ public static class EvaluationHelper
                 maxColumns = constructor.ConstructorInfo.Arguments.Length;
 
             foreach (var param in constructor.ConstructorInfo.Arguments)
-            {
                 row.Add($"{param.Name}: {param.Type.FullName}");
-            }
         }
 
         maxColumns += 1;
 
         foreach (var row in values)
-        {
             if (maxColumns > row.Count)
-            {
                 row.AddRange(new string[maxColumns - row.Count]);
-            }
-        }
 
         var columns = new Column[maxColumns];
         columns[0] = new Column("Name", typeof(string), 0);
 
-        for (int i = 1; i < columns.Length; i++)
-        {
-            columns[i] = new Column($"Param {i - 1}", typeof(string), i);
-        }
+        for (var i = 1; i < columns.Length; i++) columns[i] = new Column($"Param {i - 1}", typeof(string), i);
 
         var descTable = new Table("desc", columns);
 
-        foreach (var row in values)
-        {
-            descTable.Add(new ObjectsRow(row.ToArray()));
-        }
+        foreach (var row in values) descTable.Add(new ObjectsRow(row.ToArray()));
 
         return descTable;
     }
@@ -251,7 +236,7 @@ public static class EvaluationHelper
         {
             var current = fields.Dequeue();
 
-            if(current.Level > 3)
+            if (current.Level > 3)
                 continue;
 
             if (current.Type.IsPrimitive || current.Type == typeof(string) || current.Type == typeof(object))
@@ -262,13 +247,14 @@ public static class EvaluationHelper
                 if (prop.MemberType != MemberTypes.Property)
                     continue;
 
-                if (prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) || prop.PropertyType == typeof(object))
+                if (prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) ||
+                    prop.PropertyType == typeof(object))
                     continue;
 
                 var complexName = $"{current.FieldName}.{prop.Name}";
                 output.Add((complexName, prop.PropertyType));
 
-                if(prop.PropertyType == current.Type)
+                if (prop.PropertyType == current.Type)
                     continue;
 
                 fields.Enqueue((complexName, prop.PropertyType, current.Level + 1));
@@ -281,8 +267,8 @@ public static class EvaluationHelper
     public static string GetCastableType(Type type)
     {
         if (type is NullNode.NullType) return "object";
-        
-        
+
+
         if (type == typeof(string)) return "string";
         if (type == typeof(int)) return "int";
         if (type == typeof(long)) return "long";
@@ -300,10 +286,10 @@ public static class EvaluationHelper
         if (type == typeof(object)) return "object";
         if (type == typeof(void)) return "void";
 
-        
+
         return CastableTypeCache.GetOrAdd(type, ComputeCastableType);
     }
-    
+
     private static string ComputeCastableType(Type type)
     {
         if (type.IsGenericType) return GetFriendlyTypeName(type);
@@ -316,7 +302,7 @@ public static class EvaluationHelper
     {
         if (type == null)
             throw new ArgumentNullException(nameof(type), @"Type cannot be null");
-            
+
         if (!type.IsGenericType)
             return [type];
 
@@ -438,35 +424,69 @@ public static class EvaluationHelper
 
         return Type.GetType(typeName);
     }
-        
+
+    /// <summary>
+    ///     Flattens multiple context arrays into a single array, handling null contexts by inserting a null value.
+    /// </summary>
+    /// <param name="contexts">The context arrays to flatten.</param>
+    /// <returns>
+    ///     A single flattened array containing all context objects from the input arrays, with nulls for any null context
+    ///     arrays.
+    /// </returns>
+    public static object[] FlattenContexts(params object[][] contexts)
+    {
+        var size = 0;
+        for (var i = 0; i < contexts.Length; i++)
+            if (contexts[i] != null)
+                size += contexts[i].Length;
+            else
+                size += 1;
+
+        var result = new object[size];
+        var offset = 0;
+        for (var i = 0; i < contexts.Length; i++)
+            if (contexts[i] != null)
+            {
+                Array.Copy(contexts[i], 0, result, offset, contexts[i].Length);
+                offset += contexts[i].Length;
+            }
+            else
+            {
+                result[offset++] = null;
+            }
+
+        return result;
+    }
+
     private class GenericRowsSource<T>(IEnumerable<T> entities) : RowSource
     {
+        static GenericRowsSource()
+        {
+            var type = typeof(T);
+            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            var nameToIndexMap = new Dictionary<string, int>();
+            var indexToObjectAccessMap = new Dictionary<int, Func<T, object>>();
+
+            for (var i = 0; i < properties.Length; i++)
+            {
+                var property = properties[i];
+
+                nameToIndexMap.Add(property.Name, i);
+                indexToObjectAccessMap.Add(i, entity => property.GetValue(entity));
+            }
+
+            NameToIndexMap = nameToIndexMap;
+            IndexToObjectAccessMap = indexToObjectAccessMap;
+        }
+
         // ReSharper disable once StaticMemberInGenericType
         private static IReadOnlyDictionary<string, int> NameToIndexMap { get; }
 
         private static IReadOnlyDictionary<int, Func<T, object>> IndexToObjectAccessMap { get; }
 
-        public override IEnumerable<IObjectResolver> Rows => entities.Select(entity => new EntityResolver<T>(entity, NameToIndexMap, IndexToObjectAccessMap));
-
-        static GenericRowsSource()
-        {
-            var type = typeof(T);
-            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        
-            var nameToIndexMap = new Dictionary<string, int>();
-            var indexToObjectAccessMap = new Dictionary<int, Func<T, object>>();
-        
-            for (var i = 0; i < properties.Length; i++)
-            {
-                var property = properties[i];
-            
-                nameToIndexMap.Add(property.Name, i);
-                indexToObjectAccessMap.Add(i, entity => property.GetValue(entity));
-            }
-        
-            NameToIndexMap = nameToIndexMap;
-            IndexToObjectAccessMap = indexToObjectAccessMap;
-        }
+        public override IEnumerable<IObjectResolver> Rows => entities.Select(entity =>
+            new EntityResolver<T>(entity, NameToIndexMap, IndexToObjectAccessMap));
     }
 
     private class ListRowSource(List<Group> list) : RowSource
@@ -486,39 +506,5 @@ public static class EvaluationHelper
         {
             return false;
         }
-    }
-
-    /// <summary>
-    /// Flattens multiple context arrays into a single array, handling null contexts by inserting a null value.
-    /// </summary>
-    /// <param name="contexts">The context arrays to flatten.</param>
-    /// <returns>A single flattened array containing all context objects from the input arrays, with nulls for any null context arrays.</returns>
-    public static object[] FlattenContexts(params object[][] contexts)
-    {
-        var size = 0;
-        for (var i = 0; i < contexts.Length; i++)
-        {
-            if (contexts[i] != null)
-                size += contexts[i].Length;
-            else
-                size += 1;
-        }
-
-        var result = new object[size];
-        var offset = 0;
-        for (var i = 0; i < contexts.Length; i++)
-        {
-            if (contexts[i] != null)
-            {
-                Array.Copy(contexts[i], 0, result, offset, contexts[i].Length);
-                offset += contexts[i].Length;
-            }
-            else
-            {
-                result[offset++] = null;
-            }
-        }
-
-        return result;
     }
 }

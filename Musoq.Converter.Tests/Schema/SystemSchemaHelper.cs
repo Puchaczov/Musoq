@@ -12,12 +12,12 @@ public static class SystemSchemaHelper
     {
         FlatNameToIndexMap = new Dictionary<string, int>
         {
-            {nameof(DualEntity.Dummy), 0}
+            { nameof(DualEntity.Dummy), 0 }
         };
 
         FlatIndexToMethodAccessMap = new Dictionary<int, Func<DualEntity, object>>
         {
-            {0, info => info.Dummy}
+            { 0, info => info.Dummy }
         };
     }
 }

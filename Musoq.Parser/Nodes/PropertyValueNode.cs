@@ -21,8 +21,8 @@ public class PropertyValueNode : IdentifierNode
     public override Type ReturnType => PropertyInfo?.PropertyType;
 
     public override string Id { get; }
-        
-    public PropertyInfo PropertyInfo { get; private set; }
+
+    public PropertyInfo PropertyInfo { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {

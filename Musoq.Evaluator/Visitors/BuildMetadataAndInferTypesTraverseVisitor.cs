@@ -14,7 +14,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 {
     private readonly Stack<Scope> _scopes = new();
     private readonly IAwareExpressionVisitor _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
-        
+
     private IdentifierNode _theMostInnerIdentifier;
 
     public Scope Scope { get; private set; } = new(null, -1, "Root");
@@ -148,28 +148,24 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
             {
                 var tableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(ident.Name);
                 var columnInfo = tableSymbol?.GetColumnByAliasAndName(ident.Name, arrayNode.ObjectName);
-                
+
                 if (columnInfo != null)
                 {
                     var enhancedArrayNode = new AccessObjectArrayNode(
-                        arrayNode.Token, 
-                        columnInfo.ColumnType, 
+                        arrayNode.Token,
+                        columnInfo.ColumnType,
                         ident.Name
                     );
                     enhancedArrayNode.Accept(_visitor);
                     return;
                 }
             }
-            
+
             IdentifierNode column = null;
             if (theMostOuter.Expression is DotNode dotNode)
-            {
                 column = dotNode.Root as IdentifierNode;
-            }
             else
-            {
                 column = theMostOuter.Expression as IdentifierNode;
-            }
 
             if (column != null)
             {
@@ -182,19 +178,14 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         if (_theMostInnerIdentifier is null)
         {
             _theMostInnerIdentifier = node.Expression as IdentifierNode;
-            if (_theMostInnerIdentifier != null)
-            {
-                setTheMostInnerIdentifier = true;
-            }
+            if (_theMostInnerIdentifier != null) setTheMostInnerIdentifier = true;
         }
 
         if (_theMostInnerIdentifier is not null && setTheMostInnerIdentifier)
-        {
             _visitor.SetTheMostInnerIdentifierOfDotNode(_theMostInnerIdentifier);
-        }
 
         self = node;
-            
+
         while (self is not null)
         {
             self.Root.Accept(this);
@@ -203,7 +194,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
             self = self.Expression as DotNode;
         }
-            
+
         if (_theMostInnerIdentifier is not null && setTheMostInnerIdentifier)
         {
             _visitor.SetTheMostInnerIdentifierOfDotNode(null);
@@ -497,19 +488,19 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     public virtual void Visit(QueryNode node)
     {
         LoadQueryScope();
-            
+
         SetQueryPart(QueryPart.From);
         node.From.Accept(this);
-            
+
         SetQueryPart(QueryPart.Where);
         node.Where?.Accept(this);
-            
+
         SetQueryPart(QueryPart.GroupBy);
         node.GroupBy?.Accept(this);
-            
+
         SetQueryPart(QueryPart.Select);
         node.Select.Accept(this);
-            
+
         node.Skip?.Accept(this);
         node.Take?.Accept(this);
         node.OrderBy?.Accept(this);
@@ -749,10 +740,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     public virtual void Visit(CteExpressionNode node)
     {
         LoadScope("CTE");
-        foreach (var exp in node.InnerExpression)
-        {
-            exp.Accept(this);
-        }
+        foreach (var exp in node.InnerExpression) exp.Accept(this);
         node.OuterExpression.Accept(this);
         node.Accept(_visitor);
         RestoreScope();
@@ -780,46 +768,12 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
-    private void LoadQueryScope()
-    {
-        LoadScope("Query");
-        _visitor.QueryBegins();
-    }
-        
-    private void EndQueryScope()
-    {
-        _visitor.QueryEnds();
-    }
-
-    private void LoadScope(string name)
-    {
-        var newScope = Scope.AddScope(name);
-        _scopes.Push(Scope);
-        Scope = newScope;
-        
-        _visitor.SetScope(newScope);
-    }
-
-    private void RestoreScope()
-    {
-        Scope = _scopes.Pop();
-        _visitor.SetScope(Scope);
-    }
-
     public virtual void Visit(OrderByNode node)
     {
         foreach (var field in node.Fields)
             field.Accept(this);
 
         node.Accept(_visitor);
-    }
-
-    private void TraverseSetOperator(SetOperatorNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-        RestoreScope();
     }
 
     public virtual void SetQueryPart(QueryPart part)
@@ -863,9 +817,9 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     }
 
     public virtual void Visit(CaseNode node)
-    {   
+    {
         node.Else.Accept(this);
-            
+
         for (var i = node.WhenThenPairs.Length - 1; i >= 0; --i)
         {
             node.WhenThenPairs[i].When.Accept(this);
@@ -906,5 +860,39 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     public virtual void QueryEnds()
     {
         _visitor.QueryEnds();
+    }
+
+    private void LoadQueryScope()
+    {
+        LoadScope("Query");
+        _visitor.QueryBegins();
+    }
+
+    private void EndQueryScope()
+    {
+        _visitor.QueryEnds();
+    }
+
+    private void LoadScope(string name)
+    {
+        var newScope = Scope.AddScope(name);
+        _scopes.Push(Scope);
+        Scope = newScope;
+
+        _visitor.SetScope(newScope);
+    }
+
+    private void RestoreScope()
+    {
+        Scope = _scopes.Pop();
+        _visitor.SetScope(Scope);
+    }
+
+    private void TraverseSetOperator(SetOperatorNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+        RestoreScope();
     }
 }

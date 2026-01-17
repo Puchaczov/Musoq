@@ -25,7 +25,7 @@ public static class RuntimeLibraries
         {
             if (_hasLoadedReferences)
                 return _references;
-            
+
             CreateReferences();
             ManualResetEvent.WaitOne();
 
@@ -43,7 +43,7 @@ public static class RuntimeLibraries
 
         lock (LockGuard)
         {
-            if(_readInProgress)
+            if (_readInProgress)
                 return;
 
             _readInProgress = true;
@@ -56,10 +56,7 @@ public static class RuntimeLibraries
                     var path = new FileInfo(objLocation);
                     var directory = path.Directory;
 
-                    if (directory is null)
-                    {
-                        return;
-                    }
+                    if (directory is null) return;
 
                     var essentialAssemblies = new[]
                     {
@@ -80,12 +77,12 @@ public static class RuntimeLibraries
                         .ToList();
 
                     var references = new List<MetadataReference>(files.Count);
-                    
+
                     foreach (var file in files)
                     {
                         if (file.Name.Contains("native", StringComparison.InvariantCultureIgnoreCase))
                             continue;
-                            
+
                         try
                         {
                             references.Add(MetadataReferenceCache.GetOrCreate(file.FullName));

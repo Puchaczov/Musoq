@@ -22,22 +22,18 @@ public class DynamicSource : RowSourceBase<dynamic>
         var indexToNameMap = new Dictionary<int, string>();
 
         if (_values.First() is IDictionary<string, object> dict)
-        {
             indexToNameMap = dict.ToDictionary(_ => index++, f => f.Key);
-        }
 
         if (_values.First().GetType() is Type type &&
             type.GetCustomAttributes(typeof(DynamicObjectPropertyTypeHintAttribute), true).Any())
-        {
             indexToNameMap = type.GetCustomAttributes(typeof(DynamicObjectPropertyTypeHintAttribute), true)
                 .Cast<DynamicObjectPropertyTypeHintAttribute>()
                 .ToDictionary(_ => index++, f => f.Name);
-        }
-        
+
         chunkedSource.Add(_values.Select(dynamic =>
         {
             if (dynamic is IDictionary<string, object> accessMap)
-                return (IObjectResolver) new DynamicDictionaryResolver(accessMap, indexToNameMap);
+                return (IObjectResolver)new DynamicDictionaryResolver(accessMap, indexToNameMap);
 
             return new DynamicObjectResolver(dynamic, indexToNameMap);
         }).ToList());

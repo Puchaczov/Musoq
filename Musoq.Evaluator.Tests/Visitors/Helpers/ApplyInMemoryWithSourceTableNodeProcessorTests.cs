@@ -4,8 +4,8 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors.Helpers;
-using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Tests.Visitors.Helpers;
 

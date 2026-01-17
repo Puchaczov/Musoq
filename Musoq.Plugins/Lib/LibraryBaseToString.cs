@@ -8,7 +8,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -23,7 +23,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -35,7 +35,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="format">The format</param>
@@ -48,7 +48,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="format">The format</param>
@@ -62,7 +62,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -74,7 +74,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="format">The format</param>
@@ -87,7 +87,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -99,7 +99,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="format">The format</param>
@@ -112,7 +112,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -124,7 +124,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="format">The format</param>
@@ -137,7 +137,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -149,7 +149,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="format">The format</param>
@@ -162,7 +162,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -174,7 +174,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="format">The format</param>
@@ -187,7 +187,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -199,7 +199,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="format">The format</param>
@@ -212,7 +212,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -224,7 +224,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="format">The format</param>
@@ -237,7 +237,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -249,7 +249,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="format">The format</param>
@@ -262,7 +262,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -274,7 +274,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="format">The format</param>
@@ -287,7 +287,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -299,7 +299,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -314,7 +314,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -327,7 +327,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -343,16 +343,13 @@ public partial class LibraryBase
             builder.Append(',');
         }
 
-        if (value.Length > 0)
-        {
-            builder.Append(value[^1]);
-        }
+        if (value.Length > 0) builder.Append(value[^1]);
 
         return builder.ToString();
     }
 
     /// <summary>
-    /// Converts given value to string
+    ///     Converts given value to string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to string value</returns>
@@ -368,10 +365,7 @@ public partial class LibraryBase
             builder.Append(',');
         }
 
-        if (value.Length > 0)
-        {
-            builder.Append(value[^1]);
-        }
+        if (value.Length > 0) builder.Append(value[^1]);
 
         return builder.ToString();
     }

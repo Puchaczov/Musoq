@@ -9,36 +9,29 @@ namespace Musoq.Evaluator.Visitors;
 
 public class RewriteToUpdatedColumnAccess(IReadOnlyDictionary<string, string> usedTables) : CloneQueryVisitor
 {
-    private WhereNode _where;
-        
     private FromNode _from;
-        
+    private WhereNode _where;
+
     public WhereNode Where
     {
-        get 
+        get
         {
-            if (_where is not null) 
-            {
-                return _where;
-            }
-                
-            _where = (WhereNode) Nodes.Pop();
-                
+            if (_where is not null) return _where;
+
+            _where = (WhereNode)Nodes.Pop();
+
             return _where;
         }
     }
-        
-    public FromNode From 
+
+    public FromNode From
     {
-        get 
+        get
         {
-            if (_from is not null) 
-            {
-                return _from;
-            }
-                
-            _from = (FromNode) Nodes.Pop();
-                
+            if (_from is not null) return _from;
+
+            _from = (FromNode)Nodes.Pop();
+
             return _from;
         }
     }
@@ -57,12 +50,10 @@ public class RewriteToUpdatedColumnAccess(IReadOnlyDictionary<string, string> us
             ? new Parser.PropertyFromNode(node.Alias, alias, node.PropertiesChain.Select((p, i) =>
             {
                 if (i == 0)
-                {
                     return p with
                     {
                         PropertyName = NamingHelper.ToColumnName(node.SourceAlias, p.PropertyName)
                     };
-                }
 
                 return p;
             }).ToArray())

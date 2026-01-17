@@ -34,10 +34,10 @@ public class FieldNode : Node
         var expression = Expression.ToString();
         if (_fieldName == expression)
             return Expression.ToString();
-            
+
         if (string.IsNullOrEmpty(_fieldName))
             return Expression.ToString();
-        
+
         return $"{Expression.ToString()} as {_fieldName}";
     }
 }

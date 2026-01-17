@@ -9,24 +9,24 @@ namespace Musoq.Benchmarks;
 
 public class DistinctBenchmark : BenchmarkBase
 {
-    private readonly CompiledQuery _distinctSingleColumn;
-    private readonly CompiledQuery _groupBySingleColumn;
-    private readonly CompiledQuery _distinctMultipleColumns;
-    private readonly CompiledQuery _groupByMultipleColumns;
-    private readonly CompiledQuery _distinctWithFilter;
-    private readonly CompiledQuery _groupByWithFilter;
     private readonly CompiledQuery _distinctHighCardinality;
-    private readonly CompiledQuery _groupByHighCardinality;
     private readonly CompiledQuery _distinctLowCardinality;
+    private readonly CompiledQuery _distinctMultipleColumns;
+    private readonly CompiledQuery _distinctSingleColumn;
+    private readonly CompiledQuery _distinctWithFilter;
+    private readonly CompiledQuery _groupByHighCardinality;
     private readonly CompiledQuery _groupByLowCardinality;
-    
+    private readonly CompiledQuery _groupByMultipleColumns;
+    private readonly CompiledQuery _groupBySingleColumn;
+    private readonly CompiledQuery _groupByWithFilter;
+
     public DistinctBenchmark()
     {
         var contentPath = Path.Combine(AppContext.BaseDirectory, "Data", "profiles.csv");
         var data = DataHelpers.ReadProfiles(contentPath).ToList();
         var sources = new Dictionary<string, IEnumerable<ProfileEntity>>
         {
-            {"#A", data}
+            { "#A", data }
         };
 
         _distinctSingleColumn = CreateForProfilesWithOptions(

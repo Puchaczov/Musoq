@@ -15,12 +15,12 @@ using Musoq.Schema;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Emitter for generating the final C# class that implements IRunnable.
+///     Emitter for generating the final C# class that implements IRunnable.
 /// </summary>
 public static class ClassEmitter
 {
     /// <summary>
-    /// Creates the in-memory table results field declaration.
+    ///     Creates the in-memory table results field declaration.
     /// </summary>
     /// <param name="tableCount">The number of in-memory tables.</param>
     /// <returns>A field declaration for the _tableResults array.</returns>
@@ -46,7 +46,7 @@ public static class ClassEmitter
     }
 
     /// <summary>
-    /// Creates the class declaration with all members and base types.
+    ///     Creates the class declaration with all members and base types.
     /// </summary>
     public static SyntaxNode CreateClassDeclaration(
         SyntaxGenerator generator,
@@ -54,20 +54,20 @@ public static class ClassEmitter
         IList<SyntaxNode> members)
     {
         return generator.ClassDeclaration(
-            className, 
-            [], 
+            className,
+            [],
             Accessibility.Public,
             DeclarationModifiers.None,
             null,
             [
                 SyntaxFactory.IdentifierName(nameof(BaseOperations)),
                 SyntaxFactory.IdentifierName(nameof(IRunnable))
-            ], 
+            ],
             members);
     }
 
     /// <summary>
-    /// Creates the namespace declaration containing the class.
+    ///     Creates the namespace declaration containing the class.
     /// </summary>
     public static NamespaceDeclarationSyntax CreateNamespaceDeclaration(
         string namespaceName,
@@ -83,7 +83,7 @@ public static class ClassEmitter
     }
 
     /// <summary>
-    /// Creates the compilation unit containing the namespace.
+    ///     Creates the compilation unit containing the namespace.
     /// </summary>
     public static CompilationUnitSyntax CreateCompilationUnit(NamespaceDeclarationSyntax ns)
     {
@@ -95,7 +95,7 @@ public static class ClassEmitter
     }
 
     /// <summary>
-    /// Formats the compilation unit with standard C# formatting options.
+    ///     Formats the compilation unit with standard C# formatting options.
     /// </summary>
     public static SyntaxNode FormatCompilationUnit(CompilationUnitSyntax compilationUnit, Workspace workspace)
     {
@@ -110,27 +110,29 @@ public static class ClassEmitter
     }
 
     /// <summary>
-    /// Creates a syntax tree from the formatted code.
+    ///     Creates a syntax tree from the formatted code.
     /// </summary>
     public static SyntaxTree CreateSyntaxTree(SyntaxNode formattedCode)
     {
         return SyntaxFactory.ParseSyntaxTree(
             formattedCode.ToFullString(),
-            new CSharpParseOptions(LanguageVersion.CSharp8), 
-            null, 
+            new CSharpParseOptions(LanguageVersion.CSharp8),
+            null,
             Encoding.ASCII);
     }
 
     /// <summary>
-    /// Adds the standard IRunnable members (properties and Run method).
+    ///     Adds the standard IRunnable members (properties and Run method).
     /// </summary>
     public static void AddRunnableMembers(
         IList<SyntaxNode> members,
         string methodCallExpression)
     {
         var method = MethodDeclarationHelper.CreateRunMethod(methodCallExpression);
-        var providerParam = MethodDeclarationHelper.CreatePublicProperty(nameof(ISchemaProvider), nameof(IRunnable.Provider));
-        var positionalEnvironmentVariablesParam = MethodDeclarationHelper.CreatePositionalEnvironmentVariablesProperty();
+        var providerParam =
+            MethodDeclarationHelper.CreatePublicProperty(nameof(ISchemaProvider), nameof(IRunnable.Provider));
+        var positionalEnvironmentVariablesParam =
+            MethodDeclarationHelper.CreatePositionalEnvironmentVariablesProperty();
         var queriesInformationParam = MethodDeclarationHelper.CreateQueriesInformationProperty();
         var loggerParam = MethodDeclarationHelper.CreatePublicProperty(nameof(ILogger), nameof(IRunnable.Logger));
         var phaseChangedEvent = MethodDeclarationHelper.CreatePhaseChangedEvent();

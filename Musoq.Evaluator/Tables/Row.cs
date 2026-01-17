@@ -1,15 +1,13 @@
-﻿using Musoq.Schema;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Text;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tables;
 
 [DebuggerDisplay("{DebugInfo()}")]
 public abstract class Row : IEquatable<Row>, IValue<Key>, IReadOnlyRow
 {
-    public abstract object this[int columnNumber] { get; }
-
     public abstract int Count { get; }
 
     public abstract object[] Values { get; }
@@ -31,6 +29,8 @@ public abstract class Row : IEquatable<Row>, IValue<Key>, IReadOnlyRow
 
         return isEqual;
     }
+
+    public abstract object this[int columnNumber] { get; }
 
     public bool FitsTheIndex(Key key)
     {

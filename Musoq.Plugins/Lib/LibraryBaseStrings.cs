@@ -6,20 +6,36 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
+using Fastenshtein;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
-    private readonly Soundex _soundex = new();
-    
     private static readonly char[] Separator = ['\n'];
-    
+
     private static readonly ConcurrentDictionary<string, Regex> StringRegexCache = new();
 
+    private static readonly Dictionary<char, string> MorseCodeMap = new()
+    {
+        { 'A', ".-" }, { 'B', "-..." }, { 'C', "-.-." }, { 'D', "-.." }, { 'E', "." },
+        { 'F', "..-." }, { 'G', "--." }, { 'H', "...." }, { 'I', ".." }, { 'J', ".---" },
+        { 'K', "-.-" }, { 'L', ".-.." }, { 'M', "--" }, { 'N', "-." }, { 'O', "---" },
+        { 'P', ".--." }, { 'Q', "--.-" }, { 'R', ".-." }, { 'S', "..." }, { 'T', "-" },
+        { 'U', "..-" }, { 'V', "...-" }, { 'W', ".--" }, { 'X', "-..-" }, { 'Y', "-.--" },
+        { 'Z', "--.." }, { '0', "-----" }, { '1', ".----" }, { '2', "..---" }, { '3', "...--" },
+        { '4', "....-" }, { '5', "....." }, { '6', "-...." }, { '7', "--..." }, { '8', "---.." },
+        { '9', "----." }, { ' ', "/" }
+    };
+
+    private static readonly Dictionary<string, char> ReverseMorseCodeMap =
+        MorseCodeMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+
+    private readonly Soundex _soundex = new();
+
     /// <summary>
-    /// Gets the new identifier
+    ///     Gets the new identifier
     /// </summary>
     /// <returns>New identifier</returns>
     [BindableMethod]
@@ -29,9 +45,9 @@ public partial class LibraryBase
     {
         return Guid.NewGuid().ToString();
     }
-        
+
     /// <summary>
-    /// Removes leading and trailing whitespace from a string.
+    ///     Removes leading and trailing whitespace from a string.
     /// </summary>
     /// <param name="value">The string to trim.</param>
     /// <returns>The trimmed string.</returns>
@@ -41,9 +57,9 @@ public partial class LibraryBase
     {
         return value?.Trim();
     }
-        
+
     /// <summary>
-    /// Removes leading whitespace from a string.
+    ///     Removes leading whitespace from a string.
     /// </summary>
     /// <param name="value">The string to trim.</param>
     /// <returns>The trimmed string.</returns>
@@ -53,9 +69,9 @@ public partial class LibraryBase
     {
         return value?.TrimStart();
     }
-        
+
     /// <summary>
-    /// Removes trailing whitespace from a string.
+    ///     Removes trailing whitespace from a string.
     /// </summary>
     /// <param name="value">The string to trim.</param>
     /// <returns>The trimmed string.</returns>
@@ -67,7 +83,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the substring from the string.
+    ///     Gets the substring from the string.
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="index">The index</param>
@@ -90,13 +106,13 @@ public partial class LibraryBase
         var computedLastIndex = index + (length - 1);
 
         if (valueLastIndex < computedLastIndex)
-            length = ((value.Length - 1) - index) + 1;
-            
+            length = value.Length - 1 - index + 1;
+
         return length is null ? null : value.Substring(index.Value, length.Value);
     }
 
     /// <summary>
-    /// Gets the substring from the string
+    ///     Gets the substring from the string
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="length">The length</param>
@@ -107,9 +123,9 @@ public partial class LibraryBase
     {
         return Substring(value, 0, length);
     }
-        
+
     /// <summary>
-    /// Concatenates the specified values
+    ///     Concatenates the specified values
     /// </summary>
     /// <param name="strings">The strings</param>
     /// <returns>Concatenated values</returns>
@@ -129,7 +145,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Concatenates the specified characters
+    ///     Concatenates the specified characters
     /// </summary>
     /// <param name="characters">The characters</param>
     /// <returns>Concatenated characters</returns>
@@ -149,7 +165,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Concatenates specified string first characters
+    ///     Concatenates specified string first characters
     /// </summary>
     /// <param name="firstString">The string</param>
     /// <param name="chars">The characters</param>
@@ -172,7 +188,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Concatenate specific character with strings
+    ///     Concatenate specific character with strings
     /// </summary>
     /// <param name="firstChar">The character</param>
     /// <param name="strings">The strings</param>
@@ -193,7 +209,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Concatenates the specified strings
+    ///     Concatenates the specified strings
     /// </summary>
     /// <param name="objects">The objects</param>
     /// <returns>Concatenated string</returns>
@@ -213,7 +229,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Concatenates the specified strings
+    ///     Concatenates the specified strings
     /// </summary>
     /// <param name="objects">The objects</param>
     /// <returns>Concatenated string</returns>
@@ -233,7 +249,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Determine whether the string contains the specified value
+    ///     Determine whether the string contains the specified value
     /// </summary>
     /// <param name="content">The content</param>
     /// <param name="what">The what</param>
@@ -249,7 +265,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Position of the first occurrence of the specified value
+    ///     Position of the first occurrence of the specified value
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="text">The text</param>
@@ -265,7 +281,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Position of the nth occurrence of the specified value
+    ///     Position of the nth occurrence of the specified value
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="text">The text</param>
@@ -277,30 +293,30 @@ public partial class LibraryBase
     {
         if (value == null || text == null || index < 0)
             return null;
-        
+
         var searchText = text;
         if (string.IsNullOrEmpty(searchText))
             return null;
-    
+
         var count = 0;
         var position = -1;
 
         do
         {
             position = value.IndexOf(searchText, position + 1, StringComparison.Ordinal);
-        
+
             if (position == -1)
                 return null;
-            
+
             if (count == index)
                 return position;
-            
+
             count++;
         } while (true);
     }
-    
+
     /// <summary>
-    /// Position of the last occurrence of the specified pattern
+    ///     Position of the last occurrence of the specified pattern
     /// </summary>
     /// <param name="value">The content to search in</param>
     /// <param name="text">The pattern to find</param>
@@ -311,13 +327,13 @@ public partial class LibraryBase
     {
         if (value == null || text == null || text.Length == 0)
             return null;
-        
+
         var position = value.LastIndexOf(text, StringComparison.Ordinal);
         return position == -1 ? null : position;
     }
 
     /// <summary>
-    /// Computes soundex for the specified value
+    ///     Computes soundex for the specified value
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Soundex code</returns>
@@ -332,7 +348,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Matches the specified text by splitting it with separator and applying fuzzy comparison 
+    ///     Matches the specified text by splitting it with separator and applying fuzzy comparison
     /// </summary>
     /// <param name="text">The text</param>
     /// <param name="word">The word</param>
@@ -349,19 +365,17 @@ public partial class LibraryBase
             return false;
 
         var soundExWord = _soundex.For(word);
-        var square = (int) Math.Ceiling(Math.Sqrt(word.Length));
+        var square = (int)Math.Ceiling(Math.Sqrt(word.Length));
 
         foreach (var tokenizedWord in text.Split(separator[0]))
-        {
             if (soundExWord == _soundex.For(tokenizedWord) || LevenshteinDistance(word, tokenizedWord) <= square)
                 return true;
-        }
 
         return false;
     }
 
     /// <summary>
-    /// Matches the specified text by splitting it with separator and applying fuzzy comparison with a given distance
+    ///     Matches the specified text by splitting it with separator and applying fuzzy comparison with a given distance
     /// </summary>
     /// <param name="text">The text</param>
     /// <param name="word">The word</param>
@@ -370,7 +384,8 @@ public partial class LibraryBase
     /// <returns>True if matches, otherwise false</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
-    public bool HasWordThatHasSmallerLevenshteinDistanceThan(string text, string word, int distance, string separator = " ")
+    public bool HasWordThatHasSmallerLevenshteinDistanceThan(string text, string word, int distance,
+        string separator = " ")
     {
         if (string.IsNullOrEmpty(word))
             return false;
@@ -379,16 +394,14 @@ public partial class LibraryBase
             return false;
 
         foreach (var tokenizedWord in text.Split(separator[0]))
-        {
             if (tokenizedWord == word || LevenshteinDistance(tokenizedWord, word) <= distance)
                 return true;
-        }
 
         return false;
     }
-        
+
     /// <summary>
-    /// Matches whether the specified word is present after being fuzzified within the specified text
+    ///     Matches whether the specified word is present after being fuzzified within the specified text
     /// </summary>
     /// <param name="text">The text</param>
     /// <param name="word">The word</param>
@@ -403,20 +416,18 @@ public partial class LibraryBase
 
         if (string.IsNullOrWhiteSpace(text))
             return false;
-            
+
         var soundExWord = _soundex.For(word);
 
         foreach (var tokenizedWord in text.Split(separator[0]))
-        {
             if (soundExWord == _soundex.For(tokenizedWord))
                 return true;
-        }
 
         return false;
     }
 
     /// <summary>
-    /// Matches whether the specified text is present in sentence after being fuzified
+    ///     Matches whether the specified text is present in sentence after being fuzified
     /// </summary>
     /// <param name="text">The text</param>
     /// <param name="sentence">The sentence</param>
@@ -436,36 +447,36 @@ public partial class LibraryBase
         var tokens = text.Split(separator[0]);
         var wordsMatchTable = new bool[words.Length];
 
-        for (int i = 0; i < words.Length; i++)
+        for (var i = 0; i < words.Length; i++)
         {
-            string word = words[i];
+            var word = words[i];
             var soundExWord = _soundex.For(word);
 
             foreach (var token in tokens)
-            {
                 if (soundExWord == _soundex.For(token))
                 {
                     wordsMatchTable[i] = true;
                     break;
                 }
-            }
         }
 
         return wordsMatchTable.All(entry => entry);
     }
 
     /// <summary>
-    /// Makes the string uppercase
+    ///     Makes the string uppercase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Uppercased string</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
     public string? ToUpper(string value)
-        => ToUpper(value, CultureInfo.CurrentCulture);
+    {
+        return ToUpper(value, CultureInfo.CurrentCulture);
+    }
 
     /// <summary>
-    /// Makes the string uppercase within specified culture
+    ///     Makes the string uppercase within specified culture
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="culture">The culture</param>
@@ -476,19 +487,21 @@ public partial class LibraryBase
     {
         return ToUpper(value, CultureInfo.GetCultureInfo(culture));
     }
-        
+
     /// <summary>
-    /// Makes the string uppercase
+    ///     Makes the string uppercase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Uppercased string</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
     public string? ToUpperInvariant(string value)
-        => ToUpper(value, CultureInfo.InvariantCulture);
+    {
+        return ToUpper(value, CultureInfo.InvariantCulture);
+    }
 
     /// <summary>
-    /// Makes the string uppercase within specified culture
+    ///     Makes the string uppercase within specified culture
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="culture">The culture</param>
@@ -505,17 +518,19 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Makes the string lowercase
+    ///     Makes the string lowercase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Lowercased string</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
     public string? ToLower(string value)
-        => ToLower(value, CultureInfo.CurrentCulture);
+    {
+        return ToLower(value, CultureInfo.CurrentCulture);
+    }
 
     /// <summary>
-    /// Makes the string lowercase within specified culture
+    ///     Makes the string lowercase within specified culture
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="culture">The culture</param>
@@ -523,20 +538,24 @@ public partial class LibraryBase
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
     public string? ToLower(string value, string culture)
-        => ToLower(value, CultureInfo.GetCultureInfo(culture));
+    {
+        return ToLower(value, CultureInfo.GetCultureInfo(culture));
+    }
 
     /// <summary>
-    /// Makes the string lowercase
+    ///     Makes the string lowercase
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Lowercased string</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
     public string? ToLowerInvariant(string value)
-        => ToLower(value, CultureInfo.InvariantCulture);
+    {
+        return ToLower(value, CultureInfo.InvariantCulture);
+    }
 
     /// <summary>
-    /// Makes the string lowercase within specified culture
+    ///     Makes the string lowercase within specified culture
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="culture">The culture</param>
@@ -553,7 +572,8 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Returns a new string that right-aligns the characters in this instance by padding them on the left with a specified Unicode character, for a specified total lengt
+    ///     Returns a new string that right-aligns the characters in this instance by padding them on the left with a specified
+    ///     Unicode character, for a specified total lengt
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="character">The character</param>
@@ -573,7 +593,8 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Returns a new string that left-aligns the characters in this instance by padding them on the right with a specified Unicode character, for a specified total length
+    ///     Returns a new string that left-aligns the characters in this instance by padding them on the right with a specified
+    ///     Unicode character, for a specified total length
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="character">The character</param>
@@ -593,7 +614,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the first N characters of the string
+    ///     Gets the first N characters of the string
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="length">The length</param>
@@ -610,9 +631,9 @@ public partial class LibraryBase
 
         return value.Substring(0, length.Value);
     }
-        
+
     /// <summary>
-    /// Gets the last N characters of the string
+    ///     Gets the last N characters of the string
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="length">The length</param>
@@ -629,9 +650,9 @@ public partial class LibraryBase
 
         return value.Substring(value.Length - length.Value, length.Value);
     }
-        
+
     /// <summary>
-    /// Computes the Levenshtein distance between two strings
+    ///     Computes the Levenshtein distance between two strings
     /// </summary>
     /// <param name="firstValue">The firstValue</param>
     /// <param name="secondValue">The secondValue</param>
@@ -643,11 +664,11 @@ public partial class LibraryBase
         if (firstValue == null || secondValue == null)
             return null;
 
-        return Fastenshtein.Levenshtein.Distance(firstValue, secondValue);
+        return Levenshtein.Distance(firstValue, secondValue);
     }
 
     /// <summary>
-    /// Gets the character at specified index
+    ///     Gets the character at specified index
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="index">the index</param>
@@ -663,7 +684,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Reverses the string
+    ///     Reverses the string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Reversed string</returns>
@@ -684,7 +705,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Splits the string into an array of substrings based on the specified separators
+    ///     Splits the string into an array of substrings based on the specified separators
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="separators">The separators</param>
@@ -695,12 +716,12 @@ public partial class LibraryBase
     {
         if (value == null)
             return [];
-            
+
         return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
     }
-    
+
     /// <summary>
-    /// Splits the string into an array of characters
+    ///     Splits the string into an array of characters
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Array of characters</returns>
@@ -710,12 +731,12 @@ public partial class LibraryBase
     {
         if (value == null)
             return [];
-            
+
         return value.ToCharArray();
     }
 
     /// <summary>
-    /// Computes the longest common subsequence between two source and pattern
+    ///     Computes the longest common subsequence between two source and pattern
     /// </summary>
     /// <param name="source">The source</param>
     /// <param name="pattern">The pattern</param>
@@ -725,15 +746,15 @@ public partial class LibraryBase
     public string? LongestCommonSubstring(string source, string pattern)
     {
         var sequence = LongestCommonSequence(source, pattern);
-            
+
         if (sequence == null)
             return null;
-            
+
         return string.Concat(sequence);
     }
 
     /// <summary>
-    /// Clones the value n times
+    ///     Clones the value n times
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="integer">The integer</param>
@@ -744,14 +765,15 @@ public partial class LibraryBase
     {
         var builder = new StringBuilder();
 
-        for (int i = 0; i < integer; ++i)
+        for (var i = 0; i < integer; ++i)
             builder.Append(value);
 
         return builder.ToString();
     }
 
     /// <summary>
-    /// Returns the string from the first argument after the characters specified in the second argument are translated into the characters specified in the third argument.
+    ///     Returns the string from the first argument after the characters specified in the second argument are translated
+    ///     into the characters specified in the third argument.
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="characters">The characters</param>
@@ -783,7 +805,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Replaces the first occurrence of a specified string in this instance with another specified string
+    ///     Replaces the first occurrence of a specified string in this instance with another specified string
     /// </summary>
     /// <param name="text">The text</param>
     /// <param name="lookFor">The lookFor</param>
@@ -806,7 +828,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Capitalizes the first letter of the string
+    ///     Capitalizes the first letter of the string
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Capitalized text</returns>
@@ -821,7 +843,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the nth word of the string
+    ///     Gets the nth word of the string
     /// </summary>
     /// <param name="text">The text</param>
     /// <param name="wordIndex">The wordIndex</param>
@@ -843,7 +865,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the first word of the string
+    ///     Gets the first word of the string
     /// </summary>
     /// <param name="text">The text</param>
     /// <param name="separator">The separator</param>
@@ -856,7 +878,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the second word of the string
+    ///     Gets the second word of the string
     /// </summary>
     /// <param name="text">The text</param>
     /// <param name="separator">The separator</param>
@@ -869,7 +891,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the third word of the string
+    ///     Gets the third word of the string
     /// </summary>
     /// <param name="text">The text</param>
     /// <param name="separator">The separator</param>
@@ -882,7 +904,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets last word of the string
+    ///     Gets last word of the string
     /// </summary>
     /// <param name="text">The text</param>
     /// <param name="separator">The separator</param>
@@ -898,9 +920,9 @@ public partial class LibraryBase
 
         return split[^1];
     }
-        
+
     /// <summary>
-    /// Determines whether the string is null or empty
+    ///     Determines whether the string is null or empty
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>True if null or empty; otherwise false</returns>
@@ -910,9 +932,9 @@ public partial class LibraryBase
     {
         return string.IsNullOrEmpty(value);
     }
-        
+
     /// <summary>
-    /// Determines whether the string is null or whitespace
+    ///     Determines whether the string is null or whitespace
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>True if null or whitespace; otherwise false</returns>
@@ -922,9 +944,9 @@ public partial class LibraryBase
     {
         return string.IsNullOrWhiteSpace(value);
     }
-        
+
     /// <summary>
-    /// Encodes the value
+    ///     Encodes the value
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Url encoded value</returns>
@@ -934,12 +956,12 @@ public partial class LibraryBase
     {
         if (value == null)
             return null;
-            
+
         return HttpUtility.UrlEncode(value);
     }
-        
+
     /// <summary>
-    /// Decodes the value
+    ///     Decodes the value
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Url decoded value</returns>
@@ -952,9 +974,9 @@ public partial class LibraryBase
 
         return HttpUtility.UrlDecode(value);
     }
-        
+
     /// <summary>
-    /// Encodes the value
+    ///     Encodes the value
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Uri encoded value</returns>
@@ -967,9 +989,9 @@ public partial class LibraryBase
 
         return Uri.EscapeDataString(value);
     }
-        
+
     /// <summary>
-    /// Decodes the value
+    ///     Decodes the value
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Uri decoded value</returns>
@@ -984,8 +1006,8 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Encodes the value for safe use in HTML content.
-    /// Converts special characters like &lt;, &gt;, &amp;, ", ' to their HTML entity equivalents.
+    ///     Encodes the value for safe use in HTML content.
+    ///     Converts special characters like &lt;, &gt;, &amp;, ", ' to their HTML entity equivalents.
     /// </summary>
     /// <param name="value">The value to encode</param>
     /// <returns>HTML encoded value, or null if input is null</returns>
@@ -1000,8 +1022,8 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decodes HTML entities in the value back to their original characters.
-    /// Converts entities like &amp;lt;, &amp;gt;, &amp;amp;, &amp;quot; back to &lt;, &gt;, &amp;, ".
+    ///     Decodes HTML entities in the value back to their original characters.
+    ///     Converts entities like &amp;lt;, &amp;gt;, &amp;amp;, &amp;quot; back to &lt;, &gt;, &amp;, ".
     /// </summary>
     /// <param name="value">The HTML encoded value to decode</param>
     /// <returns>Decoded value, or null if input is null</returns>
@@ -1014,9 +1036,9 @@ public partial class LibraryBase
 
         return HttpUtility.HtmlDecode(value);
     }
-        
+
     /// <summary>
-    /// Determines whether the string starts with the specified prefix
+    ///     Determines whether the string starts with the specified prefix
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="prefix">The prefix</param>
@@ -1032,7 +1054,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Determines whether the string starts with the specified prefix
+    ///     Determines whether the string starts with the specified prefix
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="prefix">The prefix</param>
@@ -1047,9 +1069,9 @@ public partial class LibraryBase
 
         return value.StartsWith(prefix, Enum.Parse<StringComparison>(comparison));
     }
-        
+
     /// <summary>
-    /// Determines whether the string ends with the specified suffix
+    ///     Determines whether the string ends with the specified suffix
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="suffix">The suffix</param>
@@ -1063,9 +1085,9 @@ public partial class LibraryBase
 
         return value.EndsWith(suffix, StringComparison.OrdinalIgnoreCase);
     }
-        
+
     /// <summary>
-    /// Determines whether the string ends with the specified suffix
+    ///     Determines whether the string ends with the specified suffix
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="suffix">The suffix</param>
@@ -1080,9 +1102,9 @@ public partial class LibraryBase
 
         return value.EndsWith(suffix, Enum.Parse<StringComparison>(comparison));
     }
-        
+
     /// <summary>
-    /// Replace the specified value part that matches the pattern with the replacement
+    ///     Replace the specified value part that matches the pattern with the replacement
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="pattern">The pattern</param>
@@ -1094,15 +1116,15 @@ public partial class LibraryBase
     {
         if (value == null || pattern == null || replacement == null)
             return null;
-        
-        var compiledRegex = StringRegexCache.GetOrAdd(pattern, p => 
+
+        var compiledRegex = StringRegexCache.GetOrAdd(pattern, p =>
             new Regex(p, RegexOptions.Compiled));
-            
+
         return compiledRegex.Replace(value, replacement);
-    }    
-    
+    }
+
     /// <summary>
-    /// Returns all matching strings based on regular expression pattern
+    ///     Returns all matching strings based on regular expression pattern
     /// </summary>
     /// <param name="regex">The regular expression pattern</param>
     /// <param name="content">The content to search in</param>
@@ -1113,16 +1135,16 @@ public partial class LibraryBase
     {
         if (regex == null || content == null)
             return null;
-        
-        var compiledRegex = StringRegexCache.GetOrAdd(regex, p => 
+
+        var compiledRegex = StringRegexCache.GetOrAdd(regex, p =>
             new Regex(p, RegexOptions.Compiled));
-            
+
         var matches = compiledRegex.Matches(content);
-        return matches.Cast<System.Text.RegularExpressions.Match>().Select(m => m.Value).ToArray();
+        return matches.Select(m => m.Value).ToArray();
     }
-    
+
     /// <summary>
-    /// Split string by Linux-style newlines (\n)
+    ///     Split string by Linux-style newlines (\n)
     /// </summary>
     /// <param name="input">The input</param>
     /// <returns>Array of strings</returns>
@@ -1132,17 +1154,17 @@ public partial class LibraryBase
     {
         if (input is null)
             return null;
-        
+
         if (string.IsNullOrEmpty(input))
             return [];
-            
+
         // ReSharper disable once UseCollectionExpression
         // ReSharper disable once RedundantExplicitArrayCreation
         return input.Split(Separator, StringSplitOptions.None);
     }
 
     /// <summary>
-    /// Split string by Windows-style newlines (\r\n)
+    ///     Split string by Windows-style newlines (\r\n)
     /// </summary>
     /// <param name="input">The input</param>
     /// <returns>Array of strings</returns>
@@ -1152,15 +1174,15 @@ public partial class LibraryBase
     {
         if (input is null)
             return null;
-        
+
         if (string.IsNullOrEmpty(input))
             return [];
-            
+
         return input.Split(["\r\n"], StringSplitOptions.None);
     }
 
     /// <summary>
-    /// Smart split that handles both Windows (\r\n) and Linux (\n) newlines
+    ///     Smart split that handles both Windows (\r\n) and Linux (\n) newlines
     /// </summary>
     /// <param name="input">The input</param>
     /// <returns>Array of strings</returns>
@@ -1170,17 +1192,17 @@ public partial class LibraryBase
     {
         if (input is null)
             return null;
-        
+
         if (string.IsNullOrEmpty(input))
             return [];
-        
+
         var normalizedInput = input.Replace("\r\n", "\n");
-        
+
         return normalizedInput.Split(Separator, StringSplitOptions.None);
     }
-    
+
     /// <summary>
-    /// Joins the specified values with the separator
+    ///     Joins the specified values with the separator
     /// </summary>
     /// <param name="separator">The separator</param>
     /// <param name="values">The values</param>
@@ -1191,15 +1213,15 @@ public partial class LibraryBase
     {
         if (separator is null)
             return null;
-        
+
         if (values is null)
             return null;
-        
+
         return string.Join(separator, values.Where(str => str != null));
     }
-    
+
     /// <summary>
-    /// Joins the specified values with the separator
+    ///     Joins the specified values with the separator
     /// </summary>
     /// <param name="separator">The separator</param>
     /// <param name="values">The values</param>
@@ -1210,23 +1232,24 @@ public partial class LibraryBase
     {
         if (separator is null)
             return null;
-        
+
         if (values is null)
             return null;
-        
+
         return string.Join(separator, values.Where(str => str != null));
     }
 
     /// <summary>
-    /// Extracts text between the first occurrence of the start delimiter and the first occurrence of the end delimiter after it.
+    ///     Extracts text between the first occurrence of the start delimiter and the first occurrence of the end delimiter
+    ///     after it.
     /// </summary>
     /// <param name="value">The string to extract from</param>
     /// <param name="startDelimiter">The starting delimiter (character or substring)</param>
     /// <param name="endDelimiter">The ending delimiter (character or substring)</param>
     /// <returns>The extracted text between delimiters, or null if delimiters are not found</returns>
     /// <example>
-    /// ExtractBetween("Hello [World] Test", "[", "]") returns "World"
-    /// ExtractBetween("&lt;tag&gt;content&lt;/tag&gt;", "&lt;tag&gt;", "&lt;/tag&gt;") returns "content"
+    ///     ExtractBetween("Hello [World] Test", "[", "]") returns "World"
+    ///     ExtractBetween("&lt;tag&gt;content&lt;/tag&gt;", "&lt;tag&gt;", "&lt;/tag&gt;") returns "content"
     /// </example>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
@@ -1248,14 +1271,14 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Extracts all occurrences of text between the start and end delimiters.
+    ///     Extracts all occurrences of text between the start and end delimiters.
     /// </summary>
     /// <param name="value">The string to extract from</param>
     /// <param name="startDelimiter">The starting delimiter (character or substring)</param>
     /// <param name="endDelimiter">The ending delimiter (character or substring)</param>
     /// <returns>An array of all extracted texts between delimiters</returns>
     /// <example>
-    /// ExtractBetweenAll("a]b] test", "[", "]") returns ["a", "b"]
+    ///     ExtractBetweenAll("a]b] test", "[", "]") returns ["a", "b"]
     /// </example>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
@@ -1286,15 +1309,15 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Extracts text between the first occurrence of the start delimiter and the first occurrence of the end delimiter,
-    /// including the delimiters themselves in the result.
+    ///     Extracts text between the first occurrence of the start delimiter and the first occurrence of the end delimiter,
+    ///     including the delimiters themselves in the result.
     /// </summary>
     /// <param name="value">The string to extract from</param>
     /// <param name="startDelimiter">The starting delimiter (character or substring)</param>
     /// <param name="endDelimiter">The ending delimiter (character or substring)</param>
     /// <returns>The extracted text including delimiters, or null if delimiters are not found</returns>
     /// <example>
-    /// ExtractBetweenIncluding("Hello [World] Test", "[", "]") returns "[World]"
+    ///     ExtractBetweenIncluding("Hello [World] Test", "[", "]") returns "[World]"
     /// </example>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
@@ -1315,15 +1338,15 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Extracts text from the first occurrence of the start delimiter to the end of the string.
+    ///     Extracts text from the first occurrence of the start delimiter to the end of the string.
     /// </summary>
     /// <param name="value">The string to extract from</param>
     /// <param name="startDelimiter">The starting delimiter (character or substring)</param>
     /// <param name="includeDelimiter">Whether to include the delimiter in the result</param>
     /// <returns>The extracted text from the delimiter to the end, or null if delimiter is not found</returns>
     /// <example>
-    /// ExtractAfter("Hello World Test", "World", false) returns " Test"
-    /// ExtractAfter("Hello World Test", "World", true) returns "World Test"
+    ///     ExtractAfter("Hello World Test", "World", false) returns " Test"
+    ///     ExtractAfter("Hello World Test", "World", true) returns "World Test"
     /// </example>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
@@ -1336,21 +1359,21 @@ public partial class LibraryBase
         if (startIndex == -1)
             return null;
 
-        return includeDelimiter 
-            ? value.Substring(startIndex) 
+        return includeDelimiter
+            ? value.Substring(startIndex)
             : value.Substring(startIndex + startDelimiter.Length);
     }
 
     /// <summary>
-    /// Extracts text from the beginning of the string up to the first occurrence of the end delimiter.
+    ///     Extracts text from the beginning of the string up to the first occurrence of the end delimiter.
     /// </summary>
     /// <param name="value">The string to extract from</param>
     /// <param name="endDelimiter">The ending delimiter (character or substring)</param>
     /// <param name="includeDelimiter">Whether to include the delimiter in the result</param>
     /// <returns>The extracted text from the beginning to the delimiter, or null if delimiter is not found</returns>
     /// <example>
-    /// ExtractBefore("Hello World Test", "World", false) returns "Hello "
-    /// ExtractBefore("Hello World Test", "World", true) returns "Hello World"
+    ///     ExtractBefore("Hello World Test", "World", false) returns "Hello "
+    ///     ExtractBefore("Hello World Test", "World", true) returns "Hello World"
     /// </example>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
@@ -1363,13 +1386,13 @@ public partial class LibraryBase
         if (endIndex == -1)
             return null;
 
-        return includeDelimiter 
-            ? value.Substring(0, endIndex + endDelimiter.Length) 
+        return includeDelimiter
+            ? value.Substring(0, endIndex + endDelimiter.Length)
             : value.Substring(0, endIndex);
     }
 
     /// <summary>
-    /// Determines whether the string contains only numeric characters (0-9).
+    ///     Determines whether the string contains only numeric characters (0-9).
     /// </summary>
     /// <param name="value">The string to check</param>
     /// <returns>True if the string contains only digits; otherwise false. Returns null if input is null, false if empty.</returns>
@@ -1384,16 +1407,14 @@ public partial class LibraryBase
             return false;
 
         foreach (var c in value)
-        {
             if (!char.IsDigit(c))
                 return false;
-        }
 
         return true;
     }
 
     /// <summary>
-    /// Determines whether the string contains only alphabetic characters (a-z, A-Z).
+    ///     Determines whether the string contains only alphabetic characters (a-z, A-Z).
     /// </summary>
     /// <param name="value">The string to check</param>
     /// <returns>True if the string contains only letters; otherwise false. Returns null if input is null, false if empty.</returns>
@@ -1408,19 +1429,20 @@ public partial class LibraryBase
             return false;
 
         foreach (var c in value)
-        {
             if (!char.IsLetter(c))
                 return false;
-        }
 
         return true;
     }
 
     /// <summary>
-    /// Determines whether the string contains only alphanumeric characters (a-z, A-Z, 0-9).
+    ///     Determines whether the string contains only alphanumeric characters (a-z, A-Z, 0-9).
     /// </summary>
     /// <param name="value">The string to check</param>
-    /// <returns>True if the string contains only letters and digits; otherwise false. Returns null if input is null, false if empty.</returns>
+    /// <returns>
+    ///     True if the string contains only letters and digits; otherwise false. Returns null if input is null, false if
+    ///     empty.
+    /// </returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
     public bool? IsAlphaNumeric(string? value)
@@ -1432,16 +1454,14 @@ public partial class LibraryBase
             return false;
 
         foreach (var c in value)
-        {
             if (!char.IsLetterOrDigit(c))
                 return false;
-        }
 
         return true;
     }
 
     /// <summary>
-    /// Counts the number of occurrences of a substring within a string.
+    ///     Counts the number of occurrences of a substring within a string.
     /// </summary>
     /// <param name="value">The string to search in</param>
     /// <param name="substring">The substring to count</param>
@@ -1469,7 +1489,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Removes all whitespace characters from the string.
+    ///     Removes all whitespace characters from the string.
     /// </summary>
     /// <param name="value">The string to process</param>
     /// <returns>The string without any whitespace, or null if input is null</returns>
@@ -1483,16 +1503,14 @@ public partial class LibraryBase
         var result = new StringBuilder(value.Length);
 
         foreach (var c in value)
-        {
             if (!char.IsWhiteSpace(c))
                 result.Append(c);
-        }
 
         return result.ToString();
     }
 
     /// <summary>
-    /// Truncates the string to the specified maximum length, optionally adding an ellipsis.
+    ///     Truncates the string to the specified maximum length, optionally adding an ellipsis.
     /// </summary>
     /// <param name="value">The string to truncate</param>
     /// <param name="maxLength">The maximum length of the result</param>
@@ -1512,7 +1530,7 @@ public partial class LibraryBase
             return value;
 
         var ellipsisLength = ellipsis?.Length ?? 0;
-        
+
         if (maxLength <= ellipsisLength)
             return value.Substring(0, maxLength);
 
@@ -1520,7 +1538,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Capitalizes the first character of the string.
+    ///     Capitalizes the first character of the string.
     /// </summary>
     /// <param name="value">The string to capitalize</param>
     /// <returns>The string with the first character in uppercase</returns>
@@ -1538,7 +1556,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Returns the string repeated the specified number of times with a separator.
+    ///     Returns the string repeated the specified number of times with a separator.
     /// </summary>
     /// <param name="value">The string to repeat</param>
     /// <param name="count">The number of times to repeat</param>
@@ -1558,7 +1576,7 @@ public partial class LibraryBase
             return value;
 
         var result = new StringBuilder();
-        
+
         for (var i = 0; i < count; i++)
         {
             if (i > 0 && separator != null)
@@ -1570,7 +1588,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Wraps the string with the specified prefix and suffix.
+    ///     Wraps the string with the specified prefix and suffix.
     /// </summary>
     /// <param name="value">The string to wrap</param>
     /// <param name="prefix">The prefix to add</param>
@@ -1587,7 +1605,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Removes the specified prefix from the string if it starts with it.
+    ///     Removes the specified prefix from the string if it starts with it.
     /// </summary>
     /// <param name="value">The string to process</param>
     /// <param name="prefix">The prefix to remove</param>
@@ -1602,13 +1620,13 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(prefix))
             return value;
 
-        return value.StartsWith(prefix, StringComparison.Ordinal) 
-            ? value.Substring(prefix.Length) 
+        return value.StartsWith(prefix, StringComparison.Ordinal)
+            ? value.Substring(prefix.Length)
             : value;
     }
 
     /// <summary>
-    /// Removes the specified suffix from the string if it ends with it.
+    ///     Removes the specified suffix from the string if it ends with it.
     /// </summary>
     /// <param name="value">The string to process</param>
     /// <param name="suffix">The suffix to remove</param>
@@ -1623,19 +1641,19 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(suffix))
             return value;
 
-        return value.EndsWith(suffix, StringComparison.Ordinal) 
-            ? value.Substring(0, value.Length - suffix.Length) 
+        return value.EndsWith(suffix, StringComparison.Ordinal)
+            ? value.Substring(0, value.Length - suffix.Length)
             : value;
     }
 
     /// <summary>
-    /// Converts a string to snake_case format.
+    ///     Converts a string to snake_case format.
     /// </summary>
     /// <param name="value">The string to convert</param>
     /// <returns>The string in snake_case format</returns>
     /// <example>
-    /// ToSnakeCase("HelloWorld") returns "hello_world"
-    /// ToSnakeCase("XMLParser") returns "xml_parser"
+    ///     ToSnakeCase("HelloWorld") returns "hello_world"
+    ///     ToSnakeCase("XMLParser") returns "xml_parser"
     /// </example>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
@@ -1645,18 +1663,18 @@ public partial class LibraryBase
             return value;
 
         var result = new StringBuilder();
-        
+
         for (var i = 0; i < value.Length; i++)
         {
             var c = value[i];
-            
+
             if (char.IsUpper(c))
             {
                 if (i > 0 && !char.IsUpper(value[i - 1]))
                     result.Append('_');
                 else if (i > 0 && i < value.Length - 1 && char.IsUpper(value[i - 1]) && !char.IsUpper(value[i + 1]))
                     result.Append('_');
-                    
+
                 result.Append(char.ToLowerInvariant(c));
             }
             else if (c is ' ' or '-')
@@ -1673,13 +1691,13 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts a string to kebab-case format.
+    ///     Converts a string to kebab-case format.
     /// </summary>
     /// <param name="value">The string to convert</param>
     /// <returns>The string in kebab-case format</returns>
     /// <example>
-    /// ToKebabCase("HelloWorld") returns "hello-world"
-    /// ToKebabCase("XMLParser") returns "xml-parser"
+    ///     ToKebabCase("HelloWorld") returns "hello-world"
+    ///     ToKebabCase("XMLParser") returns "xml-parser"
     /// </example>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
@@ -1689,18 +1707,18 @@ public partial class LibraryBase
             return value;
 
         var result = new StringBuilder();
-        
+
         for (var i = 0; i < value.Length; i++)
         {
             var c = value[i];
-            
+
             if (char.IsUpper(c))
             {
                 if (i > 0 && !char.IsUpper(value[i - 1]))
                     result.Append('-');
                 else if (i > 0 && i < value.Length - 1 && char.IsUpper(value[i - 1]) && !char.IsUpper(value[i + 1]))
                     result.Append('-');
-                    
+
                 result.Append(char.ToLowerInvariant(c));
             }
             else if (c is ' ' or '_')
@@ -1717,13 +1735,13 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts a string to camelCase format.
+    ///     Converts a string to camelCase format.
     /// </summary>
     /// <param name="value">The string to convert</param>
     /// <returns>The string in camelCase format</returns>
     /// <example>
-    /// ToCamelCase("hello_world") returns "helloWorld"
-    /// ToCamelCase("Hello World") returns "helloWorld"
+    ///     ToCamelCase("hello_world") returns "helloWorld"
+    ///     ToCamelCase("Hello World") returns "helloWorld"
     /// </example>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
@@ -1735,9 +1753,8 @@ public partial class LibraryBase
         var result = new StringBuilder();
         var capitalizeNext = false;
         var isFirst = true;
-        
+
         foreach (var c in value)
-        {
             if (c is '_' or '-' or ' ')
             {
                 capitalizeNext = true;
@@ -1756,19 +1773,18 @@ public partial class LibraryBase
             {
                 result.Append(c);
             }
-        }
 
         return result.ToString();
     }
 
     /// <summary>
-    /// Converts a string to PascalCase format.
+    ///     Converts a string to PascalCase format.
     /// </summary>
     /// <param name="value">The string to convert</param>
     /// <returns>The string in PascalCase format</returns>
     /// <example>
-    /// ToPascalCase("hello_world") returns "HelloWorld"
-    /// ToPascalCase("hello world") returns "HelloWorld"
+    ///     ToPascalCase("hello_world") returns "HelloWorld"
+    ///     ToPascalCase("hello world") returns "HelloWorld"
     /// </example>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
@@ -1779,9 +1795,8 @@ public partial class LibraryBase
 
         var result = new StringBuilder();
         var capitalizeNext = true;
-        
+
         foreach (var c in value)
-        {
             if (c is '_' or '-' or ' ')
             {
                 capitalizeNext = true;
@@ -1795,14 +1810,13 @@ public partial class LibraryBase
             {
                 result.Append(c);
             }
-        }
 
         return result.ToString();
     }
 
     /// <summary>
-    /// Counts the number of words in the string.
-    /// Words are separated by whitespace characters.
+    ///     Counts the number of words in the string.
+    ///     Words are separated by whitespace characters.
     /// </summary>
     /// <param name="value">The string to count words in</param>
     /// <returns>The number of words</returns>
@@ -1820,7 +1834,6 @@ public partial class LibraryBase
         var inWord = false;
 
         foreach (var c in value)
-        {
             if (char.IsWhiteSpace(c))
             {
                 inWord = false;
@@ -1830,14 +1843,13 @@ public partial class LibraryBase
                 inWord = true;
                 count++;
             }
-        }
 
         return count;
     }
 
     /// <summary>
-    /// Counts the number of lines in the string.
-    /// Lines are separated by newline characters.
+    ///     Counts the number of lines in the string.
+    ///     Lines are separated by newline characters.
     /// </summary>
     /// <param name="value">The string to count lines in</param>
     /// <returns>The number of lines</returns>
@@ -1852,21 +1864,19 @@ public partial class LibraryBase
             return 0;
 
         var count = 1;
-        
+
         for (var i = 0; i < value.Length; i++)
-        {
             if (value[i] == '\n')
                 count++;
             else if (value[i] == '\r' && (i + 1 >= value.Length || value[i + 1] != '\n'))
                 count++;
-        }
 
         return count;
     }
 
     /// <summary>
-    /// Counts the number of sentences in the string.
-    /// Sentences are delimited by period, exclamation mark, or question mark.
+    ///     Counts the number of sentences in the string.
+    ///     Sentences are delimited by period, exclamation mark, or question mark.
     /// </summary>
     /// <param name="value">The string to count sentences in</param>
     /// <returns>The number of sentences</returns>
@@ -1884,7 +1894,6 @@ public partial class LibraryBase
         var inSentence = false;
 
         foreach (var c in value)
-        {
             if (c is '.' or '!' or '?')
             {
                 if (inSentence)
@@ -1897,9 +1906,8 @@ public partial class LibraryBase
             {
                 inSentence = true;
             }
-        }
 
-        
+
         if (inSentence)
             count++;
 
@@ -1907,15 +1915,15 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Extracts the first match of a regex capture group from the string.
+    ///     Extracts the first match of a regex capture group from the string.
     /// </summary>
     /// <param name="value">The string to search in</param>
     /// <param name="pattern">The regex pattern with capture groups</param>
     /// <param name="groupIndex">The capture group index (0 = whole match, 1+ = capture groups)</param>
     /// <returns>The matched group text, or null if no match</returns>
     /// <example>
-    /// RegexExtract("Hello 123 World", @"(\d+)", 1) returns "123"
-    /// RegexExtract("test@example.com", @"(\w+)@(\w+)\.(\w+)", 2) returns "example"
+    ///     RegexExtract("Hello 123 World", @"(\d+)", 1) returns "123"
+    ///     RegexExtract("test@example.com", @"(\w+)@(\w+)\.(\w+)", 2) returns "example"
     /// </example>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
@@ -1928,7 +1936,7 @@ public partial class LibraryBase
         {
             var regex = StringRegexCache.GetOrAdd(pattern, p => new Regex(p, RegexOptions.Compiled));
             var match = regex.Match(value);
-            
+
             if (!match.Success)
                 return null;
 
@@ -1944,14 +1952,14 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Extracts all matches of a regex capture group from the string.
+    ///     Extracts all matches of a regex capture group from the string.
     /// </summary>
     /// <param name="value">The string to search in</param>
     /// <param name="pattern">The regex pattern with capture groups</param>
     /// <param name="groupIndex">The capture group index (0 = whole match, 1+ = capture groups)</param>
     /// <returns>Array of matched group texts</returns>
     /// <example>
-    /// RegexExtractAll("a1b2c3", @"(\d)", 1) returns ["1", "2", "3"]
+    ///     RegexExtractAll("a1b2c3", @"(\d)", 1) returns ["1", "2", "3"]
     /// </example>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
@@ -1966,11 +1974,9 @@ public partial class LibraryBase
             var matches = regex.Matches(value);
             var results = new List<string>();
 
-            foreach (System.Text.RegularExpressions.Match match in matches)
-            {
+            foreach (Match match in matches)
                 if (groupIndex >= 0 && groupIndex < match.Groups.Count)
                     results.Add(match.Groups[groupIndex].Value);
-            }
 
             return results.ToArray();
         }
@@ -1981,7 +1987,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Checks if the string matches the specified regex pattern.
+    ///     Checks if the string matches the specified regex pattern.
     /// </summary>
     /// <param name="value">The string to check</param>
     /// <param name="pattern">The regex pattern</param>
@@ -2005,7 +2011,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts a string to Unicode escape sequences (e.g., "Hi" -> "\u0048\u0069").
+    ///     Converts a string to Unicode escape sequences (e.g., "Hi" -> "\u0048\u0069").
     /// </summary>
     /// <param name="value">The string to convert</param>
     /// <returns>The Unicode-escaped string</returns>
@@ -2017,15 +2023,12 @@ public partial class LibraryBase
             return null;
 
         var sb = new StringBuilder();
-        foreach (var c in value)
-        {
-            sb.Append($"\\u{(int)c:X4}");
-        }
+        foreach (var c in value) sb.Append($"\\u{(int)c:X4}");
         return sb.ToString();
     }
 
     /// <summary>
-    /// Converts Unicode escape sequences back to regular text (e.g., "\u0048\u0069" -> "Hi").
+    ///     Converts Unicode escape sequences back to regular text (e.g., "\u0048\u0069" -> "Hi").
     /// </summary>
     /// <param name="value">The Unicode-escaped string</param>
     /// <returns>The decoded string</returns>
@@ -2048,7 +2051,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Applies ROT13 cipher to a string (rotates letters by 13 positions).
+    ///     Applies ROT13 cipher to a string (rotates letters by 13 positions).
     /// </summary>
     /// <param name="value">The string to transform</param>
     /// <returns>The ROT13-transformed string</returns>
@@ -2070,11 +2073,12 @@ public partial class LibraryBase
             else
                 result[i] = c;
         }
+
         return new string(result);
     }
 
     /// <summary>
-    /// Applies ROT47 cipher to a string (rotates printable ASCII by 47 positions).
+    ///     Applies ROT47 cipher to a string (rotates printable ASCII by 47 positions).
     /// </summary>
     /// <param name="value">The string to transform</param>
     /// <returns>The ROT47-transformed string</returns>
@@ -2094,26 +2098,12 @@ public partial class LibraryBase
             else
                 result[i] = c;
         }
+
         return new string(result);
     }
 
-    private static readonly Dictionary<char, string> MorseCodeMap = new()
-    {
-        {'A', ".-"}, {'B', "-..."}, {'C', "-.-."}, {'D', "-.."}, {'E', "."},
-        {'F', "..-."}, {'G', "--."}, {'H', "...."}, {'I', ".."}, {'J', ".---"},
-        {'K', "-.-"}, {'L', ".-.."}, {'M', "--"}, {'N', "-."}, {'O', "---"},
-        {'P', ".--."}, {'Q', "--.-"}, {'R', ".-."}, {'S', "..."}, {'T', "-"},
-        {'U', "..-"}, {'V', "...-"}, {'W', ".--"}, {'X', "-..-"}, {'Y', "-.--"},
-        {'Z', "--.."}, {'0', "-----"}, {'1', ".----"}, {'2', "..---"}, {'3', "...--"},
-        {'4', "....-"}, {'5', "....."}, {'6', "-...."}, {'7', "--..."}, {'8', "---.."},
-        {'9', "----."}, {' ', "/"}
-    };
-
-    private static readonly Dictionary<string, char> ReverseMorseCodeMap = 
-        MorseCodeMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
-
     /// <summary>
-    /// Converts text to Morse code.
+    ///     Converts text to Morse code.
     /// </summary>
     /// <param name="value">The text to convert</param>
     /// <returns>The Morse code representation</returns>
@@ -2126,15 +2116,13 @@ public partial class LibraryBase
 
         var result = new List<string>();
         foreach (var c in value.ToUpperInvariant())
-        {
             if (MorseCodeMap.TryGetValue(c, out var morse))
                 result.Add(morse);
-        }
         return string.Join(" ", result);
     }
 
     /// <summary>
-    /// Converts Morse code to text.
+    ///     Converts Morse code to text.
     /// </summary>
     /// <param name="value">The Morse code to convert (space-separated, / for word breaks)</param>
     /// <returns>The decoded text</returns>
@@ -2148,15 +2136,13 @@ public partial class LibraryBase
         var sb = new StringBuilder();
         var codes = value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         foreach (var code in codes)
-        {
             if (ReverseMorseCodeMap.TryGetValue(code, out var c))
                 sb.Append(c);
-        }
         return sb.ToString();
     }
 
     /// <summary>
-    /// Converts a string to its binary representation (space-separated bytes).
+    ///     Converts a string to its binary representation (space-separated bytes).
     /// </summary>
     /// <param name="value">The string to convert</param>
     /// <returns>The binary string representation</returns>
@@ -2172,7 +2158,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts a binary string (space-separated bytes) back to text.
+    ///     Converts a binary string (space-separated bytes) back to text.
     /// </summary>
     /// <param name="value">The binary string to convert</param>
     /// <returns>The decoded text</returns>
@@ -2196,7 +2182,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Reverses a string.
+    ///     Reverses a string.
     /// </summary>
     /// <param name="value">The string to reverse</param>
     /// <returns>The reversed string</returns>
@@ -2213,7 +2199,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Splits a string and returns the element at the specified index.
+    ///     Splits a string and returns the element at the specified index.
     /// </summary>
     /// <param name="value">The string to split</param>
     /// <param name="delimiter">The delimiter</param>
@@ -2234,7 +2220,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Pads a string on the left to the specified total length.
+    ///     Pads a string on the left to the specified total length.
     /// </summary>
     /// <param name="value">The string to pad</param>
     /// <param name="totalWidth">The total desired width</param>
@@ -2251,7 +2237,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Pads a string on the right to the specified total length.
+    ///     Pads a string on the right to the specified total length.
     /// </summary>
     /// <param name="value">The string to pad</param>
     /// <param name="totalWidth">The total desired width</param>
@@ -2268,7 +2254,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Removes diacritical marks (accents) from a string.
+    ///     Removes diacritical marks (accents) from a string.
     /// </summary>
     /// <param name="value">The string to process</param>
     /// <returns>The string with diacritics removed</returns>
@@ -2284,14 +2270,14 @@ public partial class LibraryBase
 
         foreach (var c in normalized)
         {
-            var category = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
-            if (category != System.Globalization.UnicodeCategory.NonSpacingMark)
+            var category = CharUnicodeInfo.GetUnicodeCategory(c);
+            if (category != UnicodeCategory.NonSpacingMark)
                 sb.Append(c);
         }
 
         return sb.ToString().Normalize(NormalizationForm.FormC);
     }
-    
+
     [GeneratedRegex(@"\\u([0-9A-Fa-f]{4})")]
     private static partial Regex UnicodeEscapeRegex();
 }

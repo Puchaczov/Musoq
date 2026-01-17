@@ -1,3 +1,5 @@
+using System;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
@@ -82,25 +84,24 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromHexTest()
     {
-        
         Assert.AreEqual(255L, Library.FromHex("FF"));
         Assert.AreEqual(255L, Library.FromHex("ff"));
         Assert.AreEqual(10L, Library.FromHex("A"));
         Assert.AreEqual(16L, Library.FromHex("10"));
-        
-        
+
+
         Assert.AreEqual(255L, Library.FromHex("0xFF"));
         Assert.AreEqual(255L, Library.FromHex("0xff"));
         Assert.AreEqual(255L, Library.FromHex("0XFF"));
-        
-        
+
+
         Assert.AreEqual(-1L, Library.FromHex("FFFFFFFFFFFFFFFF"));
-        
-        
+
+
         Assert.AreEqual(0L, Library.FromHex("0"));
         Assert.AreEqual(0L, Library.FromHex("0x0"));
-        
-        
+
+
         Assert.IsNull(Library.FromHex(null));
         Assert.IsNull(Library.FromHex(""));
         Assert.IsNull(Library.FromHex("   "));
@@ -111,21 +112,20 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromBinTest()
     {
-        
         Assert.AreEqual(5L, Library.FromBin("101"));
         Assert.AreEqual(10L, Library.FromBin("1010"));
         Assert.AreEqual(15L, Library.FromBin("1111"));
-        
-        
+
+
         Assert.AreEqual(5L, Library.FromBin("0b101"));
         Assert.AreEqual(5L, Library.FromBin("0B101"));
-        
-        
+
+
         Assert.AreEqual(0L, Library.FromBin("0"));
         Assert.AreEqual(0L, Library.FromBin("0b0"));
         Assert.AreEqual(1L, Library.FromBin("1"));
-        
-        
+
+
         Assert.IsNull(Library.FromBin(null));
         Assert.IsNull(Library.FromBin(""));
         Assert.IsNull(Library.FromBin("   "));
@@ -136,21 +136,20 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromOctTest()
     {
-        
         Assert.AreEqual(8L, Library.FromOct("10"));
         Assert.AreEqual(64L, Library.FromOct("100"));
         Assert.AreEqual(7L, Library.FromOct("7"));
         Assert.AreEqual(511L, Library.FromOct("777"));
-        
-        
+
+
         Assert.AreEqual(8L, Library.FromOct("0o10"));
         Assert.AreEqual(8L, Library.FromOct("0O10"));
-        
-        
+
+
         Assert.AreEqual(0L, Library.FromOct("0"));
         Assert.AreEqual(0L, Library.FromOct("0o0"));
-        
-        
+
+
         Assert.IsNull(Library.FromOct(null));
         Assert.IsNull(Library.FromOct(""));
         Assert.IsNull(Library.FromOct("   "));
@@ -164,44 +163,43 @@ public class MathTests : LibraryBaseBaseTests
     public void FromHexToBytes_ShouldConvertHexToBytes()
     {
         var result = Library.FromHexToBytes("48656C6C6F");
-        
+
         Assert.IsNotNull(result);
-        Assert.AreEqual("Hello", System.Text.Encoding.UTF8.GetString(result));
+        Assert.AreEqual("Hello", Encoding.UTF8.GetString(result));
     }
 
     [TestMethod]
     public void FromHexToBytes_WithDelimiters_ShouldConvertCorrectly()
     {
-        
         var result1 = Library.FromHexToBytes("48 65 6C 6C 6F");
         Assert.IsNotNull(result1);
-        Assert.AreEqual("Hello", System.Text.Encoding.UTF8.GetString(result1));
+        Assert.AreEqual("Hello", Encoding.UTF8.GetString(result1));
 
-        
+
         var result2 = Library.FromHexToBytes("48-65-6C-6C-6F");
         Assert.IsNotNull(result2);
-        Assert.AreEqual("Hello", System.Text.Encoding.UTF8.GetString(result2));
+        Assert.AreEqual("Hello", Encoding.UTF8.GetString(result2));
 
-        
+
         var result3 = Library.FromHexToBytes("48:65:6C:6C:6F");
         Assert.IsNotNull(result3);
-        Assert.AreEqual("Hello", System.Text.Encoding.UTF8.GetString(result3));
+        Assert.AreEqual("Hello", Encoding.UTF8.GetString(result3));
     }
 
     [TestMethod]
     public void FromHexToBytes_With0xPrefix_ShouldConvertCorrectly()
     {
         var result = Library.FromHexToBytes("0x48656C6C6F");
-        
+
         Assert.IsNotNull(result);
-        Assert.AreEqual("Hello", System.Text.Encoding.UTF8.GetString(result));
+        Assert.AreEqual("Hello", Encoding.UTF8.GetString(result));
     }
 
     [TestMethod]
     public void FromHexToBytes_WhenNull_ShouldReturnNull()
     {
         var result = Library.FromHexToBytes(null);
-        
+
         Assert.IsNull(result);
     }
 
@@ -209,7 +207,7 @@ public class MathTests : LibraryBaseBaseTests
     public void FromHexToBytes_WhenEmpty_ShouldReturnNull()
     {
         var result = Library.FromHexToBytes(string.Empty);
-        
+
         Assert.IsNull(result);
     }
 
@@ -217,7 +215,7 @@ public class MathTests : LibraryBaseBaseTests
     public void FromHexToBytes_WhenOddLength_ShouldReturnNull()
     {
         var result = Library.FromHexToBytes("48656");
-        
+
         Assert.IsNull(result);
     }
 
@@ -225,7 +223,7 @@ public class MathTests : LibraryBaseBaseTests
     public void FromHexToString_ShouldConvertHexToString()
     {
         var result = Library.FromHexToString("48656C6C6F");
-        
+
         Assert.AreEqual("Hello", result);
     }
 
@@ -233,7 +231,7 @@ public class MathTests : LibraryBaseBaseTests
     public void FromHexToString_WhenNull_ShouldReturnNull()
     {
         var result = Library.FromHexToString(null);
-        
+
         Assert.IsNull(result);
     }
 
@@ -241,7 +239,7 @@ public class MathTests : LibraryBaseBaseTests
     public void FromHexToString_WithEncoding_ShouldConvertCorrectly()
     {
         var result = Library.FromHexToString("48656C6C6F", "UTF-8");
-        
+
         Assert.AreEqual("Hello", result);
     }
 
@@ -249,7 +247,7 @@ public class MathTests : LibraryBaseBaseTests
     public void ToHexFromString_ShouldConvertStringToHex()
     {
         var result = Library.ToHexFromString("Hello");
-        
+
         Assert.AreEqual("48656C6C6F", result);
     }
 
@@ -257,7 +255,7 @@ public class MathTests : LibraryBaseBaseTests
     public void ToHexFromString_WhenNull_ShouldReturnNull()
     {
         var result = Library.ToHexFromString(null);
-        
+
         Assert.IsNull(result);
     }
 
@@ -265,7 +263,7 @@ public class MathTests : LibraryBaseBaseTests
     public void ToHexFromString_WithEncoding_ShouldConvertCorrectly()
     {
         var result = Library.ToHexFromString("Hello", "UTF-8");
-        
+
         Assert.AreEqual("48656C6C6F", result);
     }
 
@@ -273,10 +271,10 @@ public class MathTests : LibraryBaseBaseTests
     public void HexRoundTrip_ShouldPreserveContent()
     {
         const string original = "Hello, World! 日本語";
-        
+
         var hex = Library.ToHexFromString(original);
         var decoded = Library.FromHexToString(hex);
-        
+
         Assert.AreEqual(original, decoded);
     }
 
@@ -349,7 +347,7 @@ public class MathTests : LibraryBaseBaseTests
     {
         var result = LibraryBase.Exp(1.0);
         Assert.IsNotNull(result);
-        Assert.AreEqual(System.Math.E, result.Value, 0.0001);
+        Assert.AreEqual(Math.E, result.Value, 0.0001);
     }
 
     #endregion
@@ -387,7 +385,7 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void Ln_Double_E_ReturnsOne()
     {
-        var result = LibraryBase.Ln(System.Math.E);
+        var result = LibraryBase.Ln(Math.E);
         Assert.IsNotNull(result);
         Assert.AreEqual(1.0, result.Value, 0.0001);
     }
@@ -399,19 +397,19 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void Clamp_Int_WhenValueNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Clamp((int?)null, 0, 10));
+        Assert.IsNull(LibraryBase.Clamp(null, 0, 10));
     }
 
     [TestMethod]
     public void Clamp_Int_WhenMinNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Clamp(5, (int?)null, 10));
+        Assert.IsNull(LibraryBase.Clamp(5, null, 10));
     }
 
     [TestMethod]
     public void Clamp_Int_WhenMaxNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Clamp(5, 0, (int?)null));
+        Assert.IsNull(LibraryBase.Clamp(5, 0, null));
     }
 
     [TestMethod]
@@ -451,13 +449,13 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void LogBase_WhenValueNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.LogBase((double?)null, 10.0));
+        Assert.IsNull(LibraryBase.LogBase(null, 10.0));
     }
 
     [TestMethod]
     public void LogBase_WhenBaseNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.LogBase(100.0, (double?)null));
+        Assert.IsNull(LibraryBase.LogBase(100.0, null));
     }
 
     [TestMethod]
@@ -483,7 +481,7 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void Log10_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Log10((double?)null));
+        Assert.IsNull(LibraryBase.Log10(null));
     }
 
     [TestMethod]
@@ -509,7 +507,7 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void Log2_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Log2((double?)null));
+        Assert.IsNull(LibraryBase.Log2(null));
     }
 
     [TestMethod]
@@ -535,17 +533,17 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetween_Int_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.IsBetween((int?)null, 1, 10));
-        Assert.IsNull(LibraryBase.IsBetween(5, (int?)null, 10));
-        Assert.IsNull(LibraryBase.IsBetween(5, 1, (int?)null));
+        Assert.IsNull(LibraryBase.IsBetween(null, 1, 10));
+        Assert.IsNull(LibraryBase.IsBetween(5, null, 10));
+        Assert.IsNull(LibraryBase.IsBetween(5, 1, null));
     }
 
     [TestMethod]
     public void IsBetween_Int_WhenInRange_ReturnsTrue()
     {
         Assert.IsTrue(LibraryBase.IsBetween(5, 1, 10));
-        Assert.IsTrue(LibraryBase.IsBetween(1, 1, 10)); 
-        Assert.IsTrue(LibraryBase.IsBetween(10, 1, 10)); 
+        Assert.IsTrue(LibraryBase.IsBetween(1, 1, 10));
+        Assert.IsTrue(LibraryBase.IsBetween(10, 1, 10));
     }
 
     [TestMethod]
@@ -570,7 +568,7 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetween_Decimal_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.IsBetween((decimal?)null, 1.0m, 10.0m));
+        Assert.IsNull(LibraryBase.IsBetween(null, 1.0m, 10.0m));
     }
 
     [TestMethod]
@@ -582,13 +580,13 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetween_Double_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.IsBetween((double?)null, 1.0, 10.0));
+        Assert.IsNull(LibraryBase.IsBetween(null, 1.0, 10.0));
     }
 
     [TestMethod]
     public void IsBetweenExclusive_Int_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.IsBetweenExclusive((int?)null, 1, 10));
+        Assert.IsNull(LibraryBase.IsBetweenExclusive(null, 1, 10));
     }
 
     [TestMethod]
@@ -600,8 +598,8 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetweenExclusive_Int_WhenAtBoundary_ReturnsFalse()
     {
-        Assert.IsFalse(LibraryBase.IsBetweenExclusive(1, 1, 10)); 
-        Assert.IsFalse(LibraryBase.IsBetweenExclusive(10, 1, 10)); 
+        Assert.IsFalse(LibraryBase.IsBetweenExclusive(1, 1, 10));
+        Assert.IsFalse(LibraryBase.IsBetweenExclusive(10, 1, 10));
     }
 
     [TestMethod]
@@ -620,29 +618,29 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetweenExclusive_Decimal_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.IsBetweenExclusive((decimal?)null, 1.0m, 10.0m));
-        Assert.IsNull(LibraryBase.IsBetweenExclusive(5.0m, (decimal?)null, 10.0m));
-        Assert.IsNull(LibraryBase.IsBetweenExclusive(5.0m, 1.0m, (decimal?)null));
+        Assert.IsNull(LibraryBase.IsBetweenExclusive(null, 1.0m, 10.0m));
+        Assert.IsNull(LibraryBase.IsBetweenExclusive(5.0m, null, 10.0m));
+        Assert.IsNull(LibraryBase.IsBetweenExclusive(5.0m, 1.0m, null));
     }
 
     [TestMethod]
     public void IsBetweenExclusive_Int_WhenMinNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.IsBetweenExclusive(5, (int?)null, 10));
+        Assert.IsNull(LibraryBase.IsBetweenExclusive(5, null, 10));
     }
 
     [TestMethod]
     public void IsBetweenExclusive_Int_WhenMaxNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.IsBetweenExclusive(5, 1, (int?)null));
+        Assert.IsNull(LibraryBase.IsBetweenExclusive(5, 1, null));
     }
 
     [TestMethod]
     public void IsBetween_Long_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.IsBetween((long?)null, 1L, 10L));
-        Assert.IsNull(LibraryBase.IsBetween(5L, (long?)null, 10L));
-        Assert.IsNull(LibraryBase.IsBetween(5L, 1L, (long?)null));
+        Assert.IsNull(LibraryBase.IsBetween(null, 1L, 10L));
+        Assert.IsNull(LibraryBase.IsBetween(5L, null, 10L));
+        Assert.IsNull(LibraryBase.IsBetween(5L, 1L, null));
     }
 
     #endregion
@@ -689,19 +687,19 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void Pow_Decimal_WhenXNull_ReturnsNull()
     {
-        Assert.IsNull(Library.Pow((decimal?)null, 2m));
+        Assert.IsNull(Library.Pow(null, 2m));
     }
 
     [TestMethod]
     public void Pow_Decimal_WhenYNull_ReturnsNull()
     {
-        Assert.IsNull(Library.Pow(2m, (decimal?)null));
+        Assert.IsNull(Library.Pow(2m, null));
     }
 
     [TestMethod]
     public void Pow_Decimal_WhenBothNull_ReturnsNull()
     {
-        Assert.IsNull(Library.Pow((decimal?)null, (decimal?)null));
+        Assert.IsNull(Library.Pow(null, (decimal?)null));
     }
 
     [TestMethod]
@@ -715,19 +713,19 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void Pow_Double_WhenXNull_ReturnsNull()
     {
-        Assert.IsNull(Library.Pow((double?)null, 2.0));
+        Assert.IsNull(Library.Pow(null, 2.0));
     }
 
     [TestMethod]
     public void Pow_Double_WhenYNull_ReturnsNull()
     {
-        Assert.IsNull(Library.Pow(2.0, (double?)null));
+        Assert.IsNull(Library.Pow(2.0, null));
     }
 
     [TestMethod]
     public void Pow_Double_WhenBothNull_ReturnsNull()
     {
-        Assert.IsNull(Library.Pow((double?)null, (double?)null));
+        Assert.IsNull(Library.Pow(null, (double?)null));
     }
 
     [TestMethod]
@@ -797,7 +795,7 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void Sqrt_Long_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(Library.Sqrt((long?)null));
+        Assert.IsNull(Library.Sqrt(null));
     }
 
     [TestMethod]
@@ -815,7 +813,7 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void PercentRank_WhenWindowNull_ReturnsNull()
     {
-        Assert.IsNull(Library.PercentRank<int>(null, 5));
+        Assert.IsNull(Library.PercentRank(null, 5));
     }
 
     [TestMethod]
@@ -840,13 +838,13 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void Log_WhenBaseNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Log((decimal?)null, 100m));
+        Assert.IsNull(LibraryBase.Log(null, 100m));
     }
 
     [TestMethod]
     public void Log_WhenValueNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Log(10m, (decimal?)null));
+        Assert.IsNull(LibraryBase.Log(10m, null));
     }
 
     [TestMethod]
@@ -930,7 +928,7 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void Sin_Double_PiOver2_ReturnsOne()
     {
-        var result = LibraryBase.Sin(System.Math.PI / 2);
+        var result = LibraryBase.Sin(Math.PI / 2);
         Assert.IsNotNull(result);
         Assert.AreEqual(1.0, result.Value, 0.0001);
     }
@@ -984,7 +982,7 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void Cos_Double_Pi_ReturnsNegativeOne()
     {
-        var result = LibraryBase.Cos(System.Math.PI);
+        var result = LibraryBase.Cos(Math.PI);
         Assert.IsNotNull(result);
         Assert.AreEqual(-1.0, result.Value, 0.0001);
     }
@@ -1010,19 +1008,19 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void Clamp_Long_WhenValueNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Clamp((long?)null, 0L, 10L));
+        Assert.IsNull(LibraryBase.Clamp(null, 0L, 10L));
     }
 
     [TestMethod]
     public void Clamp_Long_WhenMinNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Clamp(5L, (long?)null, 10L));
+        Assert.IsNull(LibraryBase.Clamp(5L, null, 10L));
     }
 
     [TestMethod]
     public void Clamp_Long_WhenMaxNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Clamp(5L, 0L, (long?)null));
+        Assert.IsNull(LibraryBase.Clamp(5L, 0L, null));
     }
 
     [TestMethod]
@@ -1046,37 +1044,37 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void Clamp_Decimal_WhenValueNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Clamp((decimal?)null, 0m, 10m));
+        Assert.IsNull(LibraryBase.Clamp(null, 0m, 10m));
     }
 
     [TestMethod]
     public void Clamp_Decimal_WhenMinNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Clamp(5m, (decimal?)null, 10m));
+        Assert.IsNull(LibraryBase.Clamp(5m, null, 10m));
     }
 
     [TestMethod]
     public void Clamp_Decimal_WhenMaxNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Clamp(5m, 0m, (decimal?)null));
+        Assert.IsNull(LibraryBase.Clamp(5m, 0m, null));
     }
 
     [TestMethod]
     public void Clamp_Double_WhenValueNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Clamp((double?)null, 0.0, 10.0));
+        Assert.IsNull(LibraryBase.Clamp(null, 0.0, 10.0));
     }
 
     [TestMethod]
     public void Clamp_Double_WhenMinNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Clamp(5.0, (double?)null, 10.0));
+        Assert.IsNull(LibraryBase.Clamp(5.0, null, 10.0));
     }
 
     [TestMethod]
     public void Clamp_Double_WhenMaxNull_ReturnsNull()
     {
-        Assert.IsNull(LibraryBase.Clamp(5.0, 0.0, (double?)null));
+        Assert.IsNull(LibraryBase.Clamp(5.0, 0.0, null));
     }
 
     #endregion
@@ -1086,15 +1084,15 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void Tan_Decimal_PiOver4_ReturnsOne()
     {
-        var result = LibraryBase.Tan((decimal)(System.Math.PI / 4));
+        var result = LibraryBase.Tan((decimal)(Math.PI / 4));
         Assert.IsNotNull(result);
-        Assert.AreEqual(1m, System.Math.Round(result.Value, 0));
+        Assert.AreEqual(1m, Math.Round(result.Value, 0));
     }
 
     [TestMethod]
     public void Tan_Double_PiOver4_ReturnsOne()
     {
-        var result = LibraryBase.Tan(System.Math.PI / 4);
+        var result = LibraryBase.Tan(Math.PI / 4);
         Assert.IsNotNull(result);
         Assert.AreEqual(1.0, result.Value, 0.0001);
     }

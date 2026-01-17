@@ -4,14 +4,14 @@ using System.Reflection;
 namespace Musoq.Plugins;
 
 /// <summary>
-/// Interface for resolving LibraryBase methods by name and parameter types.
-/// Decouples the visitor from direct reflection on LibraryBase type.
-/// Follows Dependency Inversion Principle (DIP) - high-level visitor depends on abstraction, not concrete LibraryBase.
+///     Interface for resolving LibraryBase methods by name and parameter types.
+///     Decouples the visitor from direct reflection on LibraryBase type.
+///     Follows Dependency Inversion Principle (DIP) - high-level visitor depends on abstraction, not concrete LibraryBase.
 /// </summary>
 internal interface ILibraryMethodResolver
 {
     /// <summary>
-    /// Resolves a method from LibraryBase by name and parameter types.
+    ///     Resolves a method from LibraryBase by name and parameter types.
     /// </summary>
     /// <param name="methodName">The name of the method to resolve.</param>
     /// <param name="parameterTypes">The parameter types of the method.</param>

@@ -14,13 +14,13 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Emitter for query-related code generation.
-/// Handles SELECT, WHERE, GROUP BY, ORDER BY, SKIP, TAKE statements.
+///     Emitter for query-related code generation.
+///     Handles SELECT, WHERE, GROUP BY, ORDER BY, SKIP, TAKE statements.
 /// </summary>
 public class QueryEmitter(SyntaxGenerator generator)
 {
     /// <summary>
-    /// Generates a phase change invocation statement: OnPhaseChanged(queryId, QueryPhase.{phase}).
+    ///     Generates a phase change invocation statement: OnPhaseChanged(queryId, QueryPhase.{phase}).
     /// </summary>
     /// <param name="queryId">The unique query identifier.</param>
     /// <param name="phase">The query phase.</param>
@@ -29,25 +29,25 @@ public class QueryEmitter(SyntaxGenerator generator)
     {
         return SyntaxFactory.ExpressionStatement(
             SyntaxFactory.InvocationExpression(
-                SyntaxFactory.IdentifierName("OnPhaseChanged"))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(new[]
-                    {
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.StringLiteralExpression,
-                                SyntaxFactory.Literal(queryId))),
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                SyntaxFactory.IdentifierName(nameof(QueryPhase)),
-                                SyntaxFactory.IdentifierName(phase.ToString())))
-                    }))));
+                    SyntaxFactory.IdentifierName("OnPhaseChanged"))
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SeparatedList(new[]
+                        {
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.StringLiteralExpression,
+                                    SyntaxFactory.Literal(queryId))),
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    SyntaxFactory.IdentifierName(nameof(QueryPhase)),
+                                    SyntaxFactory.IdentifierName(phase.ToString())))
+                        }))));
     }
-    
+
     /// <summary>
-    /// Generates a cancellation token check expression.
+    ///     Generates a cancellation token check expression.
     /// </summary>
     /// <returns>An expression statement that throws if cancellation is requested</returns>
     public static StatementSyntax GenerateCancellationCheck()
@@ -59,9 +59,9 @@ public class QueryEmitter(SyntaxGenerator generator)
                     SyntaxFactory.IdentifierName("token"),
                     SyntaxFactory.IdentifierName(nameof(CancellationToken.ThrowIfCancellationRequested)))));
     }
-    
+
     /// <summary>
-    /// Generates group initialization statements for GROUP BY queries.
+    ///     Generates group initialization statements for GROUP BY queries.
     /// </summary>
     /// <returns>The initialization statements for grouping variables</returns>
     public static IEnumerable<StatementSyntax> GenerateGroupInitStatements()
@@ -70,20 +70,20 @@ public class QueryEmitter(SyntaxGenerator generator)
             .ParseStatement("var rootGroup = new Group(null, new string[0], new string[0]);")
             .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn))
             .NormalizeWhitespace();
-            
+
         yield return SyntaxFactory
             .ParseStatement("var usedGroups = new HashSet<Group>();")
             .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn))
             .NormalizeWhitespace();
-            
+
         yield return SyntaxFactory
             .ParseStatement("var groups = new Dictionary<GroupKey, Group>();")
             .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn))
             .NormalizeWhitespace();
     }
-    
+
     /// <summary>
-    /// Generates parent group variable declaration.
+    ///     Generates parent group variable declaration.
     /// </summary>
     public static StatementSyntax GenerateParentGroupDeclaration()
     {
@@ -92,9 +92,9 @@ public class QueryEmitter(SyntaxGenerator generator)
             .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn))
             .NormalizeWhitespace();
     }
-    
+
     /// <summary>
-    /// Generates group variable declaration.
+    ///     Generates group variable declaration.
     /// </summary>
     public static StatementSyntax GenerateGroupDeclaration()
     {
@@ -103,34 +103,32 @@ public class QueryEmitter(SyntaxGenerator generator)
             .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn))
             .NormalizeWhitespace();
     }
-    
+
     /// <summary>
-    /// Creates an index-to-column mapping initializer for SELECT fields.
+    ///     Creates an index-to-column mapping initializer for SELECT fields.
     /// </summary>
     /// <param name="fieldCount">Number of fields in the SELECT clause</param>
     /// <param name="fieldNameGetter">Function to get field name by index</param>
     /// <returns>Array of initializer expressions for the mapping</returns>
     public InitializerExpressionSyntax[] CreateIndexToColumnMap(
-        int fieldCount, 
+        int fieldCount,
         Func<int, string> fieldNameGetter)
     {
         var result = new InitializerExpressionSyntax[fieldCount];
-        
+
         for (int i = 0, j = fieldCount - 1; i < fieldCount; i++, --j)
-        {
             result[i] = SyntaxFactory.InitializerExpression(
                 SyntaxKind.ComplexElementInitializerExpression,
                 SyntaxFactory.SeparatedList<ExpressionSyntax>()
                     .Add((LiteralExpressionSyntax)generator.LiteralExpression(j))
                     .Add((LiteralExpressionSyntax)generator.LiteralExpression(
                         fieldNameGetter(i).Replace("\"", "'"))));
-        }
-        
+
         return result;
     }
-    
+
     /// <summary>
-    /// Creates the index-to-value dictionary variable declaration.
+    ///     Creates the index-to-value dictionary variable declaration.
     /// </summary>
     /// <param name="initializerExpressions">The index-to-column mapping initializers</param>
     /// <param name="variableName">The name of the dictionary variable</param>
@@ -140,7 +138,7 @@ public class QueryEmitter(SyntaxGenerator generator)
         string variableName = "indexToValueDict")
     {
         var columnToValueDict = SyntaxHelper.CreateAssignment(
-            variableName, 
+            variableName,
             SyntaxHelper.CreateObjectOf(
                 "Dictionary<int, string>",
                 SyntaxFactory.ArgumentList(),
@@ -151,9 +149,9 @@ public class QueryEmitter(SyntaxGenerator generator)
 
         return SyntaxFactory.LocalDeclarationStatement(columnToValueDict);
     }
-    
+
     /// <summary>
-    /// Creates a return statement for the query result.
+    ///     Creates a return statement for the query result.
     /// </summary>
     /// <param name="returnVariableName">The name of the variable to return</param>
     /// <returns>A return statement syntax</returns>
@@ -162,9 +160,9 @@ public class QueryEmitter(SyntaxGenerator generator)
         return (StatementSyntax)generator.ReturnStatement(
             SyntaxFactory.IdentifierName(returnVariableName));
     }
-    
+
     /// <summary>
-    /// Generates a foreach statement for iterating through query results.
+    ///     Generates a foreach statement for iterating through query results.
     /// </summary>
     /// <param name="variableName">The loop variable name</param>
     /// <param name="sourceName">The source collection name</param>
@@ -179,16 +177,13 @@ public class QueryEmitter(SyntaxGenerator generator)
         bool useParallel,
         (FieldOrderedNode Field, ExpressionSyntax Syntax)[]? orderByFields = null)
     {
-        if (useParallel)
-        {
-            return SyntaxHelper.ParallelForeach(variableName, sourceName, body);
-        }
-        
+        if (useParallel) return SyntaxHelper.ParallelForeach(variableName, sourceName, body);
+
         return SyntaxHelper.Foreach(variableName, sourceName, body, orderByFields ?? []);
     }
-    
+
     /// <summary>
-    /// Generates a stats update statement that increments the row number.
+    ///     Generates a stats update statement that increments the row number.
     /// </summary>
     /// <returns>A local declaration statement for currentRowStats</returns>
     public static StatementSyntax GenerateStatsUpdateStatement()
@@ -208,7 +203,7 @@ public class QueryEmitter(SyntaxGenerator generator)
     }
 
     /// <summary>
-    /// Builds the query execution block for QueryNode by assembling all parts.
+    ///     Builds the query execution block for QueryNode by assembling all parts.
     /// </summary>
     /// <param name="block">The initial block from the stack.</param>
     /// <param name="cseDeclarations">CSE variable declarations.</param>
@@ -227,19 +222,14 @@ public class QueryEmitter(SyntaxGenerator generator)
         BlockSyntax select,
         string? queryId = null)
     {
-        if (cseDeclarations.Length > 0)
-        {
-            block = StatementEmitter.CreateBlock(cseDeclarations.Concat(block.Statements));
-        }
+        if (cseDeclarations.Length > 0) block = StatementEmitter.CreateBlock(cseDeclarations.Concat(block.Statements));
 
         block = block.AddStatements(GenerateCancellationCheck());
 
         if (where != null)
         {
             if (!string.IsNullOrEmpty(queryId))
-            {
                 block = block.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.Where));
-            }
             block = block.AddStatements(where);
         }
 
@@ -252,17 +242,15 @@ public class QueryEmitter(SyntaxGenerator generator)
             block = block.AddStatements(take.Statements.ToArray());
 
         if (!string.IsNullOrEmpty(queryId))
-        {
             block = block.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.Select));
-        }
-        
+
         block = block.AddStatements(select.Statements.ToArray());
-        
+
         return block;
     }
 
     /// <summary>
-    /// Creates the full query block with iteration and return statement.
+    ///     Creates the full query block with iteration and return statement.
     /// </summary>
     /// <param name="rowsSource">The rows source statement.</param>
     /// <param name="sourceName">The source collection name.</param>
@@ -285,17 +273,13 @@ public class QueryEmitter(SyntaxGenerator generator)
     {
         var fullBlock = StatementEmitter.CreateEmptyBlock();
 
-        
-        if (!string.IsNullOrEmpty(queryId))
-        {
-            fullBlock = fullBlock.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.Begin));
-        }
 
-        
         if (!string.IsNullOrEmpty(queryId))
-        {
+            fullBlock = fullBlock.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.Begin));
+
+
+        if (!string.IsNullOrEmpty(queryId))
             fullBlock = fullBlock.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.From));
-        }
 
         var iterationStatement = useParallel
             ? SyntaxHelper.ParallelForeach("score", sourceName, executionBlock)
@@ -303,11 +287,9 @@ public class QueryEmitter(SyntaxGenerator generator)
 
         fullBlock = fullBlock.AddStatements(rowsSource, iterationStatement);
 
-        
+
         if (!string.IsNullOrEmpty(queryId))
-        {
             fullBlock = fullBlock.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.End));
-        }
 
         fullBlock = fullBlock.AddStatements(
             (StatementSyntax)generator.ReturnStatement(

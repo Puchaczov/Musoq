@@ -14,8 +14,9 @@ public class SchemaFromNode : FromNode
         var paramsId = parameters.Id;
         Id = $"{nameof(SchemaFromNode)}{schema}{method}{paramsId}{Alias}";
     }
-        
-    public SchemaFromNode(string schema, string method, ArgsListNode parameters, string alias, Type returnType, int queryId)
+
+    public SchemaFromNode(string schema, string method, ArgsListNode parameters, string alias, Type returnType,
+        int queryId)
         : base(alias, returnType)
     {
         Schema = schema;
@@ -31,7 +32,7 @@ public class SchemaFromNode : FromNode
     public string Method { get; }
 
     public ArgsListNode Parameters { get; }
-        
+
     public int QueryId { get; }
 
     public override string Id { get; }
@@ -45,7 +46,7 @@ public class SchemaFromNode : FromNode
     {
         if (string.IsNullOrWhiteSpace(Alias))
             return $"{Schema}.{Method}({Parameters.ToString()})";
-            
+
         return $"{Schema}.{Method}({Parameters.ToString()}) {Alias}";
     }
 

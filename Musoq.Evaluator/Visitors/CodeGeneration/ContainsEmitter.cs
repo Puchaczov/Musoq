@@ -10,28 +10,12 @@ using TextSpan = Musoq.Parser.TextSpan;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Handles code generation for the IN clause (ContainsNode) processing.
+///     Handles code generation for the IN clause (ContainsNode) processing.
 /// </summary>
 public static class ContainsEmitter
 {
     /// <summary>
-    /// Result of processing a ContainsNode.
-    /// </summary>
-    public readonly struct ContainsNodeResult
-    {
-        /// <summary>
-        /// The argument list to push to the stack.
-        /// </summary>
-        public ArgumentListSyntax ArgumentList { get; init; }
-        
-        /// <summary>
-        /// The method node that should be visited after processing.
-        /// </summary>
-        public AccessMethodNode MethodNode { get; init; }
-    }
-
-    /// <summary>
-    /// Processes a ContainsNode and prepares arguments for the Contains method call.
+    ///     Processes a ContainsNode and prepares arguments for the Contains method call.
     /// </summary>
     /// <param name="node">The contains node representing an IN clause.</param>
     /// <param name="valueExpression">The left-hand expression to check.</param>
@@ -61,7 +45,7 @@ public static class ContainsEmitter
     }
 
     /// <summary>
-    /// Extracts expressions from the argument list.
+    ///     Extracts expressions from the argument list.
     /// </summary>
     private static ExpressionSyntax[] ExtractExpressions(ArgumentListSyntax comparisonValues)
     {
@@ -71,19 +55,36 @@ public static class ContainsEmitter
             var argument = comparisonValues.Arguments[index];
             expressions[index] = argument.Expression;
         }
+
         return expressions;
     }
 
     /// <summary>
-    /// Creates the AccessMethodNode for the Contains call.
+    ///     Creates the AccessMethodNode for the Contains call.
     /// </summary>
     private static AccessMethodNode CreateAccessMethodNode(ContainsNode node, MethodInfo containsMethod)
     {
         return new AccessMethodNode(
             new FunctionToken(nameof(Operators.Contains), TextSpan.Empty),
-            new ArgsListNode([node.Left, node.Right]), 
-            null, 
+            new ArgsListNode([node.Left, node.Right]),
+            null,
             false,
             containsMethod);
+    }
+
+    /// <summary>
+    ///     Result of processing a ContainsNode.
+    /// </summary>
+    public readonly struct ContainsNodeResult
+    {
+        /// <summary>
+        ///     The argument list to push to the stack.
+        /// </summary>
+        public ArgumentListSyntax ArgumentList { get; init; }
+
+        /// <summary>
+        ///     The method node that should be visited after processing.
+        /// </summary>
+        public AccessMethodNode MethodNode { get; init; }
     }
 }

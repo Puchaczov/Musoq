@@ -20,7 +20,7 @@ public class CreateTree(BuildChain successor) : BuildChain(successor)
             var parser = new Parser.Parser(lexer);
 
             var rootNode = parser.ComposeAll();
-            
+
             if (rootNode == null)
                 throw AstValidationException.ForNullNode("RootNode", "CreateTree after parsing");
 

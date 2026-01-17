@@ -12,10 +12,10 @@ public class FieldProcessingHelperTests
     public void CreateFields_WhenOldFieldsProvided_ShouldCreateFieldsFromStack()
     {
         // Arrange
-        var oldFields = new FieldNode[]
+        var oldFields = new[]
         {
             new FieldNode(new IntegerNode("1"), 0, "field1"),
-            new FieldNode(new IntegerNode("2"), 1, "field2"),
+            new FieldNode(new IntegerNode("2"), 1, "field2")
         };
 
         var nodes = new Stack<Node>();
@@ -35,9 +35,9 @@ public class FieldProcessingHelperTests
     public void CreateFields_WhenStackHasFewerItems_ShouldHandleGracefully()
     {
         // Arrange
-        var oldFields = new FieldNode[]
+        var oldFields = new[]
         {
-            new FieldNode(new IntegerNode("1"), 0, "field1"),
+            new FieldNode(new IntegerNode("1"), 0, "field1")
         };
 
         var nodes = new Stack<Node>();

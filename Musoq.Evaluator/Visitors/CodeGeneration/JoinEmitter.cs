@@ -6,13 +6,13 @@ using Microsoft.CodeAnalysis.Editing;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Handles code generation for JOIN-related operations.
+///     Handles code generation for JOIN-related operations.
 /// </summary>
 public static class JoinEmitter
 {
     /// <summary>
-    /// Creates the standard join condition check if statement.
-    /// This is used across different join node visitors.
+    ///     Creates the standard join condition check if statement.
+    ///     This is used across different join node visitors.
     /// </summary>
     /// <param name="conditionExpression">The join condition expression (already negated).</param>
     /// <param name="generator">The Roslyn syntax generator.</param>

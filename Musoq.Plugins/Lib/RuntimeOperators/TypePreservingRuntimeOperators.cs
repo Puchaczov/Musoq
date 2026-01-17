@@ -4,17 +4,17 @@ using Musoq.Plugins.Lib.TypeConversion;
 namespace Musoq.Plugins.Lib.RuntimeOperators;
 
 /// <summary>
-/// Runtime operators that preserve operand types using smart type promotion rules.
-/// Priority: decimal > double > long.
+///     Runtime operators that preserve operand types using smart type promotion rules.
+///     Priority: decimal > double > long.
 /// </summary>
 internal class TypePreservingRuntimeOperators : IRuntimeOperators
 {
-    private readonly NumericOnlyTypeConverter _numericConverter;
     private readonly ComparisonTypeConverter _comparisonConverter;
+    private readonly NumericOnlyTypeConverter _numericConverter;
     private readonly StrictTypeConverter _strictConverter;
 
     /// <summary>
-    /// Initializes a new instance of the TypePreservingRuntimeOperators class.
+    ///     Initializes a new instance of the TypePreservingRuntimeOperators class.
     /// </summary>
     /// <param name="numericConverter">Converter for arithmetic operations (numeric-only mode).</param>
     /// <param name="comparisonConverter">Converter for comparison operations (lossy mode).</param>
@@ -64,10 +64,10 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
     {
         var leftDecimal = _comparisonConverter.TryConvertToDecimal(left);
         var rightDecimal = _comparisonConverter.TryConvertToDecimal(right);
-        
+
         if (!leftDecimal.HasValue || !rightDecimal.HasValue)
             return null;
-            
+
         return leftDecimal.Value > rightDecimal.Value;
     }
 
@@ -76,10 +76,10 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
     {
         var leftDecimal = _comparisonConverter.TryConvertToDecimal(left);
         var rightDecimal = _comparisonConverter.TryConvertToDecimal(right);
-        
+
         if (!leftDecimal.HasValue || !rightDecimal.HasValue)
             return null;
-            
+
         return leftDecimal.Value < rightDecimal.Value;
     }
 
@@ -88,10 +88,10 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
     {
         var leftDecimal = _comparisonConverter.TryConvertToDecimal(left);
         var rightDecimal = _comparisonConverter.TryConvertToDecimal(right);
-        
+
         if (!leftDecimal.HasValue || !rightDecimal.HasValue)
             return null;
-            
+
         return leftDecimal.Value >= rightDecimal.Value;
     }
 
@@ -100,10 +100,10 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
     {
         var leftDecimal = _comparisonConverter.TryConvertToDecimal(left);
         var rightDecimal = _comparisonConverter.TryConvertToDecimal(right);
-        
+
         if (!leftDecimal.HasValue || !rightDecimal.HasValue)
             return null;
-            
+
         return leftDecimal.Value <= rightDecimal.Value;
     }
 
@@ -112,13 +112,13 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
     {
         var leftDecimal = _strictConverter.TryConvertToDecimal(left);
         var rightDecimal = _strictConverter.TryConvertToDecimal(right);
-        
+
         if (leftDecimal.HasValue && rightDecimal.HasValue)
             return leftDecimal.Value == rightDecimal.Value;
-        
+
         if (left is string leftStr && right is string rightStr)
             return leftStr == rightStr;
-        
+
         return false;
     }
 
@@ -127,18 +127,18 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
     {
         var leftDecimal = _strictConverter.TryConvertToDecimal(left);
         var rightDecimal = _strictConverter.TryConvertToDecimal(right);
-        
+
         if (leftDecimal.HasValue && rightDecimal.HasValue)
             return leftDecimal.Value != rightDecimal.Value;
-        
+
         if (left is string leftStr && right is string rightStr)
             return leftStr != rightStr;
-        
+
         return true;
     }
 
-    private object? ApplyArithmeticOperator(object? left, object? right, 
-        Func<long, long, long> longOp, 
+    private object? ApplyArithmeticOperator(object? left, object? right,
+        Func<long, long, long> longOp,
         Func<double, double, double> doubleOp,
         Func<decimal, decimal, decimal> decimalOp)
     {
@@ -159,25 +159,19 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
         };
     }
 
-    private enum ArithmeticType
-    {
-        Long,
-        Double,
-        Decimal
-    }
-
     private ArithmeticType DetermineArithmeticTargetType(object left, object right)
     {
         if (left is decimal || right is decimal)
             return ArithmeticType.Decimal;
-        
+
         if (left is double || right is double || left is float || right is float)
             return ArithmeticType.Double;
-        
+
         return ArithmeticType.Long;
     }
 
-    private T? ConvertAndApply<T>(object? left, object? right, Func<T, T, T> operation, Func<object?, T?> converter) where T : struct
+    private T? ConvertAndApply<T>(object? left, object? right, Func<T, T, T> operation, Func<object?, T?> converter)
+        where T : struct
     {
         var leftConverted = converter(left);
         var rightConverted = converter(right);
@@ -186,5 +180,12 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
             return null;
 
         return operation(leftConverted.Value, rightConverted.Value);
+    }
+
+    private enum ArithmeticType
+    {
+        Long,
+        Double,
+        Decimal
     }
 }

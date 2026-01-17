@@ -7,7 +7,7 @@ using Musoq.Evaluator.Helpers;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Handles code generation for pagination (SKIP/TAKE) clauses.
+///     Handles code generation for pagination (SKIP/TAKE) clauses.
 /// </summary>
 public static class PaginationEmitter
 {
@@ -15,23 +15,7 @@ public static class PaginationEmitter
     private const string TakeIdentifier = "tookAmount";
 
     /// <summary>
-    /// Result of processing a Skip node.
-    /// </summary>
-    public readonly struct SkipNodeResult
-    {
-        /// <summary>
-        /// The local declaration statement for the skip counter.
-        /// </summary>
-        public LocalDeclarationStatementSyntax Declaration { get; init; }
-        
-        /// <summary>
-        /// The if statement to check skip condition.
-        /// </summary>
-        public SyntaxNode IfStatement { get; init; }
-    }
-
-    /// <summary>
-    /// Generates code for SKIP clause.
+    ///     Generates code for SKIP clause.
     /// </summary>
     /// <param name="skipValue">The number of rows to skip.</param>
     /// <param name="generator">The Roslyn syntax generator.</param>
@@ -61,13 +45,13 @@ public static class PaginationEmitter
     }
 
     /// <summary>
-    /// Generates code for TAKE clause.
+    ///     Generates code for TAKE clause.
     /// </summary>
     /// <param name="takeValue">The maximum number of rows to take.</param>
     /// <param name="generator">The Roslyn syntax generator.</param>
     /// <returns>A block containing the if statement and increment logic.</returns>
     public static (LocalDeclarationStatementSyntax Declaration, BlockSyntax Block) GenerateTakeCode(
-        long takeValue, 
+        long takeValue,
         SyntaxGenerator generator)
     {
         var take = SyntaxFactory.LocalDeclarationStatement(
@@ -87,5 +71,21 @@ public static class PaginationEmitter
                 SyntaxFactory.IdentifierName(TakeIdentifier)));
 
         return (take, StatementEmitter.CreateBlock(ifStatement, incTookAmount));
+    }
+
+    /// <summary>
+    ///     Result of processing a Skip node.
+    /// </summary>
+    public readonly struct SkipNodeResult
+    {
+        /// <summary>
+        ///     The local declaration statement for the skip counter.
+        /// </summary>
+        public LocalDeclarationStatementSyntax Declaration { get; init; }
+
+        /// <summary>
+        ///     The if statement to check skip condition.
+        /// </summary>
+        public SyntaxNode IfStatement { get; init; }
     }
 }

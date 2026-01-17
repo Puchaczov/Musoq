@@ -7,24 +7,26 @@ using Musoq.Parser.Nodes.From;
 namespace Musoq.Evaluator.Visitors;
 
 /// <summary>
-/// Analyzes the query tree to identify common subexpressions that can be cached.
-/// This visitor counts occurrences of each expression and determines which ones
-/// appear multiple times and are therefore candidates for caching.
+///     Analyzes the query tree to identify common subexpressions that can be cached.
+///     This visitor counts occurrences of each expression and determines which ones
+///     appear multiple times and are therefore candidates for caching.
 /// </summary>
 public class CommonSubexpressionAnalysisVisitor : IExpressionVisitor
 {
-    private readonly HashSet<string> _nonDeterministicFunctions;
+    private readonly Dictionary<string, Node> _expressionNodes = new();
 
     private readonly Dictionary<string, int> _expressionOccurrences = new();
-    private readonly Dictionary<string, Node> _expressionNodes = new();
     private readonly HashSet<string> _nonCacheableExpressions = [];
-    
+    private readonly HashSet<string> _nonDeterministicFunctions;
+
+    private readonly HashSet<string> _seenInSafeContext = [];
+
     /// <summary>
-    /// Initializes a new instance of the <see cref="CommonSubexpressionAnalysisVisitor"/> class.
+    ///     Initializes a new instance of the <see cref="CommonSubexpressionAnalysisVisitor" /> class.
     /// </summary>
     /// <param name="nonDeterministicFunctions">
-    /// Set of function names that are non-deterministic and should never be cached.
-    /// These are typically discovered by scanning library assemblies for methods marked with [NonDeterministic] attribute.
+    ///     Set of function names that are non-deterministic and should never be cached.
+    ///     These are typically discovered by scanning library assemblies for methods marked with [NonDeterministic] attribute.
     /// </param>
     public CommonSubexpressionAnalysisVisitor(HashSet<string> nonDeterministicFunctions)
     {
@@ -32,43 +34,18 @@ public class CommonSubexpressionAnalysisVisitor : IExpressionVisitor
     }
 
     /// <summary>
-    /// When true, expressions are in a "pass-through" unsafe context (e.g., CASE WHEN).
-    /// CSE variables computed earlier can still be used via method parameters.
-    /// Expressions appearing ONLY in this context should not be cached.
+    ///     When true, expressions are in a "pass-through" unsafe context (e.g., CASE WHEN).
+    ///     CSE variables computed earlier can still be used via method parameters.
+    ///     Expressions appearing ONLY in this context should not be cached.
     /// </summary>
     public bool InPassThroughUnsafeContext { get; set; }
-    
+
     /// <summary>
-    /// When true, expressions are in a "separate-scope" unsafe context (e.g., ORDER BY, GROUP BY, HAVING).
-    /// CSE variables cannot be used because they're in a different execution scope.
-    /// Expressions appearing here must be marked non-cacheable.
+    ///     When true, expressions are in a "separate-scope" unsafe context (e.g., ORDER BY, GROUP BY, HAVING).
+    ///     CSE variables cannot be used because they're in a different execution scope.
+    ///     Expressions appearing here must be marked non-cacheable.
     /// </summary>
     public bool InSeparateScopeContext { get; set; }
-
-    private readonly HashSet<string> _seenInSafeContext = [];
-
-    /// <summary>
-    /// Gets the map of expression IDs to their cache slot indices.
-    /// Only expressions that appear more than once and are cacheable are included.
-    /// </summary>
-    public IReadOnlyDictionary<string, int> GetCacheSlotMap()
-    {
-        var cacheSlotMap = new Dictionary<string, int>();
-        var slotIndex = 0;
-
-        foreach (var (expressionId, count) in _expressionOccurrences)
-        {
-            if (count <= 1 || _nonCacheableExpressions.Contains(expressionId)) 
-                continue;
-            
-            if (_expressionNodes.TryGetValue(expressionId, out var node) && IsWorthCaching(node))
-            {
-                cacheSlotMap[expressionId] = slotIndex++;
-            }
-        }
-
-        return cacheSlotMap;
-    }
 
     public void Visit(Node node)
     {
@@ -224,10 +201,7 @@ public class CommonSubexpressionAnalysisVisitor : IExpressionVisitor
     {
         TrackExpression(node);
 
-        if (IsNonDeterministicFunction(node))
-        {
-            MarkNonCacheable(node.Id);
-        }
+        if (IsNonDeterministicFunction(node)) MarkNonCacheable(node.Id);
     }
 
     public void Visit(AccessRawIdentifierNode node)
@@ -493,27 +467,40 @@ public class CommonSubexpressionAnalysisVisitor : IExpressionVisitor
     {
     }
 
+    /// <summary>
+    ///     Gets the map of expression IDs to their cache slot indices.
+    ///     Only expressions that appear more than once and are cacheable are included.
+    /// </summary>
+    public IReadOnlyDictionary<string, int> GetCacheSlotMap()
+    {
+        var cacheSlotMap = new Dictionary<string, int>();
+        var slotIndex = 0;
+
+        foreach (var (expressionId, count) in _expressionOccurrences)
+        {
+            if (count <= 1 || _nonCacheableExpressions.Contains(expressionId))
+                continue;
+
+            if (_expressionNodes.TryGetValue(expressionId, out var node) && IsWorthCaching(node))
+                cacheSlotMap[expressionId] = slotIndex++;
+        }
+
+        return cacheSlotMap;
+    }
+
     private void TrackExpression(Node node)
     {
         var id = node.Id;
-        
-        if (_expressionOccurrences.TryAdd(id, 0))
-        {
-            _expressionNodes[id] = node;
-        }
-        
+
+        if (_expressionOccurrences.TryAdd(id, 0)) _expressionNodes[id] = node;
+
         _expressionOccurrences[id]++;
-        
-        if (!InPassThroughUnsafeContext)
-        {
-            _seenInSafeContext.Add(id);
-        }
-        
-        if (InSeparateScopeContext || 
+
+        if (!InPassThroughUnsafeContext) _seenInSafeContext.Add(id);
+
+        if (InSeparateScopeContext ||
             (InPassThroughUnsafeContext && !_seenInSafeContext.Contains(id)))
-        {
             MarkNonCacheable(id);
-        }
     }
 
     private void MarkNonCacheable(string expressionId)
@@ -525,14 +512,14 @@ public class CommonSubexpressionAnalysisVisitor : IExpressionVisitor
     {
         switch (node)
         {
-            case IntegerNode or DecimalNode or StringNode or BooleanNode or NullNode or 
+            case IntegerNode or DecimalNode or StringNode or BooleanNode or NullNode or
                 HexIntegerNode or BinaryIntegerNode or OctalIntegerNode or WordNode:
                 return false;
             case AccessColumnNode columnNode:
             {
                 var returnType = columnNode.ReturnType;
-                return returnType != null && 
-                       returnType != typeof(void) && 
+                return returnType != null &&
+                       returnType != typeof(void) &&
                        (returnType.IsValueType || returnType == typeof(string));
             }
             case AccessObjectArrayNode or AccessObjectKeyNode:

@@ -5,13 +5,13 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Helper class for handling logical operations in the RewriteQueryVisitor.
-/// Provides common implementation for logical operations with nullable boolean expression rewriting.
+///     Helper class for handling logical operations in the RewriteQueryVisitor.
+///     Provides common implementation for logical operations with nullable boolean expression rewriting.
 /// </summary>
 public static class LogicalOperationVisitorHelper
 {
     /// <summary>
-    /// Processes an And operation with nullable boolean expression rewriting.
+    ///     Processes an And operation with nullable boolean expression rewriting.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <param name="rewriteNullableBoolExpressions">Function to rewrite nullable boolean expressions.</param>
@@ -26,16 +26,16 @@ public static class LogicalOperationVisitorHelper
 
         var rightRaw = nodes.Pop();
         var leftRaw = nodes.Pop();
-        
+
         ValidateOperands(leftRaw, rightRaw);
-        
+
         var right = rewriteNullableBoolExpressions(rightRaw);
         var left = rewriteNullableBoolExpressions(leftRaw);
         nodes.Push(new AndNode(left, right));
     }
 
     /// <summary>
-    /// Processes an Or operation with nullable boolean expression rewriting.
+    ///     Processes an Or operation with nullable boolean expression rewriting.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <param name="rewriteNullableBoolExpressions">Function to rewrite nullable boolean expressions.</param>
@@ -50,16 +50,16 @@ public static class LogicalOperationVisitorHelper
 
         var rightRaw = nodes.Pop();
         var leftRaw = nodes.Pop();
-        
+
         ValidateOperands(leftRaw, rightRaw);
-        
+
         var right = rewriteNullableBoolExpressions(rightRaw);
         var left = rewriteNullableBoolExpressions(leftRaw);
         nodes.Push(new OrNode(left, right));
     }
 
     /// <summary>
-    /// Processes a Not operation.
+    ///     Processes a Not operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -69,15 +69,15 @@ public static class LogicalOperationVisitorHelper
     {
         ValidateUnaryOperation(nodes);
         var operand = nodes.Pop();
-        
+
         if (operand == null)
             throw new ArgumentException("Operand cannot be null");
-            
+
         nodes.Push(new NotNode(operand));
     }
 
     /// <summary>
-    /// Processes a Contains operation.
+    ///     Processes a Contains operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -88,17 +88,17 @@ public static class LogicalOperationVisitorHelper
         ValidateBinaryOperation(nodes);
         var right = nodes.Pop();
         var left = nodes.Pop();
-        
+
         ValidateOperands(left, right);
-        
+
         if (!(right is ArgsListNode argsListNode))
             throw new ArgumentException("Right operand must be an ArgsListNode for Contains operation");
-            
+
         nodes.Push(new ContainsNode(left, argsListNode));
     }
 
     /// <summary>
-    /// Processes an IsNull operation.
+    ///     Processes an IsNull operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <param name="isNegated">Whether the IsNull operation is negated.</param>
@@ -109,15 +109,15 @@ public static class LogicalOperationVisitorHelper
     {
         ValidateUnaryOperation(nodes);
         var operand = nodes.Pop();
-        
+
         if (operand == null)
             throw new ArgumentException("Operand cannot be null");
-            
+
         nodes.Push(new IsNullNode(operand, isNegated));
     }
 
     /// <summary>
-    /// Processes an In operation by converting it to a series of equality checks.
+    ///     Processes an In operation by converting it to a series of equality checks.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -152,7 +152,7 @@ public static class LogicalOperationVisitorHelper
         {
             if (right.Args[i] == null)
                 throw new ArgumentException($"Argument at index {i} in ArgsListNode cannot be null");
-                
+
             exp = new OrNode(exp, new EqualityNode(left, right.Args[i]));
         }
 
@@ -160,7 +160,7 @@ public static class LogicalOperationVisitorHelper
     }
 
     /// <summary>
-    /// Validates that the stack is not null and has at least 2 nodes for binary operations.
+    ///     Validates that the stack is not null and has at least 2 nodes for binary operations.
     /// </summary>
     /// <param name="nodes">The node stack to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -169,13 +169,13 @@ public static class LogicalOperationVisitorHelper
     {
         if (nodes == null)
             throw new ArgumentNullException(nameof(nodes));
-            
+
         if (nodes.Count < 2)
             throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");
     }
 
     /// <summary>
-    /// Validates that the stack is not null and has at least 1 node for unary operations.
+    ///     Validates that the stack is not null and has at least 1 node for unary operations.
     /// </summary>
     /// <param name="nodes">The node stack to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -184,13 +184,13 @@ public static class LogicalOperationVisitorHelper
     {
         if (nodes == null)
             throw new ArgumentNullException(nameof(nodes));
-            
+
         if (nodes.Count < 1)
             throw new InvalidOperationException("Stack must contain at least 1 node for unary operation");
     }
 
     /// <summary>
-    /// Validates that both operands are not null.
+    ///     Validates that both operands are not null.
     /// </summary>
     /// <param name="left">The left operand.</param>
     /// <param name="right">The right operand.</param>

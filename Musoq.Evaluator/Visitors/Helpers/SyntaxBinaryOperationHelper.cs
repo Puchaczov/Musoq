@@ -6,14 +6,14 @@ using Microsoft.CodeAnalysis.Editing;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Helper class for handling binary operations during C# syntax generation.
-/// Provides common implementation for operations that follow the pattern:
-/// pop right, pop left, push new syntax expression.
+///     Helper class for handling binary operations during C# syntax generation.
+///     Provides common implementation for operations that follow the pattern:
+///     pop right, pop left, push new syntax expression.
 /// </summary>
 public static class SyntaxBinaryOperationHelper
 {
     /// <summary>
-    /// Processes a multiplication operation.
+    ///     Processes a multiplication operation.
     /// </summary>
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -28,7 +28,7 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
-    /// Processes a division operation.
+    ///     Processes a division operation.
     /// </summary>
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -43,7 +43,7 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
-    /// Processes a modulo operation.
+    ///     Processes a modulo operation.
     /// </summary>
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -58,7 +58,7 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
-    /// Processes an addition operation.
+    ///     Processes an addition operation.
     /// </summary>
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -73,7 +73,7 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
-    /// Processes a subtraction operation.
+    ///     Processes a subtraction operation.
     /// </summary>
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -88,7 +88,7 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
-    /// Processes a logical AND operation.
+    ///     Processes a logical AND operation.
     /// </summary>
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -103,7 +103,7 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
-    /// Processes a logical OR operation.
+    ///     Processes a logical OR operation.
     /// </summary>
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -118,7 +118,7 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
-    /// Processes an equality comparison operation.
+    ///     Processes an equality comparison operation.
     /// </summary>
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -133,7 +133,7 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
-    /// Processes a greater than or equal comparison operation.
+    ///     Processes a greater than or equal comparison operation.
     /// </summary>
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -148,7 +148,7 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
-    /// Processes a less than or equal comparison operation.
+    ///     Processes a less than or equal comparison operation.
     /// </summary>
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -163,7 +163,7 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
-    /// Processes a greater than comparison operation.
+    ///     Processes a greater than comparison operation.
     /// </summary>
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -178,7 +178,7 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
-    /// Processes a less than comparison operation.
+    ///     Processes a less than comparison operation.
     /// </summary>
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -193,7 +193,7 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
-    /// Processes a not equals comparison operation.
+    ///     Processes a not equals comparison operation.
     /// </summary>
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -208,7 +208,7 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
-    /// Processes a logical NOT operation.
+    ///     Processes a logical NOT operation.
     /// </summary>
     /// <param name="nodes">The syntax node stack.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -222,7 +222,7 @@ public static class SyntaxBinaryOperationHelper
     }
 
     /// <summary>
-    /// Validates that the stack and generator are not null and stack has at least 2 nodes for binary operations.
+    ///     Validates that the stack and generator are not null and stack has at least 2 nodes for binary operations.
     /// </summary>
     /// <param name="nodes">The syntax node stack to validate.</param>
     /// <param name="generator">The syntax generator to validate.</param>
@@ -232,16 +232,16 @@ public static class SyntaxBinaryOperationHelper
     {
         if (nodes == null)
             throw new ArgumentNullException(nameof(nodes));
-            
+
         if (generator == null)
             throw new ArgumentNullException(nameof(generator));
-            
+
         if (nodes.Count < 2)
             throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");
     }
 
     /// <summary>
-    /// Validates that the stack and generator are not null and stack has at least 1 node for unary operations.
+    ///     Validates that the stack and generator are not null and stack has at least 1 node for unary operations.
     /// </summary>
     /// <param name="nodes">The syntax node stack to validate.</param>
     /// <param name="generator">The syntax generator to validate.</param>
@@ -251,10 +251,10 @@ public static class SyntaxBinaryOperationHelper
     {
         if (nodes == null)
             throw new ArgumentNullException(nameof(nodes));
-            
+
         if (generator == null)
             throw new ArgumentNullException(nameof(generator));
-            
+
         if (nodes.Count < 1)
             throw new InvalidOperationException("Stack must contain at least 1 node for unary operation");
     }

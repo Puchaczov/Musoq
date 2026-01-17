@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
@@ -71,278 +71,6 @@ public class DateTests : LibraryBaseBaseTests
         Assert.AreEqual(new DateTime(2012, 10, 15), Library.ToDateTime("2012/10/15"));
     }
 
-    #region AddMonths Tests
-
-    [TestMethod]
-    public void AddMonths_DateTime_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(Library.AddMonths((DateTime?)null, 1));
-    }
-
-    [TestMethod]
-    public void AddMonths_DateTime_AddsMonths()
-    {
-        var date = new DateTime(2023, 1, 15);
-        var result = Library.AddMonths(date, 3);
-        Assert.AreEqual(new DateTime(2023, 4, 15), result);
-    }
-
-    [TestMethod]
-    public void AddMonths_DateTime_SubtractsMonths()
-    {
-        var date = new DateTime(2023, 6, 15);
-        var result = Library.AddMonths(date, -2);
-        Assert.AreEqual(new DateTime(2023, 4, 15), result);
-    }
-
-    [TestMethod]
-    public void AddMonths_DateTimeOffset_AddsMonths()
-    {
-        var date = new DateTimeOffset(2023, 1, 15, 10, 30, 0, TimeSpan.Zero);
-        var result = Library.AddMonths(date, 3);
-        Assert.AreEqual(new DateTimeOffset(2023, 4, 15, 10, 30, 0, TimeSpan.Zero), result);
-    }
-
-    #endregion
-
-    #region AddYears Tests
-
-    [TestMethod]
-    public void AddYears_DateTime_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(Library.AddYears((DateTime?)null, 1));
-    }
-
-    [TestMethod]
-    public void AddYears_DateTime_AddsYears()
-    {
-        var date = new DateTime(2023, 6, 15);
-        var result = Library.AddYears(date, 5);
-        Assert.AreEqual(new DateTime(2028, 6, 15), result);
-    }
-
-    [TestMethod]
-    public void AddYears_DateTimeOffset_AddsYears()
-    {
-        var date = new DateTimeOffset(2023, 6, 15, 10, 30, 0, TimeSpan.Zero);
-        var result = Library.AddYears(date, 2);
-        Assert.AreEqual(new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero), result);
-    }
-
-    #endregion
-
-    #region AddHours Tests
-
-    [TestMethod]
-    public void AddHours_DateTime_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(Library.AddHours((DateTime?)null, 1));
-    }
-
-    [TestMethod]
-    public void AddHours_DateTime_AddsHours()
-    {
-        var date = new DateTime(2023, 6, 15, 10, 0, 0);
-        var result = Library.AddHours(date, 5);
-        Assert.AreEqual(new DateTime(2023, 6, 15, 15, 0, 0), result);
-    }
-
-    [TestMethod]
-    public void AddHours_DateTime_CrossesMidnight()
-    {
-        var date = new DateTime(2023, 6, 15, 22, 0, 0);
-        var result = Library.AddHours(date, 5);
-        Assert.AreEqual(new DateTime(2023, 6, 16, 3, 0, 0), result);
-    }
-
-    #endregion
-
-    #region AddMinutes Tests
-
-    [TestMethod]
-    public void AddMinutes_DateTime_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(Library.AddMinutes((DateTime?)null, 1));
-    }
-
-    [TestMethod]
-    public void AddMinutes_DateTime_AddsMinutes()
-    {
-        var date = new DateTime(2023, 6, 15, 10, 30, 0);
-        var result = Library.AddMinutes(date, 45);
-        Assert.AreEqual(new DateTime(2023, 6, 15, 11, 15, 0), result);
-    }
-
-    #endregion
-
-    #region AddSeconds Tests
-
-    [TestMethod]
-    public void AddSeconds_DateTime_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(Library.AddSeconds((DateTime?)null, 1));
-    }
-
-    [TestMethod]
-    public void AddSeconds_DateTime_AddsSeconds()
-    {
-        var date = new DateTime(2023, 6, 15, 10, 30, 0);
-        var result = Library.AddSeconds(date, 90);
-        Assert.AreEqual(new DateTime(2023, 6, 15, 10, 31, 30), result);
-    }
-
-    #endregion
-
-    #region StartOfDay Tests
-
-    [TestMethod]
-    public void StartOfDay_DateTime_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(Library.StartOfDay((DateTime?)null));
-    }
-
-    [TestMethod]
-    public void StartOfDay_DateTime_ReturnsMidnight()
-    {
-        var date = new DateTime(2023, 6, 15, 14, 30, 45);
-        var result = Library.StartOfDay(date);
-        Assert.AreEqual(new DateTime(2023, 6, 15, 0, 0, 0), result);
-    }
-
-    [TestMethod]
-    public void StartOfDay_DateTimeOffset_ReturnsMidnight()
-    {
-        var date = new DateTimeOffset(2023, 6, 15, 14, 30, 45, TimeSpan.FromHours(2));
-        var result = Library.StartOfDay(date);
-        Assert.AreEqual(new DateTimeOffset(2023, 6, 15, 0, 0, 0, TimeSpan.FromHours(2)), result);
-    }
-
-    #endregion
-
-    #region EndOfDay Tests
-
-    [TestMethod]
-    public void EndOfDay_DateTime_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(Library.EndOfDay((DateTime?)null));
-    }
-
-    [TestMethod]
-    public void EndOfDay_DateTime_ReturnsEndOfDay()
-    {
-        var date = new DateTime(2023, 6, 15, 14, 30, 45);
-        var result = Library.EndOfDay(date);
-        Assert.AreEqual(23, result?.Hour);
-        Assert.AreEqual(59, result?.Minute);
-        Assert.AreEqual(59, result?.Second);
-    }
-
-    [TestMethod]
-    public void EndOfDay_DateTimeOffset_ReturnsEndOfDay()
-    {
-        var date = new DateTimeOffset(2023, 6, 15, 14, 30, 45, TimeSpan.FromHours(2));
-        var result = Library.EndOfDay(date);
-        Assert.AreEqual(23, result?.Hour);
-        Assert.AreEqual(59, result?.Minute);
-        Assert.AreEqual(59, result?.Second);
-    }
-
-    #endregion
-
-    #region IsWeekend Tests
-
-    [TestMethod]
-    public void IsWeekend_DateTime_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(Library.IsWeekend((DateTime?)null));
-    }
-
-    [TestMethod]
-    public void IsWeekend_DateTime_Saturday_ReturnsTrue()
-    {
-        var date = new DateTime(2023, 6, 17); 
-        Assert.IsTrue(Library.IsWeekend(date));
-    }
-
-    [TestMethod]
-    public void IsWeekend_DateTime_Sunday_ReturnsTrue()
-    {
-        var date = new DateTime(2023, 6, 18); 
-        Assert.IsTrue(Library.IsWeekend(date));
-    }
-
-    [TestMethod]
-    public void IsWeekend_DateTime_Monday_ReturnsFalse()
-    {
-        var date = new DateTime(2023, 6, 19); 
-        Assert.IsFalse(Library.IsWeekend(date));
-    }
-
-    [TestMethod]
-    public void IsWeekend_DateTime_Friday_ReturnsFalse()
-    {
-        var date = new DateTime(2023, 6, 16); 
-        Assert.IsFalse(Library.IsWeekend(date));
-    }
-
-    #endregion
-
-    #region IsWeekday Tests
-
-    [TestMethod]
-    public void IsWeekday_DateTime_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(Library.IsWeekday((DateTime?)null));
-    }
-
-    [TestMethod]
-    public void IsWeekday_DateTime_Monday_ReturnsTrue()
-    {
-        var date = new DateTime(2023, 6, 19); 
-        Assert.IsTrue(Library.IsWeekday(date));
-    }
-
-    [TestMethod]
-    public void IsWeekday_DateTime_Saturday_ReturnsFalse()
-    {
-        var date = new DateTime(2023, 6, 17); 
-        Assert.IsFalse(Library.IsWeekday(date));
-    }
-
-    #endregion
-
-    #region DateDiffInDays Tests
-
-    [TestMethod]
-    public void DateDiffInDays_DateTime_WhenStartNull_ReturnsNull()
-    {
-        Assert.IsNull(Library.DateDiffInDays((DateTime?)null, DateTime.Now));
-    }
-
-    [TestMethod]
-    public void DateDiffInDays_DateTime_WhenEndNull_ReturnsNull()
-    {
-        Assert.IsNull(Library.DateDiffInDays(DateTime.Now, (DateTime?)null));
-    }
-
-    [TestMethod]
-    public void DateDiffInDays_DateTime_CalculatesPositiveDiff()
-    {
-        var start = new DateTime(2023, 1, 1);
-        var end = new DateTime(2023, 1, 11);
-        Assert.AreEqual(10, Library.DateDiffInDays(start, end));
-    }
-
-    [TestMethod]
-    public void DateDiffInDays_DateTime_CalculatesNegativeDiff()
-    {
-        var start = new DateTime(2023, 1, 11);
-        var end = new DateTime(2023, 1, 1);
-        Assert.AreEqual(-10, Library.DateDiffInDays(start, end));
-    }
-
-    #endregion
-
     #region DateDiffInHours Tests
 
     [TestMethod]
@@ -379,12 +107,284 @@ public class DateTests : LibraryBaseBaseTests
 
     #endregion
 
+    #region AddMonths Tests
+
+    [TestMethod]
+    public void AddMonths_DateTime_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.AddMonths(null, 1));
+    }
+
+    [TestMethod]
+    public void AddMonths_DateTime_AddsMonths()
+    {
+        var date = new DateTime(2023, 1, 15);
+        var result = Library.AddMonths(date, 3);
+        Assert.AreEqual(new DateTime(2023, 4, 15), result);
+    }
+
+    [TestMethod]
+    public void AddMonths_DateTime_SubtractsMonths()
+    {
+        var date = new DateTime(2023, 6, 15);
+        var result = Library.AddMonths(date, -2);
+        Assert.AreEqual(new DateTime(2023, 4, 15), result);
+    }
+
+    [TestMethod]
+    public void AddMonths_DateTimeOffset_AddsMonths()
+    {
+        var date = new DateTimeOffset(2023, 1, 15, 10, 30, 0, TimeSpan.Zero);
+        var result = Library.AddMonths(date, 3);
+        Assert.AreEqual(new DateTimeOffset(2023, 4, 15, 10, 30, 0, TimeSpan.Zero), result);
+    }
+
+    #endregion
+
+    #region AddYears Tests
+
+    [TestMethod]
+    public void AddYears_DateTime_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.AddYears(null, 1));
+    }
+
+    [TestMethod]
+    public void AddYears_DateTime_AddsYears()
+    {
+        var date = new DateTime(2023, 6, 15);
+        var result = Library.AddYears(date, 5);
+        Assert.AreEqual(new DateTime(2028, 6, 15), result);
+    }
+
+    [TestMethod]
+    public void AddYears_DateTimeOffset_AddsYears()
+    {
+        var date = new DateTimeOffset(2023, 6, 15, 10, 30, 0, TimeSpan.Zero);
+        var result = Library.AddYears(date, 2);
+        Assert.AreEqual(new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero), result);
+    }
+
+    #endregion
+
+    #region AddHours Tests
+
+    [TestMethod]
+    public void AddHours_DateTime_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.AddHours(null, 1));
+    }
+
+    [TestMethod]
+    public void AddHours_DateTime_AddsHours()
+    {
+        var date = new DateTime(2023, 6, 15, 10, 0, 0);
+        var result = Library.AddHours(date, 5);
+        Assert.AreEqual(new DateTime(2023, 6, 15, 15, 0, 0), result);
+    }
+
+    [TestMethod]
+    public void AddHours_DateTime_CrossesMidnight()
+    {
+        var date = new DateTime(2023, 6, 15, 22, 0, 0);
+        var result = Library.AddHours(date, 5);
+        Assert.AreEqual(new DateTime(2023, 6, 16, 3, 0, 0), result);
+    }
+
+    #endregion
+
+    #region AddMinutes Tests
+
+    [TestMethod]
+    public void AddMinutes_DateTime_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.AddMinutes(null, 1));
+    }
+
+    [TestMethod]
+    public void AddMinutes_DateTime_AddsMinutes()
+    {
+        var date = new DateTime(2023, 6, 15, 10, 30, 0);
+        var result = Library.AddMinutes(date, 45);
+        Assert.AreEqual(new DateTime(2023, 6, 15, 11, 15, 0), result);
+    }
+
+    #endregion
+
+    #region AddSeconds Tests
+
+    [TestMethod]
+    public void AddSeconds_DateTime_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.AddSeconds(null, 1));
+    }
+
+    [TestMethod]
+    public void AddSeconds_DateTime_AddsSeconds()
+    {
+        var date = new DateTime(2023, 6, 15, 10, 30, 0);
+        var result = Library.AddSeconds(date, 90);
+        Assert.AreEqual(new DateTime(2023, 6, 15, 10, 31, 30), result);
+    }
+
+    #endregion
+
+    #region StartOfDay Tests
+
+    [TestMethod]
+    public void StartOfDay_DateTime_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.StartOfDay(null));
+    }
+
+    [TestMethod]
+    public void StartOfDay_DateTime_ReturnsMidnight()
+    {
+        var date = new DateTime(2023, 6, 15, 14, 30, 45);
+        var result = Library.StartOfDay(date);
+        Assert.AreEqual(new DateTime(2023, 6, 15, 0, 0, 0), result);
+    }
+
+    [TestMethod]
+    public void StartOfDay_DateTimeOffset_ReturnsMidnight()
+    {
+        var date = new DateTimeOffset(2023, 6, 15, 14, 30, 45, TimeSpan.FromHours(2));
+        var result = Library.StartOfDay(date);
+        Assert.AreEqual(new DateTimeOffset(2023, 6, 15, 0, 0, 0, TimeSpan.FromHours(2)), result);
+    }
+
+    #endregion
+
+    #region EndOfDay Tests
+
+    [TestMethod]
+    public void EndOfDay_DateTime_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.EndOfDay(null));
+    }
+
+    [TestMethod]
+    public void EndOfDay_DateTime_ReturnsEndOfDay()
+    {
+        var date = new DateTime(2023, 6, 15, 14, 30, 45);
+        var result = Library.EndOfDay(date);
+        Assert.AreEqual(23, result?.Hour);
+        Assert.AreEqual(59, result?.Minute);
+        Assert.AreEqual(59, result?.Second);
+    }
+
+    [TestMethod]
+    public void EndOfDay_DateTimeOffset_ReturnsEndOfDay()
+    {
+        var date = new DateTimeOffset(2023, 6, 15, 14, 30, 45, TimeSpan.FromHours(2));
+        var result = Library.EndOfDay(date);
+        Assert.AreEqual(23, result?.Hour);
+        Assert.AreEqual(59, result?.Minute);
+        Assert.AreEqual(59, result?.Second);
+    }
+
+    #endregion
+
+    #region IsWeekend Tests
+
+    [TestMethod]
+    public void IsWeekend_DateTime_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.IsWeekend(null));
+    }
+
+    [TestMethod]
+    public void IsWeekend_DateTime_Saturday_ReturnsTrue()
+    {
+        var date = new DateTime(2023, 6, 17);
+        Assert.IsTrue(Library.IsWeekend(date));
+    }
+
+    [TestMethod]
+    public void IsWeekend_DateTime_Sunday_ReturnsTrue()
+    {
+        var date = new DateTime(2023, 6, 18);
+        Assert.IsTrue(Library.IsWeekend(date));
+    }
+
+    [TestMethod]
+    public void IsWeekend_DateTime_Monday_ReturnsFalse()
+    {
+        var date = new DateTime(2023, 6, 19);
+        Assert.IsFalse(Library.IsWeekend(date));
+    }
+
+    [TestMethod]
+    public void IsWeekend_DateTime_Friday_ReturnsFalse()
+    {
+        var date = new DateTime(2023, 6, 16);
+        Assert.IsFalse(Library.IsWeekend(date));
+    }
+
+    #endregion
+
+    #region IsWeekday Tests
+
+    [TestMethod]
+    public void IsWeekday_DateTime_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.IsWeekday(null));
+    }
+
+    [TestMethod]
+    public void IsWeekday_DateTime_Monday_ReturnsTrue()
+    {
+        var date = new DateTime(2023, 6, 19);
+        Assert.IsTrue(Library.IsWeekday(date));
+    }
+
+    [TestMethod]
+    public void IsWeekday_DateTime_Saturday_ReturnsFalse()
+    {
+        var date = new DateTime(2023, 6, 17);
+        Assert.IsFalse(Library.IsWeekday(date));
+    }
+
+    #endregion
+
+    #region DateDiffInDays Tests
+
+    [TestMethod]
+    public void DateDiffInDays_DateTime_WhenStartNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.DateDiffInDays(null, DateTime.Now));
+    }
+
+    [TestMethod]
+    public void DateDiffInDays_DateTime_WhenEndNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.DateDiffInDays(DateTime.Now, null));
+    }
+
+    [TestMethod]
+    public void DateDiffInDays_DateTime_CalculatesPositiveDiff()
+    {
+        var start = new DateTime(2023, 1, 1);
+        var end = new DateTime(2023, 1, 11);
+        Assert.AreEqual(10, Library.DateDiffInDays(start, end));
+    }
+
+    [TestMethod]
+    public void DateDiffInDays_DateTime_CalculatesNegativeDiff()
+    {
+        var start = new DateTime(2023, 1, 11);
+        var end = new DateTime(2023, 1, 1);
+        Assert.AreEqual(-10, Library.DateDiffInDays(start, end));
+    }
+
+    #endregion
+
     #region WeekOfYear Tests
 
     [TestMethod]
     public void WeekOfYear_DateTime_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(Library.WeekOfYear((DateTime?)null));
+        Assert.IsNull(Library.WeekOfYear(null));
     }
 
     [TestMethod]
@@ -403,7 +403,7 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void Quarter_DateTime_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(Library.Quarter((DateTime?)null));
+        Assert.IsNull(Library.Quarter(null));
     }
 
     [TestMethod]
@@ -441,7 +441,7 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void DayOfYear_DateTime_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(Library.DayOfYear((DateTime?)null));
+        Assert.IsNull(Library.DayOfYear(null));
     }
 
     [TestMethod]
@@ -454,7 +454,7 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void DayOfYear_DateTime_Dec31_Returns365()
     {
-        var date = new DateTime(2023, 12, 31); 
+        var date = new DateTime(2023, 12, 31);
         Assert.AreEqual(365, Library.DayOfYear(date));
     }
 
@@ -465,7 +465,7 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsLeapYear_DateTime_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(Library.IsLeapYear((DateTime?)null));
+        Assert.IsNull(Library.IsLeapYear(null));
     }
 
     [TestMethod]
@@ -505,9 +505,9 @@ public class DateTests : LibraryBaseBaseTests
     {
         var start = new DateTime(2024, 1, 1);
         var end = new DateTime(2024, 12, 31);
-        Assert.IsNull(Library.IsBetween((DateTime?)null, start, end));
-        Assert.IsNull(Library.IsBetween(new DateTime(2024, 6, 15), (DateTime?)null, end));
-        Assert.IsNull(Library.IsBetween(new DateTime(2024, 6, 15), start, (DateTime?)null));
+        Assert.IsNull(Library.IsBetween(null, start, end));
+        Assert.IsNull(Library.IsBetween(new DateTime(2024, 6, 15), null, end));
+        Assert.IsNull(Library.IsBetween(new DateTime(2024, 6, 15), start, null));
     }
 
     [TestMethod]
@@ -524,8 +524,8 @@ public class DateTests : LibraryBaseBaseTests
     {
         var start = new DateTime(2024, 1, 1);
         var end = new DateTime(2024, 12, 31);
-        Assert.IsTrue(Library.IsBetween(start, start, end)); 
-        Assert.IsTrue(Library.IsBetween(end, start, end)); 
+        Assert.IsTrue(Library.IsBetween(start, start, end));
+        Assert.IsTrue(Library.IsBetween(end, start, end));
     }
 
     [TestMethod]
@@ -551,7 +551,7 @@ public class DateTests : LibraryBaseBaseTests
     {
         var start = new DateTime(2024, 1, 1);
         var end = new DateTime(2024, 12, 31);
-        Assert.IsNull(Library.IsBetweenExclusive((DateTime?)null, start, end));
+        Assert.IsNull(Library.IsBetweenExclusive(null, start, end));
     }
 
     [TestMethod]
@@ -568,8 +568,8 @@ public class DateTests : LibraryBaseBaseTests
     {
         var start = new DateTime(2024, 1, 1);
         var end = new DateTime(2024, 12, 31);
-        Assert.IsFalse(Library.IsBetweenExclusive(start, start, end)); 
-        Assert.IsFalse(Library.IsBetweenExclusive(end, start, end)); 
+        Assert.IsFalse(Library.IsBetweenExclusive(start, start, end));
+        Assert.IsFalse(Library.IsBetweenExclusive(end, start, end));
     }
 
     [TestMethod]
@@ -586,8 +586,8 @@ public class DateTests : LibraryBaseBaseTests
     {
         var start = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
         var end = new DateTimeOffset(2024, 12, 31, 23, 59, 59, TimeSpan.Zero);
-        Assert.IsFalse(Library.IsBetweenExclusive(start, start, end)); 
-        Assert.IsFalse(Library.IsBetweenExclusive(end, start, end)); 
+        Assert.IsFalse(Library.IsBetweenExclusive(start, start, end));
+        Assert.IsFalse(Library.IsBetweenExclusive(end, start, end));
     }
 
     #endregion
@@ -677,8 +677,8 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void DayOfWeek_WhenProvided_ReturnsDayOfWeek()
     {
-        var dto = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero); 
-        Assert.AreEqual((int)System.DayOfWeek.Saturday, Library.DayOfWeek(dto));
+        var dto = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero);
+        Assert.AreEqual((int)DayOfWeek.Saturday, Library.DayOfWeek(dto));
     }
 
     [TestMethod]
@@ -702,7 +702,7 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void AddDays_DateTime_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(Library.AddDays((DateTime?)null, 5));
+        Assert.IsNull(Library.AddDays(null, 5));
     }
 
     [TestMethod]
@@ -790,49 +790,49 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsWeekend_DateTime_WhenSaturday2024_ReturnsTrue()
     {
-        var date = new DateTime(2024, 6, 15); 
+        var date = new DateTime(2024, 6, 15);
         Assert.IsTrue(Library.IsWeekend(date));
     }
 
     [TestMethod]
     public void IsWeekend_DateTime_WhenSunday2024_ReturnsTrue()
     {
-        var date = new DateTime(2024, 6, 16); 
+        var date = new DateTime(2024, 6, 16);
         Assert.IsTrue(Library.IsWeekend(date));
     }
 
     [TestMethod]
     public void IsWeekend_DateTime_WhenMonday2024_ReturnsFalse()
     {
-        var date = new DateTime(2024, 6, 17); 
+        var date = new DateTime(2024, 6, 17);
         Assert.IsFalse(Library.IsWeekend(date));
     }
 
     [TestMethod]
     public void IsWeekend_DateTimeOffset_WhenSaturday2024_ReturnsTrue()
     {
-        var date = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero); 
+        var date = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero);
         Assert.IsTrue(Library.IsWeekend(date));
     }
 
     [TestMethod]
     public void IsWeekday_DateTime_WhenMonday2024_ReturnsTrue()
     {
-        var date = new DateTime(2024, 6, 17); 
+        var date = new DateTime(2024, 6, 17);
         Assert.IsTrue(Library.IsWeekday(date));
     }
 
     [TestMethod]
     public void IsWeekday_DateTime_WhenSaturday2024_ReturnsFalse()
     {
-        var date = new DateTime(2024, 6, 15); 
+        var date = new DateTime(2024, 6, 15);
         Assert.IsFalse(Library.IsWeekday(date));
     }
 
     [TestMethod]
     public void IsWeekday_DateTimeOffset_WhenMonday2024_ReturnsTrue()
     {
-        var date = new DateTimeOffset(2024, 6, 17, 0, 0, 0, TimeSpan.Zero); 
+        var date = new DateTimeOffset(2024, 6, 17, 0, 0, 0, TimeSpan.Zero);
         Assert.IsTrue(Library.IsWeekday(date));
     }
 
@@ -851,8 +851,8 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void DateDiffInDays_DateTime_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(Library.DateDiffInDays((DateTime?)null, new DateTime(2024, 6, 15)));
-        Assert.IsNull(Library.DateDiffInDays(new DateTime(2024, 6, 15), (DateTime?)null));
+        Assert.IsNull(Library.DateDiffInDays(null, new DateTime(2024, 6, 15)));
+        Assert.IsNull(Library.DateDiffInDays(new DateTime(2024, 6, 15), null));
     }
 
     [TestMethod]
@@ -874,7 +874,7 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void DateDiffInHours_DateTime_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(Library.DateDiffInHours((DateTime?)null, new DateTime(2024, 6, 15)));
+        Assert.IsNull(Library.DateDiffInHours(null, new DateTime(2024, 6, 15)));
     }
 
     [TestMethod]
@@ -888,7 +888,7 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void DateDiffInMinutes_DateTime_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(Library.DateDiffInMinutes((DateTime?)null, new DateTime(2024, 6, 15)));
+        Assert.IsNull(Library.DateDiffInMinutes(null, new DateTime(2024, 6, 15)));
     }
 
     [TestMethod]
@@ -902,7 +902,7 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void DateDiffInSeconds_DateTime_WhenNull_ReturnsNull()
     {
-        Assert.IsNull(Library.DateDiffInSeconds((DateTime?)null, new DateTime(2024, 6, 15)));
+        Assert.IsNull(Library.DateDiffInSeconds(null, new DateTime(2024, 6, 15)));
     }
 
     #endregion

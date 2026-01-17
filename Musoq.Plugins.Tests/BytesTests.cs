@@ -1,6 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
@@ -18,6 +18,17 @@ public class BytesTests : LibraryBaseBaseTests
         AssertLoop(BitConverter.GetBytes(true), Library.GetBytes(true)!);
 
         AssertLoop(decimal.GetBits(5m).SelectMany(f => BitConverter.GetBytes(f)).ToArray(), Library.GetBytes(5m)!);
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private void AssertLoop(byte[] byte1, byte[] byte2)
+    {
+        Assert.HasCount(byte1.Length, byte2);
+
+        for (var i = 0; i < byte1.Length; ++i) Assert.AreEqual(byte1[i], byte2[i]);
     }
 
     #endregion
@@ -49,7 +60,7 @@ public class BytesTests : LibraryBaseBaseTests
     [TestMethod]
     public void GetBytes_String_WithOffsetAndLength_Null_ReturnsNull()
     {
-        Assert.IsNull(Library.GetBytes((string?)null, 5, 0));
+        Assert.IsNull(Library.GetBytes(null, 5, 0));
     }
 
     #endregion
@@ -163,7 +174,7 @@ public class BytesTests : LibraryBaseBaseTests
     [TestMethod]
     public void GetBytes_Short_ValidValue()
     {
-        var result = Library.GetBytes((short)1234);
+        var result = Library.GetBytes(1234);
         Assert.IsNotNull(result);
         AssertLoop(BitConverter.GetBytes((short)1234), result);
     }
@@ -171,7 +182,7 @@ public class BytesTests : LibraryBaseBaseTests
     [TestMethod]
     public void GetBytes_Short_Negative()
     {
-        var result = Library.GetBytes((short)-1234);
+        var result = Library.GetBytes(-1234);
         Assert.IsNotNull(result);
         AssertLoop(BitConverter.GetBytes((short)-1234), result);
     }
@@ -301,20 +312,6 @@ public class BytesTests : LibraryBaseBaseTests
         Assert.IsNotNull(result);
         var expected = decimal.GetBits(-123.456m).SelectMany(f => BitConverter.GetBytes(f)).ToArray();
         AssertLoop(expected, result);
-    }
-
-    #endregion
-
-    #region Helper Methods
-
-    private void AssertLoop(byte[] byte1, byte[] byte2)
-    {
-        Assert.HasCount(byte1.Length, byte2);
-
-        for(var i = 0; i < byte1.Length; ++i)
-        {
-            Assert.AreEqual(byte1[i], byte2[i]);
-        }
     }
 
     #endregion

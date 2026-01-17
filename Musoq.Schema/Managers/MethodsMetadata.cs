@@ -18,7 +18,7 @@ internal readonly struct ParameterMetadataInfo
     public readonly ParameterInfo[] ParamsParameters;
     public readonly int ParametersToInject;
     public readonly InjectTypeAttribute[] InjectTypeAttributes;
-    
+
     public ParameterMetadataInfo(ParameterInfo[] parameters)
     {
         Parameters = parameters;
@@ -28,53 +28,48 @@ internal readonly struct ParameterMetadataInfo
         ParametersToInject = parameters.Length - NotAnnotatedParametersCount;
         InjectTypeAttributes = GetInjectTypeAttributes(parameters);
     }
-    
+
     private static int CountOptional(ParameterInfo[] parameters)
     {
         var count = 0;
         for (var i = 0; i < parameters.Length; i++)
-        {
             if (parameters[i].IsOptional)
                 count++;
-        }
         return count;
     }
-    
+
     private static int CountWithoutInjectType(ParameterInfo[] parameters)
     {
         var count = 0;
         for (var i = 0; i < parameters.Length; i++)
-        {
             if (parameters[i].GetCustomAttribute<InjectTypeAttribute>() == null)
                 count++;
-        }
         return count;
     }
-    
+
     private static ParameterInfo[] GetParamsParameters(ParameterInfo[] parameters)
     {
         foreach (var parameter in parameters)
         {
             var attrs = parameter.GetCustomAttributes();
-            
-            if (attrs.Any(attr => attr.GetType().IsAssignableTo(typeof(ParamArrayAttribute))))
-            {
-                return [parameter];
-            }
+
+            if (attrs.Any(attr => attr.GetType().IsAssignableTo(typeof(ParamArrayAttribute)))) return [parameter];
         }
 
         return [];
     }
-    
+
     private static InjectTypeAttribute[] GetInjectTypeAttributes(ParameterInfo[] parameters)
     {
         var result = new List<InjectTypeAttribute>();
         foreach (var parameter in parameters)
         {
             var attrs = parameter.GetCustomAttributes();
-            
-            result.AddRange(attrs.Where(attr => attr.GetType().IsAssignableTo(typeof(InjectTypeAttribute))).Cast<InjectTypeAttribute>());
+
+            result.AddRange(attrs.Where(attr => attr.GetType().IsAssignableTo(typeof(InjectTypeAttribute)))
+                .Cast<InjectTypeAttribute>());
         }
+
         return result.Count > 0 ? result.ToArray() : [];
     }
 }
@@ -83,15 +78,15 @@ public class MethodsMetadata
 {
     private static readonly Dictionary<Type, Type[]> TypeCompatibilityTable = new()
     {
-        {typeof(bool), [typeof(bool)]},
-        {typeof(short), [typeof(short)]},
-        {typeof(int), [typeof(int), typeof(short)]},
-        {typeof(long), [typeof(long), typeof(int), typeof(short)]},
-        {typeof(DateTimeOffset), [typeof(DateTimeOffset)]},
-        {typeof(DateTime), [typeof(DateTime)]},
-        {typeof(string), [typeof(string)]},
-        {typeof(decimal), [typeof(decimal)]},
-        {typeof(TimeSpan), [typeof(TimeSpan)]}
+        { typeof(bool), [typeof(bool)] },
+        { typeof(short), [typeof(short)] },
+        { typeof(int), [typeof(int), typeof(short)] },
+        { typeof(long), [typeof(long), typeof(int), typeof(short)] },
+        { typeof(DateTimeOffset), [typeof(DateTimeOffset)] },
+        { typeof(DateTime), [typeof(DateTime)] },
+        { typeof(string), [typeof(string)] },
+        { typeof(decimal), [typeof(decimal)] },
+        { typeof(TimeSpan), [typeof(TimeSpan)] }
     };
 
     private static readonly Dictionary<Type, HashSet<Type>> ValidImplicitConversions = new()
@@ -183,13 +178,13 @@ public class MethodsMetadata
         [(typeof(char), typeof(double))] = 5,
         [(typeof(char), typeof(decimal))] = 6
     };
-    
-    private readonly Dictionary<string, List<MethodInfo>> _methods;
-    private readonly Dictionary<string, string> _normalizedToOriginalMethodNames;
-    
-    private readonly Dictionary<MethodInfo, ParameterMetadataInfo> _parameterMetadataCache = new();
 
     private readonly Dictionary<(string Name, MethodInfo Method), int> _methodIndexCache = new();
+
+    private readonly Dictionary<string, List<MethodInfo>> _methods;
+    private readonly Dictionary<string, string> _normalizedToOriginalMethodNames;
+
+    private readonly Dictionary<MethodInfo, ParameterMetadataInfo> _parameterMetadataCache = new();
 
     /// <summary>
     ///     Initialize object.
@@ -199,31 +194,31 @@ public class MethodsMetadata
         _methods = new Dictionary<string, List<MethodInfo>>();
         _normalizedToOriginalMethodNames = new Dictionary<string, string>();
     }
-    
+
     private ParameterMetadataInfo GetCachedParameterMetadata(MethodInfo method)
     {
         if (_parameterMetadataCache.TryGetValue(method, out var cached))
             return cached;
-        
+
         var parameters = method.GetParameters();
         var metadata = new ParameterMetadataInfo(parameters);
         _parameterMetadataCache[method] = metadata;
         return metadata;
     }
-    
+
     private ParameterInfo[] GetCachedParameters(MethodInfo method)
     {
         return GetCachedParameterMetadata(method).Parameters;
     }
-    
+
     /// <summary>
-    /// Gets the cached index for a method, avoiding O(N) IndexOf() lookups.
+    ///     Gets the cached index for a method, avoiding O(N) IndexOf() lookups.
     /// </summary>
     private int GetCachedMethodIndex(string name, MethodInfo method)
     {
-        return _methodIndexCache.TryGetValue((name, method), out var index) 
-            ? index 
-            : _methods[name].IndexOf(method); 
+        return _methodIndexCache.TryGetValue((name, method), out var index)
+            ? index
+            : _methods[name].IndexOf(method);
     }
 
     /// <summary>
@@ -245,7 +240,7 @@ public class MethodsMetadata
         {
             var availableSignatures = GetAvailableMethodSignatures(name);
             var providedTypes = methodArgs.Select(arg => arg?.Name ?? "null").ToArray();
-            
+
             throw MethodResolutionException.ForUnresolvedMethod(name, providedTypes, availableSignatures);
         }
 
@@ -292,7 +287,7 @@ public class MethodsMetadata
     }
 
     /// <summary>
-    /// Register new method.
+    ///     Register new method.
     /// </summary>
     /// <param name="methodInfo">Method to register.</param>
     protected void RegisterMethod(MethodInfo methodInfo)
@@ -306,35 +301,35 @@ public class MethodsMetadata
     /// <param name="name">Method name</param>
     /// <param name="methodArgs">Types of method arguments</param>
     /// <param name="index">Index of method that fits requirements.</param>
-    /// <param name="actualMethodName">The actual method name that was found (may differ from input due to case-insensitive lookup).</param>
+    /// <param name="actualMethodName">
+    ///     The actual method name that was found (may differ from input due to case-insensitive
+    ///     lookup).
+    /// </param>
     /// <returns>True if some method fits, else false.</returns>
     private bool TryGetRawMethod(string name, Type[] methodArgs, out int index, out string actualMethodName)
     {
-        
         if (TryGetRawMethodByExactName(name, methodArgs, out index))
         {
             actualMethodName = name;
             return true;
         }
-        
-        
+
+
         var normalizedName = MethodNameNormalizer.Normalize(name);
         if (_normalizedToOriginalMethodNames.TryGetValue(normalizedName, out var originalName))
-        {
             if (TryGetRawMethodByExactName(originalName, methodArgs, out index))
             {
                 actualMethodName = originalName;
                 return true;
             }
-        }
-        
+
         index = -1;
         actualMethodName = null;
         return false;
     }
-    
+
     /// <summary>
-    /// Internal helper method for exact name-based raw method resolution.
+    ///     Internal helper method for exact name-based raw method resolution.
     /// </summary>
     private bool TryGetRawMethodByExactName(string name, Type[] methodArgs, out int index)
     {
@@ -381,35 +376,38 @@ public class MethodsMetadata
     /// <param name="methodArgs">Types of method arguments</param>
     /// <param name="entityType">Type of entity.</param>
     /// <param name="index">Index of method that fits requirements.</param>
-    /// <param name="actualMethodName">The actual method name that was found (may differ from input due to case-insensitive lookup).</param>
+    /// <param name="actualMethodName">
+    ///     The actual method name that was found (may differ from input due to case-insensitive
+    ///     lookup).
+    /// </param>
     /// <returns>True if some method fits, else false.</returns>
-    private bool TryGetAnnotatedMethod(string name, IReadOnlyList<Type> methodArgs, Type entityType, out int index, out string actualMethodName)
+    private bool TryGetAnnotatedMethod(string name, IReadOnlyList<Type> methodArgs, Type entityType, out int index,
+        out string actualMethodName)
     {
         if (TryGetAnnotatedMethodByExactName(name, methodArgs, entityType, out index))
         {
             actualMethodName = name;
             return true;
         }
-        
+
         var normalizedName = MethodNameNormalizer.Normalize(name);
         if (_normalizedToOriginalMethodNames.TryGetValue(normalizedName, out var originalName))
-        {
             if (TryGetAnnotatedMethodByExactName(originalName, methodArgs, entityType, out index))
             {
                 actualMethodName = originalName;
                 return true;
             }
-        }
-        
+
         index = -1;
         actualMethodName = null;
         return false;
     }
-    
+
     /// <summary>
-    /// Internal helper method for exact name-based method resolution.
+    ///     Internal helper method for exact name-based method resolution.
     /// </summary>
-    private bool TryGetAnnotatedMethodByExactName(string name, IReadOnlyList<Type> methodArgs, Type entityType, out int index)
+    private bool TryGetAnnotatedMethodByExactName(string name, IReadOnlyList<Type> methodArgs, Type entityType,
+        out int index)
     {
         if (!_methods.TryGetValue(name, out var methods))
         {
@@ -418,17 +416,15 @@ public class MethodsMetadata
         }
 
         var methodCount = methods.Count;
-        Span<(int Score, int Index)> scoredMethods = methodCount <= 32 
-            ? stackalloc (int, int)[methodCount] 
+        Span<(int Score, int Index)> scoredMethods = methodCount <= 32
+            ? stackalloc (int, int)[methodCount]
             : new (int, int)[methodCount];
-        
+
         for (var i = 0; i < methodCount; i++)
-        {
             scoredMethods[i] = (MeasureHowCloseTheMethodIsAgainstTheArguments(methods[i]), i);
-        }
-        
+
         scoredMethods.Sort((a, b) => a.Score.CompareTo(b.Score));
-        
+
         MethodInfo firstMatchMethod = null;
         MethodInfo secondMatchMethod = null;
 
@@ -443,7 +439,7 @@ public class MethodsMetadata
             var paramsParameter = metadata.ParamsParameters;
             var parametersToInject = metadata.ParametersToInject;
 
-            
+
             if (!paramsParameter.HasParameters() &&
                 (HasMoreArgumentsThanMethodDefinitionContains(methodArgs, notAnnotatedParametersCount) ||
                  !CanUseSomeArgumentsAsDefaultParameters(methodArgs, notAnnotatedParametersCount,
@@ -458,9 +454,6 @@ public class MethodsMetadata
                  f < g;
                  ++f)
             {
-                
-                
-                
                 var rawParam = parameters[f + parametersToInject].ParameterType;
                 var param = rawParam.GetUnderlyingNullable();
                 var arg = methodArgs[f].GetUnderlyingNullable();
@@ -468,12 +461,12 @@ public class MethodsMetadata
                 if (IsTypePossibleToConvert(param, arg) ||
                     CanSafelyPassNull(rawParam, arg) ||
                     (param.IsGenericParameter && TypeConformsToConstraints(param, arg)) ||
-                    (arg.IsArray || arg.GetInterface("IEnumerable") != null) && param.IsGenericType &&
-                    param.Name == "IEnumerable`1" ||
-                    param.IsGenericType && arg.IsGenericType && param.Name == "IEnumerable`1" &&
-                    arg.Name == "IEnumerable`1" ||
+                    ((arg.IsArray || arg.GetInterface("IEnumerable") != null) && param.IsGenericType &&
+                     param.Name == "IEnumerable`1") ||
+                    (param.IsGenericType && arg.IsGenericType && param.Name == "IEnumerable`1" &&
+                     arg.Name == "IEnumerable`1") ||
                     (param.IsArray && param.GetElementType().IsGenericParameter && arg.IsArray) ||
-                    arg.IsArray && arg.GetElementType().IsGenericParameter
+                    (arg.IsArray && arg.GetElementType().IsGenericParameter)
                    )
                     continue;
 
@@ -497,8 +490,7 @@ public class MethodsMetadata
             if (!hasMatchedArgTypes)
                 continue;
 
-            
-            
+
             if (entityType is not null)
             {
                 var injectTypeAttributes = GetInjectTypeAttribute(methodInfo);
@@ -525,13 +517,8 @@ public class MethodsMetadata
             breakAll:
 
             if (firstMatchMethod == null)
-            {
                 firstMatchMethod = methodInfo;
-            }
-            else if (secondMatchMethod == null)
-            {
-                secondMatchMethod = methodInfo;
-            }
+            else if (secondMatchMethod == null) secondMatchMethod = methodInfo;
         }
 
         if (firstMatchMethod == null)
@@ -619,17 +606,13 @@ public class MethodsMetadata
             index = 0;
             _methods.Add(name, [methodInfo]);
         }
-        
+
         _methodIndexCache[(name, methodInfo)] = index;
-            
+
         var normalizedName = MethodNameNormalizer.Normalize(name);
         if (normalizedName != name)
-        {
             if (!_normalizedToOriginalMethodNames.ContainsKey(normalizedName))
-            {
                 _normalizedToOriginalMethodNames[normalizedName] = name;
-            }
-        }
     }
 
     private static bool CanBeAssignedFromGeneric(Type paramType, Type arrayType)
@@ -669,7 +652,7 @@ public class MethodsMetadata
     {
         if (from.FullName != typeof(NullNode.NullType).FullName)
             return false;
-        return to.IsGenericType && to.GetGenericTypeDefinition() == typeof(Nullable<>)
+        return (to.IsGenericType && to.GetGenericTypeDefinition() == typeof(Nullable<>))
                || to.IsGenericParameter
                || !to.IsValueType;
     }
@@ -681,10 +664,7 @@ public class MethodsMetadata
         var interfaces = genericType.GetGenericParameterConstraints()
             .Where(t => t.IsInterface);
 
-        if (interfaces.Any(@interface => !effectiveType.GetInterfaces().Contains(@interface)))
-        {
-            return false;
-        }
+        if (interfaces.Any(@interface => !effectiveType.GetInterfaces().Contains(@interface))) return false;
 
         var specialConstraints = genericType.GenericParameterAttributes;
 
@@ -699,17 +679,15 @@ public class MethodsMetadata
         var baseConstraint = genericType.GetGenericParameterConstraints()
             .FirstOrDefault(t => !t.IsInterface);
         if (baseConstraint != null)
-        {
             if (!baseConstraint.IsAssignableFrom(effectiveType))
                 return false;
-        }
 
         if ((specialConstraints & GenericParameterAttributes.DefaultConstructorConstraint) == 0) return true;
 
         if (effectiveType.IsValueType) return true;
 
         var constructor = effectiveType.GetConstructor(Type.EmptyTypes);
-        
+
         return constructor != null;
     }
 
@@ -734,7 +712,7 @@ public class MethodsMetadata
 
         return FindMostSpecificType(commonBaseTypes);
     }
-    
+
     private static Type FindCommonBaseType(IReadOnlyList<Type> types, int startIndex)
     {
         var count = types.Count - startIndex;
@@ -824,7 +802,7 @@ public class MethodsMetadata
     }
 
     /// <summary>
-    /// Gets all registered methods with their metadata.
+    ///     Gets all registered methods with their metadata.
     /// </summary>
     /// <returns>Dictionary of method names to their MethodInfo list.</returns>
     public IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllMethods()

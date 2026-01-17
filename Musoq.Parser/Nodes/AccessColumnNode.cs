@@ -5,8 +5,8 @@ namespace Musoq.Parser.Nodes;
 public class AccessColumnNode(string column, string alias, Type type, TextSpan span)
     : IdentifierNode(column)
 {
-    private Type _type = type;
     private readonly string _column = column;
+    private Type _type = type;
 
     public AccessColumnNode(string column, string alias, TextSpan span)
         : this(column, alias, typeof(void), span)

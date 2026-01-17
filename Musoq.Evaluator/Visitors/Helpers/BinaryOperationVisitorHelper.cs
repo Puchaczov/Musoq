@@ -5,14 +5,14 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Helper class for handling binary arithmetic operations in the RewriteQueryVisitor.
-/// Provides common implementation for operations that follow the pattern:
-/// pop right, pop left, push new operation node.
+///     Helper class for handling binary arithmetic operations in the RewriteQueryVisitor.
+///     Provides common implementation for operations that follow the pattern:
+///     pop right, pop left, push new operation node.
 /// </summary>
 public static class BinaryOperationVisitorHelper
 {
     /// <summary>
-    /// Processes a Star operation.
+    ///     Processes a Star operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -28,7 +28,7 @@ public static class BinaryOperationVisitorHelper
     }
 
     /// <summary>
-    /// Processes a FSlash operation.
+    ///     Processes a FSlash operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -44,7 +44,7 @@ public static class BinaryOperationVisitorHelper
     }
 
     /// <summary>
-    /// Processes a Modulo operation.
+    ///     Processes a Modulo operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -60,7 +60,7 @@ public static class BinaryOperationVisitorHelper
     }
 
     /// <summary>
-    /// Processes an Add operation.
+    ///     Processes an Add operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -76,7 +76,7 @@ public static class BinaryOperationVisitorHelper
     }
 
     /// <summary>
-    /// Processes a Hyphen operation.
+    ///     Processes a Hyphen operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -92,7 +92,7 @@ public static class BinaryOperationVisitorHelper
     }
 
     /// <summary>
-    /// Validates that the stack is not null and has at least 2 nodes for binary operations.
+    ///     Validates that the stack is not null and has at least 2 nodes for binary operations.
     /// </summary>
     /// <param name="nodes">The node stack to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -101,13 +101,13 @@ public static class BinaryOperationVisitorHelper
     {
         if (nodes == null)
             throw new ArgumentNullException(nameof(nodes));
-            
+
         if (nodes.Count < 2)
             throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");
     }
 
     /// <summary>
-    /// Validates that both operands are not null.
+    ///     Validates that both operands are not null.
     /// </summary>
     /// <param name="left">The left operand.</param>
     /// <param name="right">The right operand.</param>

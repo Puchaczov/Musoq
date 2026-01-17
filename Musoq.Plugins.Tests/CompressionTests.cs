@@ -98,8 +98,8 @@ public class CompressionTests : LibraryBaseBaseTests
 
         Assert.IsNotNull(base64Compressed);
         Assert.IsFalse(string.IsNullOrEmpty(base64Compressed));
-        
-        
+
+
         var bytes = Convert.FromBase64String(base64Compressed);
         Assert.IsNotEmpty(bytes);
     }
@@ -347,7 +347,7 @@ public class CompressionTests : LibraryBaseBaseTests
     public void ZLibRoundTrip_WithXml_ShouldPreserveContent()
     {
         var xml = "<?xml version=\"1.0\"?><data><record id=\"1\"><name>Test</name><value>123</value></record></data>";
-        
+
         var compressed = Library.CompressZLibToBase64(xml);
         var decompressed = Library.DecompressZLibFromBase64(compressed);
 
@@ -358,7 +358,7 @@ public class CompressionTests : LibraryBaseBaseTests
     public void GZipRoundTrip_WithXml_ShouldPreserveContent()
     {
         var xml = "<?xml version=\"1.0\"?><data><record id=\"1\"><name>Test</name><value>123</value></record></data>";
-        
+
         var compressed = Library.CompressGZipToBase64(xml);
         var decompressed = Library.DecompressGZipFromBase64(compressed);
 
@@ -369,7 +369,7 @@ public class CompressionTests : LibraryBaseBaseTests
     public void DeflateRoundTrip_WithXml_ShouldPreserveContent()
     {
         var xml = "<?xml version=\"1.0\"?><data><record id=\"1\"><name>Test</name><value>123</value></record></data>";
-        
+
         var compressed = Library.CompressDeflateToBase64(xml);
         var decompressed = Library.DecompressDeflateFromBase64(compressed);
 
@@ -380,7 +380,7 @@ public class CompressionTests : LibraryBaseBaseTests
     public void ZLibRoundTrip_WithUnicodeContent_ShouldPreserveContent()
     {
         var text = "Hello 世界! Привет мир! 🌍";
-        
+
         var compressed = Library.CompressZLibToBase64(text);
         var decompressed = Library.DecompressZLibFromBase64(compressed);
 
@@ -483,7 +483,7 @@ public class CompressionTests : LibraryBaseBaseTests
     public void BrotliRoundTrip_WithXml_ShouldPreserveContent()
     {
         var xml = "<?xml version=\"1.0\"?><data><record id=\"1\"><name>Test</name><value>123</value></record></data>";
-        
+
         var compressed = Library.CompressBrotliToBase64(xml);
         var decompressed = Library.DecompressBrotliFromBase64(compressed);
 

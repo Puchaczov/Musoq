@@ -1,12 +1,10 @@
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator;
 
 namespace Musoq.Evaluator.Tests;
 
 /// <summary>
-/// Tests for null handling in the Operators class.
-/// Ensures operators return safe values instead of throwing exceptions when dealing with nulls.
+///     Tests for null handling in the Operators class.
+///     Ensures operators return safe values instead of throwing exceptions when dealing with nulls.
 /// </summary>
 [TestClass]
 public class OperatorsNullHandlingTests
@@ -25,7 +23,7 @@ public class OperatorsNullHandlingTests
     public void Contains_WhenArrayIsNull_ShouldReturnFalse()
     {
         // Arrange
-        string value = "test";
+        var value = "test";
         string[] array = null;
 
         // Act
@@ -54,7 +52,7 @@ public class OperatorsNullHandlingTests
     {
         // Arrange
         string value = null;
-        string[] array = new[] { "a", null, "c" };
+        var array = new[] { "a", null, "c" };
 
         // Act
         var result = _operators.Contains(value, array);
@@ -68,7 +66,7 @@ public class OperatorsNullHandlingTests
     {
         // Arrange
         string value = null;
-        string[] array = new[] { "a", "b", "c" };
+        var array = new[] { "a", "b", "c" };
 
         // Act
         var result = _operators.Contains(value, array);
@@ -81,8 +79,8 @@ public class OperatorsNullHandlingTests
     public void Contains_WhenValueExistsInArray_ShouldReturnTrue()
     {
         // Arrange
-        string value = "b";
-        string[] array = new[] { "a", "b", "c" };
+        var value = "b";
+        var array = new[] { "a", "b", "c" };
 
         // Act
         var result = _operators.Contains(value, array);
@@ -95,8 +93,8 @@ public class OperatorsNullHandlingTests
     public void Contains_WhenValueDoesNotExistInArray_ShouldReturnFalse()
     {
         // Arrange
-        string value = "d";
-        string[] array = new[] { "a", "b", "c" };
+        var value = "d";
+        var array = new[] { "a", "b", "c" };
 
         // Act
         var result = _operators.Contains(value, array);
@@ -109,7 +107,7 @@ public class OperatorsNullHandlingTests
     public void Contains_WithIntegersWhenArrayIsNull_ShouldReturnFalse()
     {
         // Arrange
-        int value = 5;
+        var value = 5;
         int[] array = null;
 
         // Act
@@ -124,7 +122,7 @@ public class OperatorsNullHandlingTests
     {
         // Arrange
         int? value = null;
-        int?[] array = new int?[] { 1, null, 3 };
+        var array = new int?[] { 1, null, 3 };
 
         // Act
         var result = _operators.Contains(value, array);

@@ -7,7 +7,8 @@ namespace Musoq.Parser.Nodes;
 
 public class AccessMethodNode : Node
 {
-    public AccessMethodNode(FunctionToken functionToken, ArgsListNode args, ArgsListNode extraAggregateArguments, bool canSkipInjectSource,
+    public AccessMethodNode(FunctionToken functionToken, ArgsListNode args, ArgsListNode extraAggregateArguments,
+        bool canSkipInjectSource,
         MethodInfo method = null, string alias = "")
     {
         FunctionToken = functionToken;
@@ -18,7 +19,7 @@ public class AccessMethodNode : Node
         Alias = alias;
         Id = $"{nameof(AccessMethodNode)}{alias}{functionToken.Value}{args.Id}";
     }
-    
+
     public FunctionToken FunctionToken { get; }
 
     public bool CanSkipInjectSource { get; }
@@ -49,15 +50,13 @@ public class AccessMethodNode : Node
         if (!Method.ReturnType.IsGenericParameter)
             return Method.ReturnType;
 
-        int paramIndex = 0;
+        var paramIndex = 0;
         var types = new List<Type>();
 
         foreach (var param in Method.GetParameters())
         {
             if (param.ParameterType.IsGenericParameter && Method.ReturnType == param.ParameterType)
-            {
                 types.Add(Arguments.Args[paramIndex].ReturnType);
-            }
             paramIndex += 1;
         }
 
@@ -83,16 +82,11 @@ public class AccessMethodNode : Node
         var returnType = types[0];
 
         for (var i = 1; i < types.Length; ++i)
-        {
             if (types[i].IsAssignableFrom(returnType))
                 returnType = types[i];
             else
-            {   
-                
                 while (returnType is not null && !returnType.IsAssignableFrom(types[i]))
                     returnType = returnType.BaseType;
-            }
-        }
 
         return returnType;
     }

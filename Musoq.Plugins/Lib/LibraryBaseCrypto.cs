@@ -9,7 +9,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Computes the SHA-384 hash of a string.
+    ///     Computes the SHA-384 hash of a string.
     /// </summary>
     /// <param name="value">The string to hash</param>
     /// <returns>The SHA-384 hash as a hex string</returns>
@@ -21,7 +21,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Computes the SHA-384 hash of a byte array.
+    ///     Computes the SHA-384 hash of a byte array.
     /// </summary>
     /// <param name="value">The byte array to hash</param>
     /// <returns>The SHA-384 hash as a hex string</returns>
@@ -33,7 +33,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Computes the CRC32 checksum of a string.
+    ///     Computes the CRC32 checksum of a string.
     /// </summary>
     /// <param name="value">The string to compute checksum for</param>
     /// <returns>The CRC32 checksum as a hex string</returns>
@@ -49,7 +49,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Computes the CRC32 checksum of a byte array.
+    ///     Computes the CRC32 checksum of a byte array.
     /// </summary>
     /// <param name="value">The byte array to compute checksum for</param>
     /// <returns>The CRC32 checksum as a hex string</returns>
@@ -65,20 +65,18 @@ public partial class LibraryBase
 
     private static string ComputeCrc32(byte[] data)
     {
-        uint crc = 0xFFFFFFFF;
+        var crc = 0xFFFFFFFF;
         foreach (var b in data)
         {
             crc ^= b;
-            for (var i = 0; i < 8; i++)
-            {
-                crc = (crc & 1) == 1 ? (crc >> 1) ^ 0xEDB88320 : crc >> 1;
-            }
+            for (var i = 0; i < 8; i++) crc = (crc & 1) == 1 ? (crc >> 1) ^ 0xEDB88320 : crc >> 1;
         }
+
         return (~crc).ToString("x8");
     }
 
     /// <summary>
-    /// Computes HMAC-SHA256 of a message using a key.
+    ///     Computes HMAC-SHA256 of a message using a key.
     /// </summary>
     /// <param name="message">The message to authenticate</param>
     /// <param name="key">The secret key</param>
@@ -92,14 +90,14 @@ public partial class LibraryBase
 
         var keyBytes = Encoding.UTF8.GetBytes(key);
         var messageBytes = Encoding.UTF8.GetBytes(message);
-        
+
         using var hmac = new HMACSHA256(keyBytes);
         var hash = hmac.ComputeHash(messageBytes);
         return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
     }
 
     /// <summary>
-    /// Computes HMAC-SHA512 of a message using a key.
+    ///     Computes HMAC-SHA512 of a message using a key.
     /// </summary>
     /// <param name="message">The message to authenticate</param>
     /// <param name="key">The secret key</param>
@@ -113,7 +111,7 @@ public partial class LibraryBase
 
         var keyBytes = Encoding.UTF8.GetBytes(key);
         var messageBytes = Encoding.UTF8.GetBytes(message);
-        
+
         using var hmac = new HMACSHA512(keyBytes);
         var hash = hmac.ComputeHash(messageBytes);
         return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();

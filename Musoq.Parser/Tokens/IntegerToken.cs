@@ -9,6 +9,6 @@ public class IntegerToken : Token
     {
         Abbreviation = abbreviation;
     }
-        
+
     public string Abbreviation { get; }
 }

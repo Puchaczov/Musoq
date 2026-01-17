@@ -11,15 +11,20 @@ namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 
 public class EnvironmentVariablesTestBase
 {
+    static EnvironmentVariablesTestBase()
+    {
+        Culture.ApplyWithDefaultCulture();
+    }
+
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
-    
+
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
         IDictionary<uint, IEnumerable<EnvironmentVariableEntity>> sources)
     {
         return InstanceCreator.CompileForExecution(
-            script, 
-            Guid.NewGuid().ToString(), 
+            script,
+            Guid.NewGuid().ToString(),
             new EnvironmentVariablesSchemaProvider(),
             LoggerResolver,
             () =>
@@ -31,12 +36,14 @@ public class EnvironmentVariablesTestBase
                             LoggerResolver
                         )
                     );
-                
+
                 return chain;
             }, items =>
             {
                 items.CreateBuildMetadataAndInferTypesVisitor = (provider, columns, compilationOptions) =>
-                    new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources, LoggerResolver.ResolveLogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>(), compilationOptions);
+                    new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources,
+                        LoggerResolver.ResolveLogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>(),
+                        compilationOptions);
             });
     }
 
@@ -47,33 +54,26 @@ public class EnvironmentVariablesTestBase
         IDictionary<uint, IEnumerable<EnvironmentVariableEntity>> sources)
     {
         var schemas = new Dictionary<string, ISchemaProvider>();
-            
+
         foreach (var basicSource in basicSources)
-        {
             schemas.Add(basicSource.Key, new BasicSchemaProvider<BasicEntity>(basicSources));
-        }
-            
+
         foreach (var environmentSource in environmentSources)
-        {
             schemas.Add(environmentSource.Key, new EnvironmentVariablesSchemaProvider());
-        }
 
         return InstanceCreator.CompileForExecution(
-            script, 
-            Guid.NewGuid().ToString(), 
+            script,
+            Guid.NewGuid().ToString(),
             new MultipleSchemasSchemaProvider(schemas), LoggerResolver, () => new CreateTree(
                 new TransformTree(
                     new TurnQueryIntoRunnableCode(null), LoggerResolver)
-            ), 
+            ),
             items =>
             {
                 items.CreateBuildMetadataAndInferTypesVisitor = (provider, columns, compilationOptions) =>
-                    new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources, LoggerResolver.ResolveLogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>(), compilationOptions);
+                    new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources,
+                        LoggerResolver.ResolveLogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>(),
+                        compilationOptions);
             });
-    }
-
-    static EnvironmentVariablesTestBase()
-    {
-        Culture.ApplyWithDefaultCulture();
     }
 }

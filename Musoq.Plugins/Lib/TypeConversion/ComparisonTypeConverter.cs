@@ -1,15 +1,15 @@
 using System;
-using System.Globalization;
 
 namespace Musoq.Plugins.Lib.TypeConversion;
 
 /// <summary>
-/// Type converter that allows precision loss but validates range constraints.
-/// Used for comparison operations (&gt;, &lt;, &gt;=, &lt;=) where approximate equality is acceptable.
+///     Type converter that allows precision loss but validates range constraints.
+///     Used for comparison operations (&gt;, &lt;, &gt;=, &lt;=) where approximate equality is acceptable.
 /// </summary>
 internal class ComparisonTypeConverter
 {
-    private T? TryConvertToIntegralTypeComparison<T>(object? value, Func<object, T> converter, Func<T, bool> rangeCheck) where T : struct
+    private T? TryConvertToIntegralTypeComparison<T>(object? value, Func<object, T> converter, Func<T, bool> rangeCheck)
+        where T : struct
     {
         if (value == null)
             return null;
@@ -20,50 +20,50 @@ internal class ComparisonTypeConverter
             {
                 case T directValue:
                     return directValue;
-                
+
                 case byte byteValue:
                     return converter(byteValue);
-                
+
                 case sbyte sbyteValue:
                     return converter(sbyteValue);
-                
+
                 case short shortValue:
                     return converter(shortValue);
-                
+
                 case ushort ushortValue:
                     return converter(ushortValue);
-                
+
                 case int intValue:
                     return converter(intValue);
-                
+
                 case uint uintValue:
                     var uintResult = converter(uintValue);
                     return rangeCheck(uintResult) ? uintResult : null;
-                
+
                 case long longValue:
                     var longResult = converter(longValue);
                     return rangeCheck(longResult) ? longResult : null;
-                
+
                 case ulong ulongValue:
                     var ulongResult = converter(ulongValue);
                     return rangeCheck(ulongResult) ? ulongResult : null;
-                
+
                 case float floatValue:
                     if (float.IsNaN(floatValue) || float.IsInfinity(floatValue))
                         return null;
                     var floatResult = converter(floatValue);
                     return rangeCheck(floatResult) ? floatResult : null;
-                
+
                 case double doubleValue:
                     if (double.IsNaN(doubleValue) || double.IsInfinity(doubleValue))
                         return null;
                     var doubleResult = converter(doubleValue);
                     return rangeCheck(doubleResult) ? doubleResult : null;
-                
+
                 case decimal decimalValue:
                     var decimalResult = converter(decimalValue);
                     return rangeCheck(decimalResult) ? decimalResult : null;
-                
+
                 case string stringValue:
                     if (typeof(T) == typeof(int) && int.TryParse(stringValue, out var parsedInt))
                         return (T)(object)parsedInt;
@@ -72,7 +72,7 @@ internal class ComparisonTypeConverter
                     if (typeof(T) == typeof(decimal) && decimal.TryParse(stringValue, out var parsedDecimal))
                         return (T)(object)parsedDecimal;
                     return null;
-                
+
                 case bool boolValue:
                     if (typeof(T) == typeof(int))
                         return (T)(object)(boolValue ? 1 : 0);
@@ -81,7 +81,7 @@ internal class ComparisonTypeConverter
                     if (typeof(T) == typeof(decimal))
                         return (T)(object)(boolValue ? 1m : 0m);
                     return null;
-                
+
                 default:
                     return converter(value);
             }
@@ -99,8 +99,14 @@ internal class ComparisonTypeConverter
             value,
             obj =>
             {
-                try { return Convert.ToInt32(obj); }
-                catch { return 0; }
+                try
+                {
+                    return Convert.ToInt32(obj);
+                }
+                catch
+                {
+                    return 0;
+                }
             },
             _ =>
             {
@@ -127,8 +133,14 @@ internal class ComparisonTypeConverter
             value,
             obj =>
             {
-                try { return Convert.ToInt64(obj); }
-                catch { return 0L; }
+                try
+                {
+                    return Convert.ToInt64(obj);
+                }
+                catch
+                {
+                    return 0L;
+                }
             },
             _ =>
             {
@@ -159,7 +171,10 @@ internal class ComparisonTypeConverter
                         throw new InvalidOperationException();
                     return Convert.ToDecimal(obj);
                 }
-                catch { return 0m; }
+                catch
+                {
+                    return 0m;
+                }
             },
             _ => true);
     }
@@ -179,7 +194,10 @@ internal class ComparisonTypeConverter
                 case float f:
                     return float.IsNaN(f) || float.IsInfinity(f) ? null : (double)f;
                 case string stringValue:
-                    return double.TryParse(stringValue, out var parsed) && !double.IsNaN(parsed) && !double.IsInfinity(parsed) ? parsed : null;
+                    return double.TryParse(stringValue, out var parsed) && !double.IsNaN(parsed) &&
+                           !double.IsInfinity(parsed)
+                        ? parsed
+                        : null;
                 default:
                     var result = Convert.ToDouble(value);
                     return double.IsNaN(result) || double.IsInfinity(result) ? null : result;

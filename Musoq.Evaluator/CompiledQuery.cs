@@ -27,10 +27,10 @@ public class CompiledQuery(IRunnable runnable)
     public Table Run()
     {
         using var exitSourcesLoaderTokenSource = new CancellationTokenSource();
-        
+
         var table = Run(exitSourcesLoaderTokenSource.Token);
         exitSourcesLoaderTokenSource.Cancel();
-        
+
         return table;
     }
 
@@ -40,10 +40,10 @@ public class CompiledQuery(IRunnable runnable)
             throw new OperationCanceledException("Query execution was cancelled before it started.", token);
 
         var result = _runnable.Run(token);
-        
+
         if (result == null)
             throw new InvalidOperationException("Query execution returned null result.");
-        
+
         return result;
     }
 }

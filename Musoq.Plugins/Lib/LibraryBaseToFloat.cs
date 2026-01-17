@@ -6,7 +6,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Converts given value to float
+    ///     Converts given value to float
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
@@ -24,7 +24,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to float
+    ///     Converts given value to float
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
@@ -39,7 +39,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to float
+    ///     Converts given value to float
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
@@ -54,7 +54,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to float
+    ///     Converts given value to float
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
@@ -69,7 +69,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to float
+    ///     Converts given value to float
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
@@ -84,7 +84,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to float
+    ///     Converts given value to float
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
@@ -99,7 +99,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to float
+    ///     Converts given value to float
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
@@ -114,7 +114,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to float
+    ///     Converts given value to float
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
@@ -129,7 +129,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to float
+    ///     Converts given value to float
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
@@ -144,7 +144,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to float
+    ///     Converts given value to float
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>
@@ -156,7 +156,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to float
+    ///     Converts given value to float
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to float value</returns>

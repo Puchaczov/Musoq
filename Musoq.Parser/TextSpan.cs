@@ -69,10 +69,7 @@ public struct TextSpan
         if (obj == null)
             return false;
 
-        if (obj is TextSpan span)
-        {
-            return span.Start == Start && span.Length == Length;
-        }
+        if (obj is TextSpan span) return span.Start == Start && span.Length == Length;
 
         return base.Equals(obj);
     }

@@ -8,7 +8,8 @@ namespace Musoq.Evaluator.Visitors;
 
 public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor visitor) : IExpressionVisitor
 {
-    private readonly IQueryPartAwareExpressionVisitor _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
+    private readonly IQueryPartAwareExpressionVisitor _visitor =
+        visitor ?? throw new ArgumentNullException(nameof(visitor));
 
     public void Visit(SelectNode node)
     {
@@ -138,13 +139,9 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
         {
             IdentifierNode column;
             if (theMostOuter.Expression is DotNode dotNode)
-            {
                 column = dotNode.Root as IdentifierNode;
-            }
             else
-            {
                 column = theMostOuter.Expression as IdentifierNode;
-            }
 
             if (column != null)
             {
@@ -154,7 +151,7 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
         }
 
         self = node;
-            
+
         while (self is not null)
         {
             self.Root.Accept(this);
@@ -641,29 +638,12 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
-    public void Visit(FromNode node)
-    {
-        node.Accept(_visitor);
-    }
-
     public void Visit(OrderByNode node)
     {
         foreach (var field in node.Fields)
             field.Accept(this);
 
         node.Accept(_visitor);
-    }
-
-    private void TraverseSetOperator(SetOperatorNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void SetQueryPart(QueryPart part)
-    {
-        _visitor.SetQueryPart(part);
     }
 
     public void Visit(CreateTableNode node)
@@ -691,9 +671,9 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
     }
 
     public void Visit(CaseNode node)
-    {   
+    {
         node.Else.Accept(this);
-            
+
         for (var i = node.WhenThenPairs.Length - 1; i >= 0; --i)
         {
             node.WhenThenPairs[i].When.Accept(this);
@@ -724,5 +704,22 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
     public void Visit(FieldLinkNode node)
     {
         node.Accept(_visitor);
+    }
+
+    public void Visit(FromNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    private void TraverseSetOperator(SetOperatorNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void SetQueryPart(QueryPart part)
+    {
+        _visitor.SetQueryPart(part);
     }
 }

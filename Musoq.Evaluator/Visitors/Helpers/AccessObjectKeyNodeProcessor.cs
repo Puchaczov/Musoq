@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -8,22 +9,13 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Processes AccessObjectKeyNode visitor operations for dictionary/key access syntax generation.
-/// Extracted from ToCSharpRewriteTreeVisitor to improve maintainability and testability.
+///     Processes AccessObjectKeyNode visitor operations for dictionary/key access syntax generation.
+///     Extracted from ToCSharpRewriteTreeVisitor to improve maintainability and testability.
 /// </summary>
 public static class AccessObjectKeyNodeProcessor
 {
     /// <summary>
-    /// Result of processing an AccessObjectKeyNode containing the generated expression and required namespace.
-    /// </summary>
-    public class ProcessingResult
-    {
-        public ExpressionSyntax Expression { get; init; } = null!;
-        public string RequiredNamespace { get; init; } = string.Empty;
-    }
-
-    /// <summary>
-    /// Processes an AccessObjectKeyNode to generate safe dictionary/key access syntax.
+    ///     Processes an AccessObjectKeyNode to generate safe dictionary/key access syntax.
     /// </summary>
     /// <param name="node">The AccessObjectKeyNode to process</param>
     /// <param name="nodes">Stack of syntax nodes for expression building</param>
@@ -34,19 +26,19 @@ public static class AccessObjectKeyNodeProcessor
     {
         ValidateInputs(node, nodes);
 
-        var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) nodes.Pop());
+        var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax)nodes.Pop());
 
-        
+
         var memberAccess = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
-            exp, 
+            exp,
             SyntaxFactory.IdentifierName(node.Name));
 
         var safeAccessCall = SyntaxFactory.InvocationExpression(
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
-                SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetIndexedElement))))
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
+                    SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetIndexedElement))))
             .WithArgumentList(SyntaxFactory.ArgumentList(
                 SyntaxFactory.SeparatedList([
                     SyntaxFactory.Argument(memberAccess),
@@ -65,7 +57,7 @@ public static class AccessObjectKeyNodeProcessor
     }
 
     /// <summary>
-    /// Validates the input parameters for AccessObjectKeyNode processing.
+    ///     Validates the input parameters for AccessObjectKeyNode processing.
     /// </summary>
     /// <param name="node">The AccessObjectKeyNode to validate</param>
     /// <param name="nodes">The syntax nodes stack to validate</param>
@@ -74,10 +66,19 @@ public static class AccessObjectKeyNodeProcessor
     private static void ValidateInputs(AccessObjectKeyNode node, Stack<SyntaxNode> nodes)
     {
         if (node == null)
-            throw new System.ArgumentNullException(nameof(node));
+            throw new ArgumentNullException(nameof(node));
         if (nodes == null)
-            throw new System.ArgumentNullException(nameof(nodes));
+            throw new ArgumentNullException(nameof(nodes));
         if (nodes.Count == 0)
-            throw new System.InvalidOperationException("Nodes stack cannot be empty for AccessObjectKeyNode processing");
+            throw new InvalidOperationException("Nodes stack cannot be empty for AccessObjectKeyNode processing");
+    }
+
+    /// <summary>
+    ///     Result of processing an AccessObjectKeyNode containing the generated expression and required namespace.
+    /// </summary>
+    public class ProcessingResult
+    {
+        public ExpressionSyntax Expression { get; init; } = null!;
+        public string RequiredNamespace { get; init; } = string.Empty;
     }
 }

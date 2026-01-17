@@ -8,18 +8,9 @@ namespace Musoq.Schema.Tests;
 [TestClass]
 public class BasicMethodResolutionTests
 {
-    private class TestClass
-    {
-        public void NoParameters() { }
-        public void SingleParameter(int x) { }
-        public void TwoParameters(int x, string y) { }
-        public void Overloaded(int x) { }
-        public void Overloaded(string x) { }
-        public void Overloaded(int x, string y) { }
-    }
+    private Type _entityType;
 
     private MethodsMetadata _methodsMetadata;
-    private Type _entityType;
 
     [TestInitialize]
     public void Initialize()
@@ -112,7 +103,7 @@ public class BasicMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_WrongParameterTypes_ShouldReturnFalse()
     {
-        var types = new[] { typeof(DateTime) }; 
+        var types = new[] { typeof(DateTime) };
 
         var success = _methodsMetadata.TryGetMethod("SingleParameter", types, _entityType, out var method);
 
@@ -120,15 +111,40 @@ public class BasicMethodResolutionTests
         Assert.IsNull(method);
     }
 
+    private class TestClass
+    {
+        public void NoParameters()
+        {
+        }
+
+        public void SingleParameter(int x)
+        {
+        }
+
+        public void TwoParameters(int x, string y)
+        {
+        }
+
+        public void Overloaded(int x)
+        {
+        }
+
+        public void Overloaded(string x)
+        {
+        }
+
+        public void Overloaded(int x, string y)
+        {
+        }
+    }
+
     private class TestMethodsMetadata : MethodsMetadata
     {
         public TestMethodsMetadata()
         {
             var testClass = typeof(TestClass);
-            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-            {
-                RegisterMethod(method);
-            }
+            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance |
+                                                        BindingFlags.DeclaredOnly)) RegisterMethod(method);
         }
 
         private new void RegisterMethod(MethodInfo methodInfo)

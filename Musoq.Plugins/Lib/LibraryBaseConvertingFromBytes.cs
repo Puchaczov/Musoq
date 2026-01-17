@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
@@ -6,7 +7,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Converts bytes to boolean value.
+    ///     Converts bytes to boolean value.
     /// </summary>
     /// <param name="value">Byte array containing the value to convert.</param>
     /// <returns>Converted boolean value.</returns>
@@ -18,7 +19,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts bytes to a 16-bit signed integer.
+    ///     Converts bytes to a 16-bit signed integer.
     /// </summary>
     /// <param name="value">Byte array containing the value to convert.</param>
     /// <returns>Converted 16-bit signed integer.</returns>
@@ -30,7 +31,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts bytes to a 16-bit unsigned integer.
+    ///     Converts bytes to a 16-bit unsigned integer.
     /// </summary>
     /// <param name="value">Byte array containing the value to convert.</param>
     /// <returns>Converted 16-bit unsigned integer.</returns>
@@ -42,7 +43,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts bytes to a 32-bit signed integer.
+    ///     Converts bytes to a 32-bit signed integer.
     /// </summary>
     /// <param name="value">Byte array containing the value to convert.</param>
     /// <returns>Converted 32-bit signed integer.</returns>
@@ -54,7 +55,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts bytes to a 32-bit unsigned integer.
+    ///     Converts bytes to a 32-bit unsigned integer.
     /// </summary>
     /// <param name="value">Byte array containing the value to convert.</param>
     /// <returns>Converted 32-bit unsigned integer.</returns>
@@ -66,7 +67,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts bytes to a 64-bit signed integer.
+    ///     Converts bytes to a 64-bit signed integer.
     /// </summary>
     /// <param name="value">Byte array containing the value to convert.</param>
     /// <returns>Converted 64-bit signed integer.</returns>
@@ -78,7 +79,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts bytes to a 64-bit unsigned integer.
+    ///     Converts bytes to a 64-bit unsigned integer.
     /// </summary>
     /// <param name="value">Byte array containing the value to convert.</param>
     /// <returns>Converted 64-bit signed integer.</returns>
@@ -90,7 +91,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts bytes to a float value.
+    ///     Converts bytes to a float value.
     /// </summary>
     /// <param name="value">Byte array containing the value to convert.</param>
     /// <returns>The float value</returns>
@@ -102,7 +103,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts bytes to a float value.
+    ///     Converts bytes to a float value.
     /// </summary>
     /// <param name="value">Byte array containing the value to convert.</param>
     /// <returns>The float value</returns>
@@ -112,9 +113,9 @@ public partial class LibraryBase
     {
         return BitConverter.ToDouble(value, 0);
     }
-    
+
     /// <summary>
-    /// Converts bytes to a string.
+    ///     Converts bytes to a string.
     /// </summary>
     /// <param name="value">Byte array containing the value to convert.</param>
     /// <returns>The string value</returns>
@@ -122,6 +123,6 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Conversion)]
     public string FromBytesToString(byte[] value)
     {
-        return System.Text.Encoding.UTF8.GetString(value);
+        return Encoding.UTF8.GetString(value);
     }
 }

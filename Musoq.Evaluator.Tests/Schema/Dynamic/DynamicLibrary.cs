@@ -17,7 +17,7 @@ public class DynamicLibrary : LibraryBase
     {
         return value + 1;
     }
-    
+
     [BindableMethod]
     public bool TrueWhenCalled([InjectSpecificSource(typeof(DynamicObject))] DynamicObject item)
     {

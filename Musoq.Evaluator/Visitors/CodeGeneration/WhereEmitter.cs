@@ -6,12 +6,12 @@ using Microsoft.CodeAnalysis.Editing;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Handles code generation for WHERE clause processing.
+///     Handles code generation for WHERE clause processing.
 /// </summary>
 public static class WhereEmitter
 {
     /// <summary>
-    /// Creates a WHERE condition check that either continues or returns based on context.
+    ///     Creates a WHERE condition check that either continues or returns based on context.
     /// </summary>
     /// <param name="conditionExpression">The WHERE condition expression.</param>
     /// <param name="isParallelizationImpossible">Whether result parallelization is impossible.</param>

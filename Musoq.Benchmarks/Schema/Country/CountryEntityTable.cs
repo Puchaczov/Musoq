@@ -1,5 +1,4 @@
 ﻿using Musoq.Schema;
-using Musoq.Schema.DataSources;
 
 namespace Musoq.Benchmarks.Schema.Country;
 
@@ -12,7 +11,7 @@ public class CountryEntityTable : ISchemaTable
         new SchemaColumn(nameof(CountryEntity.Country), 12,
             typeof(CountryEntity).GetProperty(nameof(CountryEntity.Country))!.PropertyType),
         new SchemaColumn(nameof(CountryEntity.Population), 13,
-            typeof(CountryEntity).GetProperty(nameof(CountryEntity.Population))!.PropertyType),
+            typeof(CountryEntity).GetProperty(nameof(CountryEntity.Population))!.PropertyType)
     ];
 
     public ISchemaColumn? GetColumnByName(string name)

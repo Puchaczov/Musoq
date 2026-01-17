@@ -7,16 +7,19 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Converts given value to DateTime
+    ///     Converts given value to DateTime
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to DateTime value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public DateTime? ToDateTime(string value) => ToDateTime(value, CultureInfo.CurrentCulture.Name);
+    public DateTime? ToDateTime(string value)
+    {
+        return ToDateTime(value, CultureInfo.CurrentCulture.Name);
+    }
 
     /// <summary>
-    /// Converts given value to DateTime
+    ///     Converts given value to DateTime
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="culture">The culture</param>
@@ -35,7 +38,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Subtracts two DateTime values and returns the difference as a TimeSpan
+    ///     Subtracts two DateTime values and returns the difference as a TimeSpan
     /// </summary>
     /// <param name="date1">The first DateTime value</param>
     /// <param name="date2">The second DateTime value</param>

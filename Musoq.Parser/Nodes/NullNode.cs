@@ -34,15 +34,9 @@ public class NullNode : Node
 
     public class NullType : Type
     {
-        public static NullType Instance { get; } = new NullType();
-        
         private readonly Type _underlyingType = typeof(object);
-        
-        protected override bool IsArrayImpl() => false;
-        protected override bool IsByRefImpl() => false;
-        protected override bool IsCOMObjectImpl() => false;
-        protected override bool IsPointerImpl() => false;
-        protected override bool IsPrimitiveImpl() => false;
+        public static NullType Instance { get; } = new();
+
         public override Assembly Assembly => typeof(NullNode).Assembly;
         public override string AssemblyQualifiedName => _underlyingType.AssemblyQualifiedName;
         public override Type BaseType => _underlyingType.BaseType;
@@ -52,12 +46,40 @@ public class NullNode : Node
         public override string Namespace => typeof(NullType).Namespace;
         public override string Name => "Null";
 
+        public override Type UnderlyingSystemType => _underlyingType.UnderlyingSystemType;
+
+        protected override bool IsArrayImpl()
+        {
+            return false;
+        }
+
+        protected override bool IsByRefImpl()
+        {
+            return false;
+        }
+
+        protected override bool IsCOMObjectImpl()
+        {
+            return false;
+        }
+
+        protected override bool IsPointerImpl()
+        {
+            return false;
+        }
+
+        protected override bool IsPrimitiveImpl()
+        {
+            return false;
+        }
+
         protected override TypeAttributes GetAttributeFlagsImpl()
         {
             return _underlyingType.Attributes;
         }
 
-        protected override ConstructorInfo GetConstructorImpl(BindingFlags bindingAttr, Binder binder, CallingConventions callConvention,
+        protected override ConstructorInfo GetConstructorImpl(BindingFlags bindingAttr, Binder binder,
+            CallingConventions callConvention,
             Type[] types, ParameterModifier[] modifiers)
         {
             return _underlyingType.GetConstructor(bindingAttr, binder, callConvention, types, modifiers);
@@ -98,7 +120,8 @@ public class NullNode : Node
             return _underlyingType.GetMembers(bindingAttr);
         }
 
-        protected override MethodInfo GetMethodImpl(string name, BindingFlags bindingAttr, Binder binder, CallingConventions callConvention,
+        protected override MethodInfo GetMethodImpl(string name, BindingFlags bindingAttr, Binder binder,
+            CallingConventions callConvention,
             Type[] types, ParameterModifier[] modifiers)
         {
             return _underlyingType.GetMethod(name, bindingAttr, binder, callConvention, types, modifiers);
@@ -114,15 +137,16 @@ public class NullNode : Node
             return _underlyingType.GetProperties(bindingAttr);
         }
 
-        public override object InvokeMember(string name, BindingFlags invokeAttr, Binder binder, object target, object[] args,
+        public override object InvokeMember(string name, BindingFlags invokeAttr, Binder binder, object target,
+            object[] args,
             ParameterModifier[] modifiers, CultureInfo culture, string[] namedParameters)
         {
-            return _underlyingType.InvokeMember(name, invokeAttr, binder, target, args, modifiers, culture, namedParameters);
+            return _underlyingType.InvokeMember(name, invokeAttr, binder, target, args, modifiers, culture,
+                namedParameters);
         }
 
-        public override Type UnderlyingSystemType => _underlyingType.UnderlyingSystemType;
-
-        protected override PropertyInfo GetPropertyImpl(string name, BindingFlags bindingAttr, Binder binder, Type returnType, Type[] types,
+        protected override PropertyInfo GetPropertyImpl(string name, BindingFlags bindingAttr, Binder binder,
+            Type returnType, Type[] types,
             ParameterModifier[] modifiers)
         {
             return _underlyingType.GetProperty(name, bindingAttr, binder, returnType, types, modifiers);
@@ -168,5 +192,4 @@ public class NullNode : Node
             return _underlyingType.IsDefined(attributeType, inherit);
         }
     }
-
 }

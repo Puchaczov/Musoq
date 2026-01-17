@@ -4,7 +4,8 @@ namespace Musoq.Parser.Nodes.From;
 
 public class JoinInMemoryWithSourceTableFromNode : FromNode
 {
-    internal JoinInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, Node expression, JoinType joinType)
+    internal JoinInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, Node expression,
+        JoinType joinType)
         : base($"{inMemoryTableAlias}{sourceTable.Alias}")
     {
         Id =
@@ -14,8 +15,9 @@ public class JoinInMemoryWithSourceTableFromNode : FromNode
         Expression = expression;
         JoinType = joinType;
     }
-        
-    public JoinInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, Node expression, JoinType joinType, Type returnType)
+
+    public JoinInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, Node expression,
+        JoinType joinType, Type returnType)
         : base($"{inMemoryTableAlias}{sourceTable.Alias}", returnType)
     {
         Id =

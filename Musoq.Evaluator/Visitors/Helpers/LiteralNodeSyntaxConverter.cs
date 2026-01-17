@@ -9,13 +9,13 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Helper class for converting literal node types to C# syntax.
-/// Provides specialized conversion for different literal types.
+///     Helper class for converting literal node types to C# syntax.
+///     Provides specialized conversion for different literal types.
 /// </summary>
 public static class LiteralNodeSyntaxConverter
 {
     /// <summary>
-    /// Converts a StringNode to C# string literal syntax.
+    ///     Converts a StringNode to C# string literal syntax.
     /// </summary>
     /// <param name="node">The string node to convert.</param>
     /// <returns>A C# string literal expression.</returns>
@@ -31,7 +31,7 @@ public static class LiteralNodeSyntaxConverter
     }
 
     /// <summary>
-    /// Converts a DecimalNode to C# decimal literal syntax.
+    ///     Converts a DecimalNode to C# decimal literal syntax.
     /// </summary>
     /// <param name="node">The decimal node to convert.</param>
     /// <returns>A C# decimal literal expression.</returns>
@@ -55,7 +55,7 @@ public static class LiteralNodeSyntaxConverter
     }
 
     /// <summary>
-    /// Converts an IntegerNode to C# integer literal syntax based on the node's return type.
+    ///     Converts an IntegerNode to C# integer literal syntax based on the node's return type.
     /// </summary>
     /// <param name="node">The integer node to convert.</param>
     /// <returns>A C# integer literal expression with appropriate casting.</returns>
@@ -81,7 +81,7 @@ public static class LiteralNodeSyntaxConverter
     }
 
     /// <summary>
-    /// Converts a HexIntegerNode to C# integer literal syntax.
+    ///     Converts a HexIntegerNode to C# integer literal syntax.
     /// </summary>
     /// <param name="node">The hex integer node to convert.</param>
     /// <returns>A C# long literal expression.</returns>
@@ -95,7 +95,7 @@ public static class LiteralNodeSyntaxConverter
     }
 
     /// <summary>
-    /// Converts a BinaryIntegerNode to C# integer literal syntax.
+    ///     Converts a BinaryIntegerNode to C# integer literal syntax.
     /// </summary>
     /// <param name="node">The binary integer node to convert.</param>
     /// <returns>A C# long literal expression.</returns>
@@ -109,7 +109,7 @@ public static class LiteralNodeSyntaxConverter
     }
 
     /// <summary>
-    /// Converts a OctalIntegerNode to C# integer literal syntax.
+    ///     Converts a OctalIntegerNode to C# integer literal syntax.
     /// </summary>
     /// <param name="node">The octal integer node to convert.</param>
     /// <returns>A C# long literal expression.</returns>
@@ -123,7 +123,7 @@ public static class LiteralNodeSyntaxConverter
     }
 
     /// <summary>
-    /// Converts a BooleanNode to C# boolean literal syntax.
+    ///     Converts a BooleanNode to C# boolean literal syntax.
     /// </summary>
     /// <param name="node">The boolean node to convert.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -140,7 +140,7 @@ public static class LiteralNodeSyntaxConverter
     }
 
     /// <summary>
-    /// Converts a WordNode to C# string literal syntax.
+    ///     Converts a WordNode to C# string literal syntax.
     /// </summary>
     /// <param name="node">The word node to convert.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -157,7 +157,7 @@ public static class LiteralNodeSyntaxConverter
     }
 
     /// <summary>
-    /// Converts a NullNode to C# null literal syntax with proper nullable handling.
+    ///     Converts a NullNode to C# null literal syntax with proper nullable handling.
     /// </summary>
     /// <param name="node">The null node to convert.</param>
     /// <param name="generator">The syntax generator.</param>
@@ -170,10 +170,7 @@ public static class LiteralNodeSyntaxConverter
         if (generator == null)
             throw new ArgumentNullException(nameof(generator));
 
-        if (CheckIfNullable(node.ReturnType))
-        {
-            return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
-        }
+        if (CheckIfNullable(node.ReturnType)) return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
         var typeIdentifier = SyntaxFactory.IdentifierName(
             EvaluationHelper.GetCastableType(node.ReturnType));
@@ -183,7 +180,7 @@ public static class LiteralNodeSyntaxConverter
     }
 
     /// <summary>
-    /// Creates a cast expression for integer types.
+    ///     Creates a cast expression for integer types.
     /// </summary>
     /// <param name="keyword">The keyword for the target type.</param>
     /// <param name="value">The value to cast.</param>
@@ -216,16 +213,13 @@ public static class LiteralNodeSyntaxConverter
     }
 
     /// <summary>
-    /// Checks if a type is nullable.
+    ///     Checks if a type is nullable.
     /// </summary>
     /// <param name="type">The type to check.</param>
     /// <returns>True if the type is nullable, false otherwise.</returns>
     private static bool CheckIfNullable(Type type)
     {
-        if (type.IsValueType)
-        {
-            return Nullable.GetUnderlyingType(type) != null;
-        }
+        if (type.IsValueType) return Nullable.GetUnderlyingType(type) != null;
 
         return true;
     }

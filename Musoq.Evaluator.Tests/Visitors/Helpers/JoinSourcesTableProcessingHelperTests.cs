@@ -21,7 +21,8 @@ public class JoinSourcesTableProcessingHelperTests
         var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
         var scope = new Scope(null, 0, "test");
-        var ifStatement = SyntaxFactory.IfStatement(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression), SyntaxFactory.Block());
+        var ifStatement = SyntaxFactory.IfStatement(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression),
+            SyntaxFactory.Block());
         var emptyBlock = SyntaxFactory.Block();
 
         // Act & Assert
@@ -45,7 +46,8 @@ public class JoinSourcesTableProcessingHelperTests
         // Arrange
         var node = CreateMockJoinNode(JoinType.Inner);
         var scope = new Scope(null, 0, "test");
-        var ifStatement = SyntaxFactory.IfStatement(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression), SyntaxFactory.Block());
+        var ifStatement = SyntaxFactory.IfStatement(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression),
+            SyntaxFactory.Block());
         var emptyBlock = SyntaxFactory.Block();
 
         // Act & Assert
@@ -70,7 +72,8 @@ public class JoinSourcesTableProcessingHelperTests
         var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
         var node = CreateMockJoinNode(JoinType.Inner);
-        var ifStatement = SyntaxFactory.IfStatement(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression), SyntaxFactory.Block());
+        var ifStatement = SyntaxFactory.IfStatement(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression),
+            SyntaxFactory.Block());
         var emptyBlock = SyntaxFactory.Block();
 
         // Act & Assert
@@ -96,7 +99,8 @@ public class JoinSourcesTableProcessingHelperTests
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
         var node = CreateMockJoinNode((JoinType)999); // Invalid join type
         var scope = new Scope(null, 0, "test");
-        var ifStatement = SyntaxFactory.IfStatement(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression), SyntaxFactory.Block());
+        var ifStatement = SyntaxFactory.IfStatement(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression),
+            SyntaxFactory.Block());
         var emptyBlock = SyntaxFactory.Block();
 
         // Act & Assert
@@ -124,7 +128,8 @@ public class JoinSourcesTableProcessingHelperTests
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
         var node = CreateMockJoinNode(JoinType.Inner);
         var scope = new Scope(null, 0, "test");
-        var ifStatement = SyntaxFactory.IfStatement(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression), SyntaxFactory.Block());
+        var ifStatement = SyntaxFactory.IfStatement(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression),
+            SyntaxFactory.Block());
         var emptyBlock = SyntaxFactory.Block();
 
         // Act
@@ -148,29 +153,28 @@ public class JoinSourcesTableProcessingHelperTests
 
     private static JoinSourcesTableFromNode CreateMockJoinNode(JoinType joinType)
     {
-        
         var firstAlias = new AliasedFromNode(
             "testId",
-            null, 
+            null,
             "FirstAlias",
             typeof(object),
-            0); 
-        
+            0);
+
         var secondAlias = new AliasedFromNode(
             "testId2",
-            null, 
+            null,
             "SecondAlias",
             typeof(object),
-            0); 
+            0);
 
-        
-        var expression = new IntegerNode("1", "");  
+
+        var expression = new IntegerNode("1", "");
 
         return new JoinSourcesTableFromNode(
             firstAlias,
             secondAlias,
             expression,
             joinType,
-            typeof(object)); 
+            typeof(object));
     }
 }

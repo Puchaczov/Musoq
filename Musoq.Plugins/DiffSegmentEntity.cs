@@ -1,12 +1,12 @@
 namespace Musoq.Plugins;
 
 /// <summary>
-/// Represents a segment of a character-level diff result.
+///     Represents a segment of a character-level diff result.
 /// </summary>
 public class DiffSegmentEntity
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="DiffSegmentEntity"/> class.
+    ///     Initializes a new instance of the <see cref="DiffSegmentEntity" /> class.
     /// </summary>
     /// <param name="text">The segment content.</param>
     /// <param name="kind">The kind of segment (Unchanged, Deleted, or Inserted).</param>
@@ -21,22 +21,22 @@ public class DiffSegmentEntity
     }
 
     /// <summary>
-    /// Gets the segment content.
+    ///     Gets the segment content.
     /// </summary>
     public string Text { get; }
 
     /// <summary>
-    /// Gets the kind of segment: "Unchanged", "Deleted", or "Inserted".
+    ///     Gets the kind of segment: "Unchanged", "Deleted", or "Inserted".
     /// </summary>
     public string Kind { get; }
 
     /// <summary>
-    /// Gets the start position (in source for Deleted/Unchanged, in target for Inserted).
+    ///     Gets the start position (in source for Deleted/Unchanged, in target for Inserted).
     /// </summary>
     public int Position { get; }
 
     /// <summary>
-    /// Gets the character count.
+    ///     Gets the character count.
     /// </summary>
     public int Length { get; }
 }

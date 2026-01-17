@@ -8,12 +8,13 @@ using Musoq.Plugins;
 
 namespace Musoq.Evaluator.Visitors;
 
-public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFieldNode>(TInputFieldNode[] fields) : CloneQueryVisitor
+public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFieldNode>(TInputFieldNode[] fields)
+    : CloneQueryVisitor
     where TFieldNode : FieldNode
     where TInputFieldNode : FieldNode
 {
     public TFieldNode Expression { get; protected set; }
-    
+
     protected abstract string ExtractOriginalExpression(TInputFieldNode node);
 
     public override void Visit(AccessColumnNode node)
@@ -45,11 +46,12 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
 
             var wordNode = node.Arguments.Args[0] as WordNode;
             var accessGroup = new AccessColumnNode("none", string.Empty, typeof(Group), TextSpan.Empty);
-            var args = new List<Node> {accessGroup, wordNode};
+            var args = new List<Node> { accessGroup, wordNode };
             args.AddRange(node.Arguments.Args.Skip(1));
             var extractFromGroup = new AccessMethodNode(
-                new FunctionToken(node.Method.Name, TextSpan.Empty), 
-                new ArgsListNode(args.ToArray()), node.ExtraAggregateArguments, node.CanSkipInjectSource, node.Method, node.Alias);
+                new FunctionToken(node.Method.Name, TextSpan.Empty),
+                new ArgsListNode(args.ToArray()), node.ExtraAggregateArguments, node.CanSkipInjectSource, node.Method,
+                node.Alias);
             Nodes.Push(extractFromGroup);
         }
         else if (fields.Select(ExtractOriginalExpression).Contains(node.ToString()))

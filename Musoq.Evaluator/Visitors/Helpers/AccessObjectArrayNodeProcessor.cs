@@ -9,28 +9,13 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Specialized helper for processing AccessObjectArrayNode visitor methods.
-/// Handles complex array/object access logic with type checking and safe access patterns.
+///     Specialized helper for processing AccessObjectArrayNode visitor methods.
+///     Handles complex array/object access logic with type checking and safe access patterns.
 /// </summary>
 public static class AccessObjectArrayNodeProcessor
 {
     /// <summary>
-    /// Result containing the generated expression and required namespace.
-    /// </summary>
-    public class AccessObjectArrayProcessingResult
-    {
-        public ExpressionSyntax Expression { get; init; }
-        public string RequiredNamespace { get; init; }
-        
-        public AccessObjectArrayProcessingResult(ExpressionSyntax expression, string requiredNamespace)
-        {
-            Expression = expression ?? throw new ArgumentNullException(nameof(expression));
-            RequiredNamespace = requiredNamespace ?? throw new ArgumentNullException(nameof(requiredNamespace));
-        }
-    }
-
-    /// <summary>
-    /// Processes an AccessObjectArrayNode and generates the appropriate C# syntax expression.
+    ///     Processes an AccessObjectArrayNode and generates the appropriate C# syntax expression.
     /// </summary>
     /// <param name="node">The AccessObjectArrayNode to process</param>
     /// <param name="nodes">The syntax node stack</param>
@@ -38,7 +23,7 @@ public static class AccessObjectArrayNodeProcessor
     /// <exception cref="ArgumentNullException">Thrown when node or nodes is null</exception>
     /// <exception cref="InvalidOperationException">Thrown when property access is attempted without a parent expression</exception>
     public static AccessObjectArrayProcessingResult ProcessAccessObjectArrayNode(
-        AccessObjectArrayNode node, 
+        AccessObjectArrayNode node,
         Stack<SyntaxNode> nodes)
     {
         if (node == null)
@@ -50,23 +35,18 @@ public static class AccessObjectArrayNodeProcessor
         ExpressionSyntax resultExpression;
 
         if (node.IsColumnAccess)
-        {
             resultExpression = ProcessColumnBasedAccess(node);
-        }
         else
-        {
             resultExpression = ProcessPropertyBasedAccess(node, nodes);
-        }
 
         return new AccessObjectArrayProcessingResult(resultExpression, requiredNamespace);
     }
 
     /// <summary>
-    /// Processes column-based indexed access (e.g., Name[0], f.Name[0]).
+    ///     Processes column-based indexed access (e.g., Name[0], f.Name[0]).
     /// </summary>
     private static ExpressionSyntax ProcessColumnBasedAccess(AccessObjectArrayNode node)
     {
-        
         var columnAccess = SyntaxFactory.CastExpression(
             GetCSharpType(node.ColumnType),
             SyntaxFactory.ParenthesizedExpression(
@@ -77,57 +57,52 @@ public static class AccessObjectArrayNodeProcessor
                                 SyntaxKind.StringLiteralExpression,
                                 SyntaxFactory.Literal(node.ObjectName))))))));
 
-        
-        if (node.ColumnType == typeof(string))
-        {
-            return CreateStringCharacterAccess(columnAccess, node.Token.Index);
-        }
-        
+
+        if (node.ColumnType == typeof(string)) return CreateStringCharacterAccess(columnAccess, node.Token.Index);
+
         if (node.ColumnType.IsArray)
-        {
             return CreateArrayElementAccess(columnAccess, node.ColumnType.GetElementType(), node.Token.Index);
-        }
-        
+
         return CreateDirectElementAccess(columnAccess, node.Token.Index);
     }
 
     /// <summary>
-    /// Processes property-based access (original logic).
+    ///     Processes property-based access (original logic).
     /// </summary>
     private static ExpressionSyntax ProcessPropertyBasedAccess(AccessObjectArrayNode node, Stack<SyntaxNode> nodes)
     {
-        
         if (nodes.Count > 0 && nodes.Peek() is ExpressionSyntax)
         {
-            var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax) nodes.Pop());
+            var exp = SyntaxFactory.ParenthesizedExpression((ExpressionSyntax)nodes.Pop());
 
-            
+
             return SyntaxFactory.ElementAccessExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    exp, 
-                    SyntaxFactory.IdentifierName(node.Name)))
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        exp,
+                        SyntaxFactory.IdentifierName(node.Name)))
                 .WithArgumentList(SyntaxFactory.BracketedArgumentList(
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
                             SyntaxKind.NumericLiteralExpression,
                             SyntaxFactory.Literal(node.Token.Index))))));
         }
-        
-        
-        throw new InvalidOperationException($"Cannot generate code for array access {node} - no parent expression available");
+
+
+        throw new InvalidOperationException(
+            $"Cannot generate code for array access {node} - no parent expression available");
     }
 
     /// <summary>
-    /// Creates string character access using SafeArrayAccess.GetStringCharacter.
+    ///     Creates string character access using SafeArrayAccess.GetStringCharacter.
     /// </summary>
     private static ExpressionSyntax CreateStringCharacterAccess(ExpressionSyntax columnAccess, int index)
     {
         return SyntaxFactory.InvocationExpression(
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
-                SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetStringCharacter))))
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
+                    SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetStringCharacter))))
             .WithArgumentList(SyntaxFactory.ArgumentList(
                 SyntaxFactory.SeparatedList([
                     SyntaxFactory.Argument(columnAccess),
@@ -138,18 +113,18 @@ public static class AccessObjectArrayNodeProcessor
     }
 
     /// <summary>
-    /// Creates array element access using SafeArrayAccess.GetArrayElement&lt;T&gt;.
+    ///     Creates array element access using SafeArrayAccess.GetArrayElement&lt;T&gt;.
     /// </summary>
     private static ExpressionSyntax CreateArrayElementAccess(ExpressionSyntax columnAccess, Type elementType, int index)
     {
         return SyntaxFactory.InvocationExpression(
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
-                SyntaxFactory.GenericName(nameof(SafeArrayAccess.GetArrayElement))
-                    .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                        SyntaxFactory.SingletonSeparatedList(
-                            GetCSharpType(elementType))))))
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(nameof(SafeArrayAccess)),
+                    SyntaxFactory.GenericName(nameof(SafeArrayAccess.GetArrayElement))
+                        .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                GetCSharpType(elementType))))))
             .WithArgumentList(SyntaxFactory.ArgumentList(
                 SyntaxFactory.SeparatedList([
                     SyntaxFactory.Argument(columnAccess),
@@ -160,14 +135,12 @@ public static class AccessObjectArrayNodeProcessor
     }
 
     /// <summary>
-    /// Creates direct element access for other indexable types.
+    ///     Creates direct element access for other indexable types.
     /// </summary>
     private static ExpressionSyntax CreateDirectElementAccess(ExpressionSyntax columnAccess, int index)
     {
-        
-        
         return SyntaxFactory.ElementAccessExpression(
-            SyntaxFactory.ParenthesizedExpression(columnAccess))
+                SyntaxFactory.ParenthesizedExpression(columnAccess))
             .WithArgumentList(SyntaxFactory.BracketedArgumentList(
                 SyntaxFactory.SingletonSeparatedList(
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
@@ -176,7 +149,7 @@ public static class AccessObjectArrayNodeProcessor
     }
 
     /// <summary>
-    /// Helper method to convert .NET types to C# syntax.
+    ///     Helper method to convert .NET types to C# syntax.
     /// </summary>
     /// <param name="type">The .NET type to convert</param>
     /// <returns>The corresponding C# TypeSyntax</returns>
@@ -200,8 +173,23 @@ public static class AccessObjectArrayNodeProcessor
             return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.LongKeyword));
         if (type == typeof(object))
             return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
-        
-        
+
+
         return SyntaxFactory.IdentifierName(type.Name);
+    }
+
+    /// <summary>
+    ///     Result containing the generated expression and required namespace.
+    /// </summary>
+    public class AccessObjectArrayProcessingResult
+    {
+        public AccessObjectArrayProcessingResult(ExpressionSyntax expression, string requiredNamespace)
+        {
+            Expression = expression ?? throw new ArgumentNullException(nameof(expression));
+            RequiredNamespace = requiredNamespace ?? throw new ArgumentNullException(nameof(requiredNamespace));
+        }
+
+        public ExpressionSyntax Expression { get; init; }
+        public string RequiredNamespace { get; init; }
     }
 }

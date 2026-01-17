@@ -8,24 +8,9 @@ namespace Musoq.Schema.Tests;
 [TestClass]
 public class MethodsMetadataOptionalParametersTests
 {
-    private class TestClass
-    {
-        public void SingleOptional(int x = 42) { }
-        public void TwoOptional(int x = 1, int y = 2) { }
-        public void MixedOptional(int required, string optional = "default") { }
-        
-        public void Overloaded(int x) { }
-        public void Overloaded(int x, int y = 10) { }
-        public void Overloaded(int x, string y = "default") { }
-        
-        public void AllOptional(int a = 1, int b = 2, int c = 3) { }
-        
-        public void MixedTypes(int required, string optional1 = "test", int? optional2 = null) { }
-        public void NullableParameters(int? x = null, string y = null) { }
-    }
+    private Type _entityType;
 
     private MethodsMetadata _methodsMetadata;
-    private Type _entityType;
 
     [TestInitialize]
     public void Initialize()
@@ -41,7 +26,7 @@ public class MethodsMetadataOptionalParametersTests
             _methodsMetadata.TryGetMethod("SingleOptional", [typeof(int)], _entityType, out var withParam),
             "Should resolve with parameter"
         );
-        
+
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod("SingleOptional", [], _entityType, out var withoutParam),
             "Should resolve without parameter"
@@ -55,12 +40,12 @@ public class MethodsMetadataOptionalParametersTests
             _methodsMetadata.TryGetMethod("TwoOptional", [typeof(int), typeof(int)], _entityType, out _),
             "Should resolve with both parameters"
         );
-        
+
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod("TwoOptional", [typeof(int)], _entityType, out _),
             "Should resolve with first parameter only"
         );
-        
+
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod("TwoOptional", [], _entityType, out _),
             "Should resolve with no parameters"
@@ -74,12 +59,12 @@ public class MethodsMetadataOptionalParametersTests
             _methodsMetadata.TryGetMethod("MixedOptional", [typeof(int)], _entityType, out _),
             "Should resolve with required parameter only"
         );
-        
+
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod("MixedOptional", [typeof(int), typeof(string)], _entityType, out _),
             "Should resolve with all parameters"
         );
-        
+
         Assert.IsFalse(
             _methodsMetadata.TryGetMethod("MixedOptional", [], _entityType, out _),
             "Should not resolve without required parameter"
@@ -147,7 +132,8 @@ public class MethodsMetadataOptionalParametersTests
         );
 
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("MixedTypes", [typeof(int), typeof(string), typeof(int?)], _entityType, out _),
+            _methodsMetadata.TryGetMethod("MixedTypes", [typeof(int), typeof(string), typeof(int?)], _entityType,
+                out _),
             "Should resolve with all parameters"
         );
 
@@ -181,15 +167,52 @@ public class MethodsMetadataOptionalParametersTests
         );
     }
 
+    private class TestClass
+    {
+        public void SingleOptional(int x = 42)
+        {
+        }
+
+        public void TwoOptional(int x = 1, int y = 2)
+        {
+        }
+
+        public void MixedOptional(int required, string optional = "default")
+        {
+        }
+
+        public void Overloaded(int x)
+        {
+        }
+
+        public void Overloaded(int x, int y = 10)
+        {
+        }
+
+        public void Overloaded(int x, string y = "default")
+        {
+        }
+
+        public void AllOptional(int a = 1, int b = 2, int c = 3)
+        {
+        }
+
+        public void MixedTypes(int required, string optional1 = "test", int? optional2 = null)
+        {
+        }
+
+        public void NullableParameters(int? x = null, string y = null)
+        {
+        }
+    }
+
     private class TestMethodsMetadata : MethodsMetadata
     {
         public TestMethodsMetadata()
         {
             var testClass = typeof(TestClass);
-            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-            {
-                RegisterMethod(method);
-            }
+            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance |
+                                                        BindingFlags.DeclaredOnly)) RegisterMethod(method);
         }
 
         private new void RegisterMethod(MethodInfo methodInfo)

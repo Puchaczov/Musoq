@@ -11,7 +11,7 @@ public class AliasedFromNode : FromNode
         Args = args;
         InSourcePosition = inSourcePosition;
     }
-        
+
     public AliasedFromNode(string identifier, ArgsListNode args, string alias, Type returnType, int inSourcePosition)
         : base(alias, returnType)
     {
@@ -23,7 +23,7 @@ public class AliasedFromNode : FromNode
     public string Identifier { get; }
 
     public ArgsListNode Args { get; }
-        
+
     public int InSourcePosition { get; }
 
     public override string Id => $"{Identifier}-{Alias}";
@@ -37,7 +37,7 @@ public class AliasedFromNode : FromNode
     {
         if (!string.IsNullOrWhiteSpace(Alias))
             return $"{Identifier}({Args.ToString()}) as {Alias}";
-            
+
         return $"{Identifier}({Args.ToString()})";
     }
 }

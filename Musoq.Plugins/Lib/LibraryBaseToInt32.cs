@@ -6,7 +6,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Converts given value to int
+    ///     Converts given value to int
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to int value</returns>
@@ -21,7 +21,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to int
+    ///     Converts given value to int
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to int value</returns>
@@ -36,7 +36,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to int
+    ///     Converts given value to int
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to int value</returns>
@@ -51,7 +51,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to int
+    ///     Converts given value to int
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to int value</returns>
@@ -66,7 +66,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to int
+    ///     Converts given value to int
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to int value</returns>
@@ -81,7 +81,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to int
+    ///     Converts given value to int
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to int value</returns>
@@ -96,7 +96,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to int
+    ///     Converts given value to int
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to int value</returns>
@@ -111,7 +111,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to int
+    ///     Converts given value to int
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to int value</returns>
@@ -126,7 +126,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to int
+    ///     Converts given value to int
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to int value</returns>
@@ -141,7 +141,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to int
+    ///     Converts given value to int
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to int value</returns>
@@ -156,7 +156,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to int
+    ///     Converts given value to int
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to int value</returns>
@@ -171,7 +171,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to int
+    ///     Converts given value to int
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to int value</returns>
@@ -186,7 +186,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to int
+    ///     Converts given value to int
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to int value</returns>

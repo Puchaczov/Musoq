@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Visitors.Helpers;
 using Musoq.Parser.Nodes;
-using Musoq.Parser;
 
 namespace Musoq.Evaluator.Tests.Visitors.Helpers;
 
@@ -21,18 +19,17 @@ public class CteExpressionNodeProcessorTests
     [TestInitialize]
     public void Initialize()
     {
-        
         var innerValue = new FieldNode(new IntegerNode("1"), 0, "test");
         var cteInnerExpression = new CteInnerExpressionNode(innerValue, "testCte");
-        
-        
+
+
         var outerExpression = new FieldNode(new IntegerNode("2"), 0, "outer");
         _cteNode = new CteExpressionNode([cteInnerExpression], outerExpression);
-        
+
         _methodNames = new Stack<string>();
-        _methodNames.Push("InnerMethod"); 
-        _methodNames.Push("TestMethod");  
-        
+        _methodNames.Push("InnerMethod");
+        _methodNames.Push("TestMethod");
+
         _nodes = new Stack<SyntaxNode>();
         _nodes.Push(SyntaxFactory.ExpressionStatement(SyntaxFactory.IdentifierName("testStatement")));
     }
@@ -72,7 +69,7 @@ public class CteExpressionNodeProcessorTests
         // Assert
         var method = result.Method;
         Assert.AreEqual(5, method.ParameterList.Parameters.Count);
-        
+
         var parameters = method.ParameterList.Parameters;
         Assert.AreEqual("provider", parameters[0].Identifier.Text);
         Assert.AreEqual("positionalEnvironmentVariables", parameters[1].Identifier.Text);
@@ -90,7 +87,7 @@ public class CteExpressionNodeProcessorTests
         // Assert
         var method = result.Method;
         var parameters = method.ParameterList.Parameters;
-        
+
         Assert.AreEqual("ISchemaProvider", parameters[0].Type.ToString());
         Assert.Contains("IReadOnlyDictionary", parameters[1].Type.ToString());
         Assert.Contains("IReadOnlyDictionary", parameters[2].Type.ToString());
@@ -107,11 +104,11 @@ public class CteExpressionNodeProcessorTests
         // Assert
         var method = result.Method;
         var statements = method.Body.Statements;
-        
+
         // Should have the inner statement plus the return statement
         Assert.AreEqual(2, statements.Count);
         Assert.IsInstanceOfType(statements[1], typeof(ReturnStatementSyntax));
-        
+
         var returnStatement = (ReturnStatementSyntax)statements[1];
         Assert.IsInstanceOfType(returnStatement.Expression, typeof(InvocationExpressionSyntax));
     }
@@ -126,7 +123,7 @@ public class CteExpressionNodeProcessorTests
         var method = result.Method;
         var returnStatement = (ReturnStatementSyntax)method.Body.Statements[1];
         var invocation = (InvocationExpressionSyntax)returnStatement.Expression;
-        
+
         Assert.AreEqual("TestMethod", invocation.Expression.ToString());
         Assert.AreEqual(5, invocation.ArgumentList.Arguments.Count);
     }
@@ -142,7 +139,7 @@ public class CteExpressionNodeProcessorTests
         var returnStatement = (ReturnStatementSyntax)method.Body.Statements[1];
         var invocation = (InvocationExpressionSyntax)returnStatement.Expression;
         var arguments = invocation.ArgumentList.Arguments;
-        
+
         Assert.AreEqual("provider", arguments[0].Expression.ToString());
         Assert.AreEqual("positionalEnvironmentVariables", arguments[1].Expression.ToString());
         Assert.AreEqual("queriesInformation", arguments[2].Expression.ToString());
@@ -182,7 +179,7 @@ public class CteExpressionNodeProcessorTests
         var inner2 = new CteInnerExpressionNode(new FieldNode(new IntegerNode("2"), 0, "test2"), "cte2");
         var outerExpression = new FieldNode(new IntegerNode("3"), 0, "outer");
         var multiExpressionNode = new CteExpressionNode([inner1, inner2], outerExpression);
-        
+
         _methodNames.Push("ExtraMethod"); // Additional method name for second expression (pushed first)
         _nodes.Push(SyntaxFactory.ExpressionStatement(SyntaxFactory.IdentifierName("testStatement2")));
 
@@ -192,7 +189,7 @@ public class CteExpressionNodeProcessorTests
         // Assert
         var method = result.Method;
         var statements = method.Body.Statements;
-        
+
         // Should have two inner statements plus the return statement
         Assert.AreEqual(3, statements.Count);
         Assert.IsInstanceOfType(statements[0], typeof(ExpressionStatementSyntax));
@@ -226,7 +223,7 @@ public class CteExpressionNodeProcessorTests
         // Assert
         var method = result.Method;
         var syntaxText = method.ToFullString();
-        
+
         Assert.IsFalse(string.IsNullOrEmpty(syntaxText));
         Assert.Contains("private", syntaxText);
         Assert.Contains("Table", syntaxText);

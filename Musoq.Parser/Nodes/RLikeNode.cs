@@ -4,7 +4,7 @@ namespace Musoq.Parser.Nodes;
 
 public class RLikeNode : BinaryNode
 {
-    public RLikeNode(Node left, Node right) 
+    public RLikeNode(Node left, Node right)
         : base(left, right)
     {
         Id = CalculateId(this);

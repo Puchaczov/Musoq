@@ -6,10 +6,10 @@ public class OctalIntegerNode : ConstantValueNode
 {
     public OctalIntegerNode(string value)
     {
-        var octalValue = value.StartsWith("0o", StringComparison.OrdinalIgnoreCase) 
-            ? value.Substring(2) 
+        var octalValue = value.StartsWith("0o", StringComparison.OrdinalIgnoreCase)
+            ? value.Substring(2)
             : value;
-        
+
         ObjValue = ParseOctalValue(octalValue, value);
         Id = $"{nameof(OctalIntegerNode)}{value}{ReturnType.Name}";
     }
@@ -41,7 +41,7 @@ public class OctalIntegerNode : ConstantValueNode
         try
         {
             var result = Convert.ToInt64(octalValue, 8);
-            
+
             return result;
         }
         catch (OverflowException)

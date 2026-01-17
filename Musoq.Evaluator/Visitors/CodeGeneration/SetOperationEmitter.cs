@@ -9,22 +9,13 @@ using Musoq.Evaluator.Visitors.Helpers;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Emitter for set operations (UNION, UNION ALL, EXCEPT, INTERSECT).
-/// Consolidates the code generation logic for all set-based SQL operations.
+///     Emitter for set operations (UNION, UNION ALL, EXCEPT, INTERSECT).
+///     Consolidates the code generation logic for all set-based SQL operations.
 /// </summary>
 public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndexes)
 {
     /// <summary>
-    /// Result of processing a set operation.
-    /// </summary>
-    public readonly struct SetOperationResult
-    {
-        public string CombinedMethodName { get; init; }
-        public MethodDeclarationSyntax Method { get; init; }
-    }
-
-    /// <summary>
-    /// Processes a set operation by combining two method names and generating the operation method.
+    ///     Processes a set operation by combining two method names and generating the operation method.
     /// </summary>
     /// <param name="methodNames">Stack of method names (will pop two)</param>
     /// <param name="operationSuffix">The operation suffix (e.g., "Union", "Except")</param>
@@ -57,9 +48,9 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
             Method = method
         };
     }
-    
+
     /// <summary>
-    /// Creates a method invocation expression for a set operation.
+    ///     Creates a method invocation expression for a set operation.
     /// </summary>
     /// <param name="methodName">The name of the method to invoke (e.g., combined query method name)</param>
     /// <param name="providerIdentifier">The identifier name for the provider parameter</param>
@@ -85,7 +76,8 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
                         {
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName(providerIdentifier)),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(positionalEnvironmentVariablesIdentifier)),
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName(positionalEnvironmentVariablesIdentifier)),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName(queriesInformationIdentifier)),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
@@ -94,9 +86,9 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName(tokenIdentifier))
                         })));
     }
-    
+
     /// <summary>
-    /// Generates a set operation method that combines two table expressions using the specified operator.
+    ///     Generates a set operation method that combines two table expressions using the specified operator.
     /// </summary>
     /// <param name="methodName">The name of the generated method</param>
     /// <param name="setOperator">The set operator name (e.g., "Union", "Except", "Intersect")</param>
@@ -105,10 +97,10 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
     /// <param name="secondTableExpression">The expression for the second (right) table</param>
     /// <returns>A method declaration for the set operation</returns>
     private MethodDeclarationSyntax GenerateSetOperationMethod(
-        string methodName, 
-        string setOperator, 
+        string methodName,
+        string setOperator,
         string key,
-        ExpressionSyntax firstTableExpression, 
+        ExpressionSyntax firstTableExpression,
         ExpressionSyntax secondTableExpression)
     {
         var body = SyntaxFactory.Block(
@@ -128,9 +120,9 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
 
         return MethodDeclarationHelper.CreateStandardPrivateMethod(methodName, body);
     }
-    
+
     /// <summary>
-    /// Creates a lambda expression for comparing two rows based on field indexes.
+    ///     Creates a lambda expression for comparing two rows based on field indexes.
     /// </summary>
     /// <param name="key">The key used to look up field indexes</param>
     /// <returns>A parenthesized lambda expression for row comparison</returns>
@@ -147,9 +139,9 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
                         SyntaxFactory.Parameter(SyntaxFactory.Identifier("second"))
                     })));
     }
-    
+
     /// <summary>
-    /// Generates the body of a comparison lambda that checks equality of field values.
+    ///     Generates the body of a comparison lambda that checks equality of field values.
     /// </summary>
     /// <param name="first">The identifier for the first row parameter</param>
     /// <param name="second">The identifier for the second row parameter</param>
@@ -175,9 +167,9 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
 
         return subExpressions.Pop();
     }
-    
+
     /// <summary>
-    /// Creates an equality check expression for a specific field index.
+    ///     Creates an equality check expression for a specific field index.
     /// </summary>
     /// <param name="first">The identifier for the first row</param>
     /// <param name="second">The identifier for the second row</param>
@@ -196,9 +188,9 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.Argument(CreateElementAccess(second, fieldIndex)))));
     }
-    
+
     /// <summary>
-    /// Creates an element access expression (e.g., first[0]).
+    ///     Creates an element access expression (e.g., first[0]).
     /// </summary>
     /// <param name="identifier">The array/indexer identifier</param>
     /// <param name="index">The index to access</param>
@@ -217,15 +209,25 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
     }
 
     /// <summary>
-    /// Combines two method names for set operation naming.
+    ///     Combines two method names for set operation naming.
     /// </summary>
     /// <param name="leftMethodName">The left method name</param>
     /// <param name="rightMethodName">The right method name</param>
     /// <param name="operationSuffix">Optional suffix to add (e.g., "Union", "Except")</param>
     /// <returns>The combined method name</returns>
-    private static string CombineMethodNames(string leftMethodName, string rightMethodName, string? operationSuffix = null)
+    private static string CombineMethodNames(string leftMethodName, string rightMethodName,
+        string? operationSuffix = null)
     {
         var baseName = $"{leftMethodName}_{rightMethodName}";
         return operationSuffix != null ? $"{baseName}_{operationSuffix}" : baseName;
+    }
+
+    /// <summary>
+    ///     Result of processing a set operation.
+    /// </summary>
+    public readonly struct SetOperationResult
+    {
+        public string CombinedMethodName { get; init; }
+        public MethodDeclarationSyntax Method { get; init; }
     }
 }

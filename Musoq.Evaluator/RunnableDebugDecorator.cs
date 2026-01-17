@@ -30,7 +30,8 @@ public class RunnableDebugDecorator(
         set => runnable.PositionalEnvironmentVariables = value;
     }
 
-    public IReadOnlyDictionary<string, (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> UsedColumns, WhereNode WhereNode, bool HasExternallyProvidedTypes)> QueriesInformation
+    public IReadOnlyDictionary<string, (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> UsedColumns,
+        WhereNode WhereNode, bool HasExternallyProvidedTypes)> QueriesInformation
     {
         get => runnable.QueriesInformation;
         set => runnable.QueriesInformation = value;
@@ -57,7 +58,7 @@ public class RunnableDebugDecorator(
     public Table Run(CancellationToken token)
     {
         var table = runnable.Run(token);
-            
+
         assemblyLoadContext.Unload();
         GC.Collect();
         GC.WaitForPendingFinalizers();

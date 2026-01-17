@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -9,13 +7,15 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void ArrayAccess_ValidIndex_ShouldReturnValue()
     {
         var query = @"select Self.Array[2] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -25,20 +25,20 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         Assert.AreEqual(2, (int)table[0].Values[0]);
     }
 
-    [TestMethod] 
+    [TestMethod]
     public void ArrayAccess_OutOfBounds_ShouldReturnDefault()
     {
         var query = @"select Self.Array[10] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        
+
         Assert.AreEqual(0, (int)table[0].Values[0]);
     }
 
@@ -48,14 +48,14 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         var query = @"select Self.Array[-1] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        
+
         Assert.AreEqual(2, (int)table[0].Values[0]);
     }
 
@@ -65,7 +65,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         var query = @"select Name[0] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("david")]}
+            { "#A", [new BasicEntity("david")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -81,14 +81,14 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         var query = @"select Name[100] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("david")]}
+            { "#A", [new BasicEntity("david")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        
+
         Assert.AreEqual('\0', (char)table[0].Values[0]);
     }
 
@@ -98,14 +98,14 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         var query = @"select Name[0] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity() { Name = null }]}
+            { "#A", [new BasicEntity { Name = null }] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        
+
         Assert.AreEqual('\0', (char)table[0].Values[0]);
     }
 
@@ -115,7 +115,7 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         var query = @"select Self.Dictionary['A'] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -131,14 +131,14 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         var query = @"select Self.Dictionary['Z'] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        
+
         Assert.IsNull(table[0].Values[0]);
     }
 
@@ -148,33 +148,31 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         var query = @"select Name[0] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("")]}
+            { "#A", [new BasicEntity("")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        
+
         Assert.AreEqual('\0', (char)table[0].Values[0]);
     }
 
     [TestMethod]
     public void ArrayAccess_ZeroLengthArray_ShouldReturnDefault()
     {
-        
-        
         var query = @"select Self.Array[3] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]} 
+            { "#A", [new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        
+
         Assert.AreEqual(0, (int)table[0].Values[0]);
     }
 
@@ -184,14 +182,14 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         var query = @"select f.Name[100] from #A.Entities() f";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("david")]}
+            { "#A", [new BasicEntity("david")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        
+
         Assert.AreEqual('\0', (char)table[0].Values[0]);
     }
 
@@ -201,21 +199,21 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         var query = @"select Self.Array[0], Self.Array[1], Self.Array[2], Self.Array[10] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        
-        
-        Assert.AreEqual(0, (int)table[0].Values[0]); 
-        Assert.AreEqual(1, (int)table[0].Values[1]); 
-        Assert.AreEqual(2, (int)table[0].Values[2]); 
-        
-        
-        Assert.AreEqual(0, (int)table[0].Values[3]); 
+
+
+        Assert.AreEqual(0, (int)table[0].Values[0]);
+        Assert.AreEqual(1, (int)table[0].Values[1]);
+        Assert.AreEqual(2, (int)table[0].Values[2]);
+
+
+        Assert.AreEqual(0, (int)table[0].Values[3]);
     }
 
     [TestMethod]
@@ -224,21 +222,21 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         var query = @"select Self.Array[-1], Self.Array[-2], Self.Array[-3], Self.Array[-100] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]} 
+            { "#A", [new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        
-        
-        Assert.AreEqual(2, (int)table[0].Values[0]); 
-        Assert.AreEqual(1, (int)table[0].Values[1]); 
-        Assert.AreEqual(0, (int)table[0].Values[2]); 
-        
-        
-        Assert.AreEqual(2, (int)table[0].Values[3]); 
+
+
+        Assert.AreEqual(2, (int)table[0].Values[0]);
+        Assert.AreEqual(1, (int)table[0].Values[1]);
+        Assert.AreEqual(0, (int)table[0].Values[2]);
+
+
+        Assert.AreEqual(2, (int)table[0].Values[3]);
     }
 
     [TestMethod]
@@ -247,16 +245,16 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         var query = @"select Name[-1] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("david")]} 
+            { "#A", [new BasicEntity("david")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        
-        
-        Assert.AreEqual('d', (char)table[0].Values[0]); 
+
+
+        Assert.AreEqual('d', (char)table[0].Values[0]);
     }
 
     [TestMethod]
@@ -265,18 +263,16 @@ public class ArrayAccessEdgeCaseTests : BasicEntityTestBase
         var query = @"select Name[-1], Name[-2] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("david")]} 
+            { "#A", [new BasicEntity("david")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        
-        
-        Assert.AreEqual('d', (char)table[0].Values[0]); 
-        Assert.AreEqual('i', (char)table[0].Values[1]); 
-    }
 
-    public TestContext TestContext { get; set; }
+
+        Assert.AreEqual('d', (char)table[0].Values[0]);
+        Assert.AreEqual('i', (char)table[0].Values[1]);
+    }
 }

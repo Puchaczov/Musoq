@@ -30,7 +30,7 @@ namespace Musoq.Evaluator.Visitors;
 public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 {
     private readonly List<BinaryFromNode> _joinedTables = [];
-    private int _queryIndex = 0;
+    private int _queryIndex;
     private Scope _scope;
 
     private Stack<Node> Nodes { get; } = new();
@@ -43,7 +43,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(DescNode node)
     {
-        var from = (SchemaFromNode) Nodes.Pop();
+        var from = (SchemaFromNode)Nodes.Pop();
         Nodes.Push(new DescNode(from, node.Type));
     }
 
@@ -144,12 +144,14 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(FieldNode node)
     {
-        Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, QueryRewriteUtilities.RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName)));
+        Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder,
+            QueryRewriteUtilities.RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName)));
     }
 
     public void Visit(FieldOrderedNode node)
     {
-        Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder, QueryRewriteUtilities.RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName), node.Order));
+        Nodes.Push(new FieldOrderedNode(Nodes.Pop(), node.FieldOrder,
+            QueryRewriteUtilities.RewriteFieldNameWithoutStringPrefixAndSuffix(node.FieldName), node.Order));
     }
 
     public void Visit(SelectNode node)
@@ -250,15 +252,10 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(AccessObjectArrayNode node)
     {
-        
         if (node.IsColumnAccess)
-        {
             Nodes.Push(new AccessObjectArrayNode(node.Token, node.ColumnType, node.TableAlias));
-        }
         else
-        {
             Nodes.Push(new AccessObjectArrayNode(node.Token, node.PropertyInfo));
-        }
     }
 
     public void Visit(AccessObjectKeyNode node)
@@ -296,7 +293,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     public void Visit(WhereNode node)
     {
         var rewrittenNode = QueryRewriteUtilities.RewriteNullableBoolExpressions(Nodes.Pop());
-            
+
         Nodes.Push(new WhereNode(rewrittenNode));
     }
 
@@ -322,20 +319,22 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(SkipNode node)
     {
-        Nodes.Push(new SkipNode((IntegerNode) node.Expression));
+        Nodes.Push(new SkipNode((IntegerNode)node.Expression));
     }
 
     public void Visit(TakeNode node)
     {
-        Nodes.Push(new TakeNode((IntegerNode) node.Expression));
+        Nodes.Push(new TakeNode((IntegerNode)node.Expression));
     }
 
     public void Visit(SchemaFromNode node)
     {
         Nodes.Push(
-            node is Parser.SchemaFromNode schemaFromNode ?
-                new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId, schemaFromNode.HasExternallyProvidedTypes) :
-                new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId, false));
+            node is Parser.SchemaFromNode schemaFromNode
+                ? new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias,
+                    node.QueryId, schemaFromNode.HasExternallyProvidedTypes)
+                : new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias,
+                    node.QueryId, false));
     }
 
     public void Visit(JoinSourcesTableFromNode node)
@@ -349,23 +348,23 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     public void Visit(JoinFromNode node)
     {
         var exp = Nodes.Pop();
-        var right = (FromNode) Nodes.Pop();
-        var left = (FromNode) Nodes.Pop();
+        var right = (FromNode)Nodes.Pop();
+        var left = (FromNode)Nodes.Pop();
         Nodes.Push(new Parser.JoinFromNode(left, right, exp, node.JoinType));
         _joinedTables.Add(node);
     }
 
     public void Visit(ApplyFromNode node)
     {
-        var right = (FromNode) Nodes.Pop();
-        var left = (FromNode) Nodes.Pop();
+        var right = (FromNode)Nodes.Pop();
+        var left = (FromNode)Nodes.Pop();
         Nodes.Push(new Parser.ApplyFromNode(left, right, node.ApplyType));
         _joinedTables.Add(node);
     }
 
     public void Visit(ExpressionFromNode node)
     {
-        Nodes.Push(new Parser.ExpressionFromNode((FromNode) Nodes.Pop()));
+        Nodes.Push(new Parser.ExpressionFromNode((FromNode)Nodes.Pop()));
     }
 
     public void Visit(InMemoryTableFromNode node)
@@ -462,15 +461,14 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
             var indexBasedContextsPositionsSymbol = new IndexBasedContextsPositionsSymbol();
             var orderNumber = 0;
             var extractAccessedColumnsVisitor = new ExtractAccessColumnFromQueryVisitor();
-            var extractAccessedColumnsTraverseVisitor = new ExtractAccessColumnFromQueryTraverseVisitor(extractAccessedColumnsVisitor);
-                
+            var extractAccessedColumnsTraverseVisitor =
+                new ExtractAccessColumnFromQueryTraverseVisitor(extractAccessedColumnsVisitor);
+
             node.Accept(extractAccessedColumnsTraverseVisitor);
 
             foreach (var refreshMethod in usedRefreshMethods ?? [])
-            {
                 refreshMethod.Accept(extractAccessedColumnsTraverseVisitor);
-            }
-                
+
             var current = _joinedTables[0];
             var accessColumns = extractAccessedColumnsVisitor.GetForAliases(current.Source.Alias, current.With.Alias);
             var left = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.Source.Alias);
@@ -495,9 +493,12 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                         .ToArray()
                 }
             });
-            var bothForCreateTable = FieldProcessingHelper.CreateAndConcatFields(trimmedLeft, current.Source.Alias, trimmedRight, current.With.Alias,
-                (name, alias) => NamingHelper.ToColumnName(alias, name), QueryRewriteUtilities.IncludeKnownColumns(accessColumns, current));
-            var bothForSelect = FieldProcessingHelper.CreateAndConcatFields(trimmedLeft, current.Source.Alias, trimmedRight, current.With.Alias,
+            var bothForCreateTable = FieldProcessingHelper.CreateAndConcatFields(trimmedLeft, current.Source.Alias,
+                trimmedRight, current.With.Alias,
+                (name, alias) => NamingHelper.ToColumnName(alias, name),
+                QueryRewriteUtilities.IncludeKnownColumns(accessColumns, current));
+            var bothForSelect = FieldProcessingHelper.CreateAndConcatFields(trimmedLeft, current.Source.Alias,
+                trimmedRight, current.With.Alias,
                 (name, alias) => name, QueryRewriteUtilities.IncludeKnownColumns(accessColumns, current));
 
             scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, trimmedLeft);
@@ -513,16 +514,19 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
             {
                 {
                     targetSymbolTable.CompoundTables[0],
-                    accessColumns.Where(f => f.Alias == targetSymbolTable.CompoundTables[0]).Select(f => f.Name).ToArray()
+                    accessColumns.Where(f => f.Alias == targetSymbolTable.CompoundTables[0]).Select(f => f.Name)
+                        .ToArray()
                 },
                 {
                     targetSymbolTable.CompoundTables[1],
-                    accessColumns.Where(f => f.Alias == targetSymbolTable.CompoundTables[1]).Select(f => f.Name).ToArray()
+                    accessColumns.Where(f => f.Alias == targetSymbolTable.CompoundTables[1]).Select(f => f.Name)
+                        .ToArray()
                 }
             });
-                
+
             scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName, limitedTargetSymbolTable);
-            scopeJoinedQuery.ScopeSymbolTable.AddSymbol(MetaAttributes.PreformatedContexts, indexBasedContextsPositionsSymbol);
+            scopeJoinedQuery.ScopeSymbolTable.AddSymbol(MetaAttributes.PreformatedContexts,
+                indexBasedContextsPositionsSymbol);
 
             scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
             scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
@@ -534,7 +538,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
             orderNumber += 1;
 
             var previousAliases = new Stack<string>();
-                
+
             previousAliases.Push($"{current.Source.Alias},{current.With.Alias}");
             previousAliases.Push(string.Join("|", current.Source.Alias, current.With.Alias));
 
@@ -544,9 +548,9 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                     current switch
                     {
                         JoinFromNode currentJoin => new Parser.JoinSourcesTableFromNode(
-                            currentJoin.Source, 
+                            currentJoin.Source,
                             currentJoin.With,
-                            currentJoin.Expression, 
+                            currentJoin.Expression,
                             currentJoin.JoinType),
                         ApplyFromNode currentApply => new Parser.ApplySourcesTableFromNode(
                             currentApply.Source,
@@ -571,8 +575,8 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
             var usedTables = new Dictionary<string, string>
             {
-                {current.Source.Alias, targetTableName},
-                {current.With.Alias, targetTableName}
+                { current.Source.Alias, targetTableName },
+                { current.With.Alias, targetTableName }
             };
 
             for (var i = 1; i < _joinedTables.Count; i++, orderNumber++)
@@ -581,7 +585,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                 previousAliases.Push(current.With.Alias);
                 left = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.Source.Alias);
                 right = _scope.ScopeSymbolTable.GetSymbol<TableSymbol>(current.With.Alias);
-                    
+
                 var secondAlias = previousAliases.Pop();
                 var firstAlias = previousAliases.Pop();
                 previousAliases.Push($"{firstAlias},{secondAlias}");
@@ -603,10 +607,10 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                     var columns = accessColumns.Where(f => f.Alias == compoundTable).Select(f => f.Name).ToArray();
                     limitColumnsKeyValuePair = limitColumnsKeyValuePair.Concat(new Dictionary<string, string[]>
                     {
-                        {compoundTable, columns}
+                        { compoundTable, columns }
                     });
                 }
-                    
+
                 trimmedLeft = left.LimitColumnsTo(new Dictionary<string, string[]>(limitColumnsKeyValuePair));
                 trimmedRight = right.LimitColumnsTo(new Dictionary<string, string[]>
                 {
@@ -617,13 +621,15 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                             .ToArray()
                     }
                 });
-                bothForCreateTable = 
-                    FieldProcessingHelper.CreateAndConcatFields(trimmedLeft, current.Source.Alias, trimmedRight, current.With.Alias,
-                        (name, alias) => NamingHelper.ToColumnName(alias, name), 
-                        QueryRewriteUtilities.IncludeKnownColumnsForWithOnly(extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current),
-                        startAt: 0);
+                bothForCreateTable =
+                    FieldProcessingHelper.CreateAndConcatFields(trimmedLeft, current.Source.Alias, trimmedRight,
+                        current.With.Alias,
+                        (name, alias) => NamingHelper.ToColumnName(alias, name),
+                        QueryRewriteUtilities.IncludeKnownColumnsForWithOnly(
+                            extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current),
+                        0);
 
-                bothForSelect = 
+                bothForSelect =
                     FieldProcessingHelper.CreateAndConcatFields(
                         trimmedLeft,
                         current.Source.Alias,
@@ -634,12 +640,13 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                         (name, alias) => name,
                         (name, alias) => NamingHelper.ToColumnName(alias, name),
                         (name, alias) => name,
-                        QueryRewriteUtilities.IncludeKnownColumnsForWithOnly(extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current),
-                        startAt: 0);
+                        QueryRewriteUtilities.IncludeKnownColumnsForWithOnly(
+                            extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current),
+                        0);
 
                 scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, trimmedLeft);
                 scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.With.Alias, trimmedRight);
-                    
+
                 targetSymbolTable = (TableSymbol)_scope.ScopeSymbolTable.GetSymbol(targetTableName);
 
                 IEnumerable<KeyValuePair<string, string[]>> pairs = [];
@@ -648,24 +655,24 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                     var compoundTable = targetSymbolTable.CompoundTables[index];
                     var columns = trimmedLeft.GetColumns(compoundTable);
                     pairs = pairs.Concat([
-                        new(compoundTable, columns.Select(f => f.ColumnName).ToArray())
+                        new KeyValuePair<string, string[]>(compoundTable, columns.Select(f => f.ColumnName).ToArray())
                     ]);
                 }
 
                 pairs = pairs
-                    .Concat(trimmedRight.CompoundTables.Select(
-                            compoundTable => new KeyValuePair<string, string[]>(
-                                compoundTable, 
+                    .Concat(trimmedRight.CompoundTables.Select(compoundTable => new KeyValuePair<string, string[]>(
+                                compoundTable,
                                 trimmedRight.GetColumns(compoundTable).Select(f => f.ColumnName).ToArray()
                             )
                         )
                     );
-                    
+
                 limitedTargetSymbolTable = targetSymbolTable.LimitColumnsTo(new Dictionary<string, string[]>(pairs));
 
                 scopeJoinedQuery.ScopeSymbolTable.AddSymbol(targetTableName, limitedTargetSymbolTable);
-                scopeJoinedQuery.ScopeSymbolTable.AddSymbol(MetaAttributes.PreformatedContexts, indexBasedContextsPositionsSymbol);
-                    
+                scopeJoinedQuery.ScopeSymbolTable.AddSymbol(MetaAttributes.PreformatedContexts,
+                    indexBasedContextsPositionsSymbol);
+
                 scopeJoinedQuery[MetaAttributes.SelectIntoVariableName] = targetTableName.ToTransitionTable();
                 scopeJoinedQuery[MetaAttributes.OriginAlias] = targetTableName;
                 scopeJoinedQuery[MetaAttributes.Contexts] = $"{current.Source.Alias},{current.With.Alias}";
@@ -675,7 +682,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                 scopeJoinedQuery.ScopeSymbolTable.AddSymbol(
                     MetaAttributes.OuterJoinSelect,
                     new FieldsNamesSymbol(bothForSelect.Select(f => f.FieldName).ToArray()));
-                    
+
                 var expressionUpdater = new RewriteToUpdatedColumnAccess(usedTables);
                 var expressionUpdaterTraverser = new RewriteToUpdatedColumnAccessTraverser(expressionUpdater);
 
@@ -684,7 +691,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                     var whereNode = new WhereNode(joinFromNode.Expression);
 
                     whereNode.Accept(expressionUpdaterTraverser);
-                        
+
                     joinedQuery = new InternalQueryNode(
                         new SelectNode(bothForSelect),
                         new Parser.ExpressionFromNode(
@@ -702,10 +709,10 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                 }
                 else
                 {
-                    var applyFromNode = (ApplyFromNode) current;
-                        
+                    var applyFromNode = (ApplyFromNode)current;
+
                     applyFromNode.With.Accept(expressionUpdaterTraverser);
-                        
+
                     joinedQuery = new InternalQueryNode(
                         new SelectNode(bothForSelect),
                         new Parser.ExpressionFromNode(
@@ -758,8 +765,10 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                 : from;
 
             var refreshMethods = QueryRewriteUtilities.CreateRefreshMethods(usedRefreshMethods);
-            var splitSelectFields = FieldProcessingHelper.SplitBetweenAggregateAndNonAggregate(select.Fields, groupBy.Fields, true);
-            var aggSelect = new SelectNode(QueryRewriteUtilities.ConcatAggregateFieldsWithGroupByFields(splitSelectFields[0], groupBy.Fields)
+            var splitSelectFields =
+                FieldProcessingHelper.SplitBetweenAggregateAndNonAggregate(select.Fields, groupBy.Fields, true);
+            var aggSelect = new SelectNode(QueryRewriteUtilities
+                .ConcatAggregateFieldsWithGroupByFields(splitSelectFields[0], groupBy.Fields)
                 .Reverse().ToArray());
             var outSelect = new SelectNode(splitSelectFields[1]);
 
@@ -829,10 +838,11 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
             aliasesPositionsSymbol.AliasesPositions.Add(returnScore, aliasIndex);
 
             var modifiedOrderBy = orderBy;
-                
+
             if (orderBy != null)
             {
-                var splitOrderBy = FieldProcessingHelper.CreateAfterGroupByOrderByAccessFields(orderBy.Fields, groupBy.Fields);
+                var splitOrderBy =
+                    FieldProcessingHelper.CreateAfterGroupByOrderByAccessFields(orderBy.Fields, groupBy.Fields);
                 modifiedOrderBy = new OrderByNode(splitOrderBy);
             }
 
@@ -860,11 +870,9 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         else
         {
             var split = FieldProcessingHelper.SplitBetweenAggregateAndNonAggregate(select.Fields, [], true);
-                
+
             if (QueryRewriteUtilities.IsQueryWithMixedAggregateAndNonAggregateMethods(split))
-            {
                 throw new NotImplementedException("Mixing aggregate and non aggregate methods is not implemented yet");
-            }
 
             var scopeCreateResultTable = _scope.AddScope("Table");
             var scopeResultQuery = _scope.AddScope("Query");
@@ -883,7 +891,8 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
             aliasesPositionsSymbol.AliasesPositions.Add(newFrom.Alias, aliasIndex);
 
-            splitNodes.Add(new CreateTransformationTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName], [], select.Fields, false));
+            splitNodes.Add(new CreateTransformationTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName],
+                [], select.Fields, false));
             splitNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, scoreWhere, null, scoreOrderBy, skip, take,
                 scopeResultQuery[MetaAttributes.SelectIntoVariableName]));
 
@@ -901,13 +910,13 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     public void Visit(JoinInMemoryWithSourceTableFromNode node)
     {
         var exp = Nodes.Pop();
-        var from = (FromNode) Nodes.Pop();
+        var from = (FromNode)Nodes.Pop();
         Nodes.Push(new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
     }
 
     public void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
-        var from = (FromNode) Nodes.Pop();
+        var from = (FromNode)Nodes.Pop();
         Nodes.Push(new Parser.ApplyInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, node.ApplyType));
     }
 
@@ -923,9 +932,10 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(SingleSetNode node)
     {
-        var query = (InternalQueryNode) Nodes.Pop();
+        var query = (InternalQueryNode)Nodes.Pop();
 
-        var nodes = new Node[] {new CreateTransformationTableNode(query.From.Alias, [], query.Select.Fields, false), query};
+        var nodes = new Node[]
+            { new CreateTransformationTableNode(query.From.Alias, [], query.Select.Fields, false), query };
 
         Nodes.Push(new MultiStatementNode(nodes, null));
     }
@@ -986,7 +996,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         var set = Nodes.Pop();
 
         for (var i = node.InnerExpression.Length - 1; i >= 0; --i)
-            sets[i] = (CteInnerExpressionNode) Nodes.Pop();
+            sets[i] = (CteInnerExpressionNode)Nodes.Pop();
 
         Nodes.Push(new CteExpressionNode(sets, set));
     }
@@ -998,12 +1008,12 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(JoinNode node)
     {
-        Nodes.Push(new Parser.JoinNode((Parser.JoinFromNode) Nodes.Pop()));
+        Nodes.Push(new Parser.JoinNode((Parser.JoinFromNode)Nodes.Pop()));
     }
 
     public void Visit(ApplyNode node)
     {
-        Nodes.Push(new Parser.ApplyNode((Parser.ApplyFromNode) Nodes.Pop()));
+        Nodes.Push(new Parser.ApplyNode((Parser.ApplyFromNode)Nodes.Pop()));
     }
 
     public void Visit(OrderByNode node)
@@ -1041,7 +1051,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
         var whenThenPairs = new List<(Node When, Node Then)>();
 
-        for (int i = 0; i < node.WhenThenPairs.Length; ++i)
+        for (var i = 0; i < node.WhenThenPairs.Length; ++i)
         {
             var then = Nodes.Pop();
             var when = Nodes.Pop();
@@ -1081,6 +1091,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
         var args = Nodes.Pop() as ArgsListNode;
 
-        Nodes.Push(new AccessMethodNode(node.FunctionToken, args, null, node.CanSkipInjectSource, node.Method, node.Alias));
+        Nodes.Push(new AccessMethodNode(node.FunctionToken, args, null, node.CanSkipInjectSource, node.Method,
+            node.Alias));
     }
 }

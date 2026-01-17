@@ -1,7 +1,7 @@
-﻿using Musoq.Schema;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tables;
 
@@ -15,12 +15,6 @@ public class Column : IEquatable<Column>, ISchemaColumn
         ColumnIndex = columnOrder;
     }
 
-    public string ColumnName { get; }
-
-    public Type ColumnType { get; }
-
-    public int ColumnIndex { get; }
-
     public bool Equals(Column other)
     {
         return other != null &&
@@ -28,6 +22,12 @@ public class Column : IEquatable<Column>, ISchemaColumn
                EqualityComparer<Type>.Default.Equals(ColumnType, other.ColumnType) &&
                ColumnIndex == other.ColumnIndex;
     }
+
+    public string ColumnName { get; }
+
+    public Type ColumnType { get; }
+
+    public int ColumnIndex { get; }
 
     public override bool Equals(object obj)
     {

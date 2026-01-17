@@ -6,10 +6,10 @@ public class BinaryIntegerNode : ConstantValueNode
 {
     public BinaryIntegerNode(string value)
     {
-        var binaryValue = value.StartsWith("0b", StringComparison.OrdinalIgnoreCase) 
-            ? value.Substring(2) 
+        var binaryValue = value.StartsWith("0b", StringComparison.OrdinalIgnoreCase)
+            ? value.Substring(2)
             : value;
-        
+
         ObjValue = ParseBinaryValue(binaryValue, value);
         Id = $"{nameof(BinaryIntegerNode)}{value}{ReturnType.Name}";
     }
@@ -41,7 +41,7 @@ public class BinaryIntegerNode : ConstantValueNode
         try
         {
             var result = Convert.ToInt64(binaryValue, 2);
-            
+
             return result;
         }
         catch (OverflowException)

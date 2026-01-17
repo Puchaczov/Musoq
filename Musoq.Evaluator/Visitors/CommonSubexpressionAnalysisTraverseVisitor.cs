@@ -5,9 +5,9 @@ using Musoq.Parser.Nodes.From;
 namespace Musoq.Evaluator.Visitors;
 
 /// <summary>
-/// Traverses the query tree to visit all expressions for CSE analysis.
-/// This traverser visits expressions in all relevant clauses (SELECT, WHERE, HAVING, ORDER BY, etc.)
-/// to count occurrences for potential caching.
+///     Traverses the query tree to visit all expressions for CSE analysis.
+///     This traverser visits expressions in all relevant clauses (SELECT, WHERE, HAVING, ORDER BY, etc.)
+///     to count occurrences for potential caching.
 /// </summary>
 public class CommonSubexpressionAnalysisTraverseVisitor : IExpressionVisitor
 {
@@ -290,28 +290,19 @@ public class CommonSubexpressionAnalysisTraverseVisitor : IExpressionVisitor
 
     public void Visit(ArgsListNode node)
     {
-        foreach (var arg in node.Args)
-        {
-            arg.Accept(this);
-        }
+        foreach (var arg in node.Args) arg.Accept(this);
         node.Accept(_visitor);
     }
 
     public void Visit(SelectNode node)
     {
-        foreach (var field in node.Fields)
-        {
-            field.Accept(this);
-        }
+        foreach (var field in node.Fields) field.Accept(this);
         node.Accept(_visitor);
     }
 
     public void Visit(GroupSelectNode node)
     {
-        foreach (var field in node.Fields)
-        {
-            field.Accept(this);
-        }
+        foreach (var field in node.Fields) field.Accept(this);
         node.Accept(_visitor);
     }
 
@@ -324,10 +315,7 @@ public class CommonSubexpressionAnalysisTraverseVisitor : IExpressionVisitor
     public void Visit(GroupByNode node)
     {
         _visitor.InSeparateScopeContext = true;
-        foreach (var field in node.Fields)
-        {
-            field.Accept(this);
-        }
+        foreach (var field in node.Fields) field.Accept(this);
         _visitor.InSeparateScopeContext = false;
         node.Accept(_visitor);
     }
@@ -540,19 +528,13 @@ public class CommonSubexpressionAnalysisTraverseVisitor : IExpressionVisitor
 
     public void Visit(MultiStatementNode node)
     {
-        foreach (var statement in node.Nodes)
-        {
-            statement.Accept(this);
-        }
+        foreach (var statement in node.Nodes) statement.Accept(this);
         node.Accept(_visitor);
     }
 
     public void Visit(StatementsArrayNode node)
     {
-        foreach (var statement in node.Statements)
-        {
-            statement.Accept(this);
-        }
+        foreach (var statement in node.Statements) statement.Accept(this);
         node.Accept(_visitor);
     }
 
@@ -564,10 +546,7 @@ public class CommonSubexpressionAnalysisTraverseVisitor : IExpressionVisitor
 
     public void Visit(CteExpressionNode node)
     {
-        foreach (var innerCte in node.InnerExpression)
-        {
-            innerCte.Accept(this);
-        }
+        foreach (var innerCte in node.InnerExpression) innerCte.Accept(this);
         node.OuterExpression.Accept(this);
         node.Accept(_visitor);
     }
@@ -595,7 +574,7 @@ public class CommonSubexpressionAnalysisTraverseVisitor : IExpressionVisitor
         foreach (var field in node.Fields)
             field.Accept(this);
         _visitor.InSeparateScopeContext = false;
-        
+
         node.Accept(_visitor);
     }
 
@@ -617,9 +596,10 @@ public class CommonSubexpressionAnalysisTraverseVisitor : IExpressionVisitor
             whenNode.When.Accept(this);
             whenNode.Then.Accept(this);
         }
+
         node.Else?.Accept(this);
         _visitor.InPassThroughUnsafeContext = false;
-        
+
         node.Accept(_visitor);
     }
 

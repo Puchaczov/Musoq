@@ -14,17 +14,17 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
     {
         return _accessColumns.Where(a => aliases.Contains(a.Key)).SelectMany(a => a.Value).ToArray();
     }
-    
+
     public AccessColumnNode[] GetForAliases(string first, string second)
     {
         return _accessColumns.Where(a => a.Key == first || a.Key == second).SelectMany(a => a.Value).ToArray();
     }
-    
+
     public AccessColumnNode[] GetForAlias(string alias)
     {
         return _accessColumns[alias].ToArray();
     }
-    
+
     public override void Visit(AccessColumnNode node)
     {
         if (_accessColumns.TryGetValue(node.Alias, out var list))
@@ -34,12 +34,12 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
                 base.Visit(node);
                 return;
             }
-            
+
             list.Add(node);
             base.Visit(node);
             return;
         }
-        
+
         _accessColumns.Add(node.Alias, [node]);
         base.Visit(node);
     }
@@ -47,14 +47,14 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
     public override void Visit(SchemaFromNode node)
     {
         _accessColumns.TryAdd(node.Alias, []);
-        
+
         base.Visit(node);
     }
-    
+
     public override void Visit(InMemoryTableFromNode node)
     {
         _accessColumns.TryAdd(node.Alias, []);
-        
+
         base.Visit(node);
     }
 
@@ -63,14 +63,14 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
         _accessColumns.TryAdd(node.SourceAlias, []);
         _accessColumns[node.SourceAlias].Add(
             new AccessColumnNode(node.FirstProperty.PropertyName, node.SourceAlias, node.ReturnType, TextSpan.Empty));
-        
+
         base.Visit(node);
     }
-    
+
     public override void Visit(AccessMethodFromNode node)
     {
         _accessColumns.TryAdd(node.Alias, []);
-        
+
         base.Visit(node);
     }
 }

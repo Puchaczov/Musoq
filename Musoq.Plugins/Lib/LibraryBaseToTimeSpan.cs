@@ -7,16 +7,19 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Converts given value to TimeSpan
+    ///     Converts given value to TimeSpan
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to TimeSpan value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public TimeSpan? ToTimeSpan(string value) => ToTimeSpan(value, CultureInfo.CurrentCulture.Name);
+    public TimeSpan? ToTimeSpan(string value)
+    {
+        return ToTimeSpan(value, CultureInfo.CurrentCulture.Name);
+    }
 
     /// <summary>
-    /// Converts given value to TimeSpan
+    ///     Converts given value to TimeSpan
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="culture">The culture</param>

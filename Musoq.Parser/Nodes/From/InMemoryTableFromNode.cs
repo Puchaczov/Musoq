@@ -9,7 +9,7 @@ public class InMemoryTableFromNode : FromNode
     {
         VariableName = variableName;
     }
-        
+
     public InMemoryTableFromNode(string variableName, string alias, Type returnType)
         : base(alias, returnType)
     {

@@ -5,7 +5,8 @@ namespace Musoq.Benchmarks.Schema;
 
 public class GenericSchema<T, TTable> : SchemaBase
 {
-    public GenericSchema(IEnumerable<T> sources, IDictionary<string, int> testNameToIndexMap, IDictionary<int, Func<T, object>> testIndexToObjectAccessMap)
+    public GenericSchema(IEnumerable<T> sources, IDictionary<string, int> testNameToIndexMap,
+        IDictionary<int, Func<T, object>> testIndexToObjectAccessMap)
         : base("test", CreateLibrary())
     {
         AddSource<EntitySource<T>>("entities", sources, testNameToIndexMap, testIndexToObjectAccessMap);

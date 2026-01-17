@@ -10,6 +10,11 @@ namespace Musoq.Converter.Tests;
 [TestClass]
 public class BuildTests
 {
+    static BuildTests()
+    {
+        Culture.ApplyWithDefaultCulture();
+    }
+
     [TestMethod]
     public void CompileForStoreTest()
     {
@@ -29,7 +34,8 @@ public class BuildTests
     {
         var query = "select 1 from #system.dual()";
 
-        var arrays = await InstanceCreator.CompileForStoreAsync(query, Guid.NewGuid().ToString(), new SystemSchemaProvider(), new TestsLoggerResolver());
+        var arrays = await InstanceCreator.CompileForStoreAsync(query, Guid.NewGuid().ToString(),
+            new SystemSchemaProvider(), new TestsLoggerResolver());
 
         Assert.IsNotNull(arrays.DllFile);
         Assert.IsNotNull(arrays.PdbFile);
@@ -40,11 +46,7 @@ public class BuildTests
 
     private (byte[] DllFile, byte[] PdbFile) CreateForStore(string script)
     {
-        return InstanceCreator.CompileForStore(script, Guid.NewGuid().ToString(), new SystemSchemaProvider(), new TestsLoggerResolver());
-    }
-
-    static BuildTests()
-    {
-        Culture.ApplyWithDefaultCulture();
+        return InstanceCreator.CompileForStore(script, Guid.NewGuid().ToString(), new SystemSchemaProvider(),
+            new TestsLoggerResolver());
     }
 }

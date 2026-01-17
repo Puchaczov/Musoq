@@ -9,23 +9,23 @@ namespace Musoq.Evaluator.Tests.Schema.Unknown;
 public class UnknownQueryTestsBase
 {
     protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
-    
+
+    static UnknownQueryTestsBase()
+    {
+        Culture.ApplyWithDefaultCulture();
+    }
+
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
-    
+
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
         IReadOnlyCollection<dynamic> values)
     {
         return InstanceCreator.CompileForExecution(
-            script, 
+            script,
             Guid.NewGuid().ToString(),
             new UnknownSchemaProvider(values),
             LoggerResolver,
             TestCompilationOptions);
-    }
-
-    static UnknownQueryTestsBase()
-    {
-        Culture.ApplyWithDefaultCulture();
     }
 }

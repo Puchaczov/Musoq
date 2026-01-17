@@ -10,7 +10,7 @@ public partial class LibraryBase
     private readonly Random _rand = new();
 
     /// <summary>
-    /// Gets the absolute value
+    ///     Gets the absolute value
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Absolute value</returns>
@@ -25,7 +25,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the absolute value
+    ///     Gets the absolute value
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Absolute value</returns>
@@ -40,7 +40,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the absolute value
+    ///     Gets the absolute value
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Absolute value</returns>
@@ -55,7 +55,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the ceiling value
+    ///     Gets the ceiling value
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Ceiling value</returns>
@@ -70,7 +70,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the floor value
+    ///     Gets the floor value
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Floor value</returns>
@@ -85,7 +85,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Determine whether value is greater, equal or less that zero
+    ///     Determine whether value is greater, equal or less that zero
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Is less, equal or greater value</returns>
@@ -103,9 +103,9 @@ public partial class LibraryBase
 
         return -1;
     }
-        
+
     /// <summary>
-    /// Determine whether value is greater, equal or less that zero
+    ///     Determine whether value is greater, equal or less that zero
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Is less, equal or greater value</returns>
@@ -125,7 +125,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Rounds the value within given precision
+    ///     Rounds the value within given precision
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="precision">The precision</param>
@@ -139,9 +139,9 @@ public partial class LibraryBase
 
         return Math.Round(value.Value, precision);
     }
-        
+
     /// <summary>
-    /// Gets the percentage of the value
+    ///     Gets the percentage of the value
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="max">The max</param>
@@ -160,17 +160,19 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the random integer value
+    ///     Gets the random integer value
     /// </summary>
     /// <returns>Random integer</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
     [NonDeterministic]
     public int Rand()
-        => _rand.Next();
+    {
+        return _rand.Next();
+    }
 
     /// <summary>
-    /// Gets the random integer value
+    ///     Gets the random integer value
     /// </summary>
     /// <param name="min">The min</param>
     /// <param name="max">The max</param>
@@ -182,12 +184,12 @@ public partial class LibraryBase
     {
         if (min == null || max == null)
             return null;
-            
+
         return _rand.Next(min.Value, max.Value);
     }
 
     /// <summary>
-    /// Computes the pow between two values
+    ///     Computes the pow between two values
     /// </summary>
     /// <param name="x">The x</param>
     /// <param name="y">The y</param>
@@ -203,7 +205,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Computes the pow between two values
+    ///     Computes the pow between two values
     /// </summary>
     /// <param name="x">The x</param>
     /// <param name="y">The y</param>
@@ -219,7 +221,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Computes the sqrt of a given value
+    ///     Computes the sqrt of a given value
     /// </summary>
     /// <param name="x">The x</param>
     /// <returns>Sqrt of a value</returns>
@@ -234,7 +236,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Computes the sqrt of a given value
+    ///     Computes the sqrt of a given value
     /// </summary>
     /// <param name="x">The x</param>
     /// <returns>Sqrt of a value</returns>
@@ -249,7 +251,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Computes the sqrt of a given value
+    ///     Computes the sqrt of a given value
     /// </summary>
     /// <param name="x">The x</param>
     /// <returns>Sqrt of a value</returns>
@@ -264,7 +266,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Computes the percent rank of a given window
+    ///     Computes the percent rank of a given window
     /// </summary>
     /// <param name="window">The window</param>
     /// <param name="value">The value existing in a given window</param>
@@ -285,7 +287,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Calculates the logarithm of a value with a specified base.
+    ///     Calculates the logarithm of a value with a specified base.
     /// </summary>
     /// <param name="base">The base of the logarithm.</param>
     /// <param name="value">The value to calculate the logarithm for.</param>
@@ -296,12 +298,12 @@ public partial class LibraryBase
     {
         if (!@base.HasValue || !value.HasValue || @base <= 0 || @base == 1 || value <= 0)
             return null;
-            
+
         return Math.Log((double)value.Value, (double)@base.Value);
     }
 
     /// <summary>
-    /// Calculates sine of a value.
+    ///     Calculates sine of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Sine of a value.</returns>
@@ -309,12 +311,12 @@ public partial class LibraryBase
     {
         if (!value.HasValue)
             return null;
-            
+
         return (decimal)Math.Sin((double)value);
     }
 
     /// <summary>
-    /// Calculates sine of a value.
+    ///     Calculates sine of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Sine of a value.</returns>
@@ -327,7 +329,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Calculates sine of a value.
+    ///     Calculates sine of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Sine of a value.</returns>
@@ -338,8 +340,9 @@ public partial class LibraryBase
 
         return (float)Math.Sin(value.Value);
     }
+
     /// <summary>
-    /// Calculates cosine of a value.
+    ///     Calculates cosine of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Cosine of a value.</returns>
@@ -347,12 +350,12 @@ public partial class LibraryBase
     {
         if (!value.HasValue)
             return null;
-    
+
         return (decimal)Math.Cos((double)value);
     }
 
     /// <summary>
-    /// Calculates cosine of a value.
+    ///     Calculates cosine of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Cosine of a value.</returns>
@@ -365,7 +368,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Calculates cosine of a value.
+    ///     Calculates cosine of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Cosine of a value.</returns>
@@ -378,7 +381,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Calculates tangent of a value.
+    ///     Calculates tangent of a value.
     /// </summary>
     /// <param name="value">The value in radians.</param>
     /// <returns>Tangent of a value.</returns>
@@ -393,7 +396,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Calculates tangent of a value.
+    ///     Calculates tangent of a value.
     /// </summary>
     /// <param name="value">The value in radians.</param>
     /// <returns>Tangent of a value.</returns>
@@ -408,7 +411,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Calculates e raised to the specified power.
+    ///     Calculates e raised to the specified power.
     /// </summary>
     /// <param name="value">The exponent.</param>
     /// <returns>e raised to the power of value.</returns>
@@ -423,7 +426,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Calculates e raised to the specified power.
+    ///     Calculates e raised to the specified power.
     /// </summary>
     /// <param name="value">The exponent.</param>
     /// <returns>e raised to the power of value.</returns>
@@ -438,7 +441,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Calculates the natural logarithm (base e) of a value.
+    ///     Calculates the natural logarithm (base e) of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Natural logarithm of a value.</returns>
@@ -453,7 +456,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Calculates the natural logarithm (base e) of a value.
+    ///     Calculates the natural logarithm (base e) of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Natural logarithm of a value.</returns>
@@ -468,7 +471,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Clamps a value to be within the specified range.
+    ///     Clamps a value to be within the specified range.
     /// </summary>
     /// <param name="value">The value to clamp.</param>
     /// <param name="min">The minimum value.</param>
@@ -485,7 +488,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Clamps a value to be within the specified range.
+    ///     Clamps a value to be within the specified range.
     /// </summary>
     /// <param name="value">The value to clamp.</param>
     /// <param name="min">The minimum value.</param>
@@ -502,7 +505,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Clamps a value to be within the specified range.
+    ///     Clamps a value to be within the specified range.
     /// </summary>
     /// <param name="value">The value to clamp.</param>
     /// <param name="min">The minimum value.</param>
@@ -519,7 +522,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Clamps a value to be within the specified range.
+    ///     Clamps a value to be within the specified range.
     /// </summary>
     /// <param name="value">The value to clamp.</param>
     /// <param name="min">The minimum value.</param>
@@ -536,7 +539,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Calculates the logarithm of a value with the specified base.
+    ///     Calculates the logarithm of a value with the specified base.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <param name="baseValue">The base of the logarithm.</param>
@@ -552,7 +555,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Calculates the base-10 logarithm of a value.
+    ///     Calculates the base-10 logarithm of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Base-10 logarithm of a value.</returns>
@@ -567,7 +570,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Calculates the base-2 logarithm of a value.
+    ///     Calculates the base-2 logarithm of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Base-2 logarithm of a value.</returns>
@@ -582,7 +585,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Checks if an integer value is between the specified minimum and maximum (inclusive).
+    ///     Checks if an integer value is between the specified minimum and maximum (inclusive).
     /// </summary>
     /// <param name="value">The value to check.</param>
     /// <param name="min">The minimum value (inclusive).</param>
@@ -599,7 +602,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Checks if a long value is between the specified minimum and maximum (inclusive).
+    ///     Checks if a long value is between the specified minimum and maximum (inclusive).
     /// </summary>
     /// <param name="value">The value to check.</param>
     /// <param name="min">The minimum value (inclusive).</param>
@@ -616,7 +619,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Checks if a decimal value is between the specified minimum and maximum (inclusive).
+    ///     Checks if a decimal value is between the specified minimum and maximum (inclusive).
     /// </summary>
     /// <param name="value">The value to check.</param>
     /// <param name="min">The minimum value (inclusive).</param>
@@ -633,7 +636,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Checks if a double value is between the specified minimum and maximum (inclusive).
+    ///     Checks if a double value is between the specified minimum and maximum (inclusive).
     /// </summary>
     /// <param name="value">The value to check.</param>
     /// <param name="min">The minimum value (inclusive).</param>
@@ -650,7 +653,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Checks if an integer value is between the specified minimum and maximum (exclusive).
+    ///     Checks if an integer value is between the specified minimum and maximum (exclusive).
     /// </summary>
     /// <param name="value">The value to check.</param>
     /// <param name="min">The minimum value (exclusive).</param>
@@ -667,7 +670,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Checks if a decimal value is between the specified minimum and maximum (exclusive).
+    ///     Checks if a decimal value is between the specified minimum and maximum (exclusive).
     /// </summary>
     /// <param name="value">The value to check.</param>
     /// <param name="min">The minimum value (exclusive).</param>

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Musoq.Schema.DataSources;
 
@@ -17,8 +18,8 @@ public class RowResolver(Row row, IDictionary<string, int> nameToIndexMap) : IOb
         get
         {
             if (!nameToIndexMap.TryGetValue(name, out var value))
-                throw new System.Exception($"Column with name {name} does not exist in the row.");
-                
+                throw new Exception($"Column with name {name} does not exist in the row.");
+
             return row[value];
         }
     }

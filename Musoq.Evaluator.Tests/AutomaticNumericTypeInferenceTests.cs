@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -10,6 +9,31 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
 {
+    #region Type Promotion Tests
+
+    [TestMethod]
+    public void WhenComparingStringWithLongLiteral_ShouldPromoteToLong()
+    {
+        const string query = "table Items {" +
+                             "  Size 'System.String'," +
+                             "  Name 'System.String'" +
+                             "};" +
+                             "couple #test.whatever with table Items as Items; " +
+                             "select Name from Items() where Size = 9223372036854775807l";
+
+        dynamic item1 = new ExpandoObject();
+        item1.Size = "9223372036854775807";
+        item1.Name = "MaxLong";
+
+        var vm = CreateAndRunVirtualMachine(query, [item1]);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("MaxLong", table[0].Values[0]);
+    }
+
+    #endregion
+
     #region Test Data Setup
 
     private static List<dynamic> CreateTestDataWithStringColumn()
@@ -57,7 +81,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "Item B";
 
         dynamic item3 = new ExpandoObject();
-        item3.Price = (object)30.00; 
+        item3.Price = (object)30.00;
         item3.Name = "Item C";
 
         return [item1, item2, item3];
@@ -259,8 +283,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithObjectFloatColumn());
         var table = vm.Run(TestContext.CancellationToken);
 
-        
-        Assert.AreEqual(0, table.Count); 
+
+        Assert.AreEqual(0, table.Count);
     }
 
     [TestMethod]
@@ -295,17 +319,17 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where Value = 100";
 
         dynamic item1 = new ExpandoObject();
-        item1.Value = (object)100.5; 
+        item1.Value = (object)100.5;
         item1.Name = "Float";
 
         dynamic item2 = new ExpandoObject();
-        item2.Value = (object)100; 
+        item2.Value = (object)100;
         item2.Name = "Int";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Int", table[0].Values[0]);
     }
@@ -323,7 +347,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithObjectFloatColumn());
         var table = vm.Run(TestContext.CancellationToken);
 
-        
+
         Assert.AreEqual(3, table.Count);
     }
 
@@ -391,7 +415,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         Assert.AreEqual(3, table.Count);
 
         var results = table.Select(row => new { Name = row.Values[0] as string, Category = row.Values[1] as string })
-                          .OrderBy(x => x.Name).ToList();
+            .OrderBy(x => x.Name).ToList();
 
         Assert.AreEqual("Large", results[0].Name);
         Assert.AreEqual("Large", results[0].Category);
@@ -425,8 +449,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         var highCount = table.Count(row => row.Values[1] as string == "High");
         var lowCount = table.Count(row => row.Values[1] as string == "Low");
 
-        Assert.AreEqual(2, highCount); 
-        Assert.AreEqual(1, lowCount);  
+        Assert.AreEqual(2, highCount);
+        Assert.AreEqual(1, lowCount);
     }
 
     #endregion
@@ -454,7 +478,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Valid", table[0].Values[0]);
     }
@@ -480,7 +504,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Valid", table[0].Values[0]);
     }
@@ -531,34 +555,9 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Large", table[0].Values[0]);
-    }
-
-    #endregion
-
-    #region Type Promotion Tests
-
-    [TestMethod]
-    public void WhenComparingStringWithLongLiteral_ShouldPromoteToLong()
-    {
-        const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
-                             "};" +
-                             "couple #test.whatever with table Items as Items; " +
-                             "select Name from Items() where Size = 9223372036854775807l";
-
-        dynamic item1 = new ExpandoObject();
-        item1.Size = "9223372036854775807";
-        item1.Name = "MaxLong";
-
-        var vm = CreateAndRunVirtualMachine(query, [item1]);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("MaxLong", table[0].Values[0]);
     }
 
     #endregion
@@ -701,11 +700,11 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where Value = -100";
 
         dynamic item1 = new ExpandoObject();
-        item1.Value = (object)(-100.5f);
+        item1.Value = (object)-100.5f;
         item1.Name = "NegativeFraction";
 
         dynamic item2 = new ExpandoObject();
-        item2.Value = (object)(-100);
+        item2.Value = (object)-100;
         item2.Name = "Exact";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);

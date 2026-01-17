@@ -2,5 +2,5 @@
 
 namespace Musoq.Evaluator.Visitors;
 
-public class ExtractAccessColumnFromQueryTraverseVisitor(IExpressionVisitor visitor) 
+public class ExtractAccessColumnFromQueryTraverseVisitor(IExpressionVisitor visitor)
     : CloneTraverseVisitor(visitor);

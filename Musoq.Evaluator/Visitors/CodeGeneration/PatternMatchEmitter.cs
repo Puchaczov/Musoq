@@ -1,22 +1,22 @@
 using System;
-using System.Reflection;
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Visitors.Helpers;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
-using Musoq.Parser;
 
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Emitter for pattern matching operations (LIKE, RLIKE).
+///     Emitter for pattern matching operations (LIKE, RLIKE).
 /// </summary>
 public static class PatternMatchEmitter
 {
     /// <summary>
-    /// Processes a pattern match node (LIKE or RLIKE) and generates the appropriate method call.
+    ///     Processes a pattern match node (LIKE or RLIKE) and generates the appropriate method call.
     /// </summary>
     /// <param name="left">The left operand node.</param>
     /// <param name="right">The right operand node.</param>
@@ -43,8 +43,8 @@ public static class PatternMatchEmitter
 
         var accessMethodNode = new AccessMethodNode(
             new FunctionToken(operatorName, TextSpan.Empty),
-            new ArgsListNode([left, right]), 
-            null, 
+            new ArgsListNode([left, right]),
+            null,
             false,
             method);
 

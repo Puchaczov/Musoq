@@ -35,14 +35,77 @@ namespace Musoq.Evaluator.Visitors;
 
 public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExpressionVisitor
 {
-    private readonly ISchemaProvider _provider;
+    private static readonly WhereNode AllTrueWhereNode =
+        new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
+
+    private readonly IDictionary<string, string> _aliasMapToInMemoryTableMap =
+        new Dictionary<string, string>();
+
+    private readonly IDictionary<string, SchemaFromNode> _aliasToSchemaFromNodeMap =
+        new Dictionary<string, SchemaFromNode>();
+
+    private readonly IDictionary<string, FieldNode[]> _cachedSetFields =
+        new Dictionary<string, FieldNode[]>();
+
     private readonly IReadOnlyDictionary<string, string[]> _columns;
-    private readonly ILogger<BuildMetadataAndInferTypesVisitor> _logger;
     private readonly CompilationOptions _compilationOptions;
 
+    private readonly IDictionary<string, string> _explicitlyCoupledTablesWithAliases =
+        new Dictionary<string, string>();
+
+    private readonly IDictionary<string, ISchemaTable> _explicitlyDefinedTables =
+        new Dictionary<string, ISchemaTable>();
+
+    private readonly IDictionary<string, SchemaMethodFromNode> _explicitlyUsedAliases =
+        new Dictionary<string, SchemaMethodFromNode>();
+
+    private readonly List<string> _generatedAliases = [];
+
+    private readonly Dictionary<string, List<FieldNode>> _generatedColumns = [];
+
+    private readonly List<FieldNode> _groupByFields = [];
+
+    private readonly IDictionary<SchemaFromNode, ISchemaColumn[]> _inferredColumns =
+        new Dictionary<SchemaFromNode, ISchemaColumn[]>();
+
+    private readonly ILogger<BuildMetadataAndInferTypesVisitor> _logger;
+
+    private readonly ILibraryMethodResolver _methodResolver;
+    private readonly TypeConversionNodeFactory _nodeFactory;
+    private readonly List<Type> _nullSuspiciousTypes = [];
+    private readonly ISchemaProvider _provider;
+
+    private readonly List<AccessMethodNode> _refreshMethods = [];
+    private readonly List<object> _schemaFromArgs = [];
+
+    private readonly IDictionary<string, (int SchemaFromKey, uint PositionalEnvironmentVariableKey)> _schemaFromInfo =
+        new Dictionary<string, (int, uint)>();
+
+    private readonly IDictionary<SchemaFromNode, List<ISchemaColumn>> _usedColumns =
+        new Dictionary<SchemaFromNode, List<ISchemaColumn>>();
+
+    private readonly IDictionary<SchemaFromNode, WhereNode> _usedWhereNodes =
+        new Dictionary<SchemaFromNode, WhereNode>();
+
+    protected readonly Dictionary<uint, IReadOnlyDictionary<string, string>> InternalPositionalEnvironmentVariables =
+        new();
+
+    private Scope _currentScope;
+    private string _identifier;
+    private uint _positionalEnvironmentVariablesKey;
+    private string _queryAlias;
+
+    private QueryPart _queryPart;
+    private int _schemaFromKey;
+
+    private int _setKey;
+    private IdentifierNode _theMostInnerIdentifier;
+
+    private int _usedSchemasQuantity;
+
     public BuildMetadataAndInferTypesVisitor(
-        ISchemaProvider _provider, 
-        IReadOnlyDictionary<string, string[]> _columns, 
+        ISchemaProvider _provider,
+        IReadOnlyDictionary<string, string[]> _columns,
         ILogger<BuildMetadataAndInferTypesVisitor> _logger,
         CompilationOptions compilationOptions = null)
         : this(_provider, _columns, _logger, null, compilationOptions)
@@ -50,8 +113,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     }
 
     internal BuildMetadataAndInferTypesVisitor(
-        ISchemaProvider provider, 
-        IReadOnlyDictionary<string, string[]> columns, 
+        ISchemaProvider provider,
+        IReadOnlyDictionary<string, string[]> columns,
         ILogger<BuildMetadataAndInferTypesVisitor> logger,
         ILibraryMethodResolver methodResolver,
         CompilationOptions compilationOptions = null)
@@ -63,71 +126,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         _nodeFactory = new TypeConversionNodeFactory(_methodResolver);
         _compilationOptions = compilationOptions ?? new CompilationOptions();
     }
-    
-    private static readonly WhereNode AllTrueWhereNode =
-        new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
-    
-    private readonly ILibraryMethodResolver _methodResolver;
-    private readonly TypeConversionNodeFactory _nodeFactory;
 
     protected override string VisitorName => nameof(BuildMetadataAndInferTypesVisitor);
-
-    private readonly List<AccessMethodNode> _refreshMethods = [];
-    private readonly List<object> _schemaFromArgs = [];
-    private readonly List<string> _generatedAliases = [];
-
-    private readonly IDictionary<string, ISchemaTable> _explicitlyDefinedTables =
-        new Dictionary<string, ISchemaTable>();
-
-    private readonly IDictionary<string, string> _explicitlyCoupledTablesWithAliases =
-        new Dictionary<string, string>();
-
-    private readonly IDictionary<string, SchemaMethodFromNode> _explicitlyUsedAliases =
-        new Dictionary<string, SchemaMethodFromNode>();
-
-    private readonly IDictionary<SchemaFromNode, ISchemaColumn[]> _inferredColumns =
-        new Dictionary<SchemaFromNode, ISchemaColumn[]>();
-
-    private readonly IDictionary<SchemaFromNode, List<ISchemaColumn>> _usedColumns =
-        new Dictionary<SchemaFromNode, List<ISchemaColumn>>();
-
-    private readonly IDictionary<SchemaFromNode, WhereNode> _usedWhereNodes =
-        new Dictionary<SchemaFromNode, WhereNode>();
-
-    private readonly Dictionary<string, List<FieldNode>> _generatedColumns = [];
-
-    private readonly IDictionary<string, SchemaFromNode> _aliasToSchemaFromNodeMap =
-        new Dictionary<string, SchemaFromNode>();
-
-    private readonly IDictionary<string, string> _aliasMapToInMemoryTableMap =
-        new Dictionary<string, string>();
-
-    private readonly IDictionary<string, FieldNode[]> _cachedSetFields =
-        new Dictionary<string, FieldNode[]>();
-
-    private readonly List<FieldNode> _groupByFields = [];
-    private readonly List<Type> _nullSuspiciousTypes = [];
-
-    private readonly IDictionary<string, (int SchemaFromKey, uint PositionalEnvironmentVariableKey)> _schemaFromInfo =
-        new Dictionary<string, (int, uint)>();
-    
-    private int _usedSchemasQuantity;
-
-    private QueryPart _queryPart;
-
-    private int _setKey;
-    private int _schemaFromKey;
-    private uint _positionalEnvironmentVariablesKey;
-    private Scope _currentScope;
-    private string _identifier;
-    private string _queryAlias;
-    private IdentifierNode _theMostInnerIdentifier;
 
     private Stack<string> Methods { get; } = new();
 
     protected Stack<Node> Nodes { get; } = new();
-
-    protected readonly Dictionary<uint, IReadOnlyDictionary<string, string>> InternalPositionalEnvironmentVariables = new();
 
     public virtual IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> PositionalEnvironmentVariables =>
         InternalPositionalEnvironmentVariables;
@@ -144,9 +148,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             var result = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
 
             foreach (var aliasColumnsPair in _inferredColumns)
-            {
                 result.Add(aliasColumnsPair.Key, aliasColumnsPair.Value.ToArray());
-            }
 
             return result;
         }
@@ -159,9 +161,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             var result = new Dictionary<SchemaFromNode, ISchemaColumn[]>();
 
             foreach (var aliasColumnsPair in _usedColumns)
-            {
                 result.Add(aliasColumnsPair.Key, aliasColumnsPair.Value.ToArray());
-            }
 
             return result;
         }
@@ -176,7 +176,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         }
     }
 
-    public RootNode Root => (RootNode) Nodes.Peek();
+    public RootNode Root => (RootNode)Nodes.Peek();
 
     public override void Visit(Node node)
     {
@@ -184,7 +184,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public override void Visit(DescNode node)
     {
-        var fromNode = SafeCast<FromNode>(SafePop(Nodes, nameof(Visit) + nameof(DescNode)), nameof(Visit) + nameof(DescNode));
+        var fromNode = SafeCast<FromNode>(SafePop(Nodes, nameof(Visit) + nameof(DescNode)),
+            nameof(Visit) + nameof(DescNode));
         Nodes.Push(new DescNode(fromNode, node.Type));
     }
 
@@ -195,22 +196,24 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public override void Visit(FSlashNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new FSlashNode(left, right), isArithmeticOperation: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new FSlashNode(left, right),
+            isArithmeticOperation: true);
     }
 
     public override void Visit(ModuloNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new ModuloNode(left, right), isArithmeticOperation: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new ModuloNode(left, right),
+            isArithmeticOperation: true);
     }
 
     public override void Visit(AddNode node)
     {
         var right = SafePop(Nodes, "Visit(AddNode) right");
         var left = SafePop(Nodes, "Visit(AddNode) left");
-        
+
         var leftIsStringLiteral = left is WordNode;
         var rightIsStringLiteral = right is WordNode;
-        
+
         if (leftIsStringLiteral || rightIsStringLiteral)
         {
             Nodes.Push(left);
@@ -227,7 +230,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public override void Visit(HyphenNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new HyphenNode(left, right), isArithmeticOperation: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new HyphenNode(left, right),
+            isArithmeticOperation: true);
     }
 
     public override void Visit(AndNode node)
@@ -254,32 +258,32 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public override void Visit(EqualityNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new EqualityNode(left, right), isRelationalComparison: false);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new EqualityNode(left, right), false);
     }
 
     public override void Visit(GreaterOrEqualNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterOrEqualNode(left, right), isRelationalComparison: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterOrEqualNode(left, right), true);
     }
 
     public override void Visit(LessOrEqualNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new LessOrEqualNode(left, right), isRelationalComparison: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new LessOrEqualNode(left, right), true);
     }
 
     public override void Visit(GreaterNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterNode(left, right), isRelationalComparison: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterNode(left, right), true);
     }
 
     public override void Visit(LessNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new LessNode(left, right), isRelationalComparison: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new LessNode(left, right), true);
     }
 
     public override void Visit(DiffNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new DiffNode(left, right), isRelationalComparison: false);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new DiffNode(left, right), false);
     }
 
     public override void Visit(NotNode node)
@@ -302,7 +306,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
         var right = SafePop(Nodes, nameof(Visit) + nameof(InNode) + " (right)");
         var left = SafePop(Nodes, nameof(Visit) + nameof(InNode) + " (left)");
-        Nodes.Push(new InNode(left, (ArgsListNode) right));
+        Nodes.Push(new InNode(left, (ArgsListNode)right));
     }
 
     public override void Visit(FieldNode node)
@@ -435,25 +439,21 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 : _identifier) ?? node.Alias;
 
             if (string.IsNullOrEmpty(identifier))
-            {
                 throw VisitorException.CreateForProcessingFailure(
                     VisitorName,
                     nameof(Visit) + nameof(AccessColumnNode),
                     "No valid identifier found for column access",
                     "Ensure the query has proper FROM clause and table aliases are correctly specified."
                 );
-            }
 
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
             if (tableSymbol == null)
-            {
                 throw VisitorException.CreateForProcessingFailure(
                     VisitorName,
                     nameof(Visit) + nameof(AccessColumnNode),
                     $"Table symbol not found for identifier '{identifier}'",
                     "Verify that the table or alias is properly defined in the query."
                 );
-            }
 
             var tuple = !string.IsNullOrEmpty(node.Alias)
                 ? tableSymbol.GetTableByAlias(node.Alias)
@@ -488,12 +488,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 .FirstOrDefault();
 
             if (usedColumns is not null)
-            {
                 if (usedColumns.All(c => c.ColumnName != column.ColumnName))
-                {
                     usedColumns.Add(column);
-                }
-            }
 
             var accessColumn = new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Span);
             Nodes.Push(accessColumn);
@@ -514,15 +510,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var identifier = _identifier;
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
 
-        if (!string.IsNullOrWhiteSpace(node.Alias)  ||
-            (!tableSymbol.IsCompoundTable && string.IsNullOrWhiteSpace(node.Alias)) )
-        {
+        if (!string.IsNullOrWhiteSpace(node.Alias) ||
+            (!tableSymbol.IsCompoundTable && string.IsNullOrWhiteSpace(node.Alias)))
             ProcessSingleTable(node, tableSymbol, identifier);
-        }
-        else if (tableSymbol.IsCompoundTable)
-        {
-            ProcessCompoundTable(tableSymbol);
-        }
+        else if (tableSymbol.IsCompoundTable) ProcessCompoundTable(tableSymbol);
 
         Nodes.Push(node);
     }
@@ -550,20 +541,15 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         {
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(
                 string.IsNullOrEmpty(node.TableAlias) ? _identifier : node.TableAlias);
-            
+
             if (tableSymbol == null)
-            {
                 throw new UnknownPropertyException($"Table {node.TableAlias ?? _identifier} could not be found.");
-            }
 
             var column = tableSymbol.GetColumnByAliasAndName(
-                string.IsNullOrEmpty(node.TableAlias) ? _identifier : node.TableAlias, 
+                string.IsNullOrEmpty(node.TableAlias) ? _identifier : node.TableAlias,
                 node.ObjectName);
 
-            if (column == null)
-            {
-                throw new UnknownPropertyException($"Column {node.ObjectName} could not be found.");
-            }
+            if (column == null) throw new UnknownPropertyException($"Column {node.ObjectName} could not be found.");
 
             Nodes.Push(node);
             return;
@@ -571,12 +557,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         var parentNode = Nodes.Count > 0 ? Nodes.Peek() : null;
         var parentNodeType = parentNode?.ReturnType;
-        
-        bool hasValidParentContext = parentNode != null && parentNodeType != null &&
+
+        var hasValidParentContext = parentNode != null && parentNodeType != null &&
                                     !parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)) &&
                                     parentNodeType.Name != "RowSource" &&
                                     !BuildMetadataAndInferTypesVisitorUtilities.IsPrimitiveType(parentNodeType);
-        
+
         if (!hasValidParentContext)
         {
             var currentTableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
@@ -640,15 +626,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(propertyAccess?.PropertyType);
 
                 if (!isArray && !isIndexer)
-                {
                     throw new ObjectIsNotAnArrayException(
                         $"Object {parentNodeType.Name} property '{node.Name}' is not an array or indexable type.");
-                }
 
                 if (propertyAccess == null)
-                {
-                    throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}.");
-                }
+                    throw new UnknownPropertyException(
+                        $"Property '{node.Name}' not found on object {parentNodeType.Name}.");
 
                 Nodes.Push(new AccessObjectArrayNode(node.Token, propertyAccess));
 
@@ -672,21 +655,19 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(property?.PropertyType);
 
                 if (!isArray && !isIndexer)
-                {
                     throw new ObjectIsNotAnArrayException(
                         $"Object {node.Name} is not an array or indexable type.");
-                }
 
                 if (property == null)
-                {
-                    throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}.");
-                }
+                    throw new UnknownPropertyException(
+                        $"Property '{node.Name}' not found on object {parentNodeType.Name}.");
 
                 Nodes.Push(new AccessObjectArrayNode(node.Token, property));
             }
             else
             {
-                throw new UnknownPropertyException($"Could not resolve array access for {node.ObjectName}[{node.Token.Index}]");
+                throw new UnknownPropertyException(
+                    $"Could not resolve array access for {node.ObjectName}[{node.Token.Index}]");
             }
         }
     }
@@ -694,19 +675,15 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     public override void Visit(AccessObjectKeyNode node)
     {
         if (node.DestinationKind == AccessObjectKeyNode.Destination.Variable)
-        {
             throw new ConstructionNotYetSupported($"Construction ${node.ToString()} is not yet supported.");
-        }
 
         var parentNode = SafePeek(Nodes, nameof(Visit) + nameof(AccessObjectKeyNode));
         if (parentNode?.ReturnType == null)
-        {
             throw VisitorException.CreateForProcessingFailure(
                 VisitorName,
                 nameof(Visit) + nameof(AccessObjectKeyNode),
                 $"Parent node has no return type for key access '{node.Name}'"
             );
-        }
         var parentNodeType = parentNode.ReturnType;
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
@@ -757,15 +734,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(propertyAccess?.PropertyType);
 
                 if (!isIndexer)
-                {
                     throw new ObjectDoesNotImplementIndexerException(
                         $"Object {parentNodeType.Name} property '{node.Name}' does not implement indexer.");
-                }
 
                 if (propertyAccess == null)
-                {
-                    throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}.");
-                }
+                    throw new UnknownPropertyException(
+                        $"Property '{node.Name}' not found on object {parentNodeType.Name}.");
 
                 Nodes.Push(new AccessObjectKeyNode(node.Token, propertyAccess));
 
@@ -786,15 +760,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(property?.PropertyType);
 
             if (!isIndexer)
-            {
                 throw new ObjectDoesNotImplementIndexerException(
                     $"Object {node.Name} does not implement indexer.");
-            }
 
             if (property == null)
-            {
-                throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}.");
-            }
+                throw new UnknownPropertyException(
+                    $"Property '{node.Name}' not found on object {parentNodeType.Name}.");
 
             Nodes.Push(new AccessObjectKeyNode(node.Token, property));
         }
@@ -804,13 +775,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
         var parentNode = SafePeek(Nodes, nameof(Visit) + nameof(PropertyValueNode));
         if (parentNode?.ReturnType == null)
-        {
             throw VisitorException.CreateForProcessingFailure(
                 VisitorName,
                 nameof(Visit) + nameof(PropertyValueNode),
                 $"Parent node has no return type for property access '{node.Name}'"
             );
-        }
         var parentNodeType = parentNode.ReturnType;
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
@@ -839,13 +808,14 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             try
             {
                 var propertyInfo = parentNode.ReturnType.GetProperty(node.Name);
-                type = propertyInfo?.PropertyType ?? 
+                type = propertyInfo?.PropertyType ??
                        (_theMostInnerIdentifier?.Name == node.Name ? typeof(object) : typeof(ExpandoObject));
             }
             catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
             {
                 type = _theMostInnerIdentifier?.Name == node.Name ? typeof(object) : typeof(ExpandoObject);
             }
+
             Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, type)));
         }
         else
@@ -864,9 +834,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             }
 
             if (propertyInfo == null)
-            {
                 throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}");
-            }
 
             Nodes.Push(new PropertyValueNode(node.Name, propertyInfo));
         }
@@ -878,14 +846,13 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var root = SafePop(Nodes, nameof(Visit) + nameof(DotNode) + " (root)");
 
         if (root?.ReturnType == null)
-        {
             throw VisitorException.CreateForProcessingFailure(
                 VisitorName,
                 nameof(Visit) + nameof(DotNode),
                 "Root node has no return type for dot access");
-        }
 
-        if (root is AccessColumnNode accessColumnNode && exp is AccessObjectArrayNode arrayNode2 && !arrayNode2.IsColumnAccess)
+        if (root is AccessColumnNode accessColumnNode && exp is AccessObjectArrayNode arrayNode2 &&
+            !arrayNode2.IsColumnAccess)
         {
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(accessColumnNode.Alias);
             if (tableSymbol != null)
@@ -893,7 +860,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 var column = tableSymbol.GetColumnByAliasAndName(accessColumnNode.Alias, arrayNode2.ObjectName);
                 if (column != null && BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(column.ColumnType))
                 {
-                    var columnAccessArrayNode = new AccessObjectArrayNode(arrayNode2.Token, column.ColumnType, accessColumnNode.Alias);
+                    var columnAccessArrayNode =
+                        new AccessObjectArrayNode(arrayNode2.Token, column.ColumnType, accessColumnNode.Alias);
                     Nodes.Push(columnAccessArrayNode);
                     return;
                 }
@@ -907,18 +875,13 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         }
         else
         {
-            if (exp is not IdentifierNode identifierNode)
-            {
-                throw new NotSupportedException();
-            }
+            if (exp is not IdentifierNode identifierNode) throw new NotSupportedException();
 
             var hasProperty = root.ReturnType.GetProperty(identifierNode.Name) != null;
 
             if (!hasProperty)
-            {
                 PrepareAndThrowUnknownPropertyExceptionMessage(identifierNode.Name,
                     root.ReturnType.GetProperties());
-            }
 
             newNode = new DotNode(root, exp, node.IsTheMostInner, string.Empty, exp.ReturnType);
         }
@@ -962,9 +925,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         foreach (var aliasSchemaPair in tableSymbol.CompoundTables.Join(usedIdentifiers, t => t, f => f.Alias,
                      (t, f) => (Alias: t, Schema: f)))
-        {
             _usedWhereNodes[aliasSchemaPair.Schema] = rewrittenWhereNode;
-        }
 
         Nodes.Push(rewrittenWhereNode);
     }
@@ -995,12 +956,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public override void Visit(SkipNode node)
     {
-        Nodes.Push(new SkipNode((IntegerNode) node.Expression));
+        Nodes.Push(new SkipNode((IntegerNode)node.Expression));
     }
 
     public override void Visit(TakeNode node)
     {
-        Nodes.Push(new TakeNode((IntegerNode) node.Expression));
+        Nodes.Push(new TakeNode((IntegerNode)node.Expression));
     }
 
     public override void Visit(SchemaFromNode node)
@@ -1009,32 +970,31 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         const bool hasExternallyProvidedTypes = false;
 
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
-        
-        if (HasAlreadyUsedAlias(_queryAlias))
-        {
-            throw new AliasAlreadyUsedException(node, _queryAlias);
-        }
+
+        if (HasAlreadyUsedAlias(_queryAlias)) throw new AliasAlreadyUsedException(node, _queryAlias);
 
         _generatedAliases.Add(_queryAlias);
 
-        var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode) Nodes.Pop(),
+        var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(),
             _queryAlias, node.QueryId, hasExternallyProvidedTypes);
 
         var environmentVariables =
             RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode);
         var isDesc = _currentScope.Name == "Desc";
-        var table = !isDesc ? schema.GetTableByName(
-            node.Method,
-            new RuntimeContext(
-                node.QueryId.ToString(),
-                CancellationToken.None,
-                _columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
-                    .ToArray(),
-                environmentVariables,
-                (aliasedSchemaFromNode, [], AllTrueWhereNode, hasExternallyProvidedTypes),
-                _logger
-            ),
-            _schemaFromArgs.ToArray()) : new DynamicTable([]);
+        var table = !isDesc
+            ? schema.GetTableByName(
+                node.Method,
+                new RuntimeContext(
+                    node.QueryId.ToString(),
+                    CancellationToken.None,
+                    _columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
+                        .ToArray(),
+                    environmentVariables,
+                    (aliasedSchemaFromNode, [], AllTrueWhereNode, hasExternallyProvidedTypes),
+                    _logger
+                ),
+                _schemaFromArgs.ToArray())
+            : new DynamicTable([]);
 
         _schemaFromInfo.Add(_queryAlias, (_schemaFromKey, _positionalEnvironmentVariablesKey));
         _positionalEnvironmentVariablesKey += 1;
@@ -1059,21 +1019,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         _usedSchemasQuantity += 1;
 
         Nodes.Push(aliasedSchemaFromNode);
-    }
-
-    private bool HasAlreadyUsedAlias(string queryAlias)
-    {
-        var scope = _currentScope;
-
-        while (scope != null)
-        {
-            if (scope.ScopeSymbolTable.TryGetSymbol<AliasesSymbol>(MetaAttributes.Aliases, out var symbol) && symbol.ContainsAlias(queryAlias))
-                return true;
-            
-            scope = scope.Parent;
-        }
-        
-        return false;
     }
 
     public override void Visit(SchemaMethodFromNode node)
@@ -1118,8 +1063,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         Nodes.Push(
             new Parser.PropertyFromNode(
-                node.Alias, 
-                node.SourceAlias, 
+                node.Alias,
+                node.SourceAlias,
                 RewritePropertiesChainWithTargetColumn(targetColumn, node.PropertiesChain)
             )
         );
@@ -1144,7 +1089,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
         _generatedAliases.Add(_queryAlias);
 
-        var accessMethodNode = (AccessMethodNode) Nodes.Pop();
+        var accessMethodNode = (AccessMethodNode)Nodes.Pop();
         table = TurnTypeIntoTable(accessMethodNode.ReturnType);
         var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
         _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
@@ -1173,7 +1118,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var aliasedSchemaFromNode = new Parser.SchemaFromNode(
             schemaInfo.Schema,
             schemaInfo.Method,
-            (ArgsListNode) Nodes.Pop(),
+            (ArgsListNode)Nodes.Pop(),
             _queryAlias,
             node.InSourcePosition,
             hasExternallyProvidedTypes
@@ -1221,16 +1166,16 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     public override void Visit(JoinSourcesTableFromNode node)
     {
         var exp = Nodes.Pop();
-        var b = (FromNode) Nodes.Pop();
-        var a = (FromNode) Nodes.Pop();
+        var b = (FromNode)Nodes.Pop();
+        var a = (FromNode)Nodes.Pop();
 
         Nodes.Push(new Parser.JoinSourcesTableFromNode(a, b, exp, node.JoinType));
     }
 
     public override void Visit(ApplySourcesTableFromNode node)
     {
-        var b = (FromNode) Nodes.Pop();
-        var a = (FromNode) Nodes.Pop();
+        var b = (FromNode)Nodes.Pop();
+        var a = (FromNode)Nodes.Pop();
 
         Nodes.Push(new Parser.ApplySourcesTableFromNode(a, b, node.ApplyType));
     }
@@ -1273,8 +1218,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     public override void Visit(JoinFromNode node)
     {
         var expression = Nodes.Pop();
-        var joinedTable = (FromNode) Nodes.Pop();
-        var source = (FromNode) Nodes.Pop();
+        var joinedTable = (FromNode)Nodes.Pop();
+        var source = (FromNode)Nodes.Pop();
         var joinedFrom = new Parser.JoinFromNode(source, joinedTable, expression, node.JoinType);
         _identifier = joinedFrom.Alias;
         _schemaFromArgs.Clear();
@@ -1283,8 +1228,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public override void Visit(ApplyFromNode node)
     {
-        var appliedTable = (FromNode) Nodes.Pop();
-        var source = (FromNode) Nodes.Pop();
+        var appliedTable = (FromNode)Nodes.Pop();
+        var source = (FromNode)Nodes.Pop();
         var appliedFrom = new Parser.ApplyFromNode(source, appliedTable, node.ApplyType);
         _identifier = appliedFrom.Alias;
         _schemaFromArgs.Clear();
@@ -1293,7 +1238,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public override void Visit(ExpressionFromNode node)
     {
-        var from = (FromNode) Nodes.Pop();
+        var from = (FromNode)Nodes.Pop();
         _identifier = from.Alias;
         Nodes.Push(new Parser.ExpressionFromNode(from));
 
@@ -1352,15 +1297,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
         var from = Nodes.Pop() as FromNode;
 
-        if (from is null)
-        {
-            throw new FromNodeIsNull();
-        }
+        if (from is null) throw new FromNodeIsNull();
 
         if (groupBy == null && _refreshMethods.Count > 0)
-        {
             groupBy = new GroupByNode([new FieldNode(new IntegerNode("1", "s"), 0, string.Empty)], null);
-        }
 
         _currentScope.ScopeSymbolTable.AddSymbol(from.Alias.ToRefreshMethodsSymbolName(),
             new RefreshMethodsSymbol(_refreshMethods));
@@ -1370,36 +1310,34 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             _currentScope.ScopeSymbolTable.MoveSymbol(string.Empty, from.Alias);
 
         Methods.Push(from.Alias);
-        
+
         var queryNode = new QueryNode(select, from, where, groupBy, orderBy, skip, take);
-        
-        
+
+
         ValidateSelectFieldsArePrimitive(queryNode.Select.Fields, "SELECT");
-        
+
         if (where != null)
             ValidateExpressionIsPrimitive(where.Expression, "WHERE");
-        
+
         if (groupBy != null)
         {
             foreach (var field in groupBy.Fields)
                 ValidateExpressionIsPrimitive(field.Expression, "GROUP BY");
-            
+
             if (groupBy.Having != null)
                 ValidateExpressionIsPrimitive(groupBy.Having.Expression, "HAVING");
         }
-        
+
         if (orderBy != null)
-        {
             foreach (var field in orderBy.Fields)
                 ValidateExpressionIsPrimitive(field.Expression, "ORDER BY");
-        }
-        
+
         if (skip != null)
             ValidateExpressionIsPrimitive(skip.Expression, "SKIP");
-        
+
         if (take != null)
             ValidateExpressionIsPrimitive(take.Expression, "TAKE");
-        
+
         Nodes.Push(queryNode);
 
         _schemaFromArgs.Clear();
@@ -1412,14 +1350,14 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     public override void Visit(JoinInMemoryWithSourceTableFromNode node)
     {
         var exp = Nodes.Pop();
-        var from = (FromNode) Nodes.Pop();
+        var from = (FromNode)Nodes.Pop();
         Nodes.Push(
             new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
     }
 
     public override void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
-        var from = (FromNode) Nodes.Pop();
+        var from = (FromNode)Nodes.Pop();
         Nodes.Push(
             new Parser.ApplyInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, node.ApplyType));
     }
@@ -1484,7 +1422,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var set = Nodes.Pop();
 
         for (var i = node.InnerExpression.Length - 1; i >= 0; --i)
-            sets[i] = (CteInnerExpressionNode) Nodes.Pop();
+            sets[i] = (CteInnerExpressionNode)Nodes.Pop();
 
         Nodes.Push(new CteExpressionNode(sets, set));
     }
@@ -1504,18 +1442,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         _currentScope.Parent.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Name);
 
         if (_compilationOptions.UsePrimitiveTypeValidation)
-        {
             foreach (var fieldInfo in collector.CollectedFieldNames)
-            {
                 if (!BuildMetadataAndInferTypesVisitorUtilities.IsValidQueryExpressionType(fieldInfo.ColumnType))
-                {
                     throw new InvalidQueryExpressionTypeException(
-                        new FieldNode(new IntegerNode("0", "s"), fieldInfo.ColumnIndex, fieldInfo.ColumnName), 
-                        fieldInfo.ColumnType, 
+                        new FieldNode(new IntegerNode("0", "s"), fieldInfo.ColumnIndex, fieldInfo.ColumnName),
+                        fieldInfo.ColumnType,
                         $"CTE '{node.Name}'");
-                }
-            }
-        }
 
         Nodes.Push(new CteInnerExpressionNode(set, node.Name));
     }
@@ -1523,13 +1455,13 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     public override void Visit(JoinNode node)
     {
         _identifier = node.Alias;
-        Nodes.Push(new Parser.JoinNode((Parser.JoinFromNode) Nodes.Pop()));
+        Nodes.Push(new Parser.JoinNode((Parser.JoinFromNode)Nodes.Pop()));
     }
 
     public override void Visit(ApplyNode node)
     {
         _identifier = node.Alias;
-        Nodes.Push(new Parser.ApplyNode((Parser.ApplyFromNode) Nodes.Pop()));
+        Nodes.Push(new Parser.ApplyNode((Parser.ApplyFromNode)Nodes.Pop()));
     }
 
     public void SetScope(Scope scope)
@@ -1537,285 +1469,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         _currentScope = scope;
     }
 
-    protected virtual IReadOnlyDictionary<string, string> RetrieveEnvironmentVariables(uint position, SchemaFromNode node)
-    {
-        var environmentVariables = new Dictionary<string, string>();
-        
-        InternalPositionalEnvironmentVariables.TryAdd(position, environmentVariables);
-
-        return environmentVariables;
-    }
-
-    private void AddAssembly(Assembly asm)
-    {
-        if (Assemblies.Contains(asm))
-            return;
-
-        Assemblies.Add(asm);
-    }
-
-    private void AddBaseTypeAssembly(Type entityType)
-    {
-        if (entityType.BaseType == null)
-            return;
-
-        AddAssembly(entityType.BaseType.Assembly);
-        AddBaseTypeAssembly(entityType.BaseType);
-    }
-
-    private FieldNode[] CreateFields(FieldNode[] oldFields)
-    {
-        var reorderedList = new FieldNode[oldFields.Length];
-        for (var i = reorderedList.Length - 1; i >= 0; i--)
-        {
-            reorderedList[i] = Nodes.Pop() as FieldNode;
-        }
-
-        var fields = new List<FieldNode>(reorderedList.Length);
-        var positionCounter = 0;
-
-        foreach (var field in reorderedList)
-        {
-            if (field.Expression is AllColumnsNode allColumnsNode)
-            {
-                AddAllColumnsFields(fields, allColumnsNode, ref positionCounter);
-            }
-            else
-            {
-                fields.Add(new FieldNode(field.Expression, positionCounter++, field.FieldName));
-            }
-        }
-
-        return fields.ToArray();
-    }
-
-    private void AddAllColumnsFields(List<FieldNode> fields, AllColumnsNode allColumnsNode, ref int positionCounter)
-    {
-        var identifier = !string.IsNullOrWhiteSpace(allColumnsNode.Alias)
-            ? allColumnsNode.Alias
-            : _identifier;
-
-        if (_generatedColumns.TryGetValue(identifier, out var generatedColumns))
-        {
-            foreach (var column in generatedColumns)
-            {
-                fields.Add(new FieldNode(column.Expression, positionCounter++, column.FieldName));
-            }
-        }
-        else if (string.IsNullOrWhiteSpace(allColumnsNode.Alias))
-        {
-            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
-            foreach (var compoundTableIdentifier in tableSymbol.CompoundTables)
-            {
-                if (!_generatedColumns.TryGetValue(compoundTableIdentifier, out var compoundColumns)) continue;
-
-                foreach (var column in compoundColumns)
-                {
-                    fields.Add(new FieldNode(column.Expression, positionCounter++, column.FieldName));
-                }
-            }
-        }
-    }
-
-    private void VisitAccessMethod(AccessMethodNode node, Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
-    {
-        var args = GetAndValidateArgs(node);
-        var methodContext = ResolveMethodContext(node, args);
-        var (method, canSkipInjectSource) = ResolveMethod(node, args, methodContext);
-        
-        method = ProcessGenericMethodIfNeeded(method, args, methodContext.EntityType);
-        
-        var accessMethod = CreateAccessMethod(node, args, method, methodContext, canSkipInjectSource, func);
-        
-        node.ChangeMethod(method);
-        FinalizeMethodVisit(method, accessMethod);
-    }
-
-    private ArgsListNode GetAndValidateArgs(AccessMethodNode node)
-    {
-        var nodeFromStack = SafePop(Nodes, nameof(GetAndValidateArgs));
-        if (nodeFromStack is not ArgsListNode args)
-            throw CannotResolveMethodException.CreateForNullArguments(node.Name);
-        return args;
-    }
-
-    private record struct MethodResolutionContext(
-        string Alias,
-        TableSymbol TableSymbol,
-        (ISchema Schema, ISchemaTable Table, string TableName) SchemaTablePair,
-        Type EntityType);
-
-    private MethodResolutionContext ResolveMethodContext(AccessMethodNode node, ArgsListNode args)
-    {
-        if (_usedSchemasQuantity > 1 && string.IsNullOrWhiteSpace(node.Alias))
-            throw new AliasMissingException(node);
-        
-        var alias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : _identifier;
-        var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
-        var schemaTablePair = tableSymbol.GetTableByAlias(alias);
-        var entityType = schemaTablePair.Table.Metadata.TableEntityType;
-
-        AddAssembly(entityType.Assembly);
-        AddBaseTypeAssembly(entityType);
-
-        return new MethodResolutionContext(alias, tableSymbol, schemaTablePair, entityType);
-    }
-
-    private (MethodInfo Method, bool CanSkipInjectSource) ResolveMethod(AccessMethodNode node, ArgsListNode args, MethodResolutionContext context)
-    {
-        var argCount = args.Args.Length;
-        var argTypes = new Type[argCount];
-        
-        for (var i = 0; i < argCount; i++)
-        {
-            argTypes[i] = args.Args[i].ReturnType;
-        }
-        var groupArgCount = argCount > 0 ? argCount : 1;
-        var groupArgTypes = new Type[groupArgCount];
-        groupArgTypes[0] = typeof(string);
-        for (var i = 1; i < argCount; i++)
-        {
-            groupArgTypes[i] = argTypes[i];
-        }
-
-        if (context.SchemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgTypes, context.EntityType, out var method))
-        {
-            return (method, false);
-        }
-
-        if (context.SchemaTablePair.Schema.TryResolveMethod(node.Name, argTypes, context.EntityType, out method))
-        {
-            return (method, false);
-        }
-
-        if (context.SchemaTablePair.Schema.TryResolveRawMethod(node.Name, argTypes, out method))
-        {
-            return (method, true);
-        }
-
-        throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.Name, args.Args);
-    }
-
-    private MethodInfo ProcessGenericMethodIfNeeded(MethodInfo method, ArgsListNode args, Type entityType)
-    {
-        var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
-
-        if (!isAggregateMethod && method.IsGenericMethod && TryReduceDimensions(method, args, out var reducedMethod))
-        {
-            method = reducedMethod;
-        }
-
-        if (!isAggregateMethod && 
-            method.IsGenericMethod && 
-            !method.IsConstructedGenericMethod &&
-            TryConstructGenericMethod(method, args, entityType, out var constructedMethod))
-        {
-            method = constructedMethod;
-        }
-
-        return method;
-    }
-
-    private AccessMethodNode CreateAccessMethod(
-        AccessMethodNode node, 
-        ArgsListNode args, 
-        MethodInfo method, 
-        MethodResolutionContext context, 
-        bool canSkipInjectSource,
-        Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
-    {
-        var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
-
-        if (isAggregateMethod)
-        {
-            return ProcessAggregateMethod(node, args, method, context, func);
-        }
-        
-        return func(node.FunctionToken, args, new ArgsListNode([]), method, context.Alias, canSkipInjectSource);
-    }
-
-    private AccessMethodNode ProcessAggregateMethod(
-        AccessMethodNode node, 
-        ArgsListNode args, 
-        MethodInfo method, 
-        MethodResolutionContext context,
-        Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
-    {
-        var accessMethod = func(node.FunctionToken, args, node.ExtraAggregateArguments, method, context.Alias, false);
-        var identifier = accessMethod.ToString();
-
-        var newArgs = new List<Node> { new WordNode(identifier) };
-        newArgs.AddRange(args.Args.Skip(1));
-
-        var newSetArgs = new List<Node> { new WordNode(identifier) };
-        newSetArgs.AddRange(args.Args);
-
-        var setMethodName = $"Set{method.Name}";
-        var argTypes = newSetArgs.Select(f => f.ReturnType).ToArray();
-
-        if (!context.SchemaTablePair.Schema.TryResolveAggregationMethod(setMethodName, argTypes, context.EntityType, out var setMethod))
-        {
-            throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(setMethodName, newSetArgs.ToArray());
-        }
-
-        if (setMethod.IsGenericMethodDefinition)
-        {
-            (method, setMethod) = MakeGenericAggregationMethods(method, setMethod, newSetArgs);
-        }
-
-        var setMethodNode = func(new FunctionToken(setMethodName, TextSpan.Empty),
-            new ArgsListNode(newSetArgs.ToArray()), null, setMethod, context.Alias, false);
-
-        _refreshMethods.Add(setMethodNode);
-
-        return func(node.FunctionToken, new ArgsListNode(newArgs.ToArray()), null, method, context.Alias, false);
-    }
-
-    private (MethodInfo Method, MethodInfo SetMethod) MakeGenericAggregationMethods(
-        MethodInfo method, 
-        MethodInfo setMethod, 
-        List<Node> newSetArgs)
-    {
-        var setParams = setMethod.GetParameters();
-        var genericArguments = setMethod.GetGenericArguments();
-        var genericArgumentsDistinct = new List<Type>();
-
-        foreach (var genericArgument in genericArguments)
-        {
-            for (int i = 0; i < setParams.Length; i++)
-            {
-                var setParam = setParams[i];
-
-                if (setParam.ParameterType == genericArgument)
-                {
-                    genericArgumentsDistinct.Add(newSetArgs.Where((arg, index) => index == i - 1).Single().ReturnType);
-                }
-            }
-        }
-
-        var genericArgumentsConcreteTypes = genericArgumentsDistinct.Distinct().ToArray();
-
-        return (method.MakeGenericMethod(genericArgumentsConcreteTypes), 
-                setMethod.MakeGenericMethod(genericArgumentsConcreteTypes));
-    }
-
-    private void FinalizeMethodVisit(MethodInfo method, AccessMethodNode accessMethod)
-    {
-        if (method.DeclaringType == null)
-            throw new InvalidOperationException("Method must have a declaring type.");
-
-        AddAssembly(method.DeclaringType.Assembly);
-        AddAssembly(method.ReturnType.Assembly);
-
-        Nodes.Push(accessMethod);
-    }
-
     public override void Visit(OrderByNode node)
     {
         var fields = new FieldOrderedNode[node.Fields.Length];
 
         for (var i = node.Fields.Length - 1; i >= 0; --i)
-            fields[i] = (FieldOrderedNode) Nodes.Pop();
+            fields[i] = (FieldOrderedNode)Nodes.Pop();
 
         Nodes.Push(new OrderByNode(fields));
     }
@@ -1855,9 +1514,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
         var statements = new StatementNode[node.Statements.Length];
         for (var i = 0; i < node.Statements.Length; ++i)
-        {
-            statements[node.Statements.Length - 1 - i] = (StatementNode) Nodes.Pop();
-        }
+            statements[node.Statements.Length - 1 - i] = (StatementNode)Nodes.Pop();
 
         Nodes.Push(new StatementsArrayNode(statements));
     }
@@ -1886,14 +1543,16 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             var greatestCommonSubtype = FindGreatestCommonSubtype();
             var caseNode = anyWasNullable
                 ? new CaseNode(whenThenPairs.ToArray(), elseNode, greatestCommonSubtype)
-                : new CaseNode(whenThenPairs.ToArray(), elseNode, BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype));
+                : new CaseNode(whenThenPairs.ToArray(), elseNode,
+                    BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype));
 
             Nodes.Push(caseNode);
         }
         else
         {
             var greatestCommonSubtype = FindGreatestCommonSubtype();
-            var nullableGreatestCommonSubtype = BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype);
+            var nullableGreatestCommonSubtype =
+                BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype);
             var caseNode = new CaseNode(whenThenPairs.ToArray(), elseNode, nullableGreatestCommonSubtype);
 
             var rewritePartsWithProperNullHandling =
@@ -1972,15 +1631,260 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
     }
 
+    private bool HasAlreadyUsedAlias(string queryAlias)
+    {
+        var scope = _currentScope;
+
+        while (scope != null)
+        {
+            if (scope.ScopeSymbolTable.TryGetSymbol<AliasesSymbol>(MetaAttributes.Aliases, out var symbol) &&
+                symbol.ContainsAlias(queryAlias))
+                return true;
+
+            scope = scope.Parent;
+        }
+
+        return false;
+    }
+
+    protected virtual IReadOnlyDictionary<string, string> RetrieveEnvironmentVariables(uint position,
+        SchemaFromNode node)
+    {
+        var environmentVariables = new Dictionary<string, string>();
+
+        InternalPositionalEnvironmentVariables.TryAdd(position, environmentVariables);
+
+        return environmentVariables;
+    }
+
+    private void AddAssembly(Assembly asm)
+    {
+        if (Assemblies.Contains(asm))
+            return;
+
+        Assemblies.Add(asm);
+    }
+
+    private void AddBaseTypeAssembly(Type entityType)
+    {
+        if (entityType.BaseType == null)
+            return;
+
+        AddAssembly(entityType.BaseType.Assembly);
+        AddBaseTypeAssembly(entityType.BaseType);
+    }
+
+    private FieldNode[] CreateFields(FieldNode[] oldFields)
+    {
+        var reorderedList = new FieldNode[oldFields.Length];
+        for (var i = reorderedList.Length - 1; i >= 0; i--) reorderedList[i] = Nodes.Pop() as FieldNode;
+
+        var fields = new List<FieldNode>(reorderedList.Length);
+        var positionCounter = 0;
+
+        foreach (var field in reorderedList)
+            if (field.Expression is AllColumnsNode allColumnsNode)
+                AddAllColumnsFields(fields, allColumnsNode, ref positionCounter);
+            else
+                fields.Add(new FieldNode(field.Expression, positionCounter++, field.FieldName));
+
+        return fields.ToArray();
+    }
+
+    private void AddAllColumnsFields(List<FieldNode> fields, AllColumnsNode allColumnsNode, ref int positionCounter)
+    {
+        var identifier = !string.IsNullOrWhiteSpace(allColumnsNode.Alias)
+            ? allColumnsNode.Alias
+            : _identifier;
+
+        if (_generatedColumns.TryGetValue(identifier, out var generatedColumns))
+        {
+            foreach (var column in generatedColumns)
+                fields.Add(new FieldNode(column.Expression, positionCounter++, column.FieldName));
+        }
+        else if (string.IsNullOrWhiteSpace(allColumnsNode.Alias))
+        {
+            var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
+            foreach (var compoundTableIdentifier in tableSymbol.CompoundTables)
+            {
+                if (!_generatedColumns.TryGetValue(compoundTableIdentifier, out var compoundColumns)) continue;
+
+                foreach (var column in compoundColumns)
+                    fields.Add(new FieldNode(column.Expression, positionCounter++, column.FieldName));
+            }
+        }
+    }
+
+    private void VisitAccessMethod(AccessMethodNode node,
+        Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
+    {
+        var args = GetAndValidateArgs(node);
+        var methodContext = ResolveMethodContext(node, args);
+        var (method, canSkipInjectSource) = ResolveMethod(node, args, methodContext);
+
+        method = ProcessGenericMethodIfNeeded(method, args, methodContext.EntityType);
+
+        var accessMethod = CreateAccessMethod(node, args, method, methodContext, canSkipInjectSource, func);
+
+        node.ChangeMethod(method);
+        FinalizeMethodVisit(method, accessMethod);
+    }
+
+    private ArgsListNode GetAndValidateArgs(AccessMethodNode node)
+    {
+        var nodeFromStack = SafePop(Nodes, nameof(GetAndValidateArgs));
+        if (nodeFromStack is not ArgsListNode args)
+            throw CannotResolveMethodException.CreateForNullArguments(node.Name);
+        return args;
+    }
+
+    private MethodResolutionContext ResolveMethodContext(AccessMethodNode node, ArgsListNode args)
+    {
+        if (_usedSchemasQuantity > 1 && string.IsNullOrWhiteSpace(node.Alias))
+            throw new AliasMissingException(node);
+
+        var alias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : _identifier;
+        var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
+        var schemaTablePair = tableSymbol.GetTableByAlias(alias);
+        var entityType = schemaTablePair.Table.Metadata.TableEntityType;
+
+        AddAssembly(entityType.Assembly);
+        AddBaseTypeAssembly(entityType);
+
+        return new MethodResolutionContext(alias, tableSymbol, schemaTablePair, entityType);
+    }
+
+    private (MethodInfo Method, bool CanSkipInjectSource) ResolveMethod(AccessMethodNode node, ArgsListNode args,
+        MethodResolutionContext context)
+    {
+        var argCount = args.Args.Length;
+        var argTypes = new Type[argCount];
+
+        for (var i = 0; i < argCount; i++) argTypes[i] = args.Args[i].ReturnType;
+        var groupArgCount = argCount > 0 ? argCount : 1;
+        var groupArgTypes = new Type[groupArgCount];
+        groupArgTypes[0] = typeof(string);
+        for (var i = 1; i < argCount; i++) groupArgTypes[i] = argTypes[i];
+
+        if (context.SchemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgTypes, context.EntityType,
+                out var method)) return (method, false);
+
+        if (context.SchemaTablePair.Schema.TryResolveMethod(node.Name, argTypes, context.EntityType, out method))
+            return (method, false);
+
+        if (context.SchemaTablePair.Schema.TryResolveRawMethod(node.Name, argTypes, out method)) return (method, true);
+
+        throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.Name, args.Args);
+    }
+
+    private MethodInfo ProcessGenericMethodIfNeeded(MethodInfo method, ArgsListNode args, Type entityType)
+    {
+        var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
+
+        if (!isAggregateMethod && method.IsGenericMethod && TryReduceDimensions(method, args, out var reducedMethod))
+            method = reducedMethod;
+
+        if (!isAggregateMethod &&
+            method.IsGenericMethod &&
+            !method.IsConstructedGenericMethod &&
+            TryConstructGenericMethod(method, args, entityType, out var constructedMethod))
+            method = constructedMethod;
+
+        return method;
+    }
+
+    private AccessMethodNode CreateAccessMethod(
+        AccessMethodNode node,
+        ArgsListNode args,
+        MethodInfo method,
+        MethodResolutionContext context,
+        bool canSkipInjectSource,
+        Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
+    {
+        var isAggregateMethod = method.GetCustomAttribute<AggregationMethodAttribute>() != null;
+
+        if (isAggregateMethod) return ProcessAggregateMethod(node, args, method, context, func);
+
+        return func(node.FunctionToken, args, new ArgsListNode([]), method, context.Alias, canSkipInjectSource);
+    }
+
+    private AccessMethodNode ProcessAggregateMethod(
+        AccessMethodNode node,
+        ArgsListNode args,
+        MethodInfo method,
+        MethodResolutionContext context,
+        Func<FunctionToken, Node, ArgsListNode, MethodInfo, string, bool, AccessMethodNode> func)
+    {
+        var accessMethod = func(node.FunctionToken, args, node.ExtraAggregateArguments, method, context.Alias, false);
+        var identifier = accessMethod.ToString();
+
+        var newArgs = new List<Node> { new WordNode(identifier) };
+        newArgs.AddRange(args.Args.Skip(1));
+
+        var newSetArgs = new List<Node> { new WordNode(identifier) };
+        newSetArgs.AddRange(args.Args);
+
+        var setMethodName = $"Set{method.Name}";
+        var argTypes = newSetArgs.Select(f => f.ReturnType).ToArray();
+
+        if (!context.SchemaTablePair.Schema.TryResolveAggregationMethod(setMethodName, argTypes, context.EntityType,
+                out var setMethod))
+            throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(setMethodName,
+                newSetArgs.ToArray());
+
+        if (setMethod.IsGenericMethodDefinition)
+            (method, setMethod) = MakeGenericAggregationMethods(method, setMethod, newSetArgs);
+
+        var setMethodNode = func(new FunctionToken(setMethodName, TextSpan.Empty),
+            new ArgsListNode(newSetArgs.ToArray()), null, setMethod, context.Alias, false);
+
+        _refreshMethods.Add(setMethodNode);
+
+        return func(node.FunctionToken, new ArgsListNode(newArgs.ToArray()), null, method, context.Alias, false);
+    }
+
+    private (MethodInfo Method, MethodInfo SetMethod) MakeGenericAggregationMethods(
+        MethodInfo method,
+        MethodInfo setMethod,
+        List<Node> newSetArgs)
+    {
+        var setParams = setMethod.GetParameters();
+        var genericArguments = setMethod.GetGenericArguments();
+        var genericArgumentsDistinct = new List<Type>();
+
+        foreach (var genericArgument in genericArguments)
+            for (var i = 0; i < setParams.Length; i++)
+            {
+                var setParam = setParams[i];
+
+                if (setParam.ParameterType == genericArgument)
+                    genericArgumentsDistinct.Add(newSetArgs.Where((arg, index) => index == i - 1).Single().ReturnType);
+            }
+
+        var genericArgumentsConcreteTypes = genericArgumentsDistinct.Distinct().ToArray();
+
+        return (method.MakeGenericMethod(genericArgumentsConcreteTypes),
+            setMethod.MakeGenericMethod(genericArgumentsConcreteTypes));
+    }
+
+    private void FinalizeMethodVisit(MethodInfo method, AccessMethodNode accessMethod)
+    {
+        if (method.DeclaringType == null)
+            throw new InvalidOperationException("Method must have a declaring type.");
+
+        AddAssembly(method.DeclaringType.Assembly);
+        AddAssembly(method.ReturnType.Assembly);
+
+        Nodes.Push(accessMethod);
+    }
+
     private Type FindGreatestCommonSubtype()
     {
-        var types = _nullSuspiciousTypes.Where(type => type != NullNode.NullType.Instance).Select(BuildMetadataAndInferTypesVisitorUtilities.StripNullable)
+        var types = _nullSuspiciousTypes.Where(type => type != NullNode.NullType.Instance)
+            .Select(BuildMetadataAndInferTypesVisitorUtilities.StripNullable)
             .Distinct().ToArray();
 
-        if (types.Length == 0)
-        {
-            return null;
-        }
+        if (types.Length == 0) return null;
 
         var greatestCommonSubtype = types[0];
 
@@ -1992,12 +1896,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 continue;
             }
 
-            if (currentType.IsAssignableTo(greatestCommonSubtype))
-            {
-                continue;
-            }
+            if (currentType.IsAssignableTo(greatestCommonSubtype)) continue;
 
-            greatestCommonSubtype = BuildMetadataAndInferTypesVisitorUtilities.FindClosestCommonParent(greatestCommonSubtype, currentType);
+            greatestCommonSubtype =
+                BuildMetadataAndInferTypesVisitorUtilities.FindClosestCommonParent(greatestCommonSubtype, currentType);
         }
 
         return greatestCommonSubtype;
@@ -2024,12 +1926,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         var positionCounter = 0;
         for (var i = 0; i < table.Columns.Length; i++)
-        {
-            if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(table.Columns[i].ColumnType))
-            {
-                AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], positionCounter++, generatedColumnIdentifier, generatedColumns);
-            }
-        }
+            if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(table.Columns[i]
+                    .ColumnType))
+                AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], positionCounter++, generatedColumnIdentifier,
+                    generatedColumns);
 
         UpdateUsedColumns(generatedColumnIdentifier, table);
     }
@@ -2045,12 +1945,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
             var positionCounter = 0;
             for (var i = 0; i < table.Columns.Length; i++)
-            {
-                if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(table.Columns[i].ColumnType))
-                {
-                    AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], positionCounter++, tableIdentifier, generatedColumns, isCompoundTable: true);
-                }
-            }
+                if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(table.Columns[i]
+                        .ColumnType))
+                    AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], positionCounter++, tableIdentifier,
+                        generatedColumns, true);
 
             UpdateUsedColumns(tableIdentifier, table);
         }
@@ -2067,32 +1965,28 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         {
             generatedColumns.Clear();
         }
+
         return generatedColumns;
     }
 
-    private void AddColumnToGeneratedColumns(TableSymbol tableSymbol, ISchemaColumn column, int index, string identifier, List<FieldNode> generatedColumns, bool isCompoundTable = false)
+    private void AddColumnToGeneratedColumns(TableSymbol tableSymbol, ISchemaColumn column, int index,
+        string identifier, List<FieldNode> generatedColumns, bool isCompoundTable = false)
     {
         AddAssembly(column.ColumnType.Assembly);
 
         var accessColumn = new AccessColumnNode(column.ColumnName, identifier, column.ColumnType, TextSpan.Empty);
         string fieldName;
         if (isCompoundTable)
-        {
             fieldName = $"{identifier}.{column.ColumnName}";
-        }
         else
-        {
             fieldName = tableSymbol.HasAlias ? $"{identifier}.{column.ColumnName}" : column.ColumnName;
-        }
         generatedColumns.Add(new FieldNode(accessColumn, index, fieldName));
     }
 
     private void UpdateUsedColumns(string identifier, ISchemaTable table)
     {
         if (_aliasToSchemaFromNodeMap.TryGetValue(identifier, out var schemaFromNode))
-        {
             _usedColumns[schemaFromNode] = table.Columns.ToList();
-        }
     }
 
     private ISchemaTable GetTableFromSchema(ISchema schema, SchemaFromNode schemaFrom)
@@ -2100,8 +1994,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var runtimeContext = new RuntimeContext(
             schemaFrom.QueryId.ToString(),
             CancellationToken.None,
-            _columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray(),
-            RetrieveEnvironmentVariables(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey, schemaFrom),
+            _columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
+                .ToArray(),
+            RetrieveEnvironmentVariables(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey,
+                schemaFrom),
             (schemaFrom, [], AllTrueWhereNode, false),
             _logger
         );
@@ -2113,7 +2009,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
         _generatedAliases.Add(_queryAlias);
-        
+
         _schemaFromArgs.Clear();
         var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
         _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
@@ -2129,29 +2025,26 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     private void ValidateSelectFieldsArePrimitive(FieldNode[] fields, string context)
     {
         if (!_compilationOptions.UsePrimitiveTypeValidation) return;
-        
+
         foreach (var field in fields)
         {
             var returnType = field.Expression.ReturnType;
             if (!BuildMetadataAndInferTypesVisitorUtilities.IsValidQueryExpressionType(returnType))
-            {
                 throw new InvalidQueryExpressionTypeException(field, returnType, context);
-            }
-        }
-    }
-    
-    private void ValidateExpressionIsPrimitive(Node expression, string context)
-    {
-        if (!_compilationOptions.UsePrimitiveTypeValidation) return;
-        
-        var returnType = expression.ReturnType;
-        if (!BuildMetadataAndInferTypesVisitorUtilities.IsValidQueryExpressionType(returnType))
-        {
-            throw new InvalidQueryExpressionTypeException(expression.ToString(), returnType, context);
         }
     }
 
-    private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, QueryNode right, string cachedSetOperatorKey)
+    private void ValidateExpressionIsPrimitive(Node expression, string context)
+    {
+        if (!_compilationOptions.UsePrimitiveTypeValidation) return;
+
+        var returnType = expression.ReturnType;
+        if (!BuildMetadataAndInferTypesVisitorUtilities.IsValidQueryExpressionType(returnType))
+            throw new InvalidQueryExpressionTypeException(expression.ToString(), returnType, context);
+    }
+
+    private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, QueryNode right,
+        string cachedSetOperatorKey)
     {
         var leftFields = left.Select.Fields;
         var rightFields = right.Select.Fields;
@@ -2159,41 +2052,28 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         ValidateSelectFieldsArePrimitive(leftFields, "SET operator (left side)");
         ValidateSelectFieldsArePrimitive(rightFields, "SET operator (right side)");
 
-        if (leftFields.Length != rightFields.Length)
-        {
-            throw new SetOperatorMustHaveSameQuantityOfColumnsException();
-        }
+        if (leftFields.Length != rightFields.Length) throw new SetOperatorMustHaveSameQuantityOfColumnsException();
 
         for (var i = 0; i < leftFields.Length; i++)
-        {
             if (leftFields[i].Expression.ReturnType != rightFields[i].Expression.ReturnType)
-            {
                 throw new SetOperatorMustHaveSameTypesOfColumnsException(leftFields[i], rightFields[i]);
-            }
-        }
 
         _cachedSetFields.TryAdd(cachedSetOperatorKey, rightFields);
     }
 
-    private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, string cachedSetOperatorKey, string currentSetOperatorKey)
+    private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, string cachedSetOperatorKey,
+        string currentSetOperatorKey)
     {
         var leftFields = left.Select.Fields;
         var rightFields = _cachedSetFields[cachedSetOperatorKey];
 
         ValidateSelectFieldsArePrimitive(leftFields, "SET operator");
 
-        if (leftFields.Length != rightFields.Length)
-        {
-            throw new SetOperatorMustHaveSameQuantityOfColumnsException();
-        }
+        if (leftFields.Length != rightFields.Length) throw new SetOperatorMustHaveSameQuantityOfColumnsException();
 
         for (var i = 0; i < leftFields.Length; i++)
-        {
             if (leftFields[i].Expression.ReturnType != rightFields[i].Expression.ReturnType)
-            {
                 throw new SetOperatorMustHaveSameTypesOfColumnsException(leftFields[i], rightFields[i]);
-            }
-        }
 
         _cachedSetFields.TryAdd(currentSetOperatorKey, leftFields);
     }
@@ -2203,10 +2083,9 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var library = new TransitionLibrary();
         var candidates = new StringBuilder();
 
-        var candidatesColumns = _columns.Where(
-            col =>
-                library.Soundex(col.ColumnName) == library.Soundex(identifier) ||
-                library.LevenshteinDistance(col.ColumnName, identifier) < 3).ToArray();
+        var candidatesColumns = _columns.Where(col =>
+            library.Soundex(col.ColumnName) == library.Soundex(identifier) ||
+            library.LevenshteinDistance(col.ColumnName, identifier) < 3).ToArray();
 
         for (var i = 0; i < candidatesColumns.Length - 1; i++)
         {
@@ -2231,10 +2110,9 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var library = new TransitionLibrary();
         var candidates = new StringBuilder();
 
-        var candidatesProperties = properties.Where(
-            prop =>
-                library.Soundex(prop.Name) == library.Soundex(identifier) ||
-                library.LevenshteinDistance(prop.Name, identifier) < 3).ToArray();
+        var candidatesProperties = properties.Where(prop =>
+            library.Soundex(prop.Name) == library.Soundex(identifier) ||
+            library.LevenshteinDistance(prop.Name, identifier) < 3).ToArray();
 
         for (var i = 0; i < candidatesProperties.Length - 1; i++)
         {
@@ -2265,7 +2143,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             reducedMethod = null;
             return false;
         }
-            
+
         var paramsParameterIndex = paramsParameter.Position;
         var typesToReduce = args.Args.Skip(paramsParameterIndex).Select(f => f.ReturnType).ToArray();
 
@@ -2283,56 +2161,57 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             lastNonNullType = typeToReduce;
             typeToReduce = typeToReduce.GetElementType();
         }
-                
+
         reducedMethod = method.MakeGenericMethod(lastNonNullType);
         return true;
     }
 
-    private static bool TryConstructGenericMethod(MethodInfo methodInfo, ArgsListNode args, Type entity, out MethodInfo constructedMethod)
+    private static bool TryConstructGenericMethod(MethodInfo methodInfo, ArgsListNode args, Type entity,
+        out MethodInfo constructedMethod)
     {
         var genericArguments = methodInfo.GetGenericArguments();
         var genericArgumentsDistinct = new List<Type>();
         var parameters = methodInfo.GetParameters();
-            
+
         foreach (var genericArgument in genericArguments)
         {
             var i = 0;
             var shiftArgsWhenInjectSpecificSourcePresent = 0;
-            
+
             if (parameters[0].GetCustomAttribute<InjectSpecificSourceAttribute>() != null)
             {
                 i = 1;
                 shiftArgsWhenInjectSpecificSourcePresent = 1;
-                if ((genericArgument.IsGenericParameter || genericArgument.IsGenericMethodParameter) && parameters[0].ParameterType.IsGenericParameter)
-                {
-                    genericArgumentsDistinct.Add(entity);
-                }
+                if ((genericArgument.IsGenericParameter || genericArgument.IsGenericMethodParameter) &&
+                    parameters[0].ParameterType.IsGenericParameter) genericArgumentsDistinct.Add(entity);
             }
-            
+
             for (; i < parameters.Length; i++)
             {
                 var parameter = parameters[i];
 
-                if (parameter.IsOptional && args.Args.Length < parameters.Length - shiftArgsWhenInjectSpecificSourcePresent)
-                {
-                    continue;
-                }
-                
-                var returnType = args.Args.Where((_, index) => index == i - shiftArgsWhenInjectSpecificSourcePresent).Single().ReturnType;
+                if (parameter.IsOptional &&
+                    args.Args.Length < parameters.Length - shiftArgsWhenInjectSpecificSourcePresent) continue;
+
+                var returnType = args.Args.Where((_, index) => index == i - shiftArgsWhenInjectSpecificSourcePresent)
+                    .Single().ReturnType;
                 var elementType = returnType.GetElementType();
 
-                if (returnType.IsGenericType && parameter.ParameterType.IsGenericType && returnType.GetGenericTypeDefinition() == parameter.ParameterType.GetGenericTypeDefinition())
+                if (returnType.IsGenericType && parameter.ParameterType.IsGenericType &&
+                    returnType.GetGenericTypeDefinition() == parameter.ParameterType.GetGenericTypeDefinition())
                 {
                     genericArgumentsDistinct.Add(returnType.GetGenericArguments()[0]);
                     continue;
                 }
-                    
-                if (parameter.ParameterType.IsGenericType && parameter.ParameterType.IsAssignableTo(typeof(IEnumerable<>).MakeGenericType(genericArgument)) && elementType is not null)
+
+                if (parameter.ParameterType.IsGenericType &&
+                    parameter.ParameterType.IsAssignableTo(typeof(IEnumerable<>).MakeGenericType(genericArgument)) &&
+                    elementType is not null)
                 {
                     genericArgumentsDistinct.Add(elementType);
                     continue;
                 }
-                    
+
                 if (parameter.ParameterType.IsGenericType)
                 {
                     var assignableInterfaces = returnType
@@ -2344,31 +2223,26 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                     var firstAssignableInterface =
                         assignableInterfaces.FirstOrDefault(f => f.definition.IsAssignableFrom(typeof(IEnumerable<>)));
 
-                    if (firstAssignableInterface is null)
-                    {
-                        continue;
-                    }
-                        
-                    var elementTypeOfFirstAssignableInterface = firstAssignableInterface.type.GetElementType() ?? firstAssignableInterface.type.GetGenericArguments()[0];
-                        
+                    if (firstAssignableInterface is null) continue;
+
+                    var elementTypeOfFirstAssignableInterface = firstAssignableInterface.type.GetElementType() ??
+                                                                firstAssignableInterface.type.GetGenericArguments()[0];
+
                     genericArgumentsDistinct.Add(elementTypeOfFirstAssignableInterface);
                 }
 
-                if (parameter.ParameterType == genericArgument)
-                {
-                    genericArgumentsDistinct.Add(returnType);
-                }
+                if (parameter.ParameterType == genericArgument) genericArgumentsDistinct.Add(returnType);
             }
         }
-            
+
         var genericArgumentsConcreteTypes = genericArgumentsDistinct.Distinct().ToArray();
-        
+
         constructedMethod = methodInfo.MakeGenericMethod(genericArgumentsConcreteTypes);
         return true;
     }
 
     private static ISchemaTable TurnTypeIntoTable(Type type)
-    {   
+    {
         var _columns = new List<ISchemaColumn>();
 
         Type nestedType;
@@ -2384,37 +2258,30 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             throw new ColumnMustBeAnArrayOrImplementIEnumerableException();
         }
 
-        if (nestedType == null)
-        {
-            throw new InvalidOperationException("Element type is null.");
-        }
+        if (nestedType == null) throw new InvalidOperationException("Element type is null.");
 
         if (nestedType.IsPrimitive || nestedType == typeof(string))
-        {
             return new DynamicTable([new SchemaColumn(nameof(PrimitiveTypeEntity<int>.Value), 0, nestedType)]);
-        }
-    
+
         foreach (var property in nestedType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
-        {
             _columns.Add(new SchemaColumn(property.Name, _columns.Count, property.PropertyType));
-        }
-    
+
         return new DynamicTable(_columns.ToArray(), nestedType);
     }
 
     private static bool IsGenericEnumerable(Type type, out Type elementType)
     {
         elementType = null;
-    
+
         if (!type.IsGenericType) return false;
-            
+
         var interfaces = type.GetInterfaces().Concat([type]);
-        
+
         foreach (var interfaceType in interfaces)
         {
             if (!interfaceType.IsGenericType ||
                 interfaceType.GetGenericTypeDefinition() != typeof(IEnumerable<>)) continue;
-                    
+
             elementType = interfaceType.GetGenericArguments()[0];
             return true;
         }
@@ -2428,23 +2295,20 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var bindablePropertyAsTableAttribute = propertyInfo?.GetCustomAttribute<BindablePropertyAsTableAttribute>();
 
         if (bindablePropertyAsTableAttribute == null) return;
-        
+
         var isValid = IsGenericEnumerable(propertyInfo!.PropertyType, out var elementType) ||
                       IsArray(propertyInfo.PropertyType!, out elementType) ||
                       elementType.IsPrimitive || elementType == typeof(string);
 
-        if (!isValid)
-        {
-            throw new ColumnMustBeMarkedAsBindablePropertyAsTableException();
-        }
+        if (!isValid) throw new ColumnMustBeMarkedAsBindablePropertyAsTableException();
     }
-        
+
     private static bool IsArray(Type type, out Type elementType)
     {
         elementType = null;
-    
+
         if (!type.IsArray) return false;
-            
+
         elementType = type.GetElementType();
         return true;
     }
@@ -2452,11 +2316,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     private static Type FollowProperties(Type type, PropertyFromNode.PropertyNameAndTypePair[] propertiesChain)
     {
         var propertiesWithoutColumnType = propertiesChain.Skip(1);
-        
+
         foreach (var property in propertiesWithoutColumnType)
         {
             var propertyInfo = type.GetProperty(property.PropertyName);
-            
+
             if (propertyInfo == null)
             {
                 PrepareAndThrowUnknownPropertyExceptionMessage(property.PropertyName, type.GetProperties());
@@ -2465,28 +2329,30 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
             type = propertyInfo.PropertyType;
         }
-        
+
         return type;
     }
 
-    private static PropertyFromNode.PropertyNameAndTypePair[] RewritePropertiesChainWithTargetColumn(ISchemaColumn targetColumn, PropertyFromNode.PropertyNameAndTypePair[] nodePropertiesChain)
+    private static PropertyFromNode.PropertyNameAndTypePair[] RewritePropertiesChainWithTargetColumn(
+        ISchemaColumn targetColumn, PropertyFromNode.PropertyNameAndTypePair[] nodePropertiesChain)
     {
         var propertiesChain = new PropertyFromNode.PropertyNameAndTypePair[nodePropertiesChain.Length];
         var rootType = targetColumn.ColumnType;
         propertiesChain[0] = new PropertyFromNode.PropertyNameAndTypePair(targetColumn.ColumnName, rootType);
-        
+
         for (var i = 1; i < nodePropertiesChain.Length; i++)
         {
             var property = nodePropertiesChain[i];
             var propertyInfo = rootType.GetProperty(property.PropertyName);
-            
+
             if (propertyInfo == null)
             {
                 PrepareAndThrowUnknownPropertyExceptionMessage(property.PropertyName, rootType.GetProperties());
                 return null;
             }
-            
-            propertiesChain[i] = new PropertyFromNode.PropertyNameAndTypePair(propertyInfo.Name, propertyInfo.PropertyType);
+
+            propertiesChain[i] =
+                new PropertyFromNode.PropertyNameAndTypePair(propertyInfo.Name, propertyInfo.PropertyType);
         }
 
         return propertiesChain;
@@ -2494,26 +2360,21 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     private void VisitSetOperationNode(SetOperatorNode node, string setOperatorName)
     {
-        if (node.Keys.Length == 0)
-        {
-            throw SetOperatorDoesNotHaveKeysException(setOperatorName);
-        }
-        
+        if (node.Keys.Length == 0) throw SetOperatorDoesNotHaveKeysException(setOperatorName);
+
         var key = CreateSetOperatorPositionKey();
         _currentScope[MetaAttributes.SetOperatorName] = key;
-        SetOperatorFieldPositions.Add(key, BuildMetadataAndInferTypesVisitorUtilities.CreateSetOperatorPositionIndexes((QueryNode) node.Left, node.Keys));
+        SetOperatorFieldPositions.Add(key,
+            BuildMetadataAndInferTypesVisitorUtilities.CreateSetOperatorPositionIndexes((QueryNode)node.Left,
+                node.Keys));
 
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
         if (right is QueryNode rightAsQueryNode)
-        {
-            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, rightAsQueryNode, key);
-        }
+            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode)left, rightAsQueryNode, key);
         else
-        {
-            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode) left, PreviousSetOperatorPositionKey(), key);
-        }
+            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode)left, PreviousSetOperatorPositionKey(), key);
 
         var rightMethodName = Methods.Pop();
         var leftMethodName = Methods.Pop();
@@ -2521,7 +2382,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var methodName = $"{leftMethodName}_{setOperatorName}_{rightMethodName}";
         Methods.Push(methodName);
         _currentScope.ScopeSymbolTable.AddSymbol(methodName,
-            _currentScope.Child[0].ScopeSymbolTable.GetSymbol(((QueryNode) left).From.Alias));
+            _currentScope.Child[0].ScopeSymbolTable.GetSymbol(((QueryNode)left).From.Alias));
 
         Nodes.Push(CreateSetOperatorNode(setOperatorName, node, left, right));
     }
@@ -2531,9 +2392,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return setOperatorName switch
         {
             "Union" => new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
-            "UnionAll" => new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
+            "UnionAll" => new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested,
+                node.IsTheLastOne),
             "Except" => new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
-            "Intersect" => new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
+            "Intersect" => new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested,
+                node.IsTheLastOne),
             _ => throw new NotSupportedException($"Set operator '{setOperatorName}' is not supported.")
         };
     }
@@ -2543,13 +2406,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var scope = _currentScope;
         while (scope != null)
         {
-            if (scope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(name, out var tableSymbol))
-            {
-                return tableSymbol;
-            }
+            if (scope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(name, out var tableSymbol)) return tableSymbol;
             scope = scope.Parent;
         }
-        
+
         return _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(name);
     }
 
@@ -2567,15 +2427,16 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var left = SafePop(Nodes, "VisitBinaryOperatorWithDirectPop (left)");
         Nodes.Push(nodeFactory(left, right));
     }
-    
-    private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory, bool isRelationalComparison = false, bool isArithmeticOperation = false) where T : Node
+
+    private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory,
+        bool isRelationalComparison = false, bool isArithmeticOperation = false) where T : Node
     {
         var right = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (right)");
         var left = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (left)");
-        
+
         var leftIsObject = TypeConversionNodeFactory.IsObjectType(left.ReturnType);
         var rightIsObject = TypeConversionNodeFactory.IsObjectType(right.ReturnType);
-        
+
         if (leftIsObject || rightIsObject)
         {
             var operatorMethodName = _nodeFactory.GetRuntimeOperatorMethodName(nodeFactory);
@@ -2586,13 +2447,15 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 return;
             }
         }
-        
+
         var transformedLeft = TransformStringToDateTimeIfNeeded(left, right);
         var transformedRight = TransformStringToDateTimeIfNeeded(right, left);
-        
-        transformedLeft = TransformToNumericTypeIfNeeded(transformedLeft, transformedRight, isRelationalComparison, isArithmeticOperation);
-        transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft, isRelationalComparison, isArithmeticOperation);
-        
+
+        transformedLeft = TransformToNumericTypeIfNeeded(transformedLeft, transformedRight, isRelationalComparison,
+            isArithmeticOperation);
+        transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft, isRelationalComparison,
+            isArithmeticOperation);
+
         Nodes.Push(nodeFactory(transformedLeft, transformedRight));
     }
 
@@ -2604,15 +2467,26 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return _nodeFactory.CreateDateTimeConversionNode(otherNode.ReturnType, stringNode.Value);
     }
 
-    private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode, bool isRelationalComparison, bool isArithmeticOperation)
+    private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode, bool isRelationalComparison,
+        bool isArithmeticOperation)
     {
-        var shouldTransform = (isRelationalComparison || isArithmeticOperation) 
-            ? isArithmeticOperation ? TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType) : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType)
+        var shouldTransform = isRelationalComparison || isArithmeticOperation
+            ? isArithmeticOperation
+                ? TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType)
+                : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType)
             : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType);
 
         if (!shouldTransform || !TypeConversionNodeFactory.IsNumericLiteralNode(otherNode, out var targetType))
             return candidateNode;
 
-        return _nodeFactory.CreateNumericConversionNode(candidateNode, targetType, TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType), isRelationalComparison, isArithmeticOperation);
+        return _nodeFactory.CreateNumericConversionNode(candidateNode, targetType,
+            TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType), isRelationalComparison,
+            isArithmeticOperation);
     }
+
+    private record struct MethodResolutionContext(
+        string Alias,
+        TableSymbol TableSymbol,
+        (ISchema Schema, ISchemaTable Table, string TableName) SchemaTablePair,
+        Type EntityType);
 }

@@ -6,7 +6,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Converts given value to character
+    ///     Converts given value to character
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to character value</returns>
@@ -24,7 +24,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to character
+    ///     Converts given value to character
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to character value</returns>
@@ -35,11 +35,11 @@ public partial class LibraryBase
         if (value == null)
             return null;
 
-        return (char) value;
+        return (char)value;
     }
 
     /// <summary>
-    /// Converts given value to character
+    ///     Converts given value to character
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to character value</returns>
@@ -50,11 +50,11 @@ public partial class LibraryBase
         if (value == null)
             return null;
 
-        return (char) value;
+        return (char)value;
     }
 
     /// <summary>
-    /// Converts given value to character
+    ///     Converts given value to character
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to character value</returns>
@@ -65,11 +65,11 @@ public partial class LibraryBase
         if (value == null)
             return null;
 
-        return (char) value;
+        return (char)value;
     }
 
     /// <summary>
-    /// Converts given value to character
+    ///     Converts given value to character
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to character value</returns>

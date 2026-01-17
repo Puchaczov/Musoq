@@ -10,28 +10,28 @@ using Musoq.Schema;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Emits C# syntax for schema-related operations.
+///     Emits C# syntax for schema-related operations.
 /// </summary>
 internal static class SchemaNodeEmitter
 {
     /// <summary>
-    /// Creates the table info variable declaration containing column metadata.
+    ///     Creates the table info variable declaration containing column metadata.
     /// </summary>
     public static VariableDeclarationSyntax CreateTableInfoDeclaration(
         string tableInfoVariableName,
         IEnumerable<ISchemaColumn> columns)
     {
-        var columnExpressions = columns.Select(column => 
-            SyntaxHelper.CreateObjectOf(
-                nameof(Column),
-                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
-                    SyntaxFactory.Argument(
-                        SyntaxFactory.LiteralExpression(
-                            SyntaxKind.StringLiteralExpression,
-                            SyntaxFactory.Literal(column.ColumnName))),
-                    SyntaxHelper.TypeLiteralArgument(EvaluationHelper.GetCastableType(column.ColumnType)),
-                    SyntaxHelper.IntLiteralArgument(column.ColumnIndex)
-                ]))))
+        var columnExpressions = columns.Select(column =>
+                SyntaxHelper.CreateObjectOf(
+                    nameof(Column),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                SyntaxKind.StringLiteralExpression,
+                                SyntaxFactory.Literal(column.ColumnName))),
+                        SyntaxHelper.TypeLiteralArgument(EvaluationHelper.GetCastableType(column.ColumnType)),
+                        SyntaxHelper.IntLiteralArgument(column.ColumnIndex)
+                    ]))))
             .Cast<ExpressionSyntax>()
             .ToArray();
 
@@ -41,7 +41,7 @@ internal static class SchemaNodeEmitter
     }
 
     /// <summary>
-    /// Creates the schema variable declaration.
+    ///     Creates the schema variable declaration.
     /// </summary>
     public static VariableDeclarationSyntax CreateSchemaDeclaration(string alias, string schemaName)
     {
@@ -56,7 +56,7 @@ internal static class SchemaNodeEmitter
     }
 
     /// <summary>
-    /// Creates the schema rows variable declaration.
+    ///     Creates the schema rows variable declaration.
     /// </summary>
     public static VariableDeclarationSyntax CreateSchemaRowsDeclaration(
         string alias,
@@ -77,7 +77,7 @@ internal static class SchemaNodeEmitter
     }
 
     /// <summary>
-    /// Creates a RuntimeContext object creation expression.
+    ///     Creates a RuntimeContext object creation expression.
     /// </summary>
     public static ObjectCreationExpressionSyntax CreateRuntimeContext(
         string nodeId,
@@ -121,7 +121,7 @@ internal static class SchemaNodeEmitter
     }
 
     /// <summary>
-    /// Creates a row source statement for in-memory tables.
+    ///     Creates a row source statement for in-memory tables.
     /// </summary>
     public static LocalDeclarationStatementSyntax CreateInMemoryTableRowsSource(
         string alias,
@@ -152,14 +152,17 @@ internal static class SchemaNodeEmitter
                                             SyntaxFactory.MemberAccessExpression(
                                                 SyntaxKind.SimpleMemberAccessExpression,
                                                 SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                                                SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ConvertTableToSource))))
+                                                SyntaxFactory.IdentifierName(
+                                                    nameof(EvaluationHelper.ConvertTableToSource))))
                                         .WithArgumentList(
                                             SyntaxFactory.ArgumentList(
-                                                SyntaxFactory.SeparatedList([tableArgument, literalTrueArgument]))))))));
+                                                SyntaxFactory.SeparatedList([
+                                                    tableArgument, literalTrueArgument
+                                                ]))))))));
     }
 
     /// <summary>
-    /// Creates a row source statement for enumerable sources.
+    ///     Creates a row source statement for enumerable sources.
     /// </summary>
     public static LocalDeclarationStatementSyntax CreateEnumerableRowsSource(
         string alias,
@@ -177,18 +180,20 @@ internal static class SchemaNodeEmitter
                                             SyntaxFactory.MemberAccessExpression(
                                                 SyntaxKind.SimpleMemberAccessExpression,
                                                 SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                                                SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ConvertEnumerableToSource))))
+                                                SyntaxFactory.IdentifierName(
+                                                    nameof(EvaluationHelper.ConvertEnumerableToSource))))
                                         .WithArgumentList(
                                             SyntaxFactory.ArgumentList(
                                                 SyntaxFactory.SingletonSeparatedList(
                                                     SyntaxFactory.Argument(
                                                         SyntaxFactory.CastExpression(
-                                                            SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(returnType)),
+                                                            SyntaxFactory.ParseTypeName(
+                                                                EvaluationHelper.GetCastableType(returnType)),
                                                             sourceExpression))))))))));
     }
 
     /// <summary>
-    /// Creates a row source statement for property chain navigation.
+    ///     Creates a row source statement for property chain navigation.
     /// </summary>
     public static LocalDeclarationStatementSyntax CreatePropertyRowsSource(
         string alias,
@@ -196,7 +201,6 @@ internal static class SchemaNodeEmitter
         Type returnType,
         (string PropertyName, Type PropertyType)[] propertiesChain)
     {
-        
         ExpressionSyntax propertyAccess = SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.CastExpression(
                 SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(propertiesChain[0].PropertyType)),
@@ -209,14 +213,12 @@ internal static class SchemaNodeEmitter
                                     SyntaxKind.StringLiteralExpression,
                                     SyntaxFactory.Literal(propertiesChain[0].PropertyName))))))));
 
-        
+
         for (var i = 1; i < propertiesChain.Length; i++)
-        {
             propertyAccess = SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 propertyAccess,
                 SyntaxFactory.IdentifierName(propertiesChain[i].PropertyName));
-        }
 
         return SyntaxFactory.LocalDeclarationStatement(
             SyntaxFactory.VariableDeclaration(
@@ -231,28 +233,20 @@ internal static class SchemaNodeEmitter
                                             SyntaxFactory.MemberAccessExpression(
                                                 SyntaxKind.SimpleMemberAccessExpression,
                                                 SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                                                SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ConvertEnumerableToSource))))
+                                                SyntaxFactory.IdentifierName(
+                                                    nameof(EvaluationHelper.ConvertEnumerableToSource))))
                                         .WithArgumentList(
                                             SyntaxFactory.ArgumentList(
                                                 SyntaxFactory.SingletonSeparatedList(
                                                     SyntaxFactory.Argument(
                                                         SyntaxFactory.CastExpression(
-                                                            SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(returnType)),
+                                                            SyntaxFactory.ParseTypeName(
+                                                                EvaluationHelper.GetCastableType(returnType)),
                                                             propertyAccess))))))))));
     }
 
     /// <summary>
-    /// Result of processing a SchemaFromNode.
-    /// </summary>
-    public readonly struct SchemaFromNodeResult
-    {
-        public LocalDeclarationStatementSyntax TableInfoStatement { get; init; }
-        public LocalDeclarationStatementSyntax SchemaStatement { get; init; }
-        public LocalDeclarationStatementSyntax RowsStatement { get; init; }
-    }
-
-    /// <summary>
-    /// Processes a SchemaFromNode and returns all required statements.
+    ///     Processes a SchemaFromNode and returns all required statements.
     /// </summary>
     public static SchemaFromNodeResult ProcessSchemaFromNode(
         string nodeId,
@@ -269,7 +263,8 @@ internal static class SchemaNodeEmitter
         var createdSchema = CreateSchemaDeclaration(alias, schema);
 
         var args = argList.Arguments.Select(arg => arg.Expression);
-        var runtimeContext = CreateRuntimeContext(nodeId, schemaFromIndex, SyntaxFactory.IdentifierName(tableInfoVariableName));
+        var runtimeContext =
+            CreateRuntimeContext(nodeId, schemaFromIndex, SyntaxFactory.IdentifierName(tableInfoVariableName));
         var createdSchemaRows = CreateSchemaRowsDeclaration(alias, method, runtimeContext, args);
 
         return new SchemaFromNodeResult
@@ -278,5 +273,15 @@ internal static class SchemaNodeEmitter
             SchemaStatement = SyntaxFactory.LocalDeclarationStatement(createdSchema),
             RowsStatement = SyntaxFactory.LocalDeclarationStatement(createdSchemaRows)
         };
+    }
+
+    /// <summary>
+    ///     Result of processing a SchemaFromNode.
+    /// </summary>
+    public readonly struct SchemaFromNodeResult
+    {
+        public LocalDeclarationStatementSyntax TableInfoStatement { get; init; }
+        public LocalDeclarationStatementSyntax SchemaStatement { get; init; }
+        public LocalDeclarationStatementSyntax RowsStatement { get; init; }
     }
 }

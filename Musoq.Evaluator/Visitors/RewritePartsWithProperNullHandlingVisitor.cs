@@ -11,7 +11,7 @@ public class RewritePartsWithProperNullHandlingVisitor : CloneQueryVisitor
     {
         _nullableType = nullableType;
     }
-    
+
     public Node RewrittenNode => Nodes.Peek();
 
     public override void Visit(NullNode node)

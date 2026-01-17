@@ -12,7 +12,7 @@ public class ApplySourcesTableFromNode : FromNode
         Second = second;
         ApplyType = applyType;
     }
-        
+
     public ApplySourcesTableFromNode(FromNode first, FromNode second, ApplyType applyType, Type returnType)
         : base($"{first.Alias}{second.Alias}", returnType)
     {
@@ -38,7 +38,7 @@ public class ApplySourcesTableFromNode : FromNode
     public override string ToString()
     {
         var joinType = ApplyType == ApplyType.Cross ? "cross apply" : "outer apply";
-            
+
         return $"{First.ToString()} {joinType} {Second.ToString()}";
     }
 }

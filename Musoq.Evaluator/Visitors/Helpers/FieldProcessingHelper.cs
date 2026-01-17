@@ -9,13 +9,13 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Helper class for processing fields in the RewriteQueryVisitor.
-/// Handles field creation, splitting, and transformation operations.
+///     Helper class for processing fields in the RewriteQueryVisitor.
+///     Handles field creation, splitting, and transformation operations.
 /// </summary>
 public static class FieldProcessingHelper
 {
     /// <summary>
-    /// Creates fields from old fields using a node stack.
+    ///     Creates fields from old fields using a node stack.
     /// </summary>
     /// <param name="oldFields">The original fields.</param>
     /// <param name="nodes">The node stack to pop from.</param>
@@ -28,35 +28,34 @@ public static class FieldProcessingHelper
             throw new ArgumentNullException(nameof(oldFields));
         if (nodes == null)
             throw new ArgumentNullException(nameof(nodes));
-            
+
         if (nodes.Count < oldFields.Length)
-            throw new InvalidOperationException($"Stack must contain at least {oldFields.Length} nodes for field creation");
+            throw new InvalidOperationException(
+                $"Stack must contain at least {oldFields.Length} nodes for field creation");
 
         var reorderedList = new FieldNode[oldFields.Length];
         var fields = new List<FieldNode>(reorderedList.Length);
 
-        for (var i = reorderedList.Length - 1; i >= 0; i--) 
+        for (var i = reorderedList.Length - 1; i >= 0; i--)
         {
             var poppedNode = nodes.Pop();
             if (!(poppedNode is FieldNode fieldNode))
-                throw new ArgumentException($"Node at stack position {i} must be a FieldNode, but was {poppedNode?.GetType().Name ?? "null"}");
+                throw new ArgumentException(
+                    $"Node at stack position {i} must be a FieldNode, but was {poppedNode?.GetType().Name ?? "null"}");
             reorderedList[i] = fieldNode;
         }
 
         for (int i = 0, j = reorderedList.Length, p = 0; i < j; ++i)
         {
             var field = reorderedList[i];
-            
-            
+
+
             if (field == null)
                 throw new ArgumentException($"Field at index {i} cannot be null");
 
-            if (field.Expression is AllColumnsNode)
-            {
-                continue;
-            }
+            if (field.Expression is AllColumnsNode) continue;
 
-            
+
             if (field.Expression == null)
                 throw new ArgumentException($"Field expression at index {i} cannot be null", nameof(oldFields));
 
@@ -67,7 +66,7 @@ public static class FieldProcessingHelper
     }
 
     /// <summary>
-    /// Creates and concatenates fields from two table symbols.
+    ///     Creates and concatenates fields from two table symbols.
     /// </summary>
     /// <param name="left">The left table symbol.</param>
     /// <param name="lAlias">The left alias.</param>
@@ -79,12 +78,12 @@ public static class FieldProcessingHelper
     /// <returns>The created and concatenated fields.</returns>
     /// <exception cref="ArgumentNullException">Thrown when required parameters are null.</exception>
     public static FieldNode[] CreateAndConcatFields(
-        TableSymbol left, 
-        string lAlias, 
-        TableSymbol right, 
-        string rAlias, 
-        Func<string, string, string> createLeftAndRightFieldName, 
-        Func<AccessColumnNode, bool> includeKnownColumn = null, 
+        TableSymbol left,
+        string lAlias,
+        TableSymbol right,
+        string rAlias,
+        Func<string, string, string> createLeftAndRightFieldName,
+        Func<AccessColumnNode, bool> includeKnownColumn = null,
         int startAt = 0)
     {
         if (left == null)
@@ -95,20 +94,20 @@ public static class FieldProcessingHelper
             throw new ArgumentNullException(nameof(createLeftAndRightFieldName));
 
         return CreateAndConcatFields(
-            left, 
-            lAlias, 
-            right, 
-            rAlias, 
-            createLeftAndRightFieldName, 
-            createLeftAndRightFieldName, 
+            left,
+            lAlias,
+            right,
+            rAlias,
+            createLeftAndRightFieldName,
+            createLeftAndRightFieldName,
             (name, alias) => name,
             (name, alias) => name,
-            includeKnownColumn, 
+            includeKnownColumn,
             startAt);
     }
 
     /// <summary>
-    /// Creates and concatenates fields from two table symbols with detailed configuration.
+    ///     Creates and concatenates fields from two table symbols with detailed configuration.
     /// </summary>
     /// <param name="left">The left table symbol.</param>
     /// <param name="leftAlias">The left alias.</param>
@@ -123,12 +122,12 @@ public static class FieldProcessingHelper
     /// <returns>The created and concatenated fields.</returns>
     /// <exception cref="ArgumentNullException">Thrown when required parameters are null.</exception>
     public static FieldNode[] CreateAndConcatFields(
-        TableSymbol left, 
-        string leftAlias, 
-        TableSymbol right, 
+        TableSymbol left,
+        string leftAlias,
+        TableSymbol right,
         string rightAlias,
-        Func<string, string, string> createLeftFieldName, 
-        Func<string, string, string> createRightFieldName, 
+        Func<string, string, string> createLeftFieldName,
+        Func<string, string, string> createRightFieldName,
         Func<string, string, string> createLeftColumnName,
         Func<string, string, string> createRightColumnName,
         Func<AccessColumnNode, bool> isKnownColumn = null,
@@ -139,52 +138,49 @@ public static class FieldProcessingHelper
         var i = startAt;
 
         foreach (var compoundTable in left.CompoundTables)
+        foreach (var column in left.GetColumns(compoundTable))
         {
-            foreach (var column in left.GetColumns(compoundTable))
-            {
-                var accessColumnNode = new AccessColumnNode(
-                    createLeftColumnName(column.ColumnName, compoundTable),
-                    leftAlias,
-                    column.ColumnType,
-                    TextSpan.Empty);
-                    
-                if (isKnownColumn == null || !isKnownColumn(accessColumnNode))
-                    continue;
-                    
-                fields.Add(new FieldNode(accessColumnNode, i++, createLeftFieldName(column.ColumnName, compoundTable)));
-            }
+            var accessColumnNode = new AccessColumnNode(
+                createLeftColumnName(column.ColumnName, compoundTable),
+                leftAlias,
+                column.ColumnType,
+                TextSpan.Empty);
+
+            if (isKnownColumn == null || !isKnownColumn(accessColumnNode))
+                continue;
+
+            fields.Add(new FieldNode(accessColumnNode, i++, createLeftFieldName(column.ColumnName, compoundTable)));
         }
 
         foreach (var compoundTable in right.CompoundTables)
+        foreach (var column in right.GetColumns(compoundTable))
         {
-            foreach (var column in right.GetColumns(compoundTable))
-            {
-                var accessColumnNode = new AccessColumnNode(
-                    createRightColumnName(column.ColumnName, compoundTable),
-                    rightAlias,
-                    column.ColumnType,
-                    TextSpan.Empty);
-                    
-                if (isKnownColumn == null || !isKnownColumn(accessColumnNode))
-                    continue;
-                    
-                fields.Add(
-                    new FieldNode(accessColumnNode, i++, createRightFieldName(column.ColumnName, compoundTable)));
-            }
+            var accessColumnNode = new AccessColumnNode(
+                createRightColumnName(column.ColumnName, compoundTable),
+                rightAlias,
+                column.ColumnType,
+                TextSpan.Empty);
+
+            if (isKnownColumn == null || !isKnownColumn(accessColumnNode))
+                continue;
+
+            fields.Add(
+                new FieldNode(accessColumnNode, i++, createRightFieldName(column.ColumnName, compoundTable)));
         }
-            
+
         return fields.ToArray();
     }
 
     /// <summary>
-    /// Splits fields between aggregate and non-aggregate methods.
+    ///     Splits fields between aggregate and non-aggregate methods.
     /// </summary>
     /// <param name="fieldsToSplit">The fields to split.</param>
     /// <param name="groupByFields">The group by fields.</param>
     /// <param name="useOuterFields">Whether to create outer fields.</param>
     /// <returns>Array of split fields: [aggregate, outer, raw aggregate].</returns>
     /// <exception cref="ArgumentNullException">Thrown when required parameters are null.</exception>
-    public static FieldNode[][] SplitBetweenAggregateAndNonAggregate(FieldNode[] fieldsToSplit, FieldNode[] groupByFields, bool useOuterFields)
+    public static FieldNode[][] SplitBetweenAggregateAndNonAggregate(FieldNode[] fieldsToSplit,
+        FieldNode[] groupByFields, bool useOuterFields)
     {
         var nestedFields = new List<FieldNode>();
         var outerFields = new List<FieldNode>();
@@ -210,7 +206,7 @@ public static class FieldProcessingHelper
                         if (nestedFields.Select(f => f.Expression.ToString()).Contains(subNodeStr))
                             continue;
 
-                        var nameArg = (WordNode) aggregateMethod.Arguments.Args[0];
+                        var nameArg = (WordNode)aggregateMethod.Arguments.Args[0];
                         nestedFields.Add(new FieldNode(subNode, fieldOrder, nameArg.Value));
                         rawNestedFields.Add(new FieldNode(subNode, fieldOrder, string.Empty));
                         fieldOrder += 1;
@@ -250,13 +246,14 @@ public static class FieldProcessingHelper
     }
 
     /// <summary>
-    /// Creates ORDER BY access fields after GROUP BY processing.
+    ///     Creates ORDER BY access fields after GROUP BY processing.
     /// </summary>
     /// <param name="fieldsToSplit">The fields to split.</param>
     /// <param name="groupByFields">The group by fields.</param>
     /// <returns>The processed ordered fields.</returns>
     /// <exception cref="ArgumentNullException">Thrown when required parameters are null.</exception>
-    public static FieldOrderedNode[] CreateAfterGroupByOrderByAccessFields(FieldOrderedNode[] fieldsToSplit, FieldNode[] groupByFields)
+    public static FieldOrderedNode[] CreateAfterGroupByOrderByAccessFields(FieldOrderedNode[] fieldsToSplit,
+        FieldNode[] groupByFields)
     {
         var outerFields = new List<FieldOrderedNode>();
 

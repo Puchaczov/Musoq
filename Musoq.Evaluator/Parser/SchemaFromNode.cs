@@ -16,14 +16,14 @@ public class SchemaFromNode(
     private readonly string _positionalId = $"{alias}:{inSourcePosition}";
 
     public override string Id => _positionalId;
-    
+
     public bool HasExternallyProvidedTypes { get; } = hasExternallyProvidedTypes;
 
     public override int GetHashCode()
     {
         return _positionalId.GetHashCode();
     }
-    
+
     public override bool Equals(object obj)
     {
         if (obj is SchemaFromNode schemaFromNode)

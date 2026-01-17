@@ -6,12 +6,12 @@ using System.Text;
 namespace Musoq.Plugins.Helpers;
 
 /// <summary>
-/// This class is used to calculate hashes of a string.
+///     This class is used to calculate hashes of a string.
 /// </summary>
 public static class HashHelper
 {
     /// <summary>
-    /// Computes the hash of a string using the THashProvider algorithm.
+    ///     Computes the hash of a string using the THashProvider algorithm.
     /// </summary>
     /// <param name="content">The content</param>
     /// <param name="create">The provider</param>
@@ -22,9 +22,9 @@ public static class HashHelper
     {
         return ComputeHash(Encoding.UTF8.GetBytes(content), create);
     }
-        
+
     /// <summary>
-    /// Computes the hash of a string using the THashProvider algorithm.
+    ///     Computes the hash of a string using the THashProvider algorithm.
     /// </summary>
     /// <param name="content">The content</param>
     /// <param name="create">The provider</param>
@@ -38,7 +38,7 @@ public static class HashHelper
     }
 
     /// <summary>
-    /// Computes the hash of a string using the THashProvider algorithm.
+    ///     Computes the hash of a string using the THashProvider algorithm.
     /// </summary>
     /// <param name="stream">The content</param>
     /// <param name="create">The provider</param>

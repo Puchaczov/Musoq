@@ -10,7 +10,8 @@ public class DualRowSource : RowSourceBase<DualEntity>
     {
         chunkedSource.Add(
         [
-            new EntityResolver<DualEntity>(new DualEntity(), SystemSchemaHelper.FlatNameToIndexMap, SystemSchemaHelper.FlatIndexToMethodAccessMap)
+            new EntityResolver<DualEntity>(new DualEntity(), SystemSchemaHelper.FlatNameToIndexMap,
+                SystemSchemaHelper.FlatIndexToMethodAccessMap)
         ]);
     }
 }

@@ -4,15 +4,14 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Basic;
-using Musoq.Schema;
-
-using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
 public class HashJoinCompositeKeysTests : BasicEntityTestBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void InnerJoin_WithCompositeKey_ShouldUseHashJoin()
     {
@@ -35,9 +34,9 @@ on a.Country = b.Country AND a.City = b.City";
             },
             {
                 "#B", [
-                    new BasicEntity { Name = "Doe", City = "New York", Country = "USA" }, 
-                    new BasicEntity { Name = "Smith", City = "London", Country = "UK" },  
-                    new BasicEntity { Name = "Pierre", City = "Lyon", Country = "France" } 
+                    new BasicEntity { Name = "Doe", City = "New York", Country = "USA" },
+                    new BasicEntity { Name = "Smith", City = "London", Country = "UK" },
+                    new BasicEntity { Name = "Pierre", City = "Lyon", Country = "France" }
                 ]
             }
         };
@@ -46,12 +45,12 @@ on a.Country = b.Country AND a.City = b.City";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Should have 2 matches");
-        
+
         var rows = table.OrderBy(r => r[0]).ToList();
-        
+
         Assert.AreEqual("Alice", rows[0][0]);
         Assert.AreEqual("Smith", rows[0][1]);
-        
+
         Assert.AreEqual("John", rows[1][0]);
         Assert.AreEqual("Doe", rows[1][1]);
     }
@@ -86,12 +85,12 @@ on a.Country = b.Country AND a.City = b.City";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        
+
         var rows = table.OrderBy(r => r[0]).ToList();
-        
+
         Assert.AreEqual("Bob", rows[0][0]);
         Assert.IsNull(rows[0][1]);
-        
+
         Assert.AreEqual("John", rows[1][0]);
         Assert.AreEqual("Doe", rows[1][1]);
     }
@@ -116,8 +115,8 @@ on a.Country = b.Country AND a.City = b.City";
             },
             {
                 "#B", [
-                    new BasicEntity { Name = "Doe", City = "New York", Country = "USA" }, 
-                    new BasicEntity { Name = "Pierre", City = "Paris", Country = "France" } 
+                    new BasicEntity { Name = "Doe", City = "New York", Country = "USA" },
+                    new BasicEntity { Name = "Pierre", City = "Paris", Country = "France" }
                 ]
             }
         };
@@ -126,12 +125,12 @@ on a.Country = b.Country AND a.City = b.City";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        
+
         var rows = table.OrderBy(r => r[1]).ToList();
-        
+
         Assert.AreEqual("John", rows[0][0]);
         Assert.AreEqual("Doe", rows[0][1]);
-        
+
         Assert.IsNull(rows[1][0]);
         Assert.AreEqual("Pierre", rows[1][1]);
     }
@@ -188,8 +187,8 @@ on a.Country = b.Country AND a.City = b.City AND a.Month = b.Month";
             },
             {
                 "#B", [
-                    new BasicEntity { Name = "Doe", City = "NY", Country = "USA", Month = "Jan" }, 
-                    new BasicEntity { Name = "Smith", City = "NY", Country = "USA", Month = "Mar" } 
+                    new BasicEntity { Name = "Doe", City = "NY", Country = "USA", Month = "Jan" },
+                    new BasicEntity { Name = "Smith", City = "NY", Country = "USA", Month = "Mar" }
                 ]
             }
         };
@@ -221,7 +220,7 @@ on a.Country = b.Country AND a.City = b.City";
                 ]
             },
             {
-                "#B", new List<BasicEntity>() 
+                "#B", new List<BasicEntity>()
             }
         };
 
@@ -253,8 +252,8 @@ on a.Country = b.Country AND a.City = b.City AND a.Population > b.Population";
             },
             {
                 "#B", [
-                    new BasicEntity { Name = "SmallCity", City = "NY", Country = "USA", Population = 100 }, 
-                    new BasicEntity { Name = "HugeCity", City = "NY", Country = "USA", Population = 2000 }  
+                    new BasicEntity { Name = "SmallCity", City = "NY", Country = "USA", Population = 100 },
+                    new BasicEntity { Name = "HugeCity", City = "NY", Country = "USA", Population = 2000 }
                 ]
             }
         };
@@ -273,12 +272,10 @@ on a.Country = b.Country AND a.City = b.City AND a.Population > b.Population";
         CompilationOptions options)
     {
         return InstanceCreator.CompileForExecution(
-            script, 
-            Guid.NewGuid().ToString(), 
+            script,
+            Guid.NewGuid().ToString(),
             new BasicSchemaProvider<BasicEntity>(sources),
             LoggerResolver,
             options);
     }
-
-    public TestContext TestContext { get; set; }
 }

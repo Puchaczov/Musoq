@@ -14,24 +14,13 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Helper class for processing GroupByNode operations and generating corresponding syntax.
-/// Handles group key generation, group value creation, and field names processing.
+///     Helper class for processing GroupByNode operations and generating corresponding syntax.
+///     Handles group key generation, group value creation, and field names processing.
 /// </summary>
 public static class GroupByNodeProcessor
 {
     /// <summary>
-    /// Represents the result of processing a GroupByNode.
-    /// </summary>
-    public class GroupByProcessingResult
-    {
-        public VariableDeclarationSyntax GroupKeys { get; init; }
-        public VariableDeclarationSyntax GroupValues { get; init; }
-        public SyntaxNode GroupHaving { get; init; }
-        public StatementSyntax GroupFieldsStatement { get; init; }
-    }
-
-    /// <summary>
-    /// Processes a GroupByNode and generates the necessary syntax structures.
+    ///     Processes a GroupByNode and generates the necessary syntax structures.
     /// </summary>
     /// <param name="node">The GroupByNode to process</param>
     /// <param name="nodes">Stack containing field expressions</param>
@@ -53,7 +42,7 @@ public static class GroupByNodeProcessor
 
         var syntaxList = new ExpressionSyntax[node.Fields.Length];
 
-        
+
         for (int i = 0, j = node.Fields.Length - 1; i < node.Fields.Length; i++, j--)
             args[j] = nodes.Pop();
 
@@ -73,7 +62,7 @@ public static class GroupByNodeProcessor
     }
 
     /// <summary>
-    /// Generates group keys from the provided arguments.
+    ///     Generates group keys from the provided arguments.
     /// </summary>
     /// <param name="args">Array of field expressions</param>
     /// <param name="syntaxList">Output array for syntax expressions</param>
@@ -91,7 +80,7 @@ public static class GroupByNodeProcessor
 
             var currentKey = new ArgumentSyntax[i + 1];
             for (var j = i; j >= 0; j--)
-                currentKey[j] = SyntaxFactory.Argument((ExpressionSyntax) args[j]);
+                currentKey[j] = SyntaxFactory.Argument((ExpressionSyntax)args[j]);
 
             keysElements.Add(
                 SyntaxHelper.CreateObjectOf(
@@ -104,7 +93,7 @@ public static class GroupByNodeProcessor
     }
 
     /// <summary>
-    /// Creates the group values variable declaration.
+    ///     Creates the group values variable declaration.
     /// </summary>
     /// <param name="syntaxList">Array of expressions for values</param>
     /// <returns>VariableDeclarationSyntax for group values</returns>
@@ -116,7 +105,7 @@ public static class GroupByNodeProcessor
     }
 
     /// <summary>
-    /// Creates the group keys variable declaration.
+    ///     Creates the group keys variable declaration.
     /// </summary>
     /// <param name="keysElements">List of ObjectCreationExpressionSyntax for keys</param>
     /// <returns>VariableDeclarationSyntax for group keys</returns>
@@ -131,7 +120,7 @@ public static class GroupByNodeProcessor
     }
 
     /// <summary>
-    /// Creates the group fields statement for field names processing.
+    ///     Creates the group fields statement for field names processing.
     /// </summary>
     /// <param name="scope">Current scope for symbol resolution</param>
     /// <returns>StatementSyntax for group fields declaration</returns>
@@ -142,16 +131,18 @@ public static class GroupByNodeProcessor
         var fieldNames = new StringBuilder();
         fieldNames.Append("var groupFieldsNames = new string[][]{");
 
-        
+
         for (var i = 0; i < groupFields.Names.Length - 1; i++)
         {
-            var fieldName = $"new string[]{{{groupFields.Names.Where((f, idx) => idx <= i).Select(f => $"@\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
+            var fieldName =
+                $"new string[]{{{groupFields.Names.Where((f, idx) => idx <= i).Select(f => $"@\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
             fieldNames.Append(fieldName);
             fieldNames.Append(',');
         }
 
-        
-        var lastFieldName = $"new string[]{{{groupFields.Names.Select(f => $"@\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
+
+        var lastFieldName =
+            $"new string[]{{{groupFields.Names.Select(f => $"@\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
         fieldNames.Append(lastFieldName);
         fieldNames.Append("};");
 
@@ -159,7 +150,7 @@ public static class GroupByNodeProcessor
     }
 
     /// <summary>
-    /// Validates the input parameters for ProcessGroupByNode.
+    ///     Validates the input parameters for ProcessGroupByNode.
     /// </summary>
     /// <param name="node">The GroupByNode to validate</param>
     /// <param name="nodes">The nodes stack to validate</param>
@@ -173,5 +164,16 @@ public static class GroupByNodeProcessor
             throw new ArgumentNullException(nameof(nodes));
         if (scope == null)
             throw new ArgumentNullException(nameof(scope));
+    }
+
+    /// <summary>
+    ///     Represents the result of processing a GroupByNode.
+    /// </summary>
+    public class GroupByProcessingResult
+    {
+        public VariableDeclarationSyntax GroupKeys { get; init; }
+        public VariableDeclarationSyntax GroupValues { get; init; }
+        public SyntaxNode GroupHaving { get; init; }
+        public StatementSyntax GroupFieldsStatement { get; init; }
     }
 }

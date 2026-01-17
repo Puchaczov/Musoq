@@ -14,14 +14,14 @@ using Musoq.Schema.DataSources;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Helper class for processing SelectNode visitor operations.
-/// Handles variable creation, context processing, and block syntax generation.
+///     Helper class for processing SelectNode visitor operations.
+///     Handles variable creation, context processing, and block syntax generation.
 /// </summary>
 public static class SelectNodeProcessor
 {
     /// <summary>
-    /// Processes a SelectNode and generates the corresponding block syntax with variable declarations
-    /// and table operations.
+    ///     Processes a SelectNode and generates the corresponding block syntax with variable declarations
+    ///     and table operations.
     /// </summary>
     /// <param name="node">The SelectNode to process</param>
     /// <param name="nodes">Stack of syntax nodes for expression processing</param>
@@ -31,9 +31,9 @@ public static class SelectNodeProcessor
     /// <exception cref="ArgumentNullException">Thrown when required parameters are null</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when method access type is unsupported</exception>
     public static BlockSyntax ProcessSelectNode(
-        SelectNode node, 
-        Stack<SyntaxNode> nodes, 
-        Scope scope, 
+        SelectNode node,
+        Stack<SyntaxNode> nodes,
+        Scope scope,
         MethodAccessType type,
         string rowClassName = null)
     {
@@ -49,14 +49,14 @@ public static class SelectNodeProcessor
         var syntaxList = new ExpressionSyntax[node.Fields.Length];
 
         for (var i = 0; i < node.Fields.Length; i++)
-            syntaxList[node.Fields.Length - 1 - i] = (ExpressionSyntax) nodes.Pop();
+            syntaxList[node.Fields.Length - 1 - i] = (ExpressionSyntax)nodes.Pop();
 
         var contexts = scope[MetaAttributes.Contexts].Split(',');
         var contextsExpressions = new List<ArgumentSyntax>();
 
         foreach (var context in contexts)
         {
-            string rowVariableName = GetRowVariableName(type, context);
+            var rowVariableName = GetRowVariableName(type, context);
 
             contextsExpressions.Add(
                 SyntaxFactory.Argument(
@@ -71,7 +71,7 @@ public static class SelectNodeProcessor
             var args = new List<ArgumentSyntax>();
             foreach (var expr in syntaxList)
                 args.Add(SyntaxFactory.Argument(expr));
-            
+
             args.AddRange(contextsExpressions);
 
             var invocation = SyntaxHelper.CreateMethodInvocation(
@@ -140,7 +140,7 @@ public static class SelectNodeProcessor
     }
 
     /// <summary>
-    /// Gets the appropriate row variable name based on the method access type and context.
+    ///     Gets the appropriate row variable name based on the method access type and context.
     /// </summary>
     /// <param name="type">The method access type</param>
     /// <param name="context">The context name</param>

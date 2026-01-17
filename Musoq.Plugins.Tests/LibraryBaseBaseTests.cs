@@ -6,11 +6,10 @@ namespace Musoq.Plugins.Tests;
 [TestClass]
 public class LibraryBaseBaseTests
 {
-    private class EmptyLibrary : LibraryBase { }
     private Group _root = null!;
+    protected Group Group = null!;
 
     protected LibraryBase Library = null!;
-    protected Group Group = null!;
 
     [TestInitialize]
     public void Initialize()
@@ -21,9 +20,13 @@ public class LibraryBaseBaseTests
 
         Culture.ApplyWithDefaultCulture();
     }
-        
+
     protected virtual LibraryBase CreateLibrary()
     {
         return new EmptyLibrary();
+    }
+
+    private class EmptyLibrary : LibraryBase
+    {
     }
 }

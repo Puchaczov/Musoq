@@ -57,7 +57,7 @@ public class GroupKey(params object[] values)
         if (ReferenceEquals(null, obj)) return false;
         if (ReferenceEquals(this, obj)) return true;
         if (obj.GetType() != GetType()) return false;
-        return Equals(Values, ((GroupKey) obj).Values);
+        return Equals(Values, ((GroupKey)obj).Values);
     }
 
     public override int GetHashCode()
@@ -69,7 +69,7 @@ public class GroupKey(params object[] values)
             {
                 var val = Values[i];
 
-                if(val == null)
+                if (val == null)
                     continue;
 
                 hash += val.GetHashCode();

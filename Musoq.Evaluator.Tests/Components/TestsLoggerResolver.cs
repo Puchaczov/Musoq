@@ -9,14 +9,14 @@ public class TestsLoggerResolver : ILoggerResolver
     public ILogger ResolveLogger()
     {
         var loggerMock = new Mock<ILogger>();
-            
+
         return loggerMock.Object;
     }
 
     public ILogger<T> ResolveLogger<T>()
     {
         var loggerMock = new Mock<ILogger<T>>();
-            
+
         return loggerMock.Object;
     }
 }

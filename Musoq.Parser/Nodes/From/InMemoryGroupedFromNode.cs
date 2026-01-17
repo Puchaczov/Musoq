@@ -9,7 +9,7 @@ public class InMemoryGroupedFromNode : FromNode
     {
         Id = $"{nameof(InMemoryTableFromNode)}{alias}";
     }
-        
+
     public InMemoryGroupedFromNode(string alias, Type returnType)
         : base(alias, returnType)
     {

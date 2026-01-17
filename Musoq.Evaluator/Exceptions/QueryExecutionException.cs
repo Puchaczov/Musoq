@@ -3,14 +3,11 @@ using System;
 namespace Musoq.Evaluator.Exceptions;
 
 /// <summary>
-/// Exception thrown when query execution fails with detailed error information.
-/// Provides context about what went wrong during query execution.
+///     Exception thrown when query execution fails with detailed error information.
+///     Provides context about what went wrong during query execution.
 /// </summary>
 public class QueryExecutionException : InvalidOperationException
 {
-    public string QueryContext { get; }
-    public string ExecutionPhase { get; }
-
     public QueryExecutionException(string queryContext, string executionPhase, string message)
         : base(message)
     {
@@ -25,11 +22,14 @@ public class QueryExecutionException : InvalidOperationException
         ExecutionPhase = executionPhase;
     }
 
+    public string QueryContext { get; }
+    public string ExecutionPhase { get; }
+
     public static QueryExecutionException ForNullRunnable()
     {
         return new QueryExecutionException(
             "CompiledQuery",
-            "Initialization", 
+            "Initialization",
             "The query execution object (IRunnable) cannot be null. This indicates a problem with query compilation. Please check your SQL query syntax and try again."
         );
     }

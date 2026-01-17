@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
@@ -124,12 +124,12 @@ public class AvgTests : LibraryBaseBaseTests
     [TestMethod]
     public void AvgSByteTest()
     {
-        Library.SetAvg(Group, "test", (sbyte)10);
-        Library.SetAvg(Group, "test", (sbyte)-10);
-        Library.SetAvg(Group, "test", (sbyte)20);
-        Library.SetAvg(Group, "test", (sbyte?)null);
+        Library.SetAvg(Group, "test", 10);
+        Library.SetAvg(Group, "test", -10);
+        Library.SetAvg(Group, "test", 20);
+        Library.SetAvg(Group, "test", null);
 
-        
+
         var result = Library.Avg(Group, "test");
         Assert.IsTrue(result > 6.6m && result < 6.7m);
     }
@@ -137,10 +137,10 @@ public class AvgTests : LibraryBaseBaseTests
     [TestMethod]
     public void AvgSByteParentTest()
     {
-        Library.SetAvg(Group, "test", (sbyte)15, 1);
-        Library.SetAvg(Group, "test", (sbyte)15, 1);
-        Library.SetAvg(Group, "test", (sbyte)30);
-        Library.SetAvg(Group, "test", (sbyte?)null, 1);
+        Library.SetAvg(Group, "test", 15, 1);
+        Library.SetAvg(Group, "test", 15, 1);
+        Library.SetAvg(Group, "test", 30);
+        Library.SetAvg(Group, "test", null, 1);
 
         Assert.AreEqual(15m, Library.Avg(Group, "test", 1));
         Assert.AreEqual(30m, Library.Avg(Group, "test"));
@@ -155,7 +155,7 @@ public class AvgTests : LibraryBaseBaseTests
     {
         Library.SetAvg(Group, "test", (short)100);
         Library.SetAvg(Group, "test", (short)200);
-        Library.SetAvg(Group, "test", (short)300);
+        Library.SetAvg(Group, "test", 300);
         Library.SetAvg(Group, "test", (short?)null);
 
         Assert.AreEqual(200m, Library.Avg(Group, "test"));
@@ -166,7 +166,7 @@ public class AvgTests : LibraryBaseBaseTests
     {
         Library.SetAvg(Group, "test", (short)50, 1);
         Library.SetAvg(Group, "test", (short)150, 1);
-        Library.SetAvg(Group, "test", (short)500);
+        Library.SetAvg(Group, "test", 500);
         Library.SetAvg(Group, "test", (short?)null, 1);
 
         Assert.AreEqual(100m, Library.Avg(Group, "test", 1));
@@ -288,7 +288,7 @@ public class AvgTests : LibraryBaseBaseTests
         Library.SetAvg(Group, "test", -5.0f);
         Library.SetAvg(Group, "test", 10.0f);
 
-        
+
         Assert.AreEqual(5m, Library.Avg(Group, "test"));
     }
 
@@ -326,7 +326,7 @@ public class AvgTests : LibraryBaseBaseTests
         Library.SetAvg(Group, "test", -50.0d);
         Library.SetAvg(Group, "test", 100.0d);
 
-        
+
         Assert.AreEqual(50m, Library.Avg(Group, "test"));
     }
 

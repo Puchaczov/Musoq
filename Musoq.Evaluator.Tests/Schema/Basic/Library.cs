@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests.Schema.Basic;
 public class Library : LibraryBase
 {
     private readonly Random _random = new();
-        
+
     [BindableMethod]
     public T DoNothing<T>(T value)
     {
@@ -27,18 +27,21 @@ public class Library : LibraryBase
     {
         return entity.Name;
     }
-    
+
     [BindableMethod]
-    public string[] MethodArrayOfStrings([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity, string name1, string name2)
+    public string[] MethodArrayOfStrings([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity, string name1,
+        string name2)
     {
-        return [
+        return
+        [
             name1,
             name2
         ];
     }
-    
+
     [BindableMethod]
-    public string TestMethodWithInjectEntityAndParameter([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity, string name)
+    public string TestMethodWithInjectEntityAndParameter([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity,
+        string name)
     {
         return name;
     }
@@ -153,19 +156,19 @@ public class Library : LibraryBase
         Assert.AreEqual("text", text);
         return 1;
     }
-        
+
     [BindableMethod]
     public string GetCity([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
     {
         return entity.City;
     }
-        
+
     [BindableMethod]
     public string GetCountry([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
     {
         return entity.Country;
     }
-        
+
     [BindableMethod]
     public decimal GetPopulation([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
     {
@@ -179,11 +182,12 @@ public class Library : LibraryBase
     }
 
     [BindableMethod]
-    public string GetCountryOrDefaultGeneric<TColumn>([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity, TColumn @default)
+    public string GetCountryOrDefaultGeneric<TColumn>([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity,
+        TColumn @default)
     {
         return entity.Country ?? @default.ToString();
     }
-        
+
     [BindableMethod]
     public string ThrowException()
     {

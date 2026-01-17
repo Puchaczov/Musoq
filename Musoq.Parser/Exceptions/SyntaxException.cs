@@ -4,8 +4,6 @@ namespace Musoq.Parser.Exceptions;
 
 public class SyntaxException : Exception
 {
-    public string QueryPart { get; }
-
     public SyntaxException(string message, string queryPart) : base(message)
     {
         QueryPart = queryPart;
@@ -15,4 +13,6 @@ public class SyntaxException : Exception
     {
         QueryPart = queryPart;
     }
+
+    public string QueryPart { get; }
 }

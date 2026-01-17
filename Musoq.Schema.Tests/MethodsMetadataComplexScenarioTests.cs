@@ -11,50 +11,6 @@ namespace Musoq.Schema.Tests;
 [TestClass]
 public class MethodsMetadataComplexScenarioTests
 {
-    private interface IEntity { }
-    private interface IAggregatable { }
-    private class Entity : IEntity { }
-
-    private class TestClass
-    {
-        [AggregationMethod]
-        public void ComplexAggregation(
-            string name,
-            [InjectSpecificSource(typeof(IEntity))] IEntity entity,
-            decimal value,
-            string format = "F2",
-            params string[] tags)
-        { }
-
-        [AggregationGetMethod]
-        public decimal AggregateData(string name) { return 0m; }
-
-        public TResult ProcessData<TSource, TResult>(
-            [InjectSpecificSource(typeof(IEntity))] IEntity entity,
-            TSource source,
-            Func<TSource, TResult> transformer)
-            where TSource : struct
-            where TResult : class
-        { return null; }
-
-        public void ProcessCollection<T>(IEnumerable<T> items) { }
-        public void ProcessCollection(IEnumerable<int> items) { }
-        public void ProcessCollection(int[] items) { }
-        public void ProcessCollection(params object[] items) { }
-
-        public string HandleNullableData(int? value, string format = null) { return string.Empty; }
-        public string HandleNullableData(DateTime? value, string format = null) { return string.Empty; }
-        public string HandleNullableData(object value, string format = null) { return string.Empty; }
-
-        public void ComplexInjection<T>(
-            [InjectSpecificSource(typeof(IEntity))] IEntity entity,
-            [InjectGroup] object group,
-            T value,
-            params string[] additionalData)
-            where T : IEntity
-        { }
-    }
-
     private MethodsMetadata _methodsMetadata;
 
     [TestInitialize]
@@ -168,15 +124,97 @@ public class MethodsMetadataComplexScenarioTests
         );
     }
 
+    private interface IEntity
+    {
+    }
+
+    private interface IAggregatable
+    {
+    }
+
+    private class Entity : IEntity
+    {
+    }
+
+    private class TestClass
+    {
+        [AggregationMethod]
+        public void ComplexAggregation(
+            string name,
+            [InjectSpecificSource(typeof(IEntity))]
+            IEntity entity,
+            decimal value,
+            string format = "F2",
+            params string[] tags)
+        {
+        }
+
+        [AggregationGetMethod]
+        public decimal AggregateData(string name)
+        {
+            return 0m;
+        }
+
+        public TResult ProcessData<TSource, TResult>(
+            [InjectSpecificSource(typeof(IEntity))]
+            IEntity entity,
+            TSource source,
+            Func<TSource, TResult> transformer)
+            where TSource : struct
+            where TResult : class
+        {
+            return null;
+        }
+
+        public void ProcessCollection<T>(IEnumerable<T> items)
+        {
+        }
+
+        public void ProcessCollection(IEnumerable<int> items)
+        {
+        }
+
+        public void ProcessCollection(int[] items)
+        {
+        }
+
+        public void ProcessCollection(params object[] items)
+        {
+        }
+
+        public string HandleNullableData(int? value, string format = null)
+        {
+            return string.Empty;
+        }
+
+        public string HandleNullableData(DateTime? value, string format = null)
+        {
+            return string.Empty;
+        }
+
+        public string HandleNullableData(object value, string format = null)
+        {
+            return string.Empty;
+        }
+
+        public void ComplexInjection<T>(
+            [InjectSpecificSource(typeof(IEntity))]
+            IEntity entity,
+            [InjectGroup] object group,
+            T value,
+            params string[] additionalData)
+            where T : IEntity
+        {
+        }
+    }
+
     private class TestMethodsMetadata : MethodsMetadata
     {
         public TestMethodsMetadata()
         {
             var testClass = typeof(TestClass);
-            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-            {
-                RegisterMethod(method);
-            }
+            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance |
+                                                        BindingFlags.DeclaredOnly)) RegisterMethod(method);
         }
 
         private new void RegisterMethod(MethodInfo methodInfo)

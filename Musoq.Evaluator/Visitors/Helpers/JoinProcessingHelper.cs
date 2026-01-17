@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -15,13 +16,13 @@ using Musoq.Schema.DataSources;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Helper class for processing join operations in ToCSharpRewriteTreeVisitor.
-/// Extracts complex join logic to improve maintainability and testability.
+///     Helper class for processing join operations in ToCSharpRewriteTreeVisitor.
+///     Extracts complex join logic to improve maintainability and testability.
 /// </summary>
 public static class JoinProcessingHelper
 {
     /// <summary>
-    /// Processes an inner join operation.
+    ///     Processes an inner join operation.
     /// </summary>
     /// <param name="node">The join node containing source and memory table information</param>
     /// <param name="ifStatement">The conditional statement for join logic</param>
@@ -35,13 +36,14 @@ public static class JoinProcessingHelper
         StatementSyntax ifStatement,
         BlockSyntax emptyBlock,
         SyntaxGenerator generator,
-        System.Func<string, StatementSyntax> getRowsSourceOrEmpty,
-        System.Func<StatementSyntax> generateCancellationExpression)
+        Func<string, StatementSyntax> getRowsSourceOrEmpty,
+        Func<StatementSyntax> generateCancellationExpression)
     {
-        ValidateJoinParameters(node, ifStatement, emptyBlock, generator, getRowsSourceOrEmpty, generateCancellationExpression);
+        ValidateJoinParameters(node, ifStatement, emptyBlock, generator, getRowsSourceOrEmpty,
+            generateCancellationExpression);
 
         var computingBlock = SyntaxFactory.Block();
-        
+
         return computingBlock.AddStatements(
             SyntaxFactory.ForEachStatement(
                 SyntaxFactory.IdentifierName("var"),
@@ -61,7 +63,7 @@ public static class JoinProcessingHelper
     }
 
     /// <summary>
-    /// Processes an outer left join operation.
+    ///     Processes an outer left join operation.
     /// </summary>
     /// <param name="node">The join node containing source and memory table information</param>
     /// <param name="ifStatement">The conditional statement for join logic</param>
@@ -79,15 +81,16 @@ public static class JoinProcessingHelper
         SyntaxGenerator generator,
         Scope scope,
         string queryAlias,
-        System.Func<string, StatementSyntax> getRowsSourceOrEmpty,
-        System.Func<StatementSyntax> generateCancellationExpression)
+        Func<string, StatementSyntax> getRowsSourceOrEmpty,
+        Func<StatementSyntax> generateCancellationExpression)
     {
-        ValidateOuterJoinParameters(node, ifStatement, emptyBlock, generator, scope, queryAlias, getRowsSourceOrEmpty, generateCancellationExpression);
+        ValidateOuterJoinParameters(node, ifStatement, emptyBlock, generator, scope, queryAlias, getRowsSourceOrEmpty,
+            generateCancellationExpression);
 
         var computingBlock = SyntaxFactory.Block();
         var fullTransitionTable = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(queryAlias);
         var fieldNames = scope.ScopeSymbolTable.GetSymbol<FieldsNamesSymbol>(MetaAttributes.OuterJoinSelect);
-        
+
         var expressions = BuildLeftJoinExpressions(node, fullTransitionTable, fieldNames, generator);
         var rewriteSelect = CreateSelectVariableDeclaration(expressions);
         var invocation = CreateTableAddInvocation(node, scope);
@@ -113,16 +116,16 @@ public static class JoinProcessingHelper
                             ifStatement,
                             emptyBlock,
                             SyntaxFactory.IfStatement(
-                                (PrefixUnaryExpressionSyntax) generator.LogicalNotExpression(
+                                (PrefixUnaryExpressionSyntax)generator.LogicalNotExpression(
                                     SyntaxFactory.IdentifierName("hasAnyRowMatched")),
                                 SyntaxFactory.Block(
                                     SyntaxFactory.ExpressionStatement(
                                         SyntaxFactory.AssignmentExpression(
                                             SyntaxKind.SimpleAssignmentExpression,
                                             SyntaxFactory.IdentifierName("hasAnyRowMatched"),
-                                            (LiteralExpressionSyntax) generator.TrueLiteralExpression())))))),
+                                            (LiteralExpressionSyntax)generator.TrueLiteralExpression())))))),
                     SyntaxFactory.IfStatement(
-                        (PrefixUnaryExpressionSyntax) generator.LogicalNotExpression(
+                        (PrefixUnaryExpressionSyntax)generator.LogicalNotExpression(
                             SyntaxFactory.IdentifierName("hasAnyRowMatched")),
                         SyntaxFactory.Block(
                             SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
@@ -130,7 +133,7 @@ public static class JoinProcessingHelper
     }
 
     /// <summary>
-    /// Processes an outer right join operation.
+    ///     Processes an outer right join operation.
     /// </summary>
     /// <param name="node">The join node containing source and memory table information</param>
     /// <param name="ifStatement">The conditional statement for join logic</param>
@@ -148,15 +151,16 @@ public static class JoinProcessingHelper
         SyntaxGenerator generator,
         Scope scope,
         string queryAlias,
-        System.Func<string, StatementSyntax> getRowsSourceOrEmpty,
-        System.Func<StatementSyntax> generateCancellationExpression)
+        Func<string, StatementSyntax> getRowsSourceOrEmpty,
+        Func<StatementSyntax> generateCancellationExpression)
     {
-        ValidateOuterJoinParameters(node, ifStatement, emptyBlock, generator, scope, queryAlias, getRowsSourceOrEmpty, generateCancellationExpression);
+        ValidateOuterJoinParameters(node, ifStatement, emptyBlock, generator, scope, queryAlias, getRowsSourceOrEmpty,
+            generateCancellationExpression);
 
         var computingBlock = SyntaxFactory.Block();
         var fullTransitionTable = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(queryAlias);
         var fieldNames = scope.ScopeSymbolTable.GetSymbol<FieldsNamesSymbol>(MetaAttributes.OuterJoinSelect);
-        
+
         var expressions = BuildRightJoinExpressions(node, fullTransitionTable, fieldNames, generator);
         var rewriteSelect = CreateSelectVariableDeclaration(expressions);
         var invocation = CreateTableAddInvocationForRightJoin(node, scope);
@@ -182,16 +186,16 @@ public static class JoinProcessingHelper
                             ifStatement,
                             emptyBlock,
                             SyntaxFactory.IfStatement(
-                                (PrefixUnaryExpressionSyntax) generator.LogicalNotExpression(
+                                (PrefixUnaryExpressionSyntax)generator.LogicalNotExpression(
                                     SyntaxFactory.IdentifierName("hasAnyRowMatched")),
                                 SyntaxFactory.Block(
                                     SyntaxFactory.ExpressionStatement(
                                         SyntaxFactory.AssignmentExpression(
                                             SyntaxKind.SimpleAssignmentExpression,
                                             SyntaxFactory.IdentifierName("hasAnyRowMatched"),
-                                            (LiteralExpressionSyntax) generator.TrueLiteralExpression())))))),
+                                            (LiteralExpressionSyntax)generator.TrueLiteralExpression())))))),
                     SyntaxFactory.IfStatement(
-                        (PrefixUnaryExpressionSyntax) generator.LogicalNotExpression(
+                        (PrefixUnaryExpressionSyntax)generator.LogicalNotExpression(
                             SyntaxFactory.IdentifierName("hasAnyRowMatched")),
                         SyntaxFactory.Block(
                             SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
@@ -199,7 +203,7 @@ public static class JoinProcessingHelper
     }
 
     /// <summary>
-    /// Builds expressions for left join operations.
+    ///     Builds expressions for left join operations.
     /// </summary>
     private static List<ExpressionSyntax> BuildLeftJoinExpressions(
         JoinInMemoryWithSourceTableFromNode node,
@@ -211,7 +215,6 @@ public static class JoinProcessingHelper
         var j = 0;
 
         for (var i = 0; i < fullTransitionTable.CompoundTables.Length - 1; i++)
-        {
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[i]))
             {
                 expressions.Add(
@@ -220,25 +223,22 @@ public static class JoinProcessingHelper
                         SyntaxFactory.BracketedArgumentList(
                             SyntaxFactory.SingletonSeparatedList(
                                 SyntaxFactory.Argument(
-                                    (LiteralExpressionSyntax) generator.LiteralExpression(
+                                    (LiteralExpressionSyntax)generator.LiteralExpression(
                                         fieldNames.Names[j]))))));
                 j += 1;
             }
-        }
 
         foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[^1]))
-        {
             expressions.Add(
                 SyntaxFactory.CastExpression(
                     SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(column.ColumnType)),
-                    (LiteralExpressionSyntax) generator.NullLiteralExpression()));
-        }
+                    (LiteralExpressionSyntax)generator.NullLiteralExpression()));
 
         return expressions;
     }
 
     /// <summary>
-    /// Builds expressions for right join operations.
+    ///     Builds expressions for right join operations.
     /// </summary>
     private static List<ExpressionSyntax> BuildRightJoinExpressions(
         JoinInMemoryWithSourceTableFromNode node,
@@ -250,34 +250,30 @@ public static class JoinProcessingHelper
         var j = 0;
 
         for (var i = 0; i < fullTransitionTable.CompoundTables.Length - 1; i++)
-        {
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[i]))
             {
                 expressions.Add(
                     SyntaxFactory.CastExpression(
                         SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(column.ColumnType)),
-                        (LiteralExpressionSyntax) generator.NullLiteralExpression()));
+                        (LiteralExpressionSyntax)generator.NullLiteralExpression()));
                 j += 1;
             }
-        }
 
         foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[^1]))
-        {
             expressions.Add(
                 SyntaxFactory.ElementAccessExpression(
                     SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Row"),
                     SyntaxFactory.BracketedArgumentList(
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.Argument(
-                                (LiteralExpressionSyntax) generator.LiteralExpression(
+                                (LiteralExpressionSyntax)generator.LiteralExpression(
                                     fieldNames.Names[j++]))))));
-        }
 
         return expressions;
     }
 
     /// <summary>
-    /// Creates a variable declaration for the select statement.
+    ///     Creates a variable declaration for the select statement.
     /// </summary>
     private static VariableDeclarationSyntax CreateSelectVariableDeclaration(List<ExpressionSyntax> expressions)
     {
@@ -286,7 +282,7 @@ public static class JoinProcessingHelper
             new SyntaxList<ArrayRankSpecifierSyntax>(
                 SyntaxFactory.ArrayRankSpecifier(
                     SyntaxFactory.SingletonSeparatedList(
-                        (ExpressionSyntax) SyntaxFactory.OmittedArraySizeExpression()))));
+                        (ExpressionSyntax)SyntaxFactory.OmittedArraySizeExpression()))));
 
         return SyntaxFactory.VariableDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -303,7 +299,7 @@ public static class JoinProcessingHelper
     }
 
     /// <summary>
-    /// Creates a table add invocation for left join operations.
+    ///     Creates a table add invocation for left join operations.
     /// </summary>
     private static InvocationExpressionSyntax CreateTableAddInvocation(
         JoinInMemoryWithSourceTableFromNode node,
@@ -338,7 +334,7 @@ public static class JoinProcessingHelper
     }
 
     /// <summary>
-    /// Creates a table add invocation for right join operations.
+    ///     Creates a table add invocation for right join operations.
     /// </summary>
     private static InvocationExpressionSyntax CreateTableAddInvocationForRightJoin(
         JoinInMemoryWithSourceTableFromNode node,
@@ -373,7 +369,7 @@ public static class JoinProcessingHelper
     }
 
     /// <summary>
-    /// Creates a block from statements, filtering out empty statements.
+    ///     Creates a block from statements, filtering out empty statements.
     /// </summary>
     private static BlockSyntax Block(params StatementSyntax[] statements)
     {
@@ -381,26 +377,27 @@ public static class JoinProcessingHelper
     }
 
     /// <summary>
-    /// Validates parameters for basic join operations.
+    ///     Validates parameters for basic join operations.
     /// </summary>
     private static void ValidateJoinParameters(
         JoinInMemoryWithSourceTableFromNode node,
         StatementSyntax ifStatement,
         BlockSyntax emptyBlock,
         SyntaxGenerator generator,
-        System.Func<string, StatementSyntax> getRowsSourceOrEmpty,
-        System.Func<StatementSyntax> generateCancellationExpression)
+        Func<string, StatementSyntax> getRowsSourceOrEmpty,
+        Func<StatementSyntax> generateCancellationExpression)
     {
-        if (node == null) throw new System.ArgumentNullException(nameof(node));
-        if (ifStatement == null) throw new System.ArgumentNullException(nameof(ifStatement));
-        if (emptyBlock == null) throw new System.ArgumentNullException(nameof(emptyBlock));
-        if (generator == null) throw new System.ArgumentNullException(nameof(generator));
-        if (getRowsSourceOrEmpty == null) throw new System.ArgumentNullException(nameof(getRowsSourceOrEmpty));
-        if (generateCancellationExpression == null) throw new System.ArgumentNullException(nameof(generateCancellationExpression));
+        if (node == null) throw new ArgumentNullException(nameof(node));
+        if (ifStatement == null) throw new ArgumentNullException(nameof(ifStatement));
+        if (emptyBlock == null) throw new ArgumentNullException(nameof(emptyBlock));
+        if (generator == null) throw new ArgumentNullException(nameof(generator));
+        if (getRowsSourceOrEmpty == null) throw new ArgumentNullException(nameof(getRowsSourceOrEmpty));
+        if (generateCancellationExpression == null)
+            throw new ArgumentNullException(nameof(generateCancellationExpression));
     }
 
     /// <summary>
-    /// Validates parameters for outer join operations.
+    ///     Validates parameters for outer join operations.
     /// </summary>
     private static void ValidateOuterJoinParameters(
         JoinInMemoryWithSourceTableFromNode node,
@@ -409,12 +406,14 @@ public static class JoinProcessingHelper
         SyntaxGenerator generator,
         Scope scope,
         string queryAlias,
-        System.Func<string, StatementSyntax> getRowsSourceOrEmpty,
-        System.Func<StatementSyntax> generateCancellationExpression)
+        Func<string, StatementSyntax> getRowsSourceOrEmpty,
+        Func<StatementSyntax> generateCancellationExpression)
     {
-        ValidateJoinParameters(node, ifStatement, emptyBlock, generator, getRowsSourceOrEmpty, generateCancellationExpression);
-        
-        if (scope == null) throw new System.ArgumentNullException(nameof(scope));
-        if (string.IsNullOrEmpty(queryAlias)) throw new System.ArgumentException("Query alias cannot be null or empty", nameof(queryAlias));
+        ValidateJoinParameters(node, ifStatement, emptyBlock, generator, getRowsSourceOrEmpty,
+            generateCancellationExpression);
+
+        if (scope == null) throw new ArgumentNullException(nameof(scope));
+        if (string.IsNullOrEmpty(queryAlias))
+            throw new ArgumentException("Query alias cannot be null or empty", nameof(queryAlias));
     }
 }

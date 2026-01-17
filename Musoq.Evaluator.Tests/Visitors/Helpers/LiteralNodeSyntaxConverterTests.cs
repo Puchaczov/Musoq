@@ -1,6 +1,5 @@
 using System;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Visitors.Helpers;

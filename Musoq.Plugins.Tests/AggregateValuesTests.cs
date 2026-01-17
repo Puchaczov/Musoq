@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
@@ -6,6 +6,92 @@ namespace Musoq.Plugins.Tests;
 [TestClass]
 public class AggregateValuesTests : LibraryBaseBaseTests
 {
+    #region String Null Tests
+
+    [TestMethod]
+    public void AggregateValuesStringNullTest()
+    {
+        Library.SetAggregateValues(Group, "test", "hello");
+        Library.SetAggregateValues(Group, "test", (string?)null);
+        Library.SetAggregateValues(Group, "test", "world");
+
+        Assert.AreEqual("hello,,world", Library.AggregateValues(Group, "test"));
+    }
+
+    #endregion
+
+    #region Int Null Tests
+
+    [TestMethod]
+    public void AggregateValuesIntNullTest()
+    {
+        Library.SetAggregateValues(Group, "test", 10);
+        Library.SetAggregateValues(Group, "test", (int?)null);
+        Library.SetAggregateValues(Group, "test", 30);
+
+        Assert.AreEqual("10,,30", Library.AggregateValues(Group, "test"));
+    }
+
+    #endregion
+
+    #region Long Null Tests
+
+    [TestMethod]
+    public void AggregateValuesLongNullTest()
+    {
+        Library.SetAggregateValues(Group, "test", 100L);
+        Library.SetAggregateValues(Group, "test", (long?)null);
+        Library.SetAggregateValues(Group, "test", 300L);
+
+        Assert.AreEqual("100,,300", Library.AggregateValues(Group, "test"));
+    }
+
+    #endregion
+
+    #region Decimal Null Tests
+
+    [TestMethod]
+    public void AggregateValuesDecimalNullTest()
+    {
+        Library.SetAggregateValues(Group, "test", 10m);
+        Library.SetAggregateValues(Group, "test", (decimal?)null);
+        Library.SetAggregateValues(Group, "test", 30m);
+
+        Assert.AreEqual("10,,30", Library.AggregateValues(Group, "test"));
+    }
+
+    #endregion
+
+    #region DateTime Null Tests
+
+    [TestMethod]
+    public void AggregateValuesDateTimeNullTest()
+    {
+        Library.SetAggregateValues(Group, "test", DateTime.Parse("01/01/2020"));
+        Library.SetAggregateValues(Group, "test", (DateTime?)null);
+        Library.SetAggregateValues(Group, "test", DateTime.Parse("03/03/2020"));
+
+        var result = Library.AggregateValues(Group, "test");
+        Assert.Contains(",,", result);
+    }
+
+    #endregion
+
+    #region DateTimeOffset Null Tests
+
+    [TestMethod]
+    public void AggregateValuesDateTimeOffsetNullTest()
+    {
+        Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("01.01.2020 00:00:00 +01:00"));
+        Library.SetAggregateValues(Group, "test", (DateTimeOffset?)null);
+        Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("03.03.2020 00:00:00 +01:00"));
+
+        var result = Library.AggregateValues(Group, "test");
+        Assert.Contains(",,", result);
+    }
+
+    #endregion
+
     #region Existing Tests
 
     [TestMethod]
@@ -111,7 +197,8 @@ public class AggregateValuesTests : LibraryBaseBaseTests
         Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("05.05.2015 00:00:00 +02:00"), "pl-PL", 1);
         Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("03.02.2001 00:00:00 +01:00"), "pl-PL", 1);
 
-        Assert.AreEqual("05.05.2015 00:00:00 +02:00,03.02.2001 00:00:00 +01:00", Library.AggregateValues(Group, "test", 1));
+        Assert.AreEqual("05.05.2015 00:00:00 +02:00,03.02.2001 00:00:00 +01:00",
+            Library.AggregateValues(Group, "test", 1));
         Assert.AreEqual("01.01.2010 00:00:00 +01:00", Library.AggregateValues(Group, "test"));
     }
 
@@ -122,7 +209,8 @@ public class AggregateValuesTests : LibraryBaseBaseTests
         Library.SetAggregateValues(Group, "test", DateTime.Parse("05/05/2015"));
         Library.SetAggregateValues(Group, "test", DateTime.Parse("03/02/2001"));
 
-        Assert.AreEqual("01.01.2010 00:00:00,05.05.2015 00:00:00,03.02.2001 00:00:00", Library.AggregateValues(Group, "test"));
+        Assert.AreEqual("01.01.2010 00:00:00,05.05.2015 00:00:00,03.02.2001 00:00:00",
+            Library.AggregateValues(Group, "test"));
     }
 
     [TestMethod]
@@ -167,9 +255,9 @@ public class AggregateValuesTests : LibraryBaseBaseTests
     [TestMethod]
     public void AggregateValuesSByteTest()
     {
-        Library.SetAggregateValues(Group, "test", (sbyte)10);
-        Library.SetAggregateValues(Group, "test", (sbyte)-5);
-        Library.SetAggregateValues(Group, "test", (sbyte)15);
+        Library.SetAggregateValues(Group, "test", 10);
+        Library.SetAggregateValues(Group, "test", -5);
+        Library.SetAggregateValues(Group, "test", 15);
 
         Assert.AreEqual("10,-5,15", Library.AggregateValues(Group, "test"));
     }
@@ -177,9 +265,9 @@ public class AggregateValuesTests : LibraryBaseBaseTests
     [TestMethod]
     public void AggregateValuesSByteNullTest()
     {
-        Library.SetAggregateValues(Group, "test", (sbyte)10);
+        Library.SetAggregateValues(Group, "test", 10);
         Library.SetAggregateValues(Group, "test", (sbyte?)null);
-        Library.SetAggregateValues(Group, "test", (sbyte)15);
+        Library.SetAggregateValues(Group, "test", 15);
 
         Assert.AreEqual("10,,15", Library.AggregateValues(Group, "test"));
     }
@@ -193,7 +281,7 @@ public class AggregateValuesTests : LibraryBaseBaseTests
     {
         Library.SetAggregateValues(Group, "test", (short)100);
         Library.SetAggregateValues(Group, "test", (short)200);
-        Library.SetAggregateValues(Group, "test", (short)300);
+        Library.SetAggregateValues(Group, "test", 300);
 
         Assert.AreEqual("100,200,300", Library.AggregateValues(Group, "test"));
     }
@@ -203,7 +291,7 @@ public class AggregateValuesTests : LibraryBaseBaseTests
     {
         Library.SetAggregateValues(Group, "test", (short)100);
         Library.SetAggregateValues(Group, "test", (short?)null);
-        Library.SetAggregateValues(Group, "test", (short)300);
+        Library.SetAggregateValues(Group, "test", 300);
 
         Assert.AreEqual("100,,300", Library.AggregateValues(Group, "test"));
     }
@@ -303,7 +391,7 @@ public class AggregateValuesTests : LibraryBaseBaseTests
         Library.SetAggregateValues(Group, "test", 3.5f);
 
         var result = Library.AggregateValues(Group, "test");
-        Assert.Contains(",,", result); 
+        Assert.Contains(",,", result);
     }
 
     #endregion
@@ -329,7 +417,7 @@ public class AggregateValuesTests : LibraryBaseBaseTests
         Library.SetAggregateValues(Group, "test", 3.25);
 
         var result = Library.AggregateValues(Group, "test");
-        Assert.Contains(",,", result); 
+        Assert.Contains(",,", result);
     }
 
     #endregion
@@ -378,92 +466,6 @@ public class AggregateValuesTests : LibraryBaseBaseTests
         Library.SetAggregateValues(Group, "test", false);
 
         Assert.AreEqual("True,,False", Library.AggregateValues(Group, "test"));
-    }
-
-    #endregion
-
-    #region String Null Tests
-
-    [TestMethod]
-    public void AggregateValuesStringNullTest()
-    {
-        Library.SetAggregateValues(Group, "test", "hello");
-        Library.SetAggregateValues(Group, "test", (string?)null);
-        Library.SetAggregateValues(Group, "test", "world");
-
-        Assert.AreEqual("hello,,world", Library.AggregateValues(Group, "test"));
-    }
-
-    #endregion
-
-    #region Int Null Tests
-
-    [TestMethod]
-    public void AggregateValuesIntNullTest()
-    {
-        Library.SetAggregateValues(Group, "test", 10);
-        Library.SetAggregateValues(Group, "test", (int?)null);
-        Library.SetAggregateValues(Group, "test", 30);
-
-        Assert.AreEqual("10,,30", Library.AggregateValues(Group, "test"));
-    }
-
-    #endregion
-
-    #region Long Null Tests
-
-    [TestMethod]
-    public void AggregateValuesLongNullTest()
-    {
-        Library.SetAggregateValues(Group, "test", 100L);
-        Library.SetAggregateValues(Group, "test", (long?)null);
-        Library.SetAggregateValues(Group, "test", 300L);
-
-        Assert.AreEqual("100,,300", Library.AggregateValues(Group, "test"));
-    }
-
-    #endregion
-
-    #region Decimal Null Tests
-
-    [TestMethod]
-    public void AggregateValuesDecimalNullTest()
-    {
-        Library.SetAggregateValues(Group, "test", 10m);
-        Library.SetAggregateValues(Group, "test", (decimal?)null);
-        Library.SetAggregateValues(Group, "test", 30m);
-
-        Assert.AreEqual("10,,30", Library.AggregateValues(Group, "test"));
-    }
-
-    #endregion
-
-    #region DateTime Null Tests
-
-    [TestMethod]
-    public void AggregateValuesDateTimeNullTest()
-    {
-        Library.SetAggregateValues(Group, "test", DateTime.Parse("01/01/2020"));
-        Library.SetAggregateValues(Group, "test", (DateTime?)null);
-        Library.SetAggregateValues(Group, "test", DateTime.Parse("03/03/2020"));
-
-        var result = Library.AggregateValues(Group, "test");
-        Assert.Contains(",,", result); 
-    }
-
-    #endregion
-
-    #region DateTimeOffset Null Tests
-
-    [TestMethod]
-    public void AggregateValuesDateTimeOffsetNullTest()
-    {
-        Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("01.01.2020 00:00:00 +01:00"));
-        Library.SetAggregateValues(Group, "test", (DateTimeOffset?)null);
-        Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("03.03.2020 00:00:00 +01:00"));
-
-        var result = Library.AggregateValues(Group, "test");
-        Assert.Contains(",,", result); 
     }
 
     #endregion

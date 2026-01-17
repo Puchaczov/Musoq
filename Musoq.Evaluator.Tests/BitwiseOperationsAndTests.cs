@@ -47,7 +47,7 @@ public class BitwiseOperationsAndTests : BasicEntityTestBase
     {
         TestMethodTemplate<long?>("And(1b, 1l)", 1);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseAndBetweenByteAndByte_ShouldBeEvaluated()
     {
@@ -95,7 +95,7 @@ public class BitwiseOperationsAndTests : BasicEntityTestBase
     {
         TestMethodTemplate<ulong?>("And(1ub, 1ul)", 1);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseAndBetweenUshortAndByte_ShouldBeEvaluated()
     {
@@ -143,7 +143,7 @@ public class BitwiseOperationsAndTests : BasicEntityTestBase
     {
         TestMethodTemplate<ulong?>("And(1us, 1ul)", 1);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseAndBetweenShortAndByte_ShouldBeEvaluated()
     {
@@ -185,7 +185,7 @@ public class BitwiseOperationsAndTests : BasicEntityTestBase
     {
         TestMethodTemplate<long?>("And(1s, 1l)", 1);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseAndBetweenIntAndByte_ShouldBeEvaluated()
     {
@@ -233,7 +233,7 @@ public class BitwiseOperationsAndTests : BasicEntityTestBase
     {
         TestMethodTemplate<int?>("And(1b, 1i)", 1);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseAndBetweenUIntAndByte_ShouldBeEvaluated()
     {
@@ -281,7 +281,7 @@ public class BitwiseOperationsAndTests : BasicEntityTestBase
     {
         TestMethodTemplate<ulong?>("And(1ui, 1ul)", 1);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseAndBetweenLongAndByte_ShouldBeEvaluated()
     {
@@ -323,7 +323,7 @@ public class BitwiseOperationsAndTests : BasicEntityTestBase
     {
         TestMethodTemplate<long?>("And(1l, 1l)", 1);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseAndBetweenUlongAndByte_ShouldBeEvaluated()
     {

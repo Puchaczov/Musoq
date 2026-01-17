@@ -17,13 +17,13 @@ using Musoq.Schema;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Emitter for DESC (describe) statements.
-/// Handles code generation for DESCRIBE queries that return table/schema metadata.
+///     Emitter for DESC (describe) statements.
+///     Handles code generation for DESCRIBE queries that return table/schema metadata.
 /// </summary>
 public class DescStatementEmitter(SyntaxGenerator generator)
 {
     /// <summary>
-    /// Emits code for a DESC node based on its type.
+    ///     Emits code for a DESC node based on its type.
     /// </summary>
     /// <param name="node">The DESC node to process</param>
     /// <param name="statements">The list to add generated statements to</param>
@@ -71,8 +71,8 @@ public class DescStatementEmitter(SyntaxGenerator generator)
         var invocation = CreateHelperInvocation(
             nameof(EvaluationHelper.GetSpecificTableDescription),
             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("schemaTable")));
-        
-        EmitDescMethod(node, invocation, useProvidedTable: true, statements, members, methodNames);
+
+        EmitDescMethod(node, invocation, true, statements, members, methodNames);
     }
 
     private void EmitDescForSchema(
@@ -88,7 +88,7 @@ public class DescStatementEmitter(SyntaxGenerator generator)
             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
             SyntaxFactory.Argument(CreateRuntimeContext((SchemaFromNode)node.From, originallyInferredColumns)));
 
-        EmitDescMethod(node, invocation, useProvidedTable: false, statements, members, methodNames);
+        EmitDescMethod(node, invocation, false, statements, members, methodNames);
     }
 
     private void EmitDescForConstructors(
@@ -106,7 +106,7 @@ public class DescStatementEmitter(SyntaxGenerator generator)
             SyntaxHelper.StringLiteralArgument(schemaNode.Method),
             SyntaxFactory.Argument(CreateRuntimeContext(schemaNode, originallyInferredColumns)));
 
-        EmitDescMethod(node, invocation, useProvidedTable: false, statements, members, methodNames);
+        EmitDescMethod(node, invocation, false, statements, members, methodNames);
     }
 
     private void EmitDescForFunctionsForSchema(
@@ -122,7 +122,7 @@ public class DescStatementEmitter(SyntaxGenerator generator)
             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("desc")),
             SyntaxFactory.Argument(CreateRuntimeContext((SchemaFromNode)node.From, originallyInferredColumns)));
 
-        EmitDescMethod(node, invocation, useProvidedTable: false, statements, members, methodNames);
+        EmitDescMethod(node, invocation, false, statements, members, methodNames);
     }
 
     private void EmitDescMethod(
@@ -134,7 +134,7 @@ public class DescStatementEmitter(SyntaxGenerator generator)
         Stack<string> methodNames)
     {
         var schemaNode = (SchemaFromNode)node.From;
-        
+
         var createdSchema = SyntaxHelper.CreateAssignmentByMethodCall(
             "desc",
             "provider",
@@ -145,13 +145,10 @@ public class DescStatementEmitter(SyntaxGenerator generator)
                 SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
 
         if (useProvidedTable)
-        {
-            EmitDescWithProvidedTable(schemaNode, createdSchema, invocationExpression, statements, members, methodNames);
-        }
+            EmitDescWithProvidedTable(schemaNode, createdSchema, invocationExpression, statements, members,
+                methodNames);
         else
-        {
             EmitDescWithoutTable(createdSchema, invocationExpression, statements, members, methodNames);
-        }
     }
 
     private void EmitDescWithProvidedTable(
@@ -245,13 +242,13 @@ public class DescStatementEmitter(SyntaxGenerator generator)
                     SyntaxFactory.Identifier("provider"),
                     null),
 
-                
+
                 CreatePositionalEnvVarsParameter(),
 
-                
+
                 CreateQueriesInformationParameter(),
 
-                
+
                 SyntaxFactory.Parameter(
                     [],
                     SyntaxTokenList.Create(new SyntaxToken()),
@@ -260,14 +257,14 @@ public class DescStatementEmitter(SyntaxGenerator generator)
                     SyntaxFactory.Identifier("logger"),
                     null),
 
-                
+
                 SyntaxFactory.Parameter(
                     [],
                     SyntaxTokenList.Create(new SyntaxToken()),
                     SyntaxFactory.IdentifierName(nameof(CancellationToken))
                         .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
                     SyntaxFactory.Identifier("token"),
-                    null),
+                    null)
             ]));
     }
 
@@ -292,9 +289,11 @@ public class DescStatementEmitter(SyntaxGenerator generator)
                                             SyntaxFactory.SeparatedList<TypeSyntax>(
                                                 new SyntaxNodeOrToken[]
                                                 {
-                                                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                                    SyntaxFactory.PredefinedType(
+                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword)),
                                                     SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))
+                                                    SyntaxFactory.PredefinedType(
+                                                        SyntaxFactory.Token(SyntaxKind.StringKeyword))
                                                 })))
                             })))
                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
@@ -320,7 +319,8 @@ public class DescStatementEmitter(SyntaxGenerator generator)
                                         SyntaxFactory.SeparatedList<TupleElementSyntax>(
                                             new SyntaxNodeOrToken[]
                                             {
-                                                SyntaxFactory.TupleElement(SyntaxFactory.IdentifierName("SchemaFromNode"))
+                                                SyntaxFactory
+                                                    .TupleElement(SyntaxFactory.IdentifierName("SchemaFromNode"))
                                                     .WithIdentifier(SyntaxFactory.Identifier("FromNode")),
                                                 SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                 SyntaxFactory.TupleElement(
@@ -329,19 +329,22 @@ public class DescStatementEmitter(SyntaxGenerator generator)
                                                             .WithTypeArgumentList(
                                                                 SyntaxFactory.TypeArgumentList(
                                                                     SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                                                        SyntaxFactory.IdentifierName("ISchemaColumn")))))
+                                                                        SyntaxFactory
+                                                                            .IdentifierName("ISchemaColumn")))))
                                                     .WithIdentifier(SyntaxFactory.Identifier("UsedColumns")),
                                                 SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                 SyntaxFactory.TupleElement(SyntaxFactory.IdentifierName("WhereNode"))
                                                     .WithIdentifier(SyntaxFactory.Identifier("WhereNode")),
                                                 SyntaxFactory.Token(SyntaxKind.CommaToken),
                                                 SyntaxFactory.TupleElement(SyntaxFactory.IdentifierName("bool"))
-                                                    .WithIdentifier(SyntaxFactory.Identifier("HasExternallyProvidedTypes"))
+                                                    .WithIdentifier(
+                                                        SyntaxFactory.Identifier("HasExternallyProvidedTypes"))
                                             }))
                                 }))));
     }
 
-    private static InvocationExpressionSyntax CreateHelperInvocation(string methodName, params ArgumentSyntax[] arguments)
+    private static InvocationExpressionSyntax CreateHelperInvocation(string methodName,
+        params ArgumentSyntax[] arguments)
     {
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -353,11 +356,11 @@ public class DescStatementEmitter(SyntaxGenerator generator)
                     SyntaxFactory.SeparatedList(arguments)));
     }
 
-    private static ObjectCreationExpressionSyntax CreateRuntimeContext(SchemaFromNode node, ExpressionSyntax originallyInferredColumns)
+    private static ObjectCreationExpressionSyntax CreateRuntimeContext(SchemaFromNode node,
+        ExpressionSyntax originallyInferredColumns)
     {
-        
         const int schemaFromIndex = 0;
-        
+
         return SyntaxFactory.ObjectCreationExpression(
                 SyntaxFactory.IdentifierName(nameof(RuntimeContext)))
             .WithArgumentList(

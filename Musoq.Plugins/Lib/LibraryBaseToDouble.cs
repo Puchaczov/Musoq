@@ -6,7 +6,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Converts given value to double
+    ///     Converts given value to double
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to double value</returns>
@@ -21,7 +21,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to double
+    ///     Converts given value to double
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to double value</returns>
@@ -39,7 +39,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to double
+    ///     Converts given value to double
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to double value</returns>
@@ -54,7 +54,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to double
+    ///     Converts given value to double
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to double value</returns>
@@ -69,7 +69,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to double
+    ///     Converts given value to double
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to double value</returns>
@@ -84,7 +84,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to double
+    ///     Converts given value to double
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to double value</returns>
@@ -99,7 +99,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to double
+    ///     Converts given value to double
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to double value</returns>
@@ -114,7 +114,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to double
+    ///     Converts given value to double
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to double value</returns>
@@ -129,7 +129,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to double
+    ///     Converts given value to double
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to double value</returns>
@@ -144,7 +144,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to double
+    ///     Converts given value to double
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to double value</returns>
@@ -159,7 +159,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to double
+    ///     Converts given value to double
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to double value</returns>
@@ -174,7 +174,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to double
+    ///     Converts given value to double
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to double value</returns>
@@ -189,7 +189,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to double
+    ///     Converts given value to double
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to double value</returns>

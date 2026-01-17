@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Musoq.Plugins.Attributes;
 
 namespace Musoq.Schema.Helpers;
 
@@ -12,10 +13,7 @@ public static class CSharpTypeNameHelper
         if (type == null)
             throw new ArgumentNullException(nameof(type));
 
-        if (type.IsGenericParameter)
-        {
-            return type.Name;
-        }
+        if (type.IsGenericParameter) return type.Name;
 
         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
         {
@@ -35,16 +33,13 @@ public static class CSharpTypeNameHelper
         {
             var genericTypeDefinition = type.GetGenericTypeDefinition();
             var genericTypeName = genericTypeDefinition.Name;
-            
+
             var tickIndex = genericTypeName.IndexOf('`');
-            if (tickIndex > 0)
-            {
-                genericTypeName = genericTypeName.Substring(0, tickIndex);
-            }
+            if (tickIndex > 0) genericTypeName = genericTypeName.Substring(0, tickIndex);
 
             var genericArgs = type.GetGenericArguments();
             var argNames = genericArgs.Select(GetCSharpTypeName);
-            
+
             return $"{genericTypeName}<{string.Join(", ", argNames)}>";
         }
 
@@ -84,41 +79,42 @@ public static class CSharpTypeNameHelper
         var returnTypeName = GetCSharpTypeName(methodInfo.ReturnType);
         var parameters = methodInfo.GetParameters();
         var methodName = methodInfo.Name;
-        
+
         var signature = new StringBuilder();
-        
+
         if (methodInfo.IsGenericMethodDefinition)
         {
             var genericParams = methodInfo.GetGenericArguments();
             signature.Append($"{returnTypeName} {methodName}<");
-            for (int i = 0; i < genericParams.Length; i++)
+            for (var i = 0; i < genericParams.Length; i++)
             {
                 if (i > 0)
                     signature.Append(", ");
                 signature.Append(genericParams[i].Name);
             }
+
             signature.Append(">(");
         }
         else
         {
             signature.Append($"{returnTypeName} {methodName}(");
         }
-        
+
         var paramIndex = 0;
-        for (int i = 0; i < parameters.Length; i++)
+        for (var i = 0; i < parameters.Length; i++)
         {
-            if (parameters[i].GetCustomAttribute<Plugins.Attributes.InjectTypeAttribute>() != null)
+            if (parameters[i].GetCustomAttribute<InjectTypeAttribute>() != null)
                 continue;
-            
+
             if (paramIndex > 0)
                 signature.Append(", ");
-            
+
             signature.Append($"{GetCSharpTypeName(parameters[i].ParameterType)} {parameters[i].Name}");
             paramIndex++;
         }
-        
+
         signature.Append(")");
-        
+
         return signature.ToString();
     }
 }

@@ -2,40 +2,34 @@ using BenchmarkDotNet.Attributes;
 using Musoq.Benchmarks.Components;
 using Musoq.Converter;
 using Musoq.Evaluator;
+using Musoq.Plugins;
+using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Plugins;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using Musoq.Plugins.Attributes;
 
 namespace Musoq.Benchmarks;
 
 /// <summary>
-/// Benchmark to measure the impact of Common Subexpression Elimination (CSE).
-/// Compares queries with duplicate expressions vs queries without.
-/// 
-/// CSE should reduce execution time by caching computed values that are used multiple times
-/// in the same row context (e.g., same expression in WHERE and SELECT).
+///     Benchmark to measure the impact of Common Subexpression Elimination (CSE).
+///     Compares queries with duplicate expressions vs queries without.
+///     CSE should reduce execution time by caching computed values that are used multiple times
+///     in the same row context (e.g., same expression in WHERE and SELECT).
 /// </summary>
 [ShortRunJob]
 [MemoryDiagnoser]
 public class CommonSubexpressionEliminationBenchmark
 {
-    private CompiledQuery _queryWithDuplicateExpressions = null!;
-    private CompiledQuery _queryWithoutDuplicateExpressions = null!;
-    private CompiledQuery _queryWithTripleDuplicates = null!;
-    private CompiledQuery _queryWithNestedDuplicates = null!;
+    private readonly ILoggerResolver _loggerResolver = new BenchmarkLoggerResolver();
+    private CompiledQuery _queryCaseWhenNoDuplicate = null!;
     private CompiledQuery _queryCaseWhenWithDuplicateInSelect = null!;
     private CompiledQuery _queryCaseWhenWithDuplicateInWhere = null!;
-    private CompiledQuery _queryCaseWhenNoDuplicate = null!;
-    private readonly ILoggerResolver _loggerResolver = new BenchmarkLoggerResolver();
+    private CompiledQuery _queryWithDuplicateExpressions = null!;
+    private CompiledQuery _queryWithNestedDuplicates = null!;
+    private CompiledQuery _queryWithoutDuplicateExpressions = null!;
+    private CompiledQuery _queryWithTripleDuplicates = null!;
 
-    [Params(10_000, 100_000)]
-    public int RowsCount { get; set; }
+    [Params(10_000, 100_000)] public int RowsCount { get; set; }
 
     [GlobalSetup]
     public void Setup()
@@ -43,9 +37,7 @@ public class CommonSubexpressionEliminationBenchmark
         var testData = CreateTestData(RowsCount);
         var schemaProvider = new CseTestSchemaProvider(testData);
 
-        
-        
-        
+
         _queryWithDuplicateExpressions = InstanceCreator.CompileForExecution(
             @"SELECT ExpensiveMethod(Value), Name 
               FROM #test.entities() 
@@ -54,8 +46,7 @@ public class CommonSubexpressionEliminationBenchmark
             schemaProvider,
             _loggerResolver);
 
-        
-        
+
         _queryWithoutDuplicateExpressions = InstanceCreator.CompileForExecution(
             @"SELECT Value * 2, Name 
               FROM #test.entities() 
@@ -64,7 +55,7 @@ public class CommonSubexpressionEliminationBenchmark
             schemaProvider,
             _loggerResolver);
 
-        
+
         _queryWithTripleDuplicates = InstanceCreator.CompileForExecution(
             @"SELECT ExpensiveMethod(Value), ExpensiveMethod(Value) + 10, Name 
               FROM #test.entities() 
@@ -73,7 +64,7 @@ public class CommonSubexpressionEliminationBenchmark
             schemaProvider,
             _loggerResolver);
 
-        
+
         _queryWithNestedDuplicates = InstanceCreator.CompileForExecution(
             @"SELECT ExpensiveMethod(Value) * 2, ExpensiveMethod(Value) / 2 
               FROM #test.entities() 
@@ -82,8 +73,7 @@ public class CommonSubexpressionEliminationBenchmark
             schemaProvider,
             _loggerResolver);
 
-        
-        
+
         _queryCaseWhenWithDuplicateInSelect = InstanceCreator.CompileForExecution(
             @"SELECT ExpensiveMethod(Value), 
                      CASE WHEN ExpensiveMethod(Value) > 200 THEN 'High' ELSE 'Low' END
@@ -92,7 +82,7 @@ public class CommonSubexpressionEliminationBenchmark
             schemaProvider,
             _loggerResolver);
 
-        
+
         _queryCaseWhenWithDuplicateInWhere = InstanceCreator.CompileForExecution(
             @"SELECT Name, 
                      CASE WHEN ExpensiveMethod(Value) > 200 THEN 'High' ELSE 'Low' END
@@ -102,7 +92,7 @@ public class CommonSubexpressionEliminationBenchmark
             schemaProvider,
             _loggerResolver);
 
-        
+
         _queryCaseWhenNoDuplicate = InstanceCreator.CompileForExecution(
             @"SELECT Name, 
                      CASE WHEN ExpensiveMethod(Value) > 200 THEN 'High' ELSE 'Low' END
@@ -113,8 +103,8 @@ public class CommonSubexpressionEliminationBenchmark
     }
 
     /// <summary>
-    /// Baseline: No duplicate expressions.
-    /// ExpensiveMethod called once per row.
+    ///     Baseline: No duplicate expressions.
+    ///     ExpensiveMethod called once per row.
     /// </summary>
     [Benchmark(Baseline = true)]
     public void Query_NoDuplicates()
@@ -123,8 +113,8 @@ public class CommonSubexpressionEliminationBenchmark
     }
 
     /// <summary>
-    /// Same expression in WHERE and SELECT (2x calls per row).
-    /// With CSE, should approach baseline performance.
+    ///     Same expression in WHERE and SELECT (2x calls per row).
+    ///     With CSE, should approach baseline performance.
     /// </summary>
     [Benchmark]
     public void Query_DuplicateInWhereAndSelect()
@@ -133,9 +123,9 @@ public class CommonSubexpressionEliminationBenchmark
     }
 
     /// <summary>
-    /// Same expression 3 times (WHERE + 2x in SELECT).
-    /// Without CSE: 3x the computation.
-    /// With CSE: Should be ~same as baseline.
+    ///     Same expression 3 times (WHERE + 2x in SELECT).
+    ///     Without CSE: 3x the computation.
+    ///     With CSE: Should be ~same as baseline.
     /// </summary>
     [Benchmark]
     public void Query_TripleDuplicates()
@@ -144,8 +134,8 @@ public class CommonSubexpressionEliminationBenchmark
     }
 
     /// <summary>
-    /// Expression appears 4 times in different contexts.
-    /// Tests that CSE handles complex scenarios.
+    ///     Expression appears 4 times in different contexts.
+    ///     Tests that CSE handles complex scenarios.
     /// </summary>
     [Benchmark]
     public void Query_NestedDuplicates()
@@ -154,8 +144,8 @@ public class CommonSubexpressionEliminationBenchmark
     }
 
     /// <summary>
-    /// CASE WHEN baseline: ExpensiveMethod only inside CASE WHEN.
-    /// No CSE benefit expected - expression doesn't appear outside CASE WHEN.
+    ///     CASE WHEN baseline: ExpensiveMethod only inside CASE WHEN.
+    ///     No CSE benefit expected - expression doesn't appear outside CASE WHEN.
     /// </summary>
     [Benchmark]
     public void Query_CaseWhen_NoDuplicate()
@@ -164,9 +154,9 @@ public class CommonSubexpressionEliminationBenchmark
     }
 
     /// <summary>
-    /// CASE WHEN with duplicate: ExpensiveMethod in SELECT and inside CASE WHEN.
-    /// With CSE: cached value passed to CaseWhen method as parameter.
-    /// Should be faster than NoDuplicate since expression is cached.
+    ///     CASE WHEN with duplicate: ExpensiveMethod in SELECT and inside CASE WHEN.
+    ///     With CSE: cached value passed to CaseWhen method as parameter.
+    ///     Should be faster than NoDuplicate since expression is cached.
     /// </summary>
     [Benchmark]
     public void Query_CaseWhen_DuplicateInSelect()
@@ -175,8 +165,8 @@ public class CommonSubexpressionEliminationBenchmark
     }
 
     /// <summary>
-    /// CASE WHEN with duplicate: ExpensiveMethod in WHERE and inside CASE WHEN.
-    /// With CSE: cached value passed to CaseWhen method as parameter.
+    ///     CASE WHEN with duplicate: ExpensiveMethod in WHERE and inside CASE WHEN.
+    ///     With CSE: cached value passed to CaseWhen method as parameter.
     /// </summary>
     [Benchmark]
     public void Query_CaseWhen_DuplicateInWhere()
@@ -190,50 +180,42 @@ public class CommonSubexpressionEliminationBenchmark
         {
             Id = i,
             Name = $"Name{i}",
-            Value = i % 500,  
+            Value = i % 500,
             Category = $"Category{i % 10}"
         }).ToList();
     }
 }
 
 /// <summary>
-/// Library with intentionally expensive methods to measure CSE impact.
+///     Library with intentionally expensive methods to measure CSE impact.
 /// </summary>
 public class CseTestLibrary : LibraryBase
 {
     /// <summary>
-    /// Simulates an expensive computation that should be cached by CSE.
-    /// Uses CPU-intensive operations to make the performance difference measurable.
+    ///     Simulates an expensive computation that should be cached by CSE.
+    ///     Uses CPU-intensive operations to make the performance difference measurable.
     /// </summary>
     [BindableMethod]
     public int ExpensiveMethod(int value)
     {
-        
         double result = value;
-        for (int i = 0; i < 500; i++)
-        {
-            result = Math.Sqrt(result * result + i) + Math.Sin(i) * Math.Cos(i);
-        }
+        for (var i = 0; i < 500; i++) result = Math.Sqrt(result * result + i) + Math.Sin(i) * Math.Cos(i);
         return (int)result;
     }
 
     /// <summary>
-    /// Another expensive method for testing multiple CSE candidates.
+    ///     Another expensive method for testing multiple CSE candidates.
     /// </summary>
     [BindableMethod]
     public string ExpensiveStringMethod(string value)
     {
-        
         var result = value;
-        for (int i = 0; i < 100; i++)
-        {
-            result = result.ToUpper().ToLower();
-        }
+        for (var i = 0; i < 100; i++) result = result.ToUpper().ToLower();
         return result.ToUpper();
     }
 
     /// <summary>
-    /// Cheap method for comparison (should not benefit much from CSE).
+    ///     Cheap method for comparison (should not benefit much from CSE).
     /// </summary>
     [BindableMethod]
     public int CheapMethod(int value)
@@ -330,10 +312,7 @@ public class CseTestRowSource : RowSource
     {
         get
         {
-            foreach (var entity in _data)
-            {
-                yield return new CseTestEntityResolver(entity);
-            }
+            foreach (var entity in _data) yield return new CseTestEntityResolver(entity);
         }
     }
 }
@@ -348,7 +327,7 @@ public class CseTestEntityResolver : IObjectResolver
     }
 
     public object[] Contexts => [_entity];
-    
+
     public bool HasColumn(string name)
     {
         return name switch

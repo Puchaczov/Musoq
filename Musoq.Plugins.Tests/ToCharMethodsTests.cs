@@ -1,4 +1,3 @@
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
@@ -95,7 +94,7 @@ public class ToCharMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToChar_WhenDigitIntProvided_ShouldReturnDigitChar()
     {
-        var result = Library.ToChar(48); 
+        var result = Library.ToChar(48);
 
         Assert.AreEqual('0', result);
     }
@@ -135,7 +134,7 @@ public class ToCharMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToChar_WhenByteProvided_ShouldReturnChar()
     {
-        var result = Library.ToChar((byte)67);
+        var result = Library.ToChar(67);
 
         Assert.AreEqual('C', result);
     }
@@ -151,7 +150,7 @@ public class ToCharMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToChar_WhenZeroByteProvided_ShouldReturnNullChar()
     {
-        var result = Library.ToChar((byte)0);
+        var result = Library.ToChar(0);
 
         Assert.AreEqual('\0', result);
     }
@@ -159,7 +158,7 @@ public class ToCharMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToChar_WhenMaxByteProvided_ShouldReturnChar()
     {
-        var result = Library.ToChar((byte)255);
+        var result = Library.ToChar(255);
 
         Assert.AreEqual((char)255, result);
     }

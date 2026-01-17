@@ -4,7 +4,7 @@ namespace Musoq.Parser.Nodes;
 
 public class AllColumnsNode(string alias = null) : Node
 {
-    public string Alias { get; private set; } = alias;
+    public string Alias { get; } = alias;
 
     public override Type ReturnType => typeof(object[]);
 
@@ -19,7 +19,7 @@ public class AllColumnsNode(string alias = null) : Node
     {
         if (!string.IsNullOrWhiteSpace(Alias))
             return $"{Alias}.*";
-            
+
         return "*";
     }
 }

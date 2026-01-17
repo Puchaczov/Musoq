@@ -13,7 +13,7 @@ public class DotNode : UnaryNode
         Id = $"{nameof(DotNode)}{root.ToString()}{expression.ToString()}{name}";
         ReturnType = returnType;
     }
-        
+
     public DotNode(Node root, Node expression, bool isTheMostInner, string name, Type returnType = null)
         : base(expression)
     {

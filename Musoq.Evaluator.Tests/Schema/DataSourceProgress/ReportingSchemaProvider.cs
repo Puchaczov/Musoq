@@ -12,7 +12,7 @@ public class ReportingSchemaProvider<T>(IDictionary<string, IEnumerable<T>> valu
     {
         if (!values.TryGetValue(schema, out var value))
             throw new SchemaNotFoundException();
-        
+
         return new ReportingSchema<T>(schema, value);
     }
 }

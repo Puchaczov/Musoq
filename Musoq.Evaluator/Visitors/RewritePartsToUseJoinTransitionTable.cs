@@ -6,13 +6,13 @@ namespace Musoq.Evaluator.Visitors;
 public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQueryVisitor
 {
     public SelectNode ChangedSelect { get; private set; }
-        
+
     public GroupByNode ChangedGroupBy { get; private set; }
 
     public WhereNode ChangedWhere { get; private set; }
-        
+
     public OrderByNode ChangedOrderBy { get; private set; }
-        
+
     public Node RewrittenNode => Nodes.Pop();
 
     public override void Visit(AccessColumnNode node)
@@ -25,7 +25,7 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
     {
         var fields = new FieldNode[node.Fields.Length];
 
-        for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldNode) Nodes.Pop();
+        for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldNode)Nodes.Pop();
 
         ChangedSelect = new SelectNode(fields);
     }
@@ -36,10 +36,10 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
 
         HavingNode having = null;
         if (node.Having != null)
-            having = (HavingNode) Nodes.Pop();
+            having = (HavingNode)Nodes.Pop();
 
-        for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldNode) Nodes.Pop();
-            
+        for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldNode)Nodes.Pop();
+
         ChangedGroupBy = new GroupByNode(fields, having);
     }
 
@@ -47,12 +47,12 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
     {
         ChangedWhere = new WhereNode(Nodes.Pop());
     }
-        
+
     public override void Visit(OrderByNode node)
     {
         var fields = new FieldOrderedNode[node.Fields.Length];
 
-        for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldOrderedNode) Nodes.Pop();
+        for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldOrderedNode)Nodes.Pop();
 
         ChangedOrderBy = new OrderByNode(fields);
     }

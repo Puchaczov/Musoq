@@ -17,7 +17,7 @@ public class MethodsAggregator(MethodsManager methodsManager)
     }
 
     /// <summary>
-    /// Gets all registered methods with their metadata.
+    ///     Gets all registered methods with their metadata.
     /// </summary>
     /// <returns>Dictionary of method names to their MethodInfo list.</returns>
     public IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllMethods()

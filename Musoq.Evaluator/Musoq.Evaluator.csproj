@@ -1,65 +1,65 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>10.3.0</Version>
-    <Authors>Jakub Puchała</Authors>
-    <Product>Musoq</Product>
-    <PackageProjectUrl>https://github.com/Puchaczov/Musoq</PackageProjectUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>sql, dotnet-core</PackageTags>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Version>10.3.0</Version>
+        <Authors>Jakub Puchała</Authors>
+        <Product>Musoq</Product>
+        <PackageProjectUrl>https://github.com/Puchaczov/Musoq</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageTags>sql, dotnet-core</PackageTags>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.14.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.14.0" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis" Version="4.14.0"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.14.0"/>
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
-    <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
-    <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj"/>
+        <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj"/>
+        <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-  </ItemGroup>
+    <ItemGroup>
+        <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Resources\Compilation.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Compilation.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\MetaAttributes.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>MetaAttributes.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Visitors\RewriteFieldWithGroupMethodCall.cs">
-      <DependentUpon>RewriteFieldWithGroupMethodCallBase.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Visitors\RewriteFieldOrderedWithGroupMethodCall.cs">
-      <DependentUpon>RewriteFieldWithGroupMethodCallBase.cs</DependentUpon>
-    </Compile>
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Update="Resources\Compilation.Designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>Compilation.resx</DependentUpon>
+        </Compile>
+        <Compile Update="Resources\MetaAttributes.Designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>MetaAttributes.resx</DependentUpon>
+        </Compile>
+        <Compile Update="Visitors\RewriteFieldWithGroupMethodCall.cs">
+            <DependentUpon>RewriteFieldWithGroupMethodCallBase.cs</DependentUpon>
+        </Compile>
+        <Compile Update="Visitors\RewriteFieldOrderedWithGroupMethodCall.cs">
+            <DependentUpon>RewriteFieldWithGroupMethodCallBase.cs</DependentUpon>
+        </Compile>
+    </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Update="Resources\Compilation.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Compilation.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\MetaAttributes.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>MetaAttributes.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Update="Resources\Compilation.resx">
+            <Generator>ResXFileCodeGenerator</Generator>
+            <LastGenOutput>Compilation.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+        <EmbeddedResource Update="Resources\MetaAttributes.resx">
+            <Generator>ResXFileCodeGenerator</Generator>
+            <LastGenOutput>MetaAttributes.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+    </ItemGroup>
 
 </Project>

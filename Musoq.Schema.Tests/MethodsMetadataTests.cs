@@ -12,15 +12,16 @@ public class MethodsMetadataTests
     public void WhenInjectingToMethodEntityAndParamsArguments_ShouldResolve()
     {
         var methodsManager = new MethodsManager();
-        
+
         methodsManager.RegisterLibraries(new TestLibraryBase());
-        
-        methodsManager.TryGetMethod(nameof(TestLibraryBase.TestMethod1), [typeof(string)], typeof(TestEntity), out var method);
-        
+
+        methodsManager.TryGetMethod(nameof(TestLibraryBase.TestMethod1), [typeof(string)], typeof(TestEntity),
+            out var method);
+
         Assert.IsNotNull(method);
 
         var parameters = method.GetParameters();
-        
+
         Assert.HasCount(2, parameters);
         Assert.AreEqual(typeof(TestEntity), parameters[0].ParameterType);
         Assert.AreEqual(typeof(string[]), parameters[1].ParameterType);
@@ -34,6 +35,6 @@ public class MethodsMetadataTests
             return 0;
         }
     }
-    
+
     private class TestEntity;
 }

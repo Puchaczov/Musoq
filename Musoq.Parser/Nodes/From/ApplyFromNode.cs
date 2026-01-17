@@ -9,13 +9,13 @@ public class ApplyFromNode : BinaryFromNode
     {
         ApplyType = applyType;
     }
-        
+
     public ApplyFromNode(FromNode source, FromNode with, ApplyType applyType, Type returnType)
         : base(source, with, $"{source.Alias}{with.Alias}", returnType)
     {
         ApplyType = applyType;
     }
-    
+
     public ApplyType ApplyType { get; }
     public override string Id => $"{nameof(ApplyFromNode)}{Source.Id}{With.Id}";
 
@@ -27,7 +27,7 @@ public class ApplyFromNode : BinaryFromNode
     public override string ToString()
     {
         var applyType = ApplyType == ApplyType.Cross ? "cross apply" : "outer apply";
-            
+
         return $"{Source.ToString()} {applyType} {With.ToString()}";
     }
 }

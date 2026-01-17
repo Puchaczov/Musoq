@@ -142,7 +142,7 @@ public class ToStringMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToString_WhenSByteProvided_ShouldReturnString()
     {
-        var result = Library.ToString((sbyte)123);
+        var result = Library.ToString(123);
 
         Assert.AreEqual("123", result);
     }
@@ -158,7 +158,7 @@ public class ToStringMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToString_WhenSByteWithFormatProvided_ShouldFormat()
     {
-        var result = Library.ToString((sbyte)15, "D3");
+        var result = Library.ToString(15, "D3");
 
         Assert.AreEqual("015", result);
     }
@@ -166,7 +166,7 @@ public class ToStringMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToString_WhenNegativeSByteProvided_ShouldReturnString()
     {
-        var result = Library.ToString((sbyte)-100);
+        var result = Library.ToString(-100);
 
         Assert.AreEqual("-100", result);
     }
@@ -197,7 +197,7 @@ public class ToStringMethodsTests : LibraryBaseBaseTests
         var result = Library.ToString(1234567, "N0");
 
         Assert.IsNotNull(result);
-        
+
         Assert.IsGreaterThan(0, result.Length);
     }
 
@@ -344,7 +344,6 @@ public class ToStringMethodsTests : LibraryBaseBaseTests
         var result = Library.ToString(3.14159f, "F2");
 
         Assert.IsNotNull(result);
-        
     }
 
     [TestMethod]
@@ -609,7 +608,7 @@ public class ToStringMethodsTests : LibraryBaseBaseTests
         var result = Library.ToString(new[] { 1.0, 2.0, 3.0 });
 
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains(",") || result.Contains("1") && result.Contains("2") && result.Contains("3"));
+        Assert.IsTrue(result.Contains(",") || (result.Contains("1") && result.Contains("2") && result.Contains("3")));
     }
 
     [TestMethod]

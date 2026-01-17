@@ -8,6 +8,8 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class StarTests : BasicEntityTestBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void WhenStarUnfoldToMultipleColumns_AndExplicitColumnIsUsedWithinWhere_ShouldPass()
     {
@@ -23,18 +25,18 @@ public class StarTests : BasicEntityTestBase
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
-        
+
         Assert.AreEqual("a.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual("january", table[0].Values[5]);
     }
-    
+
     [TestMethod]
     public void WhenMultipleStarsUnfoldToMultipleColumns_ShouldPass()
     {
@@ -50,24 +52,24 @@ public class StarTests : BasicEntityTestBase
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(18, table.Columns.Count());
-        
+
         Assert.AreEqual("a.Money", table.Columns.ElementAt(4).ColumnName);
         Assert.AreEqual(50m, table[0].Values[4]);
-        
+
         Assert.AreEqual("a.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual("january", table[0].Values[5]);
-        
+
         Assert.AreEqual("a.Money", table.Columns.ElementAt(13).ColumnName);
         Assert.AreEqual(50m, table[0].Values[13]);
     }
-    
+
     [TestMethod]
     public void WhenStarUnfoldToMultipleColumns_AndExplicitColumnIsUsedAsAnotherColumn_ShouldPass()
     {
@@ -83,24 +85,24 @@ public class StarTests : BasicEntityTestBase
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(11, table.Columns.Count());
-        
+
         Assert.AreEqual("a.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual("january", table[0].Values[5]);
-        
+
         Assert.AreEqual("a.Month", table.Columns.ElementAt(9).ColumnName);
         Assert.AreEqual("january", table[0].Values[9]);
-        
+
         Assert.AreEqual("Month", table.Columns.ElementAt(10).ColumnName);
         Assert.AreEqual("january", table[0].Values[10]);
     }
-    
+
     [TestMethod]
     public void WhenAliasedStarUnfoldToMultipleColumns_ShouldPass()
     {
@@ -112,15 +114,15 @@ public class StarTests : BasicEntityTestBase
                 "#A", []
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(0, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
     }
-    
+
     [TestMethod]
     public void WhenAliasedStarsUnfoldToMultipleColumns_ShouldPass()
     {
@@ -132,15 +134,15 @@ public class StarTests : BasicEntityTestBase
                 "#A", []
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(0, table.Count);
         Assert.AreEqual(18, table.Columns.Count());
     }
-    
+
     [TestMethod]
     public void WhenAliasedStarUnfoldToMultipleColumns_AndExplicitColumnUsed_ShouldPass()
     {
@@ -152,18 +154,18 @@ public class StarTests : BasicEntityTestBase
                 "#A", []
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(0, table.Count);
         Assert.AreEqual(10, table.Columns.Count());
-        
+
         Assert.AreEqual("a.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual("a.Month", table.Columns.ElementAt(9).ColumnName);
     }
-    
+
     [TestMethod]
     public void WhenStarUnfoldToMultipleOfTwoTablesColumns_TwoTablesUsed_ShouldPass()
     {
@@ -182,21 +184,21 @@ public class StarTests : BasicEntityTestBase
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(18, table.Columns.Count());
-        
+
         Assert.AreEqual("a.Money", table.Columns.ElementAt(4).ColumnName);
         Assert.AreEqual("a.Month", table.Columns.ElementAt(5).ColumnName);
-        
+
         Assert.AreEqual("b.Money", table.Columns.ElementAt(13).ColumnName);
         Assert.AreEqual("b.Month", table.Columns.ElementAt(14).ColumnName);
     }
-    
+
     [TestMethod]
     public void WhenAliasedStarUnfoldToMultipleColumns_TwoTablesUsed_ShouldPass()
     {
@@ -215,21 +217,21 @@ public class StarTests : BasicEntityTestBase
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(18, table.Columns.Count());
-        
+
         Assert.AreEqual("a.Money", table.Columns.ElementAt(4).ColumnName);
         Assert.AreEqual("a.Month", table.Columns.ElementAt(5).ColumnName);
-        
+
         Assert.AreEqual("b.Money", table.Columns.ElementAt(13).ColumnName);
         Assert.AreEqual("b.Month", table.Columns.ElementAt(14).ColumnName);
     }
-    
+
     [TestMethod]
     public void WhenAliasedStarUnfoldToMultipleColumns_FirstTableUnfolded_ShouldPass()
     {
@@ -248,21 +250,21 @@ public class StarTests : BasicEntityTestBase
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
-        
+
         Assert.AreEqual("a.Money", table.Columns.ElementAt(4).ColumnName);
         Assert.AreEqual("a.Month", table.Columns.ElementAt(5).ColumnName);
-        
+
         Assert.AreEqual(50m, table[0].Values[4]);
         Assert.AreEqual("january", table[0].Values[5]);
     }
-    
+
     [TestMethod]
     public void WhenAliasedStarUnfoldToMultipleColumns_SecondTableUnfolded_ShouldPass()
     {
@@ -281,17 +283,17 @@ public class StarTests : BasicEntityTestBase
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
-        
+
         Assert.AreEqual("b.Money", table.Columns.ElementAt(4).ColumnName);
         Assert.AreEqual("b.Month", table.Columns.ElementAt(5).ColumnName);
-        
+
         Assert.AreEqual(150m, table[0].Values[4]);
         Assert.AreEqual("january", table[0].Values[5]);
     }
@@ -356,14 +358,14 @@ public class StarTests : BasicEntityTestBase
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
-        
+
         Assert.AreEqual("a.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual("january", table[0].Values[5]);
     }
@@ -383,14 +385,14 @@ public class StarTests : BasicEntityTestBase
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
-        
+
         Assert.AreEqual("a.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual("january", table[0].Values[5]);
     }
@@ -410,14 +412,14 @@ public class StarTests : BasicEntityTestBase
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
-        
+
         Assert.AreEqual("a.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual("january", table[0].Values[5]);
     }
@@ -425,7 +427,8 @@ public class StarTests : BasicEntityTestBase
     [TestMethod]
     public void WhenAliasedStarUnfoldToMultipleColumns_AndAliasedStarIsUsedWithinAliasedFrom_ShouldPass()
     {
-        const string query = @"with p as (select a.* from #A.entities() a where a.Month = 'january') select p.* from p p";
+        const string query =
+            @"with p as (select a.* from #A.entities() a where a.Month = 'january') select p.* from p p";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -437,17 +440,15 @@ public class StarTests : BasicEntityTestBase
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
-        
+
         Assert.AreEqual("p.a.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual("january", table[0].Values[5]);
     }
-
-    public TestContext TestContext { get; set; }
 }

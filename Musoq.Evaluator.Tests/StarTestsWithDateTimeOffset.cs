@@ -9,6 +9,8 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class StarTestsWithDateTimeOffset : UnknownQueryTestsBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void WhenStarUsedWithDateTimeOffsetColumns_ShouldIncludeThem()
     {
@@ -71,6 +73,4 @@ public class StarTestsWithDateTimeOffset : UnknownQueryTestsBase
         Assert.AreEqual(new DateTimeOffset(new DateTime(2023, 2, 1)), table[1].Values[createdAtIndex]);
         Assert.IsNull(table[1].Values[updatedAtIndex]);
     }
-
-    public TestContext TestContext { get; set; }
 }

@@ -12,28 +12,35 @@ namespace Musoq.Evaluator.Helpers;
 public static class SyntaxHelper
 {
     private static readonly ConcurrentDictionary<string, TypeSyntax> TypeSyntaxCache = new();
-    
+
     public static readonly TypeSyntax ObjectTypeSyntax = SyntaxFactory.ParseTypeName("object");
     public static readonly TypeSyntax RowTypeSyntax = SyntaxFactory.ParseTypeName("Row");
     public static readonly TypeSyntax ObjectsRowTypeSyntax = SyntaxFactory.ParseTypeName("ObjectsRow");
-    public static readonly TypeSyntax IndexOutOfRangeExceptionTypeSyntax = SyntaxFactory.ParseTypeName("IndexOutOfRangeException");
-    public static readonly TypeSyntax IObjectResolverTypeSyntax = SyntaxFactory.ParseTypeName("Musoq.Schema.DataSources.IObjectResolver");
+
+    public static readonly TypeSyntax IndexOutOfRangeExceptionTypeSyntax =
+        SyntaxFactory.ParseTypeName("IndexOutOfRangeException");
+
+    public static readonly TypeSyntax IObjectResolverTypeSyntax =
+        SyntaxFactory.ParseTypeName("Musoq.Schema.DataSources.IObjectResolver");
+
     public static readonly TypeSyntax RowConcreteTypeSyntax = SyntaxFactory.ParseTypeName("Musoq.Evaluator.Tables.Row");
-    public static readonly TypeSyntax ListOfIObjectResolverTypeSyntax = SyntaxFactory.ParseTypeName("System.Collections.Generic.List<Musoq.Schema.DataSources.IObjectResolver>");
-    
+
+    public static readonly TypeSyntax ListOfIObjectResolverTypeSyntax =
+        SyntaxFactory.ParseTypeName("System.Collections.Generic.List<Musoq.Schema.DataSources.IObjectResolver>");
+
     public static readonly ArrayTypeSyntax ObjectArrayTypeSyntax = SyntaxFactory.ArrayType(
-        ObjectTypeSyntax, 
+        ObjectTypeSyntax,
         SyntaxFactory.SingletonList(
             SyntaxFactory.ArrayRankSpecifier(
                 SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
                     SyntaxFactory.OmittedArraySizeExpression()))));
-    
+
+    public static SyntaxTrivia WhiteSpace => SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
+
     public static TypeSyntax GetCachedTypeSyntax(string typeName)
     {
         return TypeSyntaxCache.GetOrAdd(typeName, static t => SyntaxFactory.ParseTypeName(t));
     }
-    
-    public static SyntaxTrivia WhiteSpace => SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
 
     public static InvocationExpressionSyntax CreateMethodInvocation(string variableName, string methodName,
         IEnumerable<ArgumentSyntax> arguments)
@@ -123,33 +130,31 @@ public static class SyntaxHelper
             initializer);
     }
 
-    public static ForEachStatementSyntax Foreach(string variable, string source, BlockSyntax block, (FieldOrderedNode Field, ExpressionSyntax Syntax)[] orderByFields)
+    public static ForEachStatementSyntax Foreach(string variable, string source, BlockSyntax block,
+        (FieldOrderedNode Field, ExpressionSyntax Syntax)[] orderByFields)
     {
         ExpressionSyntax orderByExpression = SyntaxFactory.IdentifierName(source);
 
-        if (orderByFields.Length == 0)
-        {
-            return CreateForEachStatement(variable, block, orderByExpression);
-        }
-            
+        if (orderByFields.Length == 0) return CreateForEachStatement(variable, block, orderByExpression);
+
         var sourceTable = source.Replace(".Rows", string.Empty);
-            
-        orderByExpression = 
+
+        orderByExpression =
             CreateOrderByExpression(
-                variable, 
-                orderByFields, 
-                sourceTable, 
-                orderByFields[0].Field.Order == Order.Ascending ? "OrderBy" : "OrderByDescending", 
+                variable,
+                orderByFields,
+                sourceTable,
+                orderByFields[0].Field.Order == Order.Ascending ? "OrderBy" : "OrderByDescending",
                 0);
 
         for (var index = 1; index < orderByFields.Length; index++)
         {
             var fieldSyntaxTuple = orderByFields[index];
             orderByExpression = CreateThenByExpression(
-                variable, 
-                orderByFields, 
-                orderByExpression, 
-                fieldSyntaxTuple.Field.Order == Order.Ascending ? "ThenBy" : "ThenByDescending", 
+                variable,
+                orderByFields,
+                orderByExpression,
+                fieldSyntaxTuple.Field.Order == Order.Ascending ? "ThenBy" : "ThenByDescending",
                 index
             );
         }
@@ -181,23 +186,23 @@ public static class SyntaxHelper
         );
 
         var parallelForEachInvocation = SyntaxFactory.InvocationExpression(
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName("Parallel"),
-                SyntaxFactory.IdentifierName("ForEach")
-            )
-        )
-        .WithArgumentList(
-            SyntaxFactory.ArgumentList(
-                SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                    new[]
-                    {
-                        SyntaxFactory.Argument(collection),
-                        SyntaxFactory.Argument(lambda)
-                    }
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("Parallel"),
+                    SyntaxFactory.IdentifierName("ForEach")
                 )
             )
-        );
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SeparatedList(
+                        new[]
+                        {
+                            SyntaxFactory.Argument(collection),
+                            SyntaxFactory.Argument(lambda)
+                        }
+                    )
+                )
+            );
 
         return SyntaxFactory.TryStatement(
             SyntaxFactory.Block(
@@ -263,14 +268,17 @@ public static class SyntaxHelper
             SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, syntaxList));
     }
 
-    private static InvocationExpressionSyntax CreateOrderByExpression(string variable, (FieldOrderedNode Field, ExpressionSyntax Syntax)[] orderByFields, string sourceTable, string methodName, int index)
+    private static InvocationExpressionSyntax CreateOrderByExpression(string variable,
+        (FieldOrderedNode Field, ExpressionSyntax Syntax)[] orderByFields, string sourceTable, string methodName,
+        int index)
     {
         return SyntaxFactory.InvocationExpression(
             SyntaxFactory.IdentifierName(methodName)
         ).WithArgumentList(
             SyntaxFactory.ArgumentList(
                 SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                    new SyntaxNodeOrToken[]{
+                    new SyntaxNodeOrToken[]
+                    {
                         SyntaxFactory.Argument(
                             SyntaxFactory.IdentifierName(sourceTable)),
                         SyntaxFactory.Token(SyntaxKind.CommaToken),
@@ -279,7 +287,8 @@ public static class SyntaxHelper
                                     SyntaxFactory.Parameter(
                                         SyntaxFactory.Identifier(variable)))
                                 .WithExpressionBody(
-                                    orderByFields[index].Syntax))}))
+                                    orderByFields[index].Syntax))
+                    }))
         );
     }
 
@@ -331,14 +340,17 @@ public static class SyntaxHelper
             SyntaxFactory.SeparatedList(new List<VariableDeclaratorSyntax>(declarations)));
     }
 
-    private static InvocationExpressionSyntax CreateThenByExpression(string variable, (FieldOrderedNode Field, ExpressionSyntax Syntax)[] orderByFields, ExpressionSyntax orderByExpression, string methodName, int index)
+    private static InvocationExpressionSyntax CreateThenByExpression(string variable,
+        (FieldOrderedNode Field, ExpressionSyntax Syntax)[] orderByFields, ExpressionSyntax orderByExpression,
+        string methodName, int index)
     {
         return SyntaxFactory.InvocationExpression(
             SyntaxFactory.IdentifierName(methodName)
         ).WithArgumentList(
             SyntaxFactory.ArgumentList(
                 SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                    new SyntaxNodeOrToken[]{
+                    new SyntaxNodeOrToken[]
+                    {
                         SyntaxFactory.Argument(orderByExpression),
                         SyntaxFactory.Token(SyntaxKind.CommaToken),
                         SyntaxFactory.Argument(
@@ -346,11 +358,13 @@ public static class SyntaxHelper
                                     SyntaxFactory.Parameter(
                                         SyntaxFactory.Identifier(variable)))
                                 .WithExpressionBody(
-                                    orderByFields[index].Syntax))}))
+                                    orderByFields[index].Syntax))
+                    }))
         );
     }
 
-    private static ForEachStatementSyntax CreateForEachStatement(string variable, BlockSyntax block, ExpressionSyntax orderByExpression)
+    private static ForEachStatementSyntax CreateForEachStatement(string variable, BlockSyntax block,
+        ExpressionSyntax orderByExpression)
     {
         return SyntaxFactory.ForEachStatement(
             SyntaxFactory.Token(SyntaxKind.ForEachKeyword),
@@ -364,7 +378,7 @@ public static class SyntaxHelper
     }
 
     /// <summary>
-    /// Creates an empty ISchemaColumn array expression: Array.Empty&lt;ISchemaColumn&gt;()
+    ///     Creates an empty ISchemaColumn array expression: Array.Empty&lt;ISchemaColumn&gt;()
     /// </summary>
     public static InvocationExpressionSyntax CreateEmptyColumnArray()
     {

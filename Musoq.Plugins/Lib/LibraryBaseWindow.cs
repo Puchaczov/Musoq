@@ -7,7 +7,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Creates a window that stores values in a group
+    ///     Creates a window that stores values in a group
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group</param>
     /// <param name="name">The name</param>
@@ -26,7 +26,7 @@ public partial class LibraryBase
         }
 
         var values = parentGroup.GetOrCreateValue(name, () => new List<T>());
-        
+
         if (values == null)
             throw new InvalidOperationException($"Group list must not be null. Group name: {name}");
 
@@ -34,7 +34,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the window
+    ///     Gets the window
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group</param>
     /// <param name="name">The name</param>
@@ -44,10 +44,10 @@ public partial class LibraryBase
     public IEnumerable<T> Window<T>([InjectGroup] Group group, string name)
     {
         var window = group.GetValue<List<T>>(name);
-        
+
         if (window == null)
             throw new InvalidOperationException($"Group list must not be null. Group name: {name}");
-        
+
         return window;
     }
 }

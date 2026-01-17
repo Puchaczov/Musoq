@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Evaluator.Tests;
@@ -10,10 +9,10 @@ public class AliasGeneratorTests
     public void GenerateAliasTest()
     {
         Assert.AreEqual(
-            "ko3iko", 
+            "ko3iko",
             AliasGenerator.CreateAliasIfEmpty(string.Empty, [], "1"));
         Assert.AreEqual(
-            "d40v7n", 
+            "d40v7n",
             AliasGenerator.CreateAliasIfEmpty(string.Empty, ["ko3iko"], "1"));
     }
 }

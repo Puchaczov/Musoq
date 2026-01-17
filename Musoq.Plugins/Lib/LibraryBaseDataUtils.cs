@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Web;
+using System.Xml.Linq;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
@@ -10,7 +12,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Decodes a JWT token and returns the payload as JSON string.
+    ///     Decodes a JWT token and returns the payload as JSON string.
     /// </summary>
     /// <param name="token">The JWT token</param>
     /// <returns>The decoded payload as JSON string</returns>
@@ -28,7 +30,7 @@ public partial class LibraryBase
                 return null;
 
             var payload = parts[1];
-            
+
             payload = payload.Replace('-', '+').Replace('_', '/');
             switch (payload.Length % 4)
             {
@@ -46,7 +48,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the header portion of a JWT token as JSON string.
+    ///     Gets the header portion of a JWT token as JSON string.
     /// </summary>
     /// <param name="token">The JWT token</param>
     /// <returns>The decoded header as JSON string</returns>
@@ -81,7 +83,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets a specific claim from a JWT token payload.
+    ///     Gets a specific claim from a JWT token payload.
     /// </summary>
     /// <param name="token">The JWT token</param>
     /// <param name="claimName">The name of the claim to retrieve</param>
@@ -101,11 +103,9 @@ public partial class LibraryBase
         {
             using var doc = JsonDocument.Parse(payload);
             if (doc.RootElement.TryGetProperty(claimName, out var claim))
-            {
-                return claim.ValueKind == JsonValueKind.String 
-                    ? claim.GetString() 
+                return claim.ValueKind == JsonValueKind.String
+                    ? claim.GetString()
                     : claim.GetRawText();
-            }
             return null;
         }
         catch
@@ -115,7 +115,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Parses a query string and returns a specific parameter value.
+    ///     Parses a query string and returns a specific parameter value.
     /// </summary>
     /// <param name="queryString">The query string (with or without leading ?)</param>
     /// <param name="paramName">The parameter name to retrieve</param>
@@ -140,7 +140,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Parses a key-value string with specified delimiters.
+    ///     Parses a key-value string with specified delimiters.
     /// </summary>
     /// <param name="value">The string to parse</param>
     /// <param name="key">The key to find</param>
@@ -161,11 +161,12 @@ public partial class LibraryBase
             if (parts.Length == 2 && parts[0].Trim() == key)
                 return parts[1].Trim();
         }
+
         return null;
     }
 
     /// <summary>
-    /// Formats JSON with indentation for readability.
+    ///     Formats JSON with indentation for readability.
     /// </summary>
     /// <param name="json">The JSON string to format</param>
     /// <returns>The formatted JSON string</returns>
@@ -188,7 +189,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Minifies JSON by removing whitespace.
+    ///     Minifies JSON by removing whitespace.
     /// </summary>
     /// <param name="json">The JSON string to minify</param>
     /// <returns>The minified JSON string</returns>
@@ -211,7 +212,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Formats XML with indentation for readability.
+    ///     Formats XML with indentation for readability.
     /// </summary>
     /// <param name="xml">The XML string to format</param>
     /// <returns>The formatted XML string</returns>
@@ -224,7 +225,7 @@ public partial class LibraryBase
 
         try
         {
-            var doc = System.Xml.Linq.XDocument.Parse(xml);
+            var doc = XDocument.Parse(xml);
             return doc.ToString();
         }
         catch
@@ -234,7 +235,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Minifies XML by removing unnecessary whitespace.
+    ///     Minifies XML by removing unnecessary whitespace.
     /// </summary>
     /// <param name="xml">The XML string to minify</param>
     /// <returns>The minified XML string</returns>
@@ -247,8 +248,8 @@ public partial class LibraryBase
 
         try
         {
-            var doc = System.Xml.Linq.XDocument.Parse(xml, System.Xml.Linq.LoadOptions.None);
-            return doc.ToString(System.Xml.Linq.SaveOptions.DisableFormatting);
+            var doc = XDocument.Parse(xml, LoadOptions.None);
+            return doc.ToString(SaveOptions.DisableFormatting);
         }
         catch
         {
@@ -257,7 +258,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts bytes to human readable size (e.g., "1.5 MB").
+    ///     Converts bytes to human readable size (e.g., "1.5 MB").
     /// </summary>
     /// <param name="bytes">The number of bytes</param>
     /// <returns>Human readable size string</returns>
@@ -278,13 +279,13 @@ public partial class LibraryBase
             suffixIndex++;
         }
 
-        return suffixIndex == 0 
-            ? $"{size:0} {suffixes[suffixIndex]}" 
+        return suffixIndex == 0
+            ? $"{size:0} {suffixes[suffixIndex]}"
             : $"{size:0.##} {suffixes[suffixIndex]}";
     }
 
     /// <summary>
-    /// Converts seconds to human readable duration (e.g., "1h 30m 45s").
+    ///     Converts seconds to human readable duration (e.g., "1h 30m 45s").
     /// </summary>
     /// <param name="seconds">The number of seconds</param>
     /// <returns>Human readable duration string</returns>
@@ -296,7 +297,7 @@ public partial class LibraryBase
             return null;
 
         var ts = TimeSpan.FromSeconds(seconds.Value);
-        var parts = new System.Collections.Generic.List<string>();
+        var parts = new List<string>();
 
         if (ts.Days > 0) parts.Add($"{ts.Days}d");
         if (ts.Hours > 0) parts.Add($"{ts.Hours}h");
@@ -307,7 +308,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Calculates the Shannon entropy of a string (measure of randomness).
+    ///     Calculates the Shannon entropy of a string (measure of randomness).
     /// </summary>
     /// <param name="value">The string to analyze</param>
     /// <returns>The entropy value (higher = more random)</returns>
@@ -326,7 +327,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Checks if a string appears to be valid Base64.
+    ///     Checks if a string appears to be valid Base64.
     /// </summary>
     /// <param name="value">The string to check</param>
     /// <returns>True if the string appears to be valid Base64</returns>
@@ -352,7 +353,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Checks if a string appears to be a valid hexadecimal string.
+    ///     Checks if a string appears to be a valid hexadecimal string.
     /// </summary>
     /// <param name="value">The string to check</param>
     /// <returns>True if the string is valid hex</returns>
@@ -367,7 +368,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Checks if a string appears to be a valid JWT token.
+    ///     Checks if a string appears to be a valid JWT token.
     /// </summary>
     /// <param name="value">The string to check</param>
     /// <returns>True if the string appears to be a valid JWT</returns>

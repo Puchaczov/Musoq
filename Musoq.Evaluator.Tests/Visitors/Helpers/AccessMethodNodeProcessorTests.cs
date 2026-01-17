@@ -22,7 +22,7 @@ public class AccessMethodNodeProcessorTests
         var statements = new List<StatementSyntax>();
         var typesToInstantiate = new Dictionary<string, Type>();
         var nullSuspiciousNodes = new List<Stack<SyntaxNode>>();
-        
+
         nodes.Push(SyntaxFactory.ArgumentList());
 
         // Act & Assert
@@ -48,7 +48,7 @@ public class AccessMethodNodeProcessorTests
         var statements = new List<StatementSyntax>();
         var typesToInstantiate = new Dictionary<string, Type>();
         var nullSuspiciousNodes = new List<Stack<SyntaxNode>>();
-        
+
         nodes.Push(SyntaxFactory.ArgumentList());
 
         // Act & Assert
@@ -100,7 +100,7 @@ public class AccessMethodNodeProcessorTests
         var nodes = new Stack<SyntaxNode>();
         var typesToInstantiate = new Dictionary<string, Type>();
         var nullSuspiciousNodes = new List<Stack<SyntaxNode>>();
-        
+
         nodes.Push(SyntaxFactory.ArgumentList());
 
         // Act & Assert
@@ -127,7 +127,7 @@ public class AccessMethodNodeProcessorTests
         var nodes = new Stack<SyntaxNode>();
         var statements = new List<StatementSyntax>();
         var nullSuspiciousNodes = new List<Stack<SyntaxNode>>();
-        
+
         nodes.Push(SyntaxFactory.ArgumentList());
 
         // Act & Assert
@@ -155,7 +155,7 @@ public class AccessMethodNodeProcessorTests
         var statements = new List<StatementSyntax>();
         var typesToInstantiate = new Dictionary<string, Type>();
         var nullSuspiciousNodes = new List<Stack<SyntaxNode>>();
-        
+
         nodes.Push(SyntaxFactory.ArgumentList());
 
         // Act & Assert

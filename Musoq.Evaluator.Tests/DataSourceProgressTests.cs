@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -43,7 +44,10 @@ public class DataSourceProgressTests : BasicEntityTestBase
         Assert.AreEqual(100, events[3].TotalRows);
         return;
 
-        void Callback(object sender, DataSourceEventArgs args) => events.Add(args);
+        void Callback(object sender, DataSourceEventArgs args)
+        {
+            events.Add(args);
+        }
     }
 
     [TestMethod]
@@ -52,14 +56,16 @@ public class DataSourceProgressTests : BasicEntityTestBase
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003")] }
         };
 
-        var events = new List<(DataSourcePhase Phase, string DataSourceName, string QueryId, long? TotalRows, long? RowsProcessed)>();
-        
+        var events =
+            new List<(DataSourcePhase Phase, string DataSourceName, string QueryId, long? TotalRows, long? RowsProcessed
+                )>();
+
         var vm = InstanceCreator.CompileForExecution(
             query,
-            System.Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             new ReportingSchemaProvider<BasicEntity>(sources),
             LoggerResolver);
 
@@ -71,9 +77,9 @@ public class DataSourceProgressTests : BasicEntityTestBase
         var result = vm.Run();
 
         Assert.AreEqual(3, result.Count);
-        
+
         Assert.IsNotEmpty(events, "Should have received data source progress events");
-        
+
         var beginEvents = events.Where(e => e.Phase == DataSourcePhase.Begin).ToList();
         var rowsKnownEvents = events.Where(e => e.Phase == DataSourcePhase.RowsKnown).ToList();
         var rowsReadEvents = events.Where(e => e.Phase == DataSourcePhase.RowsRead).ToList();
@@ -87,9 +93,11 @@ public class DataSourceProgressTests : BasicEntityTestBase
         Assert.AreEqual("#A.Entities", beginEvents[0].DataSourceName);
         Assert.IsFalse(string.IsNullOrEmpty(beginEvents[0].QueryId), "QueryId should be populated in Begin event");
         Assert.AreEqual(3, rowsKnownEvents[0].TotalRows);
-        Assert.IsFalse(string.IsNullOrEmpty(rowsKnownEvents[0].QueryId), "QueryId should be populated in RowsKnown event");
+        Assert.IsFalse(string.IsNullOrEmpty(rowsKnownEvents[0].QueryId),
+            "QueryId should be populated in RowsKnown event");
         Assert.AreEqual(1, rowsReadEvents[0].RowsProcessed);
-        Assert.IsFalse(string.IsNullOrEmpty(rowsReadEvents[0].QueryId), "QueryId should be populated in RowsRead event");
+        Assert.IsFalse(string.IsNullOrEmpty(rowsReadEvents[0].QueryId),
+            "QueryId should be populated in RowsRead event");
         Assert.AreEqual(2, rowsReadEvents[1].RowsProcessed);
         Assert.AreEqual(3, rowsReadEvents[2].RowsProcessed);
         Assert.AreEqual(3, endEvents[0].TotalRows);
@@ -102,14 +110,14 @@ public class DataSourceProgressTests : BasicEntityTestBase
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var phases = new List<DataSourcePhase>();
-        
+
         var vm = InstanceCreator.CompileForExecution(
             query,
-            System.Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             new ReportingSchemaProvider<BasicEntity>(sources),
             LoggerResolver);
 
@@ -118,7 +126,7 @@ public class DataSourceProgressTests : BasicEntityTestBase
         vm.Run();
 
         Assert.IsGreaterThanOrEqualTo(4, phases.Count, "Should have at least 4 events");
-        
+
         var beginIndex = phases.IndexOf(DataSourcePhase.Begin);
         var rowsKnownIndex = phases.IndexOf(DataSourcePhase.RowsKnown);
         var firstRowsReadIndex = phases.IndexOf(DataSourcePhase.RowsRead);
@@ -136,14 +144,14 @@ public class DataSourceProgressTests : BasicEntityTestBase
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", []}
+            { "#A", [] }
         };
 
         var events = new List<DataSourceEventArgs>();
-        
+
         var vm = InstanceCreator.CompileForExecution(
             query,
-            System.Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             new ReportingSchemaProvider<BasicEntity>(sources),
             LoggerResolver);
 
@@ -173,15 +181,15 @@ public class DataSourceProgressTests : BasicEntityTestBase
         var query = "select a.Name from #A.Entities() a inner join #B.Entities() b on a.Name = b.Name";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("001")] }
         };
 
         var eventsBySource = new Dictionary<string, List<DataSourceEventArgs>>();
-        
+
         var vm = InstanceCreator.CompileForExecution(
             query,
-            System.Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString(),
             new ReportingSchemaProvider<BasicEntity>(sources),
             LoggerResolver);
 
@@ -195,15 +203,14 @@ public class DataSourceProgressTests : BasicEntityTestBase
         vm.Run();
 
         Assert.HasCount(2, eventsBySource, "Should have events from exactly two data sources");
-        
+
         foreach (var kvp in eventsBySource)
         {
             var events = kvp.Value;
-            Assert.IsTrue(events.Any(e => e.Phase == DataSourcePhase.Begin), 
+            Assert.IsTrue(events.Any(e => e.Phase == DataSourcePhase.Begin),
                 $"Data source {kvp.Key} should have Begin event");
-            Assert.IsTrue(events.Any(e => e.Phase == DataSourcePhase.End), 
+            Assert.IsTrue(events.Any(e => e.Phase == DataSourcePhase.End),
                 $"Data source {kvp.Key} should have End event");
         }
     }
 }
-

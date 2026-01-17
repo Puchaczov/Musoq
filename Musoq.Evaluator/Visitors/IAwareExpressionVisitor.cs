@@ -6,8 +6,8 @@ namespace Musoq.Evaluator.Visitors;
 public interface IAwareExpressionVisitor : IScopeAwareExpressionVisitor, IQueryPartAwareExpressionVisitor
 {
     void SetTheMostInnerIdentifierOfDotNode(IdentifierNode node);
-    
+
     void InnerCteBegins();
-    
+
     void InnerCteEnds();
 }

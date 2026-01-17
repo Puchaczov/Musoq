@@ -10,12 +10,12 @@ using Group = Musoq.Plugins.Group;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Handles generation of transformation table creation code.
+///     Handles generation of transformation table creation code.
 /// </summary>
 public static class TransformationTableEmitter
 {
     /// <summary>
-    /// Creates a transformation table statement for regular (non-grouping) tables.
+    ///     Creates a transformation table statement for regular (non-grouping) tables.
     /// </summary>
     /// <param name="node">The transformation table node.</param>
     /// <param name="tableName">The variable name for the table from scope.</param>
@@ -62,7 +62,7 @@ public static class TransformationTableEmitter
     }
 
     /// <summary>
-    /// Creates a transformation table statement for grouping tables.
+    ///     Creates a transformation table statement for grouping tables.
     /// </summary>
     /// <param name="tableName">The variable name for the table from scope.</param>
     /// <returns>The local declaration statement for the group list.</returns>
@@ -78,7 +78,7 @@ public static class TransformationTableEmitter
     }
 
     /// <summary>
-    /// Creates a column expression for the table.
+    ///     Creates a column expression for the table.
     /// </summary>
     private static ObjectCreationExpressionSyntax CreateColumnExpression(
         string fieldName,

@@ -20,7 +20,9 @@ public abstract class RowSourceBase<T> : RowSource
                 {
                     CollectChunks(chunkedSource);
                 }
-                catch (OperationCanceledException) { }
+                catch (OperationCanceledException)
+                {
+                }
                 finally
                 {
                     chunkedSource.Add(new List<EntityResolver<T>>());

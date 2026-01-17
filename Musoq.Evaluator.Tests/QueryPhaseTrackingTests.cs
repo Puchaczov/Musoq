@@ -14,7 +14,7 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var phases = new List<(string QueryId, QueryPhase Phase)>();
@@ -35,7 +35,7 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() where Name = '001'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var phases = new List<(string QueryId, QueryPhase Phase)>();
@@ -57,7 +57,7 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
         var query = "select Name, Count(Name) from #A.Entities() group by Name";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var phases = new List<(string QueryId, QueryPhase Phase)>();
@@ -77,7 +77,7 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
         var query = "select Name, Count(Name) from #A.Entities() where Name <> 'skip' group by Name";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("skip"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("skip"), new BasicEntity("002")] }
         };
 
         var phases = new List<(string QueryId, QueryPhase Phase)>();
@@ -97,7 +97,7 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() where Name = '001'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
 
         var phases = new List<QueryPhase>();
@@ -124,7 +124,7 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
 
         var queryIds = new HashSet<string>();
@@ -143,7 +143,7 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -162,7 +162,7 @@ select Name from #A.Entities() where Name = '002'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var phases = new List<(string QueryId, QueryPhase Phase)>();
@@ -188,7 +188,7 @@ select Name from #A.Entities() where Name = '002'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var queryIdsByPhase = new Dictionary<QueryPhase, HashSet<string>>();
@@ -203,7 +203,8 @@ select Name from #A.Entities() where Name = '002'";
         vm.Run();
 
         var beginQueryIds = queryIdsByPhase.GetValueOrDefault(QueryPhase.Begin, []);
-        Assert.IsGreaterThanOrEqualTo(2, beginQueryIds.Count, "UNION should have at least 2 unique query IDs for Begin phase");
+        Assert.IsGreaterThanOrEqualTo(2, beginQueryIds.Count,
+            "UNION should have at least 2 unique query IDs for Begin phase");
     }
 
     [TestMethod]
@@ -217,7 +218,7 @@ select Name from cte";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var phases = new List<(string QueryId, QueryPhase Phase)>();
@@ -244,7 +245,7 @@ select Name from cte";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var allQueryIds = new HashSet<string>();
@@ -253,7 +254,8 @@ select Name from cte";
 
         vm.Run();
 
-        Assert.IsGreaterThanOrEqualTo(2, allQueryIds.Count, "CTE query should have at least 2 unique query IDs (one for CTE, one for main query)");
+        Assert.IsGreaterThanOrEqualTo(2, allQueryIds.Count,
+            "CTE query should have at least 2 unique query IDs (one for CTE, one for main query)");
     }
 
     [TestMethod]
@@ -269,7 +271,7 @@ select c1.Name from cte1 c1 inner join cte2 c2 on c1.Name = c2.Name";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var allQueryIds = new HashSet<string>();
@@ -278,7 +280,8 @@ select c1.Name from cte1 c1 inner join cte2 c2 on c1.Name = c2.Name";
 
         vm.Run();
 
-        Assert.IsGreaterThanOrEqualTo(3, allQueryIds.Count, "Multiple CTEs query should have at least 3 unique query IDs (one for each CTE and one for main query)");
+        Assert.IsGreaterThanOrEqualTo(3, allQueryIds.Count,
+            "Multiple CTEs query should have at least 3 unique query IDs (one for each CTE and one for main query)");
     }
 
     [TestMethod]
@@ -287,7 +290,7 @@ select c1.Name from cte1 c1 inner join cte2 c2 on c1.Name = c2.Name";
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
 
         QueryPhaseEventArgs capturedArgs = null;
@@ -311,7 +314,7 @@ select c1.Name from cte1 c1 inner join cte2 c2 on c1.Name = c2.Name";
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
 
         object capturedSender = null;
@@ -334,7 +337,7 @@ select c1.Name from cte1 c1 inner join cte2 c2 on c1.Name = c2.Name";
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
 
         var handler1Count = 0;
@@ -356,7 +359,7 @@ select c1.Name from cte1 c1 inner join cte2 c2 on c1.Name = c2.Name";
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
 
         var handlerCount = 0;

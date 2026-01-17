@@ -28,54 +28,36 @@ public class ConversionBenchmark
     [Benchmark]
     public void ConvertToInt32Strict()
     {
-        foreach (var value in _testValues)
-        {
-            _ = _lib.TryConvertToInt32Strict(value);
-        }
+        foreach (var value in _testValues) _ = _lib.TryConvertToInt32Strict(value);
     }
 
     [Benchmark]
     public void ConvertToInt64Strict()
     {
-        foreach (var value in _testValues)
-        {
-            _ = _lib.TryConvertToInt64Strict(value);
-        }
+        foreach (var value in _testValues) _ = _lib.TryConvertToInt64Strict(value);
     }
 
     [Benchmark]
     public void ConvertToDecimalStrict()
     {
-        foreach (var value in _testValues)
-        {
-            _ = _lib.TryConvertToDecimalStrict(value);
-        }
+        foreach (var value in _testValues) _ = _lib.TryConvertToDecimalStrict(value);
     }
 
     [Benchmark]
     public void ConvertToInt32Comparison()
     {
-        foreach (var value in _testValues)
-        {
-            _ = _lib.TryConvertToInt32Comparison(value);
-        }
+        foreach (var value in _testValues) _ = _lib.TryConvertToInt32Comparison(value);
     }
 
     [Benchmark]
     public void ConvertToInt64Comparison()
     {
-        foreach (var value in _testValues)
-        {
-            _ = _lib.TryConvertToInt64Comparison(value);
-        }
+        foreach (var value in _testValues) _ = _lib.TryConvertToInt64Comparison(value);
     }
 
     [Benchmark]
     public void ConvertToDecimalComparison()
     {
-        foreach (var value in _testValues)
-        {
-            _ = _lib.TryConvertToDecimalComparison(value);
-        }
+        foreach (var value in _testValues) _ = _lib.TryConvertToDecimalComparison(value);
     }
 }

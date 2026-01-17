@@ -7,16 +7,19 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Converts the given value to DateTimeOffset using the current culture.
+    ///     Converts the given value to DateTimeOffset using the current culture.
     /// </summary>
     /// <param name="value">The value to convert.</param>
     /// <returns>The converted DateTimeOffset value, or null if the conversion fails.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.DateTime)]
-    public DateTimeOffset? ToDateTimeOffset(string value) => ToDateTimeOffset(value, CultureInfo.CurrentCulture.Name);
+    public DateTimeOffset? ToDateTimeOffset(string value)
+    {
+        return ToDateTimeOffset(value, CultureInfo.CurrentCulture.Name);
+    }
 
     /// <summary>
-    /// Converts the given value to DateTimeOffset using the specified culture.
+    ///     Converts the given value to DateTimeOffset using the specified culture.
     /// </summary>
     /// <param name="value">The value to convert.</param>
     /// <param name="culture">The culture to use for conversion.</param>
@@ -33,9 +36,9 @@ public partial class LibraryBase
 
         return result;
     }
-    
+
     /// <summary>
-    /// Subtracts the first DateTimeOffset from the second DateTimeOffset.
+    ///     Subtracts the first DateTimeOffset from the second DateTimeOffset.
     /// </summary>
     /// <param name="first">The first DateTimeOffset.</param>
     /// <param name="second">The second DateTimeOffset.</param>
@@ -51,7 +54,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Retrieves the maximum DateTimeOffset value from the specified group.
+    ///     Retrieves the maximum DateTimeOffset value from the specified group.
     /// </summary>
     /// <param name="group">The group to retrieve the value from.</param>
     /// <param name="name">The name of the value to retrieve.</param>
@@ -65,7 +68,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Retrieves the maximum DateTimeOffset value from the specified group.
+    ///     Retrieves the maximum DateTimeOffset value from the specified group.
     /// </summary>
     /// <param name="group">The group to retrieve the value from.</param>
     /// <param name="name">The name of the value to retrieve.</param>
@@ -78,7 +81,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the maximum DateTimeOffset value in the specified group.
+    ///     Sets the maximum DateTimeOffset value in the specified group.
     /// </summary>
     /// <param name="group">The group to set the value in.</param>
     /// <param name="name">The name of the value to set.</param>
@@ -96,7 +99,7 @@ public partial class LibraryBase
         }
 
         var maxDateTimeOffset = parentGroup.GetOrCreateValue<DateTimeOffset?>(name, DateTimeOffset.MinValue);
-        
+
         if (maxDateTimeOffset is null)
             parentGroup.SetValue(name, value.Value);
 
@@ -105,7 +108,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Retrieves the minimum DateTimeOffset value from the specified group.
+    ///     Retrieves the minimum DateTimeOffset value from the specified group.
     /// </summary>
     /// <param name="group">The group to retrieve the value from.</param>
     /// <param name="name">The name of the value to retrieve.</param>
@@ -119,7 +122,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Retrieves the minimum DateTimeOffset value from the specified group.
+    ///     Retrieves the minimum DateTimeOffset value from the specified group.
     /// </summary>
     /// <param name="group">The group to retrieve the value from.</param>
     /// <param name="name">The name of the value to retrieve.</param>
@@ -132,7 +135,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the minimum DateTimeOffset value in the specified group.
+    ///     Sets the minimum DateTimeOffset value in the specified group.
     /// </summary>
     /// <param name="group">The group to set the value in.</param>
     /// <param name="name">The name of the value to set.</param>
@@ -150,7 +153,7 @@ public partial class LibraryBase
         }
 
         var minDateTimeOffset = parentGroup.GetOrCreateValue<DateTimeOffset?>(name, DateTimeOffset.MaxValue);
-        
+
         if (minDateTimeOffset is null)
             parentGroup.SetValue(name, value.Value);
 

@@ -2,7 +2,8 @@
 
 namespace Musoq.Evaluator.Visitors;
 
-public class RewriteFieldOrderedWithGroupMethodCall(FieldNode[] nodes) : RewriteFieldWithGroupMethodCallBase<FieldOrderedNode, FieldNode>(nodes)
+public class RewriteFieldOrderedWithGroupMethodCall(FieldNode[] nodes)
+    : RewriteFieldWithGroupMethodCallBase<FieldOrderedNode, FieldNode>(nodes)
 {
     public override void Visit(FieldOrderedNode node)
     {

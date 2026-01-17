@@ -8,12 +8,12 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Emitter for comparison operations, handling special cases like char vs string comparisons.
+///     Emitter for comparison operations, handling special cases like char vs string comparisons.
 /// </summary>
 public static class ComparisonEmitter
 {
     /// <summary>
-    /// Processes an equality comparison, handling special char vs string cases.
+    ///     Processes an equality comparison, handling special char vs string cases.
     /// </summary>
     public static void ProcessEqualityComparison(
         Node leftNode,
@@ -36,7 +36,7 @@ public static class ComparisonEmitter
             SyntaxBinaryOperationHelper.ProcessValueEqualsOperation(nodes, generator);
         }
     }
-    
+
     private static bool IsCharVsStringComparison(Node leftNode, Node rightNode)
     {
         var leftIsChar = IsCharacterAccess(leftNode);
@@ -50,21 +50,19 @@ public static class ComparisonEmitter
     private static bool IsCharacterAccess(Node node)
     {
         if (node is AccessObjectArrayNode arrayNode)
-        {
             return arrayNode.IsColumnAccess && arrayNode.ColumnType == typeof(string);
-        }
         return false;
     }
 
     private static SyntaxNode HandleCharStringComparison(
-        Node leftNode, 
-        Node rightNode, 
-        SyntaxNode leftSyntax, 
+        Node leftNode,
+        Node rightNode,
+        SyntaxNode leftSyntax,
         SyntaxNode rightSyntax,
         SyntaxGenerator generator)
     {
         var leftIsChar = IsCharacterAccess(leftNode);
-        
+
         if (leftIsChar && rightNode is WordNode rightWord)
         {
             var charValue = rightWord.Value.Length > 0 ? rightWord.Value[0] : '\0';

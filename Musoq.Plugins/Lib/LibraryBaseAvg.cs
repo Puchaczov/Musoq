@@ -5,17 +5,19 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Gets the aggregated average value from the given group name
+    ///     Gets the aggregated average value from the given group name
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">The name of the group</param>
     /// <returns>Aggregated value</returns>
     [AggregationGetMethod]
     public decimal Avg([InjectGroup] Group group, string name)
-        => Avg(group, name, 0);
+    {
+        return Avg(group, name, 0);
+    }
 
     /// <summary>
-    /// Gets the aggregated average value from the given group name
+    ///     Gets the aggregated average value from the given group name
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">The name of the group</param>
@@ -29,7 +31,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value to average aggregation from the given group name
+    ///     Sets the value to average aggregation from the given group name
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">The name of the group</param>
@@ -41,12 +43,12 @@ public partial class LibraryBase
     {
         SetSum(group, name, value, parent);
         var parentGroup = GetParentGroup(group, parent);
-        if(value.HasValue)
+        if (value.HasValue)
             parentGroup.Hit();
     }
 
     /// <summary>
-    /// Sets the value to average aggregation from the given group name
+    ///     Sets the value to average aggregation from the given group name
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">The name of the group</param>
@@ -58,12 +60,12 @@ public partial class LibraryBase
     {
         SetSum(group, name, value, parent);
         var parentGroup = GetParentGroup(group, parent);
-        if(value.HasValue)
+        if (value.HasValue)
             parentGroup.Hit();
     }
 
     /// <summary>
-    /// Sets the value to average aggregation from the given group name
+    ///     Sets the value to average aggregation from the given group name
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">The name of the group</param>
@@ -75,12 +77,12 @@ public partial class LibraryBase
     {
         SetSum(group, name, value, parent);
         var parentGroup = GetParentGroup(group, parent);
-        if(value.HasValue)
+        if (value.HasValue)
             parentGroup.Hit();
     }
 
     /// <summary>
-    /// Sets the value to average aggregation from the given group name
+    ///     Sets the value to average aggregation from the given group name
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">The name of the group</param>
@@ -92,12 +94,12 @@ public partial class LibraryBase
     {
         SetSum(group, name, value, parent);
         var parentGroup = GetParentGroup(group, parent);
-        if(value.HasValue)
+        if (value.HasValue)
             parentGroup.Hit();
     }
 
     /// <summary>
-    /// Sets the value to average aggregation from the given group name
+    ///     Sets the value to average aggregation from the given group name
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">The name of the group</param>
@@ -109,12 +111,12 @@ public partial class LibraryBase
     {
         SetSum(group, name, value, parent);
         var parentGroup = GetParentGroup(group, parent);
-        if(value.HasValue)
+        if (value.HasValue)
             parentGroup.Hit();
     }
 
     /// <summary>
-    /// Sets the value to average aggregation from the given group name
+    ///     Sets the value to average aggregation from the given group name
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">The name of the group</param>
@@ -126,12 +128,12 @@ public partial class LibraryBase
     {
         SetSum(group, name, value, parent);
         var parentGroup = GetParentGroup(group, parent);
-        if(value.HasValue)
+        if (value.HasValue)
             parentGroup.Hit();
     }
 
     /// <summary>
-    /// Sets the value to average aggregation from the given group name
+    ///     Sets the value to average aggregation from the given group name
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">The name of the group</param>
@@ -143,12 +145,12 @@ public partial class LibraryBase
     {
         SetSum(group, name, value, parent);
         var parentGroup = GetParentGroup(group, parent);
-        if(value.HasValue)
+        if (value.HasValue)
             parentGroup.Hit();
     }
 
     /// <summary>
-    /// Sets the value to average aggregation from the given group name
+    ///     Sets the value to average aggregation from the given group name
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">The name of the group</param>
@@ -160,12 +162,12 @@ public partial class LibraryBase
     {
         SetSum(group, name, value, parent);
         var parentGroup = GetParentGroup(group, parent);
-        if(value.HasValue)
+        if (value.HasValue)
             parentGroup.Hit();
     }
 
     /// <summary>
-    /// Sets the value to average aggregation from the given group name
+    ///     Sets the value to average aggregation from the given group name
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">The name of the group</param>
@@ -175,15 +177,14 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, float? value, int parent = 0)
     {
-        
         SetSum(group, name, (decimal?)value, parent);
         var parentGroup = GetParentGroup(group, parent);
-        if(value.HasValue)
+        if (value.HasValue)
             parentGroup.Hit();
     }
 
     /// <summary>
-    /// Sets the value to average aggregation from the given group name
+    ///     Sets the value to average aggregation from the given group name
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">The name of the group</param>
@@ -193,15 +194,14 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, double? value, int parent = 0)
     {
-        
         SetSum(group, name, (decimal?)value, parent);
         var parentGroup = GetParentGroup(group, parent);
-        if(value.HasValue)
+        if (value.HasValue)
             parentGroup.Hit();
     }
 
     /// <summary>
-    /// Sets the value to average aggregation from the given group name
+    ///     Sets the value to average aggregation from the given group name
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">The name of the group</param>

@@ -25,48 +25,48 @@ namespace Musoq.Evaluator.Visitors;
 
 public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTranslationExpressionVisitor
 {
-    protected override string VisitorName => nameof(ToCSharpRewriteTreeVisitor);
-
     private static readonly MethodInfo LikeMethod = typeof(Operators).GetMethod(nameof(Operators.Like));
     private static readonly MethodInfo RLikeMethod = typeof(Operators).GetMethod(nameof(Operators.RLike));
     private static readonly MethodInfo ContainsMethod = typeof(Operators).GetMethod(nameof(Operators.Contains));
+    private readonly CompilationContextManager _compilationContext;
+    private readonly CompilationOptions _compilationOptions;
+    private readonly CseManager _cseManager;
+    private readonly DescStatementEmitter _descStatementEmitter;
+
+    private readonly Dictionary<string, LocalDeclarationStatementSyntax> _getRowsSourceStatement = new();
 
     private readonly Dictionary<string, int> _inMemoryTableIndexes = new();
 
     private readonly List<SyntaxNode> _members = [];
     private readonly Stack<string> _methodNames = new();
-    private int _rowClassCounter;
+    private readonly QueryClauseEmitter _queryClauseEmitter;
+    private readonly QueryEmitter _queryEmitter;
+
+    private readonly SetOperationEmitter _setOperationEmitter;
 
     private readonly Dictionary<string, Type> _typesToInstantiate = new();
+    private int _caseWhenMethodIndex;
     private BlockSyntax _emptyBlock;
     private SyntaxNode _groupHaving;
-
-    private readonly Dictionary<string, LocalDeclarationStatementSyntax> _getRowsSourceStatement = new();
 
     private VariableDeclarationSyntax _groupKeys;
     private VariableDeclarationSyntax _groupValues;
 
     private int _inMemoryTableIndex;
-    private int _setOperatorMethodIdentifier;
-    private int _caseWhenMethodIndex;
-    private int _schemaFromIndex;
 
-    private BlockSyntax _joinOrApplyBlock;
-    private string _queryAlias;
-    private Scope _scope;
-    private BlockSyntax _selectBlock;
-    private MethodAccessType _oldType;
-    private MethodAccessType _type;
+    private bool _isInsideCaseWhen;
     private bool _isInsideJoinOrApply;
     private bool _isResultParallelizationImpossible;
-    private readonly CompilationOptions _compilationOptions;
-    
-    private readonly SetOperationEmitter _setOperationEmitter;
-    private readonly QueryEmitter _queryEmitter;
-    private readonly QueryClauseEmitter _queryClauseEmitter;
-    private readonly CseManager _cseManager;
-    private readonly CompilationContextManager _compilationContext;
-    private readonly DescStatementEmitter _descStatementEmitter;
+
+    private BlockSyntax _joinOrApplyBlock;
+    private MethodAccessType _oldType;
+    private string _queryAlias;
+    private int _rowClassCounter;
+    private int _schemaFromIndex;
+    private Scope _scope;
+    private BlockSyntax _selectBlock;
+    private int _setOperatorMethodIdentifier;
+    private MethodAccessType _type;
 
     public ToCSharpRewriteTreeVisitor(
         IEnumerable<Assembly> assemblies,
@@ -93,7 +93,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         _descStatementEmitter = new DescStatementEmitter(Generator);
         var nonDeterministicFunctions = NonDeterministicMethodsScanner.ScanForNonDeterministicMethods(assemblies);
         _cseManager = new CseManager(nonDeterministicFunctions);
-        
+
         _compilationContext = new CompilationContextManager(RoslynSharedFactory.CreateCompilation(assemblyName));
         _compilationContext.InitializeDefaults();
         _compilationContext.InitializeCoreReferences(assemblies);
@@ -101,18 +101,16 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         AccessToClassPath = $"{Namespace}.{ClassName}";
     }
 
+    protected override string VisitorName => nameof(ToCSharpRewriteTreeVisitor);
+
     private string Namespace { get; } =
         $"{Resources.Compilation.NamespaceConstantPart}_{StringHelpers.GenerateNamespaceIdentifier()}";
 
     private static string ClassName => "CompiledQuery";
 
-    public string AccessToClassPath { get; }
-
     public AdhocWorkspace Workspace { get; }
 
     public SyntaxGenerator Generator { get; }
-
-    public CSharpCompilation Compilation => _compilationContext.GetCompilation();
 
     private Stack<SyntaxNode> Nodes { get; }
 
@@ -122,8 +120,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns { get; }
 
-    private bool _isInsideCaseWhen;
-    
+    public string AccessToClassPath { get; }
+
+    public CSharpCompilation Compilation => _compilationContext.GetCompilation();
+
     public void SetCaseWhenContext(bool isInside)
     {
         _isInsideCaseWhen = isInside;
@@ -216,12 +216,14 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public override void Visit(LikeNode node)
     {
-        PatternMatchEmitter.ProcessPatternMatch(node.Left, node.Right, nameof(Operators.Like), LikeMethod, Nodes, Visit);
+        PatternMatchEmitter.ProcessPatternMatch(node.Left, node.Right, nameof(Operators.Like), LikeMethod, Nodes,
+            Visit);
     }
 
     public override void Visit(RLikeNode node)
     {
-        PatternMatchEmitter.ProcessPatternMatch(node.Left, node.Right, nameof(Operators.RLike), RLikeMethod, Nodes, Visit);
+        PatternMatchEmitter.ProcessPatternMatch(node.Left, node.Right, nameof(Operators.RLike), RLikeMethod, Nodes,
+            Visit);
     }
 
     public override void Visit(FieldNode node)
@@ -232,13 +234,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     public override void Visit(FieldOrderedNode node)
     {
         ApplyFieldResult(FieldEmitter.ProcessFieldOrderedNode(node.ReturnType, Nodes.Pop(), Generator));
-    }
-    
-    private void ApplyFieldResult(FieldEmitter.FieldNodeResult result)
-    {
-        AddReference(result.RequiredTypes);
-        AddNamespace(result.RequiredTypes);
-        Nodes.Push(result.Expression);
     }
 
     public override void Visit(StringNode node)
@@ -311,7 +306,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             AddNamespace);
 
         var resultExpr = ApplyCseIfNeeded(node.Id, accessMethodExpr, node.ReturnType);
-        
+
         Nodes.Push(resultExpr);
     }
 
@@ -324,22 +319,13 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     {
         var expression = (ExpressionSyntax)Nodes.Pop();
         var result = NullCheckEmitter.ProcessIsNull(node.Expression.ReturnType, node.IsNegated, expression);
-        
+
         Nodes.Push(result.Expression);
     }
 
     public override void Visit(AccessColumnNode node)
     {
         ApplyAccessColumnResult(AccessColumnEmitter.GenerateColumnAccess(node, _type, Generator));
-    }
-    
-    private void ApplyAccessColumnResult(AccessColumnEmitter.AccessColumnResult result)
-    {
-        AddNamespace(result.RequiredTypes);
-        AddReference(result.RequiredTypes);
-        if (result.ShouldTrackForNullCheck && NullSuspiciousNodes.Count > 0)
-            NullSuspiciousNodes[^1].Push(result.Expression);
-        Nodes.Push(result.Expression);
     }
 
     public override void Visit(IdentifierNode node)
@@ -382,7 +368,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public override void Visit(WhereNode node)
     {
-        Nodes.Push(_queryClauseEmitter.ProcessWhere(Nodes.Pop(), _isResultParallelizationImpossible, _type == MethodAccessType.ResultQuery));
+        Nodes.Push(_queryClauseEmitter.ProcessWhere(Nodes.Pop(), _isResultParallelizationImpossible,
+            _type == MethodAccessType.ResultQuery));
     }
 
     public override void Visit(GroupByNode node)
@@ -427,10 +414,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         var getRowsSourceWrapper = GetRowsSourceOrEmpty;
         Func<StatementSyntax[], BlockSyntax> blockWrapper = Block;
         var cancellationWrapper = GenerateCancellationExpression;
-        
+
         var result = ApplyInMemoryWithSourceTableNodeProcessor.ProcessApplyInMemoryWithSourceTable(
             node, Generator, _scope, _queryAlias, getRowsSourceWrapper, blockWrapper, cancellationWrapper);
-        
+
         _emptyBlock = result.EmptyBlock;
         _joinOrApplyBlock = result.ComputingBlock;
     }
@@ -438,44 +425,29 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     public override void Visit(SchemaFromNode node)
     {
         var result = SchemaNodeEmitter.ProcessSchemaFromNode(
-            node.Id, node.Alias, node.Schema, node.Method, _schemaFromIndex++, InferredColumns[node], (ArgumentListSyntax)Nodes.Pop());
+            node.Id, node.Alias, node.Schema, node.Method, _schemaFromIndex++, InferredColumns[node],
+            (ArgumentListSyntax)Nodes.Pop());
 
         Statements.Add(result.TableInfoStatement);
         Statements.Add(result.SchemaStatement);
         AddRowsSource(node.Alias, result.RowsStatement);
-    }
-    
-    private void AddRowsSource(string alias, LocalDeclarationStatementSyntax rowsStatement)
-    {
-        if (_isInsideJoinOrApply)
-            _getRowsSourceStatement.Add(alias, rowsStatement);
-        else
-            Statements.Add(rowsStatement);
     }
 
     public override void Visit(JoinSourcesTableFromNode node)
     {
         _emptyBlock = StatementEmitter.CreateEmptyBlock();
         _joinOrApplyBlock = JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
-            node, Generator, _scope, _queryAlias, 
-            JoinEmitter.CreateJoinConditionCheck(Nodes.Pop(), Generator), 
+            node, Generator, _scope, _queryAlias,
+            JoinEmitter.CreateJoinConditionCheck(Nodes.Pop(), Generator),
             _emptyBlock, GetRowsSourceOrEmpty, Block, GenerateCancellationExpression,
             CreateExpressionEvaluator(), _compilationOptions);
-    }
-    
-    private Func<Node, ExpressionSyntax> CreateExpressionEvaluator()
-    {
-        return n => {
-            n.Accept(new ToCSharpRewriteTreeTraverseVisitor(this, new ScopeWalker(_scope), _compilationOptions));
-            return (ExpressionSyntax)Nodes.Pop();
-        };
     }
 
     public override void Visit(ApplySourcesTableFromNode node)
     {
         var result = ApplySourcesTableNodeProcessor.ProcessApplySourcesTable(
             node, Generator, _scope, _queryAlias, GetRowsSourceOrEmpty, Block, GenerateCancellationExpression);
-        
+
         _emptyBlock = result.EmptyBlock;
         _joinOrApplyBlock = result.ComputingBlock;
     }
@@ -483,7 +455,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     public override void Visit(InMemoryTableFromNode node)
     {
         var tableIndex = _inMemoryTableIndexes[node.VariableName];
-        _getRowsSourceStatement.Add(node.Alias, SchemaNodeEmitter.CreateInMemoryTableRowsSource(node.Alias, tableIndex));
+        _getRowsSourceStatement.Add(node.Alias,
+            SchemaNodeEmitter.CreateInMemoryTableRowsSource(node.Alias, tableIndex));
     }
 
     public override void Visit(ExpressionFromNode node)
@@ -495,26 +468,27 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     {
         AddNamespace(node.ReturnType);
         var sourceExpression = (ExpressionSyntax)Nodes.Pop();
-        _getRowsSourceStatement.Add(node.Alias, SchemaNodeEmitter.CreateEnumerableRowsSource(node.Alias, node.ReturnType, sourceExpression));
+        _getRowsSourceStatement.Add(node.Alias,
+            SchemaNodeEmitter.CreateEnumerableRowsSource(node.Alias, node.ReturnType, sourceExpression));
     }
 
     public override void Visit(PropertyFromNode node)
     {
         AddNamespace(node.ReturnType);
-        
+
         var propertiesChain = node.PropertiesChain
             .Select(p => (p.PropertyName, p.PropertyType))
             .ToArray();
-        
+
         _getRowsSourceStatement.Add(
-            node.Alias, 
+            node.Alias,
             SchemaNodeEmitter.CreatePropertyRowsSource(node.Alias, node.SourceAlias, node.ReturnType, propertiesChain));
     }
 
     public override void Visit(CreateTransformationTableNode node)
     {
         var tableName = _scope[MetaAttributes.CreateTableVariableName];
-        Statements.Add(node.ForGrouping 
+        Statements.Add(node.ForGrouping
             ? TransformationTableEmitter.CreateGroupingTransformationTable(tableName)
             : TransformationTableEmitter.CreateRegularTransformationTable(node, tableName, AddReference, AddNamespace));
     }
@@ -572,22 +546,19 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         _isResultParallelizationImpossible = false;
     }
 
-    private static StatementSyntax GenerateCancellationExpression()
-    {
-        return QueryEmitter.GenerateCancellationCheck();
-    }
-
     public override void Visit(RootNode node)
     {
-        var methodCallExpression = $"{_methodNames.Pop()}(Provider, PositionalEnvironmentVariables, QueriesInformation, Logger, token)";
-        
+        var methodCallExpression =
+            $"{_methodNames.Pop()}(Provider, PositionalEnvironmentVariables, QueriesInformation, Logger, token)";
+
         ClassEmitter.AddRunnableMembers(_members, methodCallExpression);
 
         var inMemoryTables = ClassEmitter.CreateInMemoryTablesField(_inMemoryTableIndex);
         _members.Insert(0, inMemoryTables);
 
         var classDeclaration = ClassEmitter.CreateClassDeclaration(Generator, ClassName, _members);
-        var ns = ClassEmitter.CreateNamespaceDeclaration(Namespace, _compilationContext.GetNamespaces(), (ClassDeclarationSyntax)classDeclaration);
+        var ns = ClassEmitter.CreateNamespaceDeclaration(Namespace, _compilationContext.GetNamespaces(),
+            (ClassDeclarationSyntax)classDeclaration);
         var compilationUnit = ClassEmitter.CreateCompilationUnit(ns);
         var formatted = ClassEmitter.FormatCompilationUnit(compilationUnit, Workspace);
 
@@ -612,18 +583,6 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     public override void Visit(IntersectNode node)
     {
         ProcessSetOperation("Intersect", nameof(BaseOperations.Intersect));
-    }
-
-    private void ProcessSetOperation(string operationSuffix, string baseOperationMethodName)
-    {
-        var result = _setOperationEmitter.ProcessSetOperation(
-            _methodNames,
-            operationSuffix,
-            baseOperationMethodName,
-            _scope[MetaAttributes.SetOperatorName]);
-
-        _methodNames.Push(result.CombinedMethodName);
-        _members.Add(result.Method);
     }
 
     public override void Visit(RefreshNode node)
@@ -654,7 +613,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     public override void Visit(CteExpressionNode node)
     {
         var result = CteExpressionNodeProcessor.ProcessCteExpressionNode(node, _methodNames, Nodes);
-        
+
         _members.Add(result.Method);
         _methodNames.Push(result.MethodName);
     }
@@ -710,6 +669,73 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         NullSuspiciousNodes.RemoveAt(NullSuspiciousNodes.Count - 1);
     }
 
+    public override void Visit(OrderByNode node)
+    {
+        AddNamespace(QueryClauseEmitter.GetOrderByNamespace());
+    }
+
+    public override void Visit(CaseNode node)
+    {
+        ApplyCaseNodeResult(CaseNodeProcessor.ProcessCaseNode(
+            node, Nodes, _typesToInstantiate, _oldType, _queryAlias, ref _caseWhenMethodIndex,
+            _cseManager.GetDeclarations()));
+    }
+
+    public override void Visit(FieldLinkNode node)
+    {
+        throw new NotSupportedException();
+    }
+
+    private void ApplyFieldResult(FieldEmitter.FieldNodeResult result)
+    {
+        AddReference(result.RequiredTypes);
+        AddNamespace(result.RequiredTypes);
+        Nodes.Push(result.Expression);
+    }
+
+    private void ApplyAccessColumnResult(AccessColumnEmitter.AccessColumnResult result)
+    {
+        AddNamespace(result.RequiredTypes);
+        AddReference(result.RequiredTypes);
+        if (result.ShouldTrackForNullCheck && NullSuspiciousNodes.Count > 0)
+            NullSuspiciousNodes[^1].Push(result.Expression);
+        Nodes.Push(result.Expression);
+    }
+
+    private void AddRowsSource(string alias, LocalDeclarationStatementSyntax rowsStatement)
+    {
+        if (_isInsideJoinOrApply)
+            _getRowsSourceStatement.Add(alias, rowsStatement);
+        else
+            Statements.Add(rowsStatement);
+    }
+
+    private Func<Node, ExpressionSyntax> CreateExpressionEvaluator()
+    {
+        return n =>
+        {
+            n.Accept(new ToCSharpRewriteTreeTraverseVisitor(this, new ScopeWalker(_scope), _compilationOptions));
+            return (ExpressionSyntax)Nodes.Pop();
+        };
+    }
+
+    private static StatementSyntax GenerateCancellationExpression()
+    {
+        return QueryEmitter.GenerateCancellationCheck();
+    }
+
+    private void ProcessSetOperation(string operationSuffix, string baseOperationMethodName)
+    {
+        var result = _setOperationEmitter.ProcessSetOperation(
+            _methodNames,
+            operationSuffix,
+            baseOperationMethodName,
+            _scope[MetaAttributes.SetOperatorName]);
+
+        _methodNames.Push(result.CombinedMethodName);
+        _members.Add(result.Method);
+    }
+
     private void AddNamespace(string columnTypeNamespace)
     {
         _compilationContext.TrackNamespace(columnTypeNamespace);
@@ -736,29 +762,12 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         _compilationContext.AddAssemblyReferences(assemblies);
     }
 
-    public override void Visit(OrderByNode node)
-    {
-        AddNamespace(QueryClauseEmitter.GetOrderByNamespace());
-    }
-
-    public override void Visit(CaseNode node)
-    {
-        ApplyCaseNodeResult(CaseNodeProcessor.ProcessCaseNode(
-            node, Nodes, _typesToInstantiate, _oldType, _queryAlias, ref _caseWhenMethodIndex,
-            _cseManager.GetDeclarations()));
-    }
-    
     private void ApplyCaseNodeResult(CaseNodeProcessor.ProcessCaseNodeResult result)
     {
         foreach (var ns in result.RequiredNamespaces)
             AddNamespace(ns);
         _members.Add(result.Method);
         Nodes.Push(result.MethodInvocation);
-    }
-
-    public override void Visit(FieldLinkNode node)
-    {
-        throw new NotSupportedException();
     }
 
     private StatementSyntax GetRowsSourceOrEmpty(string alias)
@@ -776,10 +785,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private SyntaxNode ApplyCseIfNeeded(string expressionId, SyntaxNode expression, Type expressionType)
     {
-        var result = _cseManager.ApplyIfNeeded(expressionId, (ExpressionSyntax)expression, expressionType, _isInsideCaseWhen);
+        var result = _cseManager.ApplyIfNeeded(expressionId, (ExpressionSyntax)expression, expressionType,
+            _isInsideCaseWhen);
         return result;
     }
-    
+
     private IEnumerable<StatementSyntax> GenerateCseVariableDeclarations()
     {
         return _cseManager.GenerateDeclarations();

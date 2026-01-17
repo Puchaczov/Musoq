@@ -137,7 +137,7 @@ public class ToDoubleMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDouble_WhenSByteProvided_ShouldReturnDouble()
     {
-        var result = Library.ToDouble((sbyte)100);
+        var result = Library.ToDouble(100);
 
         Assert.AreEqual(100.0, result);
     }
@@ -153,7 +153,7 @@ public class ToDoubleMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDouble_WhenNegativeSByteProvided_ShouldReturnDouble()
     {
-        var result = Library.ToDouble((sbyte)-50);
+        var result = Library.ToDouble(-50);
 
         Assert.AreEqual(-50.0, result);
     }
@@ -165,7 +165,7 @@ public class ToDoubleMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDouble_WhenShortProvided_ShouldReturnDouble()
     {
-        var result = Library.ToDouble((short)1000);
+        var result = Library.ToDouble(1000);
 
         Assert.AreEqual(1000.0, result);
     }
@@ -181,7 +181,7 @@ public class ToDoubleMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDouble_WhenNegativeShortProvided_ShouldReturnDouble()
     {
-        var result = Library.ToDouble((short)-1000);
+        var result = Library.ToDouble(-1000);
 
         Assert.AreEqual(-1000.0, result);
     }
@@ -193,7 +193,7 @@ public class ToDoubleMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDouble_WhenUShortProvided_ShouldReturnDouble()
     {
-        var result = Library.ToDouble((ushort)50000);
+        var result = Library.ToDouble(50000);
 
         Assert.AreEqual(50000.0, result);
     }
@@ -249,7 +249,7 @@ public class ToDoubleMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToDouble_WhenUIntProvided_ShouldReturnDouble()
     {
-        var result = Library.ToDouble((uint)4000000000);
+        var result = Library.ToDouble(4000000000);
 
         Assert.AreEqual(4000000000.0, result);
     }

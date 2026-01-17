@@ -12,9 +12,10 @@ public class UsedColumnsOrUsedWhereSchemaProvider<T> : ISchemaProvider
     {
         _values = values;
     }
-        
+
     public ISchema GetSchema(string schema)
     {
-        return new GenericSchema<UsedColumnsOrUsedWhereEntity, UsedColumnsOrUsedWhereTable>(_values[schema], UsedColumnsOrUsedWhereEntity.TestNameToIndexMap, UsedColumnsOrUsedWhereEntity.TestIndexToObjectAccessMap);
+        return new GenericSchema<UsedColumnsOrUsedWhereEntity, UsedColumnsOrUsedWhereTable>(_values[schema],
+            UsedColumnsOrUsedWhereEntity.TestNameToIndexMap, UsedColumnsOrUsedWhereEntity.TestIndexToObjectAccessMap);
     }
 }

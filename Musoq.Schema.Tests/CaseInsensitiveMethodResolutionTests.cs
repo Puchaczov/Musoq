@@ -9,40 +9,9 @@ namespace Musoq.Schema.Tests;
 [TestClass]
 public class CaseInsensitiveMethodResolutionTests
 {
-    private class TestClass
-    {
-        public void MyMethod() { }
-        
-        public void MyMethod(int value) { }
-        
-        public void My_Underscore_Method() { }
-        
-        public void UPPERCASE_METHOD() { }
-        
-        public void mixedCaseMethod() { }
-        
-        public void simple() { }
-    }
-
-    private class TestMethodsMetadata : MethodsMetadata
-    {
-        public TestMethodsMetadata()
-        {
-            var testClass = typeof(TestClass);
-            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-            {
-                RegisterMethod(method);
-            }
-        }
-
-        private new void RegisterMethod(MethodInfo methodInfo)
-        {
-            base.RegisterMethod(methodInfo);
-        }
-    }
+    private Type _entityType;
 
     private MethodsMetadata _methodsMetadata;
-    private Type _entityType;
 
     [TestInitialize]
     public void Initialize()
@@ -96,7 +65,7 @@ public class CaseInsensitiveMethodResolutionTests
 
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
-        Assert.AreEqual("MyMethod", method.Name); 
+        Assert.AreEqual("MyMethod", method.Name);
     }
 
     [TestMethod]
@@ -108,7 +77,7 @@ public class CaseInsensitiveMethodResolutionTests
 
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
-        Assert.AreEqual("MyMethod", method.Name); 
+        Assert.AreEqual("MyMethod", method.Name);
     }
 
     [TestMethod]
@@ -120,7 +89,7 @@ public class CaseInsensitiveMethodResolutionTests
 
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
-        Assert.AreEqual("MyMethod", method.Name); 
+        Assert.AreEqual("MyMethod", method.Name);
     }
 
     [TestMethod]
@@ -142,11 +111,11 @@ public class CaseInsensitiveMethodResolutionTests
     {
         var types = new Type[0];
 
-        
+
         var testCases = new[]
         {
             "my_underscore_method",
-            "MY_UNDERSCORE_METHOD", 
+            "MY_UNDERSCORE_METHOD",
             "myunderscoremethod",
             "MYUNDERSCOREMETHOD"
         };
@@ -166,12 +135,12 @@ public class CaseInsensitiveMethodResolutionTests
     {
         var types = new Type[0];
 
-        
+
         var testCases = new[]
         {
             "uppercase_method",
             "UPPERCASE_METHOD",
-            "uppercasemethod", 
+            "uppercasemethod",
             "UPPERCASEMETHOD"
         };
 
@@ -190,7 +159,7 @@ public class CaseInsensitiveMethodResolutionTests
     {
         var types = new Type[0];
 
-        
+
         var testCases = new[]
         {
             "mixedcasemethod",
@@ -214,8 +183,7 @@ public class CaseInsensitiveMethodResolutionTests
     {
         var types = new Type[0];
 
-        
-        
+
         var success = _methodsMetadata.TryGetMethod("simple", types, _entityType, out var method);
 
         Assert.IsTrue(success);
@@ -256,5 +224,47 @@ public class CaseInsensitiveMethodResolutionTests
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
         Assert.AreEqual("MyMethod", method.Name);
+    }
+
+    private class TestClass
+    {
+        public void MyMethod()
+        {
+        }
+
+        public void MyMethod(int value)
+        {
+        }
+
+        public void My_Underscore_Method()
+        {
+        }
+
+        public void UPPERCASE_METHOD()
+        {
+        }
+
+        public void mixedCaseMethod()
+        {
+        }
+
+        public void simple()
+        {
+        }
+    }
+
+    private class TestMethodsMetadata : MethodsMetadata
+    {
+        public TestMethodsMetadata()
+        {
+            var testClass = typeof(TestClass);
+            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance |
+                                                        BindingFlags.DeclaredOnly)) RegisterMethod(method);
+        }
+
+        private new void RegisterMethod(MethodInfo methodInfo)
+        {
+            base.RegisterMethod(methodInfo);
+        }
     }
 }

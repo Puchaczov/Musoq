@@ -3,8 +3,9 @@
 public class ColumnToken : Token
 {
     private readonly bool _hasColumnMarkers;
-        
-    public ColumnToken(string value, TextSpan span) : base(ReplaceLeadingAndTrailingColumnMarkers(value), TokenType.Identifier, span)
+
+    public ColumnToken(string value, TextSpan span) : base(ReplaceLeadingAndTrailingColumnMarkers(value),
+        TokenType.Identifier, span)
     {
         if (value.StartsWith("[") && value.EndsWith("]"))
             _hasColumnMarkers = true;
@@ -14,7 +15,7 @@ public class ColumnToken : Token
     {
         if (_hasColumnMarkers)
             return $"[{Value}]";
-            
+
         return Value;
     }
 

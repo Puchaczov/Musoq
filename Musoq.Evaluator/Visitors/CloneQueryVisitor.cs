@@ -12,7 +12,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
     protected Stack<Node> Nodes { get; } = new();
 
     /// <summary>
-    /// Gets the name of this visitor for error reporting.
+    ///     Gets the name of this visitor for error reporting.
     /// </summary>
     protected override string VisitorName => nameof(CloneQueryVisitor);
 
@@ -24,7 +24,8 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
 
     public override void Visit(DescNode node)
     {
-        var fromNode = SafeCast<FromNode>(SafePop(Nodes, nameof(Visit) + nameof(DescNode)), nameof(Visit) + nameof(DescNode));
+        var fromNode = SafeCast<FromNode>(SafePop(Nodes, nameof(Visit) + nameof(DescNode)),
+            nameof(Visit) + nameof(DescNode));
         Nodes.Push(new DescNode(fromNode, node.Type));
     }
 
@@ -177,7 +178,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         var fields = new FieldNode[node.Fields.Length];
 
         for (var i = node.Fields.Length - 1; i >= 0; --i)
-            fields[i] = (FieldNode) Nodes.Pop();
+            fields[i] = (FieldNode)Nodes.Pop();
 
         Nodes.Push(new SelectNode(fields.ToArray(), node.IsDistinct));
     }
@@ -187,7 +188,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         var fields = new FieldNode[node.Fields.Length];
 
         for (var i = node.Fields.Length - 1; i >= 0; --i)
-            fields[i] = (FieldNode) Nodes.Pop();
+            fields[i] = (FieldNode)Nodes.Pop();
 
         Nodes.Push(new GroupSelectNode(fields));
     }
@@ -246,7 +247,8 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
 
     public override void Visit(AccessMethodNode node)
     {
-        Nodes.Push(new AccessMethodNode(node.FunctionToken, (ArgsListNode) Nodes.Pop(), null, node.CanSkipInjectSource, node.Method, node.Alias));
+        Nodes.Push(new AccessMethodNode(node.FunctionToken, (ArgsListNode)Nodes.Pop(), null, node.CanSkipInjectSource,
+            node.Method, node.Alias));
     }
 
     public override void Visit(AccessRawIdentifierNode node)
@@ -344,35 +346,37 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
 
     public override void Visit(SkipNode node)
     {
-        Nodes.Push(new SkipNode((IntegerNode) node.Expression));
+        Nodes.Push(new SkipNode((IntegerNode)node.Expression));
     }
 
     public override void Visit(TakeNode node)
     {
-        Nodes.Push(new TakeNode((IntegerNode) node.Expression));
+        Nodes.Push(new TakeNode((IntegerNode)node.Expression));
     }
 
     public override void Visit(SchemaFromNode node)
     {
         Nodes.Push(
-            node is Parser.SchemaFromNode schemaFromNode ?
-                new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId, schemaFromNode.HasExternallyProvidedTypes) :
-                new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias, node.QueryId, false));
+            node is Parser.SchemaFromNode schemaFromNode
+                ? new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias,
+                    node.QueryId, schemaFromNode.HasExternallyProvidedTypes)
+                : new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias,
+                    node.QueryId, false));
     }
 
     public override void Visit(JoinSourcesTableFromNode node)
     {
         var exp = Nodes.Pop();
-        var b = (FromNode) Nodes.Pop();
-        var a = (FromNode) Nodes.Pop();
+        var b = (FromNode)Nodes.Pop();
+        var a = (FromNode)Nodes.Pop();
 
         Nodes.Push(new Parser.JoinSourcesTableFromNode(a, b, exp, node.JoinType));
     }
 
     public override void Visit(ApplySourcesTableFromNode node)
     {
-        var b = (FromNode) Nodes.Pop();
-        var a = (FromNode) Nodes.Pop();
+        var b = (FromNode)Nodes.Pop();
+        var a = (FromNode)Nodes.Pop();
 
         Nodes.Push(new Parser.ApplySourcesTableFromNode(a, b, node.ApplyType));
     }
@@ -385,29 +389,30 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
     public override void Visit(JoinFromNode node)
     {
         var expression = Nodes.Pop();
-        var joinedTable = (FromNode) Nodes.Pop();
-        var source = (FromNode) Nodes.Pop();
+        var joinedTable = (FromNode)Nodes.Pop();
+        var source = (FromNode)Nodes.Pop();
         var joinedFrom = new Parser.JoinFromNode(source, joinedTable, expression, node.JoinType);
         Nodes.Push(joinedFrom);
     }
 
     public override void Visit(ApplyFromNode node)
     {
-        var appliedTable = (FromNode) Nodes.Pop();
-        var source = (FromNode) Nodes.Pop();
+        var appliedTable = (FromNode)Nodes.Pop();
+        var source = (FromNode)Nodes.Pop();
         var appliedFrom = new Parser.ApplyFromNode(source, appliedTable, node.ApplyType);
         Nodes.Push(appliedFrom);
     }
 
     public override void Visit(ExpressionFromNode node)
     {
-        var from = (FromNode) Nodes.Pop();
+        var from = (FromNode)Nodes.Pop();
         Nodes.Push(new Parser.ExpressionFromNode(from));
     }
 
     public override void Visit(AccessMethodFromNode node)
     {
-        Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, (AccessMethodNode)Nodes.Pop(), node.ReturnType));
+        Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, (AccessMethodNode)Nodes.Pop(),
+            node.ReturnType));
     }
 
     public override void Visit(PropertyFromNode node)
@@ -417,7 +422,8 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
 
     public override void Visit(AliasedFromNode node)
     {
-        Nodes.Push(new Parser.AliasedFromNode(node.Identifier, (ArgsListNode)Nodes.Pop(), node.Alias, node.InSourcePosition));
+        Nodes.Push(new Parser.AliasedFromNode(node.Identifier, (ArgsListNode)Nodes.Pop(), node.Alias,
+            node.InSourcePosition));
     }
 
     public override void Visit(SchemaMethodFromNode node)
@@ -430,7 +436,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         var items = new FieldNode[node.Fields.Length];
 
         for (var i = node.Fields.Length - 1; i >= 0; --i)
-            items[i] = (FieldNode) Nodes.Pop();
+            items[i] = (FieldNode)Nodes.Pop();
 
         Nodes.Push(new CreateTransformationTableNode(node.Name, node.Keys, items, node.ForGrouping));
     }
@@ -480,13 +486,13 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
     public override void Visit(JoinInMemoryWithSourceTableFromNode node)
     {
         var exp = Nodes.Pop();
-        var from = (FromNode) Nodes.Pop();
+        var from = (FromNode)Nodes.Pop();
         Nodes.Push(new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType));
     }
 
     public override void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
-        var from = (FromNode) Nodes.Pop();
+        var from = (FromNode)Nodes.Pop();
         Nodes.Push(new Parser.ApplyInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, node.ApplyType));
     }
 
@@ -561,7 +567,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         var sets = new CteInnerExpressionNode[node.InnerExpression.Length];
 
         for (var i = node.InnerExpression.Length - 1; i >= 0; --i)
-            sets[i] = (CteInnerExpressionNode) Nodes.Pop();
+            sets[i] = (CteInnerExpressionNode)Nodes.Pop();
 
         Nodes.Push(new CteExpressionNode(sets, Nodes.Pop()));
     }
@@ -573,12 +579,12 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
 
     public override void Visit(JoinNode node)
     {
-        Nodes.Push(new Parser.JoinNode((Parser.JoinFromNode) Nodes.Pop()));
+        Nodes.Push(new Parser.JoinNode((Parser.JoinFromNode)Nodes.Pop()));
     }
 
     public override void Visit(ApplyNode node)
     {
-        Nodes.Push(new Parser.ApplyNode((Parser.ApplyFromNode) Nodes.Pop()));
+        Nodes.Push(new Parser.ApplyNode((Parser.ApplyFromNode)Nodes.Pop()));
     }
 
     public override void Visit(OrderByNode node)
@@ -604,10 +610,8 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
     public override void Visit(StatementsArrayNode node)
     {
         var statements = new StatementNode[node.Statements.Length];
-        for(var i = 0; i < node.Statements.Length; ++i)
-        {
+        for (var i = 0; i < node.Statements.Length; ++i)
             statements[node.Statements.Length - 1 - i] = (StatementNode)Nodes.Pop();
-        }
 
         Nodes.Push(new StatementsArrayNode(statements));
     }
@@ -621,7 +625,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
     {
         var whenThenPairs = new List<(Node When, Node Then)>();
 
-        for (int i = 0; i < node.WhenThenPairs.Length; ++i)
+        for (var i = 0; i < node.WhenThenPairs.Length; ++i)
         {
             var then = Nodes.Pop();
             var when = Nodes.Pop();

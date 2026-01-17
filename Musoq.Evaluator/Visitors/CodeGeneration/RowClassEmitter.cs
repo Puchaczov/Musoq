@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -5,18 +7,16 @@ using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils;
 using Musoq.Parser.Nodes;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Emits Row class declarations for query results.
+///     Emits Row class declarations for query results.
 /// </summary>
 internal static class RowClassEmitter
 {
     /// <summary>
-    /// Generates a Row class that holds the selected fields from a query.
+    ///     Generates a Row class that holds the selected fields from a query.
     /// </summary>
     /// <param name="className">The name of the class to generate.</param>
     /// <param name="node">The select node containing field definitions.</param>
@@ -26,7 +26,7 @@ internal static class RowClassEmitter
     {
         var (fields, constructorParams, constructorBody, valuesInit) = GenerateFieldsAndConstructorParams(node);
         var (contextParams, contextBody) = GenerateContextParams(scope);
-        
+
         constructorParams.AddRange(contextParams);
         constructorBody.AddRange(contextBody);
 
@@ -45,8 +45,8 @@ internal static class RowClassEmitter
             .WithMembers(SyntaxFactory.List(fields.Concat([constructor, indexer, countProp, valuesProp])));
     }
 
-    private static (List<MemberDeclarationSyntax> Fields, List<ParameterSyntax> ConstructorParams, 
-        List<StatementSyntax> ConstructorBody, List<ExpressionSyntax> ValuesInit) 
+    private static (List<MemberDeclarationSyntax> Fields, List<ParameterSyntax> ConstructorParams,
+        List<StatementSyntax> ConstructorBody, List<ExpressionSyntax> ValuesInit)
         GenerateFieldsAndConstructorParams(SelectNode node)
     {
         var fields = new List<MemberDeclarationSyntax>();
@@ -109,9 +109,9 @@ internal static class RowClassEmitter
     {
         var sanitizedComment = comment.Replace("\n", "\\n").Replace("\r", "\\r");
         return SyntaxFactory.FieldDeclaration(
-            SyntaxFactory.VariableDeclaration(typeSyntax)
-                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(fieldName))))
+                SyntaxFactory.VariableDeclaration(typeSyntax)
+                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(fieldName))))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithTrailingTrivia(SyntaxFactory.Comment($"// {sanitizedComment}"));
     }
@@ -131,8 +131,8 @@ internal static class RowClassEmitter
     }
 
     private static ConstructorDeclarationSyntax CreateConstructor(
-        string className, 
-        List<ParameterSyntax> parameters, 
+        string className,
+        List<ParameterSyntax> parameters,
         List<StatementSyntax> body)
     {
         return SyntaxFactory.ConstructorDeclaration(className)
@@ -146,24 +146,23 @@ internal static class RowClassEmitter
         var indexerBody = StatementEmitter.CreateEmptyBlock();
 
         for (var i = 0; i < fieldCount; i++)
-        {
             indexerBody = indexerBody.AddStatements(
                 StatementEmitter.CreateIf(
                     SyntaxFactory.BinaryExpression(
-                        SyntaxKind.EqualsExpression, 
-                        SyntaxFactory.IdentifierName("index"), 
+                        SyntaxKind.EqualsExpression,
+                        SyntaxFactory.IdentifierName("index"),
                         SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i))),
                     StatementEmitter.CreateReturn(SyntaxFactory.IdentifierName($"Item{i}"))));
-        }
 
         indexerBody = indexerBody.AddStatements(
             StatementEmitter.CreateThrow(
                 SyntaxFactory.ObjectCreationExpression(SyntaxHelper.IndexOutOfRangeExceptionTypeSyntax)
                     .WithArgumentList(SyntaxFactory.ArgumentList())));
 
-        return SyntaxFactory.IndexerDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
+        return SyntaxFactory
+            .IndexerDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
             .WithModifiers(SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword), 
+                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
                 SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
             .WithParameterList(SyntaxFactory.BracketedParameterList(SyntaxFactory.SingletonSeparatedList(
                 SyntaxFactory.Parameter(SyntaxFactory.Identifier("index"))
@@ -176,10 +175,10 @@ internal static class RowClassEmitter
     private static PropertyDeclarationSyntax CreateCountProperty(int count)
     {
         return SyntaxFactory.PropertyDeclaration(
-            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)), 
-            "Count")
+                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+                "Count")
             .WithModifiers(SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword), 
+                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
                 SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
             .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(
                 SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(count))))
@@ -190,13 +189,13 @@ internal static class RowClassEmitter
     {
         return SyntaxFactory.PropertyDeclaration(SyntaxHelper.ObjectArrayTypeSyntax, "Values")
             .WithModifiers(SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword), 
+                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
                 SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
             .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(
                 SyntaxFactory.ArrayCreationExpression(
                     SyntaxHelper.ObjectArrayTypeSyntax,
                     SyntaxFactory.InitializerExpression(
-                        SyntaxKind.ArrayInitializerExpression, 
+                        SyntaxKind.ArrayInitializerExpression,
                         SyntaxFactory.SeparatedList(valuesInit)))))
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
@@ -205,7 +204,7 @@ internal static class RowClassEmitter
     {
         return SyntaxFactory.PropertyDeclaration(SyntaxHelper.ObjectArrayTypeSyntax, "Contexts")
             .WithModifiers(SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword), 
+                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
                 SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
             .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(
                 SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)

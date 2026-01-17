@@ -11,23 +11,23 @@ public class UnknownSchema : SchemaBase
     private const string SchemaName = "Unknown";
     private readonly IEnumerable<dynamic> _values;
 
-    public UnknownSchema(IEnumerable<dynamic> values) 
+    public UnknownSchema(IEnumerable<dynamic> values)
         : base(SchemaName, CreateLibrary())
     {
         _values = values;
     }
-    
+
     public UnknownSchema()
         : base(SchemaName, CreateLibrary())
     {
         _values = [];
     }
-    
+
     public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
     {
         return new UnknownTable(runtimeContext);
     }
-    
+
     public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
     {
         return new DynamicSource(_values);

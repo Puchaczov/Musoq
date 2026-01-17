@@ -6,7 +6,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Converts boolean value to bytes.
+    ///     Converts boolean value to bytes.
     /// </summary>
     /// <param name="value">Value to convert.</param>
     /// <returns>Bytes.</returns>
@@ -18,7 +18,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts short value to bytes.
+    ///     Converts short value to bytes.
     /// </summary>
     /// <param name="value">Value to convert.</param>
     /// <returns>Bytes.</returns>
@@ -30,7 +30,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts ushort value to bytes.
+    ///     Converts ushort value to bytes.
     /// </summary>
     /// <param name="value">Value to convert.</param>
     /// <returns>Bytes.</returns>
@@ -42,7 +42,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts int value to bytes.
+    ///     Converts int value to bytes.
     /// </summary>
     /// <param name="value">Value to convert.</param>
     /// <returns>Bytes.</returns>
@@ -55,7 +55,7 @@ public partial class LibraryBase
 
 
     /// <summary>
-    /// Converts uint value to bytes.
+    ///     Converts uint value to bytes.
     /// </summary>
     /// <param name="value">Value to convert.</param>
     /// <returns>Bytes.</returns>
@@ -67,7 +67,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts long value to bytes.
+    ///     Converts long value to bytes.
     /// </summary>
     /// <param name="value">Value to convert.</param>
     /// <returns>Bytes.</returns>
@@ -79,7 +79,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts long value to bytes.
+    ///     Converts long value to bytes.
     /// </summary>
     /// <param name="value">Value to convert.</param>
     /// <returns>Bytes.</returns>

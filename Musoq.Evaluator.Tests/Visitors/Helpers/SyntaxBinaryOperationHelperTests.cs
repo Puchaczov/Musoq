@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Visitors.Helpers;
@@ -102,7 +101,8 @@ public class SyntaxBinaryOperationHelperTests
     public void ProcessMultiplyOperation_WithNullNodes_ShouldThrowArgumentNullException()
     {
         // Act
-        Assert.Throws<ArgumentNullException>(() => SyntaxBinaryOperationHelper.ProcessMultiplyOperation(null, _generator));
+        Assert.Throws<ArgumentNullException>(() =>
+            SyntaxBinaryOperationHelper.ProcessMultiplyOperation(null, _generator));
     }
 
     [TestMethod]
@@ -119,14 +119,16 @@ public class SyntaxBinaryOperationHelperTests
         _nodes.Push(_generator.LiteralExpression(10));
 
         // Act
-        Assert.Throws<InvalidOperationException>(() => SyntaxBinaryOperationHelper.ProcessDivideOperation(_nodes, _generator));
+        Assert.Throws<InvalidOperationException>(() =>
+            SyntaxBinaryOperationHelper.ProcessDivideOperation(_nodes, _generator));
     }
 
     [TestMethod]
     public void ProcessSubtractOperation_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
         // Act
-        Assert.Throws<InvalidOperationException>(() => SyntaxBinaryOperationHelper.ProcessSubtractOperation(_nodes, _generator));
+        Assert.Throws<InvalidOperationException>(() =>
+            SyntaxBinaryOperationHelper.ProcessSubtractOperation(_nodes, _generator));
     }
 
     [TestMethod]

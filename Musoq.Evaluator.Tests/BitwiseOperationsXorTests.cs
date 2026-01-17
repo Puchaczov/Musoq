@@ -47,7 +47,7 @@ public class BitwiseOperationsXorTests : BasicEntityTestBase
     {
         TestMethodTemplate<long?>("Xor(1b, 1l)", 0);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseXorBetweenByteAndByte_ShouldBeEvaluated()
     {
@@ -95,7 +95,7 @@ public class BitwiseOperationsXorTests : BasicEntityTestBase
     {
         TestMethodTemplate<ulong?>("Xor(1ub, 1ul)", 0);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseXorBetweenUshortAndByte_ShouldBeEvaluated()
     {
@@ -143,7 +143,7 @@ public class BitwiseOperationsXorTests : BasicEntityTestBase
     {
         TestMethodTemplate<ulong?>("Xor(1us, 1ul)", 0);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseXorBetweenShortAndByte_ShouldBeEvaluated()
     {
@@ -185,7 +185,7 @@ public class BitwiseOperationsXorTests : BasicEntityTestBase
     {
         TestMethodTemplate<long?>("Xor(1s, 1l)", 0);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseXorBetweenIntAndByte_ShouldBeEvaluated()
     {
@@ -233,7 +233,7 @@ public class BitwiseOperationsXorTests : BasicEntityTestBase
     {
         TestMethodTemplate<int?>("Xor(1b, 1i)", 0);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseXorBetweenUIntAndByte_ShouldBeEvaluated()
     {
@@ -281,7 +281,7 @@ public class BitwiseOperationsXorTests : BasicEntityTestBase
     {
         TestMethodTemplate<ulong?>("Xor(1ui, 1ul)", 0);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseXorBetweenLongAndByte_ShouldBeEvaluated()
     {
@@ -323,7 +323,7 @@ public class BitwiseOperationsXorTests : BasicEntityTestBase
     {
         TestMethodTemplate<long?>("Xor(1l, 1l)", 0);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseXorBetweenUlongAndByte_ShouldBeEvaluated()
     {

@@ -17,7 +17,7 @@ public class JsonTests : LibraryBaseBaseTests
     [TestMethod]
     public void WhenSerializingObject_ShouldPass()
     {
-        Assert.AreEqual("{\"Name\":\"John\",\"Age\":30}", Library.ToJson(new {Name = "John", Age = 30}));
+        Assert.AreEqual("{\"Name\":\"John\",\"Age\":30}", Library.ToJson(new { Name = "John", Age = 30 }));
     }
 
     [TestMethod]
@@ -295,7 +295,7 @@ public class JsonTests : LibraryBaseBaseTests
         Assert.AreEqual("d", wildCardArrayResult[1]);
 
         Assert.HasCount(6, doubleWildcardResult);
-        CollectionAssert.AreEqual(new[] {"a", "b", "c", "d", "e", "f"}, doubleWildcardResult);
+        CollectionAssert.AreEqual(new[] { "a", "b", "c", "d", "e", "f" }, doubleWildcardResult);
     }
 
     [TestMethod]
@@ -394,7 +394,7 @@ public class JsonTests : LibraryBaseBaseTests
         Assert.HasCount(1, extraBracketsResult);
         Assert.AreEqual("test", extraBracketsResult[0]);
     }
-    
+
     [TestMethod]
     public void WhenHandlingSpecialCharactersInPaths_ReturnsCorrectValues()
     {
@@ -430,7 +430,7 @@ public class JsonTests : LibraryBaseBaseTests
         var result6 = JsonExtractorHelper.ExtractFromJson(json, "$.nested['array[0]']");
         Assert.AreEqual("value4", result6[0]);
     }
-    
+
     [TestMethod]
     public void WhenHandlingComplexPropertyNames_ReturnsCorrectValues()
     {
@@ -466,7 +466,7 @@ public class JsonTests : LibraryBaseBaseTests
         var result5 = JsonExtractorHelper.ExtractFromJson(json, "$.normal");
         Assert.AreEqual("value0", result5[0]);
     }
-    
+
     [TestMethod]
     public void WhenHandlingVeryComplexPaths_ReturnsCorrectValues()
     {

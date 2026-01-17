@@ -10,6 +10,8 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void WhenDescEnvironmentVariables_ShouldListAllColumns()
     {
@@ -23,37 +25,37 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("Key", table[0][0]);
         Assert.AreEqual("Value", table[1][0]);
     }
-    
+
     [TestMethod]
     public void WhenPassedEnvironmentVariables_ShouldListThemAll()
     {
         var query = "select Key, Value from #EnvironmentVariables.All()";
-        
+
         var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
         {
             {
                 0,
                 [
-                    new ("KEY_1", "VALUE_1"),
-                    new ("KEY_2", "VALUE_2")
+                    new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
+                    new EnvironmentVariableEntity("KEY_2", "VALUE_2")
                 ]
             }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
-        Assert.IsTrue(table.All(row => 
+        Assert.IsTrue(table.All(row =>
                 new[] { ("KEY_1", "VALUE_1"), ("KEY_2", "VALUE_2") }.Contains(((string)row[0], (string)row[1]))),
             "Expected rows with values: (KEY_1,VALUE_1), (KEY_2,VALUE_2)");
     }
@@ -61,87 +63,89 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
     [TestMethod]
     public void WhenPassedEnvironmentVariables_JoinedDataSources_ShouldListThemAll()
     {
-        var query = "select e1.Key, e1.Value, e2.Value from #EnvironmentVariables.All() e1 inner join #EnvironmentVariables.All() e2 on e1.Key = e2.Key";
+        var query =
+            "select e1.Key, e1.Value, e2.Value from #EnvironmentVariables.All() e1 inner join #EnvironmentVariables.All() e2 on e1.Key = e2.Key";
         var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
         {
             {
                 0,
                 [
-                    new("KEY_1", "VALUE_1"),
-                    new("KEY_2", "VALUE_2"),
+                    new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
+                    new EnvironmentVariableEntity("KEY_2", "VALUE_2")
                 ]
             },
             {
                 1,
                 [
-                    new("KEY_1", "VALUE_3"),
-                    new("KEY_2", "VALUE_4")
+                    new EnvironmentVariableEntity("KEY_1", "VALUE_3"),
+                    new EnvironmentVariableEntity("KEY_2", "VALUE_4")
                 ]
             }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "KEY_1" && 
-            (string)entry[1] == "VALUE_1" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "KEY_1" &&
+            (string)entry[1] == "VALUE_1" &&
             (string)entry[2] == "VALUE_3"
         ), "First entry should be KEY_1, VALUE_1, VALUE_3");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "KEY_2" && 
-            (string)entry[1] == "VALUE_2" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "KEY_2" &&
+            (string)entry[1] == "VALUE_2" &&
             (string)entry[2] == "VALUE_4"
         ), "Second entry should be KEY_2, VALUE_2, VALUE_4");
     }
-    
+
     [TestMethod]
     public void WhenPassedEnvironmentVariables_UnionDataSources_ShouldListThemAll()
     {
-        var query = "select Key, Value from #EnvironmentVariables.All() union all (Key) select Key, Value from #EnvironmentVariables.All()";
+        var query =
+            "select Key, Value from #EnvironmentVariables.All() union all (Key) select Key, Value from #EnvironmentVariables.All()";
         var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
         {
             {
                 0,
                 [
-                    new("KEY_1", "VALUE_1"),
-                    new("KEY_2", "VALUE_2")
+                    new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
+                    new EnvironmentVariableEntity("KEY_2", "VALUE_2")
                 ]
             },
             {
                 1,
                 [
-                    new("KEY_3", "VALUE_3"),
-                    new("KEY_4", "VALUE_4")
+                    new EnvironmentVariableEntity("KEY_3", "VALUE_3"),
+                    new EnvironmentVariableEntity("KEY_4", "VALUE_4")
                 ]
             }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "KEY_1" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "KEY_1" &&
             (string)entry[1] == "VALUE_1"
         ), "First entry should be KEY_1, VALUE_1");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "KEY_2" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "KEY_2" &&
             (string)entry[1] == "VALUE_2"
         ), "Second entry should be KEY_2, VALUE_2");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "KEY_3" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "KEY_3" &&
             (string)entry[1] == "VALUE_3"
         ), "Third entry should be KEY_3, VALUE_3");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "KEY_4" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "KEY_4" &&
             (string)entry[1] == "VALUE_4"
         ), "Fourth entry should be KEY_4, VALUE_4");
     }
@@ -154,7 +158,7 @@ with p as (
     select 1 from #A.entities()
 )
 select Key, Value from #EnvironmentVariables.All()";
-        
+
         var basicEntitiesSource = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
@@ -162,18 +166,18 @@ select Key, Value from #EnvironmentVariables.All()";
                 []
             }
         };
-        
+
         var environmentVariablesEntitiesSource = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
         {
             {
                 "#EnvironmentVariables",
                 [
-                    new("KEY_1", "VALUE_1"),
-                    new("KEY_2", "VALUE_2")
+                    new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
+                    new EnvironmentVariableEntity("KEY_2", "VALUE_2")
                 ]
             }
         };
-        
+
         var environmentVariablesSource = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
         {
             {
@@ -183,32 +187,30 @@ select Key, Value from #EnvironmentVariables.All()";
             {
                 1,
                 [
-                    new("KEY_1", "VALUE_1"),
-                    new("KEY_2", "VALUE_2")
+                    new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
+                    new EnvironmentVariableEntity("KEY_2", "VALUE_2")
                 ]
             }
         };
 
         var vm = CreateAndRunVirtualMachine(
-            query, 
+            query,
             basicEntitiesSource,
             environmentVariablesEntitiesSource,
             environmentVariablesSource);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "KEY_1" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "KEY_1" &&
             (string)entry[1] == "VALUE_1"
         ), "First entry should be KEY_1, VALUE_1");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "KEY_2" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "KEY_2" &&
             (string)entry[1] == "VALUE_2"
         ), "Second entry should be KEY_2, VALUE_2");
     }
-
-    public TestContext TestContext { get; set; }
 }

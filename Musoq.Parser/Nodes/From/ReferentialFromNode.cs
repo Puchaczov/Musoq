@@ -9,7 +9,7 @@ public class ReferentialFromNode : FromNode
     {
         Name = name;
     }
-        
+
     public ReferentialFromNode(string name, string alias, Type returnType)
         : base(alias, returnType)
     {

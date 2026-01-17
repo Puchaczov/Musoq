@@ -10,7 +10,7 @@ public class ApplyNode : FromNode
         Id = $"{nameof(ApplyNode)}{apply.Id}";
         Apply = apply;
     }
-        
+
     public ApplyNode(ApplyFromNode apply, Type returnType)
         : base(apply.Alias, returnType)
     {

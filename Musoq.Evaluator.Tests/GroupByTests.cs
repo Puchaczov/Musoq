@@ -9,6 +9,8 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class GroupByTests : BasicEntityTestBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void GroupByWithParentSumTest()
     {
@@ -88,16 +90,16 @@ public class GroupByTests : BasicEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
-        Assert.IsTrue(table.Any(row => 
-                (string)row.Values[0] == "ABBA" && 
-                (int)row.Values[1] == 4), 
+        Assert.IsTrue(table.Any(row =>
+                (string)row.Values[0] == "ABBA" &&
+                (int)row.Values[1] == 4),
             "Missing ABBA/4");
 
-        Assert.IsTrue(table.Any(row => 
-                (string)row.Values[0] == "BABBA" && 
+        Assert.IsTrue(table.Any(row =>
+                (string)row.Values[0] == "BABBA" &&
                 (int)row.Values[1] == 2),
             "Missing BABBA/2");
     }
@@ -137,26 +139,26 @@ public class GroupByTests : BasicEntityTestBase
 
         int[] rowNumbers = [1, 2, 3];
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "ABBA" && 
-            (int)row.Values[1] == 4 && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "ABBA" &&
+            (int)row.Values[1] == 4 &&
             rowNumbers.Contains((int)row.Values[2])
         ), "Expected combination (ABBA, 4, 1) not found");
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "BABBA" && 
-            (int)row.Values[1] == 2 && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "BABBA" &&
+            (int)row.Values[1] == 2 &&
             rowNumbers.Contains((int)row.Values[2])
         ), "Expected combination (BABBA, 2, 2) not found");
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "CECCA" && 
-            (int)row.Values[1] == 1 && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "CECCA" &&
+            (int)row.Values[1] == 1 &&
             rowNumbers.Contains((int)row.Values[2])
         ), "Expected combination (CECCA, 1, 3) not found");
-        
+
         var rowNumbersSet = new HashSet<int>(table.Select(row => (int)row.Values[2]));
-        
+
         Assert.HasCount(3, rowNumbersSet, "Row numbers should be unique");
     }
 
@@ -287,21 +289,21 @@ public class GroupByTests : BasicEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "ABBA" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "ABBA" &&
             (decimal)entry.Values[1] == Convert.ToDecimal(710)
         ), "First entry should be 'ABBA' with value 710");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "BABBA" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "BABBA" &&
             (decimal)entry.Values[1] == Convert.ToDecimal(200)
         ), "Second entry should be 'BABBA' with value 200");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "CECCA" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "CECCA" &&
             (decimal)entry.Values[1] == Convert.ToDecimal(1000)
         ), "Third entry should be 'CECCA' with value 1000");
     }
@@ -340,20 +342,20 @@ public class GroupByTests : BasicEntityTestBase
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
         Assert.AreEqual(2,
-table.Count(row =>
+            table.Count(row =>
                 (string)row.Values[0] == "POLAND" &&
                 new[] { "WARSAW", "CZESTOCHOWA" }.Contains((string)row.Values[1]) &&
-                ((int)row.Values[2] == 1 && (int)row.Values[3] == 1 ||
-                 (int)row.Values[2] == 2 && (int)row.Values[3] == 2)), "Expected data for Polish cities not found");
+                (((int)row.Values[2] == 1 && (int)row.Values[3] == 1) ||
+                 ((int)row.Values[2] == 2 && (int)row.Values[3] == 2))), "Expected data for Polish cities not found");
 
         Assert.AreEqual(2,
-table.Count(row =>
+            table.Count(row =>
                 (string)row.Values[0] == "UK" &&
                 new[] { "LONDON", "MANCHESTER" }.Contains((string)row.Values[1]) &&
                 (int)row.Values[2] == 1 && (int)row.Values[3] == 1), "Expected data for UK cities not found");
 
-        Assert.IsTrue(table.Any(row => 
-                (string)row.Values[0] == "ANGOLA" && 
+        Assert.IsTrue(table.Any(row =>
+                (string)row.Values[0] == "ANGOLA" &&
                 (string)row.Values[1] == "LLL" &&
                 (int)row.Values[2] == 1 && (int)row.Values[3] == 1),
             "Expected data for Angola not found");
@@ -389,18 +391,18 @@ table.Count(row =>
 
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "AA" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "AA" &&
             (int)entry.Values[1] == Convert.ToInt32(3)
         ), "First entry should be 'AA' with value 3");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "BB" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "BB" &&
             (int)entry.Values[1] == Convert.ToInt32(2)
         ), "Second entry should be 'BB' with value 2");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "CC" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "CC" &&
             (int)entry.Values[1] == Convert.ToInt32(1)
         ), "Third entry should be 'CC' with value 1");
     }
@@ -436,18 +438,18 @@ table.Count(row =>
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
         Assert.AreEqual("1", table.Columns.ElementAt(3).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
-        
+
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "ABBA" && 
+                (string)row.Values[0] == "ABBA" &&
                 (int)row.Values[1] == 3 &&
                 (decimal)row.Values[2] == 11m &&
                 (int)row.Values[3] == 1),
             "Expected row for ABBA with values 3, 11, 1");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "BABBA" && 
+                (string)row.Values[0] == "BABBA" &&
                 (int)row.Values[1] == 2 &&
                 (decimal)row.Values[2] == 11m &&
                 (int)row.Values[3] == 1),
@@ -459,14 +461,14 @@ table.Count(row =>
     {
         var query =
             """
-select 
-    Country, 
-    Substring(City, IndexOf(City, ':')) as 'City', 
-    Count(City) as 'Count', 
-    Sum(Population) as 'Sum' 
-from #A.Entities() 
-group by Substring(City, IndexOf(City, ':')), Country
-""";
+            select 
+                Country, 
+                Substring(City, IndexOf(City, ':')) as 'City', 
+                Count(City) as 'Count', 
+                Sum(Population) as 'Sum' 
+            from #A.Entities() 
+            group by Substring(City, IndexOf(City, ':')), Country
+            """;
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -494,17 +496,17 @@ group by Substring(City, IndexOf(City, ':')), Country
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "POLAND" && 
-            (string)entry.Values[1] == "WARSAW" && 
-            (int)entry.Values[2] == Convert.ToInt32(2) && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "POLAND" &&
+            (string)entry.Values[1] == "WARSAW" &&
+            (int)entry.Values[2] == Convert.ToInt32(2) &&
             (decimal)entry.Values[3] == Convert.ToDecimal(1000)
         ), "First entry should match POLAND, WARSAW, 2, 1000");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "POLAND" && 
-            (string)entry.Values[1] == "KATOWICE" && 
-            (int)entry.Values[2] == Convert.ToInt32(1) && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "POLAND" &&
+            (string)entry.Values[1] == "KATOWICE" &&
+            (int)entry.Values[2] == Convert.ToInt32(1) &&
             (decimal)entry.Values[3] == Convert.ToDecimal(250)
         ), "Second entry should match POLAND, KATOWICE, 1, 250");
     }
@@ -540,42 +542,42 @@ group by Substring(City, IndexOf(City, ':')), Country
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
         Assert.AreEqual("CountOfCities", table.Columns.ElementAt(3).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
-        
+
         Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "POLAND" && 
-                (string)entry.Values[1] == "WARSAW" && 
-                Convert.ToInt32(entry.Values[2]) == 3 && 
-                Convert.ToInt32(entry.Values[3]) == 1), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "POLAND" &&
+                (string)entry.Values[1] == "WARSAW" &&
+                Convert.ToInt32(entry.Values[2]) == 3 &&
+                Convert.ToInt32(entry.Values[3]) == 1),
             "Entry for POLAND - WARSAW should match expected values");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "POLAND" && 
-                (string)entry.Values[1] == "CZESTOCHOWA" && 
-                Convert.ToInt32(entry.Values[2]) == 3 && 
-                Convert.ToInt32(entry.Values[3]) == 1), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "POLAND" &&
+                (string)entry.Values[1] == "CZESTOCHOWA" &&
+                Convert.ToInt32(entry.Values[2]) == 3 &&
+                Convert.ToInt32(entry.Values[3]) == 1),
             "Entry for POLAND - CZESTOCHOWA should match expected values");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "POLAND" && 
-                (string)entry.Values[1] == "KATOWICE" && 
-                Convert.ToInt32(entry.Values[2]) == 3 && 
-                Convert.ToInt32(entry.Values[3]) == 1), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "POLAND" &&
+                (string)entry.Values[1] == "KATOWICE" &&
+                Convert.ToInt32(entry.Values[2]) == 3 &&
+                Convert.ToInt32(entry.Values[3]) == 1),
             "Entry for POLAND - KATOWICE should match expected values");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "GERMANY" && 
-                (string)entry.Values[1] == "BERLIN" && 
-                Convert.ToInt32(entry.Values[2]) == 2 && 
-                Convert.ToInt32(entry.Values[3]) == 1), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "GERMANY" &&
+                (string)entry.Values[1] == "BERLIN" &&
+                Convert.ToInt32(entry.Values[2]) == 2 &&
+                Convert.ToInt32(entry.Values[3]) == 1),
             "Entry for GERMANY - BERLIN should match expected values");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "GERMANY" && 
-                (string)entry.Values[1] == "MUNICH" && 
-                Convert.ToInt32(entry.Values[2]) == 2 && 
-                Convert.ToInt32(entry.Values[3]) == 1), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "GERMANY" &&
+                (string)entry.Values[1] == "MUNICH" &&
+                Convert.ToInt32(entry.Values[2]) == 2 &&
+                Convert.ToInt32(entry.Values[3]) == 1),
             "Entry for GERMANY - MUNICH should match expected values");
     }
 
@@ -640,7 +642,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Window(Population)", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(IEnumerable<decimal>), table.Columns.ElementAt(0).ColumnType);
-        
+
         for (var i = 0; i < 2; i++)
         {
             var window = ((IEnumerable<decimal>)table[i][0]).ToArray();
@@ -691,28 +693,28 @@ group by Substring(City, IndexOf(City, ':')), Country
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
         Assert.AreEqual("CountOfCities", table.Columns.ElementAt(3).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
-        
+
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "POLAND" && 
-                (string)entry.Values[1] == "WARSAW" && 
-                Convert.ToInt32(entry.Values[2]) == 3 && 
-                Convert.ToInt32(entry.Values[3]) == 1), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "POLAND" &&
+                (string)entry.Values[1] == "WARSAW" &&
+                Convert.ToInt32(entry.Values[2]) == 3 &&
+                Convert.ToInt32(entry.Values[3]) == 1),
             "Entry for POLAND - WARSAW should match expected values");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "POLAND" && 
-                (string)entry.Values[1] == "CZESTOCHOWA" && 
-                Convert.ToInt32(entry.Values[2]) == 3 && 
-                Convert.ToInt32(entry.Values[3]) == 1), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "POLAND" &&
+                (string)entry.Values[1] == "CZESTOCHOWA" &&
+                Convert.ToInt32(entry.Values[2]) == 3 &&
+                Convert.ToInt32(entry.Values[3]) == 1),
             "Entry for POLAND - CZESTOCHOWA should match expected values");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "POLAND" && 
-                (string)entry.Values[1] == "KATOWICE" && 
-                Convert.ToInt32(entry.Values[2]) == 3 && 
-                Convert.ToInt32(entry.Values[3]) == 1), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "POLAND" &&
+                (string)entry.Values[1] == "KATOWICE" &&
+                Convert.ToInt32(entry.Values[2]) == 3 &&
+                Convert.ToInt32(entry.Values[3]) == 1),
             "Entry for POLAND - KATOWICE should match expected values");
     }
 
@@ -778,7 +780,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-        
+
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
         Assert.IsTrue(table.Any(row => (int)row.Values[0] == 3), "Missing value 3");
@@ -847,23 +849,21 @@ group by Substring(City, IndexOf(City, ':')), Country
     }
 
     /// <summary>
-    /// This is actually coherent with Postgres behavior.
-    /// -- create
+    ///     This is actually coherent with Postgres behavior.
+    ///     -- create
     ///     CREATE TABLE Cities (
     ///     City TEXT NOT NULL,
     ///     Country TEXT NOT NULL,
     ///     Population INT NOT NULL
-    /// );
-    ///
-    /// -- insert
-    /// INSERT INTO Cities VALUES ('WARSAW', 'POLAND', 500);
-    /// INSERT INTO Cities VALUES ('CZESTOCHOWA', 'POLAND', 400);
-    /// INSERT INTO Cities VALUES ('KATOWICE', 'POLAND', 250);
-    /// INSERT INTO Cities VALUES ('BERLIN', 'GERMANY', 250);
-    /// INSERT INTO Cities VALUES ('MUNICH', 'GERMANY', 350);
-    ///
-    /// -- fetch 
-    /// SELECT Count(Country), Row_Number() over () FROM Cities;
+    ///     );
+    ///     -- insert
+    ///     INSERT INTO Cities VALUES ('WARSAW', 'POLAND', 500);
+    ///     INSERT INTO Cities VALUES ('CZESTOCHOWA', 'POLAND', 400);
+    ///     INSERT INTO Cities VALUES ('KATOWICE', 'POLAND', 250);
+    ///     INSERT INTO Cities VALUES ('BERLIN', 'GERMANY', 250);
+    ///     INSERT INTO Cities VALUES ('MUNICH', 'GERMANY', 350);
+    ///     -- fetch
+    ///     SELECT Count(Country), Row_Number() over () FROM Cities;
     /// </summary>
     [TestMethod]
     public void CountWithRowNumberAndWithoutGroupByTest()
@@ -893,7 +893,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
 
         Assert.AreEqual(1, table.Count);
-            
+
         Assert.AreEqual(5, table[0].Values[0]);
         Assert.AreEqual(1, table[0].Values[1]);
     }
@@ -922,9 +922,9 @@ group by Substring(City, IndexOf(City, ':')), Country
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(0).ColumnType);
-            
+
         Assert.AreEqual(1, table.Count);
-            
+
         Assert.AreEqual(1750m, table[0].Values[0]);
     }
 
@@ -993,21 +993,22 @@ group by Substring(City, IndexOf(City, ':')), Country
 
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "jan" && 
-                (decimal)entry.Values[1] == 500m), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "jan" &&
+                (decimal)entry.Values[1] == 500m),
             "First entry should have values 'jan' and 500m");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "feb" && 
-                (decimal)entry.Values[1] == 100m), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "feb" &&
+                (decimal)entry.Values[1] == 100m),
             "Second entry should have values 'feb' and 100m");
     }
 
     [TestMethod]
     public void GroupByWithCaseWhenInSelectTest()
     {
-        var query = @"select (case when Self.Month = 'jan' then 'JANUARY' when Self.Month = 'feb' then 'FEBRUARY' else 'NONE' end) from #A.Entities() group by Self.Month";
+        var query =
+            @"select (case when Self.Month = 'jan' then 'JANUARY' when Self.Month = 'feb' then 'FEBRUARY' else 'NONE' end) from #A.Entities() group by Self.Month";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -1024,10 +1025,10 @@ group by Substring(City, IndexOf(City, ':')), Country
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
-        Assert.IsTrue(table.All(row => 
+        Assert.IsTrue(table.All(row =>
                 new[] { "JANUARY", "FEBRUARY", "NONE" }.Contains((string)row[0])),
             "Expected rows with values: JANUARY, FEBRUARY, NONE in order");
     }
@@ -1035,7 +1036,8 @@ group by Substring(City, IndexOf(City, ':')), Country
     [TestMethod]
     public void GroupByWithCaseWhenAsGroupingResultFunctionTest()
     {
-        var query = @"select (case when e.Month = e.Month then e.Month else '' end), Count(case when e.Month = e.Month then e.Month else '' end) from #A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end)";
+        var query =
+            @"select (case when e.Month = e.Month then e.Month else '' end), Count(case when e.Month = e.Month then e.Month else '' end) from #A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end)";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -1053,23 +1055,24 @@ group by Substring(City, IndexOf(City, ':')), Country
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "jan"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "jan"),
             "First entry should be 'jan'");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "feb"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "feb"),
             "Second entry should be 'feb'");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "march"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "march"),
             "Third entry should be 'march'");
     }
 
     [TestMethod]
     public void GroupByWithFieldLinkSyntaxTest()
     {
-        var query = @"select ::1, Count(::1), ::2 from #A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end), 'fake'";
+        var query =
+            @"select ::1, Count(::1), ::2 from #A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end), 'fake'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -1090,7 +1093,7 @@ group by Substring(City, IndexOf(City, ':')), Country
         var column = table.Columns.ElementAt(0);
         Assert.AreEqual("::1", column.ColumnName);
         Assert.AreEqual(typeof(string), column.ColumnType);
-            
+
         column = table.Columns.ElementAt(1);
         Assert.AreEqual("Count(::1)", column.ColumnName);
         Assert.AreEqual(typeof(int), column.ColumnType);
@@ -1109,7 +1112,8 @@ group by Substring(City, IndexOf(City, ':')), Country
     [TestMethod]
     public void GroupByWithFieldLinkSyntaxAndCustomColumnNamingTest()
     {
-        var query = @"select ::1 as firstColumn, Count(::1) as secondColumn, ::2 as thirdColumn from #A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end), 'fake'";
+        var query =
+            @"select ::1 as firstColumn, Count(::1) as secondColumn, ::2 as thirdColumn from #A.Entities() e group by (case when e.Month = e.Month then e.Month else '' end), 'fake'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -1138,12 +1142,12 @@ group by Substring(City, IndexOf(City, ':')), Country
         column = table.Columns.ElementAt(2);
         Assert.AreEqual("thirdColumn", column.ColumnName);
         Assert.AreEqual(typeof(string), column.ColumnType);
-        
+
         Assert.IsTrue(table.Any(entry => (string)entry[0] == "jan"), "First row should be 'jan'");
         Assert.IsTrue(table.Any(entry => (string)entry[0] == "feb"), "Second row should be 'feb'");
         Assert.IsTrue(table.Any(entry => (string)entry[0] == "march"), "Third row should be 'march'");
     }
-        
+
     [TestMethod]
     public void WhenGroupByUsedWithJoinsByMethodInvocation_ShouldRetrieveValues()
     {
@@ -1161,42 +1165,42 @@ group by countries.GetCountry()";
         {
             {
                 "#A", [
-                    new BasicEntity {Country = "Poland"},
-                    new BasicEntity {Country = "Germany"}
+                    new BasicEntity { Country = "Poland" },
+                    new BasicEntity { Country = "Germany" }
                 ]
             },
             {
                 "#B", [
-                    new BasicEntity {Country = "Poland", City = "Krakow"},
-                    new BasicEntity {Country = "Poland", City = "Wroclaw"},
-                    new BasicEntity {Country = "Poland", City = "Warszawa"},
-                    new BasicEntity {Country = "Poland", City = "Gdansk"},
-                    new BasicEntity {Country = "Germany", City = "Berlin"}
+                    new BasicEntity { Country = "Poland", City = "Krakow" },
+                    new BasicEntity { Country = "Poland", City = "Wroclaw" },
+                    new BasicEntity { Country = "Poland", City = "Warszawa" },
+                    new BasicEntity { Country = "Poland", City = "Gdansk" },
+                    new BasicEntity { Country = "Germany", City = "Berlin" }
                 ]
             },
             {
                 "#C", [
-                    new BasicEntity {City = "Krakow", Population = 400},
-                    new BasicEntity {City = "Wroclaw", Population = 500},
-                    new BasicEntity {City = "Warszawa", Population = 1000},
-                    new BasicEntity {City = "Gdansk", Population = 200},
-                    new BasicEntity {City = "Berlin", Population = 400}
+                    new BasicEntity { City = "Krakow", Population = 400 },
+                    new BasicEntity { City = "Wroclaw", Population = 500 },
+                    new BasicEntity { City = "Warszawa", Population = 1000 },
+                    new BasicEntity { City = "Gdansk", Population = 200 },
+                    new BasicEntity { City = "Berlin", Population = 400 }
                 ]
             }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "Poland" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "Poland" &&
             (decimal)entry[1] == 2100m
         ), "First entry should be Poland with 2100");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "Germany" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "Germany" &&
             (decimal)entry[1] == 400m
         ), "Second entry should be Germany with 400");
     }
@@ -1217,21 +1221,21 @@ group by a.Country";
         {
             {
                 "#A", [
-                    new BasicEntity {Country = "Poland"}
+                    new BasicEntity { Country = "Poland" }
                 ]
             },
             {
                 "#B", [
-                    new BasicEntity {City = "Warsaw", Country = "Poland"},
-                    new BasicEntity {City = "Gdansk", Country = "Poland"}
+                    new BasicEntity { City = "Warsaw", Country = "Poland" },
+                    new BasicEntity { City = "Gdansk", Country = "Poland" }
                 ]
             }
         };
-            
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-            
+
         var table = vm.Run(TestContext.CancellationToken);
-            
+
         Assert.AreEqual("Poland", table[0][0]);
         Assert.AreEqual("Warsaw,Gdansk", table[0][1]);
     }
@@ -1252,21 +1256,21 @@ group by a.Country";
         {
             {
                 "#A", [
-                    new BasicEntity {Country = "Poland"}
+                    new BasicEntity { Country = "Poland" }
                 ]
             },
             {
                 "#B", [
-                    new BasicEntity {City = "Warsaw", Country = "Poland", Population = 200},
-                    new BasicEntity {City = "Gdansk", Country = "Poland", Population = 300}
+                    new BasicEntity { City = "Warsaw", Country = "Poland", Population = 200 },
+                    new BasicEntity { City = "Gdansk", Country = "Poland", Population = 300 }
                 ]
             }
         };
-            
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-            
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual("Poland", table[0][0]);
         Assert.AreEqual("Gdansk", table[0][1]);
     }
@@ -1286,25 +1290,25 @@ group by a.Country";
         {
             {
                 "#A", [
-                    new BasicEntity {Country = "Poland"},
-                    new BasicEntity {Country = "Brazil"}
+                    new BasicEntity { Country = "Poland" },
+                    new BasicEntity { Country = "Brazil" }
                 ]
             }
         };
-            
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-            
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "Poland" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "Poland" &&
             (string)entry[1] == "P"
         ), "First entry should be Poland with 'P'");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "Brazil" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "Brazil" &&
             (string)entry[1] == "B"
         ), "Second entry should be Brazil with 'B'");
     }
@@ -1324,28 +1328,26 @@ group by a.Country";
         {
             {
                 "#A", [
-                    new BasicEntity {Country = "Poland"},
-                    new BasicEntity {Country = "Brazil"}
+                    new BasicEntity { Country = "Poland" },
+                    new BasicEntity { Country = "Brazil" }
                 ]
             }
         };
-            
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-            
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-            
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "Poland" && 
+
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "Poland" &&
             (string)entry[1] == "P"
         ), "First entry should be Poland with 'P'");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "Brazil" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "Brazil" &&
             (string)entry[1] == "B"
         ), "Second entry should be Brazil with 'B'");
     }
-
-    public TestContext TestContext { get; set; }
 }

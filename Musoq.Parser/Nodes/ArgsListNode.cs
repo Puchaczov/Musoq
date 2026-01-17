@@ -33,7 +33,7 @@ public class ArgsListNode : Node
             : Args.Select(f => f.ToString()).Aggregate((a, b) => $"{a.ToString()}, {b.ToString()}");
         return str;
     }
-        
+
     public string ToStringWithBrackets()
     {
         var str = Args.Length == 0

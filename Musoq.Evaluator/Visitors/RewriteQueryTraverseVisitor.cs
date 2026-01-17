@@ -207,7 +207,7 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
     {
         node.First.Accept(this);
         node.Second.Accept(this);
-            
+
         node.Accept(_visitor);
     }
 
@@ -648,11 +648,6 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
         node.Accept(_visitor);
     }
 
-    public void Visit(FromNode node)
-    {
-        node.Accept(_visitor);
-    }
-
     public void Visit(OrderByNode node)
     {
         foreach (var field in node.Fields)
@@ -689,7 +684,7 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
     {
         node.Else.Accept(this);
 
-        for (int i = node.WhenThenPairs.Length - 1; i >= 0; --i)
+        for (var i = node.WhenThenPairs.Length - 1; i >= 0; --i)
         {
             node.WhenThenPairs[i].When.Accept(this);
             node.WhenThenPairs[i].Then.Accept(this);
@@ -717,6 +712,11 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
     }
 
     public void Visit(FieldLinkNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(FromNode node)
     {
         node.Accept(_visitor);
     }

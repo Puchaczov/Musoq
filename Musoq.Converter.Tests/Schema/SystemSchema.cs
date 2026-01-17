@@ -8,7 +8,7 @@ using Musoq.Schema.Reflection;
 
 namespace Musoq.Converter.Tests.Schema;
 
-public partial class SystemSchema : SchemaBase
+public class SystemSchema : SchemaBase
 {
     private const string Dual = "dual";
     private const string System = "system";

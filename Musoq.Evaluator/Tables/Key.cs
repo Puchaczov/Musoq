@@ -50,7 +50,7 @@ public class Key : IEquatable<Key>
         if (ReferenceEquals(null, obj)) return false;
         if (ReferenceEquals(this, obj)) return true;
         if (obj.GetType() != GetType()) return false;
-        return Equals((Key) obj);
+        return Equals((Key)obj);
     }
 
     public override int GetHashCode()

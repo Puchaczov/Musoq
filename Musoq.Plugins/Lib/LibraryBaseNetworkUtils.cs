@@ -11,7 +11,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Checks if an IP address is a private (RFC 1918) address.
+    ///     Checks if an IP address is a private (RFC 1918) address.
     /// </summary>
     /// <param name="ipAddress">The IP address to check</param>
     /// <returns>True if the IP is private</returns>
@@ -27,22 +27,22 @@ public partial class LibraryBase
             return null;
 
         var bytes = ip.GetAddressBytes();
-        if (bytes.Length != 4) 
+        if (bytes.Length != 4)
             return false;
 
-        
+
         if (bytes[0] == 10)
             return true;
 
-        
+
         if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31)
             return true;
 
-        
+
         if (bytes[0] == 192 && bytes[1] == 168)
             return true;
 
-        
+
         if (bytes[0] == 127)
             return true;
 
@@ -50,7 +50,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts an IPv4 address to its numeric representation.
+    ///     Converts an IPv4 address to its numeric representation.
     /// </summary>
     /// <param name="ipAddress">The IP address</param>
     /// <returns>The numeric representation</returns>
@@ -72,7 +72,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts a numeric IP representation back to dotted notation.
+    ///     Converts a numeric IP representation back to dotted notation.
     /// </summary>
     /// <param name="ipNumber">The numeric IP representation</param>
     /// <returns>The IP address in dotted notation</returns>
@@ -88,7 +88,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Checks if an IP address is within a CIDR subnet.
+    ///     Checks if an IP address is within a CIDR subnet.
     /// </summary>
     /// <param name="ipAddress">The IP address to check</param>
     /// <param name="cidr">The CIDR notation (e.g., "192.168.1.0/24")</param>
@@ -106,7 +106,7 @@ public partial class LibraryBase
             if (parts.Length != 2)
                 return null;
 
-            if (!IPAddress.TryParse(ipAddress, out var ip) || 
+            if (!IPAddress.TryParse(ipAddress, out var ip) ||
                 !IPAddress.TryParse(parts[0], out var subnet) ||
                 !int.TryParse(parts[1], out var prefixLength))
                 return null;
@@ -130,7 +130,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Formats a MAC address with the specified separator.
+    ///     Formats a MAC address with the specified separator.
     /// </summary>
     /// <param name="mac">The MAC address (can be with or without separators)</param>
     /// <param name="separator">The separator to use (default: ":")</param>
@@ -147,16 +147,13 @@ public partial class LibraryBase
             return null;
 
         var parts = new string[6];
-        for (var i = 0; i < 6; i++)
-        {
-            parts[i] = clean.Substring(i * 2, 2).ToUpperInvariant();
-        }
+        for (var i = 0; i < 6; i++) parts[i] = clean.Substring(i * 2, 2).ToUpperInvariant();
 
         return string.Join(separator, parts);
     }
 
     /// <summary>
-    /// Generates a new random GUID.
+    ///     Generates a new random GUID.
     /// </summary>
     /// <returns>A new GUID as string</returns>
     [BindableMethod]
@@ -167,7 +164,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Generates a new random GUID without dashes.
+    ///     Generates a new random GUID without dashes.
     /// </summary>
     /// <returns>A new GUID as string without dashes</returns>
     [BindableMethod]
@@ -178,7 +175,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts a value from one number base to another.
+    ///     Converts a value from one number base to another.
     /// </summary>
     /// <param name="value">The value to convert</param>
     /// <param name="fromBase">The source base (2-36)</param>
@@ -224,7 +221,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts a Unix timestamp (seconds since epoch) to DateTime.
+    ///     Converts a Unix timestamp (seconds since epoch) to DateTime.
     /// </summary>
     /// <param name="unixTimestamp">The Unix timestamp</param>
     /// <returns>The DateTime in UTC</returns>
@@ -239,7 +236,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts a Unix timestamp in milliseconds to DateTime.
+    ///     Converts a Unix timestamp in milliseconds to DateTime.
     /// </summary>
     /// <param name="unixTimestampMs">The Unix timestamp in milliseconds</param>
     /// <returns>The DateTime in UTC</returns>
@@ -254,7 +251,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts a DateTime to Unix timestamp (seconds since epoch).
+    ///     Converts a DateTime to Unix timestamp (seconds since epoch).
     /// </summary>
     /// <param name="dateTime">The DateTime</param>
     /// <returns>The Unix timestamp</returns>
@@ -269,7 +266,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts a DateTime to Unix timestamp in milliseconds.
+    ///     Converts a DateTime to Unix timestamp in milliseconds.
     /// </summary>
     /// <param name="dateTime">The DateTime</param>
     /// <returns>The Unix timestamp in milliseconds</returns>
@@ -284,7 +281,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts a string to a URL-friendly slug.
+    ///     Converts a string to a URL-friendly slug.
     /// </summary>
     /// <param name="value">The string to convert</param>
     /// <returns>The slugified string</returns>
@@ -301,23 +298,23 @@ public partial class LibraryBase
         foreach (var c in normalized)
         {
             var category = CharUnicodeInfo.GetUnicodeCategory(c);
-            
-            if (category == UnicodeCategory.NonSpacingMark) 
+
+            if (category == UnicodeCategory.NonSpacingMark)
                 continue;
-            
+
             if (char.IsLetterOrDigit(c))
                 sb.Append(char.ToLowerInvariant(c));
             else if (c is ' ' or '-' or '_')
                 sb.Append('-');
         }
 
-        
+
         var result = RemoveConsecutiveDashesRegex().Replace(sb.ToString(), "-").Trim('-');
         return result;
     }
 
     /// <summary>
-    /// Escapes a string for use in a regular expression.
+    ///     Escapes a string for use in a regular expression.
     /// </summary>
     /// <param name="value">The string to escape</param>
     /// <returns>The escaped string</returns>
@@ -329,7 +326,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Escapes single quotes for SQL (doubles them).
+    ///     Escapes single quotes for SQL (doubles them).
     /// </summary>
     /// <param name="value">The string to escape</param>
     /// <returns>The escaped string</returns>
@@ -341,7 +338,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Extracts all URLs from a string.
+    ///     Extracts all URLs from a string.
     /// </summary>
     /// <param name="value">The string to search</param>
     /// <returns>Comma-separated list of URLs</returns>
@@ -353,7 +350,7 @@ public partial class LibraryBase
             return null;
 
         var matches = ExtractUrlsRegex().Matches(value);
-        
+
         if (matches.Count == 0)
             return string.Empty;
 
@@ -361,7 +358,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Extracts all email addresses from a string.
+    ///     Extracts all email addresses from a string.
     /// </summary>
     /// <param name="value">The string to search</param>
     /// <returns>Comma-separated list of emails</returns>
@@ -373,7 +370,7 @@ public partial class LibraryBase
             return null;
 
         var matches = ExtractEmailsRegex().Matches(value);
-        
+
         if (matches.Count == 0)
             return string.Empty;
 
@@ -381,7 +378,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Extracts all IPv4 addresses from a string.
+    ///     Extracts all IPv4 addresses from a string.
     /// </summary>
     /// <param name="value">The string to search</param>
     /// <returns>Comma-separated list of IP addresses</returns>
@@ -393,22 +390,22 @@ public partial class LibraryBase
             return null;
 
         var matches = ExtractIpsRegex().Matches(value);
-        
+
         return matches.Count == 0 ? string.Empty : string.Join(",", matches.Select(m => m.Value));
     }
 
     [GeneratedRegex(@"\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b")]
     private static partial Regex ExtractIpsRegex();
-    
+
     [GeneratedRegex("-+")]
     private static partial Regex RemoveConsecutiveDashesRegex();
-    
+
     [GeneratedRegex("[^0-9A-Fa-f]")]
     private static partial Regex FormatMacRegex();
-    
+
     [GeneratedRegex(@"https?://[^\s<>""']+", RegexOptions.IgnoreCase)]
     private static partial Regex ExtractUrlsRegex();
-    
+
     [GeneratedRegex(@"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")]
     private static partial Regex ExtractEmailsRegex();
 }

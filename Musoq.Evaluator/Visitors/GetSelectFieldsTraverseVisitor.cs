@@ -6,7 +6,7 @@ namespace Musoq.Evaluator.Visitors;
 
 public class GetSelectFieldsTraverseVisitor : RawTraverseVisitor<IQueryPartAwareExpressionVisitor>
 {
-    public GetSelectFieldsTraverseVisitor(IQueryPartAwareExpressionVisitor visitor) 
+    public GetSelectFieldsTraverseVisitor(IQueryPartAwareExpressionVisitor visitor)
         : base(visitor)
     {
     }

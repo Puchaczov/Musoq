@@ -6,7 +6,10 @@ public static class Culture
 {
     public static CultureInfo DefaultCulture { get; } = CultureInfo.GetCultureInfo("pl-PL");
 
-    public static void ApplyWithDefaultCulture() => Apply(DefaultCulture);
+    public static void ApplyWithDefaultCulture()
+    {
+        Apply(DefaultCulture);
+    }
 
     public static void Apply(CultureInfo culture)
     {

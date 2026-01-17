@@ -10,19 +10,21 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class SetsOperatorsTests : BasicEntityTestBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void UnionWithDifferentColumnsAsAKeyTest()
     {
         var query = @"select Name from #A.Entities() union (Name) select City as Name from #B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003", "", 0), new BasicEntity("004", "", 0)]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("003", "", 0), new BasicEntity("004", "", 0)] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(4, table.Count, "Table should contain 4 rows");
 
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "001"), "Missing 001");
@@ -30,27 +32,27 @@ public class SetsOperatorsTests : BasicEntityTestBase
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "003"), "Missing 003");
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "004"), "Missing 004");
     }
-    
+
     [TestMethod]
     public void AliasedUnionWithDifferentColumnsAsAKeyTest()
     {
         var query =
             """
-select 
-    a.Name as a1,
-    b.Value
-from #A.Entities() a
-cross apply a.ToCharArray(a.Name) b
-union (Name) 
-select 
-    a.Name as a1,
-    b.Value
-from #A.Entities() a
-cross apply a.ToCharArray(a.Name) b
-""";
+            select 
+                a.Name as a1,
+                b.Value
+            from #A.Entities() a
+            cross apply a.ToCharArray(a.Name) b
+            union (Name) 
+            select 
+                a.Name as a1,
+                b.Value
+            from #A.Entities() a
+            cross apply a.ToCharArray(a.Name) b
+            """;
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -63,8 +65,8 @@ cross apply a.ToCharArray(a.Name) b
         var query = @"select Name from #A.Entities() skip 1 union (Name) select Name from #B.Entities() skip 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -82,8 +84,8 @@ cross apply a.ToCharArray(a.Name) b
         var query = @"select Name from #A.Entities() skip 1 union all (Name) select Name from #B.Entities() skip 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("005")]},
-            {"#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("005")] },
+            { "#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -103,19 +105,19 @@ select Name from #A.Entities() union all (Name)
 select Name from #A.Entities() union all (Name) 
 select Name from #A.Entities() union all (Name) 
 select Name from #A.Entities()";
-            
+
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("005")]}
+            { "#A", [new BasicEntity("005")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
-        Assert.IsTrue(table.All(entry => 
-                (string)entry.Values[0] == "005"), 
+        Assert.IsTrue(table.All(entry =>
+                (string)entry.Values[0] == "005"),
             "All entries should be '005'");
     }
 
@@ -132,30 +134,30 @@ with p as (
 )
 select Id, Name from p
 ";
-            
+
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("005")]}
+            { "#A", [new BasicEntity("005")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-                Convert.ToInt32(entry.Values[0]) == 1 && 
-                (string)entry.Values[1] == "EMPTY"), 
+        Assert.IsTrue(table.Any(entry =>
+                Convert.ToInt32(entry.Values[0]) == 1 &&
+                (string)entry.Values[1] == "EMPTY"),
             "First entry should match expected values");
 
-        Assert.IsTrue(table.Any(entry => 
-                Convert.ToInt32(entry.Values[0]) == 2 && 
-                (string)entry.Values[1] == "EMPTY2"), 
+        Assert.IsTrue(table.Any(entry =>
+                Convert.ToInt32(entry.Values[0]) == 2 &&
+                (string)entry.Values[1] == "EMPTY2"),
             "Second entry should match expected values");
 
-        Assert.IsTrue(table.Any(entry => 
-                Convert.ToInt32(entry.Values[0]) == 3 && 
-                (string)entry.Values[1] == "EMPTY3"), 
+        Assert.IsTrue(table.Any(entry =>
+                Convert.ToInt32(entry.Values[0]) == 3 &&
+                (string)entry.Values[1] == "EMPTY3"),
             "Third entry should match expected values");
     }
 
@@ -172,30 +174,30 @@ with p as (
 )
 select Id, Name from p
 ";
-            
+
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("005")]}
+            { "#A", [new BasicEntity("005")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-                Convert.ToInt32(entry.Values[0]) == 1 && 
-                (string)entry.Values[1] == "EMPTY"), 
+        Assert.IsTrue(table.Any(entry =>
+                Convert.ToInt32(entry.Values[0]) == 1 &&
+                (string)entry.Values[1] == "EMPTY"),
             "First entry should match expected values");
 
-        Assert.IsTrue(table.Any(entry => 
-                Convert.ToInt32(entry.Values[0]) == 2 && 
-                (string)entry.Values[1] == "EMPTY2"), 
+        Assert.IsTrue(table.Any(entry =>
+                Convert.ToInt32(entry.Values[0]) == 2 &&
+                (string)entry.Values[1] == "EMPTY2"),
             "Second entry should match expected values");
 
-        Assert.IsTrue(table.Any(entry => 
-                Convert.ToInt32(entry.Values[0]) == 3 && 
-                (string)entry.Values[1] == "EMPTY3"), 
+        Assert.IsTrue(table.Any(entry =>
+                Convert.ToInt32(entry.Values[0]) == 3 &&
+                (string)entry.Values[1] == "EMPTY3"),
             "Third entry should match expected values");
     }
 
@@ -210,8 +212,8 @@ union all (Name)
 select Name from #C.Entities() skip 3";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("005")]},
-            {"#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]},
+            { "#A", [new BasicEntity("001"), new BasicEntity("005")] },
+            { "#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] },
             {
                 "#C",
                 [
@@ -234,13 +236,13 @@ select Name from #C.Entities() skip 3";
         var query = @"select Name from #A.Entities() union (Name) select Name from #B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(4, table.Count, "Table should contain 4 rows");
 
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "001") &&
@@ -256,13 +258,13 @@ select Name from #C.Entities() skip 3";
         var query = @"select Name from #A.Entities() union (Name) select Name from #B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
@@ -277,9 +279,9 @@ select Name from #C.Entities() skip 3";
             @"select Name from #A.Entities() union (Name) select Name from #B.Entities() union (Name) select Name from #C.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]},
-            {"#B", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#C", [new BasicEntity("005")]}
+            { "#A", [new BasicEntity("001")] },
+            { "#B", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#C", [new BasicEntity("005")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -299,9 +301,9 @@ select Name from #C.Entities() skip 3";
             @"select Name from #A.Entities() union (Name) select Name from #B.Entities() union (Name) select Name from #C.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]},
-            {"#B", [new BasicEntity("002")]},
-            {"#C", [new BasicEntity("005")]}
+            { "#A", [new BasicEntity("001")] },
+            { "#B", [new BasicEntity("002")] },
+            { "#C", [new BasicEntity("005")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -326,10 +328,10 @@ select Name from #D.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]},
-            {"#B", [new BasicEntity("002")]},
-            {"#C", [new BasicEntity("005")]},
-            {"#D", [new BasicEntity("007"), new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] },
+            { "#B", [new BasicEntity("002")] },
+            { "#C", [new BasicEntity("005")] },
+            { "#D", [new BasicEntity("007"), new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -349,13 +351,13 @@ select Name from #D.Entities()";
         var query = @"select Name from #A.Entities() union all (Name) select Name from #B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
@@ -372,9 +374,9 @@ select Name from #D.Entities()";
             @"select Name from #A.Entities() union all (Name) select Name from #B.Entities() union all (Name) select Name from #C.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]},
-            {"#B", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#C", [new BasicEntity("005")]}
+            { "#A", [new BasicEntity("001")] },
+            { "#B", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#C", [new BasicEntity("005")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -394,9 +396,9 @@ select Name from #D.Entities()";
             @"select Name from #A.Entities() union all (Name) select Name from #B.Entities() union all (Name) select Name from #C.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]},
-            {"#B", [new BasicEntity("002")]},
-            {"#C", [new BasicEntity("005")]}
+            { "#A", [new BasicEntity("001")] },
+            { "#B", [new BasicEntity("002")] },
+            { "#C", [new BasicEntity("005")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -420,15 +422,15 @@ select Name from #C.Entities() union all (Name)
 select Name from #D.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]},
-            {"#B", [new BasicEntity("002")]},
-            {"#C", [new BasicEntity("005")]},
-            {"#D", [new BasicEntity("007"), new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] },
+            { "#B", [new BasicEntity("002")] },
+            { "#C", [new BasicEntity("005")] },
+            { "#D", [new BasicEntity("007"), new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(5, table.Count, "Table should have 5 entries");
         var results = table.Select(row => (string)row.Values[0]).ToList();
         Assert.AreEqual(2, results.Count(r => r == "001"), "Should have two '001' entries");
@@ -443,13 +445,13 @@ select Name from #D.Entities()";
         var query = @"select Name from #A.Entities() union all (Name) select Name from #B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
         Assert.IsTrue(table.Count(row => (string)row.Values[0] == "001") == 2 &&
@@ -465,8 +467,8 @@ select Name from #D.Entities()";
         var query = @"select Name from #A.Entities() except (Name) select Name from #B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -482,8 +484,8 @@ select Name from #D.Entities()";
         var query = @"select Name from #A.Entities() skip 1 except (Name) select Name from #B.Entities() skip 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("010")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("010")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("002")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -500,9 +502,9 @@ select Name from #D.Entities()";
             @"select Name from #A.Entities() except (Name) select Name from #B.Entities() except (Name) select Name from #C.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
+            { "#C", [new BasicEntity("002")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -520,9 +522,9 @@ select Name from #B.Entities() skip 2 except (Name)
 select Name from #C.Entities() skip 3";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("005")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
+            { "#C", [new BasicEntity("005")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -550,9 +552,9 @@ select Name from #D.Entities()";
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")
                 ]
             },
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("005")]},
-            {"#D", [new BasicEntity("007")]}
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
+            { "#C", [new BasicEntity("005")] },
+            { "#D", [new BasicEntity("007")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -569,8 +571,8 @@ select Name from #D.Entities()";
         var query = @"select Name from #A.Entities() intersect (Name) select Name from #B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -586,7 +588,7 @@ select Name from #D.Entities()";
         var query = @"select Name from #A.Entities() skip 1 intersect (Name) select Name from #B.Entities() skip 2";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]},
+            { "#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] },
             {
                 "#B",
                 [
@@ -609,9 +611,9 @@ select Name from #D.Entities()";
             @"select Name from #A.Entities() intersect (Name) select Name from #B.Entities() intersect (Name) select Name from #C.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("002"), new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
+            { "#C", [new BasicEntity("002"), new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -632,14 +634,14 @@ select Name from #C.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]},
+            { "#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] },
             {
                 "#B",
                 [
                     new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001"), new BasicEntity("005")
                 ]
             },
-            {"#C", [new BasicEntity("002"), new BasicEntity("001"), new BasicEntity("005")]}
+            { "#C", [new BasicEntity("002"), new BasicEntity("001"), new BasicEntity("005")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -667,14 +669,14 @@ select Name from #D.Entities()";
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")
                 ]
             },
-            {"#B", [new BasicEntity("003"), new BasicEntity("007"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("005"), new BasicEntity("007"), new BasicEntity("001")]},
-            {"#D", [new BasicEntity("008"), new BasicEntity("007"), new BasicEntity("001")]}
+            { "#B", [new BasicEntity("003"), new BasicEntity("007"), new BasicEntity("001")] },
+            { "#C", [new BasicEntity("005"), new BasicEntity("007"), new BasicEntity("001")] },
+            { "#D", [new BasicEntity("008"), new BasicEntity("007"), new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
@@ -693,14 +695,14 @@ select Name from #C.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("002"), new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
+            { "#C", [new BasicEntity("002"), new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
@@ -719,14 +721,14 @@ select Name from #C.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("002"), new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
+            { "#C", [new BasicEntity("002"), new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
@@ -745,9 +747,9 @@ select Name from #C.Entities() skip 3";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("002"), new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
+            { "#C", [new BasicEntity("002"), new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -769,8 +771,8 @@ select Name from #C.Entities() skip 3";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("002"), new BasicEntity("001")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
+            { "#A", [new BasicEntity("002"), new BasicEntity("001")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
             {
                 "#C",
                 [
@@ -781,7 +783,7 @@ select Name from #C.Entities() skip 3";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
@@ -800,14 +802,14 @@ select Name, RandomNumber() from #C.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("002"), new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
+            { "#C", [new BasicEntity("002"), new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
@@ -832,9 +834,9 @@ select Name from #D.Entities()";
                     new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("007"), new BasicEntity("008")
                 ]
             },
-            {"#B", [new BasicEntity("003"), new BasicEntity("007"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("005"), new BasicEntity("007")]},
-            {"#D", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003")]}
+            { "#B", [new BasicEntity("003"), new BasicEntity("007"), new BasicEntity("001")] },
+            { "#C", [new BasicEntity("005"), new BasicEntity("007")] },
+            { "#D", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("003")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -859,33 +861,33 @@ select City, Sum(Population) from #C.Entities() group by City";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001", "", 100), new BasicEntity("001", "", 100)]},
+            { "#A", [new BasicEntity("001", "", 100), new BasicEntity("001", "", 100)] },
             {
                 "#B",
                 [
                     new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
                 ]
             },
-            {"#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)]}
+            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "001" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "001" &&
             (decimal)entry.Values[1] == 200m
         ), "First entry should be '001' with value 200");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "003" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "003" &&
             (decimal)entry.Values[1] == 39m
         ), "Second entry should be '003' with value 39");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "002" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "002" &&
             (decimal)entry.Values[1] == 28m
         ), "Third entry should be '002' with value 28");
     }
@@ -902,36 +904,35 @@ select City, Sum(Population) from #C.Entities() group by City";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001", "", 100), new BasicEntity("001", "", 100)]},
+            { "#A", [new BasicEntity("001", "", 100), new BasicEntity("001", "", 100)] },
             {
                 "#B",
                 [
                     new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
                 ]
             },
-            {"#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)]}
+            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "001" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "001" &&
             (decimal)entry.Values[1] == 200m
         ), "First entry should be '001' with value 200");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "003" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "003" &&
             (decimal)entry.Values[1] == 39m
         ), "Second entry should be '003' with value 39");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "002" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "002" &&
             (decimal)entry.Values[1] == 28m
         ), "Third entry should be '002' with value 28");
-        
     }
 
     [TestMethod]
@@ -959,16 +960,16 @@ select City, Sum(Population) from #C.Entities() group by City";
                     new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
                 ]
             },
-            {"#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)]}
+            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count, "Table should have 1 entry");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry.Values[0] == "001" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry.Values[0] == "001" &&
             (decimal)entry.Values[1] == 200m
         ), "First entry should be '001' with value 200");
     }
@@ -998,7 +999,7 @@ select City, Sum(Population) from #C.Entities() group by City";
                     new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
                 ]
             },
-            {"#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)]}
+            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -1020,12 +1021,12 @@ select Name from #A.Entities() where Name = '002'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
@@ -1060,7 +1061,7 @@ select Name from #A.Entities() where Name = '005'";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
@@ -1069,102 +1070,100 @@ select Name from #A.Entities() where Name = '005'";
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "004"), "Fourth entry should be '004'");
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "005"), "Fifth entry should be '005'");
     }
-    
+
     [TestMethod]
     public void WhenWrongTypeBetweenUnions_ShouldFail()
     {
         var query = @"select Name from #A.Entities() union (Name) select 1 as Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
-        
+
         Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
-    
+
     [TestMethod]
     public void WhenWrongTypeBetweenUnionAll_ShouldFail()
     {
         var query = @"select Name from #A.Entities() union all (Name) select 1 as Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
-        
+
         Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
-    
+
     [TestMethod]
     public void WhenWrongTypeBetweenExcept_ShouldFail()
     {
         var query = @"select Name from #A.Entities() except (Name) select 1 as Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
-        
+
         Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
-    
+
     [TestMethod]
     public void WhenWrongTypeBetweenIntersect_ShouldFail()
     {
         var query = @"select Name from #A.Entities() intersect (Name) select 1 as Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
-        
+
         Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
-    
+
     [TestMethod]
     public void WhenUnionDoesNotHaveAKey_ShouldFail()
     {
         var query = @"select Name from #A.Entities() union () select Name as Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
-        
+
         Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
-    
+
     [TestMethod]
     public void WhenUnionAllDoesNotHaveAKey_ShouldFail()
     {
         var query = @"select Name from #A.Entities() union all () select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
-        
+
         Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
-    
+
     [TestMethod]
     public void WhenExceptDoesNotHaveAKey_ShouldFail()
     {
         var query = @"select Name from #A.Entities() except () select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
-        
+
         Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
-    
+
     [TestMethod]
     public void WhenIntersectDoesNotHaveAKey_ShouldFail()
     {
         var query = @"select Name from #A.Entities() intersect () select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
-        
+
         Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
     }
-
-    public TestContext TestContext { get; set; }
 }

@@ -14,7 +14,7 @@ public class CancellationTests : BasicEntityTestBase
         var query = @"select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -52,7 +52,7 @@ select Name from #A.Entities() where Name = '002'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -85,7 +85,7 @@ select City, Sum(Population) from #C.Entities() group by City";
                     new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
                 ]
             },
-            {"#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)]}
+            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -100,9 +100,9 @@ select City, Sum(Population) from #C.Entities() group by City";
             @"select Name from #A.Entities() intersect (Name) select Name from #B.Entities() intersect (Name) select Name from #C.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]},
-            {"#C", [new BasicEntity("002"), new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
+            { "#C", [new BasicEntity("002"), new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -117,8 +117,8 @@ select City, Sum(Population) from #C.Entities() group by City";
         var query = @"select Name from #A.Entities() union all (Name) select Name from #B.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]},
-            {"#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
+            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

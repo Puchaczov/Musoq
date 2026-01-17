@@ -9,11 +9,12 @@ namespace Musoq.Evaluator.Visitors;
 
 public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
 {
+    private readonly CompilationOptions _compilationOptions;
     private readonly IToCSharpTranslationExpressionVisitor _visitor;
     private ScopeWalker _walker;
-    private readonly CompilationOptions _compilationOptions;
 
-    public ToCSharpRewriteTreeTraverseVisitor(IToCSharpTranslationExpressionVisitor visitor, ScopeWalker walker, CompilationOptions compilationOptions)
+    public ToCSharpRewriteTreeTraverseVisitor(IToCSharpTranslationExpressionVisitor visitor, ScopeWalker walker,
+        CompilationOptions compilationOptions)
     {
         _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
         _walker = walker;
@@ -185,11 +186,11 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
     {
         _visitor.SetInsideJoinOrApply(true);
         _visitor.AddNullSuspiciousSection();
-            
+
         node.SourceTable.Accept(this);
         node.Expression.Accept(this);
         node.Accept(_visitor);
-            
+
         _visitor.SetInsideJoinOrApply(false);
         _visitor.RemoveNullSuspiciousSection();
     }
@@ -198,10 +199,10 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
     {
         _visitor.SetInsideJoinOrApply(true);
         _visitor.AddNullSuspiciousSection();
-            
+
         node.SourceTable.Accept(this);
         node.Accept(_visitor);
-            
+
         _visitor.SetInsideJoinOrApply(false);
         _visitor.RemoveNullSuspiciousSection();
     }
@@ -216,13 +217,13 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
     {
         _visitor.SetInsideJoinOrApply(true);
         _visitor.AddNullSuspiciousSection();
-            
+
         node.Expression.Accept(this);
         node.First.Accept(this);
         node.Second.Accept(this);
 
         node.Accept(_visitor);
-            
+
         _visitor.SetInsideJoinOrApply(false);
         _visitor.RemoveNullSuspiciousSection();
     }
@@ -231,12 +232,12 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
     {
         _visitor.SetInsideJoinOrApply(true);
         _visitor.AddNullSuspiciousSection();
-            
+
         node.First.Accept(this);
         node.Second.Accept(this);
 
         node.Accept(_visitor);
-            
+
         _visitor.SetInsideJoinOrApply(false);
         _visitor.RemoveNullSuspiciousSection();
     }
@@ -392,17 +393,15 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         _visitor.SetScope(_walker.Scope);
 
         _visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
-        
+
         if (
-            _compilationOptions.ParallelizationMode == ParallelizationMode.None || 
-            node.Skip != null || 
-            node.Take != null || 
+            _compilationOptions.ParallelizationMode == ParallelizationMode.None ||
+            node.Skip != null ||
+            node.Take != null ||
             node.OrderBy != null
         )
-        {
             _visitor.SetResultParallelizationImpossible();
-        }
-        
+
         _visitor.SetQueryIdentifier(node.From.Alias);
 
         _visitor.InitializeCseForQuery(node);
@@ -416,7 +415,7 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         node.GroupBy?.Accept(this);
         node.OrderBy?.Accept(this);
         node.Accept(_visitor);
-        
+
         _walker = _walker.Parent();
     }
 
@@ -542,6 +541,7 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
             item.Accept(this);
             _visitor.RemoveNullSuspiciousSection();
         }
+
         node.Accept(_visitor);
     }
 
@@ -558,7 +558,7 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
     public void Visit(DescNode node)
     {
         _walker = _walker.NextChild();
-            
+
         node.Accept(_visitor);
 
         _walker = _walker.Parent();
@@ -599,7 +599,7 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
 
         _visitor.SetMethodAccessType(MethodAccessType.TransformingQuery);
         _visitor.SetQueryIdentifier(node.From.Alias);
-        
+
         _visitor.InitializeCseForQuery(node);
 
         node.Refresh?.Accept(this);
@@ -663,7 +663,7 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
     {
         _walker = _walker.NextChild();
         _visitor.SetScope(_walker.Scope);
-            
+
         foreach (var cNode in node.Nodes)
             cNode.Accept(this);
         node.Accept(_visitor);
@@ -709,11 +709,6 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         node.Accept(_visitor);
     }
 
-    public void Visit(FromNode node)
-    {
-        node.Accept(_visitor);
-    }
-
     public void Visit(OrderByNode node)
     {
         foreach (var field in node.Fields)
@@ -749,9 +744,9 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
     public void Visit(CaseNode node)
     {
         var oldMethodAccessType = _visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
-        
+
         _visitor.SetCaseWhenContext(true);
-         
+
         node.Else.Accept(this);
 
         for (var i = node.WhenThenPairs.Length - 1; i >= 0; --i)
@@ -761,7 +756,7 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         }
 
         _visitor.SetCaseWhenContext(false);
-        
+
         node.Accept(_visitor);
 
         _visitor.SetMethodAccessType(oldMethodAccessType);
@@ -796,6 +791,11 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         throw new NotSupportedException();
     }
 
+    public void Visit(FromNode node)
+    {
+        node.Accept(_visitor);
+    }
+
     private void TraverseSetOperator(SetOperatorNode node)
     {
         _walker = _walker.NextChild();
@@ -828,11 +828,12 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
                     howManyTimesChildWereUsed += 1;
                     continue;
                 }
+
                 current.Right.Accept(this);
                 _visitor.IncrementMethodIdentifier();
 
                 current.Accept(_visitor);
-                    
+
                 howManyTimesChildWereUsed += 1;
             }
 

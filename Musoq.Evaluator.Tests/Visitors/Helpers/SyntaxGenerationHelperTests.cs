@@ -1,6 +1,4 @@
 using System;
-using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -32,8 +30,10 @@ public class SyntaxGenerationHelperTests
     public void CreateArgumentList_WithArguments_ShouldCreateCorrectArgumentList()
     {
         // Arrange
-        var arg1 = SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(10)));
-        var arg2 = SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(20)));
+        var arg1 = SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+            SyntaxFactory.Literal(10)));
+        var arg2 = SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+            SyntaxFactory.Literal(20)));
 
         // Act
         var result = SyntaxGenerationHelper.CreateArgumentList(arg1, arg2);
@@ -204,7 +204,8 @@ public class SyntaxGenerationHelperTests
     public void CreateMethodInvocation_WithNullTarget_ShouldThrowArgumentNullException()
     {
         // Act
-        Assert.Throws<ArgumentNullException>(() => SyntaxGenerationHelper.CreateMethodInvocation((ExpressionSyntax)null, "method"));
+        Assert.Throws<ArgumentNullException>(() =>
+            SyntaxGenerationHelper.CreateMethodInvocation((ExpressionSyntax)null, "method"));
     }
 
     [TestMethod]

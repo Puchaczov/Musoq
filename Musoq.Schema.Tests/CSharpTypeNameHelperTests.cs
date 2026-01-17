@@ -89,39 +89,47 @@ public class CSharpTypeNameHelperTests
     public void GetCSharpTypeName_GenericTypesWithNullableArguments_ReturnsCorrectFormat()
     {
         Assert.AreEqual("List<int?>", CSharpTypeNameHelper.GetCSharpTypeName(typeof(List<int?>)));
-        Assert.AreEqual("IEnumerable<DateTime?>", CSharpTypeNameHelper.GetCSharpTypeName(typeof(IEnumerable<DateTime?>)));
+        Assert.AreEqual("IEnumerable<DateTime?>",
+            CSharpTypeNameHelper.GetCSharpTypeName(typeof(IEnumerable<DateTime?>)));
     }
 
     [TestMethod]
     public void GetCSharpTypeName_GenericTypesWithMultipleArguments_ReturnsCorrectFormat()
     {
-        Assert.AreEqual("Dictionary<int, string>", CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<int, string>)));
-        Assert.AreEqual("Dictionary<string, List<int>>", CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<string, List<int>>)));
-        Assert.AreEqual("KeyValuePair<int, string>", CSharpTypeNameHelper.GetCSharpTypeName(typeof(KeyValuePair<int, string>)));
+        Assert.AreEqual("Dictionary<int, string>",
+            CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<int, string>)));
+        Assert.AreEqual("Dictionary<string, List<int>>",
+            CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<string, List<int>>)));
+        Assert.AreEqual("KeyValuePair<int, string>",
+            CSharpTypeNameHelper.GetCSharpTypeName(typeof(KeyValuePair<int, string>)));
     }
 
     [TestMethod]
     public void GetCSharpTypeName_NestedGenericTypes_ReturnsCorrectFormat()
     {
         Assert.AreEqual("List<List<int>>", CSharpTypeNameHelper.GetCSharpTypeName(typeof(List<List<int>>)));
-        Assert.AreEqual("Dictionary<string, List<int?>>", CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<string, List<int?>>)));
+        Assert.AreEqual("Dictionary<string, List<int?>>",
+            CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<string, List<int?>>)));
     }
 
     [TestMethod]
     public void GetCSharpTypeName_GenericTypeParameter_ReturnsParameterName()
     {
-        var method = typeof(CSharpTypeNameHelperTests).GetMethod(nameof(GenericMethod), BindingFlags.NonPublic | BindingFlags.Static);
+        var method =
+            typeof(CSharpTypeNameHelperTests).GetMethod(nameof(GenericMethod),
+                BindingFlags.NonPublic | BindingFlags.Static);
         var genericParam = method.GetGenericArguments()[0];
-        
+
         Assert.AreEqual("T", CSharpTypeNameHelper.GetCSharpTypeName(genericParam));
     }
 
     [TestMethod]
     public void GetCSharpTypeName_ComplexGenericTypeParameter_ReturnsParameterName()
     {
-        var method = typeof(CSharpTypeNameHelperTests).GetMethod(nameof(ComplexGenericMethod), BindingFlags.NonPublic | BindingFlags.Static);
+        var method = typeof(CSharpTypeNameHelperTests).GetMethod(nameof(ComplexGenericMethod),
+            BindingFlags.NonPublic | BindingFlags.Static);
         var genericParams = method.GetGenericArguments();
-        
+
         Assert.AreEqual("TKey", CSharpTypeNameHelper.GetCSharpTypeName(genericParams[0]));
         Assert.AreEqual("TValue", CSharpTypeNameHelper.GetCSharpTypeName(genericParams[1]));
     }
@@ -129,7 +137,8 @@ public class CSharpTypeNameHelperTests
     [TestMethod]
     public void GetCSharpTypeName_CustomType_ReturnsSimpleName()
     {
-        Assert.AreEqual("CSharpTypeNameHelperTests", CSharpTypeNameHelper.GetCSharpTypeName(typeof(CSharpTypeNameHelperTests)));
+        Assert.AreEqual("CSharpTypeNameHelperTests",
+            CSharpTypeNameHelper.GetCSharpTypeName(typeof(CSharpTypeNameHelperTests)));
         Assert.AreEqual("TestClass", CSharpTypeNameHelper.GetCSharpTypeName(typeof(TestClass)));
     }
 
@@ -137,7 +146,8 @@ public class CSharpTypeNameHelperTests
     public void GetCSharpTypeName_GenericArrays_ReturnsCorrectFormat()
     {
         Assert.AreEqual("List<int>[]", CSharpTypeNameHelper.GetCSharpTypeName(typeof(List<int>[])));
-        Assert.AreEqual("Dictionary<string, int>[]", CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<string, int>[])));
+        Assert.AreEqual("Dictionary<string, int>[]",
+            CSharpTypeNameHelper.GetCSharpTypeName(typeof(Dictionary<string, int>[])));
     }
 
     #endregion
@@ -194,7 +204,7 @@ public class CSharpTypeNameHelperTests
     {
         var method = typeof(TestClass).GetMethod(nameof(TestClass.SimpleMethod));
         var signature = CSharpTypeNameHelper.FormatMethodSignature(method);
-        
+
         Assert.AreEqual("void SimpleMethod()", signature);
     }
 
@@ -203,7 +213,7 @@ public class CSharpTypeNameHelperTests
     {
         var method = typeof(TestClass).GetMethod(nameof(TestClass.MethodWithParameters));
         var signature = CSharpTypeNameHelper.FormatMethodSignature(method);
-        
+
         Assert.AreEqual("int MethodWithParameters(int x, string y)", signature);
     }
 
@@ -212,7 +222,7 @@ public class CSharpTypeNameHelperTests
     {
         var method = typeof(TestClass).GetMethod(nameof(TestClass.MethodWithNullableParameters));
         var signature = CSharpTypeNameHelper.FormatMethodSignature(method);
-        
+
         Assert.AreEqual("int? MethodWithNullableParameters(int? value)", signature);
     }
 
@@ -221,7 +231,7 @@ public class CSharpTypeNameHelperTests
     {
         var method = typeof(TestClass).GetMethod(nameof(TestClass.GenericMethod));
         var signature = CSharpTypeNameHelper.FormatMethodSignature(method);
-        
+
         Assert.AreEqual("T GenericMethod<T>(T value)", signature);
     }
 
@@ -230,7 +240,7 @@ public class CSharpTypeNameHelperTests
     {
         var method = typeof(TestClass).GetMethod(nameof(TestClass.ComplexGenericMethod));
         var signature = CSharpTypeNameHelper.FormatMethodSignature(method);
-        
+
         Assert.AreEqual("TResult ComplexGenericMethod<T, TResult>(T input, List<T> items)", signature);
     }
 
@@ -239,7 +249,7 @@ public class CSharpTypeNameHelperTests
     {
         var method = typeof(TestClass).GetMethod(nameof(TestClass.MethodWithArrays));
         var signature = CSharpTypeNameHelper.FormatMethodSignature(method);
-        
+
         Assert.AreEqual("string[] MethodWithArrays(int[] numbers, string[] texts)", signature);
     }
 
@@ -248,7 +258,7 @@ public class CSharpTypeNameHelperTests
     {
         var method = typeof(TestClass).GetMethod(nameof(TestClass.MethodWithComplexGenerics));
         var signature = CSharpTypeNameHelper.FormatMethodSignature(method);
-        
+
         Assert.AreEqual("List<int> MethodWithComplexGenerics(Dictionary<string, List<int>> data)", signature);
     }
 
@@ -256,25 +266,51 @@ public class CSharpTypeNameHelperTests
 
     #region Helper Methods and Test Classes
 
-    private static T GenericMethod<T>(T value) => value;
+    private static T GenericMethod<T>(T value)
+    {
+        return value;
+    }
 
-    private static TValue ComplexGenericMethod<TKey, TValue>(TKey key, TValue value) => value;
+    private static TValue ComplexGenericMethod<TKey, TValue>(TKey key, TValue value)
+    {
+        return value;
+    }
 
     public class TestClass
     {
-        public void SimpleMethod() { }
+        public void SimpleMethod()
+        {
+        }
 
-        public int MethodWithParameters(int x, string y) => x;
+        public int MethodWithParameters(int x, string y)
+        {
+            return x;
+        }
 
-        public int? MethodWithNullableParameters(int? value) => value;
+        public int? MethodWithNullableParameters(int? value)
+        {
+            return value;
+        }
 
-        public T GenericMethod<T>(T value) => value;
+        public T GenericMethod<T>(T value)
+        {
+            return value;
+        }
 
-        public TResult ComplexGenericMethod<T, TResult>(T input, List<T> items) => default;
+        public TResult ComplexGenericMethod<T, TResult>(T input, List<T> items)
+        {
+            return default;
+        }
 
-        public string[] MethodWithArrays(int[] numbers, string[] texts) => texts;
+        public string[] MethodWithArrays(int[] numbers, string[] texts)
+        {
+            return texts;
+        }
 
-        public List<int> MethodWithComplexGenerics(Dictionary<string, List<int>> data) => null;
+        public List<int> MethodWithComplexGenerics(Dictionary<string, List<int>> data)
+        {
+            return null;
+        }
     }
 
     #endregion

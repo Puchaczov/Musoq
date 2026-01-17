@@ -10,20 +10,22 @@ namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 public class EnvironmentVariablesSchema : SchemaBase
 {
     private static readonly IReadOnlyDictionary<string, int> EnvironmentVariableNameToIndexMap;
-    private static readonly IReadOnlyDictionary<int, Func<EnvironmentVariableEntity, object>> EnvironmentVariableIndexToObjectAccessMap;
+
+    private static readonly IReadOnlyDictionary<int, Func<EnvironmentVariableEntity, object>>
+        EnvironmentVariableIndexToObjectAccessMap;
 
     static EnvironmentVariablesSchema()
     {
         EnvironmentVariableNameToIndexMap = new Dictionary<string, int>
         {
-            {nameof(EnvironmentVariableEntity.Key), 0},
-            {nameof(EnvironmentVariableEntity.Value), 1},
+            { nameof(EnvironmentVariableEntity.Key), 0 },
+            { nameof(EnvironmentVariableEntity.Value), 1 }
         };
 
         EnvironmentVariableIndexToObjectAccessMap = new Dictionary<int, Func<EnvironmentVariableEntity, object>>
         {
-            {0, arg => arg.Key},
-            {1, arg => arg.Value},
+            { 0, arg => arg.Key },
+            { 1, arg => arg.Value }
         };
     }
 
@@ -44,22 +46,23 @@ public class EnvironmentVariablesSchema : SchemaBase
         var methodManager = new MethodsManager();
 
         var lib = new EnvironmentVariablesLibrary();
-            
+
         methodManager.RegisterLibraries(lib);
 
         return new MethodsAggregator(methodManager);
     }
-        
+
     private class EnvironmentVariablesSource(RuntimeContext runtimeContext) : RowSource
     {
         public override IEnumerable<IObjectResolver> Rows
         {
             get
             {
-                return runtimeContext.EnvironmentVariables.Select(variable => new EntityResolver<EnvironmentVariableEntity>(
-                    new EnvironmentVariableEntity(variable.Key, variable.Value), 
-                    EnvironmentVariableNameToIndexMap, 
-                    EnvironmentVariableIndexToObjectAccessMap));
+                return runtimeContext.EnvironmentVariables.Select(variable =>
+                    new EntityResolver<EnvironmentVariableEntity>(
+                        new EnvironmentVariableEntity(variable.Key, variable.Value),
+                        EnvironmentVariableNameToIndexMap,
+                        EnvironmentVariableIndexToObjectAccessMap));
             }
         }
     }

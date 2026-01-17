@@ -19,13 +19,13 @@ using Musoq.Schema.Helpers;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Helper class for processing AccessMethodNode operations in ToCSharpRewriteTreeVisitor.
-/// Handles method library instantiation, parameter injection, and invocation expression generation.
+///     Helper class for processing AccessMethodNode operations in ToCSharpRewriteTreeVisitor.
+///     Handles method library instantiation, parameter injection, and invocation expression generation.
 /// </summary>
 public static class AccessMethodNodeProcessor
 {
     /// <summary>
-    /// Processes an AccessMethodNode and generates the appropriate syntax node.
+    ///     Processes an AccessMethodNode and generates the appropriate syntax node.
     /// </summary>
     /// <param name="node">The AccessMethodNode to process</param>
     /// <param name="generator">The syntax generator</param>
@@ -55,32 +55,27 @@ public static class AccessMethodNodeProcessor
         var method = node.Method;
         var variableName = $"{node.Alias}{method.ReflectedType!.Name}Lib";
 
-        
+
         HandleLibraryInstantiation(node, statements, typesToInstantiate, variableName, addNamespaceAction);
 
-        
+
         scope.ScopeSymbolTable.AddSymbolIfNotExist(
             method.ReflectedType.Name,
             new TypeSymbol(method.ReflectedType));
 
-        
+
         var args = ProcessMethodParameters(node, scope, type, isInsideJoinOrApply);
 
-        
-        var tmpArgs = (ArgumentListSyntax)nodes.Pop();
-        foreach (var item in tmpArgs.Arguments)
-        {
-            args.Add(item);
-        }
 
-        
+        var tmpArgs = (ArgumentListSyntax)nodes.Pop();
+        foreach (var item in tmpArgs.Arguments) args.Add(item);
+
+
         var accessMethodExpr = GenerateMethodInvocation(node, generator, variableName, args);
 
-        
+
         if (!node.ReturnType.IsTrueValueType() && nullSuspiciousNodes.Count > 0)
-        {
             nullSuspiciousNodes[^1].Push(accessMethodExpr);
-        }
 
         return accessMethodExpr;
     }
@@ -151,7 +146,7 @@ public static class AccessMethodNodeProcessor
                     break;
 
                 case InjectGroupAccessName _:
-                    
+
                     break;
 
                 case InjectQueryStatsAttribute _:
@@ -181,9 +176,7 @@ public static class AccessMethodNodeProcessor
             EvaluationHelper.GetCastableType(parameterInfo.ParameterType));
 
         if (parameterInfo.ParameterType == typeof(ExpandoObject))
-        {
             typeIdentifier = SyntaxFactory.IdentifierName("dynamic");
-        }
 
         var currentContext = GetCurrentContext(scope, isInsideJoinOrApply, node.Alias);
 
@@ -212,12 +205,10 @@ public static class AccessMethodNodeProcessor
             var orderNumber = int.Parse(scope[MetaAttributes.OrderNumber]);
             return preformattedContexts.GetIndexFor(orderNumber, alias);
         }
-        else
-        {
-            var aliases = scope.Parent.ScopeSymbolTable
-                .GetSymbol<AliasesPositionsSymbol>(MetaAttributes.AllQueryContexts);
-            return aliases.GetContextIndexOf(alias);
-        }
+
+        var aliases = scope.Parent.ScopeSymbolTable
+            .GetSymbol<AliasesPositionsSymbol>(MetaAttributes.AllQueryContexts);
+        return aliases.GetContextIndexOf(alias);
     }
 
     private static ArgumentSyntax CreateContextAccessArgument(
@@ -248,7 +239,7 @@ public static class AccessMethodNodeProcessor
         switch (type)
         {
             case MethodAccessType.ResultQuery:
-                
+
                 break;
             default:
                 args.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group")));
@@ -270,17 +261,13 @@ public static class AccessMethodNodeProcessor
         var method = node.Method;
 
         if (method.IsGenericMethod && method.GetCustomAttribute<AggregationMethodAttribute>() != null)
-        {
             return GenerateGenericMethodInvocation(node, generator, variableName, args);
-        }
-        else
-        {
-            return generator.InvocationExpression(
-                generator.MemberAccessExpression(
-                    generator.IdentifierName(variableName),
-                    generator.IdentifierName(node.Name)),
-                args);
-        }
+
+        return generator.InvocationExpression(
+            generator.MemberAccessExpression(
+                generator.IdentifierName(variableName),
+                generator.IdentifierName(node.Name)),
+            args);
     }
 
     private static SyntaxNode GenerateGenericMethodInvocation(

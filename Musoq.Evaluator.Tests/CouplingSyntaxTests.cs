@@ -15,6 +15,8 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class CouplingSyntaxTests : BasicEntityTestBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void WhenSingleValueTableIsCoupledWithSchema_ShouldHaveAppropriateTypesTest()
     {
@@ -62,7 +64,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         Assert.IsTrue(actualStrings.Any(s => s == "dadsqqAA"),
             "Expected string 'dadsqqAA' not found in results");
     }
-    
+
     [TestMethod]
     public void WhenTwoValuesTableIsCoupledWithSchema_ShouldHaveAppropriateTypesTest()
     {
@@ -72,7 +74,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
                              "};" +
                              "couple #A.Entities with table DummyTable as SourceOfDummyRows;" +
                              "select Country, Population from SourceOfDummyRows();";
-        
+
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
@@ -88,33 +90,33 @@ public class CouplingSyntaxTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        
+
         Assert.AreEqual("Population", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(4, table.Count);
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "ABCAACBA" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "ABCAACBA" &&
             (decimal)row.Values[1] == 10m));
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "AAeqwgQEW" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "AAeqwgQEW" &&
             (decimal)row.Values[1] == 20m));
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "XXX" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "XXX" &&
             (decimal)row.Values[1] == 30m));
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "dadsqqAA" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "dadsqqAA" &&
             (decimal)row.Values[1] == 40m));
     }
-    
+
     [TestMethod]
     public void WhenTwoTablesAreCoupledWithSchemas_ShouldHaveAppropriateTypesTest()
     {
@@ -128,7 +130,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
                              "couple #A.Entities with table FirstTable as SourceOfFirstTableRows;" +
                              "couple #B.Entities with table SecondTable as SourceOfSecondTableRows;" +
                              "select s2.Name from SourceOfFirstTableRows() s1 inner join SourceOfSecondTableRows() s2 on s1.Country = s2.Name";
-        
+
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
@@ -153,29 +155,29 @@ public class CouplingSyntaxTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("s2.Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "ABCAACBA"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "ABCAACBA"),
             "First entry should be 'ABCAACBA'");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "AAeqwgQEW"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "AAeqwgQEW"),
             "Second entry should be 'AAeqwgQEW'");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "XXX"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "XXX"),
             "Third entry should be 'XXX'");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "dadsqqAA"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "dadsqqAA"),
             "Fourth entry should be 'dadsqqAA'");
     }
-    
+
     [TestMethod]
     public void WhenArgumentPassedToAliasedSchema_ShouldBeProperlyRecognized()
     {
@@ -188,15 +190,15 @@ public class CouplingSyntaxTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, null, new ParametersSchemaProvider());
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Columns.Count());
-        
+
         Assert.AreEqual("Parameter0", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(bool), table.Columns.ElementAt(0).ColumnType);
-        
+
         Assert.AreEqual("Parameter1", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.IsTrue((bool?)table[0].Values[0]);
         Assert.AreEqual("test", table[0].Values[1]);
@@ -232,11 +234,11 @@ public class CouplingSyntaxTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Result should contain exactly 2 test values");
 
-        Assert.IsTrue(table.Any(row => 
+        Assert.IsTrue(table.Any(row =>
             (string)row.Values[0] == "test1"
         ), "Expected value 'test1' not found in results");
 
-        Assert.IsTrue(table.Any(row => 
+        Assert.IsTrue(table.Any(row =>
             (string)row.Values[0] == "test2"
         ), "Expected value 'test2' not found in results");
     }
@@ -248,21 +250,22 @@ public class CouplingSyntaxTests : BasicEntityTestBase
             return new ParametersSchema();
         }
     }
-    
+
     private class ParametersSchema : SchemaBase
     {
         private const string SchemaName = "Parameters";
-    
+
         public ParametersSchema()
             : base(SchemaName, CreateLibrary())
         {
         }
-    
-        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+
+        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext,
+            params object[] parameters)
         {
             return new ParametersTable(parameters);
         }
-    
+
         public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
         {
             return new ParametersRowsSource(parameters);
@@ -279,7 +282,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
             return new MethodsAggregator(methodManager);
         }
     }
-    
+
     private class ParametersTable : ISchemaTable
     {
         public ParametersTable(object[] values)
@@ -289,11 +292,11 @@ public class CouplingSyntaxTests : BasicEntityTestBase
                 .Cast<ISchemaColumn>()
                 .ToArray();
         }
-        
+
         public ISchemaColumn[] Columns { get; }
 
         public SchemaTableMetadata Metadata { get; } = new(typeof(object));
-        
+
         public ISchemaColumn GetColumnByName(string name)
         {
             return Columns.First(c => c.ColumnName == name);
@@ -304,7 +307,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
             return Columns.Where(c => c.ColumnName == name).ToArray();
         }
     }
-    
+
     private class ParametersRowsSource(object[] values) : RowSourceBase<dynamic>
     {
         protected override void CollectChunks(BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
@@ -312,20 +315,18 @@ public class CouplingSyntaxTests : BasicEntityTestBase
             var index = 0;
             var indexToNameMap = new Dictionary<int, string>();
             var accessMap = new Dictionary<string, object>();
-            
+
             foreach (var value in values)
             {
                 indexToNameMap.Add(index, $"Parameter{index}");
                 accessMap.Add($"Parameter{index}", value);
                 index++;
             }
-            
+
             chunkedSource.Add(
             [
                 new DynamicDictionaryResolver(accessMap, indexToNameMap)
             ]);
         }
     }
-
-    public TestContext TestContext { get; set; }
 }

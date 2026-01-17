@@ -2,7 +2,7 @@
 
 public class FieldLinkToken : Token
 {
-    public FieldLinkToken(string value, TextSpan span) 
+    public FieldLinkToken(string value, TextSpan span)
         : base(value, TokenType.FieldLink, span)
     {
     }

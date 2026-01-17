@@ -27,7 +27,7 @@ public class Scope
 
     public int SelfIndex { get; }
 
-    public Scope Parent { get; private set; }
+    public Scope Parent { get; }
 
     public SymbolTable ScopeSymbolTable { get; } = new();
 
@@ -46,7 +46,7 @@ public class Scope
 
     public bool ContainsAttribute(string attributeName)
     {
-        return _attributes.ContainsKey(attributeName) || Parent != null && Parent.ContainsAttribute(attributeName);
+        return _attributes.ContainsKey(attributeName) || (Parent != null && Parent.ContainsAttribute(attributeName));
     }
 
     public bool IsInsideNamedScope(string name)

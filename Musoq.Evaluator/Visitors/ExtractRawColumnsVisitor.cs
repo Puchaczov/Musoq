@@ -10,13 +10,14 @@ namespace Musoq.Evaluator.Visitors;
 
 public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
 {
-    private int _schemaFromKey;
-    private string _queryAlias;
-    private readonly List<string> _generatedAliases = [];
     private readonly Dictionary<string, List<string>> _columns = new();
-    
-    public IReadOnlyDictionary<string, string[]> Columns => _columns.ToDictionary(f => f.Key, f => f.Value.Distinct().ToArray());
-    
+    private readonly List<string> _generatedAliases = [];
+    private string _queryAlias;
+    private int _schemaFromKey;
+
+    public IReadOnlyDictionary<string, string[]> Columns =>
+        _columns.ToDictionary(f => f.Key, f => f.Value.Distinct().ToArray());
+
     public void Visit(Node node)
     {
     }
@@ -240,19 +241,21 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     }
 
     public void Visit(SchemaFromNode node)
-    {   
-        _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString()) + _schemaFromKey;
-        
+    {
+        _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString()) +
+                      _schemaFromKey;
+
         if (_columns.ContainsKey(_queryAlias))
             throw new AliasAlreadyUsedException(node, _queryAlias);
-        
+
         _generatedAliases.Add(_queryAlias);
         _columns.Add(_queryAlias, []);
     }
 
     public void Visit(AliasedFromNode node)
     {
-        _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString()) + _schemaFromKey;
+        _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString()) +
+                      _schemaFromKey;
         _generatedAliases.Add(_queryAlias);
         _columns.Add(_queryAlias, []);
     }
@@ -266,7 +269,7 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     }
 
     public void Visit(InMemoryTableFromNode node)
-    { 
+    {
     }
 
     public void Visit(JoinFromNode node)
@@ -442,15 +445,15 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
-    public void SetOperatorLeftFinished()
-    {
-    }
-
     public void InnerCteBegins()
     {
     }
 
     public void InnerCteEnds()
+    {
+    }
+
+    public void SetOperatorLeftFinished()
     {
     }
 }

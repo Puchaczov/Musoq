@@ -3,14 +3,11 @@ using System;
 namespace Musoq.Converter.Exceptions;
 
 /// <summary>
-/// Exception thrown when AST validation fails during the conversion process.
-/// Provides detailed information about what went wrong during AST processing.
+///     Exception thrown when AST validation fails during the conversion process.
+///     Provides detailed information about what went wrong during AST processing.
 /// </summary>
 public class AstValidationException : InvalidOperationException
 {
-    public string NodeType { get; }
-    public string ValidationContext { get; }
-
     public AstValidationException(string nodeType, string validationContext, string message)
         : base(message)
     {
@@ -24,6 +21,9 @@ public class AstValidationException : InvalidOperationException
         NodeType = nodeType;
         ValidationContext = validationContext;
     }
+
+    public string NodeType { get; }
+    public string ValidationContext { get; }
 
     public static AstValidationException ForNullNode(string expectedNodeType, string context)
     {

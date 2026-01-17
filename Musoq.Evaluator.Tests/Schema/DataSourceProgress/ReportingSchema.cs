@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Schema;
@@ -9,8 +8,8 @@ namespace Musoq.Evaluator.Tests.Schema.DataSourceProgress;
 
 public class ReportingSchema<T> : SchemaBase where T : BasicEntity
 {
-    private readonly IEnumerable<T> _sources;
     private readonly string _schemaName;
+    private readonly IEnumerable<T> _sources;
 
     public ReportingSchema(string schemaName, IEnumerable<T> sources)
         : base(schemaName, CreateLibrary())
@@ -23,9 +22,9 @@ public class ReportingSchema<T> : SchemaBase where T : BasicEntity
     public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
     {
         return new ReportingEntitySource<BasicEntity>(
-            _sources, 
-            BasicEntity.TestNameToIndexMap, 
-            BasicEntity.TestIndexToObjectAccessMap, 
+            _sources,
+            BasicEntity.TestNameToIndexMap,
+            BasicEntity.TestIndexToObjectAccessMap,
             runtimeContext,
             $"{_schemaName}.{name}");
     }

@@ -14,12 +14,12 @@ namespace Musoq.Plugins;
 //Original code can be found at: https://github.com/rsingh85/soundex
 
 /// <summary>
-/// Provides functionality to retrieve a soundex code for a given word.
+///     Provides functionality to retrieve a soundex code for a given word.
 /// </summary>
 internal sealed partial class Soundex
 {
     /// <summary>
-    /// Returns the soundex code for a specified word.
+    ///     Returns the soundex code for a specified word.
     /// </summary>
     /// <param name="word">Word to get the soundex for.</param>
     /// <returns>Soundex code for word.</returns>
@@ -30,7 +30,7 @@ internal sealed partial class Soundex
         var soundexCode = new StringBuilder();
         var previousWasHorW = false;
 
-        
+
         word = PunctuationRegex().Replace(
             word == null ? string.Empty : word.ToUpper(),
             string.Empty);
@@ -38,25 +38,24 @@ internal sealed partial class Soundex
         if (string.IsNullOrEmpty(word))
             return string.Empty.PadRight(maxSoundexCodeLength, '0');
 
-        
+
         soundexCode.Append(word.First());
 
         for (var i = 1; i < word.Length; i++)
         {
             var numberCharForCurrentLetter = GetCharNumberForLetter(word[i]);
 
-            
+
             if (i == 1 &&
                 numberCharForCurrentLetter == GetCharNumberForLetter(soundexCode[0]))
                 continue;
 
-            
-            
+
             if (soundexCode.Length > 2 && previousWasHorW &&
                 numberCharForCurrentLetter == soundexCode[^2])
                 continue;
 
-            
+
             if (soundexCode.Length > 0 &&
                 numberCharForCurrentLetter == soundexCode[^1])
                 continue;
@@ -72,7 +71,7 @@ internal sealed partial class Soundex
             .PadRight(maxSoundexCodeLength, '0')
             .Substring(0, maxSoundexCodeLength);
     }
-        
+
     private static char GetCharNumberForLetter(char letter)
     {
         if ("BFPV".Contains(letter)) return '1';
@@ -82,9 +81,9 @@ internal sealed partial class Soundex
         if ("MN".Contains(letter)) return '5';
         if ('R' == letter) return '6';
 
-        return '0'; 
+        return '0';
     }
-    
+
     [GeneratedRegex(@"[^\w\s]")]
     private static partial Regex PunctuationRegex();
 }

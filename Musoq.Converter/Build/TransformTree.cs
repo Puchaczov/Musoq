@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Musoq.Evaluator;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
@@ -26,9 +25,11 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
 
         queryTree.Accept(extractRawColumnsTraverseVisitor);
 
-        var metadata = 
-            items.CreateBuildMetadataAndInferTypesVisitor?.Invoke(items.SchemaProvider, extractColumnsVisitor.Columns, items.CompilationOptions) ?? 
-            new BuildMetadataAndInferTypesVisitor(items.SchemaProvider, extractColumnsVisitor.Columns, loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(), items.CompilationOptions);
+        var metadata =
+            items.CreateBuildMetadataAndInferTypesVisitor?.Invoke(items.SchemaProvider, extractColumnsVisitor.Columns,
+                items.CompilationOptions) ??
+            new BuildMetadataAndInferTypesVisitor(items.SchemaProvider, extractColumnsVisitor.Columns,
+                loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(), items.CompilationOptions);
         var metadataTraverser = new BuildMetadataAndInferTypesTraverseVisitor(metadata);
 
         queryTree.Accept(metadataTraverser);
@@ -42,7 +43,8 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
         queryTree = rewriter.RootScript;
 
         var csharpRewriter = CreateCSharpRewriter(metadata, items);
-        var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter, new ScopeWalker(metadataTraverser.Scope), items.CompilationOptions);
+        var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter,
+            new ScopeWalker(metadataTraverser.Scope), items.CompilationOptions);
 
         queryTree.Accept(csharpRewriteTraverser);
 
@@ -68,10 +70,11 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
             items.CompilationOptions);
     }
 
-    private static IReadOnlyDictionary<SchemaFromNode, WhereNode> RewriteWhereNodes(IReadOnlyDictionary<SchemaFromNode, WhereNode> whereNodes)
+    private static IReadOnlyDictionary<SchemaFromNode, WhereNode> RewriteWhereNodes(
+        IReadOnlyDictionary<SchemaFromNode, WhereNode> whereNodes)
     {
         var result = new Dictionary<SchemaFromNode, WhereNode>();
-            
+
         foreach (var whereNode in whereNodes)
         {
             var rewriter = new RewriteWhereExpressionToPassItToDataSourceVisitor(whereNode.Key);
@@ -81,7 +84,7 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
 
             result.Add(whereNode.Key, rewriter.WhereNode);
         }
-            
+
         return result;
     }
 }

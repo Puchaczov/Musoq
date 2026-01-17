@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
@@ -16,14 +17,14 @@ public class StringsTests : LibraryBaseBaseTests
         Assert.AreEqual(string.Empty, Library.Substring("lorem ipsum dolor", 0));
         Assert.AreEqual("lorem", Library.Substring("lorem ipsum dolor", 5));
         Assert.AreEqual("lorem ipsum dolor", Library.Substring("lorem ipsum dolor", 150));
-        Assert.IsNull(Library.Substring((string?)null, 150));
+        Assert.IsNull(Library.Substring(null, 150));
     }
 
     [TestMethod]
     public void ConcatTest()
     {
         Assert.AreEqual("lorem ipsum dolor", Library.Concat("lorem ", "ipsum ", "dolor"));
-        Assert.AreEqual("lorem dolor", Library.Concat("lorem ", (string?)null, "dolor"));
+        Assert.AreEqual("lorem dolor", Library.Concat("lorem ", null, "dolor"));
         Assert.AreEqual("this is 1", Library.Concat("this ", "is ", 1));
     }
 
@@ -84,8 +85,8 @@ public class StringsTests : LibraryBaseBaseTests
         Assert.IsTrue(Library.HasFuzzyMatchedWord("this is the world first query", "owlrd"));
         Assert.IsTrue(Library.HasFuzzyMatchedWord("this is the world first query", "worlded"));
     }
-    
-        [TestMethod]
+
+    [TestMethod]
     public void WhenSplitByLinuxNewLines_InputIsNull_ReturnsNull()
     {
         // Arrange
@@ -307,7 +308,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void Trim_ShouldRemoveLeadingAndTrailingWhitespace()
     {
         // Arrange
-        string input = "  hello world  ";
+        var input = "  hello world  ";
 
         // Act
         var result = Library.Trim(input);
@@ -333,7 +334,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void TrimStart_ShouldRemoveLeadingWhitespace()
     {
         // Arrange
-        string input = "  hello world  ";
+        var input = "  hello world  ";
 
         // Act
         var result = Library.TrimStart(input);
@@ -359,7 +360,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void TrimEnd_ShouldRemoveTrailingWhitespace()
     {
         // Arrange
-        string input = "  hello world  ";
+        var input = "  hello world  ";
 
         // Act
         var result = Library.TrimEnd(input);
@@ -389,7 +390,7 @@ public class StringsTests : LibraryBaseBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.IsTrue(System.Guid.TryParse(result, out _));
+        Assert.IsTrue(Guid.TryParse(result, out _));
     }
 
     [TestMethod]
@@ -407,8 +408,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void NthIndexOf_ShouldReturnCorrectPosition()
     {
         // Arrange
-        string input = "hello world hello universe hello";
-        string search = "hello";
+        var input = "hello world hello universe hello";
+        var search = "hello";
 
         // Act
         var result = Library.NthIndexOf(input, search, 1); // Second occurrence
@@ -421,8 +422,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void NthIndexOf_WithInvalidIndex_ShouldReturnNull()
     {
         // Arrange
-        string input = "hello world";
-        string search = "hello";
+        var input = "hello world";
+        var search = "hello";
 
         // Act
         var result = Library.NthIndexOf(input, search, 5); // Doesn't exist
@@ -436,7 +437,7 @@ public class StringsTests : LibraryBaseBaseTests
     {
         // Arrange
         string? input = null;
-        string search = "hello";
+        var search = "hello";
 
         // Act
         var result = Library.NthIndexOf(input, search, 0);
@@ -449,8 +450,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void LastIndexOf_ShouldReturnCorrectPosition()
     {
         // Arrange
-        string input = "hello world hello universe";
-        string search = "hello";
+        var input = "hello world hello universe";
+        var search = "hello";
 
         // Act
         var result = Library.LastIndexOf(input, search);
@@ -463,8 +464,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void LastIndexOf_WithNotFound_ShouldReturnNull()
     {
         // Arrange
-        string input = "hello world";
-        string search = "xyz";
+        var input = "hello world";
+        var search = "xyz";
 
         // Act
         var result = Library.LastIndexOf(input, search);
@@ -478,7 +479,7 @@ public class StringsTests : LibraryBaseBaseTests
     {
         // Arrange
         string? input = null;
-        string search = "hello";
+        var search = "hello";
 
         // Act
         var result = Library.LastIndexOf(input, search);
@@ -491,7 +492,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ToUpper_ShouldConvertToUppercase()
     {
         // Arrange
-        string input = "hello world";
+        var input = "hello world";
 
         // Act
         var result = Library.ToUpper(input);
@@ -504,7 +505,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ToUpperInvariant_ShouldConvertToUppercase()
     {
         // Arrange
-        string input = "hello world";
+        var input = "hello world";
 
         // Act
         var result = Library.ToUpperInvariant(input);
@@ -517,7 +518,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ToLower_ShouldConvertToLowercase()
     {
         // Arrange
-        string input = "HELLO WORLD";
+        var input = "HELLO WORLD";
 
         // Act
         var result = Library.ToLower(input);
@@ -530,7 +531,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ToLowerInvariant_ShouldConvertToLowercase()
     {
         // Arrange
-        string input = "HELLO WORLD";
+        var input = "HELLO WORLD";
 
         // Act
         var result = Library.ToLowerInvariant(input);
@@ -543,8 +544,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void LevenshteinDistance_ShouldCalculateCorrectDistance()
     {
         // Arrange
-        string first = "kitten";
-        string second = "sitting";
+        var first = "kitten";
+        var second = "sitting";
 
         // Act
         var result = Library.LevenshteinDistance(first, second);
@@ -557,8 +558,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void LevenshteinDistance_WithIdenticalStrings_ShouldReturnZero()
     {
         // Arrange
-        string first = "hello";
-        string second = "hello";
+        var first = "hello";
+        var second = "hello";
 
         // Act
         var result = Library.LevenshteinDistance(first, second);
@@ -572,7 +573,7 @@ public class StringsTests : LibraryBaseBaseTests
     {
         // Arrange
         string? first = null;
-        string second = "hello";
+        var second = "hello";
 
         // Act
         var result = Library.LevenshteinDistance(first, second);
@@ -585,8 +586,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void GetCharacterOf_ShouldReturnCorrectCharacter()
     {
         // Arrange
-        string input = "hello";
-        int index = 1;
+        var input = "hello";
+        var index = 1;
 
         // Act
         var result = Library.GetCharacterOf(input, index);
@@ -599,8 +600,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void GetCharacterOf_WithInvalidIndex_ShouldReturnNull()
     {
         // Arrange
-        string input = "hello";
-        int index = 10;
+        var input = "hello";
+        var index = 10;
 
         // Act
         var result = Library.GetCharacterOf(input, index);
@@ -613,8 +614,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void GetCharacterOf_WithNegativeIndex_ShouldReturnNull()
     {
         // Arrange
-        string input = "hello";
-        int index = -1;
+        var input = "hello";
+        var index = -1;
 
         // Act
         var result = Library.GetCharacterOf(input, index);
@@ -627,7 +628,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void Reverse_ShouldReturnReversedString()
     {
         // Arrange
-        string input = "hello";
+        var input = "hello";
 
         // Act
         var result = Library.Reverse(input);
@@ -653,7 +654,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void Reverse_WithEmptyString_ShouldReturnEmpty()
     {
         // Arrange
-        string input = "";
+        var input = "";
 
         // Act
         var result = Library.Reverse(input);
@@ -666,7 +667,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void Reverse_WithSingleCharacter_ShouldReturnSame()
     {
         // Arrange
-        string input = "a";
+        var input = "a";
 
         // Act
         var result = Library.Reverse(input);
@@ -679,7 +680,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void Split_WithCustomSeparators_ShouldSplitCorrectly()
     {
         // Arrange
-        string input = "hello,world,test";
+        var input = "hello,world,test";
         string[] separators = { "," };
 
         // Act
@@ -696,7 +697,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ToCharArray_ShouldReturnCharacterArray()
     {
         // Arrange
-        string input = "hello";
+        var input = "hello";
 
         // Act
         var result = Library.ToCharArray(input);
@@ -714,8 +715,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void Replicate_ShouldRepeatStringCorrectly()
     {
         // Arrange
-        string input = "abc";
-        int count = 3;
+        var input = "abc";
+        var count = 3;
 
         // Act
         var result = Library.Replicate(input, count);
@@ -728,8 +729,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void Replicate_WithZeroCount_ShouldReturnEmpty()
     {
         // Arrange
-        string input = "abc";
-        int count = 0;
+        var input = "abc";
+        var count = 0;
 
         // Act
         var result = Library.Replicate(input, count);
@@ -739,13 +740,13 @@ public class StringsTests : LibraryBaseBaseTests
     }
 
     #region RegexMatches Tests
-    
+
     [TestMethod]
     public void RegexMatches_WithSimplePattern_ShouldReturnMatches()
     {
         // Arrange
-        string regex = @"\d+";
-        string content = "There are 123 apples and 456 oranges.";
+        var regex = @"\d+";
+        var content = "There are 123 apples and 456 oranges.";
 
         // Act
         var result = Library.RegexMatches(regex, content);
@@ -761,8 +762,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void RegexMatches_WithNoMatches_ShouldReturnEmptyArray()
     {
         // Arrange
-        string regex = @"\d+";
-        string content = "No numbers here!";
+        var regex = @"\d+";
+        var content = "No numbers here!";
 
         // Act
         var result = Library.RegexMatches(regex, content);
@@ -777,7 +778,7 @@ public class StringsTests : LibraryBaseBaseTests
     {
         // Arrange
         string? regex = null;
-        string content = "Some content";
+        var content = "Some content";
 
         // Act
         var result = Library.RegexMatches(regex, content);
@@ -790,7 +791,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void RegexMatches_WithNullContent_ShouldReturnNull()
     {
         // Arrange
-        string regex = @"\d+";
+        var regex = @"\d+";
         string? content = null;
 
         // Act
@@ -818,8 +819,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void RegexMatches_WithEmptyContent_ShouldReturnEmptyArray()
     {
         // Arrange
-        string regex = @"\d+";
-        string content = "";
+        var regex = @"\d+";
+        var content = "";
 
         // Act
         var result = Library.RegexMatches(regex, content);
@@ -833,8 +834,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void RegexMatches_WithWordPattern_ShouldReturnWordMatches()
     {
         // Arrange
-        string regex = @"\b[A-Z][a-z]+\b";
-        string content = "Hello World, This Is A Test.";
+        var regex = @"\b[A-Z][a-z]+\b";
+        var content = "Hello World, This Is A Test.";
 
         // Act
         var result = Library.RegexMatches(regex, content);
@@ -853,8 +854,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void RegexMatches_WithEmailPattern_ShouldReturnEmailAddresses()
     {
         // Arrange
-        string regex = @"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b";
-        string content = "Contact us at john@example.com or support@test.org for help.";
+        var regex = @"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b";
+        var content = "Contact us at john@example.com or support@test.org for help.";
 
         // Act
         var result = Library.RegexMatches(regex, content);
@@ -870,8 +871,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void RegexMatches_WithOverlappingPattern_ShouldReturnNonOverlappingMatches()
     {
         // Arrange
-        string regex = @"aa";
-        string content = "aaaa";
+        var regex = @"aa";
+        var content = "aaaa";
 
         // Act
         var result = Library.RegexMatches(regex, content);
@@ -887,8 +888,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void RegexMatches_WithGroupCapture_ShouldReturnFullMatch()
     {
         // Arrange
-        string regex = @"(\d{3})-(\d{3})-(\d{4})";
-        string content = "Call 123-456-7890 or 987-654-3210";
+        var regex = @"(\d{3})-(\d{3})-(\d{4})";
+        var content = "Call 123-456-7890 or 987-654-3210";
 
         // Act
         var result = Library.RegexMatches(regex, content);
@@ -904,8 +905,8 @@ public class StringsTests : LibraryBaseBaseTests
     public void RegexMatches_WithSpecialCharacters_ShouldHandleCorrectly()
     {
         // Arrange
-        string regex = @"\$\d+\.\d{2}";
-        string content = "Price: $19.99, Sale: $5.50, Tax: $1.25";
+        var regex = @"\$\d+\.\d{2}";
+        var content = "Price: $19.99, Sale: $5.50, Tax: $1.25";
 
         // Act
         var result = Library.RegexMatches(regex, content);
@@ -928,7 +929,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void HtmlEncode_WhenSpecialCharacters_ShouldEncodeCorrectly()
     {
         var result = Library.HtmlEncode("<script>alert('test')</script>");
-        
+
         Assert.AreEqual("&lt;script&gt;alert(&#39;test&#39;)&lt;/script&gt;", result);
     }
 
@@ -936,7 +937,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void HtmlEncode_WhenNull_ShouldReturnNull()
     {
         var result = Library.HtmlEncode(null);
-        
+
         Assert.IsNull(result);
     }
 
@@ -944,7 +945,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void HtmlEncode_WhenAmpersand_ShouldEncode()
     {
         var result = Library.HtmlEncode("Tom & Jerry");
-        
+
         Assert.AreEqual("Tom &amp; Jerry", result);
     }
 
@@ -952,7 +953,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void HtmlDecode_WhenEncodedCharacters_ShouldDecodeCorrectly()
     {
         var result = Library.HtmlDecode("&lt;script&gt;alert(&#39;test&#39;)&lt;/script&gt;");
-        
+
         Assert.AreEqual("<script>alert('test')</script>", result);
     }
 
@@ -960,7 +961,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void HtmlDecode_WhenNull_ShouldReturnNull()
     {
         var result = Library.HtmlDecode(null);
-        
+
         Assert.IsNull(result);
     }
 
@@ -968,7 +969,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void HtmlDecode_WhenAmpersand_ShouldDecode()
     {
         var result = Library.HtmlDecode("Tom &amp; Jerry");
-        
+
         Assert.AreEqual("Tom & Jerry", result);
     }
 
@@ -976,10 +977,10 @@ public class StringsTests : LibraryBaseBaseTests
     public void HtmlRoundTrip_ShouldPreserveContent()
     {
         const string original = "<div class=\"test\">Hello & Goodbye</div>";
-        
+
         var encoded = Library.HtmlEncode(original);
         var decoded = Library.HtmlDecode(encoded);
-        
+
         Assert.AreEqual(original, decoded);
     }
 
@@ -991,7 +992,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBetween_WhenDelimitersFound_ShouldReturnContent()
     {
         var result = Library.ExtractBetween("Hello [World] Test", "[", "]");
-        
+
         Assert.AreEqual("World", result);
     }
 
@@ -999,7 +1000,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBetween_WithXmlTags_ShouldReturnContent()
     {
         var result = Library.ExtractBetween("<tag>content</tag>", "<tag>", "</tag>");
-        
+
         Assert.AreEqual("content", result);
     }
 
@@ -1007,7 +1008,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBetween_WhenStartDelimiterNotFound_ShouldReturnNull()
     {
         var result = Library.ExtractBetween("Hello World Test", "[", "]");
-        
+
         Assert.IsNull(result);
     }
 
@@ -1015,7 +1016,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBetween_WhenEndDelimiterNotFound_ShouldReturnNull()
     {
         var result = Library.ExtractBetween("Hello [World Test", "[", "]");
-        
+
         Assert.IsNull(result);
     }
 
@@ -1039,7 +1040,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBetween_WithMultipleOccurrences_ShouldReturnFirst()
     {
         var result = Library.ExtractBetween("[first] and [second]", "[", "]");
-        
+
         Assert.AreEqual("first", result);
     }
 
@@ -1047,7 +1048,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBetween_WithEmptyContent_ShouldReturnEmptyString()
     {
         var result = Library.ExtractBetween("Hello [] Test", "[", "]");
-        
+
         Assert.AreEqual("", result);
     }
 
@@ -1055,7 +1056,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBetweenAll_ShouldReturnAllMatches()
     {
         var result = Library.ExtractBetweenAll("[first] and [second] and [third]", "[", "]");
-        
+
         Assert.HasCount(3, result);
         Assert.AreEqual("first", result[0]);
         Assert.AreEqual("second", result[1]);
@@ -1066,7 +1067,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBetweenAll_WhenNoMatches_ShouldReturnEmptyArray()
     {
         var result = Library.ExtractBetweenAll("Hello World", "[", "]");
-        
+
         Assert.HasCount(0, result);
     }
 
@@ -1074,7 +1075,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBetweenAll_WhenNull_ShouldReturnEmptyArray()
     {
         var result = Library.ExtractBetweenAll(null, "[", "]");
-        
+
         Assert.HasCount(0, result);
     }
 
@@ -1082,7 +1083,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBetweenIncluding_ShouldIncludeDelimiters()
     {
         var result = Library.ExtractBetweenIncluding("Hello [World] Test", "[", "]");
-        
+
         Assert.AreEqual("[World]", result);
     }
 
@@ -1090,7 +1091,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBetweenIncluding_WithXmlTags_ShouldIncludeTags()
     {
         var result = Library.ExtractBetweenIncluding("prefix<tag>content</tag>suffix", "<tag>", "</tag>");
-        
+
         Assert.AreEqual("<tag>content</tag>", result);
     }
 
@@ -1098,7 +1099,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBetweenIncluding_WhenNotFound_ShouldReturnNull()
     {
         var result = Library.ExtractBetweenIncluding("Hello World", "[", "]");
-        
+
         Assert.IsNull(result);
     }
 
@@ -1106,7 +1107,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractAfter_ShouldReturnTextAfterDelimiter()
     {
         var result = Library.ExtractAfter("Hello World Test", "World");
-        
+
         Assert.AreEqual(" Test", result);
     }
 
@@ -1114,7 +1115,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractAfter_IncludingDelimiter_ShouldIncludeDelimiter()
     {
         var result = Library.ExtractAfter("Hello World Test", "World", true);
-        
+
         Assert.AreEqual("World Test", result);
     }
 
@@ -1122,7 +1123,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractAfter_WhenNotFound_ShouldReturnNull()
     {
         var result = Library.ExtractAfter("Hello World Test", "XYZ");
-        
+
         Assert.IsNull(result);
     }
 
@@ -1137,7 +1138,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBefore_ShouldReturnTextBeforeDelimiter()
     {
         var result = Library.ExtractBefore("Hello World Test", "World");
-        
+
         Assert.AreEqual("Hello ", result);
     }
 
@@ -1145,7 +1146,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBefore_IncludingDelimiter_ShouldIncludeDelimiter()
     {
         var result = Library.ExtractBefore("Hello World Test", "World", true);
-        
+
         Assert.AreEqual("Hello World", result);
     }
 
@@ -1153,7 +1154,7 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBefore_WhenNotFound_ShouldReturnNull()
     {
         var result = Library.ExtractBefore("Hello World Test", "XYZ");
-        
+
         Assert.IsNull(result);
     }
 
@@ -1168,9 +1169,9 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBetween_RealWorldXmlExample()
     {
         var xml = "<?xml version=\"1.0\"?><data><value>12345</value></data>";
-        
+
         var result = Library.ExtractBetween(xml, "<value>", "</value>");
-        
+
         Assert.AreEqual("12345", result);
     }
 
@@ -1178,9 +1179,9 @@ public class StringsTests : LibraryBaseBaseTests
     public void ExtractBetween_RealWorldJsonExample()
     {
         var json = "{\"name\": \"John\", \"age\": 30}";
-        
+
         var result = Library.ExtractBetween(json, "\"name\": \"", "\"");
-        
+
         Assert.AreEqual("John", result);
     }
 

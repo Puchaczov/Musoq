@@ -10,9 +10,9 @@ public class IndexBasedContextsPositionsSymbol : Symbol
     public int GetIndexFor(int index, string alias)
     {
         var leftRight = _contextsPositions[index];
-        
+
         var inLeftIndex = Array.IndexOf(leftRight.Left, alias);
-            
+
         return inLeftIndex == -1 ? Array.IndexOf(leftRight.Right, alias) : inLeftIndex;
     }
 
@@ -22,7 +22,7 @@ public class IndexBasedContextsPositionsSymbol : Symbol
         foreach (var line in lines)
         {
             var leftRight = line.Split(',');
-                
+
             _contextsPositions.Add(i--, (leftRight[0].Split('|'), [leftRight[1]]));
         }
     }

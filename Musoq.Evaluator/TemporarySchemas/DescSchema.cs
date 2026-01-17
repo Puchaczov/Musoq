@@ -1,7 +1,7 @@
-﻿using Musoq.Schema;
+﻿using System.Collections.Generic;
+using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Reflection;
-using System.Collections.Generic;
 
 namespace Musoq.Evaluator.TemporarySchemas;
 
@@ -29,7 +29,7 @@ public class DescSchema : SchemaBase
 
     public override SchemaMethodInfo[] GetConstructors()
     {
-        var constructors = new List<SchemaMethodInfo> {new(nameof(TableMetadataSource), ConstructorInfo.Empty())};
+        var constructors = new List<SchemaMethodInfo> { new(nameof(TableMetadataSource), ConstructorInfo.Empty()) };
 
         return constructors.ToArray();
     }

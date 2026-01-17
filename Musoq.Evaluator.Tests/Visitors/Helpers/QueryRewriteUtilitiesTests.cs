@@ -25,7 +25,7 @@ public class QueryRewriteUtilitiesTests
     {
         // Arrange
         var binaryNode = new AndNode(new BooleanNode(true), new BooleanNode(false));
-        
+
         // Act
         var result = QueryRewriteUtilities.RewriteNullableBoolExpressions(binaryNode);
 

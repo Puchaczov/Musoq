@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Dynamic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Unknown;
@@ -8,6 +7,8 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class AutomaticNumericTypeInferenceDebugDecimalTest : UnknownQueryTestsBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void Debug_StringToDecimal_SimpleCase()
     {
@@ -70,6 +71,4 @@ public class AutomaticNumericTypeInferenceDebugDecimalTest : UnknownQueryTestsBa
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Match", table[0].Values[0]);
     }
-
-    public TestContext TestContext { get; set; }
 }

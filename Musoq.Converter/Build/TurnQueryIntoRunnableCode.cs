@@ -14,13 +14,13 @@ public class TurnQueryIntoRunnableCode(BuildChain successor) : BuildChain(succes
             using (var pdbStream = new MemoryStream())
             {
                 var result = items.Compilation.Emit(
-                    dllStream, 
-                    pdbStream, 
+                    dllStream,
+                    pdbStream,
                     options: new EmitOptions(false, DebugInformationFormat.PortablePdb));
 
                 items.PdbFile = pdbStream.ToArray();
                 items.EmitResult = result;
-                
+
                 if (!result.Success)
                 {
                     var all = new StringBuilder();

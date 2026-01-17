@@ -49,7 +49,7 @@ public enum TokenType : short
     Having,
     Integer,
     HexadecimalInteger,
-    BinaryInteger, 
+    BinaryInteger,
     OctalInteger,
     KeyAccess,
     NumericAccess,

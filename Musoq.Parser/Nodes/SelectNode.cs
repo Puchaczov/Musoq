@@ -15,7 +15,7 @@ public class SelectNode : Node
     }
 
     public FieldNode[] Fields { get; }
-    
+
     public bool IsDistinct { get; }
 
     public override Type ReturnType { get; }

@@ -7,7 +7,7 @@ public class DecimalNode : ConstantValueNode
 {
     public DecimalNode(string value)
     {
-        if (!decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result))
+        if (!decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))
             throw new NotSupportedException($"The value '{value}' cannot be converted to decimal.");
 
         Value = result;

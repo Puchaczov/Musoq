@@ -3,8 +3,8 @@ using System;
 namespace Musoq.Schema.Exceptions;
 
 /// <summary>
-/// Exception thrown when invalid arguments are provided to schema operations.
-/// Provides detailed information about what went wrong with the arguments.
+///     Exception thrown when invalid arguments are provided to schema operations.
+///     Provides detailed information about what went wrong with the arguments.
 /// </summary>
 public class SchemaArgumentException : ArgumentException
 {

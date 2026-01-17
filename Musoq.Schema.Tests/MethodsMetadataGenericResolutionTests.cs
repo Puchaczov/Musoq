@@ -9,17 +9,9 @@ namespace Musoq.Schema.Tests;
 [TestClass]
 public class MethodsMetadataGenericResolutionTests
 {
-    private class TestClass
-    {
-        public void GenericMethod1<T>(T obj) { }
-        
-        public void GenericMethod2<T>(T[] objs) { }
-        
-        public void GenericMethod3<T>(IEnumerable<T> objs) { }
-    }
+    private Type _entityType;
 
     private MethodsMetadata _methodsMetadata;
-    private Type _entityType;
 
     [TestInitialize]
     public void Initialize()
@@ -76,15 +68,28 @@ public class MethodsMetadataGenericResolutionTests
         Assert.HasCount(1, method.GetParameters());
     }
 
+    private class TestClass
+    {
+        public void GenericMethod1<T>(T obj)
+        {
+        }
+
+        public void GenericMethod2<T>(T[] objs)
+        {
+        }
+
+        public void GenericMethod3<T>(IEnumerable<T> objs)
+        {
+        }
+    }
+
     private class TestMethodsMetadata : MethodsMetadata
     {
         public TestMethodsMetadata()
         {
             var testClass = typeof(TestClass);
-            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-            {
-                RegisterMethod(method);
-            }
+            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance |
+                                                        BindingFlags.DeclaredOnly)) RegisterMethod(method);
         }
 
         private new void RegisterMethod(MethodInfo methodInfo)

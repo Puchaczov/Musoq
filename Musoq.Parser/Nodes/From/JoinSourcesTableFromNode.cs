@@ -13,8 +13,9 @@ public class JoinSourcesTableFromNode : FromNode
         Expression = expression;
         JoinType = joinType;
     }
-        
-    public JoinSourcesTableFromNode(FromNode first, FromNode second, Node expression, JoinType joinType, Type returnType)
+
+    public JoinSourcesTableFromNode(FromNode first, FromNode second, Node expression, JoinType joinType,
+        Type returnType)
         : base($"{first.Alias}{second.Alias}", returnType)
     {
         Id = $"{nameof(JoinSourcesTableFromNode)}{first.Alias}{second.Alias}{expression.ToString()}";
@@ -41,8 +42,9 @@ public class JoinSourcesTableFromNode : FromNode
 
     public override string ToString()
     {
-        var joinType = JoinType == JoinType.Inner ? "inner join" : JoinType == JoinType.OuterLeft ? "left outer join" : "right outer join";
-            
+        var joinType = JoinType == JoinType.Inner ? "inner join" :
+            JoinType == JoinType.OuterLeft ? "left outer join" : "right outer join";
+
         return $"{First.ToString()} {joinType} {Second.ToString()} on {Expression.ToString()}";
     }
 }

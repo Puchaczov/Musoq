@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,6 +9,8 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class ColumnsTests : BasicEntityTestBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void WhenComplexObjectAccessNonExistingProperty_ShouldFail()
     {
@@ -21,10 +22,10 @@ public class ColumnsTests : BasicEntityTestBase
                 "#A", []
             }
         };
-        
-        Assert.Throws<UnknownPropertyException>(() =>  CreateAndRunVirtualMachine(query, sources));
+
+        Assert.Throws<UnknownPropertyException>(() => CreateAndRunVirtualMachine(query, sources));
     }
-    
+
     [TestMethod]
     public void WhenComplexObjectAccessOnProperty_ShouldPass()
     {
@@ -34,22 +35,22 @@ public class ColumnsTests : BasicEntityTestBase
         {
             {
                 "#A", [
-                    new("Karol")
+                    new BasicEntity("Karol")
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Name", table.Columns.ElementAt(0).ColumnName);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Karol", table[0].Values[0]);
     }
-    
+
     [TestMethod]
     public void WhenChainedComplexObjectAccessOnProperty_ShouldPass()
     {
@@ -59,18 +60,18 @@ public class ColumnsTests : BasicEntityTestBase
         {
             {
                 "#A", [
-                    new("Karol")
+                    new BasicEntity("Karol")
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Self.Name", table.Columns.ElementAt(0).ColumnName);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Karol", table[0].Values[0]);
     }
@@ -86,8 +87,8 @@ public class ColumnsTests : BasicEntityTestBase
                 "#A", []
             }
         };
-        
-        Assert.Throws<ObjectDoesNotImplementIndexerException>(() =>  CreateAndRunVirtualMachine(query, sources));
+
+        Assert.Throws<ObjectDoesNotImplementIndexerException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -101,8 +102,8 @@ public class ColumnsTests : BasicEntityTestBase
                 "#A", []
             }
         };
-        
-        Assert.Throws<ObjectDoesNotImplementIndexerException>(() =>  CreateAndRunVirtualMachine(query, sources));
+
+        Assert.Throws<ObjectDoesNotImplementIndexerException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -116,8 +117,8 @@ public class ColumnsTests : BasicEntityTestBase
                 "#A", []
             }
         };
-        
-        Assert.Throws<ConstructionNotYetSupported>(() =>  CreateAndRunVirtualMachine(query, sources));
+
+        Assert.Throws<ConstructionNotYetSupported>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -131,8 +132,8 @@ public class ColumnsTests : BasicEntityTestBase
                 "#A", []
             }
         };
-        
-        Assert.Throws<ObjectIsNotAnArrayException>(() =>  CreateAndRunVirtualMachine(query, sources));
+
+        Assert.Throws<ObjectIsNotAnArrayException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -146,8 +147,8 @@ public class ColumnsTests : BasicEntityTestBase
                 "#A", []
             }
         };
-        
-        Assert.Throws<ObjectIsNotAnArrayException>(() =>  CreateAndRunVirtualMachine(query, sources));
+
+        Assert.Throws<ObjectIsNotAnArrayException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]
@@ -163,14 +164,14 @@ public class ColumnsTests : BasicEntityTestBase
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Name[0]", table.Columns.ElementAt(0).ColumnName);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual('K', table[0].Values[0]);
     }
@@ -188,18 +189,18 @@ public class ColumnsTests : BasicEntityTestBase
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Self.Name[0]", table.Columns.ElementAt(0).ColumnName);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual('K', table[0].Values[0]);
     }
-    
+
     [TestMethod]
     public void WhenObjectIsNotArrayAndIndexIsNotNumber_ShouldPass()
     {
@@ -213,18 +214,16 @@ public class ColumnsTests : BasicEntityTestBase
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Self.Dictionary[AA]", table.Columns.ElementAt(0).ColumnName);
-        
+
         Assert.AreEqual(1, table.Count);
-        
+
         Assert.AreEqual("BB", table[0].Values[0]);
     }
-
-    public TestContext TestContext { get; set; }
 }

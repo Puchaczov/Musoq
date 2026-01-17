@@ -1,14 +1,14 @@
-using Musoq.Plugins.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
     /// <summary>
-    /// Gets the bytes from the given string. 
+    ///     Gets the bytes from the given string.
     /// </summary>
     /// <param name="content">The string</param>
     /// <returns>Bytes of a given content</returns>
@@ -23,7 +23,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the bytes from the given string within given offset and length. 
+    ///     Gets the bytes from the given string within given offset and length.
     /// </summary>
     /// <param name="content">The string</param>
     /// <param name="length">The length of substring</param>
@@ -40,7 +40,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the bytes from the given character. 
+    ///     Gets the bytes from the given character.
     /// </summary>
     /// <param name="character">The character to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
@@ -55,7 +55,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the bytes from the given boolean. 
+    ///     Gets the bytes from the given boolean.
     /// </summary>
     /// <param name="bit">The boolean to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
@@ -70,7 +70,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the bytes from the given long. 
+    ///     Gets the bytes from the given long.
     /// </summary>
     /// <param name="value">The long to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
@@ -85,7 +85,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the bytes from the given int. 
+    ///     Gets the bytes from the given int.
     /// </summary>
     /// <param name="value">The int to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
@@ -100,7 +100,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the bytes from the given short. 
+    ///     Gets the bytes from the given short.
     /// </summary>
     /// <param name="value">The short to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
@@ -115,7 +115,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the bytes from the given ulong. 
+    ///     Gets the bytes from the given ulong.
     /// </summary>
     /// <param name="value">The ulong to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
@@ -130,7 +130,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the bytes from the given ushort. 
+    ///     Gets the bytes from the given ushort.
     /// </summary>
     /// <param name="value">The ushort to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
@@ -145,7 +145,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the bytes from the given uint. 
+    ///     Gets the bytes from the given uint.
     /// </summary>
     /// <param name="value">The uint to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
@@ -160,7 +160,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the bytes from the given decimal. 
+    ///     Gets the bytes from the given decimal.
     /// </summary>
     /// <param name="value">The decimal to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
@@ -180,7 +180,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the bytes from the given double. 
+    ///     Gets the bytes from the given double.
     /// </summary>
     /// <param name="value">The double to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>
@@ -195,7 +195,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the bytes from the given float. 
+    ///     Gets the bytes from the given float.
     /// </summary>
     /// <param name="value">The float to convert to bytes</param>
     /// <returns>Bytes of a given content</returns>

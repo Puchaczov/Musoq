@@ -1,3 +1,3 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly:InternalsVisibleTo("Musoq.Plugins.Tests")]
+[assembly: InternalsVisibleTo("Musoq.Plugins.Tests")]

@@ -12,38 +12,39 @@ namespace Musoq.Parser;
 
 public class Parser
 {
-    private readonly Lexer _lexer;
-    
     private static readonly Regex ColumnRegex = new(Lexer.TokenRegexDefinition.KColumn, RegexOptions.Compiled);
-    
-    public Parser(Lexer lexer)
-    {
-        _lexer = lexer ?? throw new ArgumentNullException(nameof(lexer), "Lexer cannot be null. Please provide a valid lexer instance.");
-    }
 
     private static readonly TokenType[] SetOperators =
         [TokenType.Union, TokenType.UnionAll, TokenType.Except, TokenType.Intersect];
 
-    private bool _hasReplacedToken;
-    private Token _replacedToken;
-    private Token _previousToken;
-    private int _fromPosition;
     private readonly Stack<HashSet<string>> _fromAliasesStack = new();
+    private readonly Lexer _lexer;
 
     private readonly Dictionary<TokenType, (short Precendence, Associativity Associativity)> _precedenceDictionary =
         new()
         {
-            {TokenType.Plus, (1, Associativity.Left)},
-            {TokenType.Hyphen, (1, Associativity.Left)},
-            {TokenType.Star, (2, Associativity.Left)},
-            {TokenType.FSlash, (2, Associativity.Left)},
-            {TokenType.Mod, (2, Associativity.Left)},
-            {TokenType.Dot, (3, Associativity.Left)}
+            { TokenType.Plus, (1, Associativity.Left) },
+            { TokenType.Hyphen, (1, Associativity.Left) },
+            { TokenType.Star, (2, Associativity.Left) },
+            { TokenType.FSlash, (2, Associativity.Left) },
+            { TokenType.Mod, (2, Associativity.Left) },
+            { TokenType.Dot, (3, Associativity.Left) }
         };
 
+    private int _fromPosition;
+
+    private bool _hasReplacedToken;
+    private Token _replacedToken;
+
+    public Parser(Lexer lexer)
+    {
+        _lexer = lexer ?? throw new ArgumentNullException(nameof(lexer),
+            "Lexer cannot be null. Please provide a valid lexer instance.");
+    }
+
     private Token Current => _hasReplacedToken ? _replacedToken : _lexer.Current();
-        
-    private Token Previous => _previousToken;
+
+    private Token Previous { get; set; }
 
     private void ReplaceCurrentToken(Token newToken)
     {
@@ -61,8 +62,9 @@ public class Parser
             {
                 var statement = ComposeStatement();
                 if (statement == null)
-                    throw new SyntaxException("Failed to compose statement. The SQL query structure is invalid.", _lexer.AlreadyResolvedQueryPart);
-                
+                    throw new SyntaxException("Failed to compose statement. The SQL query structure is invalid.",
+                        _lexer.AlreadyResolvedQueryPart);
+
                 statements.Add(statement);
             }
 
@@ -70,7 +72,8 @@ public class Parser
         }
         catch (Exception ex) when (!(ex is SyntaxException))
         {
-            throw new SyntaxException($"An error occurred while parsing the SQL query: {ex.Message}", _lexer.AlreadyResolvedQueryPart, ex);
+            throw new SyntaxException($"An error occurred while parsing the SQL query: {ex.Message}",
+                _lexer.AlreadyResolvedQueryPart, ex);
         }
     }
 
@@ -92,7 +95,8 @@ public class Parser
                 return ComposeAndSkipIfPresent(p => new StatementNode(p.ComposeCouple()), TokenType.Semicolon);
 
             default:
-                throw new SyntaxException($"Cannot compose statement, {Current.TokenType} is not expected here", _lexer.AlreadyResolvedQueryPart);
+                throw new SyntaxException($"Cannot compose statement, {Current.TokenType} is not expected here",
+                    _lexer.AlreadyResolvedQueryPart);
         }
     }
 
@@ -103,35 +107,39 @@ public class Parser
         if (Current.TokenType == TokenType.Functions)
         {
             Consume(TokenType.Functions);
-            
+
             if (Current.TokenType == TokenType.MethodAccess)
             {
                 var sourceAlias = Current.Value;
                 var schemaName = EnsureHashPrefix(sourceAlias);
                 var accessMethod = ComposeAccessMethod(sourceAlias);
-                
-                return new DescNode(new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, string.Empty, 1), DescForType.FunctionsForSchema);
+
+                return new DescNode(
+                    new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, string.Empty, 1),
+                    DescForType.FunctionsForSchema);
             }
-            
+
             var schemaNameForFunctions = ComposeSchemaName();
             var schemaToken = Current;
-            
+
             if (Current.TokenType == TokenType.Dot)
             {
                 Consume(TokenType.Dot);
-                
+
                 if (Current is FunctionToken)
                 {
                     var accessMethod = ComposeAccessMethod(string.Empty);
-                    return new DescNode(new SchemaFromNode(schemaNameForFunctions, accessMethod.Name, accessMethod.Arguments, string.Empty, 1), DescForType.FunctionsForSchema);
+                    return new DescNode(
+                        new SchemaFromNode(schemaNameForFunctions, accessMethod.Name, accessMethod.Arguments,
+                            string.Empty, 1), DescForType.FunctionsForSchema);
                 }
-                else
-                {
-                    ConsumeAndGetToken(TokenType.Property);
-                }
+
+                ConsumeAndGetToken(TokenType.Property);
             }
-            
-            return new DescNode(new SchemaFromNode(schemaNameForFunctions, string.Empty, ArgsListNode.Empty, string.Empty, schemaToken.Span.Start), DescForType.FunctionsForSchema);
+
+            return new DescNode(
+                new SchemaFromNode(schemaNameForFunctions, string.Empty, ArgsListNode.Empty, string.Empty,
+                    schemaToken.Span.Start), DescForType.FunctionsForSchema);
         }
 
         if (Current.TokenType == TokenType.MethodAccess)
@@ -139,14 +147,16 @@ public class Parser
             var sourceAlias = Current.Value;
             var schemaName = EnsureHashPrefix(sourceAlias);
             var accessMethod = ComposeAccessMethod(sourceAlias);
-            
-            return new DescNode(new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, string.Empty, 1), DescForType.SpecificConstructor);
+
+            return new DescNode(
+                new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, string.Empty, 1),
+                DescForType.SpecificConstructor);
         }
 
         var name = ComposeSchemaName();
         var startToken = Current;
 
-        if(Current.TokenType == TokenType.Dot)
+        if (Current.TokenType == TokenType.Dot)
         {
             Consume(TokenType.Dot);
 
@@ -164,32 +174,33 @@ public class Parser
             fromNode = new SchemaFromNode(name, methodName.Value, ArgsListNode.Empty, string.Empty, 1);
             return new DescNode(fromNode, DescForType.Constructors);
         }
-        else
-        {
-            return new DescNode(new SchemaFromNode(name, string.Empty, ArgsListNode.Empty, string.Empty, startToken.Span.Start), DescForType.Schema);
-        }
+
+        return new DescNode(
+            new SchemaFromNode(name, string.Empty, ArgsListNode.Empty, string.Empty, startToken.Span.Start),
+            DescForType.Schema);
     }
-    
+
     /// <summary>
-    /// Composes a schema name from the current token, handling both hash (#schema) and 
-    /// hash-optional (schema) syntax. Always returns the name with the hash prefix.
+    ///     Composes a schema name from the current token, handling both hash (#schema) and
+    ///     hash-optional (schema) syntax. Always returns the name with the hash prefix.
     /// </summary>
     private string ComposeSchemaName()
     {
         if (Current.TokenType == TokenType.Word)
             return EnsureHashPrefix(ComposeWord().Value);
-        
+
         if (Current.TokenType == TokenType.Identifier)
         {
             var identifier = ConsumeAndGetToken(TokenType.Identifier).Value;
             return EnsureHashPrefix(identifier);
         }
-        
-        throw new SyntaxException($"Expected schema name (Word or Identifier) but received {Current.TokenType}", _lexer.AlreadyResolvedQueryPart);
+
+        throw new SyntaxException($"Expected schema name (Word or Identifier) but received {Current.TokenType}",
+            _lexer.AlreadyResolvedQueryPart);
     }
-    
+
     /// <summary>
-    /// Ensures the schema name has the hash prefix (#).
+    ///     Ensures the schema name has the hash prefix (#).
     /// </summary>
     private static string EnsureHashPrefix(string name)
     {
@@ -249,10 +260,9 @@ public class Parser
         var expressions = new List<CteInnerExpressionNode>();
 
         if (ComposeBaseTypes() is not IdentifierNode col)
-        {
-            throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}", _lexer.AlreadyResolvedQueryPart);
-        }
-            
+            throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
+                _lexer.AlreadyResolvedQueryPart);
+
         Consume(TokenType.As);
         Consume(TokenType.LeftParenthesis);
         var innerSets = ComposeSetOperators(0);
@@ -266,10 +276,9 @@ public class Parser
             col = ComposeBaseTypes() as IdentifierNode;
 
             if (col is null)
-            {
-                throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}", _lexer.AlreadyResolvedQueryPart);
-            }
-                
+                throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
+                    _lexer.AlreadyResolvedQueryPart);
+
             Consume(TokenType.As);
 
             Consume(TokenType.LeftParenthesis);
@@ -321,13 +330,13 @@ public class Parser
         if (Current.TokenType != TokenType.LeftParenthesis) return keys.ToArray();
 
         Consume(TokenType.LeftParenthesis);
-        
+
         if (Current.TokenType == TokenType.RightParenthesis)
         {
             Consume(TokenType.RightParenthesis);
             return keys.ToArray();
         }
-        
+
         var value = Current.Value;
         Consume(Current.TokenType);
         if (Current.TokenType == TokenType.Dot)
@@ -336,6 +345,7 @@ public class Parser
             value = $"{value}.{Current.Value}";
             Consume(Current.TokenType);
         }
+
         keys.Add(value);
         while (Current.TokenType == TokenType.Comma)
         {
@@ -348,6 +358,7 @@ public class Parser
                 value = $"{value}.{Current.Value}";
                 Consume(Current.TokenType);
             }
+
             keys.Add(value);
         }
 
@@ -369,7 +380,7 @@ public class Parser
         else if (Current.TokenType == TokenType.From)
             query = ComposeReorderedQuery();
         else
-            throw new NotSupportedException($"Cannot recognize if query is regular or reordered.");
+            throw new NotSupportedException("Cannot recognize if query is regular or reordered.");
         return query;
     }
 
@@ -454,21 +465,20 @@ public class Parser
         if (!IsJoinOrApplyToken(Current.TokenType)) return new ExpressionFromNode(from);
 
         while (IsJoinOrApplyToken(Current.TokenType))
-        {
             switch (Current.TokenType)
             {
                 case TokenType.InnerJoin:
                     Consume(TokenType.InnerJoin);
                     from = new JoinFromNode(from,
-                        ComposeAndSkip(parser => parser.ComposeFrom(false, false), TokenType.On), 
+                        ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On),
                         ComposeOperations(),
                         JoinType.Inner);
                     break;
                 case TokenType.OuterJoin:
-                    var outerToken = (OuterJoinToken) Current;
+                    var outerToken = (OuterJoinToken)Current;
                     Consume(TokenType.OuterJoin);
                     from = new JoinFromNode(from,
-                        ComposeAndSkip(parser => parser.ComposeFrom(false, false), TokenType.On), 
+                        ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On),
                         ComposeOperations(),
                         outerToken.Type == OuterJoinType.Left
                             ? JoinType.OuterLeft
@@ -483,24 +493,18 @@ public class Parser
                     from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false, true)), ApplyType.Outer);
                     break;
             }
-        }
 
-        if (from is JoinFromNode joinFrom)
-        {
-            from = new JoinNode(joinFrom);
-        }
+        if (from is JoinFromNode joinFrom) from = new JoinNode(joinFrom);
 
-        if (from is ApplyFromNode applyFrom)
-        {
-            from = new ApplyNode(applyFrom);
-        }
-            
+        if (from is ApplyFromNode applyFrom) from = new ApplyNode(applyFrom);
+
         return new ExpressionFromNode(from);
     }
 
     private static bool IsJoinOrApplyToken(TokenType currentTokenType)
     {
-        return currentTokenType is TokenType.InnerJoin or TokenType.OuterJoin or TokenType.CrossApply or TokenType.OuterApply;
+        return currentTokenType is TokenType.InnerJoin or TokenType.OuterJoin or TokenType.CrossApply
+            or TokenType.OuterApply;
     }
 
     private OrderByNode ComposeOrderBy()
@@ -536,37 +540,34 @@ public class Parser
     private GroupByNode ComposeGroupByNode()
     {
         if (Current.TokenType != TokenType.GroupBy) return null;
-            
+
         Consume(TokenType.GroupBy);
-                
+
         if (Current.TokenType == TokenType.Comma)
-        {
-            throw new SyntaxException("Unnecessary comma found after GROUP BY clause.", _lexer.AlreadyResolvedQueryPart);
-        }
+            throw new SyntaxException("Unnecessary comma found after GROUP BY clause.",
+                _lexer.AlreadyResolvedQueryPart);
 
         var fields = ComposeFields();
 
         if (Previous.TokenType == TokenType.Comma && Current.TokenType == TokenType.EndOfFile)
-        {
-            throw new SyntaxException("Unnecessary comma found after GROUP BY clause.", _lexer.AlreadyResolvedQueryPart);
-        }
-                
+            throw new SyntaxException("Unnecessary comma found after GROUP BY clause.",
+                _lexer.AlreadyResolvedQueryPart);
+
         if (fields.Length == 0) throw new NotSupportedException("Group by clause does not have any fields.");
         if (Current.TokenType != TokenType.Having) return new GroupByNode(fields, null);
 
         Consume(TokenType.Having);
-                
+
         var having = new HavingNode(ComposeOperations());
 
         return new GroupByNode(fields, having);
-
     }
 
     private SelectNode ComposeSelectNode()
     {
         Consume(TokenType.Select);
         ConsumeWhiteSpaces();
-        
+
         var isDistinct = false;
         if (Current.TokenType == TokenType.Distinct)
         {
@@ -574,18 +575,15 @@ public class Parser
             ConsumeWhiteSpaces();
             isDistinct = true;
         }
-            
+
         if (Current.TokenType == TokenType.Comma)
-        {
             throw new SyntaxException("Unnecessary comma found after SELECT keyword.", _lexer.AlreadyResolvedQueryPart);
-        }
 
         var fields = ComposeFields();
-            
+
         if (Previous.TokenType == TokenType.Comma && Current.TokenType == TokenType.From)
-        {
-            throw new SyntaxException("Unnecessary comma found at the end of SELECT clause.", _lexer.AlreadyResolvedQueryPart);
-        }
+            throw new SyntaxException("Unnecessary comma found at the end of SELECT clause.",
+                _lexer.AlreadyResolvedQueryPart);
 
         return new SelectNode(fields, isDistinct);
     }
@@ -597,16 +595,10 @@ public class Parser
 
         do
         {
-            if (Current.TokenType == TokenType.From)
-            {
-                break;
-            }
-                
-            if (Current.TokenType == TokenType.EndOfFile)
-            {
-                break;
-            }
-                
+            if (Current.TokenType == TokenType.From) break;
+
+            if (Current.TokenType == TokenType.EndOfFile) break;
+
             fields.Add(ConsumeField(i++));
         } while (!IsSetOperator(Current.TokenType) && Current.TokenType != TokenType.RightParenthesis &&
                  Current.TokenType != TokenType.From && Current.TokenType != TokenType.Having &&
@@ -688,7 +680,8 @@ public class Parser
             case TokenType.Take:
                 return Order.Ascending;
             default:
-                throw new NotSupportedException($"Unrecognized token for ComposeOrder(), the token was {Current.TokenType}");
+                throw new NotSupportedException(
+                    $"Unrecognized token for ComposeOrder(), the token was {Current.TokenType}");
         }
     }
 
@@ -697,7 +690,6 @@ public class Parser
         var node = ComposeEqualityOperators();
 
         while (IsQueryOperator(Current))
-        {
             switch (Current.TokenType)
             {
                 case TokenType.And:
@@ -709,10 +701,10 @@ public class Parser
                     node = new OrNode(node, ComposeEqualityOperators());
                     break;
                 default:
-                    throw new NotSupportedException($"Unrecognized token for ComposeOperations(), the token was {Current.TokenType}");
+                    throw new NotSupportedException(
+                        $"Unrecognized token for ComposeOperations(), the token was {Current.TokenType}");
             }
-        }
-            
+
         return node;
     }
 
@@ -720,12 +712,10 @@ public class Parser
     {
         var left = ComposeBaseTypes(minPrecedence);
 
-        if (IsNumericToken(Current))
-        {
-            left = new AddNode(left, ComposeBaseTypes(minPrecedence));
-        }
+        if (IsNumericToken(Current)) left = new AddNode(left, ComposeBaseTypes(minPrecedence));
 
-        while (IsArithmeticBinaryOperator(Current) && _precedenceDictionary[Current.TokenType].Precendence >= minPrecedence)
+        while (IsArithmeticBinaryOperator(Current) &&
+               _precedenceDictionary[Current.TokenType].Precendence >= minPrecedence)
         {
             var curr = Current;
             var op = _precedenceDictionary[Current.TokenType];
@@ -805,9 +795,9 @@ public class Parser
                     break;
                 case TokenType.Is:
                     Consume(TokenType.Is);
-                    node = Current.TokenType == TokenType.Not ? 
-                        SkipComposeSkip(TokenType.Not, _ => new IsNullNode(node, true), TokenType.Null) : 
-                        ComposeAndSkip(parser => new IsNullNode(node, false), TokenType.Null);
+                    node = Current.TokenType == TokenType.Not
+                        ? SkipComposeSkip(TokenType.Not, _ => new IsNullNode(node, true), TokenType.Null)
+                        : ComposeAndSkip(parser => new IsNullNode(node, false), TokenType.Null);
                     break;
                 case TokenType.In:
                     Consume(TokenType.In);
@@ -818,7 +808,8 @@ public class Parser
                     node = new NotNode(new InNode(node, ComposeArgs()));
                     break;
                 default:
-                    throw new NotSupportedException($"Unrecognized token for ComposeEqualityOperators(), the token was {Current.TokenType}");
+                    throw new NotSupportedException(
+                        $"Unrecognized token for ComposeEqualityOperators(), the token was {Current.TokenType}");
             }
 
         return node;
@@ -832,10 +823,10 @@ public class Parser
             var schemaName = EnsureHashPrefix(sourceAlias);
             var accessMethod = ComposeAccessMethod(sourceAlias);
             var alias = ComposeAlias();
-            
+
             return new SchemaMethodFromNode(alias, schemaName, accessMethod.Name);
         }
-        
+
         var schemaNode = ComposeSchemaName();
         ConsumeAsColumn(TokenType.Dot);
         var identifier = (IdentifierNode)ComposeBaseTypes();
@@ -855,7 +846,7 @@ public class Parser
             var name = ComposeWord();
 
             FromNode fromNode;
-            if(Current.TokenType == TokenType.Dot)
+            if (Current.TokenType == TokenType.Dot)
             {
                 Consume(TokenType.Dot);
                 var accessMethod = ComposeAccessMethod(string.Empty);
@@ -863,7 +854,8 @@ public class Parser
                 alias = ComposeAlias();
 
                 var schemaName = EnsureHashPrefix(name.Value);
-                fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias,
+                    _fromPosition);
             }
             else
             {
@@ -889,54 +881,56 @@ public class Parser
             var sourceAlias = Current.Value;
             var accessMethod = ComposeAccessMethod(sourceAlias);
             alias = ComposeAlias();
-            
+
             var canTreatAsSchema = !sourceAlias.StartsWith('#') && (!isApplyContext || !IsKnownFromAlias(sourceAlias));
             if (canTreatAsSchema)
             {
                 var schemaName = EnsureHashPrefix(sourceAlias);
-                var schemaFromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                var schemaFromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias,
+                    _fromPosition);
                 RegisterFromAlias(alias);
                 return schemaFromNode;
             }
-            
+
             if (string.IsNullOrWhiteSpace(alias))
                 throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
-                    
+
             var fromNode = new AccessMethodFromNode(alias, sourceAlias, accessMethod);
 
             RegisterFromAlias(alias);
 
             return fromNode;
         }
-            
-        var column = (IdentifierNode) ComposeBaseTypes();
+
+        var column = (IdentifierNode)ComposeBaseTypes();
 
         if (Current.TokenType == TokenType.Dot)
         {
             Consume(Current.TokenType);
-            
+
             if (Current.TokenType == TokenType.Function)
             {
                 var accessMethod = ComposeAccessMethod(string.Empty);
                 alias = ComposeAlias();
-                
+
                 var schemaName = EnsureHashPrefix(column.Name);
-                var schemaFromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                var schemaFromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias,
+                    _fromPosition);
                 RegisterFromAlias(alias);
                 return schemaFromNode;
             }
 
             var properties = new List<string>();
             var anyParsed = false;
-            
+
             while (Current.TokenType == TokenType.Property)
             {
                 if (!anyParsed)
                     anyParsed = true;
-                
+
                 var propertyName = Current.Value;
                 properties.Add(propertyName);
-                    
+
                 Consume(TokenType.Property);
 
                 if (Current.TokenType == TokenType.Dot)
@@ -944,25 +938,25 @@ public class Parser
                     Consume(TokenType.Dot);
                     continue;
                 }
-                
+
                 break;
             }
-            
+
             if (anyParsed)
             {
                 alias = ComposeAlias();
-            
+
                 if (string.IsNullOrWhiteSpace(alias))
                     throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
-                
+
                 var propertyFromNode = new PropertyFromNode(alias, column.Name, properties.ToArray());
                 RegisterFromAlias(alias);
                 return propertyFromNode;
             }
-                
+
             throw new NotSupportedException($"Unrecognized token {Current.TokenType} when parsing From clause.");
         }
-            
+
         alias = ComposeAlias();
         var inMemoryFromNode = new InMemoryTableFromNode(column.Name, alias);
         RegisterFromAlias(alias);
@@ -992,20 +986,23 @@ public class Parser
     private void Consume(TokenType tokenType)
     {
         if (!Current.TokenType.Equals(tokenType))
-            throw new SyntaxException($"Expected token is {tokenType} but received {Current.TokenType}.", _lexer.AlreadyResolvedQueryPart);
-            
-        _previousToken = Current;
+            throw new SyntaxException($"Expected token is {tokenType} but received {Current.TokenType}.",
+                _lexer.AlreadyResolvedQueryPart);
+
+        Previous = Current;
         _hasReplacedToken = false;
         _lexer.Next();
     }
-        
+
     private void ConsumeAsColumn(TokenType tokenType)
     {
         if (!Current.TokenType.Equals(tokenType))
-            throw new SyntaxException($"Expected token is {tokenType} but received {Current.TokenType}.", _lexer.AlreadyResolvedQueryPart);
-            
+            throw new SyntaxException($"Expected token is {tokenType} but received {Current.TokenType}.",
+                _lexer.AlreadyResolvedQueryPart);
+
         _hasReplacedToken = false;
-        _lexer.NextOf(ColumnRegex, value => new ColumnToken(value, new TextSpan(_lexer.Position, _lexer.Position + value.Length)));
+        _lexer.NextOf(ColumnRegex,
+            value => new ColumnToken(value, new TextSpan(_lexer.Position, _lexer.Position + value.Length)));
     }
 
     private ArgsListNode ComposeArgs()
@@ -1015,7 +1012,6 @@ public class Parser
         Consume(TokenType.LeftParenthesis);
 
         if (Current.TokenType != TokenType.RightParenthesis)
-        {
             do
             {
                 if (Current.TokenType == TokenType.Comma)
@@ -1023,7 +1019,6 @@ public class Parser
 
                 args.Add(ComposeEqualityOperators());
             } while (Current.TokenType == TokenType.Comma);
-        }
 
         Consume(TokenType.RightParenthesis);
 
@@ -1056,21 +1051,22 @@ public class Parser
             case TokenType.Identifier:
 
                 if (Current is not ColumnToken column)
-                    throw new ArgumentNullException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}");
+                    throw new ArgumentNullException(
+                        $"Expected token is {TokenType.Identifier} but received {Current.TokenType}");
 
                 Consume(TokenType.Identifier);
 
                 return new IdentifierNode(column.Value);
             case TokenType.KeyAccess:
-                var keyAccess = (KeyAccessToken) Current;
+                var keyAccess = (KeyAccessToken)Current;
                 Consume(TokenType.KeyAccess);
                 return new AccessObjectKeyNode(keyAccess);
             case TokenType.NumericAccess:
-                var numericAccess = (NumericAccessToken) Current;
+                var numericAccess = (NumericAccessToken)Current;
                 Consume(TokenType.NumericAccess);
                 return new AccessObjectArrayNode(numericAccess);
             case TokenType.MethodAccess:
-                var methodAccess = (MethodAccessToken) Current;
+                var methodAccess = (MethodAccessToken)Current;
                 Consume(TokenType.MethodAccess);
                 Consume(TokenType.Dot);
                 return ComposeAccessMethod(methodAccess.Alias);
@@ -1094,7 +1090,8 @@ public class Parser
                     TokenType.RightParenthesis);
             case TokenType.Hyphen:
                 Consume(TokenType.Hyphen);
-                return new StarNode(new IntegerNode("-1", "s"), Compose(f => f.ComposeArithmeticExpression(minPrecedence)));
+                return new StarNode(new IntegerNode("-1", "s"),
+                    Compose(f => f.ComposeArithmeticExpression(minPrecedence)));
             case TokenType.Case:
                 var (whenThenNodes, elseNode) = ComposeCase();
                 return new CaseNode(whenThenNodes, elseNode);
@@ -1105,7 +1102,8 @@ public class Parser
                 return new NullNode();
         }
 
-        throw new NotSupportedException($"Token {Current.Value}({Current.TokenType}) at position {Current.Span.Start} cannot be used here.");
+        throw new NotSupportedException(
+            $"Token {Current.Value}({Current.TokenType}) at position {Current.Span.Start} cannot be used here.");
     }
 
     private ((Node When, Node Then)[] WhenThenNodes, Node ElseNode) ComposeCase()
@@ -1114,15 +1112,15 @@ public class Parser
 
         var whenThenNodes = new List<(Node When, Node Then)>();
 
-        while(Current.TokenType == TokenType.When)
+        while (Current.TokenType == TokenType.When)
         {
             Consume(TokenType.When);
             var whenNode = ComposeOperations();
             Consume(TokenType.Then);
             var thenNode = ComposeEqualityOperators();
-                
+
             whenThenNodes.Add((
-                new WhenNode(whenNode), 
+                new WhenNode(whenNode),
                 new ThenNode(thenNode)));
         }
 
@@ -1171,7 +1169,7 @@ public class Parser
             args = ComposeArgs();
             return new AccessMethodNode(func, args, null, false, null, alias);
         }
-            
+
         if (Current is MethodAccessToken)
         {
             Consume(TokenType.MethodAccess);
@@ -1182,8 +1180,9 @@ public class Parser
             return new AccessMethodNode(token, args, null, false,
                 null, alias);
         }
-            
-        throw new NotSupportedException($"Unrecognized token for ComposeAccessMethod(), the token was {Current.TokenType}");
+
+        throw new NotSupportedException(
+            $"Unrecognized token for ComposeAccessMethod(), the token was {Current.TokenType}");
     }
 
     private Token ConsumeAndGetToken(TokenType expected)
@@ -1231,12 +1230,16 @@ public class Parser
 
     private static bool IsArithmeticBinaryOperator(Token currentToken)
     {
-        return currentToken.TokenType is TokenType.Star or TokenType.FSlash or TokenType.Mod or TokenType.Plus or TokenType.Hyphen or TokenType.Dot;
+        return currentToken.TokenType is TokenType.Star or TokenType.FSlash or TokenType.Mod or TokenType.Plus
+            or TokenType.Hyphen or TokenType.Dot;
     }
 
     private static bool IsEqualityOperator(Token currentToken)
     {
-        return currentToken.TokenType is TokenType.Greater or TokenType.GreaterEqual or TokenType.Less or TokenType.LessEqual or TokenType.Equality or TokenType.Not or TokenType.Diff or TokenType.Like or TokenType.NotLike or TokenType.Contains or TokenType.Is or TokenType.In or TokenType.NotIn or TokenType.RLike or TokenType.NotRLike;
+        return currentToken.TokenType is TokenType.Greater or TokenType.GreaterEqual or TokenType.Less
+            or TokenType.LessEqual or TokenType.Equality or TokenType.Not or TokenType.Diff or TokenType.Like
+            or TokenType.NotLike or TokenType.Contains or TokenType.Is or TokenType.In or TokenType.NotIn
+            or TokenType.RLike or TokenType.NotRLike;
     }
 
     private static bool IsQueryOperator(Token currentToken)
@@ -1246,7 +1249,8 @@ public class Parser
 
     private static bool IsNumericToken(Token current)
     {
-        return current.TokenType is TokenType.Decimal or TokenType.Integer or TokenType.HexadecimalInteger or TokenType.BinaryInteger or TokenType.OctalInteger;
+        return current.TokenType is TokenType.Decimal or TokenType.Integer or TokenType.HexadecimalInteger
+            or TokenType.BinaryInteger or TokenType.OctalInteger;
     }
 
     private enum Associativity

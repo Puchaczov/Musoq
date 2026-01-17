@@ -16,26 +16,28 @@ namespace Musoq.Evaluator.Tests.Schema.Basic;
 public class BasicEntityTestBase
 {
     protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
-    
-    protected static readonly CompilationOptions ValidationEnabledCompilationOptions = new(usePrimitiveTypeValidation: true);
-    
+
+    protected static readonly CompilationOptions ValidationEnabledCompilationOptions =
+        new(usePrimitiveTypeValidation: true);
+
     static BasicEntityTestBase()
     {
         Culture.ApplyWithDefaultCulture();
     }
-        
+
     protected CancellationTokenSource TokenSource { get; } = new();
-    
+
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
-        
+
     protected BuildItems CreateBuildItems<T>(string script)
     {
         return InstanceCreator.CreateForAnalyze(
-            script, 
-            Guid.NewGuid().ToString(), 
-            typeof(T) == typeof(UsedColumnsOrUsedWhereEntity) ? 
-                new UsedColumnsOrUsedWhereSchemaProvider<UsedColumnsOrUsedWhereEntity>(CreateMockObjectFor<UsedColumnsOrUsedWhereEntity>()) :
-                new MockBasedSchemaProvider(CreateMockObjectFor<BasicEntity>()),
+            script,
+            Guid.NewGuid().ToString(),
+            typeof(T) == typeof(UsedColumnsOrUsedWhereEntity)
+                ? new UsedColumnsOrUsedWhereSchemaProvider<UsedColumnsOrUsedWhereEntity>(
+                    CreateMockObjectFor<UsedColumnsOrUsedWhereEntity>())
+                : new MockBasedSchemaProvider(CreateMockObjectFor<BasicEntity>()),
             LoggerResolver);
     }
 
@@ -45,8 +47,8 @@ public class BasicEntityTestBase
         where T : BasicEntity
     {
         return InstanceCreator.CompileForExecution(
-            script, 
-            Guid.NewGuid().ToString(), 
+            script,
+            Guid.NewGuid().ToString(),
             new BasicSchemaProvider<T>(sources),
             LoggerResolver,
             TestCompilationOptions);
@@ -59,8 +61,8 @@ public class BasicEntityTestBase
         where T : BasicEntity
     {
         return InstanceCreator.CompileForExecution(
-            script, 
-            Guid.NewGuid().ToString(), 
+            script,
+            Guid.NewGuid().ToString(),
             new BasicSchemaProvider<T>(sources),
             LoggerResolver,
             compilationOptions);
@@ -72,14 +74,14 @@ public class BasicEntityTestBase
         ISchemaProvider schemaProvider = null)
     {
         return InstanceCreator.CompileForExecution(
-            script, 
-            Guid.NewGuid().ToString(), 
+            script,
+            Guid.NewGuid().ToString(),
             schemaProvider,
             LoggerResolver,
             TestCompilationOptions);
     }
 
-    private IReadOnlyDictionary<uint,IReadOnlyDictionary<string,string>> CreateMockedEnvironmentVariables()
+    private IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> CreateMockedEnvironmentVariables()
     {
         var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
         environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
@@ -102,7 +104,7 @@ public class BasicEntityTestBase
         var query = $"select {operation} from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("ABCAACBA")]}
+            { "#A", [new BasicEntity("ABCAACBA")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -113,7 +115,7 @@ public class BasicEntityTestBase
     {
         var mock = new Mock<IDictionary<string, IEnumerable<T>>>();
         mock.Setup(f => f[It.IsAny<string>()]).Returns([]);
-            
+
         return mock.Object;
     }
 
@@ -122,7 +124,8 @@ public class BasicEntityTestBase
     {
         public override ISchema GetSchema(string schema)
         {
-            return new GenericSchema<BasicEntity, BasicEntityTable>(Values[schema], BasicEntity.TestNameToIndexMap, BasicEntity.TestIndexToObjectAccessMap);
+            return new GenericSchema<BasicEntity, BasicEntityTable>(Values[schema], BasicEntity.TestNameToIndexMap,
+                BasicEntity.TestIndexToObjectAccessMap);
         }
     }
 }

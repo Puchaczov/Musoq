@@ -9,15 +9,15 @@ namespace Musoq.Evaluator.Tests.Schema.DataSourceProgress;
 
 public class ReportingEntitySource<T> : RowSource where T : BasicEntity
 {
+    private readonly string _dataSourceName;
     private readonly IEnumerable<T> _entities;
     private readonly IDictionary<int, Func<T, object>> _indexToObjectAccessMap;
     private readonly IDictionary<string, int> _nameToIndexMap;
     private readonly RuntimeContext _runtimeContext;
-    private readonly string _dataSourceName;
 
     public ReportingEntitySource(
-        IEnumerable<T> entities, 
-        IDictionary<string, int> nameToIndexMap, 
+        IEnumerable<T> entities,
+        IDictionary<string, int> nameToIndexMap,
         IDictionary<int, Func<T, object>> indexToObjectAccessMap,
         RuntimeContext runtimeContext,
         string dataSourceName)
@@ -44,10 +44,10 @@ public class ReportingEntitySource<T> : RowSource where T : BasicEntity
             foreach (var entity in entityList)
             {
                 yield return new EntityResolver<T>(
-                    entity, 
-                    _nameToIndexMap as IReadOnlyDictionary<string, int>, 
+                    entity,
+                    _nameToIndexMap as IReadOnlyDictionary<string, int>,
                     _indexToObjectAccessMap as IReadOnlyDictionary<int, Func<T, object>>);
-                
+
                 rowsProcessed++;
                 _runtimeContext.ReportDataSourceRowsRead(_dataSourceName, rowsProcessed, totalRows);
             }

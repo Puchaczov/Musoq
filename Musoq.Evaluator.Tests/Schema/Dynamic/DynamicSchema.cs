@@ -7,7 +7,11 @@ using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Tests.Schema.Dynamic;
 
-public class DynamicSchema(IReadOnlyDictionary<string, Type> tableSchema, IEnumerable<dynamic> values, Func<RuntimeContext, SchemaMethodInfo[]> getRawConstructors = null, Func<string, RuntimeContext, SchemaMethodInfo[]> getRawConstructorsByName = null)
+public class DynamicSchema(
+    IReadOnlyDictionary<string, Type> tableSchema,
+    IEnumerable<dynamic> values,
+    Func<RuntimeContext, SchemaMethodInfo[]> getRawConstructors = null,
+    Func<string, RuntimeContext, SchemaMethodInfo[]> getRawConstructorsByName = null)
     : SchemaBase(SchemaName, CreateLibrary())
 {
     private const string SchemaName = "Dynamic";
@@ -16,7 +20,7 @@ public class DynamicSchema(IReadOnlyDictionary<string, Type> tableSchema, IEnume
     {
         return new DynamicTable(tableSchema);
     }
-    
+
     public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
     {
         return new DynamicSource(values);
@@ -29,7 +33,8 @@ public class DynamicSchema(IReadOnlyDictionary<string, Type> tableSchema, IEnume
 
     public override SchemaMethodInfo[] GetRawConstructors(string methodName, RuntimeContext runtimeContext)
     {
-        return getRawConstructorsByName?.Invoke(methodName, runtimeContext) ?? base.GetRawConstructors(methodName, runtimeContext);
+        return getRawConstructorsByName?.Invoke(methodName, runtimeContext) ??
+               base.GetRawConstructors(methodName, runtimeContext);
     }
 
     private static MethodsAggregator CreateLibrary()

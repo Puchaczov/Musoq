@@ -35,10 +35,8 @@ public static class NamingHelper
     public static string ToTransformedRowsSource(this string name, bool isForGrouping)
     {
         if (isForGrouping)
-        {
             return $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({name}).Rows";
-        }
-        
+
         return $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({name}, false).Rows";
     }
 

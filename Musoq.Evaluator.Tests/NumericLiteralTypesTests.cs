@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
+
 // ReSharper disable RedundantTypeArgumentsOfMethod
 
 namespace Musoq.Evaluator.Tests;
@@ -12,67 +13,67 @@ public class NumericLiteralTypesTests : BasicEntityTestBase
     {
         TestMethodTemplate<sbyte>("1b", 1);
     }
-    
+
     [TestMethod]
     public void WhenByteUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<byte>("1ub", 1);
     }
-    
+
     [TestMethod]
     public void WhenShortUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<short>("1s", 1);
     }
-    
+
     [TestMethod]
     public void WhenUShortUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<ushort>("1us", 1);
     }
-    
+
     [TestMethod]
     public void WhenIntUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<int>("1i", 1);
     }
-    
+
     [TestMethod]
     public void WhenUIntUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<uint>("1ui", 1);
     }
-    
+
     [TestMethod]
     public void WhenLongUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<long>("1l", 1);
     }
-    
+
     [TestMethod]
     public void WhenULongUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<ulong>("1ul", 1);
     }
-    
+
     [TestMethod]
     public void WhenDecimalUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<decimal>("1d", 1);
     }
-    
+
     [TestMethod]
     public void WhenDecimalWithDotUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<decimal>("1.0", 1);
     }
-    
+
     [TestMethod]
     public void WhenDecimalWithDotAndSuffixUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<decimal>("1.0d", 1);
-    }    
-    
+    }
+
     [TestMethod]
     public void WhenNegativeSByteUsed_ShouldHaveColumnOfThatType()
     {
@@ -114,7 +115,7 @@ public class NumericLiteralTypesTests : BasicEntityTestBase
     {
         TestMethodTemplate<decimal>("-1.0d", -1);
     }
-    
+
     [TestMethod]
     public void WhenLargeSByteUsed_ShouldHaveColumnOfThatType()
     {
@@ -180,7 +181,7 @@ public class NumericLiteralTypesTests : BasicEntityTestBase
     {
         TestMethodTemplate<decimal>("79228162514264337593543950334.0d", 79228162514264337593543950334.0m);
     }
-    
+
     [TestMethod]
     public void WhenLargeNegativeSByteUsed_ShouldHaveColumnOfThatType()
     {
@@ -210,13 +211,13 @@ public class NumericLiteralTypesTests : BasicEntityTestBase
     {
         TestMethodTemplate<decimal>("-79228162514264337593543950335d", -79228162514264337593543950335m);
     }
-    
+
     [TestMethod]
     public void WhenLargeNegativeDecimalWithDotUsed_ShouldHaveColumnOfThatType()
     {
         TestMethodTemplate<decimal>("-79228162514264337593543950334.0", -79228162514264337593543950334.0m);
     }
-    
+
     [TestMethod]
     public void WhenLargeNegativeDecimalWithDotAndSuffixUsed_ShouldHaveColumnOfThatType()
     {

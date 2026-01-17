@@ -47,7 +47,7 @@ public class BitwiseOperationsOrTests : BasicEntityTestBase
     {
         TestMethodTemplate<long?>("Or(1b, 1l)", 1);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseOrBetweenByteAndByte_ShouldBeEvaluated()
     {
@@ -95,7 +95,7 @@ public class BitwiseOperationsOrTests : BasicEntityTestBase
     {
         TestMethodTemplate<ulong?>("Or(1ub, 1ul)", 1);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseOrBetweenUshortAndByte_ShouldBeEvaluated()
     {
@@ -143,7 +143,7 @@ public class BitwiseOperationsOrTests : BasicEntityTestBase
     {
         TestMethodTemplate<ulong?>("Or(1us, 1ul)", 1);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseOrBetweenShortAndByte_ShouldBeEvaluated()
     {
@@ -155,7 +155,7 @@ public class BitwiseOperationsOrTests : BasicEntityTestBase
     {
         short x = 1;
         byte y = 1;
-        var result = (ushort) x | y;
+        var result = (ushort)x | y;
         TestMethodTemplate<int?>("Or(1s, 1b)", 1);
     }
 
@@ -188,7 +188,7 @@ public class BitwiseOperationsOrTests : BasicEntityTestBase
     {
         TestMethodTemplate<long?>("Or(1s, 1l)", 1);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseOrBetweenIntAndByte_ShouldBeEvaluated()
     {
@@ -236,7 +236,7 @@ public class BitwiseOperationsOrTests : BasicEntityTestBase
     {
         TestMethodTemplate<int?>("Or(1b, 1i)", 1);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseOrBetweenUIntAndByte_ShouldBeEvaluated()
     {
@@ -284,7 +284,7 @@ public class BitwiseOperationsOrTests : BasicEntityTestBase
     {
         TestMethodTemplate<ulong?>("Or(1ui, 1ul)", 1);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseOrBetweenLongAndByte_ShouldBeEvaluated()
     {
@@ -326,7 +326,7 @@ public class BitwiseOperationsOrTests : BasicEntityTestBase
     {
         TestMethodTemplate<long?>("Or(1l, 1l)", 1);
     }
-    
+
     [TestMethod]
     public void WhenBitwiseOrBetweenUlongAndByte_ShouldBeEvaluated()
     {

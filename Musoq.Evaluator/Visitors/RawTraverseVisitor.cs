@@ -202,7 +202,7 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
     {
         node.First.Accept(this);
         node.Second.Accept(this);
-            
+
         node.Accept(Visitor);
     }
 
@@ -557,11 +557,6 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
         node.Accept(Visitor);
     }
 
-    public virtual void Visit(FromNode node)
-    {
-        node.Accept(Visitor);
-    }
-
     public virtual void Visit(OrderByNode node)
     {
         foreach (var field in node.Fields)
@@ -598,7 +593,7 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
     {
         node.Else.Accept(this);
 
-        for (int i = node.WhenThenPairs.Length - 1; i >= 0; --i)
+        for (var i = node.WhenThenPairs.Length - 1; i >= 0; --i)
         {
             node.WhenThenPairs[i].When.Accept(this);
             node.WhenThenPairs[i].Then.Accept(this);
@@ -626,6 +621,11 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
     }
 
     public virtual void Visit(FieldLinkNode node)
+    {
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(FromNode node)
     {
         node.Accept(Visitor);
     }

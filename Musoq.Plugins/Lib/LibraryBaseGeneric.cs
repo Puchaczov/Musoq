@@ -1,18 +1,18 @@
-using Musoq.Plugins.Attributes;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
     private static readonly ConcurrentDictionary<string, Regex> MatchRegexCache = new();
-    
+
     /// <summary>
-    /// Skips elements from the beginning of the sequence.
+    ///     Skips elements from the beginning of the sequence.
     /// </summary>
     /// <param name="values">The values</param>
     /// <param name="skipCount">How many elements to skip</param>
@@ -27,9 +27,9 @@ public partial class LibraryBase
 
         return values.Skip(skipCount);
     }
-        
+
     /// <summary>
-    /// Takes elements from the beginning of the sequence.
+    ///     Takes elements from the beginning of the sequence.
     /// </summary>
     /// <param name="values">The values</param>
     /// <param name="takeCount">How many elements to skip</param>
@@ -44,9 +44,9 @@ public partial class LibraryBase
 
         return values.Take(takeCount);
     }
-        
+
     /// <summary>
-    /// Skip and takes elements from the beginning of the sequence.
+    ///     Skip and takes elements from the beginning of the sequence.
     /// </summary>
     /// <param name="values">The values</param>
     /// <param name="skipCount">How many elements to skip</param>
@@ -64,7 +64,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Turn array arguments of T into a single array.
+    ///     Turn array arguments of T into a single array.
     /// </summary>
     /// <param name="values">The values</param>
     /// <typeparam name="T">Type</typeparam>
@@ -80,7 +80,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Turn array arguments of T into a single array.
+    ///     Turn array arguments of T into a single array.
     /// </summary>
     /// <param name="values">The values</param>
     /// <typeparam name="T">Type</typeparam>
@@ -93,17 +93,14 @@ public partial class LibraryBase
             return null;
 
         var result = new List<T>();
-            
-        foreach (var value in values)
-        {
-            result.AddRange(value);
-        }
-            
+
+        foreach (var value in values) result.AddRange(value);
+
         return result.ToArray();
     }
 
     /// <summary>
-    /// Computes longest common sequence of two given sequences 
+    ///     Computes longest common sequence of two given sequences
     /// </summary>
     /// <param name="source">The source</param>
     /// <param name="pattern">The pattern</param>
@@ -142,7 +139,7 @@ public partial class LibraryBase
                     array[i, j] = i == 0 || j == 0 ? 1 : array[i - 1, j - 1] + 1;
 
                     if (array[i, j] <= maxSubStringSequence) continue;
-                        
+
                     maxSubStringSequence = array[i, j];
                     subSequence = sourceArray.Skip(i - maxSubStringSequence + 1).Take(maxSubStringSequence);
                 }
@@ -157,7 +154,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the element at the specified index in a sequence
+    ///     Gets the element at the specified index in a sequence
     /// </summary>
     /// <param name="enumerable">The enumerable</param>
     /// <param name="index">The index</param>
@@ -177,7 +174,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the length of the sequence
+    ///     Gets the length of the sequence
     /// </summary>
     /// <param name="enumerable">The enumerable</param>
     /// <typeparam name="T">Type</typeparam>
@@ -193,7 +190,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Gets the length of the array
+    ///     Gets the length of the array
     /// </summary>
     /// <param name="array">The array</param>
     /// <typeparam name="T">Type</typeparam>
@@ -204,9 +201,9 @@ public partial class LibraryBase
     {
         return array?.Length;
     }
-        
+
     /// <summary>
-    /// Gets the value of an array at the specified index
+    ///     Gets the value of an array at the specified index
     /// </summary>
     /// <param name="index">The index</param>
     /// <param name="values">The values</param>
@@ -223,7 +220,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Chose a or b value based on the expression result
+    ///     Chose a or b value based on the expression result
     /// </summary>
     /// <param name="expressionResult">The expression result</param>
     /// <param name="a">The A parameter</param>
@@ -239,9 +236,9 @@ public partial class LibraryBase
 
         return b;
     }
-        
+
     /// <summary>
-    /// Determine whether content matches the specified pattern
+    ///     Determine whether content matches the specified pattern
     /// </summary>
     /// <param name="regex">The regex</param>
     /// <param name="content">The content</param>
@@ -253,104 +250,122 @@ public partial class LibraryBase
         if (regex == null || content == null)
             return null;
 
-        var compiledRegex = MatchRegexCache.GetOrAdd(regex, pattern => 
+        var compiledRegex = MatchRegexCache.GetOrAdd(regex, pattern =>
             new Regex(pattern, RegexOptions.Compiled));
-        
+
         return compiledRegex.IsMatch(content);
     }
-        
+
     /// <summary>
-    /// Gets the first non-null value in a list 
+    ///     Gets the first non-null value in a list
     /// </summary>
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Utility)]
     public byte? Coalesce(params byte?[] array)
-        => Coalesce<byte?>(array);
-        
+    {
+        return Coalesce<byte?>(array);
+    }
+
     /// <summary>
-    /// Gets the first non-null value in a list 
+    ///     Gets the first non-null value in a list
     /// </summary>
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Utility)]
     public sbyte? Coalesce(params sbyte?[] array)
-        => Coalesce<sbyte?>(array);
-        
+    {
+        return Coalesce<sbyte?>(array);
+    }
+
     /// <summary>
-    /// Gets the first non-null value in a list 
+    ///     Gets the first non-null value in a list
     /// </summary>
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Utility)]
     public short? Coalesce(params short?[] array)
-        => Coalesce<short?>(array);
-        
+    {
+        return Coalesce<short?>(array);
+    }
+
     /// <summary>
-    /// Gets the first non-null value in a list 
+    ///     Gets the first non-null value in a list
     /// </summary>
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Utility)]
     public ushort? Coalesce(params ushort?[] array)
-        => Coalesce<ushort?>(array);
-        
+    {
+        return Coalesce<ushort?>(array);
+    }
+
     /// <summary>
-    /// Gets the first non-null value in a list 
+    ///     Gets the first non-null value in a list
     /// </summary>
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Utility)]
     public int? Coalesce(params int?[] array)
-        => Coalesce<int?>(array);
-        
+    {
+        return Coalesce<int?>(array);
+    }
+
     /// <summary>
-    /// Gets the first non-null value in a list 
+    ///     Gets the first non-null value in a list
     /// </summary>
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Utility)]
     public decimal? Coalesce(params uint?[] array)
-        => Coalesce<uint?>(array);
-        
+    {
+        return Coalesce<uint?>(array);
+    }
+
     /// <summary>
-    /// Gets the first non-null value in a list 
+    ///     Gets the first non-null value in a list
     /// </summary>
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Utility)]
     public decimal? Coalesce(params long?[] array)
-        => Coalesce<long?>(array);
-        
+    {
+        return Coalesce<long?>(array);
+    }
+
     /// <summary>
-    /// Gets the first non-null value in a list 
+    ///     Gets the first non-null value in a list
     /// </summary>
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Utility)]
     public decimal? Coalesce(params ulong?[] array)
-        => Coalesce<ulong?>(array);
-        
+    {
+        return Coalesce<ulong?>(array);
+    }
+
     /// <summary>
-    /// Gets the first non-null value in a list 
+    ///     Gets the first non-null value in a list
     /// </summary>
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Utility)]
     public decimal? Coalesce(params decimal?[] array)
-        => Coalesce<decimal?>(array);
-        
+    {
+        return Coalesce<decimal?>(array);
+    }
+
     /// <summary>
-    /// Gets the first non-null value in a list 
+    ///     Gets the first non-null value in a list
     /// </summary>
     /// <param name="array">The array</param>
     /// <returns>First non-null value</returns>
@@ -359,16 +374,14 @@ public partial class LibraryBase
     public T? Coalesce<T>(params T[] array)
     {
         foreach (var obj in array)
-        {
             if (!Equals(obj, default(T)))
                 return obj;
-        }
 
         return default;
     }
 
     /// <summary>
-    /// Returns distinct elements from a collection.
+    ///     Returns distinct elements from a collection.
     /// </summary>
     /// <typeparam name="T">The type of elements in the collection.</typeparam>
     /// <param name="values">The collection to remove duplicate elements from.</param>
@@ -379,9 +392,9 @@ public partial class LibraryBase
     {
         return values?.Distinct();
     }
-    
+
     /// <summary>
-    /// Returns the first element of a sequence, or a default value if the sequence contains no elements.
+    ///     Returns the first element of a sequence, or a default value if the sequence contains no elements.
     /// </summary>
     /// <param name="values">The values</param>
     /// <typeparam name="T">Type</typeparam>
@@ -392,12 +405,12 @@ public partial class LibraryBase
     {
         if (values == null)
             return default;
-        
+
         return values.FirstOrDefault();
     }
-    
+
     /// <summary>
-    /// Returns the last element of a sequence, or a default value if the sequence contains no elements.
+    ///     Returns the last element of a sequence, or a default value if the sequence contains no elements.
     /// </summary>
     /// <param name="values">The values</param>
     /// <typeparam name="T">Type</typeparam>
@@ -408,12 +421,12 @@ public partial class LibraryBase
     {
         if (values == null)
             return default;
-        
+
         return values.LastOrDefault();
     }
-    
+
     /// <summary>
-    /// Returns the element at a specified index in a sequence or a default value if the index is out of range.
+    ///     Returns the element at a specified index in a sequence or a default value if the index is out of range.
     /// </summary>
     /// <param name="values">The values</param>
     /// <param name="index">The index</param>
@@ -425,12 +438,13 @@ public partial class LibraryBase
     {
         if (values == null)
             return default;
-        
+
         return values.ElementAtOrDefault(index);
     }
-    
+
     /// <summary>
-    /// Returns the element at a specified index from the end of a sequence or a default value if the index is out of range.
+    ///     Returns the element at a specified index from the end of a sequence or a default value if the index is out of
+    ///     range.
     /// </summary>
     /// <param name="values">The values</param>
     /// <param name="index">The index</param>
@@ -443,16 +457,17 @@ public partial class LibraryBase
         if (values == null)
             return default;
 
-        return values.GetType() switch {
+        return values.GetType() switch
+        {
             List<T> list => list.ElementAtOrDefault(list.Count - index - 1),
             T[] array => array.ElementAtOrDefault(array.Length - index - 1),
             _ => values.Reverse().ElementAtOrDefault(index)
-        }; 
+        };
     }
 
     /// <summary>
-    /// Returns null if the two values are equal, otherwise returns the first value.
-    /// Useful for replacing specific values with null in queries.
+    ///     Returns null if the two values are equal, otherwise returns the first value.
+    ///     Useful for replacing specific values with null in queries.
     /// </summary>
     /// <param name="value">The value to check</param>
     /// <param name="compareValue">The value to compare against</param>
@@ -472,8 +487,8 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Returns the first value if it is not null, otherwise returns the second value.
-    /// SQL-style IFNULL/ISNULL function.
+    ///     Returns the first value if it is not null, otherwise returns the second value.
+    ///     SQL-style IFNULL/ISNULL function.
     /// </summary>
     /// <param name="value">The value to check for null</param>
     /// <param name="defaultValue">The value to return if the first is null</param>
@@ -487,7 +502,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Returns the default value of a type if the value is null, otherwise returns the value.
+    ///     Returns the default value of a type if the value is null, otherwise returns the value.
     /// </summary>
     /// <param name="value">The value to check for null</param>
     /// <typeparam name="T">Type</typeparam>
@@ -500,7 +515,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Determines whether the value is null.
+    ///     Determines whether the value is null.
     /// </summary>
     /// <param name="value">The value to check</param>
     /// <typeparam name="T">Type</typeparam>
@@ -513,7 +528,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Determines whether the value is not null.
+    ///     Determines whether the value is not null.
     /// </summary>
     /// <param name="value">The value to check</param>
     /// <typeparam name="T">Type</typeparam>

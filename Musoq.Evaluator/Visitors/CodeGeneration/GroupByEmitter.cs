@@ -10,13 +10,12 @@ using Microsoft.CodeAnalysis.Editing;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Emits GROUP BY related syntax constructs.
+///     Emits GROUP BY related syntax constructs.
 /// </summary>
 internal static class GroupByEmitter
 {
-
     /// <summary>
-    /// Creates a foreach block for GROUP BY iteration with the given instructions.
+    ///     Creates a foreach block for GROUP BY iteration with the given instructions.
     /// </summary>
     /// <param name="foreachInstructions">The block of instructions to execute in the foreach.</param>
     /// <param name="variableName">The variable name for the foreach iterator.</param>
@@ -34,7 +33,7 @@ internal static class GroupByEmitter
     }
 
     /// <summary>
-    /// Creates a HAVING clause condition statement using the syntax generator.
+    ///     Creates a HAVING clause condition statement using the syntax generator.
     /// </summary>
     /// <param name="conditionExpression">The HAVING condition expression.</param>
     /// <param name="generator">The Roslyn syntax generator.</param>
@@ -48,9 +47,9 @@ internal static class GroupByEmitter
     }
 
     /// <summary>
-    /// Builds the GROUP BY execution block by assembling CSE declarations, cancellation check,
-    /// WHERE clause, group keys/values, parent/group declarations, for statement, refresh nodes,
-    /// and having clause.
+    ///     Builds the GROUP BY execution block by assembling CSE declarations, cancellation check,
+    ///     WHERE clause, group keys/values, parent/group declarations, for statement, refresh nodes,
+    ///     and having clause.
     /// </summary>
     /// <param name="block">The initial block.</param>
     /// <param name="cseDeclarations">CSE variable declarations.</param>
@@ -73,10 +72,7 @@ internal static class GroupByEmitter
         SyntaxNode? groupHaving,
         string scoreTable)
     {
-        if (cseDeclarations.Length > 0)
-        {
-            block = StatementEmitter.CreateBlock(cseDeclarations.Concat(block.Statements));
-        }
+        if (cseDeclarations.Length > 0) block = StatementEmitter.CreateBlock(cseDeclarations.Concat(block.Statements));
 
         block = block.AddStatements(cancellationCheck);
 
@@ -101,9 +97,9 @@ internal static class GroupByEmitter
 
         return block;
     }
-    
+
     /// <summary>
-    /// Creates the AddGroupStatement which conditionally adds a group to the score table.
+    ///     Creates the AddGroupStatement which conditionally adds a group to the score table.
     /// </summary>
     private static StatementSyntax CreateAddGroupStatement(string scoreTable)
     {
@@ -111,7 +107,7 @@ internal static class GroupByEmitter
             SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression,
                 SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName("usedGroups"), 
+                        SyntaxFactory.IdentifierName("usedGroups"),
                         SyntaxFactory.IdentifierName("Contains")))
                     .WithArgumentList(
                         SyntaxFactory.ArgumentList(
@@ -129,7 +125,7 @@ internal static class GroupByEmitter
                 SyntaxFactory.ExpressionStatement(
                     SyntaxFactory.InvocationExpression(SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
-                            SyntaxFactory.IdentifierName("usedGroups"), 
+                            SyntaxFactory.IdentifierName("usedGroups"),
                             SyntaxFactory.IdentifierName("Add")))
                         .WithArgumentList(
                             SyntaxFactory.ArgumentList(
@@ -138,7 +134,7 @@ internal static class GroupByEmitter
     }
 
     /// <summary>
-    /// Creates the for loop that iterates through group keys and builds the group hierarchy.
+    ///     Creates the for loop that iterates through group keys and builds the group hierarchy.
     /// </summary>
     private static StatementSyntax CreateGroupForStatement()
     {
@@ -184,10 +180,10 @@ internal static class GroupByEmitter
     private static StatementSyntax CreateGroupLookupIfStatement()
     {
         var condition = SyntaxFactory.InvocationExpression(
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName("groups"),
-                SyntaxFactory.IdentifierName("ContainsKey")))
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("groups"),
+                    SyntaxFactory.IdentifierName("ContainsKey")))
             .WithArgumentList(
                 SyntaxFactory.ArgumentList(
                     SyntaxFactory.SingletonSeparatedList(
@@ -235,10 +231,10 @@ internal static class GroupByEmitter
     {
         return SyntaxFactory.ExpressionStatement(
             SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName("groups"),
-                    SyntaxFactory.IdentifierName("Add")))
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName("groups"),
+                        SyntaxFactory.IdentifierName("Add")))
                 .WithArgumentList(
                     SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>(
                         new SyntaxNodeOrToken[]
@@ -252,7 +248,7 @@ internal static class GroupByEmitter
     private static VariableDeclarationSyntax CreateLoopVariableDeclaration()
     {
         return SyntaxFactory.VariableDeclaration(
-            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
+                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
             .WithVariables(
                 SyntaxFactory.SingletonSeparatedList(
                     SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier("i"))

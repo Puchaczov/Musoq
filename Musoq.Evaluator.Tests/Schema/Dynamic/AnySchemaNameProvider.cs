@@ -17,7 +17,7 @@ public class AnySchemaNameProvider(
     {
         var schemaObj = schemas.Keys.First();
         return new DynamicSchema(
-            schemas[schemaObj].Schema, 
+            schemas[schemaObj].Schema,
             schemas[schemaObj].Values,
             getRawConstructors,
             getRawConstructorsByName);

@@ -10,7 +10,7 @@ public class JoinNode : FromNode
         Id = $"{nameof(JoinNode)}{join.Id}";
         Join = join;
     }
-        
+
     public JoinNode(JoinFromNode join, Type returnType)
         : base(join.Alias, returnType)
     {

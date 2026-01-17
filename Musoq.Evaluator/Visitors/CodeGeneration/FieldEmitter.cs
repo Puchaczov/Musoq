@@ -8,28 +8,12 @@ using Musoq.Evaluator.Helpers;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Handles code generation for field-related nodes.
+///     Handles code generation for field-related nodes.
 /// </summary>
 public static class FieldEmitter
 {
     /// <summary>
-    /// Result of processing a field node.
-    /// </summary>
-    public readonly struct FieldNodeResult
-    {
-        /// <summary>
-        /// The resulting expression (either original or cast).
-        /// </summary>
-        public SyntaxNode Expression { get; init; }
-        
-        /// <summary>
-        /// Types that need reference tracking.
-        /// </summary>
-        public Type[] RequiredTypes { get; init; }
-    }
-
-    /// <summary>
-    /// Processes a FieldNode with potential cast optimization.
+    ///     Processes a FieldNode with potential cast optimization.
     /// </summary>
     /// <param name="returnType">The return type of the field.</param>
     /// <param name="expression">The current expression from the stack.</param>
@@ -40,15 +24,13 @@ public static class FieldEmitter
         var types = EvaluationHelper.GetNestedTypes(returnType);
         var typeIdentifier = TypeNameHelper.GetTypeIdentifier(returnType);
 
-        if (expression is CastExpressionSyntax castExpression && 
+        if (expression is CastExpressionSyntax castExpression &&
             castExpression.Type.ToString() == typeIdentifier.ToString())
-        {
             return new FieldNodeResult
             {
                 Expression = expression,
                 RequiredTypes = types
             };
-        }
 
         return new FieldNodeResult
         {
@@ -58,13 +40,14 @@ public static class FieldEmitter
     }
 
     /// <summary>
-    /// Processes a FieldOrderedNode (always casts).
+    ///     Processes a FieldOrderedNode (always casts).
     /// </summary>
     /// <param name="returnType">The return type of the field.</param>
     /// <param name="expression">The current expression from the stack.</param>
     /// <param name="generator">The Roslyn syntax generator.</param>
     /// <returns>Result containing the cast expression and required types.</returns>
-    public static FieldNodeResult ProcessFieldOrderedNode(Type returnType, SyntaxNode expression, SyntaxGenerator generator)
+    public static FieldNodeResult ProcessFieldOrderedNode(Type returnType, SyntaxNode expression,
+        SyntaxGenerator generator)
     {
         var types = EvaluationHelper.GetNestedTypes(returnType);
         var typeIdentifier = TypeNameHelper.GetTypeIdentifier(returnType);
@@ -77,7 +60,7 @@ public static class FieldEmitter
     }
 
     /// <summary>
-    /// Creates a member access expression for property value access.
+    ///     Creates a member access expression for property value access.
     /// </summary>
     /// <param name="expression">The expression to access the property on.</param>
     /// <param name="propertyName">The name of the property.</param>
@@ -88,5 +71,21 @@ public static class FieldEmitter
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.ParenthesizedExpression(expression),
             SyntaxFactory.IdentifierName(propertyName));
+    }
+
+    /// <summary>
+    ///     Result of processing a field node.
+    /// </summary>
+    public readonly struct FieldNodeResult
+    {
+        /// <summary>
+        ///     The resulting expression (either original or cast).
+        /// </summary>
+        public SyntaxNode Expression { get; init; }
+
+        /// <summary>
+        ///     Types that need reference tracking.
+        /// </summary>
+        public Type[] RequiredTypes { get; init; }
     }
 }

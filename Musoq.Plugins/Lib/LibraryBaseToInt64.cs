@@ -6,7 +6,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Converts given value to Int64
+    ///     Converts given value to Int64
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Int64 value</returns>
@@ -21,7 +21,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to long
+    ///     Converts given value to long
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
@@ -33,7 +33,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to long
+    ///     Converts given value to long
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
@@ -45,7 +45,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to long
+    ///     Converts given value to long
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
@@ -57,7 +57,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to long
+    ///     Converts given value to long
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
@@ -69,7 +69,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to long
+    ///     Converts given value to long
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
@@ -81,7 +81,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to long
+    ///     Converts given value to long
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
@@ -93,7 +93,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to long
+    ///     Converts given value to long
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
@@ -105,7 +105,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to long
+    ///     Converts given value to long
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
@@ -117,7 +117,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to long
+    ///     Converts given value to long
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
@@ -127,9 +127,9 @@ public partial class LibraryBase
     {
         return (long?)value;
     }
-    
+
     /// <summary>
-    /// Converts given value to long
+    ///     Converts given value to long
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
@@ -141,7 +141,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to long
+    ///     Converts given value to long
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>
@@ -156,7 +156,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to long
+    ///     Converts given value to long
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to long value</returns>

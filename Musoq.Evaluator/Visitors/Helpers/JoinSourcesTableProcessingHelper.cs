@@ -17,13 +17,13 @@ using Musoq.Schema.DataSources;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Helper class for processing JoinSourcesTableFromNode operations.
-/// Handles Inner, OuterLeft, and OuterRight join processing logic.
+///     Helper class for processing JoinSourcesTableFromNode operations.
+///     Handles Inner, OuterLeft, and OuterRight join processing logic.
 /// </summary>
 public static class JoinSourcesTableProcessingHelper
 {
     /// <summary>
-    /// Processes a JoinSourcesTableFromNode and returns the appropriate computing block based on join type.
+    ///     Processes a JoinSourcesTableFromNode and returns the appropriate computing block based on join type.
     /// </summary>
     /// <param name="node">The join node to process</param>
     /// <param name="generator">Syntax generator for creating syntax nodes</param>
@@ -62,32 +62,37 @@ public static class JoinSourcesTableProcessingHelper
         ValidateParameter(nameof(nodeTranslator), nodeTranslator);
 
         var computingBlock = SyntaxFactory.Block();
-        
-        if (compilationOptions?.UseHashJoin == true && 
-            (node.JoinType == JoinType.Inner || node.JoinType == JoinType.OuterLeft || node.JoinType == JoinType.OuterRight) &&
+
+        if (compilationOptions?.UseHashJoin == true &&
+            (node.JoinType == JoinType.Inner || node.JoinType == JoinType.OuterLeft ||
+             node.JoinType == JoinType.OuterRight) &&
             TryGetHashJoinKeys(node, scope, nodeTranslator, out var leftKeys, out var rightKeys, out var keyTypes))
-        {
-            return ProcessHashJoin(node, generator, scope, queryAlias, leftKeys, rightKeys, keyTypes, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
-        }
+            return ProcessHashJoin(node, generator, scope, queryAlias, leftKeys, rightKeys, keyTypes, ifStatement,
+                emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
 
         if (compilationOptions?.UseSortMergeJoin == true &&
-            (node.JoinType == JoinType.Inner || node.JoinType == JoinType.OuterLeft || node.JoinType == JoinType.OuterRight) &&
-            TryGetSortMergeJoinKeys(node, scope, nodeTranslator, out var smLeftKey, out var smRightKey, out var smKeyType, out var smCondition, out var smComparisonKind))
-        {
-             return ProcessSortMergeJoin(node, generator, scope, queryAlias, smLeftKey, smRightKey, smKeyType, smCondition, smComparisonKind, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
-        }
-        
+            (node.JoinType == JoinType.Inner || node.JoinType == JoinType.OuterLeft ||
+             node.JoinType == JoinType.OuterRight) &&
+            TryGetSortMergeJoinKeys(node, scope, nodeTranslator, out var smLeftKey, out var smRightKey,
+                out var smKeyType, out var smCondition, out var smComparisonKind))
+            return ProcessSortMergeJoin(node, generator, scope, queryAlias, smLeftKey, smRightKey, smKeyType,
+                smCondition, smComparisonKind, ifStatement, emptyBlock, getRowsSourceOrEmpty, block,
+                generateCancellationExpression);
+
         switch (node.JoinType)
         {
             case JoinType.Inner:
-                return ProcessInnerJoin(node, generator, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
-                
+                return ProcessInnerJoin(node, generator, ifStatement, emptyBlock, getRowsSourceOrEmpty, block,
+                    generateCancellationExpression);
+
             case JoinType.OuterLeft:
-                return ProcessOuterLeftJoin(node, generator, scope, queryAlias, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
-                
+                return ProcessOuterLeftJoin(node, generator, scope, queryAlias, ifStatement, emptyBlock,
+                    getRowsSourceOrEmpty, block, generateCancellationExpression);
+
             case JoinType.OuterRight:
-                return ProcessOuterRightJoin(node, generator, scope, queryAlias, ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
-                
+                return ProcessOuterRightJoin(node, generator, scope, queryAlias, ifStatement, emptyBlock,
+                    getRowsSourceOrEmpty, block, generateCancellationExpression);
+
             default:
                 throw new ArgumentException($"Unsupported join type: {node.JoinType}");
         }
@@ -103,7 +108,7 @@ public static class JoinSourcesTableProcessingHelper
         Func<StatementSyntax> generateCancellationExpression)
     {
         var computingBlock = SyntaxFactory.Block();
-        
+
         return computingBlock.AddStatements(
             getRowsSourceOrEmpty(node.First.Alias),
             SyntaxFactory.ForEachStatement(
@@ -139,7 +144,6 @@ public static class JoinSourcesTableProcessingHelper
         var expressions = new List<ExpressionSyntax>();
 
         foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
-        {
             expressions.Add(
                 SyntaxFactory.ElementAccessExpression(
                     SyntaxFactory.IdentifierName($"{node.First.Alias}Row"),
@@ -148,18 +152,16 @@ public static class JoinSourcesTableProcessingHelper
                             SyntaxFactory.Argument(
                                 (LiteralExpressionSyntax)generator.LiteralExpression(
                                     column.ColumnName))))));
-        }
 
         foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
-        {
             expressions.Add(
                 SyntaxFactory.CastExpression(
                     SyntaxFactory.IdentifierName(
                         EvaluationHelper.GetCastableType(column.ColumnType)),
                     (LiteralExpressionSyntax)generator.NullLiteralExpression()));
-        }
 
-        var (arrayType, rewriteSelect, invocation) = CreateSelectAndInvocationForOuterLeft(expressions, generator, scope, node.First.Alias);
+        var (arrayType, rewriteSelect, invocation) =
+            CreateSelectAndInvocationForOuterLeft(expressions, generator, scope, node.First.Alias);
 
         return computingBlock.AddStatements(
             getRowsSourceOrEmpty(node.First.Alias),
@@ -214,16 +216,13 @@ public static class JoinSourcesTableProcessingHelper
         var expressions = new List<ExpressionSyntax>();
 
         foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
-        {
             expressions.Add(
                 SyntaxFactory.CastExpression(
                     SyntaxFactory.IdentifierName(
                         EvaluationHelper.GetCastableType(column.ColumnType)),
                     (LiteralExpressionSyntax)generator.NullLiteralExpression()));
-        }
 
         foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
-        {
             expressions.Add(
                 SyntaxFactory.ElementAccessExpression(
                     SyntaxFactory.IdentifierName($"{node.Second.Alias}Row"),
@@ -232,9 +231,9 @@ public static class JoinSourcesTableProcessingHelper
                             SyntaxFactory.Argument(
                                 (LiteralExpressionSyntax)generator.LiteralExpression(
                                     column.ColumnName))))));
-        }
 
-        var (arrayType, rewriteSelect, invocation) = CreateSelectAndInvocationForOuterRight(expressions, generator, scope, node.Second.Alias);
+        var (arrayType, rewriteSelect, invocation) =
+            CreateSelectAndInvocationForOuterRight(expressions, generator, scope, node.Second.Alias);
 
         return computingBlock.AddStatements(
             getRowsSourceOrEmpty(node.Second.Alias),
@@ -288,7 +287,7 @@ public static class JoinSourcesTableProcessingHelper
         Func<StatementSyntax> generateCancellationExpression)
     {
         var computingBlock = SyntaxFactory.Block();
-        
+
         string keyTypeName;
         if (keyTypes.Count == 1)
         {
@@ -300,15 +299,16 @@ public static class JoinSourcesTableProcessingHelper
             keyTypeName = $"({string.Join(", ", typeNames)})";
         }
 
-        var dictionaryType = SyntaxFactory.ParseTypeName($"System.Collections.Generic.Dictionary<{keyTypeName}, System.Collections.Generic.List<Musoq.Schema.DataSources.IObjectResolver>>");
-        
+        var dictionaryType = SyntaxFactory.ParseTypeName(
+            $"System.Collections.Generic.Dictionary<{keyTypeName}, System.Collections.Generic.List<Musoq.Schema.DataSources.IObjectResolver>>");
+
         var isRightOuter = node.JoinType == JoinType.OuterRight;
-        
+
         var buildAlias = isRightOuter ? node.First.Alias : node.Second.Alias;
         var probeAlias = isRightOuter ? node.Second.Alias : node.First.Alias;
         var buildKeys = isRightOuter ? leftKeys : rightKeys;
         var probeKeys = isRightOuter ? rightKeys : leftKeys;
-        
+
         var dictionaryName = $"{buildAlias}Hashed";
         var dictionaryCreation = SyntaxFactory.LocalDeclarationStatement(
             SyntaxFactory.VariableDeclaration(
@@ -332,7 +332,7 @@ public static class JoinSourcesTableProcessingHelper
         };
 
         var buildKeyVars = new List<string>();
-        for (int i = 0; i < buildKeys.Count; i++)
+        for (var i = 0; i < buildKeys.Count; i++)
         {
             var varName = $"key{i}";
             buildKeyVars.Add(varName);
@@ -352,7 +352,6 @@ public static class JoinSourcesTableProcessingHelper
             );
 
             if (!keyTypes[i].IsValueType || Nullable.GetUnderlyingType(keyTypes[i]) != null)
-            {
                 buildPhaseStatements.Add(
                     SyntaxFactory.IfStatement(
                         SyntaxFactory.BinaryExpression(
@@ -363,7 +362,6 @@ public static class JoinSourcesTableProcessingHelper
                         SyntaxFactory.ContinueStatement()
                     )
                 );
-            }
         }
 
         ExpressionSyntax buildKeyExpr = buildKeyVars.Count == 1
@@ -465,7 +463,6 @@ public static class JoinSourcesTableProcessingHelper
             var expressions = new List<ExpressionSyntax>();
 
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
-            {
                 expressions.Add(
                     SyntaxFactory.ElementAccessExpression(
                         SyntaxFactory.IdentifierName($"{node.First.Alias}Row"),
@@ -474,18 +471,16 @@ public static class JoinSourcesTableProcessingHelper
                                 SyntaxFactory.Argument(
                                     (LiteralExpressionSyntax)generator.LiteralExpression(
                                         column.ColumnName))))));
-            }
 
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
-            {
                 expressions.Add(
                     SyntaxFactory.CastExpression(
                         SyntaxFactory.IdentifierName(
                             EvaluationHelper.GetCastableType(column.ColumnType)),
                         (LiteralExpressionSyntax)generator.NullLiteralExpression()));
-            }
 
-            var (_, rewriteSelect, invocation) = CreateSelectAndInvocationForOuterLeft(expressions, generator, scope, node.First.Alias);
+            var (_, rewriteSelect, invocation) =
+                CreateSelectAndInvocationForOuterLeft(expressions, generator, scope, node.First.Alias);
             outerJoinFallback = SyntaxFactory.Block(
                 SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
                 SyntaxFactory.ExpressionStatement(invocation)
@@ -497,16 +492,13 @@ public static class JoinSourcesTableProcessingHelper
             var expressions = new List<ExpressionSyntax>();
 
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
-            {
                 expressions.Add(
                     SyntaxFactory.CastExpression(
                         SyntaxFactory.IdentifierName(
                             EvaluationHelper.GetCastableType(column.ColumnType)),
                         (LiteralExpressionSyntax)generator.NullLiteralExpression()));
-            }
 
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
-            {
                 expressions.Add(
                     SyntaxFactory.ElementAccessExpression(
                         SyntaxFactory.IdentifierName($"{node.Second.Alias}Row"),
@@ -515,9 +507,9 @@ public static class JoinSourcesTableProcessingHelper
                                 SyntaxFactory.Argument(
                                     (LiteralExpressionSyntax)generator.LiteralExpression(
                                         column.ColumnName))))));
-            }
 
-            var (_, rewriteSelect, invocation) = CreateSelectAndInvocationForOuterRight(expressions, generator, scope, node.Second.Alias);
+            var (_, rewriteSelect, invocation) =
+                CreateSelectAndInvocationForOuterRight(expressions, generator, scope, node.Second.Alias);
             outerJoinFallback = SyntaxFactory.Block(
                 SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
                 SyntaxFactory.ExpressionStatement(invocation)
@@ -530,7 +522,7 @@ public static class JoinSourcesTableProcessingHelper
         };
 
         var probeKeyVars = new List<string>();
-        for (int i = 0; i < probeKeys.Count; i++)
+        for (var i = 0; i < probeKeys.Count; i++)
         {
             var varName = $"key{i}";
             probeKeyVars.Add(varName);
@@ -574,11 +566,11 @@ public static class JoinSourcesTableProcessingHelper
         );
 
         var matchVarName = $"{buildAlias}Row";
-        
+
         if (node.JoinType == JoinType.OuterLeft || node.JoinType == JoinType.OuterRight)
         {
             var matchFoundVar = SyntaxFactory.IdentifierName("matchFound");
-            
+
             probePhaseStatements.Add(
                 SyntaxFactory.LocalDeclarationStatement(
                     SyntaxFactory.VariableDeclaration(
@@ -587,12 +579,13 @@ public static class JoinSourcesTableProcessingHelper
                             SyntaxFactory.VariableDeclarator(
                                 SyntaxFactory.Identifier("matchFound"),
                                 null,
-                                SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))
+                                SyntaxFactory.EqualsValueClause(
+                                    SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression))
                             )
                         )
                     )
                 ));
-            
+
             var matchLoop = SyntaxFactory.ForEachStatement(
                 SyntaxFactory.IdentifierName("var"),
                 SyntaxFactory.Identifier(matchVarName),
@@ -610,7 +603,7 @@ public static class JoinSourcesTableProcessingHelper
                     emptyBlock
                 )
             );
-            
+
             var tryGetValue = SyntaxFactory.IfStatement(
                 SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
@@ -636,9 +629,9 @@ public static class JoinSourcesTableProcessingHelper
                 ),
                 SyntaxFactory.Block(matchLoop)
             );
-            
+
             probePhaseStatements.Add(tryGetValue);
-            
+
             probePhaseStatements.Add(
                 SyntaxFactory.IfStatement(
                     SyntaxFactory.PrefixUnaryExpression(
@@ -661,7 +654,7 @@ public static class JoinSourcesTableProcessingHelper
                     emptyBlock
                 )
             );
-            
+
             var tryGetValue = SyntaxFactory.IfStatement(
                 SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
@@ -687,7 +680,7 @@ public static class JoinSourcesTableProcessingHelper
                 ),
                 SyntaxFactory.Block(matchLoop)
             );
-            
+
             probePhaseStatements.Add(tryGetValue);
         }
 
@@ -710,12 +703,12 @@ public static class JoinSourcesTableProcessingHelper
     }
 
 
-
-    private static (ArrayTypeSyntax arrayType, VariableDeclarationSyntax rewriteSelect, InvocationExpressionSyntax invocation) 
+    private static (ArrayTypeSyntax arrayType, VariableDeclarationSyntax rewriteSelect, InvocationExpressionSyntax
+        invocation)
         CreateSelectAndInvocationForOuterLeft(
-            List<ExpressionSyntax> expressions, 
-            SyntaxGenerator generator, 
-            Scope scope, 
+            List<ExpressionSyntax> expressions,
+            SyntaxGenerator generator,
+            Scope scope,
             string firstAlias)
     {
         var arrayType = SyntaxFactory.ArrayType(
@@ -767,11 +760,12 @@ public static class JoinSourcesTableProcessingHelper
         return (arrayType, rewriteSelect, invocation);
     }
 
-    private static (ArrayTypeSyntax arrayType, VariableDeclarationSyntax rewriteSelect, InvocationExpressionSyntax invocation) 
+    private static (ArrayTypeSyntax arrayType, VariableDeclarationSyntax rewriteSelect, InvocationExpressionSyntax
+        invocation)
         CreateSelectAndInvocationForOuterRight(
-            List<ExpressionSyntax> expressions, 
-            SyntaxGenerator generator, 
-            Scope scope, 
+            List<ExpressionSyntax> expressions,
+            SyntaxGenerator generator,
+            Scope scope,
             string secondAlias)
     {
         var arrayType = SyntaxFactory.ArrayType(
@@ -824,11 +818,11 @@ public static class JoinSourcesTableProcessingHelper
     }
 
     private static bool TryGetHashJoinKeys(
-        JoinSourcesTableFromNode node, 
+        JoinSourcesTableFromNode node,
         Scope scope,
         Func<Node, ExpressionSyntax> nodeTranslator,
-        out List<ExpressionSyntax> leftKeys, 
-        out List<ExpressionSyntax> rightKeys, 
+        out List<ExpressionSyntax> leftKeys,
+        out List<ExpressionSyntax> rightKeys,
         out List<Type> keyTypes)
     {
         leftKeys = [];
@@ -836,7 +830,7 @@ public static class JoinSourcesTableProcessingHelper
         keyTypes = [];
 
         var conditions = new List<EqualityNode>();
-        
+
         if (node.Expression is EqualityNode eq)
         {
             conditions.Add(eq);
@@ -845,7 +839,7 @@ public static class JoinSourcesTableProcessingHelper
         {
             var stack = new Stack<Node>();
             stack.Push(and);
-            
+
             while (stack.Count > 0)
             {
                 var current = stack.Pop();
@@ -875,24 +869,24 @@ public static class JoinSourcesTableProcessingHelper
             var leftTraverser = new ExtractAccessColumnFromQueryTraverseVisitor(leftVisitor);
             binary.Left.Accept(leftTraverser);
             var leftColumns = leftVisitor.GetForAliases(node.First.Alias, node.Second.Alias);
-            
+
             var rightVisitor = new ExtractAccessColumnFromQueryVisitor();
             var rightTraverser = new ExtractAccessColumnFromQueryTraverseVisitor(rightVisitor);
             binary.Right.Accept(rightTraverser);
             var rightColumns = rightVisitor.GetForAliases(node.First.Alias, node.Second.Alias);
 
-            bool leftHasFirst = leftColumns.Any(c => c.Alias == node.First.Alias);
-            bool leftHasSecond = leftColumns.Any(c => c.Alias == node.Second.Alias);
-            bool rightHasFirst = rightColumns.Any(c => c.Alias == node.First.Alias);
-            bool rightHasSecond = rightColumns.Any(c => c.Alias == node.Second.Alias);
+            var leftHasFirst = leftColumns.Any(c => c.Alias == node.First.Alias);
+            var leftHasSecond = leftColumns.Any(c => c.Alias == node.Second.Alias);
+            var rightHasFirst = rightColumns.Any(c => c.Alias == node.First.Alias);
+            var rightHasSecond = rightColumns.Any(c => c.Alias == node.Second.Alias);
 
-            bool leftIsFirst = leftHasFirst && !leftHasSecond;
-            bool leftIsSecond = leftHasSecond && !leftHasFirst;
-            bool leftIsConstant = !leftHasFirst && !leftHasSecond;
+            var leftIsFirst = leftHasFirst && !leftHasSecond;
+            var leftIsSecond = leftHasSecond && !leftHasFirst;
+            var leftIsConstant = !leftHasFirst && !leftHasSecond;
 
-            bool rightIsFirst = rightHasFirst && !rightHasSecond;
-            bool rightIsSecond = rightHasSecond && !rightHasFirst;
-            bool rightIsConstant = !rightHasFirst && !rightHasSecond;
+            var rightIsFirst = rightHasFirst && !rightHasSecond;
+            var rightIsSecond = rightHasSecond && !rightHasFirst;
+            var rightIsConstant = !rightHasFirst && !rightHasSecond;
 
             if (leftIsConstant && rightIsConstant) continue;
 
@@ -909,29 +903,31 @@ public static class JoinSourcesTableProcessingHelper
                 firstNode = binary.Right;
                 secondNode = binary.Left;
             }
-            
+
             if (firstNode != null && secondNode != null)
             {
                 var type1 = firstNode.ReturnType;
                 var type2 = secondNode.ReturnType;
-                
+
                 var type1Underlying = Nullable.GetUnderlyingType(type1) ?? type1;
                 var type2Underlying = Nullable.GetUnderlyingType(type2) ?? type2;
 
                 if (type1Underlying == type2Underlying)
                 {
-                    Type keyType = type1 != type2
+                    var keyType = type1 != type2
                         ? typeof(Nullable<>).MakeGenericType(type1Underlying)
                         : type1;
-                    
+
                     var leftExpr = nodeTranslator(firstNode);
                     var rightExpr = nodeTranslator(secondNode);
-                    
+
                     if (firstNode.ReturnType != keyType)
-                        leftExpr = SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName(GetTypeName(keyType)), leftExpr);
-                    
+                        leftExpr = SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName(GetTypeName(keyType)),
+                            leftExpr);
+
                     if (secondNode.ReturnType != keyType)
-                        rightExpr = SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName(GetTypeName(keyType)), rightExpr);
+                        rightExpr = SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName(GetTypeName(keyType)),
+                            rightExpr);
 
                     leftKeys.Add(leftExpr);
                     rightKeys.Add(rightExpr);
@@ -949,7 +945,9 @@ public static class JoinSourcesTableProcessingHelper
         }
 
         return leftKeys.Count > 0;
-    }    private static ExpressionSyntax CreateColumnAccessExpression(string alias, string columnName, Type type)
+    }
+
+    private static ExpressionSyntax CreateColumnAccessExpression(string alias, string columnName, Type type)
     {
         var rowVar = SyntaxFactory.IdentifierName($"{alias}Row");
         var indexer = SyntaxFactory.ElementAccessExpression(
@@ -965,13 +963,13 @@ public static class JoinSourcesTableProcessingHelper
                 )
             )
         );
-        
+
         var castType = EvaluationHelper.GetCastableType(type);
         var castExpression = SyntaxFactory.CastExpression(
             SyntaxFactory.ParseTypeName(castType),
             indexer
         );
-        
+
         return castExpression;
     }
 
@@ -998,128 +996,137 @@ public static class JoinSourcesTableProcessingHelper
         Func<StatementSyntax> generateCancellationExpression)
     {
         var computingBlock = SyntaxFactory.Block();
-        
+
         var isRightJoin = node.JoinType == JoinType.OuterRight;
-        var probeAlias = isRightJoin ? node.Second.Alias : node.First.Alias; 
-        var buildAlias = isRightJoin ? node.First.Alias : node.Second.Alias; 
-        
+        var probeAlias = isRightJoin ? node.Second.Alias : node.First.Alias;
+        var buildAlias = isRightJoin ? node.First.Alias : node.Second.Alias;
+
         var buildKeyExpr = isRightJoin ? leftKey : rightKey;
         var probeKeyExpr = isRightJoin ? rightKey : leftKey;
-        
-        if (isRightJoin)
-        {
-            comparisonKind = SwapComparisonKind(comparisonKind);
-        }
-        
+
+        if (isRightJoin) comparisonKind = SwapComparisonKind(comparisonKind);
+
         var innerRowsVar = $"{buildAlias}RowsArray";
         var innerKeysVar = $"{buildAlias}KeysArray";
         var outerRowsVar = $"{probeAlias}RowsArray";
         var outerKeysVar = $"{probeAlias}KeysArray";
-        
+
         var rowType = SyntaxHelper.IObjectResolverTypeSyntax;
         var keyTypeSyntax = EvaluationHelper.GetCastableType(keyType);
-        
+
         computingBlock = computingBlock.AddStatements(getRowsSourceOrEmpty(buildAlias));
         computingBlock = computingBlock.AddStatements(
             SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.VariableDeclaration(
-                    SyntaxFactory.ArrayType(rowType)
-                        .WithRankSpecifiers(SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier()))
-                )
-                .WithVariables(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(
-                            SyntaxFactory.Identifier(innerRowsVar)
-                        )
-                        .WithInitializer(
-                            SyntaxFactory.EqualsValueClause(
-                                SyntaxFactory.InvocationExpression(
-                                    SyntaxFactory.MemberAccessExpression(
-                                        SyntaxKind.SimpleMemberAccessExpression,
-                                        SyntaxFactory.MemberAccessExpression(
-                                            SyntaxKind.SimpleMemberAccessExpression,
-                                            SyntaxFactory.IdentifierName($"{buildAlias}Rows"),
-                                            SyntaxFactory.IdentifierName("Rows")
-                                        ),
-                                        SyntaxFactory.IdentifierName("ToArray")
+                        SyntaxFactory.ArrayType(rowType)
+                            .WithRankSpecifiers(SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier()))
+                    )
+                    .WithVariables(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.VariableDeclarator(
+                                    SyntaxFactory.Identifier(innerRowsVar)
+                                )
+                                .WithInitializer(
+                                    SyntaxFactory.EqualsValueClause(
+                                        SyntaxFactory.InvocationExpression(
+                                            SyntaxFactory.MemberAccessExpression(
+                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                SyntaxFactory.MemberAccessExpression(
+                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                    SyntaxFactory.IdentifierName($"{buildAlias}Rows"),
+                                                    SyntaxFactory.IdentifierName("Rows")
+                                                ),
+                                                SyntaxFactory.IdentifierName("ToArray")
+                                            )
+                                        )
                                     )
                                 )
+                        )
+                    )
+            )
+        );
+
+        computingBlock = computingBlock.AddStatements(
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(innerKeysVar))
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.ObjectCreationExpression(
+                                    SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName(keyTypeSyntax))
+                                        .WithRankSpecifiers(SyntaxFactory.SingletonList(
+                                            SyntaxFactory.ArrayRankSpecifier(
+                                                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                                    SyntaxFactory.MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        SyntaxFactory.IdentifierName(innerRowsVar),
+                                                        SyntaxFactory.IdentifierName("Length")
+                                                    )
+                                                )
+                                            )
+                                        ))
+                                )
+                            ))
+                    ))
+            ),
+            SyntaxFactory.ForStatement(
+                    SyntaxFactory.Block(
+                        SyntaxFactory.ExpressionStatement(
+                            SyntaxFactory.AssignmentExpression(
+                                SyntaxKind.SimpleAssignmentExpression,
+                                SyntaxFactory.ElementAccessExpression(
+                                    SyntaxFactory.IdentifierName(innerKeysVar),
+                                    SyntaxFactory.BracketedArgumentList(
+                                        SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
+                                ),
+                                ReplaceIdentifier(buildKeyExpr, $"{buildAlias}Row", "r")
                             )
                         )
                     )
                 )
-            )
-        );
-        
-        computingBlock = computingBlock.AddStatements(
-            SyntaxFactory.LocalDeclarationStatement(
-                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(innerKeysVar))
-                    .WithInitializer(SyntaxFactory.EqualsValueClause(
-                        SyntaxFactory.ObjectCreationExpression(
-                            SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName(keyTypeSyntax))
-                            .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                                SyntaxFactory.ArrayRankSpecifier(
-                                    SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                                        SyntaxFactory.MemberAccessExpression(
-                                            SyntaxKind.SimpleMemberAccessExpression,
-                                            SyntaxFactory.IdentifierName(innerRowsVar),
-                                            SyntaxFactory.IdentifierName("Length")
-                                        )
-                                    )
-                                )
-                            ))
-                        )
-                    ))
-                ))
-            ),
-            SyntaxFactory.ForStatement(
-                SyntaxFactory.Block(
-                    SyntaxFactory.ExpressionStatement(
-                        SyntaxFactory.AssignmentExpression(
-                            SyntaxKind.SimpleAssignmentExpression,
-                            SyntaxFactory.ElementAccessExpression(
-                                SyntaxFactory.IdentifierName(innerKeysVar),
-                                SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
-                            ),
-                            ReplaceIdentifier(buildKeyExpr, $"{buildAlias}Row", "r")
-                        )
+                .WithDeclaration(
+                    SyntaxFactory
+                        .VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
+                        .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.VariableDeclarator("i").WithInitializer(
+                                SyntaxFactory.EqualsValueClause(
+                                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                        SyntaxFactory.Literal(0))))
+                        ))
+                )
+                .WithCondition(
+                    SyntaxFactory.BinaryExpression(
+                        SyntaxKind.LessThanExpression,
+                        SyntaxFactory.IdentifierName("i"),
+                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(innerRowsVar), SyntaxFactory.IdentifierName("Length"))
                     )
                 )
-            )
-            .WithDeclaration(
-                SyntaxFactory.VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
-                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator("i").WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))))
-                ))
-            )
-            .WithCondition(
-                SyntaxFactory.BinaryExpression(
-                    SyntaxKind.LessThanExpression,
-                    SyntaxFactory.IdentifierName("i"),
-                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(innerRowsVar), SyntaxFactory.IdentifierName("Length"))
-                )
-            )
-            .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName("i"))))
+                .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                    SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression,
+                        SyntaxFactory.IdentifierName("i"))))
         );
-        
+
         var keyExtractionLoop = (ForStatementSyntax)computingBlock.Statements.Last();
         var loopBlock = (BlockSyntax)keyExtractionLoop.Statement;
         var newLoopBlock = loopBlock.WithStatements(
-            SyntaxFactory.List<StatementSyntax>(
-                new StatementSyntax[] {
+            SyntaxFactory.List(
+                new StatementSyntax[]
+                {
                     SyntaxFactory.LocalDeclarationStatement(
                         SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                        .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator("r")
-                            .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                SyntaxFactory.ElementAccessExpression(
-                                    SyntaxFactory.IdentifierName(innerRowsVar),
-                                    SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
-                                )
+                            .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.VariableDeclarator("r")
+                                    .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                        SyntaxFactory.ElementAccessExpression(
+                                            SyntaxFactory.IdentifierName(innerRowsVar),
+                                            SyntaxFactory.BracketedArgumentList(
+                                                SyntaxFactory.SingletonSeparatedList(
+                                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
+                                        )
+                                    ))
                             ))
-                        ))
                     )
                 }.Concat(loopBlock.Statements)
             )
@@ -1141,12 +1148,12 @@ public static class JoinSourcesTableProcessingHelper
                 )
             )
         );
-        
-        bool sortAscending = comparisonKind == SyntaxKind.GreaterThanExpression || comparisonKind == SyntaxKind.GreaterThanOrEqualExpression;
-        
+
+        var sortAscending = comparisonKind == SyntaxKind.GreaterThanExpression ||
+                            comparisonKind == SyntaxKind.GreaterThanOrEqualExpression;
+
         if (!sortAscending)
-        {
-             computingBlock = computingBlock.AddStatements(
+            computingBlock = computingBlock.AddStatements(
                 SyntaxFactory.ExpressionStatement(
                     SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(
@@ -1154,7 +1161,9 @@ public static class JoinSourcesTableProcessingHelper
                             SyntaxFactory.IdentifierName("Array"),
                             SyntaxFactory.IdentifierName("Reverse")
                         ),
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(innerKeysVar))))
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(innerKeysVar))))
                     )
                 ),
                 SyntaxFactory.ExpressionStatement(
@@ -1164,107 +1173,119 @@ public static class JoinSourcesTableProcessingHelper
                             SyntaxFactory.IdentifierName("Array"),
                             SyntaxFactory.IdentifierName("Reverse")
                         ),
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(innerRowsVar))))
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(innerRowsVar))))
                     )
                 )
-             );
-        }
+            );
 
         computingBlock = computingBlock.AddStatements(getRowsSourceOrEmpty(probeAlias));
 
         computingBlock = computingBlock.AddStatements(
             SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.VariableDeclaration(
-                    SyntaxFactory.ArrayType(rowType)
-                        .WithRankSpecifiers(SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier()))
-                )
-                .WithVariables(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(
-                            SyntaxFactory.Identifier(outerRowsVar)
-                        )
-                        .WithInitializer(
-                            SyntaxFactory.EqualsValueClause(
-                                SyntaxFactory.InvocationExpression(
-                                    SyntaxFactory.MemberAccessExpression(
-                                        SyntaxKind.SimpleMemberAccessExpression,
-                                        SyntaxFactory.MemberAccessExpression(
-                                            SyntaxKind.SimpleMemberAccessExpression,
-                                            SyntaxFactory.IdentifierName($"{probeAlias}Rows"),
-                                            SyntaxFactory.IdentifierName("Rows")
-                                        ),
-                                        SyntaxFactory.IdentifierName("ToArray")
+                        SyntaxFactory.ArrayType(rowType)
+                            .WithRankSpecifiers(SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier()))
+                    )
+                    .WithVariables(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.VariableDeclarator(
+                                    SyntaxFactory.Identifier(outerRowsVar)
+                                )
+                                .WithInitializer(
+                                    SyntaxFactory.EqualsValueClause(
+                                        SyntaxFactory.InvocationExpression(
+                                            SyntaxFactory.MemberAccessExpression(
+                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                SyntaxFactory.MemberAccessExpression(
+                                                    SyntaxKind.SimpleMemberAccessExpression,
+                                                    SyntaxFactory.IdentifierName($"{probeAlias}Rows"),
+                                                    SyntaxFactory.IdentifierName("Rows")
+                                                ),
+                                                SyntaxFactory.IdentifierName("ToArray")
+                                            )
+                                        )
                                     )
                                 )
+                        )
+                    )
+            ));
+
+        computingBlock = computingBlock.AddStatements(
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(outerKeysVar))
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.ObjectCreationExpression(
+                                    SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName(keyTypeSyntax))
+                                        .WithRankSpecifiers(SyntaxFactory.SingletonList(
+                                            SyntaxFactory.ArrayRankSpecifier(
+                                                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                                    SyntaxFactory.MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        SyntaxFactory.IdentifierName(outerRowsVar),
+                                                        SyntaxFactory.IdentifierName("Length")
+                                                    )
+                                                )
+                                            )
+                                        ))
+                                )
+                            ))
+                    ))
+            ),
+            SyntaxFactory.ForStatement(
+                    SyntaxFactory.Block(
+                        SyntaxFactory.LocalDeclarationStatement(
+                            SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                                .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                                    SyntaxFactory.VariableDeclarator("r")
+                                        .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                            SyntaxFactory.ElementAccessExpression(
+                                                SyntaxFactory.IdentifierName(outerRowsVar),
+                                                SyntaxFactory.BracketedArgumentList(
+                                                    SyntaxFactory.SingletonSeparatedList(
+                                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
+                                            )
+                                        ))
+                                ))
+                        ),
+                        SyntaxFactory.ExpressionStatement(
+                            SyntaxFactory.AssignmentExpression(
+                                SyntaxKind.SimpleAssignmentExpression,
+                                SyntaxFactory.ElementAccessExpression(
+                                    SyntaxFactory.IdentifierName(outerKeysVar),
+                                    SyntaxFactory.BracketedArgumentList(
+                                        SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
+                                ),
+                                ReplaceIdentifier(probeKeyExpr, $"{probeAlias}Row", "r")
                             )
                         )
                     )
                 )
-            ));
-        
-        computingBlock = computingBlock.AddStatements(
-            SyntaxFactory.LocalDeclarationStatement(
-                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(outerKeysVar))
-                    .WithInitializer(SyntaxFactory.EqualsValueClause(
-                        SyntaxFactory.ObjectCreationExpression(
-                            SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName(keyTypeSyntax))
-                            .WithRankSpecifiers(SyntaxFactory.SingletonList(
-                                SyntaxFactory.ArrayRankSpecifier(
-                                    SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                                        SyntaxFactory.MemberAccessExpression(
-                                            SyntaxKind.SimpleMemberAccessExpression,
-                                            SyntaxFactory.IdentifierName(outerRowsVar),
-                                            SyntaxFactory.IdentifierName("Length")
-                                        )
-                                    )
-                                )
-                            ))
-                        )
-                    ))
-                ))
-            ),
-            SyntaxFactory.ForStatement(
-                SyntaxFactory.Block(
-                    SyntaxFactory.LocalDeclarationStatement(
-                        SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                .WithDeclaration(
+                    SyntaxFactory
+                        .VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
                         .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator("r")
-                            .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                SyntaxFactory.ElementAccessExpression(
-                                    SyntaxFactory.IdentifierName(outerRowsVar),
-                                    SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
-                                )
-                            ))
+                            SyntaxFactory.VariableDeclarator("i").WithInitializer(
+                                SyntaxFactory.EqualsValueClause(
+                                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                        SyntaxFactory.Literal(0))))
                         ))
-                    ),
-                    SyntaxFactory.ExpressionStatement(
-                        SyntaxFactory.AssignmentExpression(
-                            SyntaxKind.SimpleAssignmentExpression,
-                            SyntaxFactory.ElementAccessExpression(
-                                SyntaxFactory.IdentifierName(outerKeysVar),
-                                SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
-                            ),
-                            ReplaceIdentifier(probeKeyExpr, $"{probeAlias}Row", "r")
-                        )
+                )
+                .WithCondition(
+                    SyntaxFactory.BinaryExpression(
+                        SyntaxKind.LessThanExpression,
+                        SyntaxFactory.IdentifierName("i"),
+                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(outerRowsVar), SyntaxFactory.IdentifierName("Length"))
                     )
                 )
-            )
-            .WithDeclaration(
-                SyntaxFactory.VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
-                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator("i").WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))))
-                ))
-            )
-            .WithCondition(
-                SyntaxFactory.BinaryExpression(
-                    SyntaxKind.LessThanExpression,
-                    SyntaxFactory.IdentifierName("i"),
-                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(outerRowsVar), SyntaxFactory.IdentifierName("Length"))
-                )
-            )
-            .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName("i"))))
+                .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                    SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression,
+                        SyntaxFactory.IdentifierName("i"))))
         );
 
         computingBlock = computingBlock.AddStatements(
@@ -1282,10 +1303,9 @@ public static class JoinSourcesTableProcessingHelper
                 )
             )
         );
-        
+
         if (!sortAscending)
-        {
-             computingBlock = computingBlock.AddStatements(
+            computingBlock = computingBlock.AddStatements(
                 SyntaxFactory.ExpressionStatement(
                     SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(
@@ -1293,7 +1313,9 @@ public static class JoinSourcesTableProcessingHelper
                             SyntaxFactory.IdentifierName("Array"),
                             SyntaxFactory.IdentifierName("Reverse")
                         ),
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(outerKeysVar))))
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(outerKeysVar))))
                     )
                 ),
                 SyntaxFactory.ExpressionStatement(
@@ -1303,29 +1325,31 @@ public static class JoinSourcesTableProcessingHelper
                             SyntaxFactory.IdentifierName("Array"),
                             SyntaxFactory.IdentifierName("Reverse")
                         ),
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(outerRowsVar))))
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(outerRowsVar))))
                     )
                 )
-             );
-        }
+            );
 
-        
+
         var rowTypeConcrete = SyntaxHelper.RowConcreteTypeSyntax;
 
         computingBlock = computingBlock.AddStatements(
             SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator("resultBag")
-                    .WithInitializer(SyntaxFactory.EqualsValueClause(
-                        SyntaxFactory.ObjectCreationExpression(
-                            SyntaxFactory.GenericName(
-                                SyntaxFactory.Identifier("System.Collections.Concurrent.ConcurrentBag"),
-                                SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList<TypeSyntax>(rowTypeConcrete))
-                            )
-                        ).WithArgumentList(SyntaxFactory.ArgumentList())
+                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator("resultBag")
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.ObjectCreationExpression(
+                                    SyntaxFactory.GenericName(
+                                        SyntaxFactory.Identifier("System.Collections.Concurrent.ConcurrentBag"),
+                                        SyntaxFactory.TypeArgumentList(
+                                            SyntaxFactory.SingletonSeparatedList(rowTypeConcrete))
+                                    )
+                                ).WithArgumentList(SyntaxFactory.ArgumentList())
+                            ))
                     ))
-                ))
             )
         );
 
@@ -1339,7 +1363,6 @@ public static class JoinSourcesTableProcessingHelper
             var expressions = new List<ExpressionSyntax>();
 
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
-            {
                 expressions.Add(
                     SyntaxFactory.ElementAccessExpression(
                         SyntaxFactory.IdentifierName($"{node.First.Alias}Row"),
@@ -1348,23 +1371,21 @@ public static class JoinSourcesTableProcessingHelper
                                 SyntaxFactory.Argument(
                                     (LiteralExpressionSyntax)generator.LiteralExpression(
                                         column.ColumnName))))));
-            }
 
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
-            {
                 expressions.Add(
                     SyntaxFactory.CastExpression(
                         SyntaxFactory.IdentifierName(
                             EvaluationHelper.GetCastableType(column.ColumnType)),
                         (LiteralExpressionSyntax)generator.NullLiteralExpression()));
-            }
 
-            var (_, rewriteSelect, invocation) = CreateSelectAndInvocationForOuterLeft(expressions, generator, scope, node.First.Alias);
+            var (_, rewriteSelect, invocation) =
+                CreateSelectAndInvocationForOuterLeft(expressions, generator, scope, node.First.Alias);
             outerJoinFallback = SyntaxFactory.Block(
                 SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
                 SyntaxFactory.ExpressionStatement(invocation)
             );
-            
+
             outerJoinFallback = (StatementSyntax)rewriter.Visit(outerJoinFallback);
         }
         else if (node.JoinType == JoinType.OuterRight)
@@ -1373,16 +1394,13 @@ public static class JoinSourcesTableProcessingHelper
             var expressions = new List<ExpressionSyntax>();
 
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
-            {
                 expressions.Add(
                     SyntaxFactory.CastExpression(
                         SyntaxFactory.IdentifierName(
                             EvaluationHelper.GetCastableType(column.ColumnType)),
                         (LiteralExpressionSyntax)generator.NullLiteralExpression()));
-            }
 
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
-            {
                 expressions.Add(
                     SyntaxFactory.ElementAccessExpression(
                         SyntaxFactory.IdentifierName($"{node.Second.Alias}Row"),
@@ -1391,17 +1409,17 @@ public static class JoinSourcesTableProcessingHelper
                                 SyntaxFactory.Argument(
                                     (LiteralExpressionSyntax)generator.LiteralExpression(
                                         column.ColumnName))))));
-            }
 
-            var (_, rewriteSelect, invocation) = CreateSelectAndInvocationForOuterRight(expressions, generator, scope, node.Second.Alias);
+            var (_, rewriteSelect, invocation) =
+                CreateSelectAndInvocationForOuterRight(expressions, generator, scope, node.Second.Alias);
             outerJoinFallback = SyntaxFactory.Block(
                 SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
                 SyntaxFactory.ExpressionStatement(invocation)
             );
-            
+
             outerJoinFallback = (StatementSyntax)rewriter.Visit(outerJoinFallback);
         }
-        
+
         var parallelLoop = SyntaxFactory.InvocationExpression(
             SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
@@ -1417,7 +1435,8 @@ public static class JoinSourcesTableProcessingHelper
                             SyntaxFactory.IdentifierName("Create")
                         ),
                         SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
-                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))),
+                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                SyntaxFactory.Literal(0))),
                             SyntaxFactory.Argument(
                                 SyntaxFactory.MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
@@ -1430,165 +1449,230 @@ public static class JoinSourcesTableProcessingHelper
                 ),
                 SyntaxFactory.Argument(
                     SyntaxFactory.ParenthesizedLambdaExpression(
-                        SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Parameter(SyntaxFactory.Identifier("range")))),
+                        SyntaxFactory.ParameterList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Parameter(SyntaxFactory.Identifier("range")))),
                         SyntaxFactory.Block(
                             SyntaxFactory.LocalDeclarationStatement(
-                                SyntaxFactory.VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
-                                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.VariableDeclarator("limit").WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))))
-                                ))
+                                SyntaxFactory
+                                    .VariableDeclaration(
+                                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
+                                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                                        SyntaxFactory.VariableDeclarator("limit")
+                                            .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                                    SyntaxFactory.Literal(0))))
+                                    ))
                             ),
-                            
-                            
                             SyntaxFactory.WhileStatement(
                                 SyntaxFactory.BinaryExpression(
                                     SyntaxKind.LogicalAndExpression,
                                     SyntaxFactory.BinaryExpression(
                                         SyntaxKind.LessThanExpression,
                                         SyntaxFactory.IdentifierName("limit"),
-                                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(innerKeysVar), SyntaxFactory.IdentifierName("Length"))
+                                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                            SyntaxFactory.IdentifierName(innerKeysVar),
+                                            SyntaxFactory.IdentifierName("Length"))
                                     ),
                                     SyntaxFactory.BinaryExpression(
-                                        comparisonKind, 
+                                        comparisonKind,
                                         SyntaxFactory.ElementAccessExpression(
                                             SyntaxFactory.IdentifierName(outerKeysVar),
-                                            SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
-                                                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("range"), SyntaxFactory.IdentifierName("Item1"))
-                                            )))
+                                            SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(
+                                                SyntaxFactory.Argument(
+                                                    SyntaxFactory.MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        SyntaxFactory.IdentifierName("range"),
+                                                        SyntaxFactory.IdentifierName("Item1"))
+                                                )))
                                         ),
                                         SyntaxFactory.ElementAccessExpression(
                                             SyntaxFactory.IdentifierName(innerKeysVar),
-                                            SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("limit"))))
+                                            SyntaxFactory.BracketedArgumentList(
+                                                SyntaxFactory.SingletonSeparatedList(
+                                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("limit"))))
                                         )
                                     )
                                 ),
                                 SyntaxFactory.ExpressionStatement(
-                                    SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName("limit"))
+                                    SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression,
+                                        SyntaxFactory.IdentifierName("limit"))
                                 )
                             ),
-                            
                             SyntaxFactory.ForStatement(
-                                SyntaxFactory.Block(
-                                    SyntaxFactory.LocalDeclarationStatement(
-                                        SyntaxFactory.VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)))
-                                        .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.VariableDeclarator("joined").WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)))
-                                        ))
-                                    ),
-                                    SyntaxFactory.WhileStatement(
-                                        SyntaxFactory.BinaryExpression(
-                                            SyntaxKind.LogicalAndExpression,
+                                    SyntaxFactory.Block(
+                                        SyntaxFactory.LocalDeclarationStatement(
+                                            SyntaxFactory
+                                                .VariableDeclaration(
+                                                    SyntaxFactory.PredefinedType(
+                                                        SyntaxFactory.Token(SyntaxKind.BoolKeyword)))
+                                                .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                                                    SyntaxFactory.VariableDeclarator("joined")
+                                                        .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                                            SyntaxFactory.LiteralExpression(SyntaxKind
+                                                                .FalseLiteralExpression)))
+                                                ))
+                                        ),
+                                        SyntaxFactory.WhileStatement(
                                             SyntaxFactory.BinaryExpression(
-                                                SyntaxKind.LessThanExpression,
-                                                SyntaxFactory.IdentifierName("limit"),
-                                                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(innerKeysVar), SyntaxFactory.IdentifierName("Length"))
-                                            ),
-                                            SyntaxFactory.BinaryExpression(
-                                                comparisonKind,
-                                                SyntaxFactory.ElementAccessExpression(
-                                                    SyntaxFactory.IdentifierName(outerKeysVar),
-                                                    SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
+                                                SyntaxKind.LogicalAndExpression,
+                                                SyntaxFactory.BinaryExpression(
+                                                    SyntaxKind.LessThanExpression,
+                                                    SyntaxFactory.IdentifierName("limit"),
+                                                    SyntaxFactory.MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        SyntaxFactory.IdentifierName(innerKeysVar),
+                                                        SyntaxFactory.IdentifierName("Length"))
                                                 ),
-                                                SyntaxFactory.ElementAccessExpression(
-                                                    SyntaxFactory.IdentifierName(innerKeysVar),
-                                                    SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("limit"))))
+                                                SyntaxFactory.BinaryExpression(
+                                                    comparisonKind,
+                                                    SyntaxFactory.ElementAccessExpression(
+                                                        SyntaxFactory.IdentifierName(outerKeysVar),
+                                                        SyntaxFactory.BracketedArgumentList(
+                                                            SyntaxFactory.SingletonSeparatedList(
+                                                                SyntaxFactory.Argument(
+                                                                    SyntaxFactory.IdentifierName("i"))))
+                                                    ),
+                                                    SyntaxFactory.ElementAccessExpression(
+                                                        SyntaxFactory.IdentifierName(innerKeysVar),
+                                                        SyntaxFactory.BracketedArgumentList(
+                                                            SyntaxFactory.SingletonSeparatedList(
+                                                                SyntaxFactory.Argument(
+                                                                    SyntaxFactory.IdentifierName("limit"))))
+                                                    )
                                                 )
+                                            ),
+                                            SyntaxFactory.ExpressionStatement(
+                                                SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression,
+                                                    SyntaxFactory.IdentifierName("limit"))
                                             )
                                         ),
-                                        SyntaxFactory.ExpressionStatement(
-                                            SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName("limit"))
-                                        )
-                                    ),
-                                    
-                                    SyntaxFactory.ForStatement(
-                                        SyntaxFactory.Block(
-                                            SyntaxFactory.ExpressionStatement(
-                                                SyntaxFactory.AssignmentExpression(
-                                                    SyntaxKind.SimpleAssignmentExpression,
-                                                    SyntaxFactory.IdentifierName("joined"),
-                                                    SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
+                                        SyntaxFactory.ForStatement(
+                                                SyntaxFactory.Block(
+                                                    SyntaxFactory.ExpressionStatement(
+                                                        SyntaxFactory.AssignmentExpression(
+                                                            SyntaxKind.SimpleAssignmentExpression,
+                                                            SyntaxFactory.IdentifierName("joined"),
+                                                            SyntaxFactory.LiteralExpression(SyntaxKind
+                                                                .TrueLiteralExpression)
+                                                        )
+                                                    ),
+                                                    SyntaxFactory.LocalDeclarationStatement(
+                                                        SyntaxFactory
+                                                            .VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                                                            .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                                                                SyntaxFactory.VariableDeclarator($"{probeAlias}Row")
+                                                                    .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                                                        SyntaxFactory.ElementAccessExpression(
+                                                                            SyntaxFactory.IdentifierName(outerRowsVar),
+                                                                            SyntaxFactory.BracketedArgumentList(
+                                                                                SyntaxFactory.SingletonSeparatedList(
+                                                                                    SyntaxFactory.Argument(
+                                                                                        SyntaxFactory.IdentifierName(
+                                                                                            "i"))))
+                                                                        )
+                                                                    ))
+                                                            ))
+                                                    ),
+                                                    SyntaxFactory.LocalDeclarationStatement(
+                                                        SyntaxFactory
+                                                            .VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                                                            .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                                                                SyntaxFactory.VariableDeclarator($"{buildAlias}Row")
+                                                                    .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                                                        SyntaxFactory.ElementAccessExpression(
+                                                                            SyntaxFactory.IdentifierName(innerRowsVar),
+                                                                            SyntaxFactory.BracketedArgumentList(
+                                                                                SyntaxFactory.SingletonSeparatedList(
+                                                                                    SyntaxFactory.Argument(
+                                                                                        SyntaxFactory.IdentifierName(
+                                                                                            "j"))))
+                                                                        )
+                                                                    ))
+                                                            ))
+                                                    ),
+                                                    (StatementSyntax)rewrittenIf,
+                                                    emptyBlock
                                                 )
-                                            ),
-                                            SyntaxFactory.LocalDeclarationStatement(
-                                                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                                                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                                                    SyntaxFactory.VariableDeclarator($"{probeAlias}Row")
-                                                    .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                                        SyntaxFactory.ElementAccessExpression(
-                                                            SyntaxFactory.IdentifierName(outerRowsVar),
-                                                            SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
-                                                        )
+                                            )
+                                            .WithDeclaration(
+                                                SyntaxFactory
+                                                    .VariableDeclaration(
+                                                        SyntaxFactory.PredefinedType(
+                                                            SyntaxFactory.Token(SyntaxKind.IntKeyword)))
+                                                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                                                        SyntaxFactory.VariableDeclarator("j")
+                                                            .WithInitializer(
+                                                                SyntaxFactory.EqualsValueClause(
+                                                                    SyntaxFactory.LiteralExpression(
+                                                                        SyntaxKind.NumericLiteralExpression,
+                                                                        SyntaxFactory.Literal(0))))
                                                     ))
-                                                ))
-                                            ),
-                                            SyntaxFactory.LocalDeclarationStatement(
-                                                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                                                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                                                    SyntaxFactory.VariableDeclarator($"{buildAlias}Row")
-                                                    .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                                        SyntaxFactory.ElementAccessExpression(
-                                                            SyntaxFactory.IdentifierName(innerRowsVar),
-                                                            SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("j"))))
-                                                        )
-                                                    ))
-                                                ))
-                                            ),
-                                            (StatementSyntax)rewrittenIf,
-                                            emptyBlock
-                                        )
+                                            )
+                                            .WithCondition(
+                                                SyntaxFactory.BinaryExpression(
+                                                    SyntaxKind.LessThanExpression,
+                                                    SyntaxFactory.IdentifierName("j"),
+                                                    SyntaxFactory.IdentifierName("limit")
+                                                )
+                                            )
+                                            .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                                SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression,
+                                                    SyntaxFactory.IdentifierName("j")))),
+                                        node.JoinType == JoinType.OuterLeft || node.JoinType == JoinType.OuterRight
+                                            ? SyntaxFactory.IfStatement(
+                                                SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression,
+                                                    SyntaxFactory.IdentifierName("joined")),
+                                                SyntaxFactory.Block(
+                                                    SyntaxFactory.LocalDeclarationStatement(
+                                                        SyntaxFactory
+                                                            .VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                                                            .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                                                                SyntaxFactory.VariableDeclarator($"{probeAlias}Row")
+                                                                    .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                                                        SyntaxFactory.ElementAccessExpression(
+                                                                            SyntaxFactory.IdentifierName(outerRowsVar),
+                                                                            SyntaxFactory.BracketedArgumentList(
+                                                                                SyntaxFactory.SingletonSeparatedList(
+                                                                                    SyntaxFactory.Argument(
+                                                                                        SyntaxFactory.IdentifierName(
+                                                                                            "i"))))
+                                                                        )
+                                                                    ))
+                                                            ))
+                                                    ),
+                                                    outerJoinFallback
+                                                )
+                                            )
+                                            : SyntaxFactory.EmptyStatement()
                                     )
-                                    .WithDeclaration(
-                                        SyntaxFactory.VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
+                                )
+                                .WithDeclaration(
+                                    SyntaxFactory
+                                        .VariableDeclaration(
+                                            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
                                         .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.VariableDeclarator("j").WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))))
-                                        ))
-                                    )
-                                    .WithCondition(
-                                        SyntaxFactory.BinaryExpression(
-                                            SyntaxKind.LessThanExpression,
-                                            SyntaxFactory.IdentifierName("j"),
-                                            SyntaxFactory.IdentifierName("limit")
-                                        )
-                                    )
-                                    .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName("j")))),
-
-                                    (node.JoinType == JoinType.OuterLeft || node.JoinType == JoinType.OuterRight) ? 
-                                    (StatementSyntax)SyntaxFactory.IfStatement(
-                                        SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, SyntaxFactory.IdentifierName("joined")),
-                                        SyntaxFactory.Block(
-                                            SyntaxFactory.LocalDeclarationStatement(
-                                                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                                                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                                                    SyntaxFactory.VariableDeclarator($"{probeAlias}Row")
-                                                    .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                                        SyntaxFactory.ElementAccessExpression(
-                                                            SyntaxFactory.IdentifierName(outerRowsVar),
-                                                            SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))
-                                                        )
-                                                    ))
+                                            SyntaxFactory.VariableDeclarator("i").WithInitializer(
+                                                SyntaxFactory.EqualsValueClause(
+                                                    SyntaxFactory.MemberAccessExpression(
+                                                        SyntaxKind.SimpleMemberAccessExpression,
+                                                        SyntaxFactory.IdentifierName("range"),
+                                                        SyntaxFactory.IdentifierName("Item1"))
                                                 ))
-                                            ),
-                                            outerJoinFallback
-                                        )
-                                    ) : SyntaxFactory.EmptyStatement()
+                                        ))
                                 )
-                            )
-                            .WithDeclaration(
-                                SyntaxFactory.VariableDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
-                                .WithVariables(SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.VariableDeclarator("i").WithInitializer(SyntaxFactory.EqualsValueClause(
-                                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("range"), SyntaxFactory.IdentifierName("Item1"))
-                                    ))
-                                ))
-                            )
-                            .WithCondition(
-                                SyntaxFactory.BinaryExpression(
-                                    SyntaxKind.LessThanExpression,
-                                    SyntaxFactory.IdentifierName("i"),
-                                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("range"), SyntaxFactory.IdentifierName("Item2"))
+                                .WithCondition(
+                                    SyntaxFactory.BinaryExpression(
+                                        SyntaxKind.LessThanExpression,
+                                        SyntaxFactory.IdentifierName("i"),
+                                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                            SyntaxFactory.IdentifierName("range"),
+                                            SyntaxFactory.IdentifierName("Item2"))
+                                    )
                                 )
-                            )
-                            .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName("i"))))
+                                .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                    SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression,
+                                        SyntaxFactory.IdentifierName("i"))))
                         )
                     )
                 )
@@ -1596,7 +1680,7 @@ public static class JoinSourcesTableProcessingHelper
         );
 
         computingBlock = computingBlock.AddStatements(SyntaxFactory.ExpressionStatement(parallelLoop));
-        
+
         computingBlock = computingBlock.AddStatements(
             SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.InvocationExpression(
@@ -1605,7 +1689,9 @@ public static class JoinSourcesTableProcessingHelper
                         SyntaxFactory.IdentifierName(scope[MetaAttributes.SelectIntoVariableName]),
                         SyntaxFactory.IdentifierName("AddRange")
                     ),
-                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("resultBag"))))
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("resultBag"))))
                 )
             )
         );
@@ -1620,6 +1706,7 @@ public static class JoinSourcesTableProcessingHelper
             var newStatements = block.Statements.Where(s => !IsGuardClause(s));
             return SyntaxFactory.Block(newStatements);
         }
+
         return statement;
     }
 
@@ -1632,17 +1719,19 @@ public static class JoinSourcesTableProcessingHelper
             if (ifStmt.Statement is ContinueStatementSyntax)
                 return true;
         }
+
         return false;
     }
 
     private static string GenerateRowResolverCreation(Scope scope, string alias)
     {
         var columns = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias).GetColumns(alias);
-        var mapCreation = "new System.Collections.Generic.Dictionary<string, int> { " + 
-            string.Join(", ", columns.Select((c, i) => $"{{\"{c.ColumnName}\", {i}}}")) + 
-            " }";
-        
-        return $"(Musoq.Schema.DataSources.IObjectResolver)new Musoq.Evaluator.Tables.RowResolver(new Musoq.Evaluator.Tables.ObjectsRow(new object[{columns.Length}]), {mapCreation})";
+        var mapCreation = "new System.Collections.Generic.Dictionary<string, int> { " +
+                          string.Join(", ", columns.Select((c, i) => $"{{\"{c.ColumnName}\", {i}}}")) +
+                          " }";
+
+        return
+            $"(Musoq.Schema.DataSources.IObjectResolver)new Musoq.Evaluator.Tables.RowResolver(new Musoq.Evaluator.Tables.ObjectsRow(new object[{columns.Length}]), {mapCreation})";
     }
 
     private static ExpressionSyntax ReplaceIdentifier(ExpressionSyntax expression, string oldName, string newName)
@@ -1651,63 +1740,12 @@ public static class JoinSourcesTableProcessingHelper
         return (ExpressionSyntax)rewriter.Visit(expression);
     }
 
-    private class IdentifierReplacementRewriter : CSharpSyntaxRewriter
-    {
-        private readonly string _oldName;
-        private readonly string _newName;
-
-        public IdentifierReplacementRewriter(string oldName, string newName)
-        {
-            _oldName = oldName;
-            _newName = newName;
-        }
-
-        public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
-        {
-            if (node.Identifier.Text == _oldName)
-            {
-                return SyntaxFactory.IdentifierName(_newName);
-            }
-            return base.VisitIdentifierName(node);
-        }
-    }
-
-    private class TableAddRewriter : Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter
-    {
-        private readonly string _tableName;
-        private readonly string _listName;
-
-        public TableAddRewriter(string tableName, string listName)
-        {
-            _tableName = tableName;
-            _listName = listName;
-        }
-
-        public override Microsoft.CodeAnalysis.SyntaxNode VisitInvocationExpression(Microsoft.CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax node)
-        {
-            if (node.Expression is Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax memberAccess)
-            {
-                if (memberAccess.Expression is Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax identifier &&
-                    identifier.Identifier.Text == _tableName &&
-                    memberAccess.Name.Identifier.Text == "Add")
-                {
-                    return node.WithExpression(
-                        memberAccess.WithExpression(
-                            SyntaxFactory.IdentifierName(_listName)
-                        )
-                    );
-                }
-            }
-            return base.VisitInvocationExpression(node);
-        }
-    }
-
     private static bool TryGetSortMergeJoinKeys(
-        JoinSourcesTableFromNode node, 
+        JoinSourcesTableFromNode node,
         Scope scope,
         Func<Node, ExpressionSyntax> nodeTranslator,
-        out ExpressionSyntax leftKey, 
-        out ExpressionSyntax rightKey, 
+        out ExpressionSyntax leftKey,
+        out ExpressionSyntax rightKey,
         out Type keyType,
         out BinaryNode condition,
         out SyntaxKind comparisonKind)
@@ -1719,7 +1757,7 @@ public static class JoinSourcesTableProcessingHelper
         comparisonKind = SyntaxKind.None;
 
         var conditions = new List<BinaryNode>();
-        
+
         if (node.Expression is BinaryNode binary && IsInequality(binary))
         {
             conditions.Add(binary);
@@ -1728,7 +1766,7 @@ public static class JoinSourcesTableProcessingHelper
         {
             var stack = new Stack<Node>();
             stack.Push(and);
-            
+
             while (stack.Count > 0)
             {
                 var current = stack.Pop();
@@ -1750,30 +1788,30 @@ public static class JoinSourcesTableProcessingHelper
             var leftTraverser = new ExtractAccessColumnFromQueryTraverseVisitor(leftVisitor);
             bin.Left.Accept(leftTraverser);
             var leftColumns = leftVisitor.GetForAliases(node.First.Alias, node.Second.Alias);
-            
+
             var rightVisitor = new ExtractAccessColumnFromQueryVisitor();
             var rightTraverser = new ExtractAccessColumnFromQueryTraverseVisitor(rightVisitor);
             bin.Right.Accept(rightTraverser);
             var rightColumns = rightVisitor.GetForAliases(node.First.Alias, node.Second.Alias);
 
-            bool leftHasFirst = leftColumns.Any(c => c.Alias == node.First.Alias);
-            bool leftHasSecond = leftColumns.Any(c => c.Alias == node.Second.Alias);
-            bool rightHasFirst = rightColumns.Any(c => c.Alias == node.First.Alias);
-            bool rightHasSecond = rightColumns.Any(c => c.Alias == node.Second.Alias);
+            var leftHasFirst = leftColumns.Any(c => c.Alias == node.First.Alias);
+            var leftHasSecond = leftColumns.Any(c => c.Alias == node.Second.Alias);
+            var rightHasFirst = rightColumns.Any(c => c.Alias == node.First.Alias);
+            var rightHasSecond = rightColumns.Any(c => c.Alias == node.Second.Alias);
 
-            bool leftIsFirst = leftHasFirst && !leftHasSecond;
-            bool leftIsSecond = leftHasSecond && !leftHasFirst;
-            bool leftIsConstant = !leftHasFirst && !leftHasSecond;
+            var leftIsFirst = leftHasFirst && !leftHasSecond;
+            var leftIsSecond = leftHasSecond && !leftHasFirst;
+            var leftIsConstant = !leftHasFirst && !leftHasSecond;
 
-            bool rightIsFirst = rightHasFirst && !rightHasSecond;
-            bool rightIsSecond = rightHasSecond && !rightHasFirst;
-            bool rightIsConstant = !rightHasFirst && !rightHasSecond;
+            var rightIsFirst = rightHasFirst && !rightHasSecond;
+            var rightIsSecond = rightHasSecond && !rightHasFirst;
+            var rightIsConstant = !rightHasFirst && !rightHasSecond;
 
             if (leftIsConstant && rightIsConstant) continue;
 
             Node outerNode = null;
             Node innerNode = null;
-            SyntaxKind kind = SyntaxKind.None;
+            var kind = SyntaxKind.None;
 
             if ((leftIsFirst || leftIsConstant) && (rightIsSecond || rightIsConstant))
             {
@@ -1792,47 +1830,47 @@ public static class JoinSourcesTableProcessingHelper
             {
                 var type1 = outerNode.ReturnType;
                 var type2 = innerNode.ReturnType;
-                
+
                 var type1Underlying = Nullable.GetUnderlyingType(type1) ?? type1;
                 var type2Underlying = Nullable.GetUnderlyingType(type2) ?? type2;
 
                 if (type1Underlying == type2Underlying && IsComparable(type1Underlying))
                 {
-                    Type kType = type1 != type2
+                    var kType = type1 != type2
                         ? typeof(Nullable<>).MakeGenericType(type1Underlying)
                         : type1;
-                    
+
                     leftKey = nodeTranslator(outerNode);
                     rightKey = nodeTranslator(innerNode);
                     keyType = kType;
                     condition = bin;
                     comparisonKind = kind;
-                    
+
                     return true;
                 }
             }
         }
-        
+
         return false;
     }
 
     private static int GetColumnIndex(string name, TableSymbol table, string alias)
     {
         var columns = table.GetColumns(alias);
-        for(int i=0; i<columns.Length; i++)
-        {
-            if(string.Equals(columns[i].ColumnName, name, StringComparison.OrdinalIgnoreCase)) return columns[i].ColumnIndex;
-        }
+        for (var i = 0; i < columns.Length; i++)
+            if (string.Equals(columns[i].ColumnName, name, StringComparison.OrdinalIgnoreCase))
+                return columns[i].ColumnIndex;
         return -1;
     }
 
     private static ExpressionSyntax CreateColumnAccessExpression(string alias, int index, Type type)
     {
         var rowVar = SyntaxFactory.IdentifierName($"{alias}Row");
-        var indexLiteral = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(index));
-        
+        var indexLiteral =
+            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(index));
+
         var iObjectResolverType = SyntaxHelper.IObjectResolverTypeSyntax;
-        
+
         var castToResolver = SyntaxFactory.CastExpression(iObjectResolverType, rowVar);
         var accessResolver = SyntaxFactory.ElementAccessExpression(
             SyntaxFactory.ParenthesizedExpression(castToResolver),
@@ -1842,7 +1880,7 @@ public static class JoinSourcesTableProcessingHelper
                 )
             )
         );
-        
+
         return SyntaxFactory.CastExpression(
             SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(type)),
             accessResolver
@@ -1856,7 +1894,9 @@ public static class JoinSourcesTableProcessingHelper
 
     private static bool IsComparable(Type type)
     {
-        return typeof(IComparable).IsAssignableFrom(type) || type.IsPrimitive || type == typeof(string) || type == typeof(DateTime) || type == typeof(DateTimeOffset) || type == typeof(TimeSpan) || type == typeof(decimal);
+        return typeof(IComparable).IsAssignableFrom(type) || type.IsPrimitive || type == typeof(string) ||
+               type == typeof(DateTime) || type == typeof(DateTimeOffset) || type == typeof(TimeSpan) ||
+               type == typeof(decimal);
     }
 
     private static SyntaxKind GetSyntaxKind(BinaryNode node)
@@ -1885,7 +1925,7 @@ public static class JoinSourcesTableProcessingHelper
     {
         if (type == typeof(void)) return "void";
         if (!type.IsGenericType) return type.FullName.Replace('+', '.');
-        
+
         var genericTypeName = type.GetGenericTypeDefinition().FullName.Replace('+', '.');
         genericTypeName = genericTypeName.Substring(0, genericTypeName.IndexOf('`'));
         var genericArgs = string.Join(",", type.GetGenericArguments().Select(GetTypeName));
@@ -1901,6 +1941,51 @@ public static class JoinSourcesTableProcessingHelper
             case SyntaxKind.LessThanExpression: return SyntaxKind.GreaterThanExpression;
             case SyntaxKind.LessThanOrEqualExpression: return SyntaxKind.GreaterThanOrEqualExpression;
             default: return kind;
+        }
+    }
+
+    private class IdentifierReplacementRewriter : CSharpSyntaxRewriter
+    {
+        private readonly string _newName;
+        private readonly string _oldName;
+
+        public IdentifierReplacementRewriter(string oldName, string newName)
+        {
+            _oldName = oldName;
+            _newName = newName;
+        }
+
+        public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
+        {
+            if (node.Identifier.Text == _oldName) return SyntaxFactory.IdentifierName(_newName);
+            return base.VisitIdentifierName(node);
+        }
+    }
+
+    private class TableAddRewriter : CSharpSyntaxRewriter
+    {
+        private readonly string _listName;
+        private readonly string _tableName;
+
+        public TableAddRewriter(string tableName, string listName)
+        {
+            _tableName = tableName;
+            _listName = listName;
+        }
+
+        public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
+        {
+            if (node.Expression is MemberAccessExpressionSyntax memberAccess)
+                if (memberAccess.Expression is IdentifierNameSyntax identifier &&
+                    identifier.Identifier.Text == _tableName &&
+                    memberAccess.Name.Identifier.Text == "Add")
+                    return node.WithExpression(
+                        memberAccess.WithExpression(
+                            SyntaxFactory.IdentifierName(_listName)
+                        )
+                    );
+
+            return base.VisitInvocationExpression(node);
         }
     }
 }

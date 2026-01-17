@@ -346,7 +346,6 @@ public class ValidationTests
     [TestMethod]
     public void IsValidDecimal_WhenDecimal_ReturnsTrue()
     {
-        
         Assert.IsTrue(_library.IsValidDecimal("123,456"));
     }
 

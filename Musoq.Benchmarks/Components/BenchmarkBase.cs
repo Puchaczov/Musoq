@@ -15,7 +15,7 @@ public class BenchmarkBase
     {
         Culture.ApplyWithDefaultCulture();
     }
-        
+
     protected CancellationTokenSource TokenSource { get; } = new();
 
     protected CompiledQuery CreateForCountryWithOptions(
@@ -24,9 +24,10 @@ public class BenchmarkBase
         CompilationOptions compilationOptions)
     {
         return InstanceCreator.CompileForExecution(
-            script, 
-            Guid.NewGuid().ToString(), 
-            new GenericSchemaProvider<CountryEntity, CountryEntityTable>(sources, CountryEntity.KNameToIndexMap, CountryEntity.KIndexToObjectAccessMap), _loggerResolver, compilationOptions);
+            script,
+            Guid.NewGuid().ToString(),
+            new GenericSchemaProvider<CountryEntity, CountryEntityTable>(sources, CountryEntity.KNameToIndexMap,
+                CountryEntity.KIndexToObjectAccessMap), _loggerResolver, compilationOptions);
     }
 
     protected CompiledQuery CreateForProfilesWithOptions(
@@ -35,8 +36,9 @@ public class BenchmarkBase
         CompilationOptions compilationOptions)
     {
         return InstanceCreator.CompileForExecution(
-            script, 
-            Guid.NewGuid().ToString(), 
-            new GenericSchemaProvider<ProfileEntity, ProfileEntityTable>(sources, ProfileEntity.KNameToIndexMap, ProfileEntity.KIndexToObjectAccessMap), _loggerResolver, compilationOptions);
+            script,
+            Guid.NewGuid().ToString(),
+            new GenericSchemaProvider<ProfileEntity, ProfileEntityTable>(sources, ProfileEntity.KNameToIndexMap,
+                ProfileEntity.KIndexToObjectAccessMap), _loggerResolver, compilationOptions);
     }
 }

@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Reflection.Emit;
 using Musoq.Schema.Attributes;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Reflection;
+using ConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 
 namespace Musoq.Schema.Helpers;
 
@@ -20,10 +22,10 @@ public static class TypeHelper
         if (type.IsArray)
         {
             var elementType = type.GetElementType();
-            
+
             if (elementType == null)
                 throw new InvalidOperationException("Element type cannot be null.");
-            
+
             var underlyingElementType = Nullable.GetUnderlyingType(elementType);
             return (underlyingElementType ?? elementType).MakeArrayType();
         }
@@ -33,7 +35,7 @@ public static class TypeHelper
     }
 
     /// <summary>
-    /// Checks if the type can be considered as contextual value type.
+    ///     Checks if the type can be considered as contextual value type.
     /// </summary>
     /// <param name="type">The type.</param>
     /// <returns>True if is pure value type. False if is Nullable[T] type or is reference type.</returns>
@@ -60,7 +62,7 @@ public static class TypeHelper
     }
 
     /// <summary>
-    /// Determine if method has parameters.
+    ///     Determine if method has parameters.
     /// </summary>
     /// <param name="paramsParameters"></param>
     /// <returns>True if has parameters, otherwise false.</returns>
@@ -108,9 +110,9 @@ public static class TypeHelper
             return attributes.Any(g => g.GetType().IsAssignableTo(typeof(TType)));
         }).ToArray();
     }
-        
+
     /// <summary>
-    /// Gets the parameters that are annotated by some attribute
+    ///     Gets the parameters that are annotated by some attribute
     /// </summary>
     /// <param name="parameterInfo">Parameter that attributes will be filtered.</param>
     /// <typeparam name="TAttribute">Base type.</typeparam>
@@ -128,7 +130,8 @@ public static class TypeHelper
     /// </summary>
     /// <typeparam name="TType">Type to describe.</typeparam>
     /// <returns>Mapped entity.</returns>
-    public static (IDictionary<string, int> NameToIndexMap, IDictionary<int, Func<TType, object>> IndexToMethodAccessMap, ISchemaColumn[] Columns) GetEntityMap<TType>()
+    public static (IDictionary<string, int> NameToIndexMap, IDictionary<int, Func<TType, object>> IndexToMethodAccessMap
+        , ISchemaColumn[] Columns) GetEntityMap<TType>()
     {
         var columnIndex = 0;
 
@@ -142,13 +145,13 @@ public static class TypeHelper
             if (member.GetCustomAttribute<EntityPropertyAttribute>() == null)
                 continue;
 
-            if(member.MemberType != MemberTypes.Property)
+            if (member.MemberType != MemberTypes.Property)
                 continue;
 
             var property = (PropertyInfo)member;
-            
+
             var getMethod = property.GetGetMethod();
-            
+
             if (getMethod == null)
                 continue;
 
@@ -186,14 +189,14 @@ public static class TypeHelper
     /// <param name="typeIdentifier">Type identifier.</param>
     /// <typeparam name="TType">The type.</typeparam>
     /// <returns>Array of schema method infos.</returns>
-    public static Reflection.SchemaMethodInfo[] GetSchemaMethodInfosForType<TType>(string typeIdentifier)
+    public static SchemaMethodInfo[] GetSchemaMethodInfosForType<TType>(string typeIdentifier)
     {
-        return GetConstructorsFor<TType>().Select(constr => new Reflection.SchemaMethodInfo(typeIdentifier, constr)).ToArray();
+        return GetConstructorsFor<TType>().Select(constr => new SchemaMethodInfo(typeIdentifier, constr)).ToArray();
     }
 
-    public static Reflection.ConstructorInfo[] GetConstructorsFor<TType>()
+    public static ConstructorInfo[] GetConstructorsFor<TType>()
     {
-        var constructors = new List<Reflection.ConstructorInfo>();
+        var constructors = new List<ConstructorInfo>();
 
         var type = typeof(TType);
         var allConstructors = type.GetConstructors();
@@ -201,25 +204,24 @@ public static class TypeHelper
         foreach (var constr in allConstructors)
         {
             var paramsInfo = GetParametersForConstructor(constr);
-            constructors.Add(new Reflection.ConstructorInfo(constr, paramsInfo.SupportsInterCommunicator, paramsInfo.Parameters));
+            constructors.Add(new ConstructorInfo(constr, paramsInfo.SupportsInterCommunicator, paramsInfo.Parameters));
         }
 
         return constructors.ToArray();
     }
 
-    private static (bool SupportsInterCommunicator, (string Name, Type Type)[] Parameters) GetParametersForConstructor(ConstructorInfo constructor)
+    private static (bool SupportsInterCommunicator, (string Name, Type Type)[] Parameters) GetParametersForConstructor(
+        System.Reflection.ConstructorInfo constructor)
     {
         var parameters = constructor.GetParameters();
         var filteredConstructors = new List<(string Name, Type Type)>();
         var supportsInterCommunicator = false;
 
-        foreach(var param in parameters)
-        {
+        foreach (var param in parameters)
             if (param.ParameterType != typeof(RuntimeContext))
                 filteredConstructors.Add((param.Name, param.ParameterType));
             else
                 supportsInterCommunicator = true;
-        }
 
         return (supportsInterCommunicator, filteredConstructors.ToArray());
     }

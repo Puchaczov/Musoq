@@ -6,13 +6,15 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 namespace Musoq.Evaluator.Tests;
 
 /// <summary>
-/// Comprehensive tests for reordered SQL syntax (FROM-first) with CTEs (Common Table Expressions).
-/// These tests verify that the reordered syntax works correctly in various complex scenarios
-/// including nested CTEs, set operators, joins, and mixed syntax usage.
+///     Comprehensive tests for reordered SQL syntax (FROM-first) with CTEs (Common Table Expressions).
+///     These tests verify that the reordered syntax works correctly in various complex scenarios
+///     including nested CTEs, set operators, joins, and mixed syntax usage.
 /// </summary>
 [TestClass]
 public class ReorderedSyntaxCteTests : BasicEntityTestBase
 {
+    public TestContext TestContext { get; set; }
+
     #region Category 1: CTE with Reordered Inner Query
 
     [TestMethod]
@@ -41,12 +43,12 @@ public class ReorderedSyntaxCteTests : BasicEntityTestBase
         Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(2, table.Count);
-        
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "WARSAW" && 
+
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "WARSAW" &&
             (string)row.Values[1] == "POLAND"));
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "BERLIN" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "BERLIN" &&
             (string)row.Values[1] == "GERMANY"));
     }
 
@@ -101,11 +103,11 @@ public class ReorderedSyntaxCteTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "POLAND" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "POLAND" &&
             (decimal)row.Values[1] == 900m));
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "GERMANY" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "GERMANY" &&
             (decimal)row.Values[1] == 250m));
     }
 
@@ -199,7 +201,8 @@ public class ReorderedSyntaxCteTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Count);
         var city = (string)table[0].Values[0];
-        Assert.IsTrue(city == "WARSAW" || city == "CZESTOCHOWA" || city == "KATOWICE", "Result should be one of the input values");
+        Assert.IsTrue(city == "WARSAW" || city == "CZESTOCHOWA" || city == "KATOWICE",
+            "Result should be one of the input values");
     }
 
     #endregion
@@ -229,8 +232,8 @@ public class ReorderedSyntaxCteTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "WARSAW" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "WARSAW" &&
             (string)row.Values[1] == "POLAND"));
     }
 
@@ -286,8 +289,8 @@ public class ReorderedSyntaxCteTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "POLAND" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "POLAND" &&
             (decimal)row.Values[1] == 900m));
     }
 
@@ -389,11 +392,11 @@ public class ReorderedSyntaxCteTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "WARSAW" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "WARSAW" &&
             (string)row.Values[1] == "POLAND"));
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "MUNICH" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "MUNICH" &&
             (string)row.Values[1] == "GERMANY"));
     }
 
@@ -600,11 +603,11 @@ public class ReorderedSyntaxCteTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "WARSAW" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "WARSAW" &&
             (string)row.Values[2] == "KRAKOW"));
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "BERLIN" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "BERLIN" &&
             row.Values[2] == null));
     }
 
@@ -840,11 +843,11 @@ public class ReorderedSyntaxCteTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "POLAND" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "POLAND" &&
             (decimal)row.Values[1] == 900m));
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "GERMANY" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "GERMANY" &&
             (decimal)row.Values[1] == 350m));
     }
 
@@ -884,11 +887,11 @@ public class ReorderedSyntaxCteTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "POLAND" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "POLAND" &&
             (int)row.Values[1] == 2));
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "GERMANY" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "GERMANY" &&
             (int)row.Values[1] == 1));
     }
 
@@ -928,8 +931,8 @@ public class ReorderedSyntaxCteTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "POLAND" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "POLAND" &&
             (decimal)row.Values[1] == 900m));
     }
 
@@ -970,11 +973,11 @@ public class ReorderedSyntaxCteTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "POLAND" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "POLAND" &&
             (decimal)row.Values[1] == 900m));
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "GERMANY" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "GERMANY" &&
             (decimal)row.Values[1] == 600m));
     }
 
@@ -1033,11 +1036,11 @@ public class ReorderedSyntaxCteTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "WARSAW" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "WARSAW" &&
             (string)row.Values[1] == "Large"));
-        Assert.IsTrue(table.Any(row => 
-            (string)row.Values[0] == "KATOWICE" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row.Values[0] == "KATOWICE" &&
             (string)row.Values[1] == "Small"));
     }
 
@@ -1179,6 +1182,4 @@ public class ReorderedSyntaxCteTests : BasicEntityTestBase
     }
 
     #endregion
-
-    public TestContext TestContext { get; set; }
 }

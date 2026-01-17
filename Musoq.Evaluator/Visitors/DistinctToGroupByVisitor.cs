@@ -5,7 +5,7 @@ namespace Musoq.Evaluator.Visitors;
 public class DistinctToGroupByVisitor : CloneQueryVisitor
 {
     protected override string VisitorName => nameof(DistinctToGroupByVisitor);
-    
+
     public override void Visit(QueryNode node)
     {
         var orderBy = node.OrderBy != null ? Nodes.Pop() as OrderByNode : null;
@@ -22,28 +22,25 @@ public class DistinctToGroupByVisitor : CloneQueryVisitor
         {
             var groupByFields = CreateGroupByFieldsFromSelect(select);
             groupBy = new GroupByNode(groupByFields, null);
-            
+
             var newSelectFields = new FieldNode[select.Fields.Length];
-            for (var i = 0; i < select.Fields.Length; i++)
-            {
-                newSelectFields[i] = select.Fields[i];
-            }
-            select = new SelectNode(newSelectFields, false);
+            for (var i = 0; i < select.Fields.Length; i++) newSelectFields[i] = select.Fields[i];
+            select = new SelectNode(newSelectFields);
         }
 
         Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take));
     }
-    
+
     private static FieldNode[] CreateGroupByFieldsFromSelect(SelectNode select)
     {
         var fields = new FieldNode[select.Fields.Length];
-        
+
         for (var i = 0; i < select.Fields.Length; i++)
         {
             var originalField = select.Fields[i];
             fields[i] = new FieldNode(originalField.Expression, i, string.Empty);
         }
-        
+
         return fields;
     }
 }

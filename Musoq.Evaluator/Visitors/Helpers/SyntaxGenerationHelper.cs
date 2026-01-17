@@ -7,13 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Helper class for common C# syntax generation patterns.
-/// Reduces repetitive SyntaxFactory usage and improves code readability.
+///     Helper class for common C# syntax generation patterns.
+///     Reduces repetitive SyntaxFactory usage and improves code readability.
 /// </summary>
 public static class SyntaxGenerationHelper
 {
     /// <summary>
-    /// Creates an argument list with the specified expressions.
+    ///     Creates an argument list with the specified expressions.
     /// </summary>
     /// <param name="expressions">The expressions to include as arguments.</param>
     /// <returns>An ArgumentListSyntax with the specified expressions.</returns>
@@ -28,7 +28,7 @@ public static class SyntaxGenerationHelper
     }
 
     /// <summary>
-    /// Creates an argument list with the specified arguments.
+    ///     Creates an argument list with the specified arguments.
     /// </summary>
     /// <param name="arguments">The arguments to include.</param>
     /// <returns>An ArgumentListSyntax with the specified arguments.</returns>
@@ -42,7 +42,7 @@ public static class SyntaxGenerationHelper
     }
 
     /// <summary>
-    /// Creates an argument list with the specified expressions as a collection.
+    ///     Creates an argument list with the specified expressions as a collection.
     /// </summary>
     /// <param name="expressions">The expressions to include as arguments.</param>
     /// <returns>An ArgumentListSyntax with the specified expressions.</returns>
@@ -57,7 +57,7 @@ public static class SyntaxGenerationHelper
     }
 
     /// <summary>
-    /// Creates a method invocation expression with the specified target and method name.
+    ///     Creates a method invocation expression with the specified target and method name.
     /// </summary>
     /// <param name="target">The target object or type.</param>
     /// <param name="methodName">The name of the method to invoke.</param>
@@ -66,8 +66,8 @@ public static class SyntaxGenerationHelper
     /// <exception cref="ArgumentNullException">Thrown when target or methodName is null.</exception>
     /// <exception cref="ArgumentException">Thrown when methodName is empty.</exception>
     public static InvocationExpressionSyntax CreateMethodInvocation(
-        ExpressionSyntax target, 
-        string methodName, 
+        ExpressionSyntax target,
+        string methodName,
         params ExpressionSyntax[] arguments)
     {
         if (target == null)
@@ -87,7 +87,7 @@ public static class SyntaxGenerationHelper
     }
 
     /// <summary>
-    /// Creates a method invocation expression with the specified target identifier and method name.
+    ///     Creates a method invocation expression with the specified target identifier and method name.
     /// </summary>
     /// <param name="targetIdentifier">The name of the target object or type.</param>
     /// <param name="methodName">The name of the method to invoke.</param>
@@ -96,8 +96,8 @@ public static class SyntaxGenerationHelper
     /// <exception cref="ArgumentNullException">Thrown when targetIdentifier or methodName is null.</exception>
     /// <exception cref="ArgumentException">Thrown when targetIdentifier or methodName is empty.</exception>
     public static InvocationExpressionSyntax CreateMethodInvocation(
-        string targetIdentifier, 
-        string methodName, 
+        string targetIdentifier,
+        string methodName,
         params ExpressionSyntax[] arguments)
     {
         if (targetIdentifier == null)
@@ -109,7 +109,7 @@ public static class SyntaxGenerationHelper
     }
 
     /// <summary>
-    /// Creates a method invocation expression for static methods.
+    ///     Creates a method invocation expression for static methods.
     /// </summary>
     /// <param name="typeName">The name of the type containing the static method.</param>
     /// <param name="methodName">The name of the static method to invoke.</param>
@@ -118,8 +118,8 @@ public static class SyntaxGenerationHelper
     /// <exception cref="ArgumentNullException">Thrown when typeName or methodName is null.</exception>
     /// <exception cref="ArgumentException">Thrown when typeName or methodName is empty.</exception>
     public static InvocationExpressionSyntax CreateStaticMethodInvocation(
-        string typeName, 
-        string methodName, 
+        string typeName,
+        string methodName,
         params ExpressionSyntax[] arguments)
     {
         if (typeName == null)
@@ -131,7 +131,7 @@ public static class SyntaxGenerationHelper
     }
 
     /// <summary>
-    /// Creates a string literal expression.
+    ///     Creates a string literal expression.
     /// </summary>
     /// <param name="value">The string value.</param>
     /// <returns>A LiteralExpressionSyntax for the string.</returns>
@@ -147,7 +147,7 @@ public static class SyntaxGenerationHelper
     }
 
     /// <summary>
-    /// Creates a numeric literal expression.
+    ///     Creates a numeric literal expression.
     /// </summary>
     /// <param name="value">The numeric value.</param>
     /// <returns>A LiteralExpressionSyntax for the number.</returns>
@@ -159,7 +159,7 @@ public static class SyntaxGenerationHelper
     }
 
     /// <summary>
-    /// Creates a boolean literal expression.
+    ///     Creates a boolean literal expression.
     /// </summary>
     /// <param name="value">The boolean value.</param>
     /// <returns>A LiteralExpressionSyntax for the boolean.</returns>
@@ -170,7 +170,7 @@ public static class SyntaxGenerationHelper
     }
 
     /// <summary>
-    /// Creates a null literal expression.
+    ///     Creates a null literal expression.
     /// </summary>
     /// <returns>A LiteralExpressionSyntax for null.</returns>
     public static LiteralExpressionSyntax CreateNullLiteral()
@@ -179,7 +179,7 @@ public static class SyntaxGenerationHelper
     }
 
     /// <summary>
-    /// Creates an identifier name expression.
+    ///     Creates an identifier name expression.
     /// </summary>
     /// <param name="identifier">The identifier name.</param>
     /// <returns>An IdentifierNameSyntax.</returns>
@@ -196,7 +196,7 @@ public static class SyntaxGenerationHelper
     }
 
     /// <summary>
-    /// Creates a member access expression (e.g., object.property).
+    ///     Creates a member access expression (e.g., object.property).
     /// </summary>
     /// <param name="target">The target object or expression.</param>
     /// <param name="memberName">The name of the member to access.</param>
@@ -219,7 +219,7 @@ public static class SyntaxGenerationHelper
     }
 
     /// <summary>
-    /// Creates a member access expression with a string target identifier.
+    ///     Creates a member access expression with a string target identifier.
     /// </summary>
     /// <param name="targetIdentifier">The name of the target object.</param>
     /// <param name="memberName">The name of the member to access.</param>

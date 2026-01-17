@@ -7,7 +7,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Converts object to json.
+    ///     Converts object to json.
     /// </summary>
     /// <param name="obj">Object to convert. </param>
     /// <typeparam name="T">Type of object. </typeparam>
@@ -18,9 +18,9 @@ public partial class LibraryBase
     {
         return obj == null ? null : JsonSerializer.Serialize(obj);
     }
-    
+
     /// <summary>
-    /// Extracts values from json by path.
+    ///     Extracts values from json by path.
     /// </summary>
     /// <param name="json">Json to extract value from. </param>
     /// <param name="path">Path to value. </param>
@@ -34,9 +34,9 @@ public partial class LibraryBase
 
         return JsonExtractorHelper.ExtractFromJson(json, path);
     }
-    
+
     /// <summary>
-    /// Extracts values from json by path and joins them with comma.
+    ///     Extracts values from json by path and joins them with comma.
     /// </summary>
     /// <param name="json">Json to extract value from. </param>
     /// <param name="path">Path to value. </param>
@@ -47,7 +47,7 @@ public partial class LibraryBase
     {
         if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(path))
             return null;
-        
+
         return string.Join(",", JsonExtractorHelper.ExtractFromJson(json, path));
     }
 }

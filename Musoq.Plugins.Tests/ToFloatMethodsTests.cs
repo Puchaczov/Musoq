@@ -101,7 +101,7 @@ public class ToFloatMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToFloat_WhenSByteProvided_ShouldReturnFloat()
     {
-        var result = Library.ToFloat((sbyte)100);
+        var result = Library.ToFloat(100);
 
         Assert.AreEqual(100.0f, result);
     }
@@ -117,7 +117,7 @@ public class ToFloatMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToFloat_WhenNegativeSByteProvided_ShouldReturnFloat()
     {
-        var result = Library.ToFloat((sbyte)-50);
+        var result = Library.ToFloat(-50);
 
         Assert.AreEqual(-50.0f, result);
     }
@@ -129,7 +129,7 @@ public class ToFloatMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToFloat_WhenShortProvided_ShouldReturnFloat()
     {
-        var result = Library.ToFloat((short)1000);
+        var result = Library.ToFloat(1000);
 
         Assert.AreEqual(1000.0f, result);
     }
@@ -145,7 +145,7 @@ public class ToFloatMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToFloat_WhenNegativeShortProvided_ShouldReturnFloat()
     {
-        var result = Library.ToFloat((short)-1000);
+        var result = Library.ToFloat(-1000);
 
         Assert.AreEqual(-1000.0f, result);
     }
@@ -157,7 +157,7 @@ public class ToFloatMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToFloat_WhenUShortProvided_ShouldReturnFloat()
     {
-        var result = Library.ToFloat((ushort)50000);
+        var result = Library.ToFloat(50000);
 
         Assert.AreEqual(50000.0f, result);
     }

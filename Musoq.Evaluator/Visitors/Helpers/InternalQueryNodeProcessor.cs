@@ -11,23 +11,12 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Processes InternalQueryNode to generate C# code for internal query execution (joins/applies).
+///     Processes InternalQueryNode to generate C# code for internal query execution (joins/applies).
 /// </summary>
 public static class InternalQueryNodeProcessor
 {
     /// <summary>
-    /// Result of processing an InternalQueryNode with GroupBy.
-    /// </summary>
-    public readonly struct GroupByQueryResult
-    {
-        /// <summary>
-        /// The statements to add to the method body.
-        /// </summary>
-        public IReadOnlyList<StatementSyntax> Statements { get; init; }
-    }
-
-    /// <summary>
-    /// Processes the GroupBy path of an InternalQueryNode.
+    ///     Processes the GroupBy path of an InternalQueryNode.
     /// </summary>
     public static GroupByQueryResult ProcessGroupByPath(
         InternalQueryNode node,
@@ -44,17 +33,13 @@ public static class InternalQueryNodeProcessor
         string? queryId = null)
     {
         var statements = new List<StatementSyntax>();
-        
+
         if (!string.IsNullOrEmpty(queryId))
-        {
             statements.Add(QueryEmitter.GeneratePhaseChangeStatement(queryId, QueryPhase.Begin));
-        }
-        
+
         if (!string.IsNullOrEmpty(queryId))
-        {
             statements.Add(QueryEmitter.GeneratePhaseChangeStatement(queryId, QueryPhase.GroupBy));
-        }
-        
+
         statements.AddRange(QueryEmitter.GenerateGroupInitStatements());
 
         var refreshBlock = node.Refresh.Nodes.Length > 0
@@ -81,17 +66,15 @@ public static class InternalQueryNodeProcessor
         var foreachBlock = GroupByEmitter.CreateGroupByForeach(block, node.From.Alias.ToRowItem(), sourceName);
         var fullBlock = StatementEmitter.CreateBlock(getRowsSourceFunc(node.From.Alias), foreachBlock);
         statements.AddRange(fullBlock.Statements);
-        
+
         if (!string.IsNullOrEmpty(queryId))
-        {
             statements.Add(QueryEmitter.GeneratePhaseChangeStatement(queryId, QueryPhase.End));
-        }
 
         return new GroupByQueryResult { Statements = statements };
     }
 
     /// <summary>
-    /// Processes the Join/Apply path of an InternalQueryNode.
+    ///     Processes the Join/Apply path of an InternalQueryNode.
     /// </summary>
     public static IEnumerable<StatementSyntax> ProcessJoinApplyPath(
         BlockSyntax selectBlock,
@@ -101,5 +84,16 @@ public static class InternalQueryNodeProcessor
             .First(f => f.Statements.Count == 0);
         var updatedBlock = joinOrApplyBlock.ReplaceNode(emptyBlock, selectBlock.Statements);
         return updatedBlock.Statements;
+    }
+
+    /// <summary>
+    ///     Result of processing an InternalQueryNode with GroupBy.
+    /// </summary>
+    public readonly struct GroupByQueryResult
+    {
+        /// <summary>
+        ///     The statements to add to the method body.
+        /// </summary>
+        public IReadOnlyList<StatementSyntax> Statements { get; init; }
     }
 }

@@ -6,10 +6,8 @@ namespace Musoq.Evaluator.Visitors;
 
 public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisitor
 {
-    private readonly SchemaFromNode _schemaFromNode;
     private readonly Node _equalityNode;
-    
-    public WhereNode WhereNode => (WhereNode) Nodes.Peek();
+    private readonly SchemaFromNode _schemaFromNode;
 
     public RewriteWhereExpressionToPassItToDataSourceVisitor(SchemaFromNode schemaFromNode)
     {
@@ -17,48 +15,38 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         _equalityNode = new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s"));
     }
 
+    public WhereNode WhereNode => (WhereNode)Nodes.Peek();
+
     public override void Visit(GreaterNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForBinaryNode(node))
-        {
-            Nodes.Push(new GreaterNode(left, right));
-        }
+        if (!VisitForBinaryNode(node)) Nodes.Push(new GreaterNode(left, right));
     }
-    
+
     public override void Visit(GreaterOrEqualNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForBinaryNode(node))
-        {
-            Nodes.Push(new GreaterOrEqualNode(left, right));
-        }
+        if (!VisitForBinaryNode(node)) Nodes.Push(new GreaterOrEqualNode(left, right));
     }
-    
+
     public override void Visit(LessNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForBinaryNode(node))
-        {
-            Nodes.Push(new LessNode(left, right));
-        }
+        if (!VisitForBinaryNode(node)) Nodes.Push(new LessNode(left, right));
     }
-    
+
     public override void Visit(LessOrEqualNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForBinaryNode(node))
-        {
-            Nodes.Push(new LessOrEqualNode(left, right));
-        }
+        if (!VisitForBinaryNode(node)) Nodes.Push(new LessOrEqualNode(left, right));
     }
 
     public override void Visit(EqualityNode node)
@@ -66,28 +54,22 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForBinaryNode(node))
-        {
-            Nodes.Push(new EqualityNode(left, right));
-        }
+        if (!VisitForBinaryNode(node)) Nodes.Push(new EqualityNode(left, right));
     }
-    
+
     public override void Visit(DiffNode node)
     {
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForBinaryNode(node))
-        {
-            Nodes.Push(new DiffNode(left, right));
-        }
+        if (!VisitForBinaryNode(node)) Nodes.Push(new DiffNode(left, right));
     }
 
     public override void Visit(LikeNode node)
     {
         Nodes.Pop();
         Nodes.Pop();
-        
+
         Nodes.Push(_equalityNode);
     }
 
@@ -95,7 +77,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
     {
         Nodes.Pop();
         Nodes.Pop();
-        
+
         Nodes.Push(_equalityNode);
     }
 
@@ -104,32 +86,26 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
-        if (!VisitForArgsListNode(node.ToCompareExpression))
-        {
-            Nodes.Push(new ContainsNode(left, (ArgsListNode)right));
-        }
+        if (!VisitForArgsListNode(node.ToCompareExpression)) Nodes.Push(new ContainsNode(left, (ArgsListNode)right));
     }
 
     public override void Visit(InNode node)
     {
         var clonedNode = Nodes.Pop();
 
-        if (!VisitForArgsListNode((ArgsListNode)node.Right))
-        {
-            Nodes.Push(clonedNode);
-        }
+        if (!VisitForArgsListNode((ArgsListNode)node.Right)) Nodes.Push(clonedNode);
     }
 
     private bool VisitForBinaryNode(BinaryNode node)
     {
         var isComplexVisitor = new IsComplexVisitor(_schemaFromNode.Alias);
         var isComplexTraverseVisitor = new IsComplexTraverseVisitor(isComplexVisitor);
-        
+
         node.Left.Accept(isComplexTraverseVisitor);
         var leftIsComplex = isComplexVisitor.IsComplex;
-        
+
         isComplexVisitor.Reset();
-        
+
         node.Right.Accept(isComplexTraverseVisitor);
         var rightIsComplex = isComplexVisitor.IsComplex;
 
@@ -138,7 +114,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
             Nodes.Push(_equalityNode);
             return true;
         }
-        
+
         return false;
     }
 
@@ -159,18 +135,18 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
             Nodes.Push(_equalityNode);
             return true;
         }
-        
+
         return false;
     }
-    
+
     private class IsComplexTraverseVisitor : CloneTraverseVisitor
     {
-        public IsComplexTraverseVisitor(IExpressionVisitor visitor) 
+        public IsComplexTraverseVisitor(IExpressionVisitor visitor)
             : base(visitor)
         {
         }
     }
-    
+
     private class IsComplexVisitor : CloneQueryVisitor
     {
         private readonly string _rootAlias;
@@ -186,38 +162,36 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         {
             IsComplex = false;
         }
-        
+
         public override void Visit(DotNode node)
         {
             base.Visit(node);
         }
-        
+
         public override void Visit(AccessMethodNode node)
         {
             IsComplex = true;
-            
+
             base.Visit(node);
         }
-        
+
         public override void Visit(AccessCallChainNode node)
         {
             IsComplex = true;
-            
+
             base.Visit(node);
         }
-        
+
         public override void Visit(AccessColumnNode node)
         {
             if (node.Alias != _rootAlias)
                 IsComplex = true;
-            
+
             base.Visit(node);
         }
-        
+
         public override void Visit(AccessObjectArrayNode node)
         {
-            
-            
             base.Visit(node);
         }
     }

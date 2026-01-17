@@ -44,7 +44,7 @@ public class QueryNode : Node
     public override string ToString()
     {
         var builder = new StringBuilder();
-            
+
         var otherClauses = new Node[]
         {
             From,
@@ -53,31 +53,31 @@ public class QueryNode : Node
             OrderBy,
             Skip
         };
-            
+
         builder.Append(Select.ToString());
-            
+
         const char separator = ' ';
-            
+
         foreach (var clause in otherClauses)
         {
             if (clause == null)
                 continue;
-                
+
             var clauseString = clause.ToString();
-                
-            if (clauseString is {Length: > 0} && builder[^1] != separator && clauseString[0] != separator)
+
+            if (clauseString is { Length: > 0 } && builder[^1] != separator && clauseString[0] != separator)
                 builder.Append(separator);
-                
+
             builder.Append(clauseString);
         }
 
         if (Take == null) return builder.ToString();
-            
+
         var takeString = Take.ToString();
-            
-        if (takeString is {Length: > 0} && builder[^1] != separator && takeString[0] != separator)
+
+        if (takeString is { Length: > 0 } && builder[^1] != separator && takeString[0] != separator)
             builder.Append(separator);
-            
+
         builder.Append(takeString);
 
         return builder.ToString();

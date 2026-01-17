@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
@@ -13,7 +12,7 @@ public class TypeConversionTests : LibraryBaseBaseTests
     public void ToChar_FromString_ShouldReturnFirstCharacter()
     {
         // Arrange
-        string input = "hello";
+        var input = "hello";
 
         // Act
         var result = Library.ToChar(input);
@@ -26,7 +25,7 @@ public class TypeConversionTests : LibraryBaseBaseTests
     public void ToChar_FromEmptyString_ShouldReturnNull()
     {
         // Arrange
-        string input = "";
+        var input = "";
 
         // Act
         var result = Library.ToChar(input);
@@ -160,7 +159,7 @@ public class TypeConversionTests : LibraryBaseBaseTests
     public void ToDateTime_FromValidString_ShouldReturnDateTime()
     {
         // Arrange
-        string input = "2023-12-25";
+        var input = "2023-12-25";
 
         // Act
         var result = Library.ToDateTime(input);
@@ -174,7 +173,7 @@ public class TypeConversionTests : LibraryBaseBaseTests
     public void ToDateTime_FromInvalidString_ShouldReturnNull()
     {
         // Arrange
-        string input = "invalid date";
+        var input = "invalid date";
 
         // Act
         var result = Library.ToDateTime(input);
@@ -187,7 +186,7 @@ public class TypeConversionTests : LibraryBaseBaseTests
     public void ToDateTime_FromEmptyString_ShouldReturnNull()
     {
         // Arrange
-        string input = "";
+        var input = "";
 
         // Act
         var result = Library.ToDateTime(input);
@@ -200,8 +199,8 @@ public class TypeConversionTests : LibraryBaseBaseTests
     public void ToDateTime_WithCulture_ShouldRespectCulture()
     {
         // Arrange
-        string input = "25/12/2023"; // UK date format
-        string culture = "en-GB";
+        var input = "25/12/2023"; // UK date format
+        var culture = "en-GB";
 
         // Act
         var result = Library.ToDateTime(input, culture);
@@ -215,8 +214,8 @@ public class TypeConversionTests : LibraryBaseBaseTests
     public void ToDateTime_WithInvalidCulture_ShouldReturnNull()
     {
         // Arrange
-        string input = "25/12/2023";
-        string culture = "en-US"; // US format expects MM/dd/yyyy
+        var input = "25/12/2023";
+        var culture = "en-US"; // US format expects MM/dd/yyyy
 
         // Act
         var result = Library.ToDateTime(input, culture);
@@ -233,8 +232,8 @@ public class TypeConversionTests : LibraryBaseBaseTests
     public void SubtractDates_WithValidDates_ShouldReturnTimeSpan()
     {
         // Arrange
-        DateTime date1 = new DateTime(2023, 12, 25);
-        DateTime date2 = new DateTime(2023, 12, 20);
+        var date1 = new DateTime(2023, 12, 25);
+        var date2 = new DateTime(2023, 12, 20);
 
         // Act
         var result = Library.SubtractDates(date1, date2);
@@ -249,7 +248,7 @@ public class TypeConversionTests : LibraryBaseBaseTests
     {
         // Arrange
         DateTime? date1 = null;
-        DateTime date2 = new DateTime(2023, 12, 20);
+        var date2 = new DateTime(2023, 12, 20);
 
         // Act
         var result = Library.SubtractDates(date1, date2);
@@ -262,7 +261,7 @@ public class TypeConversionTests : LibraryBaseBaseTests
     public void SubtractDates_WithSecondDateNull_ShouldReturnNull()
     {
         // Arrange
-        DateTime date1 = new DateTime(2023, 12, 25);
+        var date1 = new DateTime(2023, 12, 25);
         DateTime? date2 = null;
 
         // Act
@@ -290,8 +289,8 @@ public class TypeConversionTests : LibraryBaseBaseTests
     public void SubtractDates_WithNegativeResult_ShouldReturnNegativeTimeSpan()
     {
         // Arrange
-        DateTime date1 = new DateTime(2023, 12, 20);
-        DateTime date2 = new DateTime(2023, 12, 25);
+        var date1 = new DateTime(2023, 12, 20);
+        var date2 = new DateTime(2023, 12, 25);
 
         // Act
         var result = Library.SubtractDates(date1, date2);
@@ -309,7 +308,7 @@ public class TypeConversionTests : LibraryBaseBaseTests
     public void ToTimeSpan_FromValidString_ShouldReturnTimeSpan()
     {
         // Arrange
-        string input = "01:30:45";
+        var input = "01:30:45";
 
         // Act
         var result = Library.ToTimeSpan(input);
@@ -323,7 +322,7 @@ public class TypeConversionTests : LibraryBaseBaseTests
     public void ToTimeSpan_FromInvalidString_ShouldReturnNull()
     {
         // Arrange
-        string input = "invalid timespan";
+        var input = "invalid timespan";
 
         // Act
         var result = Library.ToTimeSpan(input);
@@ -349,7 +348,7 @@ public class TypeConversionTests : LibraryBaseBaseTests
     public void ToTimeSpan_FromDaysString_ShouldReturnTimeSpan()
     {
         // Arrange
-        string input = "2.12:30:45"; // 2 days, 12 hours, 30 minutes, 45 seconds
+        var input = "2.12:30:45"; // 2 days, 12 hours, 30 minutes, 45 seconds
 
         // Act
         var result = Library.ToTimeSpan(input);

@@ -28,7 +28,7 @@ public class InTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 100m), "First entry should be 100");
@@ -55,7 +55,7 @@ public class InTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 200m), "First entry should be 200");
@@ -83,7 +83,7 @@ public class InTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry[0] == "Poland"), "First entry should be Poland");
@@ -112,7 +112,7 @@ public class InTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry[0] == "Berlin"), "First entry should be Berlin");
@@ -140,7 +140,7 @@ public class InTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count);
         Assert.IsTrue(table.All(entry => (decimal)entry[0] == 100m));
     }
@@ -148,7 +148,8 @@ public class InTests : BasicEntityTestBase
     [TestMethod]
     public void InWithManyElements_ShouldWork()
     {
-        var query = "select Population from #A.Entities() where Population in (100, 200, 300, 400, 500, 600, 700, 800, 900, 1000)";
+        var query =
+            "select Population from #A.Entities() where Population in (100, 200, 300, 400, 500, 600, 700, 800, 900, 1000)";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -156,9 +157,9 @@ public class InTests : BasicEntityTestBase
                 "#A",
                 [
                     new BasicEntity("A", 100),
-                    new BasicEntity("B", 250),  
+                    new BasicEntity("B", 250),
                     new BasicEntity("C", 500),
-                    new BasicEntity("D", 750),  
+                    new BasicEntity("D", 750),
                     new BasicEntity("E", 1000)
                 ]
             }
@@ -166,7 +167,7 @@ public class InTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Count);
         Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 100m));
         Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 500m));
@@ -194,7 +195,7 @@ public class InTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Count);
         Assert.IsTrue(table.Any(entry => (string)entry[0] == "Alice"));
         Assert.IsTrue(table.Any(entry => (string)entry[0] == "Bob"));
@@ -220,7 +221,7 @@ public class InTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count);
         Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 100m));
         Assert.IsTrue(table.Any(entry => (decimal)entry[0] == 200m));
@@ -245,7 +246,7 @@ public class InTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(0, table.Count);
     }
 
@@ -267,7 +268,7 @@ public class InTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count);
     }
 

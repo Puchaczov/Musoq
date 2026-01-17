@@ -17,7 +17,7 @@ public class MultiSchemaTestBase
     {
         Culture.ApplyWithDefaultCulture();
     }
-    
+
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
     protected CompiledQuery CreateAndRunVirtualMachine(
@@ -25,15 +25,25 @@ public class MultiSchemaTestBase
         FirstEntity[] first,
         SecondEntity[] second)
     {
-        var schema = new MultiSchema(new Dictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)>()
+        var schema = new MultiSchema(new Dictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)>
         {
-            {"first", (new FirstEntityTable(), new MultiRowSource<FirstEntity>(first, FirstEntity.TestNameToIndexMap, FirstEntity.TestIndexToObjectAccessMap))},
-            {"second", (new SecondEntityTable(), new MultiRowSource<SecondEntity>(second, SecondEntity.TestNameToIndexMap, SecondEntity.TestIndexToObjectAccessMap))}
+            {
+                "first",
+                (new FirstEntityTable(),
+                    new MultiRowSource<FirstEntity>(first, FirstEntity.TestNameToIndexMap,
+                        FirstEntity.TestIndexToObjectAccessMap))
+            },
+            {
+                "second",
+                (new SecondEntityTable(),
+                    new MultiRowSource<SecondEntity>(second, SecondEntity.TestNameToIndexMap,
+                        SecondEntity.TestIndexToObjectAccessMap))
+            }
         });
         return CreateAndRunVirtualMachine(script, schema, CreateMockedEnvironmentVariables());
     }
 
-    private IReadOnlyDictionary<uint,IReadOnlyDictionary<string,string>> CreateMockedEnvironmentVariables()
+    private IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> CreateMockedEnvironmentVariables()
     {
         var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
         environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
@@ -47,11 +57,11 @@ public class MultiSchemaTestBase
         IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables = null)
     {
         return InstanceCreator.CompileForExecution(
-            script, 
-            Guid.NewGuid().ToString(), 
-            new MultiSchemaProvider(new Dictionary<string, ISchema>()
+            script,
+            Guid.NewGuid().ToString(),
+            new MultiSchemaProvider(new Dictionary<string, ISchema>
             {
-                {"#schema", schema}
+                { "#schema", schema }
             }),
             LoggerResolver);
     }

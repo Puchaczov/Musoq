@@ -33,7 +33,7 @@ public class BasicEntityTable : ISchemaTable
         new SchemaColumn(nameof(BasicEntity.Other), 21,
             typeof(BasicEntity).GetProperty(nameof(BasicEntity.Other))!.PropertyType),
         new SchemaColumn(nameof(BasicEntity.Dictionary), 22,
-            typeof(BasicEntity).GetProperty(nameof(BasicEntity.Dictionary))!.PropertyType),
+            typeof(BasicEntity).GetProperty(nameof(BasicEntity.Dictionary))!.PropertyType)
     ];
 
     public ISchemaColumn GetColumnByName(string name)

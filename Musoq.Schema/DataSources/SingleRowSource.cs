@@ -12,13 +12,13 @@ public class SingleRowSource : RowSourceBase<string>
         {
             new(
                 string.Empty,
-                new Dictionary<string, int>()
+                new Dictionary<string, int>
                 {
-                    {"Column1", 0}
+                    { "Column1", 0 }
                 },
-                new Dictionary<int, Func<string, object>>()
+                new Dictionary<int, Func<string, object>>
                 {
-                    {0, (str) => str}
+                    { 0, str => str }
                 })
         };
         chunkedSource.Add(list);

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
@@ -40,17 +40,17 @@ public class GroupByNodeProcessorSimpleTests
         var scope = new Scope(null, 0, "test");
         var fieldsNamesSymbol = new FieldsNamesSymbol(["field1"]);
         scope.ScopeSymbolTable.AddSymbol("groupFields", fieldsNamesSymbol);
-        
+
         Assert.IsNotNull(typeof(GroupByNodeProcessor));
         Assert.IsTrue(typeof(GroupByNodeProcessor).IsClass);
-        Assert.IsTrue(typeof(GroupByNodeProcessor).IsAbstract && typeof(GroupByNodeProcessor).IsSealed); 
+        Assert.IsTrue(typeof(GroupByNodeProcessor).IsAbstract && typeof(GroupByNodeProcessor).IsSealed);
     }
 
     [TestMethod]
     public void GroupByProcessingResult_PropertiesExist()
     {
         var resultType = typeof(GroupByNodeProcessor.GroupByProcessingResult);
-        
+
         Assert.IsNotNull(resultType.GetProperty("GroupKeys"));
         Assert.IsNotNull(resultType.GetProperty("GroupValues"));
         Assert.IsNotNull(resultType.GetProperty("GroupHaving"));
@@ -61,11 +61,11 @@ public class GroupByNodeProcessorSimpleTests
     public void GroupByNodeProcessor_HasProcessMethod()
     {
         var method = typeof(GroupByNodeProcessor).GetMethod("ProcessGroupByNode");
-        
+
         Assert.IsNotNull(method);
         Assert.IsTrue(method.IsStatic);
         Assert.IsTrue(method.IsPublic);
-        
+
         var parameters = method.GetParameters();
         Assert.HasCount(3, parameters);
     }
@@ -74,8 +74,8 @@ public class GroupByNodeProcessorSimpleTests
     public void GroupByNodeProcessor_HasValidationMethods()
     {
         var type = typeof(GroupByNodeProcessor);
-        var methods = type.GetMethods(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        
+        var methods = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Static);
+
         Assert.IsGreaterThan(1, methods.Length, "Should have multiple helper methods");
     }
 
@@ -84,7 +84,7 @@ public class GroupByNodeProcessorSimpleTests
     {
         var type = typeof(GroupByNodeProcessor);
         var assembly = type.Assembly;
-        
+
         Assert.IsNotNull(assembly);
         Assert.IsNotEmpty(assembly.GetTypes());
     }

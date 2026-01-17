@@ -4,15 +4,116 @@ using Musoq.Parser.Lexing;
 namespace Musoq.Parser.Tests;
 
 /// <summary>
-/// Comprehensive parser tests for hash-optional schema syntax (from schema.method() without # prefix).
-/// These tests cover all SQL syntax variations to ensure the parser correctly handles
-/// both hash and hash-optional schema references.
+///     Comprehensive parser tests for hash-optional schema syntax (from schema.method() without # prefix).
+///     These tests cover all SQL syntax variations to ensure the parser correctly handles
+///     both hash and hash-optional schema references.
 /// </summary>
 [TestClass]
 public class HashOptionalSchemaParserTests
 {
+    #region Table Aliases
+
+    [TestMethod]
+    [DataRow("select t.Col from schema.method() t")]
+    [DataRow("select t.Col from schema.method() as t")]
+    [DataRow("select alias.Col from schema.method() alias")]
+    [DataRow("select longAlias.Col from schema.method() as longAlias")]
+    public void HashOptional_WithTableAlias_ShouldParse(string query)
+    {
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+
+    #endregion
+
+    #region SKIP and TAKE
+
+    [TestMethod]
+    [DataRow("select Col from schema.method() skip 10")]
+    [DataRow("select Col from schema.method() take 20")]
+    [DataRow("select Col from schema.method() skip 10 take 20")]
+    [DataRow("select Col from schema.method() order by Col skip 5 take 10")]
+    public void HashOptional_WithSkipTake_ShouldParse(string query)
+    {
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+
+    #endregion
+
+    #region DISTINCT
+
+    [TestMethod]
+    [DataRow("select distinct Col from schema.method()")]
+    [DataRow("select distinct Col1, Col2 from schema.method()")]
+    [DataRow("select distinct * from schema.method()")]
+    [DataRow("SELECT DISTINCT Col FROM schema.method()")]
+    public void HashOptional_WithDistinct_ShouldParse(string query)
+    {
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+
+    #endregion
+
+    #region Comments
+
+    [TestMethod]
+    [DataRow("-- Comment\nselect 1 from schema.method()")]
+    [DataRow("select 1 from schema.method() -- comment")]
+    [DataRow("/* comment */ select 1 from schema.method()")]
+    [DataRow("select /* comment */ 1 from schema.method()")]
+    public void HashOptional_WithComments_ShouldParse(string query)
+    {
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+
+    #endregion
+
+    #region Semicolons
+
+    [TestMethod]
+    [DataRow("select 1 from schema.method();")]
+    [DataRow("select 1 from schema.method() ;")]
+    [DataRow("with cte as (select 1 from schema.method()) select * from cte;")]
+    public void HashOptional_WithSemicolon_ShouldParse(string query)
+    {
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+
+    #endregion
+
+    #region Column Aliases
+
+    [TestMethod]
+    [DataRow("select Col as Alias from schema.method()")]
+    [DataRow("select Col Alias from schema.method()")]
+    [DataRow("select Col1 as A1, Col2 as A2 from schema.method()")]
+    [DataRow("select 1 + 2 as Sum from schema.method()")]
+    public void HashOptional_ColumnAliases_ShouldParse(string query)
+    {
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+
+    #endregion
+
     #region Basic SELECT Queries
-    
+
     [TestMethod]
     [DataRow("select 1 from schema.method()")]
     [DataRow("select * from schema.method()")]
@@ -26,7 +127,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("select 1 from a.b()")]
     [DataRow("select 1 from longSchemaName.longMethodName()")]
@@ -40,7 +141,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("select 1 from schema.method('param')")]
     [DataRow("select 1 from schema.method(123)")]
@@ -57,11 +158,11 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
+
     #region Reordered (FROM-first) Queries
-    
+
     [TestMethod]
     [DataRow("from schema.method() select 1")]
     [DataRow("from schema.method() select *")]
@@ -74,7 +175,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_ReorderedWithWhereGroupByOrderBy_ShouldParse()
     {
@@ -84,28 +185,11 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
-    #region Table Aliases
-    
-    [TestMethod]
-    [DataRow("select t.Col from schema.method() t")]
-    [DataRow("select t.Col from schema.method() as t")]
-    [DataRow("select alias.Col from schema.method() alias")]
-    [DataRow("select longAlias.Col from schema.method() as longAlias")]
-    public void HashOptional_WithTableAlias_ShouldParse(string query)
-    {
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
-        var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
-    }
-    
-    #endregion
-    
+
     #region WHERE Clause
-    
+
     [TestMethod]
     [DataRow("select 1 from schema.method() where Col = 'value'")]
     [DataRow("select 1 from schema.method() where Col = 1")]
@@ -127,7 +211,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("select 1 from schema.method() where Col1 = 1 and Col2 = 2")]
     [DataRow("select 1 from schema.method() where Col1 = 1 or Col2 = 2")]
@@ -142,7 +226,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("select 1 from schema.method() where Col in (1, 2, 3)")]
     [DataRow("select 1 from schema.method() where Col not in (1, 2, 3)")]
@@ -155,11 +239,11 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
+
     #region GROUP BY and HAVING
-    
+
     [TestMethod]
     [DataRow("select Col, Count(Col) from schema.method() group by Col")]
     [DataRow("select Col1, Col2, Sum(Col3) from schema.method() group by Col1, Col2")]
@@ -172,7 +256,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("select Col, Count(Col) from schema.method() group by Col having Count(Col) > 1")]
     [DataRow("select Col, Sum(Value) from schema.method() group by Col having Sum(Value) > 100")]
@@ -184,11 +268,11 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
+
     #region ORDER BY
-    
+
     [TestMethod]
     [DataRow("select Col from schema.method() order by Col")]
     [DataRow("select Col from schema.method() order by Col asc")]
@@ -202,7 +286,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("select Col from schema.method() order by Length(Col) desc")]
     [DataRow("select Col from schema.method() order by (Col1 + Col2) desc")]
@@ -214,45 +298,11 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
-    #region SKIP and TAKE
-    
-    [TestMethod]
-    [DataRow("select Col from schema.method() skip 10")]
-    [DataRow("select Col from schema.method() take 20")]
-    [DataRow("select Col from schema.method() skip 10 take 20")]
-    [DataRow("select Col from schema.method() order by Col skip 5 take 10")]
-    public void HashOptional_WithSkipTake_ShouldParse(string query)
-    {
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
-        var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
-    }
-    
-    #endregion
-    
-    #region DISTINCT
-    
-    [TestMethod]
-    [DataRow("select distinct Col from schema.method()")]
-    [DataRow("select distinct Col1, Col2 from schema.method()")]
-    [DataRow("select distinct * from schema.method()")]
-    [DataRow("SELECT DISTINCT Col FROM schema.method()")]
-    public void HashOptional_WithDistinct_ShouldParse(string query)
-    {
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
-        var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
-    }
-    
-    #endregion
-    
+
     #region INNER JOIN
-    
+
     [TestMethod]
     [DataRow("select a.Col from schemaA.methodA() a inner join schemaB.methodB() b on a.Id = b.Id")]
     [DataRow("select a.Col, b.Col from schemaA.methodA() a inner join schemaB.methodB() b on a.Key = b.Key")]
@@ -263,17 +313,18 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_MultipleInnerJoins_ShouldParse()
     {
-        var query = "select a.Col from schemaA.methodA() a inner join schemaB.methodB() b on a.Id = b.Id inner join schemaC.methodC() c on b.Id = c.Id";
+        var query =
+            "select a.Col from schemaA.methodA() a inner join schemaB.methodB() b on a.Id = b.Id inner join schemaC.methodC() c on b.Id = c.Id";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_InnerJoinMixedWithHash_ShouldParse()
     {
@@ -283,21 +334,22 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_InnerJoinWithCompoundCondition_ShouldParse()
     {
-        var query = "select a.Col from schemaA.methodA() a inner join schemaB.methodB() b on a.Id = b.Id and a.Type = b.Type";
+        var query =
+            "select a.Col from schemaA.methodA() a inner join schemaB.methodB() b on a.Id = b.Id and a.Type = b.Type";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
+
     #region LEFT/RIGHT OUTER JOIN
-    
+
     [TestMethod]
     [DataRow("select a.Col from schemaA.methodA() a left outer join schemaB.methodB() b on a.Id = b.Id")]
     [DataRow("select a.Col from schemaA.methodA() a right outer join schemaB.methodB() b on a.Id = b.Id")]
@@ -308,7 +360,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_LeftOuterJoinMixedWithHash_ShouldParse()
     {
@@ -318,11 +370,11 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
+
     #region CROSS APPLY
-    
+
     [TestMethod]
     [DataRow("select a.Col, b.Value from schema.first() a cross apply schema.second(a.Key) b")]
     [DataRow("select a.Col from schema.method() a cross apply schema.nested(a.Prop) b")]
@@ -333,17 +385,18 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CrossApplyChained_ShouldParse()
     {
-        var query = "select a.Col, b.Value, c.Data from schema.first() a cross apply schema.second(a.Key) b cross apply schema.third(b.Id) c";
+        var query =
+            "select a.Col, b.Value, c.Data from schema.first() a cross apply schema.second(a.Key) b cross apply schema.third(b.Id) c";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CrossApplyMixedWithHash_ShouldParse()
     {
@@ -353,7 +406,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CrossApplyWithNestedProperty_ShouldParse()
     {
@@ -363,11 +416,11 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
+
     #region OUTER APPLY
-    
+
     [TestMethod]
     [DataRow("select a.Col, b.Value from schema.first() a outer apply schema.second(a.Key) b")]
     [DataRow("select a.Col from schema.method() a outer apply schema.nested(a.Prop) b")]
@@ -378,7 +431,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_OuterApplyMixedWithHash_ShouldParse()
     {
@@ -388,11 +441,11 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
+
     #region SET Operators (UNION, EXCEPT, INTERSECT)
-    
+
     [TestMethod]
     [DataRow("select Col from schemaA.methodA() union (Col) select Col from schemaB.methodB()")]
     [DataRow("select Col from schemaA.methodA() union all (Col) select Col from schemaB.methodB()")]
@@ -405,7 +458,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_MultipleUnions_ShouldParse()
     {
@@ -418,7 +471,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_MixedSetOperators_ShouldParse()
     {
@@ -432,7 +485,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_SetOperatorMixedWithHash_ShouldParse()
     {
@@ -442,21 +495,22 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_SetOperatorWithMultipleKeys_ShouldParse()
     {
-        var query = "select Col1, Col2 from schemaA.methodA() union (Col1, Col2) select Col1, Col2 from schemaB.methodB()";
+        var query =
+            "select Col1, Col2 from schemaA.methodA() union (Col1, Col2) select Col1, Col2 from schemaB.methodB()";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
+
     #region CTE (Common Table Expressions)
-    
+
     [TestMethod]
     [DataRow("with cte as (select Col from schema.method()) select Col from cte")]
     [DataRow("with cte as (select * from schema.method()) select * from cte")]
@@ -467,7 +521,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_MultipleCtes_ShouldParse()
     {
@@ -480,7 +534,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CteWithSetOperators_ShouldParse()
     {
@@ -496,7 +550,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CteWithGroupBy_ShouldParse()
     {
@@ -510,7 +564,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CteReferencingOtherCte_ShouldParse()
     {
@@ -523,7 +577,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CteWithMixedHashSyntax_ShouldParse()
     {
@@ -536,11 +590,11 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
+
     #region CASE WHEN
-    
+
     [TestMethod]
     [DataRow("select case when Col = 1 then 'one' else 'other' end from schema.method()")]
     [DataRow("select case when Col > 0 then 'positive' else 'negative' end from schema.method()")]
@@ -551,31 +605,33 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CaseWhenMultipleBranches_ShouldParse()
     {
-        var query = "select case when Col = 1 then 'one' when Col = 2 then 'two' when Col = 3 then 'three' else 'other' end from schema.method()";
+        var query =
+            "select case when Col = 1 then 'one' when Col = 2 then 'two' when Col = 3 then 'three' else 'other' end from schema.method()";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_NestedCaseWhen_ShouldParse()
     {
-        var query = "select case when Col1 = 1 then case when Col2 = 2 then 'a' else 'b' end else 'c' end from schema.method()";
+        var query =
+            "select case when Col1 = 1 then case when Col2 = 2 then 'a' else 'b' end else 'c' end from schema.method()";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
+
     #region Arithmetic Expressions
-    
+
     [TestMethod]
     [DataRow("select 1 + 2 from schema.method()")]
     [DataRow("select 1 - 2 from schema.method()")]
@@ -591,7 +647,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("select 0xFF from schema.method()")]
     [DataRow("select 0b101 from schema.method()")]
@@ -604,11 +660,11 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
+
     #region Function Calls
-    
+
     [TestMethod]
     [DataRow("select Trim(Col) from schema.method()")]
     [DataRow("select Length(Col) from schema.method()")]
@@ -623,7 +679,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("select Count(*) from schema.method()")]
     [DataRow("select Count(Col) from schema.method() group by OtherCol")]
@@ -638,11 +694,11 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
+
     #region Coupling Syntax
-    
+
     [TestMethod]
     public void HashOptional_CoupleWithHashSyntax_ShouldParse()
     {
@@ -652,7 +708,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CoupleWithoutHashSyntax_ShouldParse()
     {
@@ -662,7 +718,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("couple schemaA.methodA with table TestTable as Source;")]
     [DataRow("couple MySchema.MyMethod with table Data as DataSource;")]
@@ -674,11 +730,11 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
+
     #region DESC Statement
-    
+
     [TestMethod]
     [DataRow("desc #schema")]
     [DataRow("desc #schema.method")]
@@ -690,7 +746,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("desc schema")]
     [DataRow("desc schema.method")]
@@ -702,7 +758,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("desc functions #schema")]
     [DataRow("desc functions #schema.method")]
@@ -714,7 +770,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("desc functions schema")]
     [DataRow("desc functions schema.method")]
@@ -726,7 +782,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("desc myschema")]
     [DataRow("desc MySchema123")]
@@ -738,7 +794,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("desc myschema.mymethod")]
     [DataRow("desc MySchema.MyMethod")]
@@ -750,7 +806,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     [DataRow("desc myschema.mymethod()")]
     [DataRow("desc myschema.mymethod('param')")]
@@ -762,28 +818,11 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
-    #region Comments
-    
-    [TestMethod]
-    [DataRow("-- Comment\nselect 1 from schema.method()")]
-    [DataRow("select 1 from schema.method() -- comment")]
-    [DataRow("/* comment */ select 1 from schema.method()")]
-    [DataRow("select /* comment */ 1 from schema.method()")]
-    public void HashOptional_WithComments_ShouldParse(string query)
-    {
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
-        var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
-    }
-    
-    #endregion
-    
+
     #region Complex Queries
-    
+
     [TestMethod]
     public void HashOptional_ComplexQueryWithAllFeatures_ShouldParse()
     {
@@ -812,7 +851,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_MixedHashAndNonHash_ComplexQuery_ShouldParse()
     {
@@ -829,44 +868,11 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
-    
-    #region Semicolons
-    
-    [TestMethod]
-    [DataRow("select 1 from schema.method();")]
-    [DataRow("select 1 from schema.method() ;")]
-    [DataRow("with cte as (select 1 from schema.method()) select * from cte;")]
-    public void HashOptional_WithSemicolon_ShouldParse(string query)
-    {
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
-        var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
-    }
-    
-    #endregion
-    
-    #region Column Aliases
-    
-    [TestMethod]
-    [DataRow("select Col as Alias from schema.method()")]
-    [DataRow("select Col Alias from schema.method()")]
-    [DataRow("select Col1 as A1, Col2 as A2 from schema.method()")]
-    [DataRow("select 1 + 2 as Sum from schema.method()")]
-    public void HashOptional_ColumnAliases_ShouldParse(string query)
-    {
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
-        var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
-    }
-    
-    #endregion
-    
+
     #region Edge Cases
-    
+
     [TestMethod]
     public void HashOptional_EmptyArgs_ShouldParse()
     {
@@ -876,7 +882,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_SingleCharSchemaAndMethod_ShouldParse()
     {
@@ -886,7 +892,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_SchemaNameWithNumbers_ShouldParse()
     {
@@ -896,41 +902,37 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CrossApplyWithMethodCallOnAlias_ShouldParse()
     {
-        
         var query = "select b.Value from schema.first() a cross apply a.Split(a.Text, ' ') b";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CrossApplyWithChainedMethodCalls_ShouldParse()
     {
-        
         var query = "select b.Value from schema.first() a cross apply a.Take(a.Skip(a.Split(a.Text, ' '), 1), 6) b";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CrossApplyWithNestedProperty_ShouldNotInjectHash()
     {
-        
-        
         var query = "select c.Value from schema.thing() a cross apply a.Prop.Nested c";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_RightOuterJoin_ShouldParse()
     {
@@ -940,7 +942,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_MultipleStatements_ShouldParse()
     {
@@ -950,18 +952,18 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_DescWithCouple_ShouldParse()
     {
-        
-        var query = "table T { Id 'System.Int32' }; couple schema.method with table T as Source; select Id from Source()";
+        var query =
+            "table T { Id 'System.Int32' }; couple schema.method with table T as Source; select Id from Source()";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CteWithCrossApply_ShouldParse()
     {
@@ -973,28 +975,28 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_MultipleCrossApplies_ShouldParse()
     {
-        var query = "select c.Value from schema.first() a cross apply a.Split(a.Text, ' ') b cross apply b.ToCharArray(b.Value) c";
+        var query =
+            "select c.Value from schema.first() a cross apply a.Split(a.Text, ' ') b cross apply b.ToCharArray(b.Value) c";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CrossApplyBetweenTwoSchemas_ShouldParse()
     {
-        
         var query = "select b.Col from schemaA.first() a cross apply schemaB.second(a.Key) b";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_NestedCteWithSetOperator_ShouldParse()
     {
@@ -1009,18 +1011,18 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_JoinWithSubqueryAlias_ShouldParse()
     {
-        
-        var query = "select a.Col, b.Col from schema.first() a inner join schema.second() b on a.Id = b.Id where a.Value > 5";
+        var query =
+            "select a.Col, b.Col from schema.first() a inner join schema.second() b on a.Id = b.Id where a.Value > 5";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_RowNumber_ShouldParse()
     {
@@ -1030,7 +1032,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_RowNumberWithGroupBy_ShouldParse()
     {
@@ -1040,7 +1042,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_RowNumberWithOrderBy_ShouldParse()
     {
@@ -1050,7 +1052,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_AliasedStar_ShouldParse()
     {
@@ -1060,7 +1062,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_MultipleStars_ShouldParse()
     {
@@ -1070,7 +1072,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_StarWithExplicitColumn_ShouldParse()
     {
@@ -1080,7 +1082,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CastFunction_ShouldParse()
     {
@@ -1090,7 +1092,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_ToStringFunction_ShouldParse()
     {
@@ -1100,7 +1102,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_ArrayAccess_ShouldParse()
     {
@@ -1110,7 +1112,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_NegativeArrayAccess_ShouldParse()
     {
@@ -1120,7 +1122,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_MultipleSchemasInQuery_ShouldParse()
     {
@@ -1130,7 +1132,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_BitwiseOperations_ShouldParse()
     {
@@ -1140,7 +1142,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_NegativeNumbers_ShouldParse()
     {
@@ -1150,7 +1152,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_EscapeSequences_ShouldParse()
     {
@@ -1160,7 +1162,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_ConcatFunction_ShouldParse()
     {
@@ -1170,18 +1172,17 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_FieldLinkSyntax_ShouldParse()
     {
-        
         var query = "select ::1, Count(::1), ::2 from schema.method() group by Col1, Col2";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_ImplicitBooleanConversion_ShouldParse()
     {
@@ -1191,7 +1192,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_StringOperations_ShouldParse()
     {
@@ -1201,7 +1202,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_DateTimeFunctions_ShouldParse()
     {
@@ -1211,7 +1212,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_NullHandling_ShouldParse()
     {
@@ -1221,7 +1222,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CrossApply_FromHashOptional_ApplyHashOptional_ShouldParse()
     {
@@ -1231,7 +1232,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CrossApply_FromHashOptional_ApplyHash_ShouldParse()
     {
@@ -1241,7 +1242,7 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CrossApply_FromHash_ApplyHashOptional_ShouldParse()
     {
@@ -1251,27 +1252,29 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_MultipleCrossApplies_AllHashOptional_ShouldParse()
     {
-        var query = "select c.Value from schema.first() a cross apply schema.second(a.Key) b cross apply schema.third(b.Id) c";
+        var query =
+            "select c.Value from schema.first() a cross apply schema.second(a.Key) b cross apply schema.third(b.Id) c";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CrossApply_MixedHashSyntax_ShouldParse()
     {
-        var query = "select c.Value from schema.first() a cross apply #schema.second(a.Key) b cross apply schema.third(b.Id) c";
+        var query =
+            "select c.Value from schema.first() a cross apply #schema.second(a.Key) b cross apply schema.third(b.Id) c";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CrossApply_WithWhereClause_ShouldParse()
     {
@@ -1281,27 +1284,29 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CrossApply_WithGroupBy_ShouldParse()
     {
-        var query = "select a.Col, Count(b.Value) from schema.first() a cross apply schema.second(a.Key) b group by a.Col";
+        var query =
+            "select a.Col, Count(b.Value) from schema.first() a cross apply schema.second(a.Key) b group by a.Col";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_CrossApply_WithOrderBy_ShouldParse()
     {
-        var query = "select a.Col, b.Value from schema.first() a cross apply schema.second(a.Key) b order by b.Value desc";
+        var query =
+            "select a.Col, b.Value from schema.first() a cross apply schema.second(a.Key) b order by b.Value desc";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     [TestMethod]
     public void HashOptional_ThreeWayJoin_ShouldParse()
     {
@@ -1315,6 +1320,6 @@ public class HashOptionalSchemaParserTests
         var result = parser.ComposeAll();
         Assert.IsNotNull(result);
     }
-    
+
     #endregion
 }

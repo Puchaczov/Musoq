@@ -4,18 +4,95 @@ using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Helpers;
 using Musoq.Plugins;
-using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.Tests;
 
 /// <summary>
-/// Unit tests for <see cref="NonDeterministicMethodsScanner"/>.
-/// Tests verify that the scanner correctly identifies methods marked with
-/// both [BindableMethod] and [NonDeterministic] attributes.
+///     Unit tests for <see cref="NonDeterministicMethodsScanner" />.
+///     Tests verify that the scanner correctly identifies methods marked with
+///     both [BindableMethod] and [NonDeterministic] attributes.
 /// </summary>
 [TestClass]
 public class NonDeterministicMethodsScannerTests
 {
+    #region Case Insensitivity Tests
+
+    [TestMethod]
+    public void ScanForNonDeterministicMethods_ReturnedSet_ShouldBeCaseInsensitive()
+    {
+        // Arrange
+        var assemblies = new[] { typeof(LibraryBase).Assembly };
+
+        // Act
+        var result = NonDeterministicMethodsScanner.ScanForNonDeterministicMethods(assemblies);
+
+        // Assert - verify case insensitivity
+        Assert.Contains("newid", result, "Should match 'newid' (lowercase)");
+        Assert.Contains("NEWID", result, "Should match 'NEWID' (uppercase)");
+        Assert.Contains("NewId", result, "Should match 'NewId' (mixed case)");
+        Assert.Contains("RAND", result, "Should match 'RAND' (uppercase)");
+        Assert.Contains("rand", result, "Should match 'rand' (lowercase)");
+    }
+
+    #endregion
+
+    #region Method Overload Tests
+
+    [TestMethod]
+    public void ScanForNonDeterministicMethods_WhenMethodHasOverloads_ShouldIncludeMethodNameOnce()
+    {
+        // Arrange - Rand has overloads: Rand() and Rand(min, max)
+        var assemblies = new[] { typeof(LibraryBase).Assembly };
+
+        // Act
+        var result = NonDeterministicMethodsScanner.ScanForNonDeterministicMethods(assemblies);
+
+        // Assert - the method name should be in the set (HashSet ensures uniqueness)
+        Assert.Contains("Rand", result);
+
+        // Count how many times "Rand" appears (should be 1 in a HashSet)
+        var count = 0;
+        foreach (var name in result)
+            if (name.Equals("Rand", StringComparison.OrdinalIgnoreCase))
+                count++;
+        Assert.AreEqual(1, count, "Rand should appear exactly once in the set");
+    }
+
+    #endregion
+
+    #region Integration with CSE Tests
+
+    [TestMethod]
+    public void ScanForNonDeterministicMethods_ResultSet_ShouldBeUsableForCseFiltering()
+    {
+        // Arrange
+        var assemblies = new[] { typeof(LibraryBase).Assembly };
+
+        // Act
+        var nonDeterministicMethods = NonDeterministicMethodsScanner.ScanForNonDeterministicMethods(assemblies);
+
+        // Assert - simulate CSE filtering logic
+        var testCases = new Dictionary<string, bool>
+        {
+            { "NewId", true }, // Should be marked as non-deterministic
+            { "Rand", true }, // Should be marked as non-deterministic
+            { "GetDate", true }, // Should be marked as non-deterministic
+            { "Length", false }, // Should NOT be marked as non-deterministic
+            { "ToUpper", false }, // Should NOT be marked as non-deterministic
+            { "Sum", false }, // Aggregates are deterministic once computed
+            { "Count", false } // Aggregates are deterministic once computed
+        };
+
+        foreach (var (methodName, expectedNonDeterministic) in testCases)
+        {
+            var isNonDeterministic = nonDeterministicMethods.Contains(methodName);
+            Assert.AreEqual(expectedNonDeterministic, isNonDeterministic,
+                $"Method '{methodName}' non-deterministic status mismatch");
+        }
+    }
+
+    #endregion
+
     #region Null and Empty Input Tests
 
     [TestMethod]
@@ -82,27 +159,6 @@ public class NonDeterministicMethodsScannerTests
 
     #endregion
 
-    #region Case Insensitivity Tests
-
-    [TestMethod]
-    public void ScanForNonDeterministicMethods_ReturnedSet_ShouldBeCaseInsensitive()
-    {
-        // Arrange
-        var assemblies = new[] { typeof(LibraryBase).Assembly };
-
-        // Act
-        var result = NonDeterministicMethodsScanner.ScanForNonDeterministicMethods(assemblies);
-
-        // Assert - verify case insensitivity
-        Assert.Contains("newid", result, "Should match 'newid' (lowercase)");
-        Assert.Contains("NEWID", result, "Should match 'NEWID' (uppercase)");
-        Assert.Contains("NewId", result, "Should match 'NewId' (mixed case)");
-        Assert.Contains("RAND", result, "Should match 'RAND' (uppercase)");
-        Assert.Contains("rand", result, "Should match 'rand' (lowercase)");
-    }
-
-    #endregion
-
     #region Multiple Assemblies Tests
 
     [TestMethod]
@@ -111,8 +167,8 @@ public class NonDeterministicMethodsScannerTests
         // Arrange - include multiple assemblies
         var assemblies = new[]
         {
-            typeof(LibraryBase).Assembly,  // Musoq.Plugins - has non-deterministic methods
-            typeof(object).Assembly        // mscorlib - no Musoq attributes
+            typeof(LibraryBase).Assembly, // Musoq.Plugins - has non-deterministic methods
+            typeof(object).Assembly // mscorlib - no Musoq attributes
         };
 
         // Act
@@ -151,7 +207,7 @@ public class NonDeterministicMethodsScannerTests
 
         // Assert
         Assert.DoesNotContain("Length",
-result, "Methods with only [BindableMethod] should not be included");
+            result, "Methods with only [BindableMethod] should not be included");
     }
 
     [TestMethod]
@@ -165,66 +221,7 @@ result, "Methods with only [BindableMethod] should not be included");
 
         // Assert
         Assert.Contains("NewId",
-result, "Methods with both attributes should be included");
-    }
-
-    #endregion
-
-    #region Method Overload Tests
-
-    [TestMethod]
-    public void ScanForNonDeterministicMethods_WhenMethodHasOverloads_ShouldIncludeMethodNameOnce()
-    {
-        // Arrange - Rand has overloads: Rand() and Rand(min, max)
-        var assemblies = new[] { typeof(LibraryBase).Assembly };
-
-        // Act
-        var result = NonDeterministicMethodsScanner.ScanForNonDeterministicMethods(assemblies);
-
-        // Assert - the method name should be in the set (HashSet ensures uniqueness)
-        Assert.Contains("Rand", result);
-        
-        // Count how many times "Rand" appears (should be 1 in a HashSet)
-        var count = 0;
-        foreach (var name in result)
-        {
-            if (name.Equals("Rand", StringComparison.OrdinalIgnoreCase))
-                count++;
-        }
-        Assert.AreEqual(1, count, "Rand should appear exactly once in the set");
-    }
-
-    #endregion
-
-    #region Integration with CSE Tests
-
-    [TestMethod]
-    public void ScanForNonDeterministicMethods_ResultSet_ShouldBeUsableForCseFiltering()
-    {
-        // Arrange
-        var assemblies = new[] { typeof(LibraryBase).Assembly };
-        
-        // Act
-        var nonDeterministicMethods = NonDeterministicMethodsScanner.ScanForNonDeterministicMethods(assemblies);
-
-        // Assert - simulate CSE filtering logic
-        var testCases = new Dictionary<string, bool>
-        {
-            { "NewId", true },      // Should be marked as non-deterministic
-            { "Rand", true },       // Should be marked as non-deterministic
-            { "GetDate", true },    // Should be marked as non-deterministic
-            { "Length", false },    // Should NOT be marked as non-deterministic
-            { "ToUpper", false },   // Should NOT be marked as non-deterministic
-            { "Sum", false },       // Aggregates are deterministic once computed
-            { "Count", false }      // Aggregates are deterministic once computed
-        };
-
-        foreach (var (methodName, expectedNonDeterministic) in testCases)
-        {
-            var isNonDeterministic = nonDeterministicMethods.Contains(methodName);
-            Assert.AreEqual(expectedNonDeterministic, isNonDeterministic, 
-                $"Method '{methodName}' non-deterministic status mismatch");
-        }
+            result, "Methods with both attributes should be included");
     }
 
     #endregion
@@ -243,10 +240,7 @@ result, "Methods with both attributes should be included");
 
         // Assert - results should be equivalent
         Assert.HasCount(result1.Count, result2);
-        foreach (var method in result1)
-        {
-            Assert.Contains(method, result2, $"Method '{method}' missing in second scan");
-        }
+        foreach (var method in result1) Assert.Contains(method, result2, $"Method '{method}' missing in second scan");
     }
 
     [TestMethod]

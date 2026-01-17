@@ -10,7 +10,8 @@ public class EntitySource<T> : RowSource
     private readonly IReadOnlyDictionary<int, Func<T, object>> _indexToObjectAccessMap;
     private readonly IReadOnlyDictionary<string, int> _nameToIndexMap;
 
-    public EntitySource(IEnumerable<T> entities, IReadOnlyDictionary<string, int> nameToIndexMap, IReadOnlyDictionary<int, Func<T, object>> indexToObjectAccessMap)
+    public EntitySource(IEnumerable<T> entities, IReadOnlyDictionary<string, int> nameToIndexMap,
+        IReadOnlyDictionary<int, Func<T, object>> indexToObjectAccessMap)
     {
         _entities = entities;
         _nameToIndexMap = nameToIndexMap;
@@ -19,9 +20,6 @@ public class EntitySource<T> : RowSource
 
     public override IEnumerable<IObjectResolver> Rows
     {
-        get
-        {
-            return _entities.Select(item => new EntityResolver<T>(item, _nameToIndexMap, _indexToObjectAccessMap));
-        }
+        get { return _entities.Select(item => new EntityResolver<T>(item, _nameToIndexMap, _indexToObjectAccessMap)); }
     }
 }

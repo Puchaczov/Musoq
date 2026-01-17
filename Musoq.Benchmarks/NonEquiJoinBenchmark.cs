@@ -1,62 +1,56 @@
 using BenchmarkDotNet.Attributes;
 using Musoq.Benchmarks.Components;
+using Musoq.Benchmarks.Schema;
 using Musoq.Converter;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Tables;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Plugins;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Musoq.Benchmarks.Schema;
 
-namespace Musoq.Benchmarks
+namespace Musoq.Benchmarks;
+
+[MemoryDiagnoser]
+public class NonEquiJoinBenchmark
 {
-    [MemoryDiagnoser]
-    public class NonEquiJoinBenchmark
+    private readonly ILoggerResolver _loggerResolver = new BenchmarkLoggerResolver();
+    private CompiledQuery _query = null!;
+
+    [Params(1000, 2000)] public int RowsCount { get; set; }
+
+    [Params(true, false)] public bool UseSortMergeJoin { get; set; }
+
+    [GlobalSetup]
+    public void Setup()
     {
-        private CompiledQuery _query = null!;
-        private readonly ILoggerResolver _loggerResolver = new BenchmarkLoggerResolver();
-
-        [Params(1000, 2000)]
-        public int RowsCount { get; set; }
-
-        [Params(true, false)]
-        public bool UseSortMergeJoin { get; set; }
-
-        [GlobalSetup]
-        public void Setup()
-        {
-            var script = @"
+        var script = @"
                 select 
                     1
                 from #test.entities() a
                 inner join #test.entities() b on a.Population > b.Population";
 
-            var entities = Enumerable.Range(0, RowsCount).Select(i => new NonEquiEntity 
-            { 
-                Id = i, 
-                Name = $"Name{i}", 
-                Population = i
-            }).ToList();
-
-            var schemaProvider = new NonEquiSchemaProvider(entities);
-            
-            _query = InstanceCreator.CompileForExecution(
-                script, 
-                Guid.NewGuid().ToString(), 
-                schemaProvider, 
-                _loggerResolver,
-                new CompilationOptions(useSortMergeJoin: UseSortMergeJoin));
-        }
-
-        [Benchmark]
-        public Table RunQuery()
+        var entities = Enumerable.Range(0, RowsCount).Select(i => new NonEquiEntity
         {
-            return _query.Run();
-        }
+            Id = i,
+            Name = $"Name{i}",
+            Population = i
+        }).ToList();
+
+        var schemaProvider = new NonEquiSchemaProvider(entities);
+
+        _query = InstanceCreator.CompileForExecution(
+            script,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            _loggerResolver,
+            new CompilationOptions(useSortMergeJoin: UseSortMergeJoin));
+    }
+
+    [Benchmark]
+    public Table RunQuery()
+    {
+        return _query.Run();
+    }
 
     private class NonEquiSchemaProvider : ISchemaProvider
     {
@@ -82,7 +76,8 @@ namespace Musoq.Benchmarks
             _entities = entities;
         }
 
-        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext,
+            params object[] parameters)
         {
             return new NonEquiTable();
         }
@@ -109,6 +104,5 @@ namespace Musoq.Benchmarks
             methodManager.RegisterLibraries(lib);
             return new MethodsAggregator(methodManager);
         }
-    }
     }
 }

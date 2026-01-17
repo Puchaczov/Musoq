@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using Musoq.Schema;
@@ -9,8 +8,9 @@ public class DynamicSchemaProvider : ISchemaProvider
 {
     private readonly
         IReadOnlyDictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)> _schemas;
-    
-    public DynamicSchemaProvider(IReadOnlyDictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)> schemas)
+
+    public DynamicSchemaProvider(
+        IReadOnlyDictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)> schemas)
     {
         _schemas = schemas;
     }

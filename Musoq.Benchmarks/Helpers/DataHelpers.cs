@@ -13,29 +13,24 @@ public static class DataHelpers
     {
         var jsonContent = File.ReadAllText(jsonFilePath);
         var countriesDictionary = JsonSerializer.Deserialize<Dictionary<string, string[]>>(jsonContent);
-        
-        if (countriesDictionary == null)
-        {
-            throw new Exception("Failed to parse the JSON content.");
-        }
-        
+
+        if (countriesDictionary == null) throw new Exception("Failed to parse the JSON content.");
+
         var countryEntities = new List<CountryEntity>();
         var random = new Random(345);
-        
+
         foreach (var (country, cities) in countriesDictionary)
+        foreach (var city in cities)
         {
-            foreach (var city in cities)
-            {
-                var entity = new CountryEntity(
-                    city: city,
-                    country: country,
-                    population: random.Next(100_000, 1_000_000)
-                );
-                
-                countryEntities.Add(entity);
-            }
+            var entity = new CountryEntity(
+                city,
+                country,
+                random.Next(100_000, 1_000_000)
+            );
+
+            countryEntities.Add(entity);
         }
-        
+
         return countryEntities;
     }
 
@@ -46,7 +41,7 @@ public static class DataHelpers
         csv.Context.RegisterClassMap<ProfileMap>();
         return csv.GetRecords<ProfileEntity>().ToList();
     }
-    
+
     private sealed class ProfileMap : ClassMap<ProfileEntity>
     {
         public ProfileMap()

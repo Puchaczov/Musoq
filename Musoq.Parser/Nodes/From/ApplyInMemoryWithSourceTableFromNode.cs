@@ -13,8 +13,9 @@ public class ApplyInMemoryWithSourceTableFromNode : FromNode
         SourceTable = sourceTable;
         ApplyType = applyType;
     }
-        
-    public ApplyInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, ApplyType applyType, Type returnType)
+
+    public ApplyInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, ApplyType applyType,
+        Type returnType)
         : base($"{inMemoryTableAlias}{sourceTable.Alias}", returnType)
     {
         Id =

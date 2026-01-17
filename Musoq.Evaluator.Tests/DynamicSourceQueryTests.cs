@@ -10,28 +10,30 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class DynamicSourceQueryTests : DynamicQueryTestsBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void WithDynamicSource_DescDynamicObjectWithSimpleColumns_ShouldPass()
     {
         const string query = "desc #dynamic.all()";
         var sources =
-            new List<dynamic>()
+            new List<dynamic>
             {
                 CreateExpandoObject(1, "Test1"),
                 CreateExpandoObject(2, "Test2")
             };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("Id", table[0][0]);
         Assert.AreEqual("System.Int32", table[0][2]);
         Assert.AreEqual("Name", table[1][0]);
         Assert.AreEqual("System.String", table[1][2]);
     }
-    
+
     [TestMethod]
     public void WithDynamicSource_SimpleQuery_ShouldPass()
     {
@@ -42,18 +44,18 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
                 CreateExpandoObject(1, "Test1"),
                 CreateExpandoObject(2, "Test2")
             };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
-        Assert.IsTrue(table.All(row => 
+        Assert.IsTrue(table.All(row =>
                 new[] { (1, "Test1"), (2, "Test2") }.Contains(((int)row[0], (string)row[1]))),
             "Expected rows with values: (1,Test1), (2,Test2)");
     }
@@ -62,15 +64,15 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
     public void WithDynamicSource_DescDynamicObjectWithComplexColumns_ShouldPass()
     {
         const string query = "desc #dynamic.all()";
-        var sources = new List<dynamic>()
+        var sources = new List<dynamic>
         {
             CreateExpandoObject(CreateExpandoObject(1, "Test1"))
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Complex", table[0][0]);
         Assert.AreEqual(0, (int)table[0][1]);
@@ -81,23 +83,23 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
     public void WithDynamicSource_AccessComplexObjectProperties_ShouldPass()
     {
         const string query = "select Complex.Id, Complex.Name from #dynamic.all()";
-        var sources = new List<dynamic>()
+        var sources = new List<dynamic>
         {
             CreateExpandoObject(CreateExpandoObject(1, "Test1"))
         };
-        var schema = new Dictionary<string, Type>()
+        var schema = new Dictionary<string, Type>
         {
-            {"Complex", typeof(ExpandoObject)},
+            { "Complex", typeof(ExpandoObject) }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1, table[0][0]);
         Assert.AreEqual("Test1", table[0][1]);
@@ -107,23 +109,23 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
     public void WithDynamicSource_AccessComplexChainedObjectProperties_ShouldPass()
     {
         const string query = "select Complex.Complex.Id, Complex.Complex.Name from #dynamic.all()";
-        var sources = new List<dynamic>()
+        var sources = new List<dynamic>
         {
             CreateExpandoObject(CreateExpandoObject(CreateExpandoObject(1, "Test1")))
         };
         var schema = new Dictionary<string, Type>
         {
-            {"Complex", typeof(ExpandoObject)}
+            { "Complex", typeof(ExpandoObject) }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1, table[0][0]);
         Assert.AreEqual("Test1", table[0][1]);
@@ -133,23 +135,23 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
     public void WithDynamicSource_AccessArray_ShouldPass()
     {
         const string query = "select Complex.Array[0], Complex.Array[1] from #dynamic.all()";
-        var sources = new List<dynamic>()
+        var sources = new List<dynamic>
         {
             CreateExpandoObject(CreateExpandoObject([1, 2]))
         };
-        var schema = new Dictionary<string, Type>()
+        var schema = new Dictionary<string, Type>
         {
-            {"Complex", typeof(ExpandoObject)}
+            { "Complex", typeof(ExpandoObject) }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1, table[0][0]);
         Assert.AreEqual(2, table[0][1]);
@@ -159,7 +161,7 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
     public void WithDynamicSource_AccessExpandoObjectArray_ShouldPass()
     {
         const string query = "select Complex.Array[0].Id, Complex.Array[0].Name from #dynamic.all()";
-        var sources = new List<dynamic>()
+        var sources = new List<dynamic>
         {
             CreateExpandoObject(CreateExpandoObject([
                 CreateExpandoObject(1, "Test1")
@@ -167,28 +169,28 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         };
         var schema = new Dictionary<string, Type>
         {
-            {"Complex", typeof(ExpandoObject)}
+            { "Complex", typeof(ExpandoObject) }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(typeof(object), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(1, table[0][0]);
         Assert.AreEqual("Test1", table[0][1]);
     }
-    
+
 
     [TestMethod]
     public void WithDynamicSource_IncrementAccessedProperty_ShouldPass()
     {
         const string query = "select Increment(Complex.Array[0].Id) from #dynamic.all()";
-        var sources = new List<dynamic>()
+        var sources = new List<dynamic>
         {
             CreateExpandoObject(CreateExpandoObject([
                 CreateExpandoObject(1)
@@ -196,16 +198,16 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         };
         var schema = new Dictionary<string, Type>
         {
-            {"Complex", typeof(ExpandoObject)}
+            { "Complex", typeof(ExpandoObject) }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(2, table[0][0]);
     }
@@ -228,66 +230,64 @@ inner join #location.all() location on weather.Location = location.Name
         {
             weather
         };
-        var weatherSchema = new Dictionary<string, Type>()
+        var weatherSchema = new Dictionary<string, Type>
         {
-            {"Name", typeof(decimal)},
-            {"Location", typeof(string)},
-            {"TemperatureInCelsiusDegree", typeof(int)}
+            { "Name", typeof(decimal) },
+            { "Location", typeof(string) },
+            { "TemperatureInCelsiusDegree", typeof(int) }
         };
-        
+
         dynamic location = new ExpandoObject();
         location.Name = "London";
-        var locationSource = new List<dynamic>()
+        var locationSource = new List<dynamic>
         {
             location
         };
-        var locationSchema = new Dictionary<string, Type>()
+        var locationSchema = new Dictionary<string, Type>
         {
-            {"Name", typeof(string)}
+            { "Name", typeof(string) }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, [
-            ("#weather", (IReadOnlyCollection<dynamic>)weatherSource, (IReadOnlyDictionary<string, Type>)weatherSchema),
+            ("#weather", weatherSource, weatherSchema),
             ("#location", locationSource, locationSchema)
         ]);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Columns.Count());
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("London", table[0][0]);
         Assert.AreEqual(10, table[0][1]);
         Assert.AreEqual("London", table[0][2]);
     }
-    
+
     [TestMethod]
     public void WithDynamicSource_SyntaxKeywordAsColumnNameUSed_ShouldPass()
     {
         const string query = "select [case], [end] from #dynamic.all()";
         IDictionary<string, object> expando = new ExpandoObject();
-        
+
         expando.Add("case", "case");
         expando.Add("end", "end");
-        
+
         var sources =
             new List<dynamic>
             {
                 (dynamic)expando
             };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("case", table[0][0]);
         Assert.AreEqual("end", table[0][1]);
     }
-
-    public TestContext TestContext { get; set; }
 }

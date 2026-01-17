@@ -46,16 +46,10 @@ public class IntegerNode : ConstantValueNode
 
     private static object Parse(string value)
     {
-        if (int.TryParse(value, out var value1))
-        {
-            return value1;
-        }
+        if (int.TryParse(value, out var value1)) return value1;
 
-        if (long.TryParse(value, out var value2))
-        {
-            return value2;
-        }
-            
+        if (long.TryParse(value, out var value2)) return value2;
+
         throw new NotSupportedException($"Integer value {value} is not supported.");
     }
 }

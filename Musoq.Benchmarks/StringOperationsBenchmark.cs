@@ -8,44 +8,43 @@ using Musoq.Evaluator.Tables;
 namespace Musoq.Benchmarks;
 
 /// <summary>
-/// Benchmarks for string operations optimization.
-/// Compares performance of Contains, StartsWith, EndsWith operations.
+///     Benchmarks for string operations optimization.
+///     Compares performance of Contains, StartsWith, EndsWith operations.
 /// </summary>
 [MemoryDiagnoser]
 [ShortRunJob]
 public class StringOperationsBenchmark : BenchmarkBase
 {
-    private CompiledQuery _queryWithContains = null!;
-    private CompiledQuery _queryWithStartsWith = null!;
-    private CompiledQuery _queryWithEndsWith = null!;
-    private CompiledQuery _queryWithMultipleStringOps = null!;
-    private CompiledQuery _queryWithEqualityBaseline = null!;
-    
     private IReadOnlyList<ProfileEntity> _data = null!;
+    private CompiledQuery _queryWithContains = null!;
+    private CompiledQuery _queryWithEndsWith = null!;
+    private CompiledQuery _queryWithEqualityBaseline = null!;
+    private CompiledQuery _queryWithMultipleStringOps = null!;
+    private CompiledQuery _queryWithStartsWith = null!;
 
     [GlobalSetup]
     public void Setup()
     {
         var contentPath = Path.Combine(AppContext.BaseDirectory, "Data", "profiles.csv");
         _data = DataHelpers.ReadProfiles(contentPath).Take(10000).ToList();
-        
-        
+
+
         _queryWithEqualityBaseline = CreateQuery(
             "select FirstName, LastName, Email from #A.Entities() where Gender = 'Male'");
-        
-        
+
+
         _queryWithContains = CreateQuery(
             "select FirstName, LastName, Email from #A.Entities() where Contains(Email, 'gmail')");
-        
-        
+
+
         _queryWithStartsWith = CreateQuery(
             "select FirstName, LastName, Email from #A.Entities() where StartsWith(FirstName, 'A')");
-        
-        
+
+
         _queryWithEndsWith = CreateQuery(
             "select FirstName, LastName, Email from #A.Entities() where EndsWith(Email, '.com')");
-        
-        
+
+
         _queryWithMultipleStringOps = CreateQuery(
             "select FirstName, LastName, Email from #A.Entities() where Contains(Email, 'mail') and StartsWith(FirstName, 'J')");
     }
@@ -84,9 +83,9 @@ public class StringOperationsBenchmark : BenchmarkBase
     {
         var sources = new Dictionary<string, IEnumerable<ProfileEntity>>
         {
-            {"#A", _data}
+            { "#A", _data }
         };
-        
+
         return CreateForProfilesWithOptions(script, sources, new CompilationOptions(ParallelizationMode.None));
     }
 }

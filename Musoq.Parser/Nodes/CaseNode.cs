@@ -1,6 +1,6 @@
-﻿using Musoq.Parser.Tokens;
-using System;
+﻿using System;
 using System.Text;
+using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Nodes;
 
@@ -25,10 +25,7 @@ public class CaseNode : Node
         {
             var id = $"{nameof(CaseNode)}";
 
-            foreach(var item in WhenThenPairs)
-            {
-                id += $"{item.When.Id}{item.Then.Id}";
-            }
+            foreach (var item in WhenThenPairs) id += $"{item.When.Id}{item.Then.Id}";
 
             id += $"{Else.Id}";
 
@@ -48,7 +45,7 @@ public class CaseNode : Node
         builder.Append(CaseToken.TokenText);
         builder.Append(" ");
 
-        foreach(var pair in WhenThenPairs)
+        foreach (var pair in WhenThenPairs)
         {
             builder.Append(pair.When.ToString());
             builder.Append(" ");

@@ -3,23 +3,13 @@ using System;
 namespace Musoq.Evaluator.Exceptions;
 
 /// <summary>
-/// Exception thrown when visitor operations encounter validation or processing errors.
-/// Provides specific guidance for AST processing and visitor pattern issues.
+///     Exception thrown when visitor operations encounter validation or processing errors.
+///     Provides specific guidance for AST processing and visitor pattern issues.
 /// </summary>
 public class VisitorException : Exception
 {
     /// <summary>
-    /// The name of the visitor that encountered the error.
-    /// </summary>
-    public string VisitorName { get; }
-
-    /// <summary>
-    /// The operation that was being performed when the error occurred.
-    /// </summary>
-    public string Operation { get; }
-
-    /// <summary>
-    /// Initializes a new instance of the VisitorException class.
+    ///     Initializes a new instance of the VisitorException class.
     /// </summary>
     /// <param name="visitorName">The name of the visitor that encountered the error.</param>
     /// <param name="operation">The operation that was being performed.</param>
@@ -32,7 +22,7 @@ public class VisitorException : Exception
     }
 
     /// <summary>
-    /// Initializes a new instance of the VisitorException class with an inner exception.
+    ///     Initializes a new instance of the VisitorException class with an inner exception.
     /// </summary>
     /// <param name="visitorName">The name of the visitor that encountered the error.</param>
     /// <param name="operation">The operation that was being performed.</param>
@@ -46,14 +36,25 @@ public class VisitorException : Exception
     }
 
     /// <summary>
-    /// Creates a VisitorException for stack underflow operations.
+    ///     The name of the visitor that encountered the error.
+    /// </summary>
+    public string VisitorName { get; }
+
+    /// <summary>
+    ///     The operation that was being performed when the error occurred.
+    /// </summary>
+    public string Operation { get; }
+
+    /// <summary>
+    ///     Creates a VisitorException for stack underflow operations.
     /// </summary>
     /// <param name="visitorName">The name of the visitor.</param>
     /// <param name="operation">The operation being performed.</param>
     /// <param name="expectedItems">Number of items expected on the stack.</param>
     /// <param name="actualItems">Number of items actually on the stack.</param>
     /// <returns>A configured VisitorException instance.</returns>
-    public static VisitorException CreateForStackUnderflow(string visitorName, string operation, int expectedItems, int actualItems)
+    public static VisitorException CreateForStackUnderflow(string visitorName, string operation, int expectedItems,
+        int actualItems)
     {
         return new VisitorException(
             visitorName,
@@ -65,7 +66,7 @@ public class VisitorException : Exception
     }
 
     /// <summary>
-    /// Creates a VisitorException for null node errors.
+    ///     Creates a VisitorException for null node errors.
     /// </summary>
     /// <param name="visitorName">The name of the visitor.</param>
     /// <param name="operation">The operation being performed.</param>
@@ -83,14 +84,15 @@ public class VisitorException : Exception
     }
 
     /// <summary>
-    /// Creates a VisitorException for invalid node type errors.
+    ///     Creates a VisitorException for invalid node type errors.
     /// </summary>
     /// <param name="visitorName">The name of the visitor.</param>
     /// <param name="operation">The operation being performed.</param>
     /// <param name="expectedType">The expected node type.</param>
     /// <param name="actualType">The actual node type.</param>
     /// <returns>A configured VisitorException instance.</returns>
-    public static VisitorException CreateForInvalidNodeType(string visitorName, string operation, string expectedType, string actualType)
+    public static VisitorException CreateForInvalidNodeType(string visitorName, string operation, string expectedType,
+        string actualType)
     {
         return new VisitorException(
             visitorName,
@@ -102,20 +104,18 @@ public class VisitorException : Exception
     }
 
     /// <summary>
-    /// Creates a VisitorException for processing failures.
+    ///     Creates a VisitorException for processing failures.
     /// </summary>
     /// <param name="visitorName">The name of the visitor.</param>
     /// <param name="operation">The operation being performed.</param>
     /// <param name="context">Additional context about the failure.</param>
     /// <param name="suggestion">Suggested resolution.</param>
     /// <returns>A configured VisitorException instance.</returns>
-    public static VisitorException CreateForProcessingFailure(string visitorName, string operation, string context, string suggestion = null)
+    public static VisitorException CreateForProcessingFailure(string visitorName, string operation, string context,
+        string suggestion = null)
     {
         var message = $"Processing failed: {context}";
-        if (!string.IsNullOrEmpty(suggestion))
-        {
-            message += $" {suggestion}";
-        }
+        if (!string.IsNullOrEmpty(suggestion)) message += $" {suggestion}";
 
         return new VisitorException(visitorName, operation, message);
     }

@@ -5,12 +5,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Handles CTE (Common Table Expression) related code generation.
+///     Handles CTE (Common Table Expression) related code generation.
 /// </summary>
 public static class CteEmitter
 {
     /// <summary>
-    /// Creates the assignment statement for CTE inner expression result storage.
+    ///     Creates the assignment statement for CTE inner expression result storage.
     /// </summary>
     /// <param name="cteName">The CTE name to look up in the table indexes.</param>
     /// <param name="tableIndex">The index of the table in the _tableResults array.</param>
@@ -21,7 +21,6 @@ public static class CteEmitter
         int tableIndex,
         string methodName)
     {
-        
         return SyntaxFactory.ExpressionStatement(
             SyntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
@@ -30,12 +29,12 @@ public static class CteEmitter
     }
 
     /// <summary>
-    /// Creates element access expression for _tableResults array.
+    ///     Creates element access expression for _tableResults array.
     /// </summary>
     private static ElementAccessExpressionSyntax CreateTableResultsAccess(int tableIndex)
     {
         return SyntaxFactory.ElementAccessExpression(
-            SyntaxFactory.IdentifierName("_tableResults"))
+                SyntaxFactory.IdentifierName("_tableResults"))
             .WithArgumentList(
                 SyntaxFactory.BracketedArgumentList(
                     SyntaxFactory.SingletonSeparatedList(
@@ -46,7 +45,7 @@ public static class CteEmitter
     }
 
     /// <summary>
-    /// Creates the method invocation with standard CTE parameters.
+    ///     Creates the method invocation with standard CTE parameters.
     /// </summary>
     private static InvocationExpressionSyntax CreateMethodInvocation(string methodName)
     {
@@ -60,22 +59,22 @@ public static class CteEmitter
         };
 
         return SyntaxFactory.InvocationExpression(
-            SyntaxFactory.IdentifierName(methodName))
+                SyntaxFactory.IdentifierName(methodName))
             .WithArgumentList(
                 SyntaxFactory.ArgumentList(
                     SyntaxFactory.SeparatedList(arguments)));
     }
 
     /// <summary>
-    /// Registers a CTE name in the table indexes if not already present.
+    ///     Registers a CTE name in the table indexes if not already present.
     /// </summary>
     /// <param name="cteName">The CTE name to register.</param>
     /// <param name="tableIndexes">The dictionary mapping CTE names to indexes.</param>
     /// <param name="currentIndex">The current table index counter.</param>
     /// <returns>True if a new index was assigned, false if already registered.</returns>
     public static bool TryRegisterCteIndex(
-        string cteName, 
-        Dictionary<string, int> tableIndexes, 
+        string cteName,
+        Dictionary<string, int> tableIndexes,
         ref int currentIndex)
     {
         if (tableIndexes.ContainsKey(cteName))
@@ -86,7 +85,7 @@ public static class CteEmitter
     }
 
     /// <summary>
-    /// Gets the table index for a registered CTE name.
+    ///     Gets the table index for a registered CTE name.
     /// </summary>
     public static int GetCteIndex(string cteName, Dictionary<string, int> tableIndexes)
     {
@@ -94,14 +93,14 @@ public static class CteEmitter
     }
 
     /// <summary>
-    /// Creates an element access expression for referencing a CTE result in _tableResults.
+    ///     Creates an element access expression for referencing a CTE result in _tableResults.
     /// </summary>
     /// <param name="tableIndex">The index of the table in _tableResults.</param>
     /// <returns>An element access expression for the CTE reference.</returns>
     public static ElementAccessExpressionSyntax CreateCteReference(int tableIndex)
     {
         return SyntaxFactory.ElementAccessExpression(
-            SyntaxFactory.IdentifierName("_tableResults"))
+                SyntaxFactory.IdentifierName("_tableResults"))
             .WithArgumentList(
                 SyntaxFactory.BracketedArgumentList(
                     SyntaxFactory.SingletonSeparatedList(

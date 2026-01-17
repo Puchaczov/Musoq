@@ -9,10 +9,10 @@ namespace Musoq.Schema.DataSources;
 public class ChunkEnumerator<T> : IEnumerator<IObjectResolver>
 {
     private readonly BlockingCollection<IReadOnlyList<IObjectResolver>> _readRows;
+    private readonly CancellationToken _token;
 
     private IReadOnlyList<IObjectResolver> _currentChunk;
     private int _currentIndex = -1;
-    private readonly CancellationToken _token;
 
     public ChunkEnumerator(BlockingCollection<IReadOnlyList<IObjectResolver>> readRows, CancellationToken token)
     {
@@ -30,7 +30,8 @@ public class ChunkEnumerator<T> : IEnumerator<IObjectResolver>
             var wasTaken = false;
             for (var i = 0; i < 10; i++)
             {
-                if (!_readRows.TryTake(out _currentChunk) || _currentChunk == null || _currentChunk.Count == 0) continue;
+                if (!_readRows.TryTake(out _currentChunk) || _currentChunk == null ||
+                    _currentChunk.Count == 0) continue;
 
                 wasTaken = true;
                 break;
@@ -58,7 +59,6 @@ public class ChunkEnumerator<T> : IEnumerator<IObjectResolver>
 
             _currentIndex = 0;
             return _currentChunk.Count > 0;
-
         }
         catch (NullReferenceException)
         {

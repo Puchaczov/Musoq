@@ -14,14 +14,14 @@ public partial class Operators
     {
         if (content is null || searchFor is null)
             return false;
-            
+
         var regex = LikePatternCache.GetOrAdd(searchFor, pattern =>
         {
             var escaped = EscapePattern.Replace(pattern, match => @"\" + match.Value);
             var sqlPattern = escaped.Replace("_", ".").Replace("%", ".*");
             return new Regex(@"\A" + sqlPattern + @"\z", RegexOptions.Singleline | RegexOptions.Compiled);
         });
-        
+
         return regex.IsMatch(content);
     }
 
@@ -29,10 +29,10 @@ public partial class Operators
     {
         if (content is null || pattern is null)
             return false;
-            
-        var regex = RLikePatternCache.GetOrAdd(pattern, p => 
+
+        var regex = RLikePatternCache.GetOrAdd(pattern, p =>
             new Regex(p, RegexOptions.Compiled));
-        
+
         return regex.IsMatch(content);
     }
 
@@ -40,7 +40,7 @@ public partial class Operators
     {
         if (values is null)
             return false;
-            
+
         return values.Contains(value);
     }
 

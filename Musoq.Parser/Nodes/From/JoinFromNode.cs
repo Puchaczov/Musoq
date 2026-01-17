@@ -10,14 +10,14 @@ public class JoinFromNode : BinaryFromNode
         Expression = expression;
         JoinType = joinType;
     }
-        
+
     public JoinFromNode(FromNode source, FromNode with, Node expression, JoinType joinType, Type returnType)
         : base(source, with, $"{source.Alias}{with.Alias}", returnType)
     {
         Expression = expression;
         JoinType = joinType;
     }
-        
+
     public Node Expression { get; }
     public JoinType JoinType { get; }
     public override string Id => $"{nameof(JoinFromNode)}{Source.Id}{With.Id}{Expression.Id}";
@@ -35,7 +35,7 @@ public class JoinFromNode : BinaryFromNode
             JoinType.OuterLeft => "left outer join",
             _ => "right outer join"
         };
-            
+
         return $"{Source.ToString()} {joinType} {With.ToString()} on {Expression.ToString()}";
     }
 }

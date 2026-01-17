@@ -9,7 +9,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Decompresses a zlib-compressed byte array and returns it as a UTF-8 string.
+    ///     Decompresses a zlib-compressed byte array and returns it as a UTF-8 string.
     /// </summary>
     /// <param name="compressedData">The zlib-compressed data</param>
     /// <returns>The decompressed string, or null if input is null</returns>
@@ -24,7 +24,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decompresses a zlib-compressed byte array and returns it as a string using the specified encoding.
+    ///     Decompresses a zlib-compressed byte array and returns it as a string using the specified encoding.
     /// </summary>
     /// <param name="compressedData">The zlib-compressed data</param>
     /// <param name="encodingName">The encoding name (e.g., "UTF-8", "UTF-16", "ASCII")</param>
@@ -41,7 +41,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decompresses a zlib-compressed byte array and returns it as a string using the specified encoding.
+    ///     Decompresses a zlib-compressed byte array and returns it as a string using the specified encoding.
     /// </summary>
     /// <param name="compressedData">The zlib-compressed data</param>
     /// <param name="encoding">The encoding to use</param>
@@ -51,13 +51,13 @@ public partial class LibraryBase
         using var inputStream = new MemoryStream(compressedData);
         using var zlibStream = new ZLibStream(inputStream, CompressionMode.Decompress);
         using var outputStream = new MemoryStream();
-        
+
         zlibStream.CopyTo(outputStream);
         return encoding.GetString(outputStream.ToArray());
     }
 
     /// <summary>
-    /// Decompresses a zlib-compressed byte array and returns the raw bytes.
+    ///     Decompresses a zlib-compressed byte array and returns the raw bytes.
     /// </summary>
     /// <param name="compressedData">The zlib-compressed data</param>
     /// <returns>The decompressed bytes, or null if input is null</returns>
@@ -71,14 +71,14 @@ public partial class LibraryBase
         using var inputStream = new MemoryStream(compressedData);
         using var zlibStream = new ZLibStream(inputStream, CompressionMode.Decompress);
         using var outputStream = new MemoryStream();
-        
+
         zlibStream.CopyTo(outputStream);
         return outputStream.ToArray();
     }
 
     /// <summary>
-    /// Decompresses a base64-encoded, zlib-compressed string and returns the decompressed text.
-    /// This is a convenience method for handling data that is base64-encoded zlib content.
+    ///     Decompresses a base64-encoded, zlib-compressed string and returns the decompressed text.
+    ///     This is a convenience method for handling data that is base64-encoded zlib content.
     /// </summary>
     /// <param name="base64CompressedData">The base64-encoded, zlib-compressed data</param>
     /// <returns>The decompressed string, or null if input is null or empty</returns>
@@ -94,7 +94,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decompresses a base64-encoded, zlib-compressed string and returns the decompressed text using specified encoding.
+    ///     Decompresses a base64-encoded, zlib-compressed string and returns the decompressed text using specified encoding.
     /// </summary>
     /// <param name="base64CompressedData">The base64-encoded, zlib-compressed data</param>
     /// <param name="encodingName">The encoding name (e.g., "UTF-8", "UTF-16", "ASCII")</param>
@@ -111,7 +111,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Compresses a string using zlib compression and returns the compressed bytes.
+    ///     Compresses a string using zlib compression and returns the compressed bytes.
     /// </summary>
     /// <param name="data">The string to compress</param>
     /// <returns>The zlib-compressed bytes, or null if input is null</returns>
@@ -126,7 +126,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Compresses a byte array using zlib compression.
+    ///     Compresses a byte array using zlib compression.
     /// </summary>
     /// <param name="data">The data to compress</param>
     /// <returns>The zlib-compressed bytes, or null if input is null</returns>
@@ -142,11 +142,12 @@ public partial class LibraryBase
         {
             zlibStream.Write(data, 0, data.Length);
         }
+
         return outputStream.ToArray();
     }
 
     /// <summary>
-    /// Compresses a string using zlib compression and returns the result as a base64-encoded string.
+    ///     Compresses a string using zlib compression and returns the result as a base64-encoded string.
     /// </summary>
     /// <param name="data">The string to compress</param>
     /// <returns>The base64-encoded, zlib-compressed data, or null if input is null</returns>
@@ -162,7 +163,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decompresses a GZip-compressed byte array and returns it as a UTF-8 string.
+    ///     Decompresses a GZip-compressed byte array and returns it as a UTF-8 string.
     /// </summary>
     /// <param name="compressedData">The GZip-compressed data</param>
     /// <returns>The decompressed string, or null if input is null</returns>
@@ -177,7 +178,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decompresses a GZip-compressed byte array and returns it as a string using the specified encoding.
+    ///     Decompresses a GZip-compressed byte array and returns it as a string using the specified encoding.
     /// </summary>
     /// <param name="compressedData">The GZip-compressed data</param>
     /// <param name="encodingName">The encoding name (e.g., "UTF-8", "UTF-16", "ASCII")</param>
@@ -194,20 +195,20 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decompresses a GZip-compressed byte array and returns it as a string using the specified encoding.
+    ///     Decompresses a GZip-compressed byte array and returns it as a string using the specified encoding.
     /// </summary>
     private static string DecompressGZip(byte[] compressedData, Encoding encoding)
     {
         using var inputStream = new MemoryStream(compressedData);
         using var gzipStream = new GZipStream(inputStream, CompressionMode.Decompress);
         using var outputStream = new MemoryStream();
-        
+
         gzipStream.CopyTo(outputStream);
         return encoding.GetString(outputStream.ToArray());
     }
 
     /// <summary>
-    /// Decompresses a GZip-compressed byte array and returns the raw bytes.
+    ///     Decompresses a GZip-compressed byte array and returns the raw bytes.
     /// </summary>
     /// <param name="compressedData">The GZip-compressed data</param>
     /// <returns>The decompressed bytes, or null if input is null</returns>
@@ -221,13 +222,13 @@ public partial class LibraryBase
         using var inputStream = new MemoryStream(compressedData);
         using var gzipStream = new GZipStream(inputStream, CompressionMode.Decompress);
         using var outputStream = new MemoryStream();
-        
+
         gzipStream.CopyTo(outputStream);
         return outputStream.ToArray();
     }
 
     /// <summary>
-    /// Decompresses a base64-encoded, GZip-compressed string and returns the decompressed text.
+    ///     Decompresses a base64-encoded, GZip-compressed string and returns the decompressed text.
     /// </summary>
     /// <param name="base64CompressedData">The base64-encoded, GZip-compressed data</param>
     /// <returns>The decompressed string, or null if input is null or empty</returns>
@@ -243,7 +244,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decompresses a base64-encoded, GZip-compressed string and returns the decompressed text using specified encoding.
+    ///     Decompresses a base64-encoded, GZip-compressed string and returns the decompressed text using specified encoding.
     /// </summary>
     /// <param name="base64CompressedData">The base64-encoded, GZip-compressed data</param>
     /// <param name="encodingName">The encoding name (e.g., "UTF-8", "UTF-16", "ASCII")</param>
@@ -260,7 +261,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Compresses a string using GZip compression and returns the compressed bytes.
+    ///     Compresses a string using GZip compression and returns the compressed bytes.
     /// </summary>
     /// <param name="data">The string to compress</param>
     /// <returns>The GZip-compressed bytes, or null if input is null</returns>
@@ -275,7 +276,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Compresses a byte array using GZip compression.
+    ///     Compresses a byte array using GZip compression.
     /// </summary>
     /// <param name="data">The data to compress</param>
     /// <returns>The GZip-compressed bytes, or null if input is null</returns>
@@ -291,11 +292,12 @@ public partial class LibraryBase
         {
             gzipStream.Write(data, 0, data.Length);
         }
+
         return outputStream.ToArray();
     }
 
     /// <summary>
-    /// Compresses a string using GZip compression and returns the result as a base64-encoded string.
+    ///     Compresses a string using GZip compression and returns the result as a base64-encoded string.
     /// </summary>
     /// <param name="data">The string to compress</param>
     /// <returns>The base64-encoded, GZip-compressed data, or null if input is null</returns>
@@ -311,7 +313,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decompresses a Deflate-compressed byte array and returns it as a UTF-8 string.
+    ///     Decompresses a Deflate-compressed byte array and returns it as a UTF-8 string.
     /// </summary>
     /// <param name="compressedData">The Deflate-compressed data</param>
     /// <returns>The decompressed string, or null if input is null</returns>
@@ -326,7 +328,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decompresses a Deflate-compressed byte array and returns it as a string using the specified encoding.
+    ///     Decompresses a Deflate-compressed byte array and returns it as a string using the specified encoding.
     /// </summary>
     /// <param name="compressedData">The Deflate-compressed data</param>
     /// <param name="encodingName">The encoding name (e.g., "UTF-8", "UTF-16", "ASCII")</param>
@@ -343,20 +345,20 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decompresses a Deflate-compressed byte array and returns it as a string using the specified encoding.
+    ///     Decompresses a Deflate-compressed byte array and returns it as a string using the specified encoding.
     /// </summary>
     private static string DecompressDeflate(byte[] compressedData, Encoding encoding)
     {
         using var inputStream = new MemoryStream(compressedData);
         using var deflateStream = new DeflateStream(inputStream, CompressionMode.Decompress);
         using var outputStream = new MemoryStream();
-        
+
         deflateStream.CopyTo(outputStream);
         return encoding.GetString(outputStream.ToArray());
     }
 
     /// <summary>
-    /// Decompresses a Deflate-compressed byte array and returns the raw bytes.
+    ///     Decompresses a Deflate-compressed byte array and returns the raw bytes.
     /// </summary>
     /// <param name="compressedData">The Deflate-compressed data</param>
     /// <returns>The decompressed bytes, or null if input is null</returns>
@@ -370,13 +372,13 @@ public partial class LibraryBase
         using var inputStream = new MemoryStream(compressedData);
         using var deflateStream = new DeflateStream(inputStream, CompressionMode.Decompress);
         using var outputStream = new MemoryStream();
-        
+
         deflateStream.CopyTo(outputStream);
         return outputStream.ToArray();
     }
 
     /// <summary>
-    /// Decompresses a base64-encoded, Deflate-compressed string and returns the decompressed text.
+    ///     Decompresses a base64-encoded, Deflate-compressed string and returns the decompressed text.
     /// </summary>
     /// <param name="base64CompressedData">The base64-encoded, Deflate-compressed data</param>
     /// <returns>The decompressed string, or null if input is null or empty</returns>
@@ -392,7 +394,8 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decompresses a base64-encoded, Deflate-compressed string and returns the decompressed text using specified encoding.
+    ///     Decompresses a base64-encoded, Deflate-compressed string and returns the decompressed text using specified
+    ///     encoding.
     /// </summary>
     /// <param name="base64CompressedData">The base64-encoded, Deflate-compressed data</param>
     /// <param name="encodingName">The encoding name (e.g., "UTF-8", "UTF-16", "ASCII")</param>
@@ -409,7 +412,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Compresses a string using Deflate compression and returns the compressed bytes.
+    ///     Compresses a string using Deflate compression and returns the compressed bytes.
     /// </summary>
     /// <param name="data">The string to compress</param>
     /// <returns>The Deflate-compressed bytes, or null if input is null</returns>
@@ -424,7 +427,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Compresses a byte array using Deflate compression.
+    ///     Compresses a byte array using Deflate compression.
     /// </summary>
     /// <param name="data">The data to compress</param>
     /// <returns>The Deflate-compressed bytes, or null if input is null</returns>
@@ -440,11 +443,12 @@ public partial class LibraryBase
         {
             deflateStream.Write(data, 0, data.Length);
         }
+
         return outputStream.ToArray();
     }
 
     /// <summary>
-    /// Compresses a string using Deflate compression and returns the result as a base64-encoded string.
+    ///     Compresses a string using Deflate compression and returns the result as a base64-encoded string.
     /// </summary>
     /// <param name="data">The string to compress</param>
     /// <returns>The base64-encoded, Deflate-compressed data, or null if input is null</returns>
@@ -462,8 +466,8 @@ public partial class LibraryBase
     #region Brotli Compression
 
     /// <summary>
-    /// Decompresses a Brotli-compressed byte array and returns it as a UTF-8 string.
-    /// Brotli is commonly used in web APIs and HTTP responses.
+    ///     Decompresses a Brotli-compressed byte array and returns it as a UTF-8 string.
+    ///     Brotli is commonly used in web APIs and HTTP responses.
     /// </summary>
     /// <param name="compressedData">The Brotli-compressed data</param>
     /// <returns>The decompressed string, or null if input is null</returns>
@@ -478,7 +482,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decompresses a Brotli-compressed byte array and returns it as a string using the specified encoding.
+    ///     Decompresses a Brotli-compressed byte array and returns it as a string using the specified encoding.
     /// </summary>
     /// <param name="compressedData">The Brotli-compressed data</param>
     /// <param name="encodingName">The encoding name (e.g., "UTF-8", "UTF-16", "ASCII")</param>
@@ -495,20 +499,20 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decompresses a Brotli-compressed byte array and returns it as a string using the specified encoding.
+    ///     Decompresses a Brotli-compressed byte array and returns it as a string using the specified encoding.
     /// </summary>
     private static string DecompressBrotli(byte[] compressedData, Encoding encoding)
     {
         using var inputStream = new MemoryStream(compressedData);
         using var brotliStream = new BrotliStream(inputStream, CompressionMode.Decompress);
         using var outputStream = new MemoryStream();
-        
+
         brotliStream.CopyTo(outputStream);
         return encoding.GetString(outputStream.ToArray());
     }
 
     /// <summary>
-    /// Decompresses a Brotli-compressed byte array and returns the raw bytes.
+    ///     Decompresses a Brotli-compressed byte array and returns the raw bytes.
     /// </summary>
     /// <param name="compressedData">The Brotli-compressed data</param>
     /// <returns>The decompressed bytes, or null if input is null</returns>
@@ -522,13 +526,13 @@ public partial class LibraryBase
         using var inputStream = new MemoryStream(compressedData);
         using var brotliStream = new BrotliStream(inputStream, CompressionMode.Decompress);
         using var outputStream = new MemoryStream();
-        
+
         brotliStream.CopyTo(outputStream);
         return outputStream.ToArray();
     }
 
     /// <summary>
-    /// Decompresses a base64-encoded, Brotli-compressed string and returns the decompressed text.
+    ///     Decompresses a base64-encoded, Brotli-compressed string and returns the decompressed text.
     /// </summary>
     /// <param name="base64CompressedData">The base64-encoded, Brotli-compressed data</param>
     /// <returns>The decompressed string, or null if input is null or empty</returns>
@@ -544,7 +548,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Decompresses a base64-encoded, Brotli-compressed string and returns the decompressed text using specified encoding.
+    ///     Decompresses a base64-encoded, Brotli-compressed string and returns the decompressed text using specified encoding.
     /// </summary>
     /// <param name="base64CompressedData">The base64-encoded, Brotli-compressed data</param>
     /// <param name="encodingName">The encoding name (e.g., "UTF-8", "UTF-16", "ASCII")</param>
@@ -561,7 +565,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Compresses a string using Brotli compression and returns the compressed bytes.
+    ///     Compresses a string using Brotli compression and returns the compressed bytes.
     /// </summary>
     /// <param name="data">The string to compress</param>
     /// <returns>The Brotli-compressed bytes, or null if input is null</returns>
@@ -576,7 +580,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Compresses a byte array using Brotli compression.
+    ///     Compresses a byte array using Brotli compression.
     /// </summary>
     /// <param name="data">The data to compress</param>
     /// <returns>The Brotli-compressed bytes, or null if input is null</returns>
@@ -592,11 +596,12 @@ public partial class LibraryBase
         {
             brotliStream.Write(data, 0, data.Length);
         }
+
         return outputStream.ToArray();
     }
 
     /// <summary>
-    /// Compresses a string using Brotli compression and returns the result as a base64-encoded string.
+    ///     Compresses a string using Brotli compression and returns the result as a base64-encoded string.
     /// </summary>
     /// <param name="data">The string to compress</param>
     /// <returns>The base64-encoded, Brotli-compressed data, or null if input is null</returns>

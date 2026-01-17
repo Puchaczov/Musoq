@@ -11,17 +11,60 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Consolidated emitter for SQL query clauses (SELECT, WHERE, GROUP BY, HAVING, ORDER BY).
-/// Provides a unified interface for query clause code generation.
+///     Consolidated emitter for SQL query clauses (SELECT, WHERE, GROUP BY, HAVING, ORDER BY).
+///     Provides a unified interface for query clause code generation.
 /// </summary>
 public sealed class QueryClauseEmitter(SyntaxGenerator generator)
 {
     private readonly SyntaxGenerator _generator = generator ?? throw new ArgumentNullException(nameof(generator));
 
+    #region WHERE Clause
+
+    /// <summary>
+    ///     Processes a WHERE node and generates the condition check statement.
+    /// </summary>
+    public SyntaxNode ProcessWhere(
+        SyntaxNode conditionExpression,
+        bool isParallelizationImpossible,
+        bool isResultQuery)
+    {
+        return WhereEmitter.CreateWhereCondition(
+            conditionExpression,
+            isParallelizationImpossible,
+            isResultQuery,
+            _generator);
+    }
+
+    #endregion
+
+    #region HAVING Clause
+
+    /// <summary>
+    ///     Processes a HAVING node and generates the having condition.
+    /// </summary>
+    public SyntaxNode ProcessHaving(SyntaxNode conditionExpression)
+    {
+        return GroupByEmitter.CreateHavingCondition(conditionExpression, _generator);
+    }
+
+    #endregion
+
+    #region ORDER BY Clause
+
+    /// <summary>
+    ///     Gets the required namespace for ORDER BY operations.
+    /// </summary>
+    public static string GetOrderByNamespace()
+    {
+        return "Musoq.Evaluator";
+    }
+
+    #endregion
+
     #region SELECT Clause
 
     /// <summary>
-    /// Result of processing a SELECT clause.
+    ///     Result of processing a SELECT clause.
     /// </summary>
     public readonly struct SelectClauseResult
     {
@@ -30,7 +73,7 @@ public sealed class QueryClauseEmitter(SyntaxGenerator generator)
     }
 
     /// <summary>
-    /// Processes a SELECT node and generates the row class and select block.
+    ///     Processes a SELECT node and generates the row class and select block.
     /// </summary>
     public SelectClauseResult ProcessSelect(
         SelectNode node,
@@ -53,29 +96,10 @@ public sealed class QueryClauseEmitter(SyntaxGenerator generator)
 
     #endregion
 
-    #region WHERE Clause
-
-    /// <summary>
-    /// Processes a WHERE node and generates the condition check statement.
-    /// </summary>
-    public SyntaxNode ProcessWhere(
-        SyntaxNode conditionExpression,
-        bool isParallelizationImpossible,
-        bool isResultQuery)
-    {
-        return WhereEmitter.CreateWhereCondition(
-            conditionExpression,
-            isParallelizationImpossible,
-            isResultQuery,
-            _generator);
-    }
-
-    #endregion
-
     #region GROUP BY Clause
 
     /// <summary>
-    /// Result of processing a GROUP BY clause.
+    ///     Result of processing a GROUP BY clause.
     /// </summary>
     public readonly struct GroupByClauseResult
     {
@@ -87,7 +111,7 @@ public sealed class QueryClauseEmitter(SyntaxGenerator generator)
     }
 
     /// <summary>
-    /// Processes a GROUP BY node and generates the grouping structures.
+    ///     Processes a GROUP BY node and generates the grouping structures.
     /// </summary>
     public GroupByClauseResult ProcessGroupBy(
         GroupByNode node,
@@ -108,22 +132,10 @@ public sealed class QueryClauseEmitter(SyntaxGenerator generator)
 
     #endregion
 
-    #region HAVING Clause
-
-    /// <summary>
-    /// Processes a HAVING node and generates the having condition.
-    /// </summary>
-    public SyntaxNode ProcessHaving(SyntaxNode conditionExpression)
-    {
-        return GroupByEmitter.CreateHavingCondition(conditionExpression, _generator);
-    }
-
-    #endregion
-
     #region SKIP/TAKE (Pagination)
 
     /// <summary>
-    /// Result of processing a SKIP clause.
+    ///     Result of processing a SKIP clause.
     /// </summary>
     public readonly struct SkipClauseResult
     {
@@ -132,7 +144,7 @@ public sealed class QueryClauseEmitter(SyntaxGenerator generator)
     }
 
     /// <summary>
-    /// Processes a SKIP node and generates the skip logic.
+    ///     Processes a SKIP node and generates the skip logic.
     /// </summary>
     public SkipClauseResult ProcessSkip(long skipValue)
     {
@@ -145,7 +157,7 @@ public sealed class QueryClauseEmitter(SyntaxGenerator generator)
     }
 
     /// <summary>
-    /// Result of processing a TAKE clause.
+    ///     Result of processing a TAKE clause.
     /// </summary>
     public readonly struct TakeClauseResult
     {
@@ -154,7 +166,7 @@ public sealed class QueryClauseEmitter(SyntaxGenerator generator)
     }
 
     /// <summary>
-    /// Processes a TAKE node and generates the take logic.
+    ///     Processes a TAKE node and generates the take logic.
     /// </summary>
     public TakeClauseResult ProcessTake(long takeValue)
     {
@@ -165,15 +177,6 @@ public sealed class QueryClauseEmitter(SyntaxGenerator generator)
             Block = block
         };
     }
-
-    #endregion
-
-    #region ORDER BY Clause
-
-    /// <summary>
-    /// Gets the required namespace for ORDER BY operations.
-    /// </summary>
-    public static string GetOrderByNamespace() => "Musoq.Evaluator";
 
     #endregion
 }

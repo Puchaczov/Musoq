@@ -2,55 +2,50 @@ using BenchmarkDotNet.Attributes;
 using Musoq.Benchmarks.Components;
 using Musoq.Converter;
 using Musoq.Evaluator;
+using Musoq.Plugins;
+using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
-using Musoq.Plugins;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Musoq.Plugins.Attributes;
 
 namespace Musoq.Benchmarks;
 
 /// <summary>
-/// Benchmark comparing query execution with all optimizations enabled vs disabled.
-/// This helps measure the cumulative performance impact of optimizations like CSE.
+///     Benchmark comparing query execution with all optimizations enabled vs disabled.
+///     This helps measure the cumulative performance impact of optimizations like CSE.
 /// </summary>
 [ShortRunJob]
 [MemoryDiagnoser]
 public class OptimizationsToggleBenchmark
 {
-    private CompiledQuery _simpleQueryOptimized = null!;
-    private CompiledQuery _simpleQueryUnoptimized = null!;
-    private CompiledQuery _complexQueryOptimized = null!;
-    private CompiledQuery _complexQueryUnoptimized = null!;
-    private CompiledQuery _caseWhenQueryOptimized = null!;
-    private CompiledQuery _caseWhenQueryUnoptimized = null!;
-    private CompiledQuery _aggregateQueryOptimized = null!;
-    private CompiledQuery _aggregateQueryUnoptimized = null!;
-    private CompiledQuery _mixedColumnMethodQueryOptimized = null!;
-    private CompiledQuery _mixedColumnMethodQueryUnoptimized = null!;
-    private CompiledQuery _heavyMixedQueryOptimized = null!;
-    private CompiledQuery _heavyMixedQueryUnoptimized = null!;
-    
-    private readonly ILoggerResolver _loggerResolver = new BenchmarkLoggerResolver();
-    
     // Compilation options
     private static readonly CompilationOptions OptimizationsEnabled = new(
-        parallelizationMode: ParallelizationMode.Full,
-        useHashJoin: true,
-        useSortMergeJoin: true,
-        useCommonSubexpressionElimination: true);
-    
-    private static readonly CompilationOptions OptimizationsDisabled = new(
-        parallelizationMode: ParallelizationMode.None,
-        useHashJoin: false,
-        useSortMergeJoin: false,
-        useCommonSubexpressionElimination: false);
+        ParallelizationMode.Full,
+        true,
+        true,
+        true);
 
-    [Params(10_000, 100_000)]
-    public int RowsCount { get; set; }
+    private static readonly CompilationOptions OptimizationsDisabled = new(
+        ParallelizationMode.None,
+        false,
+        false,
+        false);
+
+    private readonly ILoggerResolver _loggerResolver = new BenchmarkLoggerResolver();
+    private CompiledQuery _aggregateQueryOptimized = null!;
+    private CompiledQuery _aggregateQueryUnoptimized = null!;
+    private CompiledQuery _caseWhenQueryOptimized = null!;
+    private CompiledQuery _caseWhenQueryUnoptimized = null!;
+    private CompiledQuery _complexQueryOptimized = null!;
+    private CompiledQuery _complexQueryUnoptimized = null!;
+    private CompiledQuery _heavyMixedQueryOptimized = null!;
+    private CompiledQuery _heavyMixedQueryUnoptimized = null!;
+    private CompiledQuery _mixedColumnMethodQueryOptimized = null!;
+    private CompiledQuery _mixedColumnMethodQueryUnoptimized = null!;
+    private CompiledQuery _simpleQueryOptimized = null!;
+    private CompiledQuery _simpleQueryUnoptimized = null!;
+
+    [Params(10_000, 100_000)] public int RowsCount { get; set; }
 
     [GlobalSetup]
     public void Setup()
@@ -58,7 +53,7 @@ public class OptimizationsToggleBenchmark
         var testData = CreateTestData(RowsCount);
         var schemaProvider = new OptBenchSchemaProvider(testData);
 
-        
+
         const string simpleQuery = @"
             SELECT ExpensiveCompute(Value), ExpensiveCompute(Value) + 10
             FROM #test.entities() 
@@ -78,7 +73,7 @@ public class OptimizationsToggleBenchmark
             _loggerResolver,
             OptimizationsDisabled);
 
-        
+
         const string complexQuery = @"
             SELECT 
                 ExpensiveCompute(Value) as Computed,
@@ -105,7 +100,7 @@ public class OptimizationsToggleBenchmark
             _loggerResolver,
             OptimizationsDisabled);
 
-        
+
         const string caseWhenQuery = @"
             SELECT 
                 ExpensiveCompute(Value) as Computed,
@@ -131,7 +126,7 @@ public class OptimizationsToggleBenchmark
             _loggerResolver,
             OptimizationsDisabled);
 
-        
+
         const string aggregateQuery = @"
             SELECT 
                 Category,
@@ -156,7 +151,7 @@ public class OptimizationsToggleBenchmark
             _loggerResolver,
             OptimizationsDisabled);
 
-        
+
         const string mixedColumnMethodQuery = @"
             SELECT 
                 Value,
@@ -185,7 +180,7 @@ public class OptimizationsToggleBenchmark
             _loggerResolver,
             OptimizationsDisabled);
 
-        
+
         const string heavyMixedQuery = @"
             SELECT 
                 Id,
@@ -224,6 +219,26 @@ public class OptimizationsToggleBenchmark
             _loggerResolver,
             OptimizationsDisabled);
     }
+
+    #region Test Data Creation
+
+    private static List<OptBenchEntity> CreateTestData(int count)
+    {
+        var random = new Random(42);
+        var categories = new[] { "A", "B", "C", "D", "E" };
+
+        return Enumerable.Range(0, count)
+            .Select(i => new OptBenchEntity
+            {
+                Id = i,
+                Name = $"Entity_{i}",
+                Value = random.Next(1, 1000),
+                Category = categories[i % categories.Length]
+            })
+            .ToList();
+    }
+
+    #endregion
 
     #region Simple Query Benchmarks
 
@@ -320,26 +335,6 @@ public class OptimizationsToggleBenchmark
     }
 
     #endregion
-
-    #region Test Data Creation
-
-    private static List<OptBenchEntity> CreateTestData(int count)
-    {
-        var random = new Random(42); 
-        var categories = new[] { "A", "B", "C", "D", "E" };
-        
-        return Enumerable.Range(0, count)
-            .Select(i => new OptBenchEntity
-            {
-                Id = i,
-                Name = $"Entity_{i}",
-                Value = random.Next(1, 1000),
-                Category = categories[i % categories.Length]
-            })
-            .ToList();
-    }
-
-    #endregion
 }
 
 #region Schema Implementation for OptimizationsToggleBenchmark
@@ -407,7 +402,7 @@ public class OptBenchTable : ISchemaTable
     };
 
     public SchemaTableMetadata Metadata => new(typeof(OptBenchEntity));
-    
+
     public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.FirstOrDefault(c => c.ColumnName == name);
@@ -432,10 +427,7 @@ public class OptBenchRowSource : RowSource
     {
         get
         {
-            foreach (var entity in _data)
-            {
-                yield return new OptBenchEntityResolver(entity);
-            }
+            foreach (var entity in _data) yield return new OptBenchEntityResolver(entity);
         }
     }
 }
@@ -469,47 +461,42 @@ public class OptBenchEntityResolver : IObjectResolver
         _ => null
     };
 
-    public bool HasColumn(string name) => name is 
-        nameof(OptBenchEntity.Id) or 
-        nameof(OptBenchEntity.Name) or 
-        nameof(OptBenchEntity.Value) or 
-        nameof(OptBenchEntity.Category);
+    public bool HasColumn(string name)
+    {
+        return name is
+            nameof(OptBenchEntity.Id) or
+            nameof(OptBenchEntity.Name) or
+            nameof(OptBenchEntity.Value) or
+            nameof(OptBenchEntity.Category);
+    }
 }
 
 public class OptBenchLibrary : LibraryBase
 {
     /// <summary>
-    /// Simulates an expensive computation (e.g., complex math, parsing, etc.)
+    ///     Simulates an expensive computation (e.g., complex math, parsing, etc.)
     /// </summary>
     [BindableMethod]
     public decimal ExpensiveCompute(int value)
     {
-        
         decimal result = value;
-        for (int i = 0; i < 100; i++)
-        {
-            result = (result * 1.1m) + (decimal)Math.Sin(i);
-        }
+        for (var i = 0; i < 100; i++) result = result * 1.1m + (decimal)Math.Sin(i);
         return Math.Round(result, 2);
     }
 
     /// <summary>
-    /// Simulates an expensive string transformation
+    ///     Simulates an expensive string transformation
     /// </summary>
     [BindableMethod]
     public string? StringTransform(string? input)
     {
         if (input == null) return null;
-        
-        
+
+
         var result = input;
-        for (int i = 0; i < 50; i++)
-        {
-            result = result.ToUpper().ToLower();
-        }
+        for (var i = 0; i < 50; i++) result = result.ToUpper().ToLower();
         return result.ToUpperInvariant() + "_transformed";
     }
 }
 
 #endregion
-

@@ -177,7 +177,7 @@ public class NetworkUtilsTests : LibraryBaseBaseTests
     {
         var result = Library.IpToLong("192.168.1.1");
 
-        
+
         Assert.AreEqual(3232235777L, result);
     }
 
@@ -186,7 +186,7 @@ public class NetworkUtilsTests : LibraryBaseBaseTests
     {
         var result = Library.IpToLong("10.0.0.1");
 
-        
+
         Assert.AreEqual(167772161L, result);
     }
 
@@ -591,7 +591,6 @@ public class NetworkUtilsTests : LibraryBaseBaseTests
     [TestMethod]
     public void UnixToDateTime_WhenValidTimestampProvided_ShouldConvert()
     {
-        
         var result = Library.UnixToDateTime(1704067200);
 
         Assert.AreEqual(2024, result?.Year);
@@ -622,7 +621,6 @@ public class NetworkUtilsTests : LibraryBaseBaseTests
     [TestMethod]
     public void UnixMillisToDateTime_WhenValidTimestampProvided_ShouldConvert()
     {
-        
         var result = Library.UnixMillisToDateTime(1704067200000);
 
         Assert.AreEqual(2024, result?.Year);

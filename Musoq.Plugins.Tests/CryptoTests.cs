@@ -16,7 +16,7 @@ public class CryptoTests : LibraryBaseBaseTests
         var result = Library.Sha384("hello");
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(96, result.Length); 
+        Assert.AreEqual(96, result.Length);
     }
 
     [TestMethod]
@@ -103,7 +103,7 @@ public class CryptoTests : LibraryBaseBaseTests
         var result = Library.Crc32("hello");
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(8, result.Length); 
+        Assert.AreEqual(8, result.Length);
     }
 
     [TestMethod]
@@ -183,12 +183,11 @@ public class CryptoTests : LibraryBaseBaseTests
     [TestMethod]
     public void Crc32_WhenKnownInput_ShouldReturnExpectedChecksum()
     {
-        
         var result = Library.Crc32("hello");
 
         Assert.IsNotNull(result);
-        
-        Assert.IsTrue(result.All(c => c is (>= '0' and <= '9') or (>= 'a' and <= 'f')));
+
+        Assert.IsTrue(result.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f'));
     }
 
     #endregion
@@ -201,7 +200,7 @@ public class CryptoTests : LibraryBaseBaseTests
         var result = Library.HmacSha256("message", "secret");
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(64, result.Length); 
+        Assert.AreEqual(64, result.Length);
     }
 
     [TestMethod]
@@ -279,7 +278,7 @@ public class CryptoTests : LibraryBaseBaseTests
         var result = Library.HmacSha256("test", "key");
 
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.All(c => c is (>= '0' and <= '9') or (>= 'a' and <= 'f')));
+        Assert.IsTrue(result.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f'));
     }
 
     #endregion
@@ -292,7 +291,7 @@ public class CryptoTests : LibraryBaseBaseTests
         var result = Library.HmacSha512("message", "secret");
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(128, result.Length); 
+        Assert.AreEqual(128, result.Length);
     }
 
     [TestMethod]
@@ -370,7 +369,7 @@ public class CryptoTests : LibraryBaseBaseTests
         var result = Library.HmacSha512("test", "key");
 
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.All(c => c is (>= '0' and <= '9') or (>= 'a' and <= 'f')));
+        Assert.IsTrue(result.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f'));
     }
 
     [TestMethod]

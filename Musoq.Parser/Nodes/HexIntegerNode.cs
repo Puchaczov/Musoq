@@ -6,10 +6,10 @@ public class HexIntegerNode : ConstantValueNode
 {
     public HexIntegerNode(string value)
     {
-        var hexValue = value.StartsWith("0x", StringComparison.OrdinalIgnoreCase) 
-            ? value.Substring(2) 
+        var hexValue = value.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+            ? value.Substring(2)
             : value;
-        
+
         ObjValue = ParseHexValue(hexValue, value);
         Id = $"{nameof(HexIntegerNode)}{value}{ReturnType.Name}";
     }
@@ -41,7 +41,7 @@ public class HexIntegerNode : ConstantValueNode
         try
         {
             var result = Convert.ToInt64(hexValue, 16);
-            
+
             return result;
         }
         catch (OverflowException)

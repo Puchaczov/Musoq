@@ -4,7 +4,7 @@ namespace Musoq.Evaluator.Parser;
 
 public class JoinNode : Musoq.Parser.Nodes.From.JoinNode
 {
-    public JoinNode(JoinFromNode join) 
+    public JoinNode(JoinFromNode join)
         : base(join, typeof(RowSource))
     {
     }

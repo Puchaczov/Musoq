@@ -11,16 +11,16 @@ public class AliasGeneratorQueryTests : BasicEntityTestBase
     public void WhenBuildMultipleTimes_AliasesShouldStayTheSame()
     {
         const string query = "select 1 from #A.entities()";
-        
+
         var firstBuild = CreateBuildItems<BasicEntity>(query);
         var secondBuild = CreateBuildItems<BasicEntity>(query);
 
         var firstFromNodes = firstBuild.UsedColumns.Keys.ToArray();
         var secondFromNodes = secondBuild.UsedColumns.Keys.ToArray();
-        
+
         Assert.HasCount(1, firstFromNodes);
         Assert.HasCount(1, secondFromNodes);
-        
+
         Assert.AreEqual(firstFromNodes[0].Alias, secondFromNodes[0].Alias);
     }
 }

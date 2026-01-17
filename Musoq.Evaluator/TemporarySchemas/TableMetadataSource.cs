@@ -15,16 +15,16 @@ public class TableMetadataSource : RowSource
     {
         NameToIndexMap = new Dictionary<string, int>
         {
-            {nameof(ISchemaColumn.ColumnName), 0},
-            {nameof(ISchemaColumn.ColumnIndex), 1},
-            {nameof(ISchemaColumn.ColumnType), 2}
+            { nameof(ISchemaColumn.ColumnName), 0 },
+            { nameof(ISchemaColumn.ColumnIndex), 1 },
+            { nameof(ISchemaColumn.ColumnType), 2 }
         };
 
         IndexToObjectAccessMap = new Dictionary<int, Func<object[], object>>
         {
-            {0, items => items[0]},
-            {1, items => items[1]},
-            {2, items => items[2]}
+            { 0, items => items[0] },
+            { 1, items => items[1] },
+            { 2, items => items[2] }
         };
     }
 

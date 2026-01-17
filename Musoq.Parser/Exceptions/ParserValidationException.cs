@@ -3,8 +3,8 @@ using System;
 namespace Musoq.Parser.Exceptions;
 
 /// <summary>
-/// Exception thrown when input validation fails in the parser.
-/// Provides detailed information about validation failures with helpful guidance.
+///     Exception thrown when input validation fails in the parser.
+///     Provides detailed information about validation failures with helpful guidance.
 /// </summary>
 public class ParserValidationException : ArgumentException
 {

@@ -2,36 +2,37 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using DiffPlex;
+using DiffPlex.Model;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
 
 /// <summary>
-/// Provides character-level text diff functionality.
+///     Provides character-level text diff functionality.
 /// </summary>
 public partial class LibraryBase
 {
     private const string KindUnchanged = "Unchanged";
     private const string KindDeleted = "Deleted";
     private const string KindInserted = "Inserted";
-    
+
     /// <summary>
-    /// Compares two strings at the character level and returns a human-readable diff string.
+    ///     Compares two strings at the character level and returns a human-readable diff string.
     /// </summary>
     /// <param name="first">The first (original) string.</param>
     /// <param name="second">The second (modified) string.</param>
     /// <param name="mode">
-    /// The output mode:
-    /// - "full" (default): show all unchanged text literally
-    /// - "compact": collapse unchanged regions to [=N]
-    /// - "full:N": like full, but collapse unchanged regions longer than N chars
+    ///     The output mode:
+    ///     - "full" (default): show all unchanged text literally
+    ///     - "compact": collapse unchanged regions to [=N]
+    ///     - "full:N": like full, but collapse unchanged regions longer than N chars
     /// </param>
     /// <returns>
-    /// A diff string with markers:
-    /// - [-text] for deleted text
-    /// - [+text] for inserted text
-    /// - [=N] for N unchanged characters (in compact mode or when threshold exceeded)
-    /// Returns null if both inputs are null or if mode is invalid.
+    ///     A diff string with markers:
+    ///     - [-text] for deleted text
+    ///     - [+text] for inserted text
+    ///     - [=N] for N unchanged characters (in compact mode or when threshold exceeded)
+    ///     Returns null if both inputs are null or if mode is invalid.
     /// </returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
@@ -73,18 +74,18 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Compares two strings at the character level and returns structured segments.
-    /// Useful for cross apply queries to filter and aggregate changes.
+    ///     Compares two strings at the character level and returns structured segments.
+    ///     Useful for cross apply queries to filter and aggregate changes.
     /// </summary>
     /// <param name="first">The first (original) string.</param>
     /// <param name="second">The second (modified) string.</param>
     /// <returns>
-    /// An enumerable of DiffSegmentEntity objects, each containing:
-    /// - Text: the segment content
-    /// - Kind: "Unchanged", "Deleted", or "Inserted"
-    /// - Position: start position (in source for Deleted/Unchanged, in target for Inserted)
-    /// - Length: character count
-    /// Returns an empty enumerable if both inputs are null or both are empty.
+    ///     An enumerable of DiffSegmentEntity objects, each containing:
+    ///     - Text: the segment content
+    ///     - Kind: "Unchanged", "Deleted", or "Inserted"
+    ///     - Position: start position (in source for Deleted/Unchanged, in target for Inserted)
+    ///     - Length: character count
+    ///     Returns an empty enumerable if both inputs are null or both are empty.
     /// </returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.String)]
@@ -143,25 +144,22 @@ public partial class LibraryBase
     {
         var differ = new Differ();
         var diffResult = differ.CreateCharacterDiffs(first, second, false);
-        
+
         var segments = new List<DiffSegmentEntity>();
         var sourcePos = 0;
         var targetPos = 0;
         var unchangedBuilder = new StringBuilder();
         var unchangedStartSourcePos = 0;
-        
+
         var diffBlockIndex = 0;
         var oldIndex = 0;
         var newIndex = 0;
-        
+
         while (oldIndex < first.Length || newIndex < second.Length)
         {
-            DiffPlex.Model.DiffBlock? currentBlock = null;
-            if (diffBlockIndex < diffResult.DiffBlocks.Count)
-            {
-                currentBlock = diffResult.DiffBlocks[diffBlockIndex];
-            }
-            
+            DiffBlock? currentBlock = null;
+            if (diffBlockIndex < diffResult.DiffBlocks.Count) currentBlock = diffResult.DiffBlocks[diffBlockIndex];
+
             if (currentBlock == null)
             {
                 if (oldIndex < first.Length)
@@ -175,9 +173,10 @@ public partial class LibraryBase
                     oldIndex = first.Length;
                     newIndex = second.Length;
                 }
+
                 break;
             }
-            
+
             while (oldIndex < currentBlock.DeleteStartA)
             {
                 if (unchangedBuilder.Length == 0)
@@ -188,7 +187,7 @@ public partial class LibraryBase
                 sourcePos++;
                 targetPos++;
             }
-            
+
             if (unchangedBuilder.Length > 0)
             {
                 segments.Add(new DiffSegmentEntity(
@@ -198,7 +197,7 @@ public partial class LibraryBase
                     unchangedBuilder.Length));
                 unchangedBuilder.Clear();
             }
-            
+
             if (currentBlock.DeleteCountA > 0)
             {
                 var deletedText = first.Substring(currentBlock.DeleteStartA, currentBlock.DeleteCountA);
@@ -210,7 +209,7 @@ public partial class LibraryBase
                 sourcePos += currentBlock.DeleteCountA;
                 oldIndex += currentBlock.DeleteCountA;
             }
-            
+
             if (currentBlock.InsertCountB > 0)
             {
                 var insertedText = second.Substring(currentBlock.InsertStartB, currentBlock.InsertCountB);
@@ -222,55 +221,45 @@ public partial class LibraryBase
                 targetPos += currentBlock.InsertCountB;
                 newIndex += currentBlock.InsertCountB;
             }
-            
+
             diffBlockIndex++;
         }
-        
+
         if (unchangedBuilder.Length > 0)
-        {
             segments.Add(new DiffSegmentEntity(
                 unchangedBuilder.ToString(),
                 KindUnchanged,
                 unchangedStartSourcePos,
                 unchangedBuilder.Length));
-        }
-        
+
         return segments;
     }
 
     private static string BuildDiffString(List<DiffSegmentEntity> segments, string modeName, int? threshold)
     {
         var result = new StringBuilder();
-        
+
         foreach (var segment in segments)
-        {
             switch (segment.Kind)
             {
                 case KindUnchanged:
                     if (modeName == "compact")
-                    {
                         result.Append($"[={segment.Length}]");
-                    }
                     else if (modeName == "full:N" && threshold.HasValue && segment.Length > threshold.Value)
-                    {
                         result.Append($"[={segment.Length}]");
-                    }
                     else
-                    {
                         result.Append(segment.Text);
-                    }
                     break;
-                    
+
                 case KindDeleted:
                     result.Append($"[-{segment.Text}]");
                     break;
-                    
+
                 case KindInserted:
                     result.Append($"[+{segment.Text}]");
                     break;
             }
-        }
-        
+
         return result.ToString();
     }
 }

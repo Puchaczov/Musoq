@@ -24,7 +24,7 @@ public class DynamicObjectResolver : IObjectResolver
         {
             if (_dynamicObject.TryGetMember(new CustomMemberBinder(name), out var result))
                 return result;
-            
+
             throw new InvalidOperationException();
         }
     }
@@ -35,7 +35,7 @@ public class DynamicObjectResolver : IObjectResolver
         {
             if (_dynamicObject.TryGetMember(new CustomMemberBinder(_indexToNameMap[index]), out var result))
                 return result;
-            
+
             throw new InvalidOperationException();
         }
     }
@@ -44,7 +44,7 @@ public class DynamicObjectResolver : IObjectResolver
     {
         return _dynamicObject.TryGetMember(new CustomMemberBinder(name), out _);
     }
-    
+
     private class CustomMemberBinder : GetMemberBinder
     {
         public CustomMemberBinder(string name)

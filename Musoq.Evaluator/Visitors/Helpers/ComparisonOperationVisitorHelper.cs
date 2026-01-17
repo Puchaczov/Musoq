@@ -5,14 +5,14 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Helper class for handling comparison operations in the RewriteQueryVisitor.
-/// Provides common implementation for comparison operations that follow the pattern:
-/// pop right, pop left, push new comparison node.
+///     Helper class for handling comparison operations in the RewriteQueryVisitor.
+///     Provides common implementation for comparison operations that follow the pattern:
+///     pop right, pop left, push new comparison node.
 /// </summary>
 public static class ComparisonOperationVisitorHelper
 {
     /// <summary>
-    /// Processes an Equality operation.
+    ///     Processes an Equality operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -28,7 +28,7 @@ public static class ComparisonOperationVisitorHelper
     }
 
     /// <summary>
-    /// Processes a GreaterOrEqual operation.
+    ///     Processes a GreaterOrEqual operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -44,7 +44,7 @@ public static class ComparisonOperationVisitorHelper
     }
 
     /// <summary>
-    /// Processes a LessOrEqual operation.
+    ///     Processes a LessOrEqual operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -60,7 +60,7 @@ public static class ComparisonOperationVisitorHelper
     }
 
     /// <summary>
-    /// Processes a Greater operation.
+    ///     Processes a Greater operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -76,7 +76,7 @@ public static class ComparisonOperationVisitorHelper
     }
 
     /// <summary>
-    /// Processes a Less operation.
+    ///     Processes a Less operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -92,7 +92,7 @@ public static class ComparisonOperationVisitorHelper
     }
 
     /// <summary>
-    /// Processes a Diff operation.
+    ///     Processes a Diff operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -108,7 +108,7 @@ public static class ComparisonOperationVisitorHelper
     }
 
     /// <summary>
-    /// Processes a Like operation.
+    ///     Processes a Like operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -124,7 +124,7 @@ public static class ComparisonOperationVisitorHelper
     }
 
     /// <summary>
-    /// Processes an RLike operation.
+    ///     Processes an RLike operation.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -140,7 +140,7 @@ public static class ComparisonOperationVisitorHelper
     }
 
     /// <summary>
-    /// Validates that the stack is not null and has at least 2 nodes for binary operations.
+    ///     Validates that the stack is not null and has at least 2 nodes for binary operations.
     /// </summary>
     /// <param name="nodes">The node stack to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -149,13 +149,13 @@ public static class ComparisonOperationVisitorHelper
     {
         if (nodes == null)
             throw new ArgumentNullException(nameof(nodes));
-            
+
         if (nodes.Count < 2)
             throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");
     }
 
     /// <summary>
-    /// Validates that both operands are not null.
+    ///     Validates that both operands are not null.
     /// </summary>
     /// <param name="left">The left operand.</param>
     /// <param name="right">The right operand.</param>

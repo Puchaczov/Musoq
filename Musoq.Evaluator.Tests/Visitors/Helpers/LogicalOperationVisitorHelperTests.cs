@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Visitors.Helpers;
@@ -9,7 +8,10 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers;
 [TestClass]
 public class LogicalOperationVisitorHelperTests
 {
-    private static Node IdentityRewriter(Node node) => node;
+    private static Node IdentityRewriter(Node node)
+    {
+        return node;
+    }
 
     [TestMethod]
     public void ProcessAndOperation_WhenTwoNodesOnStack_ShouldCreateAndNode()
@@ -136,7 +138,7 @@ public class LogicalOperationVisitorHelperTests
         // Assert
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        
+
         // Should create: ((x = 1) OR (x = 2)) OR (x = 3)
         Assert.IsInstanceOfType(result, typeof(OrNode));
         var outerOr = (OrNode)result;
@@ -155,6 +157,7 @@ public class LogicalOperationVisitorHelperTests
         nodes.Push(rightNode);
 
         var rewriterCalled = false;
+
         Node TestRewriter(Node node)
         {
             rewriterCalled = true;
@@ -182,6 +185,7 @@ public class LogicalOperationVisitorHelperTests
         nodes.Push(rightNode);
 
         var rewriterCalled = false;
+
         Node TestRewriter(Node node)
         {
             rewriterCalled = true;

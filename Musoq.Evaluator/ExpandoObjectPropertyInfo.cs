@@ -17,8 +17,14 @@ internal sealed class ExpandoObjectPropertyInfo : PropertyInfo
     public override PropertyAttributes Attributes => PropertyAttributes.None;
     public override bool CanRead => true;
     public override bool CanWrite => false;
-    
+
     public override Type PropertyType { get; }
+
+    public override Type DeclaringType => typeof(ExpandoObject);
+
+    public override string Name { get; }
+
+    public override Type ReflectedType { get; }
 
     public override object[] GetCustomAttributes(bool inherit)
     {
@@ -35,12 +41,6 @@ internal sealed class ExpandoObjectPropertyInfo : PropertyInfo
         return false;
     }
 
-    public override Type DeclaringType => typeof(ExpandoObject);
-    
-    public override string Name { get; }
-    
-    public override Type ReflectedType { get; }
-    
     public override MethodInfo[] GetAccessors(bool nonPublic)
     {
         return [];
@@ -61,7 +61,8 @@ internal sealed class ExpandoObjectPropertyInfo : PropertyInfo
         throw new NotImplementedException();
     }
 
-    public override object GetValue(object obj, BindingFlags invokeAttr, Binder binder, object[] index, CultureInfo culture)
+    public override object GetValue(object obj, BindingFlags invokeAttr, Binder binder, object[] index,
+        CultureInfo culture)
     {
         throw new NotImplementedException();
     }

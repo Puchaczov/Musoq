@@ -9,6 +9,8 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class JoinTests : BasicEntityTestBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void SimpleJoinShorthandTest()
     {
@@ -16,8 +18,8 @@ public class JoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [ new BasicEntity("x") { Id = 1 }, new BasicEntity("y") { Id = 2 } ] },
-            { "#B", [ new BasicEntity("x") { Id = 2 }, new BasicEntity("z") { Id = 3 } ] }
+            { "#A", [new BasicEntity("x") { Id = 1 }, new BasicEntity("y") { Id = 2 }] },
+            { "#B", [new BasicEntity("x") { Id = 2 }, new BasicEntity("z") { Id = 3 }] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -40,8 +42,8 @@ public class JoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [ new BasicEntity("x") { Id = 1 }, new BasicEntity("y") { Id = 2 } ] },
-            { "#B", [ new BasicEntity("x") { Id = 2 }, new BasicEntity("z") { Id = 3 } ] }
+            { "#A", [new BasicEntity("x") { Id = 1 }, new BasicEntity("y") { Id = 2 }] },
+            { "#B", [new BasicEntity("x") { Id = 2 }, new BasicEntity("z") { Id = 3 }] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -78,7 +80,7 @@ inner join #C.entities() population on 1 = 1";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-            
+
         Assert.AreEqual(0, table.Count);
     }
 
@@ -114,11 +116,11 @@ inner join #C.entities() population on cities.City = population.City";
             },
             {
                 "#C", [
-                    new BasicEntity {City = "Krakow", Population = 400},
-                    new BasicEntity {City = "Wroclaw", Population = 500},
-                    new BasicEntity {City = "Warszawa", Population = 1000},
-                    new BasicEntity {City = "Gdansk", Population = 200},
-                    new BasicEntity {City = "Berlin", Population = 400}
+                    new BasicEntity { City = "Krakow", Population = 400 },
+                    new BasicEntity { City = "Wroclaw", Population = 500 },
+                    new BasicEntity { City = "Warszawa", Population = 1000 },
+                    new BasicEntity { City = "Gdansk", Population = 200 },
+                    new BasicEntity { City = "Berlin", Population = 400 }
                 ]
             }
         };
@@ -139,37 +141,37 @@ inner join #C.entities() population on cities.City = population.City";
         Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
         Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
-        
+
         Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "Poland" && 
-                (string)entry[1] == "Krakow" && 
-                (decimal)entry[2] == 400m), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "Poland" &&
+                (string)entry[1] == "Krakow" &&
+                (decimal)entry[2] == 400m),
             "Entry for Krakow should match");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "Poland" && 
-                (string)entry[1] == "Wroclaw" && 
-                (decimal)entry[2] == 500m), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "Poland" &&
+                (string)entry[1] == "Wroclaw" &&
+                (decimal)entry[2] == 500m),
             "Entry for Wroclaw should match");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "Poland" && 
-                (string)entry[1] == "Warszawa" && 
-                (decimal)entry[2] == 1000m), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "Poland" &&
+                (string)entry[1] == "Warszawa" &&
+                (decimal)entry[2] == 1000m),
             "Entry for Warszawa should match");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "Poland" && 
-                (string)entry[1] == "Gdansk" && 
-                (decimal)entry[2] == 200m), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "Poland" &&
+                (string)entry[1] == "Gdansk" &&
+                (decimal)entry[2] == 200m),
             "Entry for Gdansk should match");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "Germany" && 
-                (string)entry[1] == "Berlin" && 
-                (decimal)entry[2] == 400m), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "Germany" &&
+                (string)entry[1] == "Berlin" &&
+                (decimal)entry[2] == 400m),
             "Entry for Berlin should match");
     }
 
@@ -204,11 +206,11 @@ inner join #C.entities() population on cities.City = population.City";
             },
             {
                 "#C", [
-                    new BasicEntity {City = "Krakow", Population = 400},
-                    new BasicEntity {City = "Wroclaw", Population = 500},
-                    new BasicEntity {City = "Warszawa", Population = 1000},
-                    new BasicEntity {City = "Gdansk", Population = 200},
-                    new BasicEntity {City = "Berlin", Population = 400}
+                    new BasicEntity { City = "Krakow", Population = 400 },
+                    new BasicEntity { City = "Wroclaw", Population = 500 },
+                    new BasicEntity { City = "Warszawa", Population = 1000 },
+                    new BasicEntity { City = "Gdansk", Population = 200 },
+                    new BasicEntity { City = "Berlin", Population = 400 }
                 ]
             }
         };
@@ -231,33 +233,33 @@ inner join #C.entities() population on cities.City = population.City";
         Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
         Assert.AreEqual(5, table.Count);
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row[0] == "Poland" && 
-            (string)row[1] == "Krakow" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row[0] == "Poland" &&
+            (string)row[1] == "Krakow" &&
             (decimal)row[2] == 400m
         ), "Expected row (Poland, Krakow, 400) not found");
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row[0] == "Poland" && 
-            (string)row[1] == "WROCLAW" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row[0] == "Poland" &&
+            (string)row[1] == "WROCLAW" &&
             (decimal)row[2] == 500m
         ), "Expected row (Poland, WROCLAW, 500) not found");
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row[0] == "Poland" && 
-            (string)row[1] == "WARSZAWA" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row[0] == "Poland" &&
+            (string)row[1] == "WARSZAWA" &&
             (decimal)row[2] == 1000m
         ), "Expected row (Poland, WARSZAWA, 1000) not found");
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row[0] == "Poland" && 
-            (string)row[1] == "Gdansk" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row[0] == "Poland" &&
+            (string)row[1] == "Gdansk" &&
             (decimal)row[2] == 200m
         ), "Expected row (Poland, Gdansk, 200) not found");
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row[0] == "Germany" && 
-            (string)row[1] == "Berlin" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row[0] == "Germany" &&
+            (string)row[1] == "Berlin" &&
             (decimal)row[2] == 400m
         ), "Expected row (Germany, Berlin, 400) not found");
     }
@@ -287,11 +289,11 @@ inner join #C.entities() population on cities.City = population.City";
             },
             {
                 "#C", [
-                    new BasicEntity {City = "Krakow", Population = 400},
-                    new BasicEntity {City = "Wroclaw", Population = 500},
-                    new BasicEntity {City = "Warszawa", Population = 1000},
-                    new BasicEntity {City = "Gdansk", Population = 200},
-                    new BasicEntity {City = "Berlin", Population = 400}
+                    new BasicEntity { City = "Krakow", Population = 400 },
+                    new BasicEntity { City = "Wroclaw", Population = 500 },
+                    new BasicEntity { City = "Warszawa", Population = 1000 },
+                    new BasicEntity { City = "Gdansk", Population = 200 },
+                    new BasicEntity { City = "Berlin", Population = 400 }
                 ]
             }
         };
@@ -305,32 +307,33 @@ inner join #C.entities() population on cities.City = population.City";
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
 
-        Assert.AreEqual("case when population.Population >= 500 then big else low end", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("case when population.Population >= 500 then big else low end",
+            table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
 
         Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
         Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
-        
+
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
-        var polandLow = table.Count(row => 
-            (string)row[0] == "Poland" && 
-            (string)row[1] == "low" && 
+        var polandLow = table.Count(row =>
+            (string)row[0] == "Poland" &&
+            (string)row[1] == "low" &&
             ((decimal)row[2] == 400m || (decimal)row[2] == 200m)) == 2;
 
-        var polandBig = table.Count(row => 
-            (string)row[0] == "Poland" && 
-            (string)row[1] == "big" && 
+        var polandBig = table.Count(row =>
+            (string)row[0] == "Poland" &&
+            (string)row[1] == "big" &&
             ((decimal)row[2] == 500m || (decimal)row[2] == 1000m)) == 2;
 
-        var germanyLow = table.Count(row => 
-            (string)row[0] == "Germany" && 
-            (string)row[1] == "low" && 
+        var germanyLow = table.Count(row =>
+            (string)row[0] == "Germany" &&
+            (string)row[1] == "low" &&
             (decimal)row[2] == 400m) == 1;
 
-        Assert.IsTrue(polandLow && polandBig && germanyLow, 
+        Assert.IsTrue(polandLow && polandBig && germanyLow,
             "Expected data distribution not found");
     }
 
@@ -365,11 +368,11 @@ group by cities.Country";
             },
             {
                 "#C", [
-                    new BasicEntity {City = "Krakow", Population = 400},
-                    new BasicEntity {City = "Wroclaw", Population = 500},
-                    new BasicEntity {City = "Warszawa", Population = 1000},
-                    new BasicEntity {City = "Gdansk", Population = 200},
-                    new BasicEntity {City = "Berlin", Population = 400}
+                    new BasicEntity { City = "Krakow", Population = 400 },
+                    new BasicEntity { City = "Wroclaw", Population = 500 },
+                    new BasicEntity { City = "Warszawa", Population = 1000 },
+                    new BasicEntity { City = "Gdansk", Population = 200 },
+                    new BasicEntity { City = "Berlin", Population = 400 }
                 ]
             }
         };
@@ -387,17 +390,17 @@ group by cities.Country";
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
         Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "Poland" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "Poland" &&
             (decimal)entry[1] == 2100m
         ), "First entry should be Poland with 2100");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "Germany" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "Germany" &&
             (decimal)entry[1] == 400m
         ), "Second entry should be Germany with 400");
     }
-    
+
     [TestMethod]
     public void JoinWithGroupByAndOrderByTest()
     {
@@ -425,22 +428,22 @@ order by cities.GetTypeName(cities.Country)";
                     new BasicEntity("Poland", "Gdansk"),
                     new BasicEntity("Germany", "Berlin")
                 ]
-            },
+            }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Columns.Count());
-        
+
         Assert.AreEqual("cities.GetTypeName(cities.Country)", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        
+
         Assert.AreEqual(1, table.Count);
-        
+
         Assert.AreEqual("System.String", table[0][0]);
     }
-    
+
     [TestMethod]
     public void JoinWithOrderByTest()
     {
@@ -467,7 +470,7 @@ order by cities.GetTypeName(cities.Country)";
                     new BasicEntity("Poland", "Gdansk"),
                     new BasicEntity("Germany", "Berlin")
                 ]
-            },
+            }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -509,11 +512,11 @@ inner join #C.entities() population on cities.City = population.City";
             },
             {
                 "#C", [
-                    new BasicEntity {City = "Krakow", Population = 400},
-                    new BasicEntity {City = "Wroclaw", Population = 500},
-                    new BasicEntity {City = "Warszawa", Population = 1000},
-                    new BasicEntity {City = "Gdansk", Population = 200},
-                    new BasicEntity {City = "Berlin", Population = 400}
+                    new BasicEntity { City = "Krakow", Population = 400 },
+                    new BasicEntity { City = "Wroclaw", Population = 500 },
+                    new BasicEntity { City = "Warszawa", Population = 1000 },
+                    new BasicEntity { City = "Gdansk", Population = 200 },
+                    new BasicEntity { City = "Berlin", Population = 400 }
                 ]
             }
         };
@@ -574,11 +577,11 @@ inner join #C.entities() population on cities.City = population.City";
             },
             {
                 "#C", [
-                    new BasicEntity {City = "Krakow", Population = 400},
-                    new BasicEntity {City = "Wroclaw", Population = 500},
-                    new BasicEntity {City = "Warszawa", Population = 1000},
-                    new BasicEntity {City = "Gdansk", Population = 200},
-                    new BasicEntity {City = "Berlin", Population = 400}
+                    new BasicEntity { City = "Krakow", Population = 400 },
+                    new BasicEntity { City = "Wroclaw", Population = 500 },
+                    new BasicEntity { City = "Warszawa", Population = 1000 },
+                    new BasicEntity { City = "Gdansk", Population = 200 },
+                    new BasicEntity { City = "Berlin", Population = 400 }
                 ]
             }
         };
@@ -599,17 +602,18 @@ inner join #C.entities() population on cities.City = population.City";
         Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
         Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
-        
+
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
         Assert.AreEqual(4,
-table.Count(row =>
+            table.Count(row =>
                 (string)row[0] == "Poland" &&
                 new[] { "Krakow", "Wroclaw", "Warszawa", "Gdansk" }.Contains((string)row[1]) &&
-                new[] { 400m, 500m, 1000m, 200m }.Contains((decimal)row[2])), "Expected 4 Polish cities with their values not found");
+                new[] { 400m, 500m, 1000m, 200m }.Contains((decimal)row[2])),
+            "Expected 4 Polish cities with their values not found");
 
-        Assert.IsTrue(table.Any(row => 
-                (string)row[0] == "Germany" && 
+        Assert.IsTrue(table.Any(row =>
+                (string)row[0] == "Germany" &&
                 (string)row[1] == "Berlin" &&
                 (decimal)row[2] == 400m),
             "Expected data for Berlin not found");
@@ -651,11 +655,11 @@ inner join #C.entities() population on cities.City = population.City";
             },
             {
                 "#C", [
-                    new BasicEntity {City = "Krakow", Population = 400},
-                    new BasicEntity {City = "Wroclaw", Population = 500},
-                    new BasicEntity {City = "Warszawa", Population = 1000},
-                    new BasicEntity {City = "Gdansk", Population = 200},
-                    new BasicEntity {City = "Berlin", Population = 400}
+                    new BasicEntity { City = "Krakow", Population = 400 },
+                    new BasicEntity { City = "Wroclaw", Population = 500 },
+                    new BasicEntity { City = "Warszawa", Population = 1000 },
+                    new BasicEntity { City = "Gdansk", Population = 200 },
+                    new BasicEntity { City = "Berlin", Population = 400 }
                 ]
             }
         };
@@ -676,38 +680,38 @@ inner join #C.entities() population on cities.City = population.City";
         Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
         Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
-        
+
         Assert.AreEqual(10, table.Count, "Table should contain 10 rows");
 
         Assert.AreEqual(2,
-table.Count(row =>
+            table.Count(row =>
                 (string)row[0] == "Poland" &&
                 (string)row[1] == "Krakow" &&
                 (decimal)row[2] == 400m), "Should have exactly 2 rows of Poland/Krakow/400");
 
         Assert.AreEqual(2,
-table.Count(row =>
+            table.Count(row =>
                 (string)row[0] == "Poland" &&
                 (string)row[1] == "Wroclaw" &&
                 (decimal)row[2] == 500m), "Should have exactly 2 rows of Poland/Wroclaw/500");
 
         Assert.AreEqual(2,
-table.Count(row =>
+            table.Count(row =>
                 (string)row[0] == "Poland" &&
                 (string)row[1] == "Warszawa" &&
                 (decimal)row[2] == 1000m), "Should have exactly 2 rows of Poland/Warszawa/1000");
 
         Assert.AreEqual(2,
-table.Count(row =>
+            table.Count(row =>
                 (string)row[0] == "Poland" &&
                 (string)row[1] == "Gdansk" &&
                 (decimal)row[2] == 200m), "Should have exactly 2 rows of Poland/Gdansk/200");
 
         Assert.AreEqual(2,
-table.Count(row =>
-                    (string)row[0] == "Germany" &&
-                    (string)row[1] == "Berlin" &&
-                    (decimal)row[2] == 400m), "Should have exactly 2 rows of Germany/Berlin/400");
+            table.Count(row =>
+                (string)row[0] == "Germany" &&
+                (string)row[1] == "Berlin" &&
+                (decimal)row[2] == 400m), "Should have exactly 2 rows of Germany/Berlin/400");
     }
 
     [TestMethod]
@@ -725,31 +729,31 @@ select p.Id, x.Id from p inner join x on p.Country = x.Country";
         {
             {
                 "#A", [
-                    new BasicEntity("Poland", "Krakow") {Id = 0},
-                    new BasicEntity("Germany", "Berlin") {Id = 1},
-                    new BasicEntity("Russia", "Moscow") {Id = 2}
+                    new BasicEntity("Poland", "Krakow") { Id = 0 },
+                    new BasicEntity("Germany", "Berlin") { Id = 1 },
+                    new BasicEntity("Russia", "Moscow") { Id = 2 }
                 ]
             },
             {
                 "#B", [
-                    new BasicEntity("Poland", "Krakow") {Id = 0},
-                    new BasicEntity("Poland", "Wroclaw") {Id = 1},
-                    new BasicEntity("Poland", "Warszawa") {Id = 2},
-                    new BasicEntity("Poland", "Gdansk") {Id = 3},
-                    new BasicEntity("Germany", "Berlin") {Id = 4}
+                    new BasicEntity("Poland", "Krakow") { Id = 0 },
+                    new BasicEntity("Poland", "Wroclaw") { Id = 1 },
+                    new BasicEntity("Poland", "Warszawa") { Id = 2 },
+                    new BasicEntity("Poland", "Gdansk") { Id = 3 },
+                    new BasicEntity("Germany", "Berlin") { Id = 4 }
                 ]
             }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.IsTrue(table.Count == 5 && table.Columns.Count() == 2, "Table should contain 5 rows and 2 columns");
 
         Assert.AreEqual(4, table.Count(row => (int)row[0] == 0), "Expected 4 rows with first column value 0");
 
         Assert.IsTrue(table.All(row =>
-                new[] { (0,0), (0,1), (0,2), (0,3), (1,4) }.Contains(((int)row[0], (int)row[1]))),
+                new[] { (0, 0), (0, 1), (0, 2), (0, 3), (1, 4) }.Contains(((int)row[0], (int)row[1]))),
             "Expected rows with values: (0,0), (0,1), (0,2), (0,3), (1,4)");
     }
 
@@ -768,29 +772,29 @@ select p.Id, x.Id from p p inner join x on p.Country = x.Country";
         {
             {
                 "#A", [
-                    new BasicEntity("Poland", "Krakow") {Id = 0},
-                    new BasicEntity("Germany", "Berlin") {Id = 1},
-                    new BasicEntity("Russia", "Moscow") {Id = 2}
+                    new BasicEntity("Poland", "Krakow") { Id = 0 },
+                    new BasicEntity("Germany", "Berlin") { Id = 1 },
+                    new BasicEntity("Russia", "Moscow") { Id = 2 }
                 ]
             }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
         Assert.AreEqual(2, table.Columns.Count(), "Table should have 2 columns");
 
-        Assert.IsTrue(table.Any(entry => 
-            (int)entry[0] == 0 && 
+        Assert.IsTrue(table.Any(entry =>
+            (int)entry[0] == 0 &&
             (int)entry[1] == 0), "First entry should be 0, 0");
 
-        Assert.IsTrue(table.Any(entry => 
-            (int)entry[0] == 1 && 
+        Assert.IsTrue(table.Any(entry =>
+            (int)entry[0] == 1 &&
             (int)entry[1] == 1), "Second entry should be 1, 1");
 
-        Assert.IsTrue(table.Any(entry => 
-            (int)entry[0] == 2 && 
+        Assert.IsTrue(table.Any(entry =>
+            (int)entry[0] == 2 &&
             (int)entry[1] == 2), "Third entry should be 2, 2");
     }
 
@@ -814,9 +818,9 @@ select p.Country, x.Country from p inner join x on p.Country = x.Country where p
         {
             {
                 "#A", [
-                    new BasicEntity("Poland", "Krakow") {Id = 0},
-                    new BasicEntity("Germany", "Berlin") {Id = 1},
-                    new BasicEntity("Russia", "Moscow") {Id = 2}
+                    new BasicEntity("Poland", "Krakow") { Id = 0 },
+                    new BasicEntity("Germany", "Berlin") { Id = 1 },
+                    new BasicEntity("Russia", "Moscow") { Id = 2 }
                 ]
             }
         };
@@ -851,10 +855,10 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         {
             {
                 "#A", [
-                    new BasicEntity("Poland", "Krakow") {Id = 0},
-                    new BasicEntity("Poland", "Krakow") {Id = 0},
-                    new BasicEntity("Germany", "Berlin") {Id = 1},
-                    new BasicEntity("Russia", "Moscow") {Id = 2}
+                    new BasicEntity("Poland", "Krakow") { Id = 0 },
+                    new BasicEntity("Poland", "Krakow") { Id = 0 },
+                    new BasicEntity("Germany", "Berlin") { Id = 1 },
+                    new BasicEntity("Russia", "Moscow") { Id = 2 }
                 ]
             }
         };
@@ -884,7 +888,6 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
             {
                 "#B",
                 [
-
                 ]
             }
         };
@@ -916,8 +919,8 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [ new BasicEntity("xX") { Id = 1 }, new BasicEntity("yY") { Id = 2 } ] },
-            { "#B", [ new BasicEntity("xX") { Id = 2 } ] }
+            { "#A", [new BasicEntity("xX") { Id = 1 }, new BasicEntity("yY") { Id = 2 }] },
+            { "#B", [new BasicEntity("xX") { Id = 2 }] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -943,8 +946,8 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [ new BasicEntity("xX") { Id = 1 }, new BasicEntity("yY") { Id = 2 } ] },
-            { "#B", [ new BasicEntity("xX") { Id = 2 } ] }
+            { "#A", [new BasicEntity("xX") { Id = 1 }, new BasicEntity("yY") { Id = 2 }] },
+            { "#B", [new BasicEntity("xX") { Id = 2 }] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -963,7 +966,8 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
     [TestMethod]
     public void MultipleLeftJoinTest()
     {
-        const string query = "select a.Id, b.Id, c.Id from #A.entities() a left outer join #B.entities() b on a.Id = b.Id left outer join #B.entities() c on b.Id = c.Id";
+        const string query =
+            "select a.Id, b.Id, c.Id from #A.entities() a left outer join #B.entities() b on a.Id = b.Id left outer join #B.entities() c on b.Id = c.Id";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -975,7 +979,6 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
             {
                 "#B",
                 [
-
                 ]
             }
         };
@@ -1009,7 +1012,8 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
     [TestMethod]
     public void MultipleLeftJoinWithCTriesMatchBButFailTest()
     {
-        var query = "select a.Id, b.Id, c.Id from #A.entities() a left outer join #B.entities() b on a.Id = b.Id left outer join #C.entities() c on b.Id = c.Id";
+        var query =
+            "select a.Id, b.Id, c.Id from #A.entities() a left outer join #B.entities() b on a.Id = b.Id left outer join #C.entities() c on b.Id = c.Id";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -1021,13 +1025,12 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
             {
                 "#B",
                 [
-
                 ]
             },
             {
                 "#C",
                 [
-                    new("xX") { Id = 1 }
+                    new BasicEntity("xX") { Id = 1 }
                 ]
             }
         };
@@ -1061,7 +1064,8 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
     [TestMethod]
     public void MultipleLeftJoinWithCTriesMatchBAndSucceedTest()
     {
-        var query = "select a.Id, b.Id, c.Id from #A.entities() a left outer join #B.entities() b on a.Id = b.Id left outer join #C.entities() c on b.Id = c.Id";
+        var query =
+            "select a.Id, b.Id, c.Id from #A.entities() a left outer join #B.entities() b on a.Id = b.Id left outer join #C.entities() c on b.Id = c.Id";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -1074,13 +1078,13 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
             {
                 "#B",
                 [
-                    new("xX") { Id = 1 }
+                    new BasicEntity("xX") { Id = 1 }
                 ]
             },
             {
                 "#C",
                 [
-                    new("xX") { Id = 1 }
+                    new BasicEntity("xX") { Id = 1 }
                 ]
             }
         };
@@ -1105,18 +1109,18 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         Assert.AreEqual(2, column.ColumnIndex);
         Assert.AreEqual("c.Id", column.ColumnName);
         Assert.AreEqual(typeof(int?), column.ColumnType);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-            (int)entry[0] == 1 && 
-            (int)entry[1] == 1 && 
+        Assert.IsTrue(table.Any(entry =>
+            (int)entry[0] == 1 &&
+            (int)entry[1] == 1 &&
             (int)entry[2] == 1
         ), "First entry should be 1, 1, 1");
 
-        Assert.IsTrue(table.Any(entry => 
-            (int)entry[0] == 2 && 
-            entry[1] == null && 
+        Assert.IsTrue(table.Any(entry =>
+            (int)entry[0] == 2 &&
+            entry[1] == null &&
             entry[2] == null
         ), "Second entry should be 2, null, null");
     }
@@ -1135,7 +1139,7 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
             {
                 "#B",
                 [
-                    new("xX") { Id = 1 }
+                    new BasicEntity("xX") { Id = 1 }
                 ]
             }
         };
@@ -1163,7 +1167,8 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
     [TestMethod]
     public void MultipleRightJoinWithCTriesMatchBAndSucceedForASingleTest()
     {
-        var query = "select a.Id, b.Id, c.Id from #A.entities() a right outer join #B.entities() b on a.Id = b.Id right outer join #C.entities() c on b.Id = c.Id";
+        var query =
+            "select a.Id, b.Id, c.Id from #A.entities() a right outer join #B.entities() b on a.Id = b.Id right outer join #C.entities() c on b.Id = c.Id";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -1175,14 +1180,14 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
             {
                 "#B",
                 [
-                    new("xX") { Id = 1 }
+                    new BasicEntity("xX") { Id = 1 }
                 ]
             },
             {
                 "#C",
                 [
-                    new("xX") { Id = 1 },
-                    new("xX") { Id = 2 }
+                    new BasicEntity("xX") { Id = 1 },
+                    new BasicEntity("xX") { Id = 2 }
                 ]
             }
         };
@@ -1207,18 +1212,18 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         Assert.AreEqual(2, column.ColumnIndex);
         Assert.AreEqual("c.Id", column.ColumnName);
         Assert.AreEqual(typeof(int), column.ColumnType);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-            (int?)entry[0] == 1 && 
-            (int?)entry[1] == 1 && 
+        Assert.IsTrue(table.Any(entry =>
+            (int?)entry[0] == 1 &&
+            (int?)entry[1] == 1 &&
             (int?)entry[2] == 1
         ), "First entry should be 1, 1, 1");
 
-        Assert.IsTrue(table.Any(entry => 
-            entry[0] == null && 
-            entry[1] == null && 
+        Assert.IsTrue(table.Any(entry =>
+            entry[0] == null &&
+            entry[1] == null &&
             (int?)entry[2] == 2
         ), "Second entry should be null, null, 2");
     }
@@ -1226,8 +1231,8 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
     [TestMethod]
     public void RightOuterJoinPassMethodContextTest()
     {
-
-        var query = "select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id) from #A.entities() a right outer join #B.entities() b on 1 = 1 right outer join #C.entities() c on 1 = 1";
+        var query =
+            "select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id) from #A.entities() a right outer join #B.entities() b on 1 = 1 right outer join #C.entities() c on 1 = 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -1239,13 +1244,13 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
             {
                 "#B",
                 [
-                    new("xX") { Id = 2 }
+                    new BasicEntity("xX") { Id = 2 }
                 ]
             },
             {
                 "#C",
                 [
-                    new("xX") { Id = 3 }
+                    new BasicEntity("xX") { Id = 3 }
                 ]
             }
         };
@@ -1262,7 +1267,6 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
     [TestMethod]
     public void LeftOuterJoinPassMethodContextTest()
     {
-
         var query = @"
 select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id) 
 from #A.entities() a 
@@ -1279,13 +1283,13 @@ left outer join #C.entities() c on 1 = 1";
             {
                 "#B",
                 [
-                    new("xX") { Id = 2 }
+                    new BasicEntity("xX") { Id = 2 }
                 ]
             },
             {
                 "#C",
                 [
-                    new("xX") { Id = 3 }
+                    new BasicEntity("xX") { Id = 3 }
                 ]
             }
         };
@@ -1298,11 +1302,10 @@ left outer join #C.entities() c on 1 = 1";
         Assert.AreEqual(2m, table[0][1]);
         Assert.AreEqual(3m, table[0][2]);
     }
-        
+
     [TestMethod]
     public void LeftOuterJoinWithFourOtherJoinsTest()
     {
-
         var query = @"
 select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id), d.ToDecimal(d.Id) 
 from #A.entities() a 
@@ -1320,19 +1323,19 @@ left outer join #D.entities() d on 1 = 1";
             {
                 "#B",
                 [
-                    new("xX") { Id = 2 }
+                    new BasicEntity("xX") { Id = 2 }
                 ]
             },
             {
                 "#C",
                 [
-                    new("xX") { Id = 3 }
+                    new BasicEntity("xX") { Id = 3 }
                 ]
             },
             {
                 "#D",
                 [
-                    new("xX") { Id = 4 }
+                    new BasicEntity("xX") { Id = 4 }
                 ]
             }
         };
@@ -1350,8 +1353,8 @@ left outer join #D.entities() d on 1 = 1";
     [TestMethod]
     public void LeftOuterRightOuterJoinPassMethodContextTest()
     {
-
-        var query = "select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id) from #A.entities() a left outer join #B.entities() b on 1 = 1 right outer join #C.entities() c on 1 = 1";
+        var query =
+            "select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id) from #A.entities() a left outer join #B.entities() b on 1 = 1 right outer join #C.entities() c on 1 = 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -1363,13 +1366,13 @@ left outer join #D.entities() d on 1 = 1";
             {
                 "#B",
                 [
-                    new("xX") { Id = 2 }
+                    new BasicEntity("xX") { Id = 2 }
                 ]
             },
             {
                 "#C",
                 [
-                    new("xX") { Id = 3 }
+                    new BasicEntity("xX") { Id = 3 }
                 ]
             }
         };
@@ -1386,8 +1389,8 @@ left outer join #D.entities() d on 1 = 1";
     [TestMethod]
     public void RightOuterLeftOuterJoinPassMethodContextTest()
     {
-
-        var query = "select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id) from #A.entities() a right outer join #B.entities() b on 1 = 1 left outer join #C.entities() c on 1 = 1";
+        var query =
+            "select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id) from #A.entities() a right outer join #B.entities() b on 1 = 1 left outer join #C.entities() c on 1 = 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -1399,13 +1402,13 @@ left outer join #D.entities() d on 1 = 1";
             {
                 "#B",
                 [
-                    new("xX") { Id = 2 }
+                    new BasicEntity("xX") { Id = 2 }
                 ]
             },
             {
                 "#C",
                 [
-                    new("xX") { Id = 3 }
+                    new BasicEntity("xX") { Id = 3 }
                 ]
             }
         };
@@ -1422,7 +1425,6 @@ left outer join #D.entities() d on 1 = 1";
     [TestMethod]
     public void InnerJoinJoinPassMethodContextTest()
     {
-
         var query = @"
 select 
     a.ToDecimal(a.Id), 
@@ -1440,13 +1442,13 @@ from #A.entities() a inner join #B.entities() b on 1 = 1 inner join #C.entities(
             {
                 "#B",
                 [
-                    new("xX") { Id = 2 }
+                    new BasicEntity("xX") { Id = 2 }
                 ]
             },
             {
                 "#C",
                 [
-                    new("xX") { Id = 3 }
+                    new BasicEntity("xX") { Id = 3 }
                 ]
             }
         };
@@ -1459,7 +1461,7 @@ from #A.entities() a inner join #B.entities() b on 1 = 1 inner join #C.entities(
         Assert.AreEqual(2m, table[0][1]);
         Assert.AreEqual(3m, table[0][2]);
     }
-        
+
     [TestMethod]
     public void WhenJoinedByMethodInvocations_ShouldRetrieveValues()
     {
@@ -1492,46 +1494,46 @@ inner join #C.entities() population on cities.GetCity() = population.GetCity()";
             },
             {
                 "#C", [
-                    new BasicEntity {City = "Krakow", Population = 400},
-                    new BasicEntity {City = "Wroclaw", Population = 500},
-                    new BasicEntity {City = "Warszawa", Population = 1000},
-                    new BasicEntity {City = "Gdansk", Population = 200},
-                    new BasicEntity {City = "Berlin", Population = 400}
+                    new BasicEntity { City = "Krakow", Population = 400 },
+                    new BasicEntity { City = "Wroclaw", Population = 500 },
+                    new BasicEntity { City = "Warszawa", Population = 1000 },
+                    new BasicEntity { City = "Gdansk", Population = 200 },
+                    new BasicEntity { City = "Berlin", Population = 400 }
                 ]
             }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.IsTrue(table.Count == 5 && table.Columns.Count() == 3, "Table should contain 5 rows and 3 columns");
 
         Assert.IsTrue(table.Count(row => (string)row[0] == "Poland") == 4 &&
-                      table.Any(row => 
-                          (string)row[0] == "Poland" && 
-                          (string)row[1] == "Krakow" && 
+                      table.Any(row =>
+                          (string)row[0] == "Poland" &&
+                          (string)row[1] == "Krakow" &&
                           (decimal)row[2] == 400m) &&
-                      table.Any(row => 
-                          (string)row[0] == "Poland" && 
-                          (string)row[1] == "Wroclaw" && 
+                      table.Any(row =>
+                          (string)row[0] == "Poland" &&
+                          (string)row[1] == "Wroclaw" &&
                           (decimal)row[2] == 500m) &&
-                      table.Any(row => 
-                          (string)row[0] == "Poland" && 
-                          (string)row[1] == "Warszawa" && 
+                      table.Any(row =>
+                          (string)row[0] == "Poland" &&
+                          (string)row[1] == "Warszawa" &&
                           (decimal)row[2] == 1000m) &&
-                      table.Any(row => 
-                          (string)row[0] == "Poland" && 
-                          (string)row[1] == "Gdansk" && 
+                      table.Any(row =>
+                          (string)row[0] == "Poland" &&
+                          (string)row[1] == "Gdansk" &&
                           (decimal)row[2] == 200m),
             "Expected four rows for Poland with cities Krakow(400), Wroclaw(500), Warszawa(1000), Gdansk(200)");
 
         Assert.IsTrue(table.Any(row =>
-                (string)row[0] == "Germany" && 
-                (string)row[1] == "Berlin" && 
+                (string)row[0] == "Germany" &&
+                (string)row[1] == "Berlin" &&
                 (decimal)row[2] == 400m),
             "Expected one row for Germany with city Berlin(400)");
     }
-        
+
     [TestMethod]
     public void WhenSelfJoined_ShouldRetrieveValues()
     {
@@ -1543,7 +1545,7 @@ select
 from #A.entities() countries
 inner join #A.entities() cities on countries.Country = cities.Country
 ";
-                
+
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
@@ -1556,22 +1558,22 @@ inner join #A.entities() cities on countries.Country = cities.Country
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-            
+
         Assert.AreEqual(2, table.Columns.Count());
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "Poland" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "Poland" &&
             (string)entry[1] == "Krakow"
         ), "First entry should be Poland, Krakow");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "Germany" && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "Germany" &&
             (string)entry[1] == "Berlin"
         ), "Second entry should be Germany, Berlin");
     }
-        
+
     [TestMethod]
     public void WhenSelfJoined_WithMethodUsedModifyJoinedValues_ShouldPass()
     {
@@ -1583,7 +1585,7 @@ select
 from #A.entities() t
 inner join #A.entities() t2 on t.Trim(t.Country) = t2.Trim(t2.Country)
 ";
-                
+
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
@@ -1596,22 +1598,22 @@ inner join #A.entities() t2 on t.Trim(t.Country) = t2.Trim(t2.Country)
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-            
+
         Assert.AreEqual(2, table.Columns.Count());
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == " Poland " && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == " Poland " &&
             (string)entry[1] == " Krakow"
         ), "First entry should be Poland, Krakow");
 
-        Assert.IsTrue(table.Any(entry => 
-            (string)entry[0] == "Germany " && 
+        Assert.IsTrue(table.Any(entry =>
+            (string)entry[0] == "Germany " &&
             (string)entry[1] == " Berlin"
         ), "Second entry should be Germany, Berlin");
     }
-        
+
     [TestMethod]
     public void WhenMultipleAliasesAroundCteQuery_LeftOuterJoin_ShouldRetrieveValues()
     {
@@ -1629,7 +1631,7 @@ with first as (
 )
 select * from third
 ";
-                
+
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
@@ -1642,28 +1644,28 @@ select * from third
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Columns.Count());
-        
+
         Assert.AreEqual("a.Country", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual("b.Country", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(2, table.Count);
-        
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "Poland" && 
-                (string)entry[1] == "Poland"), 
+
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "Poland" &&
+                (string)entry[1] == "Poland"),
             "First entry should be Poland");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "Germany" && 
-                (string)entry[1] == "Germany"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "Germany" &&
+                (string)entry[1] == "Germany"),
             "Second entry should be Germany");
     }
-        
+
     [TestMethod]
     public void WhenMultipleAliasesAroundCteQuery_RightOuterJoin_ShouldRetrieveValues()
     {
@@ -1681,7 +1683,7 @@ with first as (
 )
 select * from third
 ";
-                
+
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
@@ -1694,27 +1696,25 @@ select * from third
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Columns.Count());
-        
+
         Assert.AreEqual("a.Country", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual("b.Country", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
-        Assert.IsTrue(table.Any(row => 
-                (string) row[0] == "Poland" && 
-                (string) row[1] == "Poland"),
+        Assert.IsTrue(table.Any(row =>
+                (string)row[0] == "Poland" &&
+                (string)row[1] == "Poland"),
             "Expected row with Poland in both columns");
 
-        Assert.IsTrue(table.Any(row => 
-                (string) row[0] == "Germany" && 
-                (string) row[1] == "Germany"),
+        Assert.IsTrue(table.Any(row =>
+                (string)row[0] == "Germany" &&
+                (string)row[1] == "Germany"),
             "Expected row with Germany in both columns");
     }
-
-    public TestContext TestContext { get; set; }
 }

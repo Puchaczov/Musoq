@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -9,23 +10,12 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Processes QueryNode to generate C# code for query execution.
+///     Processes QueryNode to generate C# code for query execution.
 /// </summary>
 public static class QueryNodeProcessor
 {
     /// <summary>
-    /// Result of processing a QueryNode.
-    /// </summary>
-    public readonly struct QueryNodeResult
-    {
-        /// <summary>
-        /// The statements to add to the method body.
-        /// </summary>
-        public IReadOnlyList<StatementSyntax> Statements { get; init; }
-    }
-
-    /// <summary>
-    /// Processes a QueryNode and generates the corresponding C# statements.
+    ///     Processes a QueryNode and generates the corresponding C# statements.
     /// </summary>
     /// <param name="node">The QueryNode to process.</param>
     /// <param name="nodes">The syntax node stack.</param>
@@ -42,7 +32,7 @@ public static class QueryNodeProcessor
         Stack<SyntaxNode> nodes,
         BlockSyntax selectBlock,
         StatementSyntax[] cseVariableDeclarations,
-        System.Func<string, StatementSyntax> getRowsSourceFunc,
+        Func<string, StatementSyntax> getRowsSourceFunc,
         string sourceName,
         bool isResultParallelizationPossible,
         SyntaxGenerator generator,
@@ -90,5 +80,16 @@ public static class QueryNodeProcessor
         {
             Statements = fullBlockStatements.ToList()
         };
+    }
+
+    /// <summary>
+    ///     Result of processing a QueryNode.
+    /// </summary>
+    public readonly struct QueryNodeResult
+    {
+        /// <summary>
+        ///     The statements to add to the method body.
+        /// </summary>
+        public IReadOnlyList<StatementSyntax> Statements { get; init; }
     }
 }

@@ -17,16 +17,10 @@ using Musoq.Schema.DataSources;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Processes ApplySourcesTableFromNode to generate C# syntax for CROSS APPLY and OUTER APPLY operations.
+///     Processes ApplySourcesTableFromNode to generate C# syntax for CROSS APPLY and OUTER APPLY operations.
 /// </summary>
 public static class ApplySourcesTableNodeProcessor
 {
-    public readonly struct ApplySourcesResult
-    {
-        public BlockSyntax EmptyBlock { get; init; }
-        public BlockSyntax ComputingBlock { get; init; }
-    }
-
     public static ApplySourcesResult ProcessApplySourcesTable(
         ApplySourcesTableFromNode node,
         SyntaxGenerator generator,
@@ -42,10 +36,12 @@ public static class ApplySourcesTableNodeProcessor
         switch (node.ApplyType)
         {
             case ApplyType.Cross:
-                computingBlock = ProcessCrossApply(node, getRowsSourceOrEmpty, block, generateCancellationExpression, emptyBlock);
+                computingBlock = ProcessCrossApply(node, getRowsSourceOrEmpty, block, generateCancellationExpression,
+                    emptyBlock);
                 break;
             case ApplyType.Outer:
-                computingBlock = ProcessOuterApply(node, generator, scope, queryAlias, getRowsSourceOrEmpty, block, generateCancellationExpression, emptyBlock);
+                computingBlock = ProcessOuterApply(node, generator, scope, queryAlias, getRowsSourceOrEmpty, block,
+                    generateCancellationExpression, emptyBlock);
                 break;
         }
 
@@ -89,7 +85,7 @@ public static class ApplySourcesTableNodeProcessor
         BlockSyntax emptyBlock)
     {
         var fullTransitionTable = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(queryAlias);
-        
+
         var expressions = BuildColumnExpressions(node, generator, fullTransitionTable);
         var rewriteSelect = CreateSelectArrayDeclaration(expressions);
         var addInvocation = CreateTableAddInvocation(scope, node.First.Alias);
@@ -102,7 +98,7 @@ public static class ApplySourcesTableNodeProcessor
                     block([
                         SyntaxFactory.LocalDeclarationStatement(
                             SyntaxHelper.CreateAssignment("hasAnyRowMatched",
-                                (LiteralExpressionSyntax) generator.FalseLiteralExpression())),
+                                (LiteralExpressionSyntax)generator.FalseLiteralExpression())),
                         getRowsSourceOrEmpty(node.Second.Alias),
                         StatementEmitter.CreateForeach($"{node.Second.Alias}Row",
                             SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
@@ -110,13 +106,13 @@ public static class ApplySourcesTableNodeProcessor
                                 generateCancellationExpression(),
                                 emptyBlock,
                                 StatementEmitter.CreateIf(
-                                    (PrefixUnaryExpressionSyntax) generator.LogicalNotExpression(
+                                    (PrefixUnaryExpressionSyntax)generator.LogicalNotExpression(
                                         SyntaxFactory.IdentifierName("hasAnyRowMatched")),
                                     StatementEmitter.CreateBlock(
                                         StatementEmitter.CreateAssignment("hasAnyRowMatched",
-                                            (LiteralExpressionSyntax) generator.TrueLiteralExpression()))))),
+                                            (LiteralExpressionSyntax)generator.TrueLiteralExpression()))))),
                         StatementEmitter.CreateIf(
-                            (PrefixUnaryExpressionSyntax) generator.LogicalNotExpression(
+                            (PrefixUnaryExpressionSyntax)generator.LogicalNotExpression(
                                 SyntaxFactory.IdentifierName("hasAnyRowMatched")),
                             StatementEmitter.CreateBlock(
                                 SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
@@ -132,23 +128,19 @@ public static class ApplySourcesTableNodeProcessor
         var expressions = new List<ExpressionSyntax>();
 
         foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
-        {
             expressions.Add(
                 SyntaxFactory.ElementAccessExpression(
                     SyntaxFactory.IdentifierName($"{node.First.Alias}Row"),
                     SyntaxFactory.BracketedArgumentList(
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.Argument(
-                                (LiteralExpressionSyntax) generator.LiteralExpression(column.ColumnName))))));
-        }
+                                (LiteralExpressionSyntax)generator.LiteralExpression(column.ColumnName))))));
 
         foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
-        {
             expressions.Add(
                 SyntaxFactory.CastExpression(
                     SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(column.ColumnType)),
-                    (LiteralExpressionSyntax) generator.NullLiteralExpression()));
-        }
+                    (LiteralExpressionSyntax)generator.NullLiteralExpression()));
 
         return expressions;
     }
@@ -160,7 +152,7 @@ public static class ApplySourcesTableNodeProcessor
             new SyntaxList<ArrayRankSpecifierSyntax>(
                 SyntaxFactory.ArrayRankSpecifier(
                     SyntaxFactory.SingletonSeparatedList(
-                        (ExpressionSyntax) SyntaxFactory.OmittedArraySizeExpression()))));
+                        (ExpressionSyntax)SyntaxFactory.OmittedArraySizeExpression()))));
 
         return SyntaxFactory.VariableDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -203,5 +195,11 @@ public static class ApplySourcesTableNodeProcessor
                         SyntaxFactory.InitializerExpression(SyntaxKind.ComplexElementInitializerExpression))
                 )
             ]);
+    }
+
+    public readonly struct ApplySourcesResult
+    {
+        public BlockSyntax EmptyBlock { get; init; }
+        public BlockSyntax ComputingBlock { get; init; }
     }
 }

@@ -7,8 +7,8 @@ using Musoq.Schema.Helpers;
 namespace Musoq.Schema.Tests;
 
 /// <summary>
-/// Unit tests for <see cref="MethodNameNormalizer"/>.
-/// Verifies normalization behavior and caching functionality.
+///     Unit tests for <see cref="MethodNameNormalizer" />.
+///     Verifies normalization behavior and caching functionality.
 /// </summary>
 [TestClass]
 public class MethodNameNormalizerTests
@@ -19,7 +19,7 @@ public class MethodNameNormalizerTests
     public void Normalize_WhenLowercase_ShouldReturnSameName()
     {
         var result = MethodNameNormalizer.Normalize("mymethod");
-        
+
         Assert.AreEqual("mymethod", result);
     }
 
@@ -27,7 +27,7 @@ public class MethodNameNormalizerTests
     public void Normalize_WhenUppercase_ShouldReturnLowercase()
     {
         var result = MethodNameNormalizer.Normalize("MYMETHOD");
-        
+
         Assert.AreEqual("mymethod", result);
     }
 
@@ -35,7 +35,7 @@ public class MethodNameNormalizerTests
     public void Normalize_WhenMixedCase_ShouldReturnLowercase()
     {
         var result = MethodNameNormalizer.Normalize("MyMethodName");
-        
+
         Assert.AreEqual("mymethodname", result);
     }
 
@@ -43,7 +43,7 @@ public class MethodNameNormalizerTests
     public void Normalize_WhenContainsUnderscores_ShouldRemoveUnderscores()
     {
         var result = MethodNameNormalizer.Normalize("my_method_name");
-        
+
         Assert.AreEqual("mymethodname", result);
     }
 
@@ -51,7 +51,7 @@ public class MethodNameNormalizerTests
     public void Normalize_WhenMixedCaseWithUnderscores_ShouldNormalize()
     {
         var result = MethodNameNormalizer.Normalize("My_Method_Name");
-        
+
         Assert.AreEqual("mymethodname", result);
     }
 
@@ -60,7 +60,7 @@ public class MethodNameNormalizerTests
     {
         var result1 = MethodNameNormalizer.Normalize("alreadynormalized");
         var result2 = MethodNameNormalizer.Normalize("alreadynormalized");
-        
+
         Assert.AreEqual("alreadynormalized", result1);
         Assert.AreSame(result1, result2, "Should return same cached instance");
     }
@@ -73,11 +73,11 @@ public class MethodNameNormalizerTests
     public void Normalize_WhenCalledMultipleTimes_ShouldReturnConsistentResults()
     {
         const string input = "Test_Method_Name";
-        
+
         var result1 = MethodNameNormalizer.Normalize(input);
         var result2 = MethodNameNormalizer.Normalize(input);
         var result3 = MethodNameNormalizer.Normalize(input);
-        
+
         Assert.AreEqual(result1, result2);
         Assert.AreEqual(result2, result3);
         Assert.AreEqual("testmethodname", result1);
@@ -88,7 +88,7 @@ public class MethodNameNormalizerTests
     {
         var result1 = MethodNameNormalizer.Normalize("MethodA");
         var result2 = MethodNameNormalizer.Normalize("MethodB");
-        
+
         Assert.AreNotEqual(result1, result2);
         Assert.AreEqual("methoda", result1);
         Assert.AreEqual("methodb", result2);
@@ -102,7 +102,7 @@ public class MethodNameNormalizerTests
         var snakeCase = MethodNameNormalizer.Normalize("my_method_name");
         var upperSnake = MethodNameNormalizer.Normalize("MY_METHOD_NAME");
         var allLower = MethodNameNormalizer.Normalize("mymethodname");
-        
+
         Assert.AreEqual("mymethodname", camelCase);
         Assert.AreEqual("mymethodname", pascalCase);
         Assert.AreEqual("mymethodname", snakeCase);
@@ -120,16 +120,10 @@ public class MethodNameNormalizerTests
         const string input = "ConcurrentTestMethod";
         const int iterations = 1000;
         var results = new string[iterations];
-        
-        Parallel.For(0, iterations, i =>
-        {
-            results[i] = MethodNameNormalizer.Normalize(input);
-        });
-        
-        foreach (var result in results)
-        {
-            Assert.AreEqual("concurrenttestmethod", result);
-        }
+
+        Parallel.For(0, iterations, i => { results[i] = MethodNameNormalizer.Normalize(input); });
+
+        foreach (var result in results) Assert.AreEqual("concurrenttestmethod", result);
     }
 
     [TestMethod]
@@ -138,33 +132,26 @@ public class MethodNameNormalizerTests
         const int distinctInputs = 100;
         const int iterations = 10;
         var inputs = new List<string>();
-        
-        for (int i = 0; i < distinctInputs; i++)
-        {
-            inputs.Add($"Method_{i}_Name");
-        }
-        
+
+        for (var i = 0; i < distinctInputs; i++) inputs.Add($"Method_{i}_Name");
+
         var results = new Dictionary<string, string>();
         var lockObj = new object();
-        
+
         Parallel.For(0, distinctInputs * iterations, i =>
         {
             var input = inputs[i % distinctInputs];
             var result = MethodNameNormalizer.Normalize(input);
-            
+
             lock (lockObj)
             {
                 if (results.TryGetValue(input, out var existing))
-                {
                     Assert.AreEqual(existing, result, $"Inconsistent result for input '{input}'");
-                }
                 else
-                {
                     results[input] = result;
-                }
             }
         });
-        
+
         Assert.HasCount(distinctInputs, results.Keys);
     }
 
@@ -202,7 +189,7 @@ public class MethodNameNormalizerTests
     public void Normalize_WhenContainsNumbers_ShouldPreserveNumbers()
     {
         var result = MethodNameNormalizer.Normalize("Method123Name");
-        
+
         Assert.AreEqual("method123name", result);
     }
 
@@ -210,7 +197,7 @@ public class MethodNameNormalizerTests
     public void Normalize_WhenContainsSpecialCharacters_ShouldPreserveNonUnderscoreSpecials()
     {
         var result = MethodNameNormalizer.Normalize("method$name");
-        
+
         Assert.AreEqual("method$name", result);
     }
 
@@ -218,7 +205,7 @@ public class MethodNameNormalizerTests
     public void Normalize_WhenMultipleConsecutiveUnderscores_ShouldRemoveAll()
     {
         var result = MethodNameNormalizer.Normalize("my___method___name");
-        
+
         Assert.AreEqual("mymethodname", result);
     }
 
@@ -226,7 +213,7 @@ public class MethodNameNormalizerTests
     public void Normalize_WhenStartsWithUnderscore_ShouldRemove()
     {
         var result = MethodNameNormalizer.Normalize("_privateMethod");
-        
+
         Assert.AreEqual("privatemethod", result);
     }
 
@@ -234,7 +221,7 @@ public class MethodNameNormalizerTests
     public void Normalize_WhenEndsWithUnderscore_ShouldRemove()
     {
         var result = MethodNameNormalizer.Normalize("method_");
-        
+
         Assert.AreEqual("method", result);
     }
 

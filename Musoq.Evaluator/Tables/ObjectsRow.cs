@@ -24,17 +24,11 @@ public class ObjectsRow : Row
             throw new NotSupportedException("Both contexts cannot be null");
 
         if (leftContexts == null)
-        {
             Contexts = new object[] { null }.Concat(rightContexts).ToArray();
-        }
         else if (rightContexts == null)
-        {
             Contexts = leftContexts.Concat([null]).ToArray();
-        }
         else
-        {
             Contexts = leftContexts.Concat(rightContexts).ToArray();
-        }
 
         _values = values;
     }

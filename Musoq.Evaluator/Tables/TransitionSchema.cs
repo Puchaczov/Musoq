@@ -7,7 +7,7 @@ using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Tables;
 
-internal class TransitionSchema(string name, ISchemaTable table) 
+internal class TransitionSchema(string name, ISchemaTable table)
     : SchemaBase(name, CreateLibrary())
 {
     public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)

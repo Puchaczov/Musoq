@@ -7,6 +7,8 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class ImplicitBooleanConversionTests : BasicEntityTestBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void WhenMatchFunctionUsedWithExplicitTrueComparison_ShouldWork()
     {
@@ -24,7 +26,7 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Test123", table[0].Values[0]);
     }
@@ -46,7 +48,7 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Test123", table[0].Values[0]);
     }
@@ -54,7 +56,8 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
     [TestMethod]
     public void WhenCaseWhenUsedWithExplicitTrueComparison_ShouldWork()
     {
-        var query = "select (case when Match('\\d+', Name) = true then 'HasNumbers' else 'NoNumbers' end) as Result from #A.entities() order by Name";
+        var query =
+            "select (case when Match('\\d+', Name) = true then 'HasNumbers' else 'NoNumbers' end) as Result from #A.entities() order by Name";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -68,7 +71,7 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("NoNumbers", table[0].Values[0]);
         Assert.AreEqual("HasNumbers", table[1].Values[0]);
@@ -77,7 +80,8 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
     [TestMethod]
     public void WhenCaseWhenUsedWithImplicitBooleanConversion_ShouldWork()
     {
-        var query = "select (case when Match('\\d+', Name) then 'HasNumbers' else 'NoNumbers' end) as Result from #A.entities() order by Name";
+        var query =
+            "select (case when Match('\\d+', Name) then 'HasNumbers' else 'NoNumbers' end) as Result from #A.entities() order by Name";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -91,11 +95,9 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("NoNumbers", table[0].Values[0]);
         Assert.AreEqual("HasNumbers", table[1].Values[0]);
     }
-
-    public TestContext TestContext { get; set; }
 }

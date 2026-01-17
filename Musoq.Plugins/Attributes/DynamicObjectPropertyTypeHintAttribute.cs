@@ -3,13 +3,13 @@
 namespace Musoq.Plugins.Attributes;
 
 /// <summary>
-/// Attribute that allows to specify the name of the property and its type.
+///     Attribute that allows to specify the name of the property and its type.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public sealed class DynamicObjectPropertyTypeHintAttribute : Attribute
 {
     /// <summary>
-    /// Creates the attribute.
+    ///     Creates the attribute.
     /// </summary>
     /// <param name="name">The name.</param>
     /// <param name="type">The type.</param>
@@ -20,13 +20,13 @@ public sealed class DynamicObjectPropertyTypeHintAttribute : Attribute
     }
 
     /// <summary>
-    /// Gets the name of the property.
+    ///     Gets the name of the property.
     /// </summary>
     public string Name { get; }
-    
-    
+
+
     /// <summary>
-    /// Gets the type of the property.
+    ///     Gets the type of the property.
     /// </summary>
     public Type Type { get; }
 }

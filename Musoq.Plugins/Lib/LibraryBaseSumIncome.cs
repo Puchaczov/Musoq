@@ -5,17 +5,19 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Gets the sum value of a given group.
+    ///     Gets the sum value of a given group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
     /// <returns>SumIncome of group</returns>
     [AggregationGetMethod]
     public decimal SumIncome([InjectGroup] Group group, string name)
-        => SumIncome(group, name, 0);
+    {
+        return SumIncome(group, name, 0);
+    }
 
     /// <summary>
-    /// Gets the sum value of a given group.
+    ///     Gets the sum value of a given group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -29,7 +31,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -37,10 +39,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumIncome([InjectGroup] Group group, string name, byte? number, int parent = 0)
-        => SetSumIncome(group, name, (decimal?)number, parent);
+    {
+        SetSumIncome(group, name, (decimal?)number, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -48,10 +52,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumIncome([InjectGroup] Group group, string name, sbyte? number, int parent = 0)
-        => SetSumIncome(group, name, (decimal?)number, parent);
+    {
+        SetSumIncome(group, name, (decimal?)number, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -59,10 +65,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumIncome([InjectGroup] Group group, string name, short? number, int parent = 0)
-        => SetSumIncome(group, name, (decimal?)number, parent);
+    {
+        SetSumIncome(group, name, (decimal?)number, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -70,10 +78,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumIncome([InjectGroup] Group group, string name, ushort? number, int parent = 0)
-        => SetSumIncome(group, name, (decimal?)number, parent);
+    {
+        SetSumIncome(group, name, (decimal?)number, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -81,10 +91,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumIncome([InjectGroup] Group group, string name, int? number, int parent = 0)
-        => SetSumIncome(group, name, (decimal?)number, parent);
+    {
+        SetSumIncome(group, name, (decimal?)number, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -92,10 +104,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumIncome([InjectGroup] Group group, string name, uint? number, int parent = 0)
-        => SetSumIncome(group, name, (decimal?)number, parent);
+    {
+        SetSumIncome(group, name, (decimal?)number, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -103,10 +117,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumIncome([InjectGroup] Group group, string name, long? number, int parent = 0)
-        => SetSumIncome(group, name, (decimal?)number, parent);
+    {
+        SetSumIncome(group, name, (decimal?)number, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -114,10 +130,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumIncome([InjectGroup] Group group, string name, ulong? number, int parent = 0)
-        => SetSumIncome(group, name, (decimal?)number, parent);
+    {
+        SetSumIncome(group, name, (decimal?)number, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -125,10 +143,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumIncome([InjectGroup] Group group, string name, float? number, int parent = 0)
-        => SetSumIncome(group, name, (decimal?)number, parent);
+    {
+        SetSumIncome(group, name, (decimal?)number, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -136,10 +156,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetSumIncome([InjectGroup] Group group, string name, double? number, int parent = 0)
-        => SetSumIncome(group, name, (decimal?)number, parent);
+    {
+        SetSumIncome(group, name, (decimal?)number, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>

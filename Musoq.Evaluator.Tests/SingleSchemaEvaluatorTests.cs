@@ -12,6 +12,8 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void WhenMissingSchema_ShouldFail()
     {
@@ -25,7 +27,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 
         Assert.Throws<SchemaNotFoundException>(() => CreateAndRunVirtualMachine(query, sources));
     }
-    
+
     [TestMethod]
     public void LikeOperatorTest()
     {
@@ -35,8 +37,8 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             {
                 "#A",
                 [
-                    new BasicEntity("ABCAACBA"), 
-                    new BasicEntity("AAeqwgQEW"), 
+                    new BasicEntity("ABCAACBA"),
+                    new BasicEntity("AAeqwgQEW"),
                     new BasicEntity("XXX"),
                     new BasicEntity("dadsqqAA")
                 ]
@@ -52,15 +54,15 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
-        Assert.IsTrue(table.Any(row => 
-                (string)row.Values[0] == "ABCAACBA"), 
+        Assert.IsTrue(table.Any(row =>
+                (string)row.Values[0] == "ABCAACBA"),
             "Row with ABCAACBA not found");
 
-        Assert.IsTrue(table.Any(row => 
+        Assert.IsTrue(table.Any(row =>
                 (string)row.Values[0] == "AAeqwgQEW"),
             "Row with AAeqwgQEW not found");
 
-        Assert.IsTrue(table.Any(row => 
+        Assert.IsTrue(table.Any(row =>
                 (string)row.Values[0] == "dadsqqAA"),
             "Row with dadsqqAA not found");
     }
@@ -113,7 +115,8 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void RLikeOperatorTest()
     {
-        var query = @"select Name from #A.Entities() where Name rlike '^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'";
+        var query =
+            @"select Name from #A.Entities() where Name rlike '^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
@@ -133,18 +136,20 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        
+
         Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
 
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "12@hostname.com"), "Missing 12@hostname.com");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "david.jones@proseware.com"), "Missing david.jones@proseware.com");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "david.jones@proseware.com"),
+            "Missing david.jones@proseware.com");
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "ma@hostname.com"), "Missing ma@hostname.com");
     }
 
     [TestMethod]
     public void NotRLikeOperatorTest()
     {
-        var query = @"select Name from #A.Entities() where Name not rlike '^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'";
+        var query =
+            @"select Name from #A.Entities() where Name not rlike '^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
@@ -429,7 +434,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     public void WrongColumnNameTest()
     {
         var query =
-            $"select Populationr from #A.Entities()";
+            "select Populationr from #A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -447,7 +452,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     public void EmptyStringTest()
     {
         var query =
-            $"select '' from #A.Entities()";
+            "select '' from #A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -473,7 +478,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     {
         var query =
             "select null from #A.Entities()";
-            
+
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
@@ -497,7 +502,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     public void CaseWhenWithEmptyStringTest()
     {
         var query =
-            $"select (case when 1 = 2 then 'test' else '' end) from #A.Entities()";
+            "select (case when 1 = 2 then 'test' else '' end) from #A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -522,7 +527,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     public void CaseWhenWithNullTest()
     {
         var query =
-            $"select (case when 1 = 2 then 'test' else null end) from #A.Entities()";
+            "select (case when 1 = 2 then 'test' else null end) from #A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -547,7 +552,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
     public void ComplexWhere1Test()
     {
         var query =
-            $"select Population from #A.Entities() where Population > 0 and Population - 100 > -1.5d and Population - 100 < 1.5d";
+            "select Population from #A.Entities() where Population > 0 and Population - 100 > -1.5d and Population - 100 < 1.5d";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -567,7 +572,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Population", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(0).ColumnType);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (decimal)entry.Values[0] == 99m), "First entry should be 99m");
@@ -593,7 +598,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "ABC"), "First entry should be 'ABC'");
@@ -618,7 +623,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        
+
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "A"), "First entry should be 'A'");
@@ -632,7 +637,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = "select 'abc' + 'cda' from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("ABCAACBA")]}
+            { "#A", [new BasicEntity("ABCAACBA")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -761,12 +766,12 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = "select 1, *, Name as Name2, ToString(Self) as SelfString from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [entity]}
+            { "#A", [entity] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual("1", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
 
@@ -805,7 +810,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Count, "Table should have 1 entry");
 
-        Assert.IsTrue(table.Any(entry => 
+        Assert.IsTrue(table.Any(entry =>
             (int)entry.Values[0] == Convert.ToInt32(1) &&
             (string)entry.Values[1] == "ABBA" &&
             (string)entry.Values[2] == "CRACOV" &&
@@ -827,7 +832,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = @"select Self.Array[2] from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -835,7 +840,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 
         Assert.AreEqual("Self.Array[2]", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.All(entry => (int)entry.Values[0] == 2), "Both entries should have value 2");
@@ -847,7 +852,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = @"select Self.Array from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -865,7 +870,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = @"select Self.Self.Array from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001")]}
+            { "#A", [new BasicEntity("001")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -883,7 +888,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = @"select Inc(Self.Array[2]) from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -891,7 +896,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 
         Assert.AreEqual("Inc(Self.Array[2])", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
         Assert.IsTrue(table.All(entry => (int)entry.Values[0] == 3), "Both entries should have value 3 (as int)");
@@ -903,7 +908,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = @"select Name from #A.Entities() where Name = '001' or Name = '005'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002"), new BasicEntity("005")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -921,20 +926,20 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         var query = @"select Name as 'x1' from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", [new BasicEntity("001"), new BasicEntity("002")]}
+            { "#A", [new BasicEntity("001"), new BasicEntity("002")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "001"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "001"),
             "First entry should be '001'");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry.Values[0] == "002"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry.Values[0] == "002"),
             "Second entry should be '002'");
     }
 
@@ -1113,7 +1118,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             @"select Name as TestName, GetOne(), GetOne() as TestColumn, GetTwo(4d, 'test') from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            {"#A", []}
+            { "#A", [] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -1268,15 +1273,17 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual("Type", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
 
-        Assert.IsTrue(table.Any(row => (string) row[0] == "Name" && (string) row[2] == "System.String"));
-        Assert.IsTrue(table.Any(row => (string) row[0] == "City" && (string) row[2] == "System.String"));
-        Assert.IsTrue(table.Any(row => (string) row[0] == "Country" && (string) row[2] == "System.String"));
-        Assert.IsTrue(table.Any(row => (string) row[0] == "Self" && (string) row[2] == "Musoq.Evaluator.Tests.Schema.Basic.BasicEntity"));
-        Assert.IsTrue(table.Any(row => (string) row[0] == "Money" && (string) row[2] == "System.Decimal"));
-        Assert.IsTrue(table.Any(row => (string) row[0] == "Month" && (string) row[2] == "System.String"));
-        Assert.IsTrue(table.Any(row => (string) row[0] == "Time" && (string) row[2] == "System.DateTime"));
-        Assert.IsTrue(table.Any(row => (string) row[0] == "Id" && (string) row[2] == "System.Int32"));
-        Assert.IsTrue(table.Any(row => (string) row[0] == "NullableValue" && (string) row[2] == "System.Nullable`1[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]"));
+        Assert.IsTrue(table.Any(row => (string)row[0] == "Name" && (string)row[2] == "System.String"));
+        Assert.IsTrue(table.Any(row => (string)row[0] == "City" && (string)row[2] == "System.String"));
+        Assert.IsTrue(table.Any(row => (string)row[0] == "Country" && (string)row[2] == "System.String"));
+        Assert.IsTrue(table.Any(row =>
+            (string)row[0] == "Self" && (string)row[2] == "Musoq.Evaluator.Tests.Schema.Basic.BasicEntity"));
+        Assert.IsTrue(table.Any(row => (string)row[0] == "Money" && (string)row[2] == "System.Decimal"));
+        Assert.IsTrue(table.Any(row => (string)row[0] == "Month" && (string)row[2] == "System.String"));
+        Assert.IsTrue(table.Any(row => (string)row[0] == "Time" && (string)row[2] == "System.DateTime"));
+        Assert.IsTrue(table.Any(row => (string)row[0] == "Id" && (string)row[2] == "System.Int32"));
+        Assert.IsTrue(table.Any(row => (string)row[0] == "NullableValue" && (string)row[2] ==
+            "System.Nullable`1[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]"));
     }
 
     [TestMethod]
@@ -1342,7 +1349,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
         Assert.IsTrue(table.Any(row => (string)row[0] == "A") &&
@@ -1577,11 +1584,11 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(entry => (bool)entry[0] == false), "First entry should be false");
-        Assert.IsTrue(table.Any(entry => (bool)entry[0] == true), "Second entry should be true");
+        Assert.IsTrue(table.Any(entry => !(bool)entry[0]), "First entry should be false");
+        Assert.IsTrue(table.Any(entry => (bool)entry[0]), "Second entry should be true");
     }
 
     [TestMethod]
@@ -1610,7 +1617,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
-        Assert.IsTrue(table.Any(row => (decimal)row[0] == 2m) && 
+        Assert.IsTrue(table.Any(row => (decimal)row[0] == 2m) &&
                       table.Any(row => (decimal)row[0] == 1m),
             "Expected rows with values 2 and 1");
     }
@@ -1646,13 +1653,13 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
 
         Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
 
-        Assert.IsTrue(table.Any(row => 
-                (decimal)row[0] == 2m && 
+        Assert.IsTrue(table.Any(row =>
+                (decimal)row[0] == 2m &&
                 (decimal)row[1] == 1m),
             "Row with values (2,1) not found");
 
-        Assert.IsTrue(table.Any(row => 
-                (decimal)row[0] == 1m && 
+        Assert.IsTrue(table.Any(row =>
+                (decimal)row[0] == 1m &&
                 (decimal)row[1] == 2m),
             "Row with values (1,2) not found");
     }
@@ -1862,6 +1869,4 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Test", table[0][0]);
     }
-
-    public TestContext TestContext { get; set; }
 }

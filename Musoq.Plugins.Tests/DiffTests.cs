@@ -45,8 +45,6 @@ public class DiffTests : LibraryBaseBaseTests
     [TestMethod]
     public void Diff_FullThresholdMode_MixedRegions_ReturnsExpectedOutput()
     {
-        
-        
         var result = Library.Diff("aaXbbbbbbbbbY", "aaZbbbbbbbbbW", "full:5");
         Assert.AreEqual("aa[-X][+Z][=9][-Y][+W]", result);
     }
@@ -100,15 +98,14 @@ public class DiffTests : LibraryBaseBaseTests
     [TestMethod]
     public void Diff_NullVsEmpty_AreDifferent()
     {
-        
         var resultNullFirst = Library.Diff(null, "test");
         Assert.AreEqual("[+test]", resultNullFirst);
 
-        
+
         var resultEmptyFirst = Library.Diff("", "test");
         Assert.AreEqual("[+test]", resultEmptyFirst);
 
-        
+
         var resultBothNull = Library.Diff(null, null);
         Assert.IsNull(resultBothNull);
     }
@@ -137,7 +134,7 @@ public class DiffTests : LibraryBaseBaseTests
     public void Diff_NullMode_UsesDefaultFull()
     {
         var result = Library.Diff("abc", "xyz", null);
-        Assert.AreEqual("[-abc][+xyz]", result); 
+        Assert.AreEqual("[-abc][+xyz]", result);
     }
 
     [TestMethod]
@@ -150,7 +147,7 @@ public class DiffTests : LibraryBaseBaseTests
     [TestMethod]
     public void Diff_FullMode_Works()
     {
-        var result = Library.Diff("abc", "xyz", "full");
+        var result = Library.Diff("abc", "xyz");
         Assert.AreEqual("[-abc][+xyz]", result);
     }
 
@@ -165,7 +162,7 @@ public class DiffTests : LibraryBaseBaseTests
     public void Diff_FullThresholdOne_Works()
     {
         var result = Library.Diff("aXb", "aYb", "full:1");
-        
+
         Assert.AreEqual("a[-X][+Y]b", result);
     }
 
@@ -311,7 +308,7 @@ public class DiffTests : LibraryBaseBaseTests
         var result = Library.DiffSegments("abc", "xyz").ToList();
 
         Assert.HasCount(2, result);
-        
+
         Assert.AreEqual("abc", result[0].Text);
         Assert.AreEqual("Deleted", result[0].Kind);
         Assert.AreEqual(0, result[0].Position);
@@ -394,10 +391,7 @@ public class DiffTests : LibraryBaseBaseTests
     {
         var result = Library.DiffSegments("abcXYZdef", "abcABdef").ToList();
 
-        foreach (var segment in result)
-        {
-            Assert.AreEqual(segment.Text.Length, segment.Length);
-        }
+        foreach (var segment in result) Assert.AreEqual(segment.Text.Length, segment.Length);
     }
 
     [TestMethod]
@@ -407,9 +401,7 @@ public class DiffTests : LibraryBaseBaseTests
         var validKinds = new[] { "Unchanged", "Deleted", "Inserted" };
 
         foreach (var segment in result)
-        {
             Assert.IsTrue(validKinds.Contains(segment.Kind), $"Invalid kind: {segment.Kind}");
-        }
     }
 
     #endregion
@@ -470,13 +462,12 @@ public class DiffTests : LibraryBaseBaseTests
     [TestMethod]
     public void DiffSegments_AlternatingChanges_HandlesCorrectly()
     {
-        
         var result = Library.DiffSegments("aXbYcZ", "aAbBcC").ToList();
 
-        
+
         Assert.IsNotEmpty(result);
-        
-        
+
+
         Assert.AreEqual("a", result[0].Text);
         Assert.AreEqual("Unchanged", result[0].Kind);
     }

@@ -8,29 +8,7 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class OuterApplyMixedTests : GenericEntityTestBase
 {
-    private class OuterApplyClass1
-    {
-        public string City { get; set; }
-
-        public string Country { get; set; }
-    }
-
-    // ReSharper disable once MemberCanBePrivate.Global
-    public class ComplexType1
-    {
-        public string StreetName { get; set; }
-
-        public int HouseNumber { get; set; }
-
-        [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; }
-    }
-
-    private class OuterApplyClass2
-    {
-        public string Country { get; set; }
-
-        [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; }
-    }
+    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void OuterApply_SchemaAndProperty_WithNestedProperty_ShouldPass()
@@ -47,8 +25,8 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         var firstSource = new OuterApplyClass1[]
         {
-            new() {Country = "USA", City = "New York"},
-            new() {Country = "USA", City = "Los Angeles"},
+            new() { Country = "USA", City = "New York" },
+            new() { Country = "USA", City = "Los Angeles" }
         };
 
         var secondSource = new OuterApplyClass2[]
@@ -58,8 +36,8 @@ public class OuterApplyMixedTests : GenericEntityTestBase
                 Country = "USA",
                 Addresses =
                 [
-                    new() {StreetName = "Broadway", HouseNumber = 123},
-                    new() {StreetName = "Fifth Avenue", HouseNumber = 456}
+                    new ComplexType1 { StreetName = "Broadway", HouseNumber = 123 },
+                    new ComplexType1 { StreetName = "Fifth Avenue", HouseNumber = 456 }
                 ]
             },
             new()
@@ -67,7 +45,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
                 Country = "Canada",
                 Addresses =
                 [
-                    new ComplexType1 {StreetName = "Yonge Street", HouseNumber = 789}
+                    new ComplexType1 { StreetName = "Yonge Street", HouseNumber = 789 }
                 ]
             }
         };
@@ -80,7 +58,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string) f["Country"] == (string) parameters[0]).ToArray())
+                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray())
         );
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -122,24 +100,6 @@ public class OuterApplyMixedTests : GenericEntityTestBase
             (int)r[3] == 456));
     }
 
-    private class OuterApplyClass3
-    {
-        public string Department { get; set; }
-
-        public int Budget { get; set; }
-    }
-
-    private class OuterApplyClass4
-    {
-        public string Department { get; set; }
-
-        public string Name { get; set; }
-
-        public int Salary { get; set; }
-
-        public string[] Skills { get; set; }
-    }
-
     [TestMethod]
     public void OuterApply_SchemaAndMethod_WithComplexObjects_ShouldPass()
     {
@@ -156,15 +116,15 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         var firstSource = new OuterApplyClass3[]
         {
-            new() {Department = "IT", Budget = 500000},
-            new() {Department = "HR", Budget = 300000}
+            new() { Department = "IT", Budget = 500000 },
+            new() { Department = "HR", Budget = 300000 }
         };
 
         var secondSource = new OuterApplyClass4[]
         {
-            new() {Department = "IT", Name = "John Doe", Salary = 50000, Skills = ["C#", "JavaScript", "C#"]},
-            new() {Department = "IT", Name = "Jane Smith", Salary = 60000, Skills = ["C#", "JavaScript"]},
-            new() {Department = "HR", Name = "John Doe", Salary = 50000, Skills = ["Communication", "Negotiation"]},
+            new() { Department = "IT", Name = "John Doe", Salary = 50000, Skills = ["C#", "JavaScript", "C#"] },
+            new() { Department = "IT", Name = "Jane Smith", Salary = 60000, Skills = ["C#", "JavaScript"] },
+            new() { Department = "HR", Name = "John Doe", Salary = 50000, Skills = ["Communication", "Negotiation"] },
             new()
             {
                 Department = "HR", Name = "Jane Smith", Salary = 60000,
@@ -180,7 +140,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string) f["Department"] == (string) parameters[0])
+                new ObjectRowsSource(source.Rows.Where(f => (string)f["Department"] == (string)parameters[0])
                     .ToArray()));
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -196,39 +156,24 @@ public class OuterApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual(typeof(int?), table.Columns.ElementAt(3).ColumnType);
         Assert.AreEqual("c.Value", table.Columns.ElementAt(4).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(4).ColumnType);
-        
+
         Assert.AreEqual(8, table.Count, "Table should contain 8 rows");
 
         Assert.AreEqual(4,
-table.Count(row =>
+            table.Count(row =>
                 (string)row[0] == "IT" &&
                 (int)row[1] == 500000 &&
                 new[] { ("John Doe", 50000), ("Jane Smith", 60000) }.Contains(((string)row[2], (int)row[3])) &&
-                new[] { "C#", "JavaScript" }.Contains((string)row[4])), "Expected 4 IT rows with correct employee and skill combinations");
+                new[] { "C#", "JavaScript" }.Contains((string)row[4])),
+            "Expected 4 IT rows with correct employee and skill combinations");
 
         Assert.AreEqual(4,
-table.Count(row =>
+            table.Count(row =>
                 (string)row[0] == "HR" &&
                 (int)row[1] == 300000 &&
                 new[] { ("John Doe", 50000), ("Jane Smith", 60000) }.Contains(((string)row[2], (int)row[3])) &&
-                new[] { "Communication", "Negotiation" }.Contains((string)row[4])), "Expected 4 HR rows with correct employee and skill combinations");
-    }
-
-    private class OuterApplyClass5
-    {
-        public string Department { get; set; }
-        public int Budget { get; set; }
-        
-        [BindablePropertyAsTable]
-        public ComplexType2[] Employees { get; set; }
-    }
-
-    // ReSharper disable once MemberCanBePrivate.Global
-    public class ComplexType2
-    {
-        public string Name { get; set; }
-        
-        public string[] Skills { get; set; }
+                new[] { "Communication", "Negotiation" }.Contains((string)row[4])),
+            "Expected 4 HR rows with correct employee and skill combinations");
     }
 
     [TestMethod]
@@ -253,9 +198,9 @@ table.Count(row =>
                 Employees =
                 [
                     new ComplexType2
-                        {Name = "John Doe", Skills = ["C#", "C#"]},
+                        { Name = "John Doe", Skills = ["C#", "C#"] },
                     new ComplexType2
-                        {Name = "Jane Smith", Skills = ["Java"]}
+                        { Name = "Jane Smith", Skills = ["Java"] }
                 ]
             },
             new()
@@ -276,7 +221,7 @@ table.Count(row =>
         var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
@@ -284,9 +229,9 @@ table.Count(row =>
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-        
+
         Assert.AreEqual(2, table.Count);
-        
+
         Assert.IsTrue(table.Any(row => (string)row[0] == "IT" &&
                                        (string)row[1] == "John Doe" &&
                                        (string)row[2] == "C#"), "Expected row with IT, John Doe, C# not found");
@@ -317,9 +262,9 @@ table.Count(row =>
                 Employees =
                 [
                     new ComplexType2
-                        {Name = "John Doe", Skills = ["C#", "C#"]},
+                        { Name = "John Doe", Skills = ["C#", "C#"] },
                     new ComplexType2
-                        {Name = "Jane Smith", Skills = ["Java"]}
+                        { Name = "Jane Smith", Skills = ["Java"] }
                 ]
             },
             new()
@@ -340,36 +285,19 @@ table.Count(row =>
         var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual("Count(a.Department)", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(1, table.Count);
-        
+
         Assert.AreEqual("IT", table[0][0]);
         Assert.AreEqual(2, table[0][1]);
     }
 
-    private class OuterApplyClass6
-    {
-        public string Name { get; set; }
-        
-        public string Surname { get; set; }
-        
-        public int Id { get; set; }
-    }
-    
-    private class OuterApplyClass7
-    {   
-        public int Id { get; set; }
-        
-        [BindablePropertyAsTable]
-        public string[] Skills { get; set; }
-    }
-    
     [TestMethod]
     public void OuterApply_InnerJoinAndUseProperty_ShouldPass()
     {
@@ -381,25 +309,25 @@ table.Count(row =>
     from #schema.first() a
     inner join #schema.second() b on a.Id = b.Id
     outer apply b.Skills c";
-        
+
         var firstSource = new OuterApplyClass6[]
         {
-            new() {Name = "John", Surname = "Doe", Id = 1},
-            new() {Name = "Jane", Surname = "Smith", Id = 2},
-            new() {Name = "Alice", Surname = "Johnson", Id = 3}
+            new() { Name = "John", Surname = "Doe", Id = 1 },
+            new() { Name = "Jane", Surname = "Smith", Id = 2 },
+            new() { Name = "Alice", Surname = "Johnson", Id = 3 }
         };
 
         var secondSource = new OuterApplyClass7[]
         {
-            new() {Id = 1, Skills = ["C#", "JavaScript"]},
-            new() {Id = 2, Skills = ["Java"]},
-            new() {Id = 3, Skills = ["Communication", "Negotiation"]}
+            new() { Id = 1, Skills = ["C#", "JavaScript"] },
+            new() { Id = 2, Skills = ["Java"] },
+            new() { Id = 3, Skills = ["Communication", "Negotiation"] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
@@ -407,45 +335,45 @@ table.Count(row =>
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-        
+
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
-        Assert.IsTrue(table.Count(row => 
-                          (string) row[0] == "John" && 
-                          (string) row[1] == "Doe") == 2 &&
+        Assert.IsTrue(table.Count(row =>
+                          (string)row[0] == "John" &&
+                          (string)row[1] == "Doe") == 2 &&
                       table.Any(row =>
-                          (string) row[0] == "John" && 
-                          (string) row[1] == "Doe" && 
-                          (string) row[2] == "C#") &&
+                          (string)row[0] == "John" &&
+                          (string)row[1] == "Doe" &&
+                          (string)row[2] == "C#") &&
                       table.Any(row =>
-                          (string) row[0] == "John" && 
-                          (string) row[1] == "Doe" && 
-                          (string) row[2] == "JavaScript"),
+                          (string)row[0] == "John" &&
+                          (string)row[1] == "Doe" &&
+                          (string)row[2] == "JavaScript"),
             "Expected two rows for John Doe with C# and JavaScript skills");
 
         Assert.IsTrue(table.Count(row =>
-                          (string) row[0] == "Jane" && 
-                          (string) row[1] == "Smith") == 1 &&
+                          (string)row[0] == "Jane" &&
+                          (string)row[1] == "Smith") == 1 &&
                       table.Any(row =>
-                          (string) row[0] == "Jane" && 
-                          (string) row[1] == "Smith" && 
-                          (string) row[2] == "Java"),
+                          (string)row[0] == "Jane" &&
+                          (string)row[1] == "Smith" &&
+                          (string)row[2] == "Java"),
             "Expected one row for Jane Smith with Java skill");
 
         Assert.IsTrue(table.Count(row =>
-                          (string) row[0] == "Alice" && 
-                          (string) row[1] == "Johnson") == 2 &&
+                          (string)row[0] == "Alice" &&
+                          (string)row[1] == "Johnson") == 2 &&
                       table.Any(row =>
-                          (string) row[0] == "Alice" && 
-                          (string) row[1] == "Johnson" && 
-                          (string) row[2] == "Communication") &&
+                          (string)row[0] == "Alice" &&
+                          (string)row[1] == "Johnson" &&
+                          (string)row[2] == "Communication") &&
                       table.Any(row =>
-                          (string) row[0] == "Alice" && 
-                          (string) row[1] == "Johnson" && 
-                          (string) row[2] == "Negotiation"),
+                          (string)row[0] == "Alice" &&
+                          (string)row[1] == "Johnson" &&
+                          (string)row[2] == "Negotiation"),
             "Expected two rows for Alice Johnson with Communication and Negotiation skills");
     }
-    
+
     [TestMethod]
     public void OuterApply_LeftJoinAndUseProperty_ShouldPass()
     {
@@ -457,25 +385,25 @@ table.Count(row =>
     from #schema.first() a
     left outer join #schema.second() b on a.Id = b.Id
     outer apply b.Skills c";
-        
+
         var firstSource = new OuterApplyClass6[]
         {
-            new() {Name = "John", Surname = "Doe", Id = 1},
-            new() {Name = "Jane", Surname = "Smith", Id = 2},
-            new() {Name = "Alice", Surname = "Johnson", Id = 3}
+            new() { Name = "John", Surname = "Doe", Id = 1 },
+            new() { Name = "Jane", Surname = "Smith", Id = 2 },
+            new() { Name = "Alice", Surname = "Johnson", Id = 3 }
         };
 
         var secondSource = new OuterApplyClass7[]
         {
-            new() {Id = 1, Skills = ["C#", "JavaScript"]},
-            new() {Id = 2, Skills = ["Java"]},
-            new() {Id = 3, Skills = ["Communication", "Negotiation"]}
+            new() { Id = 1, Skills = ["C#", "JavaScript"] },
+            new() { Id = 2, Skills = ["Java"] },
+            new() { Id = 3, Skills = ["Communication", "Negotiation"] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
@@ -483,27 +411,101 @@ table.Count(row =>
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-        
+
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
         Assert.AreEqual(2,
-table.Count(row =>
+            table.Count(row =>
                 (string)row[0] == "John" &&
                 (string)row[1] == "Doe" &&
-                new[] { "C#", "JavaScript" }.Contains((string)row[2])), "Expected 2 rows for John Doe with C# and JavaScript skills");
+                new[] { "C#", "JavaScript" }.Contains((string)row[2])),
+            "Expected 2 rows for John Doe with C# and JavaScript skills");
 
-        Assert.IsTrue(table.Any(row => 
-                (string)row[0] == "Jane" && 
-                (string)row[1] == "Smith" && 
+        Assert.IsTrue(table.Any(row =>
+                (string)row[0] == "Jane" &&
+                (string)row[1] == "Smith" &&
                 (string)row[2] == "Java"),
             "Row for Jane Smith with Java skill not found");
 
         Assert.AreEqual(2,
-table.Count(row =>
+            table.Count(row =>
                 (string)row[0] == "Alice" &&
                 (string)row[1] == "Johnson" &&
-                new[] { "Communication", "Negotiation" }.Contains((string)row[2])), "Expected 2 rows for Alice Johnson with Communication and Negotiation skills");
+                new[] { "Communication", "Negotiation" }.Contains((string)row[2])),
+            "Expected 2 rows for Alice Johnson with Communication and Negotiation skills");
     }
 
-    public TestContext TestContext { get; set; }
+    private class OuterApplyClass1
+    {
+        public string City { get; set; }
+
+        public string Country { get; set; }
+    }
+
+    // ReSharper disable once MemberCanBePrivate.Global
+    public class ComplexType1
+    {
+        public string StreetName { get; set; }
+
+        public int HouseNumber { get; set; }
+
+        [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; }
+    }
+
+    private class OuterApplyClass2
+    {
+        public string Country { get; set; }
+
+        [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; }
+    }
+
+    private class OuterApplyClass3
+    {
+        public string Department { get; set; }
+
+        public int Budget { get; set; }
+    }
+
+    private class OuterApplyClass4
+    {
+        public string Department { get; set; }
+
+        public string Name { get; set; }
+
+        public int Salary { get; set; }
+
+        public string[] Skills { get; set; }
+    }
+
+    private class OuterApplyClass5
+    {
+        public string Department { get; set; }
+        public int Budget { get; set; }
+
+        [BindablePropertyAsTable] public ComplexType2[] Employees { get; set; }
+    }
+
+    // ReSharper disable once MemberCanBePrivate.Global
+    public class ComplexType2
+    {
+        public string Name { get; set; }
+
+        public string[] Skills { get; set; }
+    }
+
+    private class OuterApplyClass6
+    {
+        public string Name { get; set; }
+
+        public string Surname { get; set; }
+
+        public int Id { get; set; }
+    }
+
+    private class OuterApplyClass7
+    {
+        public int Id { get; set; }
+
+        [BindablePropertyAsTable] public string[] Skills { get; set; }
+    }
 }

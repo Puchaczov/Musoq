@@ -18,7 +18,8 @@ namespace Musoq.Converter;
 
 public static class InstanceCreator
 {
-    public static BuildItems CreateForAnalyze(string script, string assemblyName, ISchemaProvider provider, ILoggerResolver loggerResolver)
+    public static BuildItems CreateForAnalyze(string script, string assemblyName, ISchemaProvider provider,
+        ILoggerResolver loggerResolver)
     {
         var items = new BuildItems
         {
@@ -38,49 +39,51 @@ public static class InstanceCreator
 
         return items;
     }
-        
-    public static (byte[] DllFile, byte[] PdbFile) CompileForStore(string script, string assemblyName, ISchemaProvider provider, ILoggerResolver loggerResolver)
+
+    public static (byte[] DllFile, byte[] PdbFile) CompileForStore(string script, string assemblyName,
+        ISchemaProvider provider, ILoggerResolver loggerResolver)
     {
         var items = CreateForAnalyze(script, assemblyName, provider, loggerResolver);
 
         return (items.DllFile, items.PdbFile);
     }
 
-    public static Task<(byte[] DllFile, byte[] PdbFile)> CompileForStoreAsync(string script, string assemblyName, ISchemaProvider provider, ILoggerResolver loggerResolver)
+    public static Task<(byte[] DllFile, byte[] PdbFile)> CompileForStoreAsync(string script, string assemblyName,
+        ISchemaProvider provider, ILoggerResolver loggerResolver)
     {
         return Task.Factory.StartNew(() => CompileForStore(script, assemblyName, provider, loggerResolver));
     }
 
-    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider, ILoggerResolver loggerResolver)
+    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver)
     {
         return CompileForExecution(
-            script, 
-            assemblyName, 
+            script,
+            assemblyName,
             schemaProvider,
             loggerResolver,
             () => new CreateTree(
                 new TransformTree(
                     new TurnQueryIntoRunnableCode(null), loggerResolver)),
-            _ => {});
+            _ => { });
     }
 
-    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CompilationOptions compilationOptions)
+    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver, CompilationOptions compilationOptions)
     {
         return CompileForExecution(
-            script, 
-            assemblyName, 
+            script,
+            assemblyName,
             schemaProvider,
             loggerResolver,
             () => new CreateTree(
                 new TransformTree(
                     new TurnQueryIntoRunnableCode(null), loggerResolver)),
-            buildItems =>
-            {
-                buildItems.CompilationOptions = compilationOptions;
-            });
+            buildItems => { buildItems.CompilationOptions = compilationOptions; });
     }
 
-    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, Func<BuildChain> createChain, Action<BuildItems> modifyBuildItems)
+    public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver, Func<BuildChain> createChain, Action<BuildItems> modifyBuildItems)
     {
         var items = new BuildItems
         {
@@ -89,14 +92,14 @@ public static class InstanceCreator
             AssemblyName = assemblyName,
             CreateBuildMetadataAndInferTypesVisitor = null
         };
-        
+
         modifyBuildItems(items);
 
         var compiled = true;
 
         RuntimeLibraries.CreateReferences();
 
-        var chain = 
+        var chain =
             createChain?.Invoke() ??
             new CreateTree(
                 new TransformTree(
@@ -115,13 +118,12 @@ public static class InstanceCreator
         }
 
 
-
         IRunnable runnable;
         if (compiled && !Debugger.IsAttached)
         {
             runnable = CreateRunnable(items);
             runnable.Logger = loggerResolver.ResolveLogger();
-            
+
             return new CompiledQuery(runnable);
         }
 
@@ -145,14 +147,14 @@ public static class InstanceCreator
             file.Write(builder.ToString());
         }
 
-        if (items.DllFile is {Length: > 0})
+        if (items.DllFile is { Length: > 0 })
         {
             using var file = new BinaryWriter(File.Open(assemblyPath, FileMode.Create));
             if (items.DllFile != null)
                 file.Write(items.DllFile);
         }
 
-        if (items.PdbFile is {Length: > 0})
+        if (items.PdbFile is { Length: > 0 })
         {
             using var file = new BinaryWriter(File.Open(pdbPath, FileMode.Create));
             if (items.PdbFile != null)
@@ -166,14 +168,16 @@ public static class InstanceCreator
         runnable = new RunnableDebugDecorator(
             CreateRunnableForDebug(items, () => assemblyLoadContext.LoadFromAssemblyPath(assemblyPath)),
             assemblyLoadContext,
-            csPath, 
-            assemblyPath, 
+            csPath,
+            assemblyPath,
             pdbPath);
 
         return new CompiledQuery(runnable);
     }
 
-    public static Task<CompiledQuery> CompileForExecutionAsync(string script, string assemblyName, ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables)
+    public static Task<CompiledQuery> CompileForExecutionAsync(string script, string assemblyName,
+        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver,
+        IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables)
     {
         return Task.Factory.StartNew(() => CompileForExecution(script, assemblyName, schemaProvider, loggerResolver));
     }
@@ -193,39 +197,41 @@ public static class InstanceCreator
         var assembly = createAssembly();
 
         var type = assembly.GetType(items.AccessToClassPath);
-            
-        if  (type is null)
-            throw new InvalidOperationException($"Type {items.AccessToClassPath} was not found in assembly {assembly.FullName}.");
+
+        if (type is null)
+            throw new InvalidOperationException(
+                $"Type {items.AccessToClassPath} was not found in assembly {assembly.FullName}.");
 
         var runnable = (IRunnable)Activator.CreateInstance(type);
-            
+
         if (runnable is null)
             throw new InvalidOperationException($"Could not create instance of type {type.FullName}.");
-            
+
         runnable.Provider = items.SchemaProvider;
         runnable.PositionalEnvironmentVariables = items.PositionalEnvironmentVariables;
-            
+
         var usedColumns = items.UsedColumns;
         var usedWhereNodes = items.UsedWhereNodes;
 
         if (usedColumns.Count != usedWhereNodes.Count)
-        {
-            throw new InvalidOperationException("Used columns and used where nodes are not equal. This must not happen.");
-        }
-            
+            throw new InvalidOperationException(
+                "Used columns and used where nodes are not equal. This must not happen.");
+
         runnable.QueriesInformation =
             usedColumns.Join(
-                usedWhereNodes, 
-                f => f.Key.Id, 
+                usedWhereNodes,
                 f => f.Key.Id,
-                (f, s) => (SchemaFromNode: f.Key, UsedColumns: (IReadOnlyCollection<ISchemaColumn>)f.Value, UsedValues:s.Value)
-            ).ToDictionary(f => f.SchemaFromNode.Id, f => (f.SchemaFromNode, f.UsedColumns, f.UsedValues, f.SchemaFromNode is SchemaFromNode
-            {
-                HasExternallyProvidedTypes: true
-            }));
+                f => f.Key.Id,
+                (f, s) => (SchemaFromNode: f.Key, UsedColumns: (IReadOnlyCollection<ISchemaColumn>)f.Value,
+                    UsedValues: s.Value)
+            ).ToDictionary(f => f.SchemaFromNode.Id, f => (f.SchemaFromNode, f.UsedColumns, f.UsedValues,
+                f.SchemaFromNode is SchemaFromNode
+                {
+                    HasExternallyProvidedTypes: true
+                }));
 
         return runnable;
     }
-        
+
     private class DebugAssemblyLoadContext() : AssemblyLoadContext(true);
 }

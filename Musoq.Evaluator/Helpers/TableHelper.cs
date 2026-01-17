@@ -1,7 +1,7 @@
-using Musoq.Evaluator.Tables;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.Helpers;
 
@@ -9,10 +9,9 @@ public static class TableHelper
 {
     public static Table OrderBy(this Table table, Func<List<Row>, List<Row>> orderByFunc)
     {
-        Table newTable = new Table(table.Name, table.Columns.ToArray());
-        
-        
-        
+        var newTable = new Table(table.Name, table.Columns.ToArray());
+
+
         var rows = table.ToList();
         var orderedList = orderByFunc(rows);
 

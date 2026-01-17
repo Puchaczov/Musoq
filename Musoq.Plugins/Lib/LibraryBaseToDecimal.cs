@@ -7,7 +7,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Converts given value to decimal
+    ///     Converts given value to decimal
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to decimal value</returns>
@@ -25,7 +25,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to decimal withing given culture
+    ///     Converts given value to decimal withing given culture
     /// </summary>
     /// <param name="value">The value</param>
     /// <param name="culture">The culture</param>
@@ -41,7 +41,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to Decimal
+    ///     Converts given value to Decimal
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
@@ -53,7 +53,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to Decimal
+    ///     Converts given value to Decimal
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
@@ -65,7 +65,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to Decimal
+    ///     Converts given value to Decimal
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
@@ -77,7 +77,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to Decimal
+    ///     Converts given value to Decimal
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
@@ -89,7 +89,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to Decimal
+    ///     Converts given value to Decimal
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
@@ -101,7 +101,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to Decimal
+    ///     Converts given value to Decimal
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
@@ -113,7 +113,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to Decimal
+    ///     Converts given value to Decimal
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
@@ -125,7 +125,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to Decimal
+    ///     Converts given value to Decimal
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>
@@ -140,7 +140,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Converts given value to Decimal
+    ///     Converts given value to Decimal
     /// </summary>
     /// <param name="value">The value</param>
     /// <returns>Converted to Decimal value</returns>

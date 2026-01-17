@@ -16,13 +16,13 @@ using Musoq.Schema.DataSources;
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Provides specialized processing for ApplyInMemoryWithSourceTableFromNode operations in the query syntax tree.
-/// Handles the complex apply logic for Cross and Outer apply types with detailed syntax generation.
+///     Provides specialized processing for ApplyInMemoryWithSourceTableFromNode operations in the query syntax tree.
+///     Handles the complex apply logic for Cross and Outer apply types with detailed syntax generation.
 /// </summary>
 public static class ApplyInMemoryWithSourceTableNodeProcessor
 {
     /// <summary>
-    /// Processes an apply memory table node and generates the corresponding computing block.
+    ///     Processes an apply memory table node and generates the corresponding computing block.
     /// </summary>
     /// <param name="node">The apply memory table node to process</param>
     /// <param name="generator">The syntax generator for creating expressions</param>
@@ -43,15 +43,18 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
         Func<StatementSyntax[], BlockSyntax> block,
         Func<StatementSyntax> generateCancellationExpression)
     {
-        ValidateParameters(node, generator, scope, queryAlias, getRowsSourceOrEmpty, block, generateCancellationExpression);
+        ValidateParameters(node, generator, scope, queryAlias, getRowsSourceOrEmpty, block,
+            generateCancellationExpression);
 
         var emptyBlock = SyntaxFactory.Block();
         var computingBlock = SyntaxFactory.Block();
 
         computingBlock = node.ApplyType switch
         {
-            ApplyType.Cross => ProcessCrossApply(node, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression),
-            ApplyType.Outer => ProcessOuterApply(node, generator, scope, queryAlias, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression),
+            ApplyType.Cross => ProcessCrossApply(node, emptyBlock, getRowsSourceOrEmpty, block,
+                generateCancellationExpression),
+            ApplyType.Outer => ProcessOuterApply(node, generator, scope, queryAlias, emptyBlock, getRowsSourceOrEmpty,
+                block, generateCancellationExpression),
             _ => throw new ArgumentException($"Unsupported apply type: {node.ApplyType}")
         };
 
@@ -59,7 +62,7 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
     }
 
     /// <summary>
-    /// Processes a Cross apply operation generating nested foreach statements.
+    ///     Processes a Cross apply operation generating nested foreach statements.
     /// </summary>
     private static BlockSyntax ProcessCrossApply(
         ApplyInMemoryWithSourceTableFromNode node,
@@ -82,11 +85,12 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
                         SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
                         SyntaxFactory.Block(
                             generateCancellationExpression(),
-                            emptyBlock))])));
+                            emptyBlock))
+                ])));
     }
 
     /// <summary>
-    /// Processes an Outer apply operation with complex expression building and table manipulation.
+    ///     Processes an Outer apply operation with complex expression building and table manipulation.
     /// </summary>
     private static BlockSyntax ProcessOuterApply(
         ApplyInMemoryWithSourceTableFromNode node,
@@ -100,7 +104,7 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
     {
         var fullTransitionTable = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(queryAlias);
         var fieldNames = scope.ScopeSymbolTable.GetSymbol<FieldsNamesSymbol>(MetaAttributes.OuterJoinSelect);
-        
+
         var expressions = BuildOuterApplyExpressions(node, generator, fullTransitionTable, fieldNames);
         var rewriteSelect = CreateRewriteSelectVariable(expressions);
         var invocation = CreateTableAddInvocation(node, scope);
@@ -137,11 +141,12 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
                             SyntaxFactory.IdentifierName("hasAnyRowMatched")),
                         SyntaxFactory.Block(
                             SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
-                            SyntaxFactory.ExpressionStatement(invocation)))])));
+                            SyntaxFactory.ExpressionStatement(invocation)))
+                ])));
     }
 
     /// <summary>
-    /// Builds the expressions list for outer apply operations by processing table columns.
+    ///     Builds the expressions list for outer apply operations by processing table columns.
     /// </summary>
     private static List<ExpressionSyntax> BuildOuterApplyExpressions(
         ApplyInMemoryWithSourceTableFromNode node,
@@ -152,9 +157,8 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
         var expressions = new List<ExpressionSyntax>();
         var j = 0;
 
-        
+
         for (var i = 0; i < fullTransitionTable.CompoundTables.Length - 1; i++)
-        {
             foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[i]))
             {
                 expressions.Add(
@@ -167,22 +171,19 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
                                         fieldNames.Names[j]))))));
                 j += 1;
             }
-        }
 
-        
+
         foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[^1]))
-        {
             expressions.Add(
                 SyntaxFactory.CastExpression(
                     SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(column.ColumnType)),
                     (LiteralExpressionSyntax)generator.NullLiteralExpression()));
-        }
 
         return expressions;
     }
 
     /// <summary>
-    /// Creates a variable declaration for the rewrite select operation.
+    ///     Creates a variable declaration for the rewrite select operation.
     /// </summary>
     private static VariableDeclarationSyntax CreateRewriteSelectVariable(List<ExpressionSyntax> expressions)
     {
@@ -208,7 +209,7 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
     }
 
     /// <summary>
-    /// Creates the table add invocation expression for outer apply operations.
+    ///     Creates the table add invocation expression for outer apply operations.
     /// </summary>
     private static InvocationExpressionSyntax CreateTableAddInvocation(
         ApplyInMemoryWithSourceTableFromNode node,
@@ -242,7 +243,7 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
     }
 
     /// <summary>
-    /// Validates that all required parameters are not null.
+    ///     Validates that all required parameters are not null.
     /// </summary>
     private static void ValidateParameters(
         ApplyInMemoryWithSourceTableFromNode node,

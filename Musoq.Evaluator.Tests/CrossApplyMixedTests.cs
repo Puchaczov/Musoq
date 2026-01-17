@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,29 +10,7 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class CrossApplyMixedTests : GenericEntityTestBase
 {
-    private class CrossApplyClass1
-    {
-        public string City { get; set; }
-
-        public string Country { get; set; }
-    }
-
-    // ReSharper disable once MemberCanBePrivate.Global
-    public class ComplexType1
-    {
-        public string StreetName { get; set; }
-
-        public int HouseNumber { get; set; }
-
-        [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; }
-    }
-
-    private class CrossApplyClass2
-    {
-        public string Country { get; set; }
-
-        [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; }
-    }
+    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void CrossApply_SchemaAndProperty_WithNestedProperty()
@@ -48,8 +27,8 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         var firstSource = new CrossApplyClass1[]
         {
-            new() {Country = "USA", City = "New York"},
-            new() {Country = "USA", City = "Los Angeles"},
+            new() { Country = "USA", City = "New York" },
+            new() { Country = "USA", City = "Los Angeles" }
         };
 
         var secondSource = new CrossApplyClass2[]
@@ -59,8 +38,8 @@ public class CrossApplyMixedTests : GenericEntityTestBase
                 Country = "USA",
                 Addresses =
                 [
-                    new() {StreetName = "Broadway", HouseNumber = 123},
-                    new() {StreetName = "Fifth Avenue", HouseNumber = 456}
+                    new ComplexType1 { StreetName = "Broadway", HouseNumber = 123 },
+                    new ComplexType1 { StreetName = "Fifth Avenue", HouseNumber = 456 }
                 ]
             },
             new()
@@ -68,7 +47,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
                 Country = "Canada",
                 Addresses =
                 [
-                    new ComplexType1 {StreetName = "Yonge Street", HouseNumber = 789}
+                    new ComplexType1 { StreetName = "Yonge Street", HouseNumber = 789 }
                 ]
             }
         };
@@ -81,7 +60,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string) f["Country"] == (string) parameters[0]).ToArray())
+                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray())
         );
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -97,52 +76,34 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
 
         Assert.AreEqual(4, table.Count);
-        
-        Assert.IsTrue(table.Any(row => 
-            (string)row[0] == "New York" && 
-            (string)row[1] == "USA" && 
-            (string)row[2] == "Broadway" && 
+
+        Assert.IsTrue(table.Any(row =>
+            (string)row[0] == "New York" &&
+            (string)row[1] == "USA" &&
+            (string)row[2] == "Broadway" &&
             (int)row[3] == 123
         ), "First row should match New York, USA, Broadway, 123");
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row[0] == "New York" && 
-            (string)row[1] == "USA" && 
-            (string)row[2] == "Fifth Avenue" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row[0] == "New York" &&
+            (string)row[1] == "USA" &&
+            (string)row[2] == "Fifth Avenue" &&
             (int)row[3] == 456
         ), "Second row should match New York, USA, Fifth Avenue, 456");
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row[0] == "Los Angeles" && 
-            (string)row[1] == "USA" && 
-            (string)row[2] == "Broadway" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row[0] == "Los Angeles" &&
+            (string)row[1] == "USA" &&
+            (string)row[2] == "Broadway" &&
             (int)row[3] == 123
         ), "Third row should match Los Angeles, USA, Broadway, 123");
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row[0] == "Los Angeles" && 
-            (string)row[1] == "USA" && 
-            (string)row[2] == "Fifth Avenue" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row[0] == "Los Angeles" &&
+            (string)row[1] == "USA" &&
+            (string)row[2] == "Fifth Avenue" &&
             (int)row[3] == 456
         ), "Fourth row should match Los Angeles, USA, Fifth Avenue, 456");
-    }
-
-    private class CrossApplyClass3
-    {
-        public string Department { get; set; }
-
-        public int Budget { get; set; }
-    }
-
-    private class CrossApplyClass4
-    {
-        public string Department { get; set; }
-
-        public string Name { get; set; }
-
-        public int Salary { get; set; }
-
-        public string[] Skills { get; set; }
     }
 
     [TestMethod]
@@ -161,15 +122,15 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         var firstSource = new CrossApplyClass3[]
         {
-            new() {Department = "IT", Budget = 500000},
-            new() {Department = "HR", Budget = 300000}
+            new() { Department = "IT", Budget = 500000 },
+            new() { Department = "HR", Budget = 300000 }
         };
 
         var secondSource = new CrossApplyClass4[]
         {
-            new() {Department = "IT", Name = "John Doe", Salary = 50000, Skills = ["C#", "JavaScript", "C#"]},
-            new() {Department = "IT", Name = "Jane Smith", Salary = 60000, Skills = ["C#", "JavaScript"]},
-            new() {Department = "HR", Name = "John Doe", Salary = 50000, Skills = ["Communication", "Negotiation"]},
+            new() { Department = "IT", Name = "John Doe", Salary = 50000, Skills = ["C#", "JavaScript", "C#"] },
+            new() { Department = "IT", Name = "Jane Smith", Salary = 60000, Skills = ["C#", "JavaScript"] },
+            new() { Department = "HR", Name = "John Doe", Salary = 50000, Skills = ["Communication", "Negotiation"] },
             new()
             {
                 Department = "HR", Name = "Jane Smith", Salary = 60000,
@@ -185,7 +146,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string) f["Department"] == (string) parameters[0])
+                new ObjectRowsSource(source.Rows.Where(f => (string)f["Department"] == (string)parameters[0])
                     .ToArray()));
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -201,91 +162,74 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
         Assert.AreEqual("c.Value", table.Columns.ElementAt(4).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(4).ColumnType);
-        
+
         Assert.AreEqual(8, table.Count, "Table should have 8 entries");
 
-        
-        Assert.IsTrue(table.Any(entry => 
-           (string)entry[0] == "IT" && 
-           (int)entry[1] == 500000 && 
-           (string)entry[2] == "John Doe" && 
-           (int)entry[3] == 50000 && 
-           (string)entry[4] == "C#"), 
-           "Should have IT entry for John Doe with C#");
 
-        Assert.IsTrue(table.Any(entry => 
-           (string)entry[0] == "IT" && 
-           (int)entry[1] == 500000 && 
-           (string)entry[2] == "John Doe" && 
-           (int)entry[3] == 50000 && 
-           (string)entry[4] == "JavaScript"), 
-           "Should have IT entry for John Doe with JavaScript");
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "IT" &&
+                (int)entry[1] == 500000 &&
+                (string)entry[2] == "John Doe" &&
+                (int)entry[3] == 50000 &&
+                (string)entry[4] == "C#"),
+            "Should have IT entry for John Doe with C#");
 
-        Assert.IsTrue(table.Any(entry => 
-           (string)entry[0] == "IT" && 
-           (int)entry[1] == 500000 && 
-           (string)entry[2] == "Jane Smith" && 
-           (int)entry[3] == 60000 && 
-           (string)entry[4] == "C#"), 
-           "Should have IT entry for Jane Smith with C#");
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "IT" &&
+                (int)entry[1] == 500000 &&
+                (string)entry[2] == "John Doe" &&
+                (int)entry[3] == 50000 &&
+                (string)entry[4] == "JavaScript"),
+            "Should have IT entry for John Doe with JavaScript");
 
-        Assert.IsTrue(table.Any(entry => 
-           (string)entry[0] == "IT" && 
-           (int)entry[1] == 500000 && 
-           (string)entry[2] == "Jane Smith" && 
-           (int)entry[3] == 60000 && 
-           (string)entry[4] == "JavaScript"), 
-           "Should have IT entry for Jane Smith with JavaScript");
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "IT" &&
+                (int)entry[1] == 500000 &&
+                (string)entry[2] == "Jane Smith" &&
+                (int)entry[3] == 60000 &&
+                (string)entry[4] == "C#"),
+            "Should have IT entry for Jane Smith with C#");
 
-        
-        Assert.IsTrue(table.Any(entry => 
-           (string)entry[0] == "HR" && 
-           (int)entry[1] == 300000 && 
-           (string)entry[2] == "John Doe" && 
-           (int)entry[3] == 50000 && 
-           (string)entry[4] == "Communication"), 
-           "Should have HR entry for John Doe with Communication");
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "IT" &&
+                (int)entry[1] == 500000 &&
+                (string)entry[2] == "Jane Smith" &&
+                (int)entry[3] == 60000 &&
+                (string)entry[4] == "JavaScript"),
+            "Should have IT entry for Jane Smith with JavaScript");
 
-        Assert.IsTrue(table.Any(entry => 
-           (string)entry[0] == "HR" && 
-           (int)entry[1] == 300000 && 
-           (string)entry[2] == "John Doe" && 
-           (int)entry[3] == 50000 && 
-           (string)entry[4] == "Negotiation"), 
-           "Should have HR entry for John Doe with Negotiation");
 
-        Assert.IsTrue(table.Any(entry => 
-           (string)entry[0] == "HR" && 
-           (int)entry[1] == 300000 && 
-           (string)entry[2] == "Jane Smith" && 
-           (int)entry[3] == 60000 && 
-           (string)entry[4] == "Communication"), 
-           "Should have HR entry for Jane Smith with Communication");
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "HR" &&
+                (int)entry[1] == 300000 &&
+                (string)entry[2] == "John Doe" &&
+                (int)entry[3] == 50000 &&
+                (string)entry[4] == "Communication"),
+            "Should have HR entry for John Doe with Communication");
 
-        Assert.IsTrue(table.Any(entry => 
-           (string)entry[0] == "HR" && 
-           (int)entry[1] == 300000 && 
-           (string)entry[2] == "Jane Smith" && 
-           (int)entry[3] == 60000 && 
-           (string)entry[4] == "Negotiation"), 
-           "Should have HR entry for Jane Smith with Negotiation");        
-    }
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "HR" &&
+                (int)entry[1] == 300000 &&
+                (string)entry[2] == "John Doe" &&
+                (int)entry[3] == 50000 &&
+                (string)entry[4] == "Negotiation"),
+            "Should have HR entry for John Doe with Negotiation");
 
-    private class CrossApplyClass5
-    {
-        public string Department { get; set; }
-        public int Budget { get; set; }
-        
-        [BindablePropertyAsTable]
-        public ComplexType2[] Employees { get; set; }
-    }
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "HR" &&
+                (int)entry[1] == 300000 &&
+                (string)entry[2] == "Jane Smith" &&
+                (int)entry[3] == 60000 &&
+                (string)entry[4] == "Communication"),
+            "Should have HR entry for Jane Smith with Communication");
 
-    // ReSharper disable once MemberCanBePrivate.Global
-    public class ComplexType2
-    {
-        public string Name { get; set; }
-        
-        public string[] Skills { get; set; }
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "HR" &&
+                (int)entry[1] == 300000 &&
+                (string)entry[2] == "Jane Smith" &&
+                (int)entry[3] == 60000 &&
+                (string)entry[4] == "Negotiation"),
+            "Should have HR entry for Jane Smith with Negotiation");
     }
 
     [TestMethod]
@@ -310,9 +254,9 @@ public class CrossApplyMixedTests : GenericEntityTestBase
                 Employees =
                 [
                     new ComplexType2
-                        {Name = "John Doe", Skills = ["C#", "C#"]},
+                        { Name = "John Doe", Skills = ["C#", "C#"] },
                     new ComplexType2
-                        {Name = "Jane Smith", Skills = ["Java"]}
+                        { Name = "Jane Smith", Skills = ["Java"] }
                 ]
             },
             new()
@@ -333,7 +277,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
@@ -341,18 +285,18 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-        
+
         Assert.AreEqual(2, table.Count, "Table should have 2 entries");
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row[0] == "IT" && 
-            (string)row[1] == "John Doe" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row[0] == "IT" &&
+            (string)row[1] == "John Doe" &&
             (string)row[2] == "C#"
         ), "First row should match IT, John Doe, C#");
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row[0] == "IT" && 
-            (string)row[1] == "Jane Smith" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row[0] == "IT" &&
+            (string)row[1] == "Jane Smith" &&
             (string)row[2] == "Java"
         ), "Second row should match IT, Jane Smith, Java");
     }
@@ -379,9 +323,9 @@ public class CrossApplyMixedTests : GenericEntityTestBase
                 Employees =
                 [
                     new ComplexType2
-                        {Name = "John Doe", Skills = ["C#", "C#"]},
+                        { Name = "John Doe", Skills = ["C#", "C#"] },
                     new ComplexType2
-                        {Name = "Jane Smith", Skills = ["Java"]}
+                        { Name = "Jane Smith", Skills = ["Java"] }
                 ]
             },
             new()
@@ -402,38 +346,21 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, firstSource);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual("Count(a.Department)", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(1, table.Count, "Table should have 1 entry");
 
-        Assert.IsTrue(table.Any(row => 
-            (string)row[0] == "IT" && 
+        Assert.IsTrue(table.Any(row =>
+            (string)row[0] == "IT" &&
             (int)row[1] == 2
         ), "First row should match IT, 2");
     }
 
-    private class CrossApplyClass6
-    {
-        public string Name { get; set; }
-        
-        public string Surname { get; set; }
-        
-        public int Id { get; set; }
-    }
-    
-    private class CrossApplyClass7
-    {   
-        public int Id { get; set; }
-        
-        [BindablePropertyAsTable]
-        public string[] Skills { get; set; }
-    }
-    
     [TestMethod]
     public void CrossApply_InnerJoinAndUseProperty_ShouldPass()
     {
@@ -445,25 +372,25 @@ public class CrossApplyMixedTests : GenericEntityTestBase
     from #schema.first() a
     inner join #schema.second() b on a.Id = b.Id
     cross apply b.Skills c";
-        
+
         var firstSource = new CrossApplyClass6[]
         {
-            new() {Name = "John", Surname = "Doe", Id = 1},
-            new() {Name = "Jane", Surname = "Smith", Id = 2},
-            new() {Name = "Alice", Surname = "Johnson", Id = 3}
+            new() { Name = "John", Surname = "Doe", Id = 1 },
+            new() { Name = "Jane", Surname = "Smith", Id = 2 },
+            new() { Name = "Alice", Surname = "Johnson", Id = 3 }
         };
 
         var secondSource = new CrossApplyClass7[]
         {
-            new() {Id = 1, Skills = ["C#", "JavaScript"]},
-            new() {Id = 2, Skills = ["Java"]},
-            new() {Id = 3, Skills = ["Communication", "Negotiation"]}
+            new() { Id = 1, Skills = ["C#", "JavaScript"] },
+            new() { Id = 2, Skills = ["Java"] },
+            new() { Id = 3, Skills = ["Communication", "Negotiation"] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
@@ -471,40 +398,40 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-        
+
         Assert.AreEqual(5, table.Count, "Table should have 5 entries");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "John" && 
-                (string)entry[1] == "Doe" && 
-                (string)entry[2] == "C#"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "John" &&
+                (string)entry[1] == "Doe" &&
+                (string)entry[2] == "C#"),
             "First entry for John Doe should match");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "John" && 
-                (string)entry[1] == "Doe" && 
-                (string)entry[2] == "JavaScript"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "John" &&
+                (string)entry[1] == "Doe" &&
+                (string)entry[2] == "JavaScript"),
             "Second entry for John Doe should match");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "Jane" && 
-                (string)entry[1] == "Smith" && 
-                (string)entry[2] == "Java"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "Jane" &&
+                (string)entry[1] == "Smith" &&
+                (string)entry[2] == "Java"),
             "Entry for Jane Smith should match");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "Alice" && 
-                (string)entry[1] == "Johnson" && 
-                (string)entry[2] == "Communication"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "Alice" &&
+                (string)entry[1] == "Johnson" &&
+                (string)entry[2] == "Communication"),
             "First entry for Alice Johnson should match");
 
-        Assert.IsTrue(table.Any(entry => 
-                (string)entry[0] == "Alice" && 
-                (string)entry[1] == "Johnson" && 
-                (string)entry[2] == "Negotiation"), 
+        Assert.IsTrue(table.Any(entry =>
+                (string)entry[0] == "Alice" &&
+                (string)entry[1] == "Johnson" &&
+                (string)entry[2] == "Negotiation"),
             "Second entry for Alice Johnson should match");
     }
-    
+
     [TestMethod]
     public void CrossApply_LeftJoinAndUseProperty_ShouldPass()
     {
@@ -516,25 +443,25 @@ public class CrossApplyMixedTests : GenericEntityTestBase
     from #schema.first() a
     left outer join #schema.second() b on a.Id = b.Id
     cross apply b.Skills c";
-        
+
         var firstSource = new CrossApplyClass6[]
         {
-            new() {Name = "John", Surname = "Doe", Id = 1},
-            new() {Name = "Jane", Surname = "Smith", Id = 2},
-            new() {Name = "Alice", Surname = "Johnson", Id = 3}
+            new() { Name = "John", Surname = "Doe", Id = 1 },
+            new() { Name = "Jane", Surname = "Smith", Id = 2 },
+            new() { Name = "Alice", Surname = "Johnson", Id = 3 }
         };
 
         var secondSource = new CrossApplyClass7[]
         {
-            new() {Id = 1, Skills = ["C#", "JavaScript"]},
-            new() {Id = 2, Skills = ["Java"]},
-            new() {Id = 3, Skills = ["Communication", "Negotiation"]}
+            new() { Id = 1, Skills = ["C#", "JavaScript"] },
+            new() { Id = 2, Skills = ["Java"] },
+            new() { Id = 3, Skills = ["Communication", "Negotiation"] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, firstSource, secondSource);
 
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(3, table.Columns.Count());
         Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
@@ -542,28 +469,143 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
         Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-        
+
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
 
         Assert.AreEqual(2,
-table.Count(row =>
+            table.Count(row =>
                 (string)row[0] == "John" &&
                 (string)row[1] == "Doe" &&
                 ((string)row[2] == "C#" || (string)row[2] == "JavaScript")), "Expected data for John Doe not found");
 
-        Assert.IsTrue(table.Any(row => 
-                (string)row[0] == "Jane" && 
+        Assert.IsTrue(table.Any(row =>
+                (string)row[0] == "Jane" &&
                 (string)row[1] == "Smith" &&
                 (string)row[2] == "Java"),
             "Expected data for Jane Smith not found");
 
         Assert.AreEqual(2,
-table.Count(row =>
+            table.Count(row =>
                 (string)row[0] == "Alice" &&
                 (string)row[1] == "Johnson" &&
-                ((string)row[2] == "Communication" || (string)row[2] == "Negotiation")), "Expected data for Alice Johnson not found");
+                ((string)row[2] == "Communication" || (string)row[2] == "Negotiation")),
+            "Expected data for Alice Johnson not found");
     }
-    
+
+    [TestMethod]
+    public void CrossApply_WhenTwoMethodsReturnsEntities_AndThenUseColumnOfEntity_ShouldPass()
+    {
+        const string query =
+            @"select a.Value, d.Name from #schema.first() a cross apply a.GetOne() b cross apply a.GetSpecialCaseComplexType2(b.Value) c cross apply c.Employees d";
+
+        var vm = CreateAndRunVirtualMachine<SpecialCaseEmptyType, SpecialCaseLibrary1>(query,
+            [new SpecialCaseEmptyType()]);
+
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(2, table.Columns.Count());
+
+        Assert.AreEqual("a.Value", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+        Assert.AreEqual("d.Name", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+
+        Assert.AreEqual(1, table.Count);
+
+        Assert.IsTrue(table.Any(row =>
+            (string)row[0] == "Value" &&
+            (string)row[1] == "John"
+        ), "First row should match Value, John");
+    }
+
+    [TestMethod]
+    public void WhenCteHasTheSameAliasWithinDifferentQueries_ShouldNotThrow()
+    {
+        const string query =
+            "with p as (select 1 from #schema.first() a cross apply a.Split('a,b', ',') b), r as (select 1 from #schema.first() a cross apply a.Split('a,b', ',') b) select * from p";
+        var firstSource = Array.Empty<CrossApplyClass5>();
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource);
+
+        vm.Run(TestContext.CancellationToken);
+    }
+
+    private class CrossApplyClass1
+    {
+        public string City { get; set; }
+
+        public string Country { get; set; }
+    }
+
+    // ReSharper disable once MemberCanBePrivate.Global
+    public class ComplexType1
+    {
+        public string StreetName { get; set; }
+
+        public int HouseNumber { get; set; }
+
+        [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; }
+    }
+
+    private class CrossApplyClass2
+    {
+        public string Country { get; set; }
+
+        [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; }
+    }
+
+    private class CrossApplyClass3
+    {
+        public string Department { get; set; }
+
+        public int Budget { get; set; }
+    }
+
+    private class CrossApplyClass4
+    {
+        public string Department { get; set; }
+
+        public string Name { get; set; }
+
+        public int Salary { get; set; }
+
+        public string[] Skills { get; set; }
+    }
+
+    private class CrossApplyClass5
+    {
+        public string Department { get; set; }
+        public int Budget { get; set; }
+
+        [BindablePropertyAsTable] public ComplexType2[] Employees { get; set; }
+    }
+
+    // ReSharper disable once MemberCanBePrivate.Global
+    public class ComplexType2
+    {
+        public string Name { get; set; }
+
+        public string[] Skills { get; set; }
+    }
+
+    private class CrossApplyClass6
+    {
+        public string Name { get; set; }
+
+        public string Surname { get; set; }
+
+        public int Id { get; set; }
+    }
+
+    private class CrossApplyClass7
+    {
+        public int Id { get; set; }
+
+        [BindablePropertyAsTable] public string[] Skills { get; set; }
+    }
+
     public class SpecialCaseEmptyType
     {
         public string Value => "Value";
@@ -576,7 +618,7 @@ table.Count(row =>
         {
             return ["One"];
         }
-        
+
         [BindableMethod]
         public IEnumerable<SpecialCaseComplexType2> GetSpecialCaseComplexType2(string whatever)
         {
@@ -586,54 +628,14 @@ table.Count(row =>
             ];
         }
     }
-    
+
     public class SpecialCaseComplexType1
     {
         public string Name => "John";
     }
-    
+
     public class SpecialCaseComplexType2
     {
-        [BindablePropertyAsTable]
-        public IEnumerable<SpecialCaseComplexType1> Employees => [new()];
+        [BindablePropertyAsTable] public IEnumerable<SpecialCaseComplexType1> Employees => [new()];
     }
-
-    [TestMethod]
-    public void CrossApply_WhenTwoMethodsReturnsEntities_AndThenUseColumnOfEntity_ShouldPass()
-    {
-        const string query = @"select a.Value, d.Name from #schema.first() a cross apply a.GetOne() b cross apply a.GetSpecialCaseComplexType2(b.Value) c cross apply c.Employees d";
-        
-        var vm = CreateAndRunVirtualMachine<SpecialCaseEmptyType, SpecialCaseLibrary1>(query, [new SpecialCaseEmptyType()]);
-        
-        var table = vm.Run(TestContext.CancellationToken);
-        
-        Assert.AreEqual(2, table.Columns.Count());
-        
-        Assert.AreEqual("a.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        
-        Assert.AreEqual("d.Name", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        
-        Assert.AreEqual(1, table.Count);
-        
-        Assert.IsTrue(table.Any(row => 
-            (string)row[0] == "Value" && 
-            (string)row[1] == "John"
-        ), "First row should match Value, John");
-    }
-
-    [TestMethod]
-    public void WhenCteHasTheSameAliasWithinDifferentQueries_ShouldNotThrow()
-    {
-        const string query = "with p as (select 1 from #schema.first() a cross apply a.Split('a,b', ',') b), r as (select 1 from #schema.first() a cross apply a.Split('a,b', ',') b) select * from p";
-        var firstSource = System.Array.Empty<CrossApplyClass5>();
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource);
-        
-        vm.Run(TestContext.CancellationToken);
-    }
-
-    public TestContext TestContext { get; set; }
 }

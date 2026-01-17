@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -69,7 +67,7 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        
+
         var results = table.Select(row => row.Values[0]).Cast<string>().ToList();
         CollectionAssert.Contains(results, "Small");
         CollectionAssert.Contains(results, "Medium");

@@ -19,19 +19,19 @@ public class MultiLibrary : LibraryBase
     {
         return 1;
     }
-    
+
     [BindableMethod]
     public int MethodB([InjectSpecificSource(typeof(FirstEntity))] FirstEntity entity, string arg1)
     {
         return 0;
     }
-    
+
     [BindableMethod]
     public int MethodB([InjectSpecificSource(typeof(SecondEntity))] SecondEntity entity, string arg1)
     {
         return 1;
     }
-    
+
     [AggregationGetMethod]
     public string AggregateMethodA([InjectGroup] Group group, string name)
     {
@@ -39,15 +39,16 @@ public class MultiLibrary : LibraryBase
 
         return string.Join(',', list);
     }
-    
+
     [AggregationSetMethod]
-    public void SetAggregateMethodA([InjectGroup] Group group, [InjectSpecificSource(typeof(FirstEntity))] FirstEntity entity, string name)
+    public void SetAggregateMethodA([InjectGroup] Group group,
+        [InjectSpecificSource(typeof(FirstEntity))] FirstEntity entity, string name)
     {
         var list = group.GetOrCreateValue(name, new List<int>());
-        
+
         list.Add(0);
     }
-    
+
     [BindableMethod]
     public int MethodC([InjectSpecificSource(typeof(ICommonInterface))] ICommonInterface entity)
     {

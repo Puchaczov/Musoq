@@ -9,17 +9,19 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Aggregates values into a single value.
+    ///     Aggregates values into a single value.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
     /// <returns>Aggregated values</returns>
     [AggregationGetMethod]
     public string AggregateValues([InjectGroup] Group group, string name)
-        => AggregateValues(group, name, 0);
+    {
+        return AggregateValues(group, name, 0);
+    }
 
     /// <summary>
-    /// Aggregates values into a single value.
+    ///     Aggregates values into a single value.
     /// </summary>
     /// <param name="group" injectByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -32,9 +34,9 @@ public partial class LibraryBase
         var list = foundedGroup.GetOrCreateValue<List<string>>(name);
 
         var builder = new StringBuilder();
-        
+
         if (list == null) return builder.ToString();
-        
+
         for (int i = 0, j = list.Count - 1; i < j; i++)
         {
             builder.Append(list[i]);
@@ -47,7 +49,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -60,7 +62,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -79,7 +81,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -98,7 +100,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -117,7 +119,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -136,7 +138,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -155,7 +157,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -174,7 +176,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -193,7 +195,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -212,7 +214,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -231,7 +233,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -250,7 +252,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -269,7 +271,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -288,7 +290,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -296,7 +298,8 @@ public partial class LibraryBase
     /// <param name="culture">What culture the object will be represented at</param>
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
-    public void SetAggregateValues([InjectGroup] Group group, string name, DateTimeOffset? value, string culture, int parent = 0)
+    public void SetAggregateValues([InjectGroup] Group group, string name, DateTimeOffset? value, string culture,
+        int parent = 0)
     {
         if (!value.HasValue)
         {
@@ -304,11 +307,12 @@ public partial class LibraryBase
             return;
         }
 
-        AggregateAdd(group, name, value.Value.ToString("dd.MM.yyyy HH:mm:ss zzz", CultureInfo.GetCultureInfo(culture)), parent);
+        AggregateAdd(group, name, value.Value.ToString("dd.MM.yyyy HH:mm:ss zzz", CultureInfo.GetCultureInfo(culture)),
+            parent);
     }
-        
+
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -325,9 +329,9 @@ public partial class LibraryBase
 
         AggregateAdd(group, name, value.Value.ToString("dd.MM.yyyy HH:mm:ss", CultureInfo.CurrentCulture), parent);
     }
-        
+
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -344,9 +348,9 @@ public partial class LibraryBase
 
         AggregateAdd(group, name, value.Value.ToString(CultureInfo.CurrentCulture), parent);
     }
-        
+
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -367,12 +371,12 @@ public partial class LibraryBase
     private static void AggregateAdd<TType>(Group group, string name, TType value, int parent)
     {
         var foundGroup = GetParentGroup(group, parent);
-        
+
         var list = foundGroup.GetOrCreateValue(name, new List<TType>());
-        
+
         if (list == null)
             throw new InvalidOperationException($"Group list must not be null. Group name: {name}");
-        
+
         list.Add(value);
     }
 }

@@ -110,10 +110,10 @@ public class SumTests : LibraryBaseBaseTests
     [TestMethod]
     public void SumSByteTest()
     {
-        Library.SetSum(Group, "test", (sbyte)10);
-        Library.SetSum(Group, "test", (sbyte)-5);
-        Library.SetSum(Group, "test", (sbyte)15);
-        Library.SetSum(Group, "test", (sbyte?)null);
+        Library.SetSum(Group, "test", 10);
+        Library.SetSum(Group, "test", -5);
+        Library.SetSum(Group, "test", 15);
+        Library.SetSum(Group, "test", null);
 
         Assert.AreEqual(20m, Library.Sum(Group, "test"));
     }
@@ -121,10 +121,10 @@ public class SumTests : LibraryBaseBaseTests
     [TestMethod]
     public void SumSByteParentTest()
     {
-        Library.SetSum(Group, "test", (sbyte)5, 1);
-        Library.SetSum(Group, "test", (sbyte)10, 1);
-        Library.SetSum(Group, "test", (sbyte)20);
-        Library.SetSum(Group, "test", (sbyte?)null, 1);
+        Library.SetSum(Group, "test", 5, 1);
+        Library.SetSum(Group, "test", 10, 1);
+        Library.SetSum(Group, "test", 20);
+        Library.SetSum(Group, "test", null, 1);
 
         Assert.AreEqual(15m, Library.Sum(Group, "test", 1));
         Assert.AreEqual(20m, Library.Sum(Group, "test"));

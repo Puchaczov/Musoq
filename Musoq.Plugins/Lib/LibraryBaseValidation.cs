@@ -14,7 +14,7 @@ public partial class LibraryBase
         RegexOptions.Compiled);
 
     /// <summary>
-    /// Determines whether the string is a valid email address format.
+    ///     Determines whether the string is a valid email address format.
     /// </summary>
     /// <param name="value">The string to validate</param>
     /// <returns>True if the string is a valid email format; otherwise false. Returns null if input is null.</returns>
@@ -32,8 +32,8 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Determines whether the string is a valid URL format.
-    /// Supports http, https, ftp, and ftps schemes.
+    ///     Determines whether the string is a valid URL format.
+    ///     Supports http, https, ftp, and ftps schemes.
     /// </summary>
     /// <param name="value">The string to validate</param>
     /// <returns>True if the string is a valid URL format; otherwise false. Returns null if input is null.</returns>
@@ -55,8 +55,8 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Determines whether the string is a valid absolute URI format.
-    /// Supports any URI scheme.
+    ///     Determines whether the string is a valid absolute URI format.
+    ///     Supports any URI scheme.
     /// </summary>
     /// <param name="value">The string to validate</param>
     /// <returns>True if the string is a valid absolute URI format; otherwise false. Returns null if input is null.</returns>
@@ -74,7 +74,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Determines whether the string is valid JSON.
+    ///     Determines whether the string is valid JSON.
     /// </summary>
     /// <param name="value">The string to validate</param>
     /// <returns>True if the string is valid JSON; otherwise false. Returns null if input is null.</returns>
@@ -100,7 +100,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Determines whether the string is well-formed XML.
+    ///     Determines whether the string is well-formed XML.
     /// </summary>
     /// <param name="value">The string to validate</param>
     /// <returns>True if the string is well-formed XML; otherwise false. Returns null if input is null.</returns>
@@ -127,7 +127,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Determines whether the string represents a valid GUID/UUID.
+    ///     Determines whether the string represents a valid GUID/UUID.
     /// </summary>
     /// <param name="value">The string to validate</param>
     /// <returns>True if the string is a valid GUID; otherwise false. Returns null if input is null.</returns>
@@ -145,7 +145,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Determines whether the string represents a valid integer.
+    ///     Determines whether the string represents a valid integer.
     /// </summary>
     /// <param name="value">The string to validate</param>
     /// <returns>True if the string is a valid integer; otherwise false. Returns null if input is null.</returns>
@@ -163,7 +163,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Determines whether the string represents a valid decimal number.
+    ///     Determines whether the string represents a valid decimal number.
     /// </summary>
     /// <param name="value">The string to validate</param>
     /// <returns>True if the string is a valid decimal; otherwise false. Returns null if input is null.</returns>
@@ -181,7 +181,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Determines whether the string represents a valid date/time.
+    ///     Determines whether the string represents a valid date/time.
     /// </summary>
     /// <param name="value">The string to validate</param>
     /// <returns>True if the string is a valid date/time; otherwise false. Returns null if input is null.</returns>
@@ -199,7 +199,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Determines whether the string represents a valid IPv4 address.
+    ///     Determines whether the string represents a valid IPv4 address.
     /// </summary>
     /// <param name="value">The string to validate</param>
     /// <returns>True if the string is a valid IPv4 address; otherwise false. Returns null if input is null.</returns>
@@ -218,17 +218,15 @@ public partial class LibraryBase
             return false;
 
         foreach (var part in parts)
-        {
             if (!byte.TryParse(part, out _))
                 return false;
-        }
 
         return true;
     }
 
     /// <summary>
-    /// Determines whether the string represents a valid boolean value.
-    /// Accepts: true, false, yes, no, 1, 0 (case-insensitive)
+    ///     Determines whether the string represents a valid boolean value.
+    ///     Accepts: true, false, yes, no, 1, 0 (case-insensitive)
     /// </summary>
     /// <param name="value">The string to validate</param>
     /// <returns>True if the string is a valid boolean representation; otherwise false. Returns null if input is null.</returns>

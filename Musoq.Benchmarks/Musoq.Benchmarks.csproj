@@ -8,24 +8,24 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="BenchmarkDotNet" Version="0.15.4" />
-      <PackageReference Include="CsvHelper" Version="33.1.0" />
+        <PackageReference Include="BenchmarkDotNet" Version="0.15.4"/>
+        <PackageReference Include="CsvHelper" Version="33.1.0"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Musoq.Converter\Musoq.Converter.csproj" />
-      <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
-      <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
-      <ProjectReference Include="..\Musoq.Tests.Common\Musoq.Tests.Common.csproj" />
+        <ProjectReference Include="..\Musoq.Converter\Musoq.Converter.csproj"/>
+        <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj"/>
+        <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj"/>
+        <ProjectReference Include="..\Musoq.Tests.Common\Musoq.Tests.Common.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Data\countries.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="Data\profiles.csv">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
+        <None Update="Data\countries.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Data\profiles.csv">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
 </Project>

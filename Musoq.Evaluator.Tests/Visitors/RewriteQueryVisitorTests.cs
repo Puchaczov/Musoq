@@ -12,8 +12,8 @@ namespace Musoq.Evaluator.Tests.Visitors;
 [TestClass]
 public class RewriteQueryVisitorTests
 {
-    private RewriteQueryVisitor _visitor;
     private Scope _scope;
+    private RewriteQueryVisitor _visitor;
 
     [TestInitialize]
     public void Setup()
@@ -234,7 +234,7 @@ public class RewriteQueryVisitorTests
     {
         // Arrange
         var addNode = new AddNode(new IntegerNode("10"), new IntegerNode("20"));
-        
+
         // Push only one operand when two are required
         PushNode(new IntegerNode("10"));
 
@@ -257,7 +257,7 @@ public class RewriteQueryVisitorTests
     {
         // Arrange
         var andNode = new AndNode(new BooleanNode(true), new BooleanNode(false));
-        
+
         // Push only one operand
         PushNode(new BooleanNode(true));
 
@@ -354,7 +354,7 @@ public class RewriteQueryVisitorTests
         // Arrange & Act - These operations might access the scope
         var field = new FieldNode(new IdentifierNode("TestField"), 0, "TestField");
         PushNode(new IdentifierNode("TestField"));
-        
+
         // This should not throw
         _visitor.Visit(field);
 
@@ -379,20 +379,18 @@ public class RewriteQueryVisitorTests
     [TestMethod]
     public void Visit_ComplexExpression_ShouldHandleCorrectly()
     {
-        
         var five = new IntegerNode("5");
         var three = new IntegerNode("3");
         var two = new IntegerNode("2");
 
-        
+
         PushNode(five);
         PushNode(three);
         _visitor.Visit(new AddNode(five, three));
 
-        
-        
+
         PushNode(two);
-        _visitor.Visit(new StarNode(five, two)); 
+        _visitor.Visit(new StarNode(five, two));
 
         // Assert
         Assert.AreEqual(1, GetNodesCount(), "Complex expression should result in single node");
@@ -403,7 +401,8 @@ public class RewriteQueryVisitorTests
     {
         // Arrange
         var leftFrom = new SchemaFromNode("leftSchema", "leftMethod", new ArgsListNode([]), "left", typeof(object), 0);
-        var rightFrom = new SchemaFromNode("rightSchema", "rightMethod", new ArgsListNode([]), "right", typeof(object), 1);
+        var rightFrom =
+            new SchemaFromNode("rightSchema", "rightMethod", new ArgsListNode([]), "right", typeof(object), 1);
         var joinExpression = new EqualityNode(new IdentifierNode("left.id"), new IdentifierNode("right.id"));
         var joinNode = new JoinFromNode(leftFrom, rightFrom, joinExpression, JoinType.Inner, typeof(object));
 
@@ -508,7 +507,6 @@ public class RewriteQueryVisitorTests
     [TestMethod]
     public void Stack_Underflow_Prevention_ShouldProvideInformativeErrors()
     {
-        
         var operations = new[]
         {
             (Action)(() => _visitor.Visit(new StarNode(new IntegerNode("1"), new IntegerNode("2")))),
@@ -518,7 +516,6 @@ public class RewriteQueryVisitorTests
         };
 
         foreach (var operation in operations)
-        {
             try
             {
                 operation();
@@ -527,9 +524,8 @@ public class RewriteQueryVisitorTests
             catch (InvalidOperationException ex)
             {
                 Assert.Contains("Stack must contain at least",
-ex.Message, $"Error message should be informative: {ex.Message}");
+                    ex.Message, $"Error message should be informative: {ex.Message}");
             }
-        }
     }
 
     [TestMethod]
@@ -537,12 +533,14 @@ ex.Message, $"Error message should be informative: {ex.Message}");
     {
         var operations = new[]
         {
-            () => {
+            () =>
+            {
                 PushNode(new IntegerNode("1"));
                 PushNode(null);
                 _visitor.Visit(new StarNode(new IntegerNode("1"), new IntegerNode("2")));
             },
-            () => {
+            () =>
+            {
                 PushNode(null);
                 PushNode(new IntegerNode("2"));
                 _visitor.Visit(new AddNode(new IntegerNode("1"), new IntegerNode("2")));
@@ -559,14 +557,11 @@ ex.Message, $"Error message should be informative: {ex.Message}");
             catch (ArgumentException ex)
             {
                 Assert.Contains("operand cannot be null",
-ex.Message, $"Error message should be informative: {ex.Message}");
+                    ex.Message, $"Error message should be informative: {ex.Message}");
             }
 
-            
-            while (GetNodesCount() > 0)
-            {
-                GetPrivateNodes().Pop();
-            }
+
+            while (GetNodesCount() > 0) GetPrivateNodes().Pop();
         }
     }
 }

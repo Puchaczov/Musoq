@@ -10,7 +10,7 @@ public class ExpressionFromNode : FromNode
         Expression = from;
         Id = $"{nameof(ExpressionFromNode)}{from.ToString()}";
     }
-        
+
     public ExpressionFromNode(FromNode from, Type returnType)
         : base(from.Alias, returnType)
     {

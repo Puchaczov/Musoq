@@ -1,14 +1,14 @@
-﻿using Musoq.Plugins.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
     /// <summary>
-    /// Gets the StDev value of a given group.
+    ///     Gets the StDev value of a given group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -20,7 +20,7 @@ public partial class LibraryBase
         var avg = (double)Avg(group, $"{name}:avgStDev");
         var parentGroup = GetParentGroup(group, parent);
         var values = parentGroup.GetValue<List<double>>($"{name}:itemsStDev");
-        
+
         if (values == null)
             throw new InvalidOperationException($"Group list must not be null. Group name: {name}");
 
@@ -32,7 +32,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -40,10 +40,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetStDev([InjectGroup] Group group, string name, byte? value, int parent = 0)
-        => SetStDev(group, name, (decimal?)value, parent);
+    {
+        SetStDev(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -51,10 +53,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetStDev([InjectGroup] Group group, string name, sbyte? value, int parent = 0)
-        => SetStDev(group, name, (decimal?)value, parent);
+    {
+        SetStDev(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -62,10 +66,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetStDev([InjectGroup] Group group, string name, short? value, int parent = 0)
-        => SetStDev(group, name, (decimal?)value, parent);
+    {
+        SetStDev(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -73,10 +79,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetStDev([InjectGroup] Group group, string name, ushort? value, int parent = 0)
-        => SetStDev(group, name, (decimal?)value, parent);
+    {
+        SetStDev(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -84,10 +92,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetStDev([InjectGroup] Group group, string name, int? value, int parent = 0)
-        => SetStDev(group, name, (decimal?)value, parent);
+    {
+        SetStDev(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -95,10 +105,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetStDev([InjectGroup] Group group, string name, uint? value, int parent = 0)
-        => SetStDev(group, name, (decimal?)value, parent);
+    {
+        SetStDev(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -106,10 +118,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetStDev([InjectGroup] Group group, string name, long? value, int parent = 0)
-        => SetStDev(group, name, (decimal?)value, parent);
+    {
+        SetStDev(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -117,10 +131,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetStDev([InjectGroup] Group group, string name, ulong? value, int parent = 0)
-        => SetStDev(group, name, (decimal?)value, parent);
+    {
+        SetStDev(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -128,10 +144,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetStDev([InjectGroup] Group group, string name, float? value, int parent = 0)
-        => SetStDev(group, name, (decimal?)value, parent);
+    {
+        SetStDev(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -139,10 +157,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetStDev([InjectGroup] Group group, string name, double? value, int parent = 0)
-        => SetStDev(group, name, (decimal?)value, parent);
+    {
+        SetStDev(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -159,7 +179,7 @@ public partial class LibraryBase
 
         var groupName = $"{name}:itemsStDev";
         var list = parentGroup.GetOrCreateValue(groupName, () => new List<double>());
-        
+
         if (list == null)
             throw new InvalidOperationException($"Group list must not be null. Group name: {groupName}");
 

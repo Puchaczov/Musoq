@@ -1,8 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
-using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Parser.Tests;
 
@@ -16,7 +14,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -27,7 +25,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -38,7 +36,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -49,7 +47,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -60,7 +58,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -75,7 +73,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -86,7 +84,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -100,7 +98,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -118,20 +116,18 @@ public class DescParserTests
     [TestMethod]
     public void DescWithInvalidSyntax_InvalidSchemaName_ShouldFail()
     {
-        
-        
-        var query = "desc 123invalid"; 
+        var query = "desc 123invalid";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
         Assert.Throws<SyntaxException>(() => parser.ComposeAll());
     }
-    
+
     [TestMethod]
     public void DescWithoutHash_ShouldSucceed()
     {
-        var query = "desc schema"; 
+        var query = "desc schema";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -158,7 +154,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -169,7 +165,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -180,7 +176,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -191,7 +187,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -202,7 +198,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -213,7 +209,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -224,7 +220,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -235,7 +231,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -246,7 +242,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -257,9 +253,8 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
-        
-        
+
+
         try
         {
             parser.ComposeAll();
@@ -277,7 +272,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -288,7 +283,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -299,7 +294,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -310,7 +305,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -321,7 +316,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -336,7 +331,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -351,7 +346,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -362,7 +357,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -380,20 +375,18 @@ public class DescParserTests
     [TestMethod]
     public void DescFunctions_InvalidSchemaName_ShouldFail()
     {
-        
-        
-        var query = "desc functions 123invalid"; 
+        var query = "desc functions 123invalid";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
         Assert.Throws<SyntaxException>(() => parser.ComposeAll());
     }
-    
+
     [TestMethod]
     public void DescFunctionsWithoutHash_ShouldSucceed()
     {
-        var query = "desc functions schema"; 
+        var query = "desc functions schema";
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
@@ -409,7 +402,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -420,7 +413,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -431,7 +424,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -442,7 +435,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 
@@ -453,7 +446,7 @@ public class DescParserTests
 
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
-        
+
         parser.ComposeAll();
     }
 }

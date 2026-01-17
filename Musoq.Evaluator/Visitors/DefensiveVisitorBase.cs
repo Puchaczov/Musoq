@@ -7,18 +7,18 @@ using Musoq.Parser.Nodes;
 namespace Musoq.Evaluator.Visitors;
 
 /// <summary>
-/// Base class for visitors that provides defensive programming utilities and safe operations.
-/// Inherits from NoOpExpressionVisitor to provide default empty implementations for all Visit methods.
+///     Base class for visitors that provides defensive programming utilities and safe operations.
+///     Inherits from NoOpExpressionVisitor to provide default empty implementations for all Visit methods.
 /// </summary>
 public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
 {
     /// <summary>
-    /// Gets the name of this visitor for error reporting.
+    ///     Gets the name of this visitor for error reporting.
     /// </summary>
     protected abstract string VisitorName { get; }
 
     /// <summary>
-    /// Safely pops a node from the stack with validation.
+    ///     Safely pops a node from the stack with validation.
     /// </summary>
     /// <param name="nodes">The stack to pop from.</param>
     /// <param name="operation">The operation being performed (for error context).</param>
@@ -36,7 +36,7 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
     }
 
     /// <summary>
-    /// Safely pops multiple nodes from the stack with validation.
+    ///     Safely pops multiple nodes from the stack with validation.
     /// </summary>
     /// <param name="nodes">The stack to pop from.</param>
     /// <param name="count">The number of nodes to pop.</param>
@@ -55,15 +55,12 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
             throw VisitorException.CreateForStackUnderflow(VisitorName, operation, count, nodes.Count);
 
         var result = new Node[count];
-        for (int i = count - 1; i >= 0; i--)
-        {
-            result[i] = nodes.Pop();
-        }
+        for (var i = count - 1; i >= 0; i--) result[i] = nodes.Pop();
         return result;
     }
 
     /// <summary>
-    /// Safely peeks at the top node without removing it.
+    ///     Safely peeks at the top node without removing it.
     /// </summary>
     /// <param name="nodes">The stack to peek into.</param>
     /// <param name="operation">The operation being performed (for error context).</param>
@@ -81,7 +78,7 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
     }
 
     /// <summary>
-    /// Safely casts a node to the expected type with validation.
+    ///     Safely casts a node to the expected type with validation.
     /// </summary>
     /// <typeparam name="T">The expected node type.</typeparam>
     /// <param name="node">The node to cast.</param>
@@ -94,40 +91,37 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
             throw VisitorException.CreateForNullNode(VisitorName, operation, typeof(T).Name);
 
         if (node is not T castNode)
-        {
             throw VisitorException.CreateForInvalidNodeType(
-                VisitorName, 
-                operation, 
-                typeof(T).Name, 
+                VisitorName,
+                operation,
+                typeof(T).Name,
                 node.GetType().Name
             );
-        }
 
         return castNode;
     }
 
     /// <summary>
-    /// Validates constructor parameters for visitors.
+    ///     Validates constructor parameters for visitors.
     /// </summary>
     /// <param name="parameterName">The name of the parameter.</param>
     /// <param name="parameterValue">The value to validate.</param>
     /// <param name="operation">The operation context (usually "constructor").</param>
     /// <exception cref="VisitorException">Thrown when the parameter is null.</exception>
-    protected void ValidateConstructorParameter(string parameterName, object parameterValue, string operation = "constructor")
+    protected void ValidateConstructorParameter(string parameterName, object parameterValue,
+        string operation = "constructor")
     {
         if (parameterValue == null)
-        {
             throw VisitorException.CreateForProcessingFailure(
                 VisitorName,
                 operation,
                 $"Parameter '{parameterName}' cannot be null.",
                 "Ensure all required dependencies are properly initialized before creating the visitor."
             );
-        }
     }
 
     /// <summary>
-    /// Validates that a string parameter is not null or empty.
+    ///     Validates that a string parameter is not null or empty.
     /// </summary>
     /// <param name="parameterName">The name of the parameter.</param>
     /// <param name="parameterValue">The value to validate.</param>
@@ -136,18 +130,16 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
     protected void ValidateStringParameter(string parameterName, string parameterValue, string operation)
     {
         if (string.IsNullOrEmpty(parameterValue))
-        {
             throw VisitorException.CreateForProcessingFailure(
                 VisitorName,
                 operation,
                 $"Parameter '{parameterName}' cannot be null or empty.",
                 "Provide a valid non-empty string value."
             );
-        }
     }
 
     /// <summary>
-    /// Safely handles exceptions that occur during visitor operations.
+    ///     Safely handles exceptions that occur during visitor operations.
     /// </summary>
     /// <param name="action">The action to execute safely.</param>
     /// <param name="operation">The operation being performed.</param>
@@ -163,7 +155,6 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
         }
         catch (VisitorException)
         {
-            
             throw;
         }
         catch (Exception ex)
@@ -178,7 +169,7 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
     }
 
     /// <summary>
-    /// Safely executes a function with exception handling.
+    ///     Safely executes a function with exception handling.
     /// </summary>
     /// <typeparam name="T">The return type of the function.</typeparam>
     /// <param name="func">The function to execute safely.</param>
@@ -196,7 +187,6 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
         }
         catch (VisitorException)
         {
-            
             throw;
         }
         catch (Exception ex)

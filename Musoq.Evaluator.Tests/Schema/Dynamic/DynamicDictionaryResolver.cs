@@ -6,8 +6,8 @@ namespace Musoq.Evaluator.Tests.Schema.Dynamic;
 
 public class DynamicDictionaryResolver : IObjectResolver
 {
-    private readonly IDictionary<string, object> _obj;
     private readonly IDictionary<int, string> _indexToNameMap;
+    private readonly IDictionary<string, object> _obj;
 
     public DynamicDictionaryResolver(IDictionary<string, object> obj, IDictionary<int, string> indexToNameMap)
     {
@@ -15,7 +15,10 @@ public class DynamicDictionaryResolver : IObjectResolver
         _indexToNameMap = indexToNameMap;
     }
 
-    public bool HasColumn(string name) => _obj.ContainsKey(name);
+    public bool HasColumn(string name)
+    {
+        return _obj.ContainsKey(name);
+    }
 
     public object[] Contexts => [_obj];
 

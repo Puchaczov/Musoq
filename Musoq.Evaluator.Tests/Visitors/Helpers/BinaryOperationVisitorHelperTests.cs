@@ -123,7 +123,7 @@ public class BinaryOperationVisitorHelperTests
     public void ProcessStarOperation_WhenNullStack_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             BinaryOperationVisitorHelper.ProcessStarOperation(null));
     }
 
@@ -135,7 +135,7 @@ public class BinaryOperationVisitorHelperTests
         nodes.Push(new IntegerNode("5")); // Only one node
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => 
+        Assert.Throws<InvalidOperationException>(() =>
             BinaryOperationVisitorHelper.ProcessStarOperation(nodes));
     }
 }

@@ -6,19 +6,20 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Tables;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
-/// Provides specialized processing for CTE (Common Table Expression) nodes in the query syntax tree.
-/// Handles the complex method declaration generation for CTE result queries.
+///     Provides specialized processing for CTE (Common Table Expression) nodes in the query syntax tree.
+///     Handles the complex method declaration generation for CTE result queries.
 /// </summary>
 public static class CteExpressionNodeProcessor
 {
     /// <summary>
-    /// Processes a CTE expression node and generates the corresponding method declaration with proper parameter lists.
+    ///     Processes a CTE expression node and generates the corresponding method declaration with proper parameter lists.
     /// </summary>
     /// <param name="node">The CTE expression node to process</param>
     /// <param name="methodNames">Stack of method names for processing</param>
@@ -35,7 +36,7 @@ public static class CteExpressionNodeProcessor
         var statements = new List<StatementSyntax>();
         var resultCteMethodName = methodNames.Pop();
 
-        
+
         foreach (var _ in node.InnerExpression)
         {
             methodNames.Pop();
@@ -46,17 +47,17 @@ public static class CteExpressionNodeProcessor
 
         const string methodName = "CteResultQuery";
 
-        
+
         statements.Add(CreateReturnStatement(resultCteMethodName));
 
-        
+
         var method = CreateCteMethodDeclaration(methodName, statements);
 
         return (method, methodName);
     }
 
     /// <summary>
-    /// Creates a return statement that invokes the CTE result method with standard parameters.
+    ///     Creates a return statement that invokes the CTE result method with standard parameters.
     /// </summary>
     private static ReturnStatementSyntax CreateReturnStatement(string resultCteMethodName)
     {
@@ -74,15 +75,16 @@ public static class CteExpressionNodeProcessor
     }
 
     /// <summary>
-    /// Creates a complete method declaration for a CTE result query with standard parameters.
+    ///     Creates a complete method declaration for a CTE result query with standard parameters.
     /// </summary>
-    private static MethodDeclarationSyntax CreateCteMethodDeclaration(string methodName, List<StatementSyntax> statements)
+    private static MethodDeclarationSyntax CreateCteMethodDeclaration(string methodName,
+        List<StatementSyntax> statements)
     {
         return SyntaxFactory.MethodDeclaration(
             [],
             SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.PrivateKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
-            SyntaxFactory.IdentifierName(nameof(Tables.Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
+            SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
             null,
             SyntaxFactory.Identifier(methodName),
             null,
@@ -93,7 +95,7 @@ public static class CteExpressionNodeProcessor
     }
 
     /// <summary>
-    /// Creates the parameter list for CTE method declarations with all required parameters.
+    ///     Creates the parameter list for CTE method declarations with all required parameters.
     /// </summary>
     private static ParameterListSyntax CreateCteParameterList()
     {
@@ -108,7 +110,7 @@ public static class CteExpressionNodeProcessor
     }
 
     /// <summary>
-    /// Creates the provider parameter for CTE methods.
+    ///     Creates the provider parameter for CTE methods.
     /// </summary>
     private static ParameterSyntax CreateProviderParameter()
     {
@@ -117,12 +119,12 @@ public static class CteExpressionNodeProcessor
             SyntaxTokenList.Create(new SyntaxToken()),
             SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            SyntaxFactory.Identifier("provider"), 
+            SyntaxFactory.Identifier("provider"),
             null);
     }
 
     /// <summary>
-    /// Creates the positional environment variables parameter with complex generic type.
+    ///     Creates the positional environment variables parameter with complex generic type.
     /// </summary>
     private static ParameterSyntax CreatePositionalEnvironmentVariablesParameter()
     {
@@ -140,12 +142,12 @@ public static class CteExpressionNodeProcessor
                                 CreateStringDictionaryType()
                             })))
                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            SyntaxFactory.Identifier("positionalEnvironmentVariables"), 
+            SyntaxFactory.Identifier("positionalEnvironmentVariables"),
             null);
     }
 
     /// <summary>
-    /// Creates a generic string-to-string dictionary type syntax.
+    ///     Creates a generic string-to-string dictionary type syntax.
     /// </summary>
     private static TypeSyntax CreateStringDictionaryType()
     {
@@ -162,7 +164,7 @@ public static class CteExpressionNodeProcessor
     }
 
     /// <summary>
-    /// Creates the queries information parameter with complex tuple type.
+    ///     Creates the queries information parameter with complex tuple type.
     /// </summary>
     private static ParameterSyntax CreateQueriesInformationParameter()
     {
@@ -171,7 +173,7 @@ public static class CteExpressionNodeProcessor
     }
 
     /// <summary>
-    /// Creates the complex queries information type with tuple elements.
+    ///     Creates the complex queries information type with tuple elements.
     /// </summary>
     private static TypeSyntax CreateQueriesInformationType()
     {
@@ -188,7 +190,7 @@ public static class CteExpressionNodeProcessor
     }
 
     /// <summary>
-    /// Creates the tuple type for query information containing multiple elements.
+    ///     Creates the tuple type for query information containing multiple elements.
     /// </summary>
     private static TupleTypeSyntax CreateQueryInfoTupleType()
     {
@@ -210,7 +212,7 @@ public static class CteExpressionNodeProcessor
     }
 
     /// <summary>
-    /// Creates the UsedColumns tuple element with IReadOnlyCollection type.
+    ///     Creates the UsedColumns tuple element with IReadOnlyCollection type.
     /// </summary>
     private static TupleElementSyntax CreateUsedColumnsTupleElement()
     {
@@ -224,7 +226,7 @@ public static class CteExpressionNodeProcessor
     }
 
     /// <summary>
-    /// Creates the logger parameter for CTE methods.
+    ///     Creates the logger parameter for CTE methods.
     /// </summary>
     private static ParameterSyntax CreateLoggerParameter()
     {
@@ -233,12 +235,12 @@ public static class CteExpressionNodeProcessor
             SyntaxTokenList.Create(new SyntaxToken()),
             SyntaxFactory.IdentifierName(nameof(ILogger))
                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            SyntaxFactory.Identifier("logger"), 
+            SyntaxFactory.Identifier("logger"),
             null);
     }
 
     /// <summary>
-    /// Creates the cancellation token parameter for CTE methods.
+    ///     Creates the cancellation token parameter for CTE methods.
     /// </summary>
     private static ParameterSyntax CreateTokenParameter()
     {
@@ -247,12 +249,12 @@ public static class CteExpressionNodeProcessor
             SyntaxTokenList.Create(new SyntaxToken()),
             SyntaxFactory.IdentifierName(nameof(CancellationToken))
                 .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            SyntaxFactory.Identifier("token"), 
+            SyntaxFactory.Identifier("token"),
             null);
     }
 
     /// <summary>
-    /// Validates that all required parameters are not null.
+    ///     Validates that all required parameters are not null.
     /// </summary>
     private static void ValidateParameters(CteExpressionNode node, Stack<string> methodNames, Stack<SyntaxNode> nodes)
     {

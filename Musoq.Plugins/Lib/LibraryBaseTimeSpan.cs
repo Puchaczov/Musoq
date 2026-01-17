@@ -7,7 +7,7 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Adds a given set of time spans.
+    ///     Adds a given set of time spans.
     /// </summary>
     /// <param name="timeSpans">Time spans that should be added</param>
     /// <returns>Sum of time spans</returns>
@@ -15,25 +15,23 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.TimeSpan)]
     public TimeSpan? AddTimeSpans(params TimeSpan?[] timeSpans)
     {
-        var firstNonNull = timeSpans.Select((value, index) => new {TimeSpan = value, Index = index})
+        var firstNonNull = timeSpans.Select((value, index) => new { TimeSpan = value, Index = index })
             .FirstOrDefault(pair => pair.TimeSpan.HasValue);
-        
+
         if (firstNonNull == null)
             return null;
-        
+
         var sum = firstNonNull.TimeSpan!.Value;
-        
+
         for (var i = firstNonNull.Index + 1; i < timeSpans.Length; i++)
-        {
             if (timeSpans[i].HasValue)
                 sum += timeSpans[i]!.Value;
-        }
-        
+
         return sum;
     }
-    
+
     /// <summary>
-    /// Subtracts a given set of time spans.
+    ///     Subtracts a given set of time spans.
     /// </summary>
     /// <param name="timeSpans">Time spans that should be subtracted</param>
     /// <returns>Subtracted time spans</returns>
@@ -41,25 +39,23 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.TimeSpan)]
     public TimeSpan? SubtractTimeSpans(params TimeSpan?[] timeSpans)
     {
-        var firstNonNull = timeSpans.Select((value, index) => new {TimeSpan = value, Index = index})
+        var firstNonNull = timeSpans.Select((value, index) => new { TimeSpan = value, Index = index })
             .FirstOrDefault(pair => pair.TimeSpan.HasValue);
-        
+
         if (firstNonNull == null)
             return null;
-        
+
         var sum = firstNonNull.TimeSpan!.Value;
-        
+
         for (var i = firstNonNull.Index + 1; i < timeSpans.Length; i++)
-        {
             if (timeSpans[i].HasValue)
                 sum -= timeSpans[i]!.Value;
-        }
-        
+
         return sum;
     }
-    
+
     /// <summary>
-    /// Turns a string into a time span.
+    ///     Turns a string into a time span.
     /// </summary>
     /// <param name="timeSpan">String that should be converted</param>
     /// <returns>Time span</returns>
@@ -69,22 +65,24 @@ public partial class LibraryBase
     {
         if (TimeSpan.TryParse(timeSpan, out var result))
             return result;
-        
+
         return null;
     }
-    
+
     /// <summary>
-    /// Gets the sum value of a given group.
+    ///     Gets the sum value of a given group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
     /// <returns>Sum of group</returns>
     [AggregationGetMethod]
     public TimeSpan? SumTimeSpan([InjectGroup] Group group, string name)
-        => SumTimeSpan(group, name, 0);
+    {
+        return SumTimeSpan(group, name, 0);
+    }
 
     /// <summary>
-    /// Gets the sum value of a given group.
+    ///     Gets the sum value of a given group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -97,7 +95,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the group.
+    ///     Sets the value of the group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -116,19 +114,21 @@ public partial class LibraryBase
         var value = parentGroup.GetOrCreateValue<TimeSpan>(name);
         parentGroup.SetValue(name, value + timeSpan);
     }
-    
+
     /// <summary>
-    /// Gets the min value of a given group.
+    ///     Gets the min value of a given group.
     /// </summary>
     /// <param name="group">The group object</param>
     /// <param name="name">Name of the group</param>
     /// <returns>Min of group</returns>
     [AggregationGetMethod]
     public TimeSpan? MinTimeSpan([InjectGroup] Group group, string name)
-        => MinTimeSpan(group, name, 0);
-    
+    {
+        return MinTimeSpan(group, name, 0);
+    }
+
     /// <summary>
-    /// Gets the min value of a given group.
+    ///     Gets the min value of a given group.
     /// </summary>
     /// <param name="group">The group object</param>
     /// <param name="name">The name</param>
@@ -140,9 +140,9 @@ public partial class LibraryBase
         var parentGroup = GetParentGroup(group, parent);
         return parentGroup.GetValue<TimeSpan>(name);
     }
-    
+
     /// <summary>
-    /// Sets the value of the min group.
+    ///     Sets the value of the min group.
     /// </summary>
     /// <param name="group">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -163,19 +163,21 @@ public partial class LibraryBase
         if (storedValue > timeSpan)
             parentGroup.SetValue(name, timeSpan);
     }
-    
+
     /// <summary>
-    /// Gets the max value of a given group.
+    ///     Gets the max value of a given group.
     /// </summary>
     /// <param name="group">The group object</param>
     /// <param name="name">Name of the group</param>
     /// <returns>Max of group</returns>
     [AggregationGetMethod]
     public TimeSpan? MaxTimeSpan([InjectGroup] Group group, string name)
-        => MinTimeSpan(group, name, 0);
-    
+    {
+        return MinTimeSpan(group, name, 0);
+    }
+
     /// <summary>
-    /// Gets the max value of a given group.
+    ///     Gets the max value of a given group.
     /// </summary>
     /// <param name="group">The group object</param>
     /// <param name="name">The name</param>
@@ -187,9 +189,9 @@ public partial class LibraryBase
         var parentGroup = GetParentGroup(group, parent);
         return parentGroup.GetValue<TimeSpan>(name);
     }
-    
+
     /// <summary>
-    /// Sets the value of the min group.
+    ///     Sets the value of the min group.
     /// </summary>
     /// <param name="group">The group object</param>
     /// <param name="name">Name of the group</param>

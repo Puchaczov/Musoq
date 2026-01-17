@@ -7,28 +7,12 @@ using Musoq.Schema.Helpers;
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-/// Handles code generation for null check operations (IS NULL, IS NOT NULL).
+///     Handles code generation for null check operations (IS NULL, IS NOT NULL).
 /// </summary>
 public static class NullCheckEmitter
 {
     /// <summary>
-    /// Result of processing an IsNullNode.
-    /// </summary>
-    public readonly struct IsNullResult
-    {
-        /// <summary>
-        /// The resulting expression.
-        /// </summary>
-        public SyntaxNode Expression { get; init; }
-        
-        /// <summary>
-        /// Whether the original expression should be consumed from the stack.
-        /// </summary>
-        public bool ShouldPopExpression { get; init; }
-    }
-
-    /// <summary>
-    /// Processes an IS NULL or IS NOT NULL check.
+    ///     Processes an IS NULL or IS NOT NULL check.
     /// </summary>
     /// <param name="returnType">The return type of the expression being checked.</param>
     /// <param name="isNegated">True for IS NOT NULL, false for IS NULL.</param>
@@ -37,7 +21,6 @@ public static class NullCheckEmitter
     public static IsNullResult ProcessIsNull(Type returnType, bool isNegated, ExpressionSyntax expression)
     {
         if (returnType.IsTrueValueType())
-        {
             return new IsNullResult
             {
                 Expression = isNegated
@@ -45,10 +28,9 @@ public static class NullCheckEmitter
                     : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression),
                 ShouldPopExpression = true
             };
-        }
 
-        var comparisonKind = isNegated 
-            ? SyntaxKind.NotEqualsExpression 
+        var comparisonKind = isNegated
+            ? SyntaxKind.NotEqualsExpression
             : SyntaxKind.EqualsExpression;
 
         return new IsNullResult
@@ -59,5 +41,21 @@ public static class NullCheckEmitter
                 SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
             ShouldPopExpression = false
         };
+    }
+
+    /// <summary>
+    ///     Result of processing an IsNullNode.
+    /// </summary>
+    public readonly struct IsNullResult
+    {
+        /// <summary>
+        ///     The resulting expression.
+        /// </summary>
+        public SyntaxNode Expression { get; init; }
+
+        /// <summary>
+        ///     Whether the original expression should be consumed from the stack.
+        /// </summary>
+        public bool ShouldPopExpression { get; init; }
     }
 }

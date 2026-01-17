@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -139,7 +138,7 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
                              "select Name from Items() where Size > 1000";
 
         var items = new List<dynamic>();
-        
+
         dynamic item1 = new ExpandoObject();
         item1.Size = "1500";
         item1.Name = "Valid1";

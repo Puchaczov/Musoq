@@ -12,39 +12,39 @@ public class BasicEntity
     {
         TestNameToIndexMap = new Dictionary<string, int>
         {
-            {nameof(Name), 10},
-            {nameof(City), 11},
-            {nameof(Country), 12},
-            {nameof(Population), 13},
-            {nameof(Self), 14},
-            {nameof(Money), 15},
-            {nameof(Month), 16},
-            {nameof(Time), 17},
-            {nameof(Id), 18},
-            {nameof(NullableValue), 19},
-            {nameof(Other), 20},
-            {nameof(Array), 21},
-            {nameof(Dictionary), 22}
+            { nameof(Name), 10 },
+            { nameof(City), 11 },
+            { nameof(Country), 12 },
+            { nameof(Population), 13 },
+            { nameof(Self), 14 },
+            { nameof(Money), 15 },
+            { nameof(Month), 16 },
+            { nameof(Time), 17 },
+            { nameof(Id), 18 },
+            { nameof(NullableValue), 19 },
+            { nameof(Other), 20 },
+            { nameof(Array), 21 },
+            { nameof(Dictionary), 22 }
         };
 
         TestIndexToObjectAccessMap = new Dictionary<int, Func<BasicEntity, object>>
         {
-            {10, arg => arg.Name},
-            {11, arg => arg.City},
-            {12, arg => arg.Country},
-            {13, arg => arg.Population},
-            {14, arg => arg.Self},
-            {15, arg => arg.Money},
-            {16, arg => arg.Month},
-            {17, arg => arg.Time},
-            {18, arg => arg.Id},
-            {19, arg => arg.NullableValue},
-            {20, arg => arg.Other},
-            {21, arg => arg.Array},
-            {22, arg => arg.Dictionary}
+            { 10, arg => arg.Name },
+            { 11, arg => arg.City },
+            { 12, arg => arg.Country },
+            { 13, arg => arg.Population },
+            { 14, arg => arg.Self },
+            { 15, arg => arg.Money },
+            { 16, arg => arg.Month },
+            { 17, arg => arg.Time },
+            { 18, arg => arg.Id },
+            { 19, arg => arg.NullableValue },
+            { 20, arg => arg.Other },
+            { 21, arg => arg.Array },
+            { 22, arg => arg.Dictionary }
         };
     }
-        
+
     public BasicEntity()
     {
     }
@@ -112,13 +112,13 @@ public class BasicEntity
     public int Id { get; set; }
 
     public int[] Array => [0, 1, 2];
-        
+
     public Dictionary<string, string> Dictionary => new()
     {
-        {"A", "B"},
-        {"C", "D"},
-        {"AA", "BB"},
-        {"CC", "DD"}
+        { "A", "B" },
+        { "C", "D" },
+        { "AA", "BB" },
+        { "CC", "DD" }
     };
 
     public int? NullableValue { get; set; }

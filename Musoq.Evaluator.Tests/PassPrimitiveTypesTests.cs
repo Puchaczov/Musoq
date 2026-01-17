@@ -15,12 +15,14 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class PassPrimitiveTypesTests : BasicEntityTestBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void GetSchemaTableAndRowSourcePassedPrimitiveArgumentsTest()
     {
         var query = "select 1 from #test.whatever(1, 2d, true, false, 'text')";
 
-        var vm = CreateAndRunVirtualMachine(query, [], (passedParams) =>
+        var vm = CreateAndRunVirtualMachine(query, [], passedParams =>
         {
             Assert.AreEqual(1, passedParams[0]);
             Assert.AreEqual(2m, passedParams[1]);
@@ -37,7 +39,7 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
     {
         var query = "select PrimitiveArgumentsMethod(1, 2d, true, false, 'text') from #test.whatever()";
 
-        var vm = CreateAndRunVirtualMachine(query, [], (passedParams) =>
+        var vm = CreateAndRunVirtualMachine(query, [], passedParams =>
         {
             Assert.AreEqual(1L, passedParams[0]);
             Assert.AreEqual(2m, passedParams[1]);
@@ -47,6 +49,16 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
         }, WhenCheckedParameters.OnMethodCall);
 
         vm.Run(TestContext.CancellationToken);
+    }
+
+    private CompiledQuery CreateAndRunVirtualMachine(string script, IEnumerable<TestEntity> source,
+        Action<object[]> onGetTableOrRowSource, WhenCheckedParameters whenChecked)
+    {
+        var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
+        environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
+
+        return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(),
+            new TestSchemaProvider(source, onGetTableOrRowSource, whenChecked), LoggerResolver);
     }
 
     private enum WhenCheckedParameters
@@ -75,11 +87,13 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
     {
         public override RowSource GetRowSource(string name, RuntimeContext communicator, params object[] parameters)
         {
-            if(whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) onGetTableOrRowSource(parameters);
-            return new EntitySource<TestEntity>(entities, new Dictionary<string, int>(), new Dictionary<int, Func<TestEntity, object>>());
+            if (whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) onGetTableOrRowSource(parameters);
+            return new EntitySource<TestEntity>(entities, new Dictionary<string, int>(),
+                new Dictionary<int, Func<TestEntity, object>>());
         }
 
-        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext,
+            params object[] parameters)
         {
             if (whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) onGetTableOrRowSource(parameters);
             return new TestTable();
@@ -123,14 +137,4 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
     }
 
     private class TestEntity;
-
-    private CompiledQuery CreateAndRunVirtualMachine(string script, IEnumerable<TestEntity> source, Action<object[]> onGetTableOrRowSource, WhenCheckedParameters whenChecked)
-    {
-        var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
-        environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
-            
-        return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(), new TestSchemaProvider(source, onGetTableOrRowSource, whenChecked), LoggerResolver);
-    }
-
-    public TestContext TestContext { get; set; }
 }

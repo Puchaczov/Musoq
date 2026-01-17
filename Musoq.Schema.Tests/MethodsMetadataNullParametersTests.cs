@@ -9,28 +9,9 @@ namespace Musoq.Schema.Tests;
 [TestClass]
 public class MethodsMetadataNullableParametersTests
 {
-    private class TestClass
-    {
-        public void NullableInt(int? x) { }
-        public void NullableDateTime(DateTime? dt) { }
-        public void NullableDecimal(decimal? d) { }
-        
-        public void OverloadedInt(int x) { }
-        public void OverloadedInt(int? x) { }
-        
-        public void StringMethod(string s) { }
-        public void ObjectMethod(object o) { }
-        
-        public void MixedNullables(int? x, string y, DateTime? dt) { }
-        
-        public void OptionalNullable(int? x = null) { }
-        public void OptionalNullableWithDefault(int? x = 42) { }
-        
-        public void GenericNullable<T>(T? x) where T : struct { }
-    }
+    private Type _entityType;
 
     private MethodsMetadata _methodsMetadata;
-    private Type _entityType;
 
     [TestInitialize]
     public void Initialize()
@@ -80,12 +61,12 @@ public class MethodsMetadataNullableParametersTests
             _methodsMetadata.TryGetMethod("OverloadedInt", [typeof(int)], _entityType, out var nonNullable),
             "Should resolve non-nullable overload for int"
         );
-        
+
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod("OverloadedInt", [typeof(NullNode.NullType)], _entityType, out var nullable),
             "Should resolve nullable overload for null"
         );
-        
+
         Assert.AreNotEqual(nullable, nonNullable, "Should resolve to different overloads");
     }
 
@@ -96,7 +77,7 @@ public class MethodsMetadataNullableParametersTests
             _methodsMetadata.TryGetMethod("StringMethod", [typeof(NullNode.NullType)], _entityType, out _),
             "String should accept null"
         );
-        
+
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod("ObjectMethod", [typeof(NullNode.NullType)], _entityType, out _),
             "Object should accept null"
@@ -108,24 +89,24 @@ public class MethodsMetadataNullableParametersTests
     {
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod("MixedNullables",
-                [typeof(NullNode.NullType), typeof(string), typeof(DateTime)], 
-                _entityType, 
+                [typeof(NullNode.NullType), typeof(string), typeof(DateTime)],
+                _entityType,
                 out _),
             "Should accept null for nullable int"
         );
-        
+
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod("MixedNullables",
-                [typeof(int), typeof(string), typeof(NullNode.NullType)], 
-                _entityType, 
+                [typeof(int), typeof(string), typeof(NullNode.NullType)],
+                _entityType,
                 out _),
             "Should accept null for nullable DateTime"
         );
-        
+
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod("MixedNullables",
-                [typeof(int), typeof(NullNode.NullType), typeof(DateTime)], 
-                _entityType, 
+                [typeof(int), typeof(NullNode.NullType), typeof(DateTime)],
+                _entityType,
                 out _),
             "Should accept null for string"
         );
@@ -138,12 +119,12 @@ public class MethodsMetadataNullableParametersTests
             _methodsMetadata.TryGetMethod("OptionalNullable", [], _entityType, out _),
             "Should work with no parameters (default null)"
         );
-        
+
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod("OptionalNullable", [typeof(NullNode.NullType)], _entityType, out _),
             "Should accept explicit null"
         );
-        
+
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod("OptionalNullable", [typeof(int)], _entityType, out _),
             "Should accept actual value"
@@ -157,12 +138,13 @@ public class MethodsMetadataNullableParametersTests
             _methodsMetadata.TryGetMethod("OptionalNullableWithDefault", [], _entityType, out _),
             "Should work with no parameters (default value)"
         );
-        
+
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("OptionalNullableWithDefault", [typeof(NullNode.NullType)], _entityType, out _),
+            _methodsMetadata.TryGetMethod("OptionalNullableWithDefault", [typeof(NullNode.NullType)], _entityType,
+                out _),
             "Should accept explicit null"
         );
-        
+
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod("OptionalNullableWithDefault", [typeof(int)], _entityType, out _),
             "Should accept actual value"
@@ -176,16 +158,63 @@ public class MethodsMetadataNullableParametersTests
             _methodsMetadata.TryGetMethod("GenericNullable", [typeof(int?)], _entityType, out _),
             "Should accept nullable int"
         );
-        
+
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod("GenericNullable", [typeof(DateTime?)], _entityType, out _),
             "Should accept nullable DateTime"
         );
-        
+
         Assert.IsTrue(
             _methodsMetadata.TryGetMethod("GenericNullable", [typeof(NullNode.NullType)], _entityType, out _),
             "Should accept null"
         );
+    }
+
+    private class TestClass
+    {
+        public void NullableInt(int? x)
+        {
+        }
+
+        public void NullableDateTime(DateTime? dt)
+        {
+        }
+
+        public void NullableDecimal(decimal? d)
+        {
+        }
+
+        public void OverloadedInt(int x)
+        {
+        }
+
+        public void OverloadedInt(int? x)
+        {
+        }
+
+        public void StringMethod(string s)
+        {
+        }
+
+        public void ObjectMethod(object o)
+        {
+        }
+
+        public void MixedNullables(int? x, string y, DateTime? dt)
+        {
+        }
+
+        public void OptionalNullable(int? x = null)
+        {
+        }
+
+        public void OptionalNullableWithDefault(int? x = 42)
+        {
+        }
+
+        public void GenericNullable<T>(T? x) where T : struct
+        {
+        }
     }
 
     private class TestMethodsMetadata : MethodsMetadata
@@ -193,10 +222,8 @@ public class MethodsMetadataNullableParametersTests
         public TestMethodsMetadata()
         {
             var testClass = typeof(TestClass);
-            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-            {
-                RegisterMethod(method);
-            }
+            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance |
+                                                        BindingFlags.DeclaredOnly)) RegisterMethod(method);
         }
 
         private new void RegisterMethod(MethodInfo methodInfo)

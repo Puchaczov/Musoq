@@ -1,5 +1,4 @@
 ﻿using Musoq.Schema;
-using Musoq.Schema.DataSources;
 
 namespace Musoq.Benchmarks.Schema.Profiles;
 
@@ -24,7 +23,7 @@ public class ProfileEntityTable : ISchemaTable
         new SchemaColumn(nameof(ProfileEntity.Animal), 18,
             typeof(ProfileEntity).GetProperty(nameof(ProfileEntity.Animal))!.PropertyType),
         new SchemaColumn(nameof(ProfileEntity.Avatar), 19,
-            typeof(ProfileEntity).GetProperty(nameof(ProfileEntity.Avatar))!.PropertyType),
+            typeof(ProfileEntity).GetProperty(nameof(ProfileEntity.Avatar))!.PropertyType)
     ];
 
     public ISchemaColumn? GetColumnByName(string name)

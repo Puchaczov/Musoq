@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -6,19 +7,18 @@ using System.Text;
 namespace Musoq.Parser.Helpers;
 
 /// <summary>
-/// Provides methods for handling string escape sequences.
+///     Provides methods for handling string escape sequences.
 /// </summary>
 public static class EscapeHelpers
 {
-    private static readonly System.Buffers.SearchValues<char> EscapeCharsValues = System.Buffers.SearchValues.Create("\\\'\"\n\r\t\b\f\u001B\0");
-    
     private const char EscapeChar = '\\';
     private const char UnicodePrefix = 'u';
     private const char HexPrefix = 'x';
-    
+
     private const int UnicodeEscapeLength = 4;
     private const int HexEscapeLength = 2;
-    
+    private static readonly SearchValues<char> EscapeCharsValues = SearchValues.Create("\\\'\"\n\r\t\b\f\u001B\0");
+
     private static readonly (char escapeChar, char value)[] EscapeMap =
     [
         ('\\', '\\'),
@@ -34,11 +34,14 @@ public static class EscapeHelpers
     ];
 
     /// <summary>
-    /// Unescapes a string containing escape sequences.
+    ///     Unescapes a string containing escape sequences.
     /// </summary>
     /// <param name="escaped">The string containing escape sequences.</param>
     /// <returns>The unescaped string.</returns>
-    /// <exception cref="ArgumentException">Thrown when encountering malformed Unicode or hex escape sequences if strict mode is enabled.</exception>
+    /// <exception cref="ArgumentException">
+    ///     Thrown when encountering malformed Unicode or hex escape sequences if strict mode
+    ///     is enabled.
+    /// </exception>
     public static string Unescape(this string escaped)
     {
         if (string.IsNullOrEmpty(escaped))
@@ -51,7 +54,7 @@ public static class EscapeHelpers
     }
 
     /// <summary>
-    /// Escapes a string by adding necessary escape sequences.
+    ///     Escapes a string by adding necessary escape sequences.
     /// </summary>
     /// <param name="unescaped">The string to escape.</param>
     /// <returns>The escaped string.</returns>
@@ -89,14 +92,13 @@ public static class EscapeHelpers
 
             switch (next)
             {
-                
                 case UnicodePrefix when TryParseUnicodeEscape(span, i, out var unicodeChar):
                 {
                     result.Append(unicodeChar);
                     i += 1 + UnicodeEscapeLength;
                     continue;
                 }
-                
+
                 case UnicodePrefix:
                 {
                     result.Append(EscapeChar).Append(next);
@@ -110,13 +112,14 @@ public static class EscapeHelpers
                     {
                         i++;
                     }
+
                     continue;
                 }
                 case HexPrefix when TryParseHexEscape(span, i, out var hexChar):
                     result.Append(hexChar);
                     i += 1 + HexEscapeLength;
                     continue;
-                
+
                 case HexPrefix:
                 {
                     result.Append(EscapeChar).Append(next);
@@ -130,16 +133,17 @@ public static class EscapeHelpers
                     {
                         i++;
                     }
+
                     continue;
                 }
             }
 
-            
+
             var found = false;
             foreach (var (escapeChar, value) in EscapeMap)
             {
                 if (next != escapeChar) continue;
-                
+
                 result.Append(value);
                 i++;
                 found = true;
@@ -147,7 +151,7 @@ public static class EscapeHelpers
             }
 
             if (found) continue;
-            
+
             result.Append(EscapeChar).Append(next);
             i++;
         }
@@ -167,24 +171,20 @@ public static class EscapeHelpers
             foreach (var (escapeChar, value) in EscapeMap)
             {
                 if (current != value) continue;
-                
+
                 result.Append(EscapeChar).Append(escapeChar);
                 found = true;
                 break;
             }
 
             if (found) continue;
-            
+
             if (char.IsControl(current))
-            {
                 result.Append(EscapeChar)
                     .Append(UnicodePrefix)
                     .Append(((int)current).ToString("X4"));
-            }
             else
-            {
                 result.Append(current);
-            }
         }
 
         return result.ToString();
@@ -194,12 +194,12 @@ public static class EscapeHelpers
     private static bool TryParseUnicodeEscape(ReadOnlySpan<char> value, int startIndex, out char result)
     {
         result = '\0';
-    
+
         if (startIndex + 1 + UnicodeEscapeLength >= value.Length)
             return false;
 
         var unicodeSpan = value.Slice(startIndex + 2, UnicodeEscapeLength);
-        if (!int.TryParse(unicodeSpan, NumberStyles.HexNumber, null, out var unicodeChar) 
+        if (!int.TryParse(unicodeSpan, NumberStyles.HexNumber, null, out var unicodeChar)
             || unicodeChar > char.MaxValue)
             return false;
 
@@ -217,13 +217,13 @@ public static class EscapeHelpers
     private static bool TryParseHexEscape(ReadOnlySpan<char> value, int startIndex, out char result)
     {
         result = '\0';
-        
+
         if (startIndex + 1 + HexEscapeLength >= value.Length)
             return false;
 
         var hexSpan = value.Slice(startIndex + 2, HexEscapeLength);
-        return int.TryParse(hexSpan, NumberStyles.HexNumber, null, out var hexChar) 
-               && hexChar <= char.MaxValue 
+        return int.TryParse(hexSpan, NumberStyles.HexNumber, null, out var hexChar)
+               && hexChar <= char.MaxValue
                && (result = (char)hexChar) != '\0';
     }
 }

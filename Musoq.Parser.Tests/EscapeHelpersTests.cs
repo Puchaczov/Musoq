@@ -1,4 +1,4 @@
-using System;
+using System.Diagnostics;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Helpers;
@@ -122,13 +122,10 @@ public class EscapeHelpersTests
         // Arrange
         var input = new StringBuilder();
         const string pattern = "text\\simple\\pattern";
-        for (int i = 0; i < 200000; i++)
-        {
-            input.Append(pattern);
-        }
+        for (var i = 0; i < 200000; i++) input.Append(pattern);
 
         // Act
-        string result = input.ToString().Unescape();
+        var result = input.ToString().Unescape();
 
         // Assert
         Assert.IsGreaterThan(0, result.Length);
@@ -141,13 +138,10 @@ public class EscapeHelpersTests
         // Arrange
         var input = new StringBuilder();
         const string pattern = "text\\n\\\\text\\\\\\pattern\\t";
-        for (int i = 0; i < 200000; i++)
-        {
-            input.Append(pattern);
-        }
+        for (var i = 0; i < 200000; i++) input.Append(pattern);
 
         // Act
-        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var sw = Stopwatch.StartNew();
         var result = input.ToString().Unescape();
         sw.Stop();
 
@@ -157,9 +151,9 @@ public class EscapeHelpersTests
         Assert.Contains("\\text", result);
         Assert.Contains("\t", result);
         Assert.IsLessThan(1000,
-sw.ElapsedMilliseconds, $"Processing took too long: {sw.ElapsedMilliseconds}ms");
+            sw.ElapsedMilliseconds, $"Processing took too long: {sw.ElapsedMilliseconds}ms");
     }
-    
+
     [TestMethod]
     public void Unescape_NullAndEmpty()
     {
@@ -180,7 +174,7 @@ sw.ElapsedMilliseconds, $"Processing took too long: {sw.ElapsedMilliseconds}ms")
     [DataRow(@"\\", @"\")] // Double backslash
     [DataRow(@"\\\", @"\\")] // Triple backslash
     [DataRow(@"\\\\", @"\\")] // Four backslashes
-    [DataRow(@"text\", @"text\")] 
+    [DataRow(@"text\", @"text\")]
     [DataRow(@"text\\", @"text\")]
     [DataRow(@"text\\\", @"text\\")]
     [DataRow(@"text\\\\", @"text\\")]
@@ -219,7 +213,7 @@ sw.ElapsedMilliseconds, $"Processing took too long: {sw.ElapsedMilliseconds}ms")
     [TestMethod]
     [DataRow(@"\'", "'")]
     [DataRow(@"\\\'", @"\'")]
-    [DataRow(@"\\\\'", @"\\'")] 
+    [DataRow(@"\\\\'", @"\\'")]
     [DataRow(@"\""", "\"")]
     [DataRow(@"\\""", @"\""")]
     [DataRow(@"\\\\""", @"\\""")]
@@ -263,10 +257,10 @@ sw.ElapsedMilliseconds, $"Processing took too long: {sw.ElapsedMilliseconds}ms")
     [TestMethod]
     public void Unescape_SpecialCharacters()
     {
-        Assert.AreEqual("\0", @"\0".Unescape()); 
-        Assert.AreEqual("\b", @"\b".Unescape()); 
-        Assert.AreEqual("\f", @"\f".Unescape()); 
-        Assert.AreEqual("\u001B", @"\e".Unescape()); 
+        Assert.AreEqual("\0", @"\0".Unescape());
+        Assert.AreEqual("\b", @"\b".Unescape());
+        Assert.AreEqual("\f", @"\f".Unescape());
+        Assert.AreEqual("\u001B", @"\e".Unescape());
     }
 
     [TestMethod]
@@ -282,20 +276,17 @@ sw.ElapsedMilliseconds, $"Processing took too long: {sw.ElapsedMilliseconds}ms")
     [TestMethod]
     public void Unescape_InvalidUnicodeSequences()
     {
-        Assert.AreEqual("\\uZZZZ", @"\uZZZZ".Unescape()); 
-        Assert.AreEqual("\\xZZ", @"\xZZ".Unescape()); 
-        Assert.AreEqual("\\u123", @"\u123".Unescape()); 
-        Assert.AreEqual("\\x1", @"\x1".Unescape()); 
+        Assert.AreEqual("\\uZZZZ", @"\uZZZZ".Unescape());
+        Assert.AreEqual("\\xZZ", @"\xZZ".Unescape());
+        Assert.AreEqual("\\u123", @"\u123".Unescape());
+        Assert.AreEqual("\\x1", @"\x1".Unescape());
     }
 
     [TestMethod]
     public void Unescape_LargeString()
     {
         var sb = new StringBuilder();
-        for (int i = 0; i < 1000; i++)
-        {
-            sb.Append(@"Hello\nWorld\t\u0394\u2665\\test");
-        }
+        for (var i = 0; i < 1000; i++) sb.Append(@"Hello\nWorld\t\u0394\u2665\\test");
         var result = sb.ToString().Unescape();
         Assert.Contains("\n", result);
         Assert.Contains("\t", result);

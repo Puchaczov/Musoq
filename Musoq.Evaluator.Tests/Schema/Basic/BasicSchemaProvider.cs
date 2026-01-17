@@ -11,9 +11,10 @@ public class BasicSchemaProvider<T>(IDictionary<string, IEnumerable<T>> values) 
 
     public virtual ISchema GetSchema(string schema)
     {
-        if (Values.TryGetValue(schema, out var value) == false)
+        if (!Values.TryGetValue(schema, out var value))
             throw new SchemaNotFoundException();
-        
-        return new GenericSchema<BasicEntity, BasicEntityTable>(value, BasicEntity.TestNameToIndexMap, BasicEntity.TestIndexToObjectAccessMap);
+
+        return new GenericSchema<BasicEntity, BasicEntityTable>(value, BasicEntity.TestNameToIndexMap,
+            BasicEntity.TestIndexToObjectAccessMap);
     }
 }

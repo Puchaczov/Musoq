@@ -8,7 +8,8 @@ namespace Musoq.Evaluator;
 
 public static class AliasGenerator
 {
-    public static string CreateAliasIfEmpty(string alias, IReadOnlyList<string> usedAliases, string seed = "defaultSeed")
+    public static string CreateAliasIfEmpty(string alias, IReadOnlyList<string> usedAliases,
+        string seed = "defaultSeed")
     {
         if (!string.IsNullOrEmpty(alias))
             return alias;
@@ -25,7 +26,8 @@ public static class AliasGenerator
         return aliasCandidate;
     }
 
-    private static string DeterministicString(int length, int counter, string seed, string allowedChars = "abcdefghijklmnopqrstuvwxyz0123456789")
+    private static string DeterministicString(int length, int counter, string seed,
+        string allowedChars = "abcdefghijklmnopqrstuvwxyz0123456789")
     {
         if (length < 0) throw new ArgumentOutOfRangeException(nameof(length), @"length cannot be less than zero.");
         if (string.IsNullOrEmpty(allowedChars)) throw new ArgumentException("allowedChars may not be empty.");

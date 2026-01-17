@@ -11,6 +11,8 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class DynamicSourceWithDynamicAndDefaultTypeHinting : DynamicQueryTestsBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void WithDynamicSource_AccessComplexObjectProperties_ShouldPass()
     {
@@ -21,22 +23,22 @@ public class DynamicSourceWithDynamicAndDefaultTypeHinting : DynamicQueryTestsBa
         };
         var schema = new Dictionary<string, Type>
         {
-            {"Multiform", typeof(MultiformType)},
+            { "Multiform", typeof(MultiformType) }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources, schema);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Columns.Count());
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual(typeof(double), table.Columns.ElementAt(1).ColumnType);
-        
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(2, table[0].Values[0]);
         Assert.AreEqual(2.99d, table[0].Values[1]);
     }
-    
+
     private static ExpandoObject CreateExpandoObject(MultiformType multiform)
     {
         dynamic obj = new ExpandoObject();
@@ -73,6 +75,4 @@ public class DynamicSourceWithDynamicAndDefaultTypeHinting : DynamicQueryTestsBa
             return false;
         }
     }
-
-    public TestContext TestContext { get; set; }
 }

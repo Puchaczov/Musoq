@@ -1,7 +1,7 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Schema;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tests.Schema.PathValue;
@@ -23,7 +23,7 @@ public class PathValueRowSource : RowSourceBase<PathValueEntity>
             { "Value", 1 }
         };
 
-        var indexToObjectAccessMap = new Dictionary<int, System.Func<PathValueEntity, object>>
+        var indexToObjectAccessMap = new Dictionary<int, Func<PathValueEntity, object>>
         {
             { 0, entity => entity.Path },
             { 1, entity => entity.Value }

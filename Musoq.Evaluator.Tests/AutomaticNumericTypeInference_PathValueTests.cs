@@ -100,14 +100,14 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
 
         var entities = new List<PathValueEntity>
         {
-            new() { Path = "a.b", Value = "100" },  
-            new() { Path = "a.c", Value = 100 },    
-            new() { Path = "a.d", Value = 200L }    
+            new() { Path = "a.b", Value = "100" },
+            new() { Path = "a.c", Value = 100 },
+            new() { Path = "a.d", Value = 200L }
         };
 
         var table = RunQuery(query, entities);
 
-        
+
         Assert.AreEqual(2, table.Count);
         var paths = table.Select(row => (string)row[0]).OrderBy(x => x).ToList();
         Assert.AreEqual("a.c", paths[0]);
@@ -211,7 +211,6 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         {
             new() { Path = "a", Value = 50 },
             new() { Path = "b", Value = 25L }
-            
         };
 
         var table = RunQuery(query, entities);
@@ -288,7 +287,7 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
             new() { Path = "a", Value = 5 },
             new() { Path = "b", Value = 10 },
             new() { Path = "c", Value = 9L },
-            new() { Path = "d", Value = "8" },  
+            new() { Path = "d", Value = "8" },
             new() { Path = "e", Value = 15.5 }
         };
 
@@ -315,7 +314,7 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         {
             new() { Path = "a", Value = 42 },
             new() { Path = "b", Value = 42L },
-            new() { Path = "c", Value = "42" },  
+            new() { Path = "c", Value = "42" },
             new() { Path = "d", Value = 41 },
             new() { Path = "e", Value = "43" }
         };
@@ -343,7 +342,7 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         {
             new() { Path = "a", Value = 5 },
             new() { Path = "b", Value = 10L },
-            new() { Path = "c", Value = 15 },  
+            new() { Path = "c", Value = 15 },
             new() { Path = "d", Value = 3 },
             new() { Path = "e", Value = 20 }
         };
@@ -370,7 +369,7 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var entities = new List<PathValueEntity>
         {
             new() { Path = "a", Value = 100 },
-            new() { Path = "c", Value = "100" }          
+            new() { Path = "c", Value = "100" }
         };
 
         var table = RunQuery(query, entities);
@@ -401,11 +400,11 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var table = RunQuery(query, entities);
 
         Assert.AreEqual(2, table.Count);
-        
+
         var results = table.Select(row => new { Path = (string)row[0], Value = (long)row[1] })
-                          .OrderBy(x => x.Value)
-                          .ToList();
-        
+            .OrderBy(x => x.Value)
+            .ToList();
+
         Assert.AreEqual("a.b[2]", results[0].Path);
         Assert.AreEqual(14L, results[0].Value);
         Assert.AreEqual("a.b[0]", results[1].Path);
@@ -426,7 +425,7 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         {
             new() { Path = "a", Value = "prefix" },
             new() { Path = "b", Value = "test" },
-            new() { Path = "c", Value = 100 }  
+            new() { Path = "c", Value = 100 }
         };
 
         var table = RunQuery(query, entities);
@@ -457,14 +456,14 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var table = RunQuery(query, entities);
 
         Assert.AreEqual(2, table.Count);
-        
-        
+
+
         var stringRow = table.FirstOrDefault(r => (string)r[0] == "string");
         var numericRow = table.FirstOrDefault(r => (string)r[0] == "numeric");
-        
+
         Assert.IsNotNull(stringRow);
         Assert.AreEqual("hello", stringRow.Values[1]);
-        
+
         Assert.IsNotNull(numericRow);
         Assert.AreEqual(42, numericRow.Values[1]);
     }
@@ -542,9 +541,9 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
 
         Assert.AreEqual(3, table.Count);
         var results = table.Select(row => (long)row[0]).OrderBy(x => x).ToList();
-        Assert.AreEqual(0L, results[0]);  
-        Assert.AreEqual(1L, results[1]);  
-        Assert.AreEqual(1L, results[2]);  
+        Assert.AreEqual(0L, results[0]);
+        Assert.AreEqual(1L, results[1]);
+        Assert.AreEqual(1L, results[2]);
     }
 
     [TestMethod]
@@ -560,13 +559,13 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var entities = new List<PathValueEntity>
         {
             new() { Path = "a", Value = 10 },
-            new() { Path = "b", Value = "15" },  
+            new() { Path = "b", Value = "15" },
             new() { Path = "c", Value = 7 }
         };
 
         var table = RunQuery(query, entities);
 
-        
+
         Assert.AreEqual(2, table.Count);
         var paths = table.Select(row => (string)row[0]).ToList();
         CollectionAssert.Contains(paths, "a");
@@ -673,9 +672,9 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
 
         Assert.AreEqual(3, table.Count);
         var results = table.Select(row => (long)row[0]).OrderBy(x => x).ToList();
-        Assert.AreEqual(30L, results[0]);  
-        Assert.AreEqual(40L, results[1]);  
-        Assert.AreEqual(50L, results[2]);  
+        Assert.AreEqual(30L, results[0]);
+        Assert.AreEqual(40L, results[1]);
+        Assert.AreEqual(50L, results[2]);
     }
 
     [TestMethod]
@@ -699,9 +698,9 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
 
         Assert.AreEqual(3, table.Count);
         var results = table.Select(row => (long)row[0]).OrderBy(x => x).ToList();
-        Assert.AreEqual(20L, results[0]);  
-        Assert.AreEqual(25L, results[1]);  
-        Assert.AreEqual(50L, results[2]);  
+        Assert.AreEqual(20L, results[0]);
+        Assert.AreEqual(25L, results[1]);
+        Assert.AreEqual(50L, results[2]);
     }
 
     [TestMethod]
@@ -880,13 +879,13 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var table = RunQuery(query, entities);
 
         Assert.AreEqual(3, table.Count);
-        
+
         var intRow = table.First(r => (string)r[0] == "int");
         Assert.AreEqual(10L, intRow[1]);
-        
+
         var longRow = table.First(r => (string)r[0] == "long");
         Assert.AreEqual(20L, longRow[1]);
-        
+
         var doubleRow = table.First(r => (string)r[0] == "double");
         Assert.AreEqual(16.4, (double)doubleRow[1], 0.001);
     }
@@ -932,13 +931,13 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var entities = new List<PathValueEntity>
         {
             new() { Path = "valid", Value = 10.5 },
-            new() { Path = "invalid", Value = "7.5" },  
-            new() { Path = "low", Value = 4 }  
+            new() { Path = "invalid", Value = "7.5" },
+            new() { Path = "low", Value = 4 }
         };
 
         var table = RunQuery(query, entities);
 
-        
+
         Assert.AreEqual(1, table.Count);
         var paths = table.Select(row => (string)row[0]).ToList();
         CollectionAssert.Contains(paths, "valid");
@@ -966,13 +965,13 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var table = RunQuery(query, entities);
 
         Assert.AreEqual(3, table.Count);
-        
+
         var ageRow = table.First(row => (string)row[0] == "age");
         Assert.AreEqual(35, Convert.ToInt32(ageRow[1]));
-        
+
         var nameRow = table.First(row => (string)row[0] == "name");
         Assert.AreEqual("John", nameRow[1]);
-        
+
         var scoreRow = table.First(row => (string)row[0] == "score");
         Assert.AreEqual(95, Convert.ToInt32(scoreRow[1]));
     }
@@ -997,13 +996,13 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var table = RunQuery(query, entities);
 
         Assert.AreEqual(3, table.Count);
-        
+
         var largeRow = table.First(row => (string)row[0] == "large");
         Assert.AreEqual(9223372036854775807L, Convert.ToInt64(largeRow[1]));
-        
+
         var textRow = table.First(row => (string)row[0] == "text");
         Assert.AreEqual("Data", textRow[1]);
-        
+
         var smallRow = table.First(row => (string)row[0] == "small");
         Assert.AreEqual(42, Convert.ToInt32(smallRow[1]));
     }
@@ -1028,13 +1027,13 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var table = RunQuery(query, entities);
 
         Assert.AreEqual(3, table.Count);
-        
+
         var priceRow = table.First(row => (string)row[0] == "price");
         Assert.AreEqual(99.99m, Convert.ToDecimal(priceRow[1]));
-        
+
         var nameRow = table.First(row => (string)row[0] == "name");
         Assert.AreEqual("Product", nameRow[1]);
-        
+
         var quantityRow = table.First(row => (string)row[0] == "quantity");
         Assert.AreEqual(10, Convert.ToInt32(quantityRow[1]));
     }
@@ -1059,13 +1058,13 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var table = RunQuery(query, entities);
 
         Assert.AreEqual(3, table.Count);
-        
+
         var statusRow = table.First(row => (string)row[0] == "status");
         Assert.AreEqual("Active", statusRow[1]);
-        
+
         var countRow = table.First(row => (string)row[0] == "count");
         Assert.AreEqual(42, Convert.ToInt32(countRow[1]));
-        
+
         var amountRow = table.First(row => (string)row[0] == "amount");
         Assert.AreEqual(123.45m, Convert.ToDecimal(amountRow[1]));
     }
@@ -1094,16 +1093,16 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var table = RunQuery(query, entities);
 
         Assert.AreEqual(4, table.Count);
-        
+
         var intRow = table.First(row => (string)row[0] == "int");
         Assert.AreEqual(100, Convert.ToInt32(intRow[1]));
-        
+
         var stringRow = table.First(row => (string)row[0] == "string");
         Assert.AreEqual("Text", stringRow[1]);
-        
+
         var decimalRow = table.First(row => (string)row[0] == "decimal");
         Assert.AreEqual(99.99m, Convert.ToDecimal(decimalRow[1]));
-        
+
         var otherRow = table.First(row => (string)row[0] == "other");
         Assert.IsTrue(Convert.ToBoolean(otherRow[1]));
     }
@@ -1127,10 +1126,10 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var table = RunQuery(query, entities);
 
         Assert.AreEqual(2, table.Count);
-        
+
         var bigRow = table.First(row => (string)row[0] == "big");
         Assert.AreEqual(9223372036854775807L, Convert.ToInt64(bigRow[1]));
-        
+
         var smallRow = table.First(row => (string)row[0] == "small");
         Assert.AreEqual(42L, Convert.ToInt64(smallRow[1]));
     }
@@ -1154,10 +1153,10 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var table = RunQuery(query, entities);
 
         Assert.AreEqual(2, table.Count);
-        
+
         var preciseRow = table.First(row => (string)row[0] == "precise");
         Assert.AreEqual(99.99m, Convert.ToDecimal(preciseRow[1]));
-        
+
         var wholeRow = table.First(row => (string)row[0] == "whole");
         Assert.AreEqual(42m, Convert.ToDecimal(wholeRow[1]));
     }
@@ -1181,10 +1180,10 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var table = RunQuery(query, entities);
 
         Assert.AreEqual(2, table.Count);
-        
+
         var textRow = table.First(row => (string)row[0] == "text");
         Assert.AreEqual("Hello", textRow[1]);
-        
+
         var numberRow = table.First(row => (string)row[0] == "number");
         Assert.AreEqual(42, Convert.ToInt32(numberRow[1]));
     }

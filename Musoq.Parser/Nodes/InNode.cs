@@ -4,7 +4,7 @@ namespace Musoq.Parser.Nodes;
 
 public class InNode : BinaryNode
 {
-    public InNode(Node left, ArgsListNode right) 
+    public InNode(Node left, ArgsListNode right)
         : base(left, right)
     {
         Id = CalculateId(this);

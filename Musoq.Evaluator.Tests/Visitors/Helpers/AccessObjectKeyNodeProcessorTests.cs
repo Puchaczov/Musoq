@@ -9,15 +9,16 @@ using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Visitors.Helpers;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
-using Musoq.Parser.Tokens;
 
 namespace Musoq.Evaluator.Tests.Visitors.Helpers;
 
 [TestClass]
 public class AccessObjectKeyNodeProcessorTests
 {
-    private Stack<SyntaxNode> _nodes = null!;
     private AccessObjectKeyNode _accessObjectKeyNode = null!;
+    private Stack<SyntaxNode> _nodes = null!;
+
+    public TestContext TestContext { get; set; }
 
     [TestInitialize]
     public void TestInitialize()
@@ -41,11 +42,11 @@ public class AccessObjectKeyNodeProcessorTests
         Assert.IsNotNull(result);
         Assert.IsNotNull(result.Expression);
         Assert.AreEqual(typeof(SafeArrayAccess).Namespace, result.RequiredNamespace);
-        
+
         // Verify the generated syntax structure
         var invocation = result.Expression as InvocationExpressionSyntax;
         Assert.IsNotNull(invocation);
-        
+
         // Check that it calls SafeArrayAccess.GetIndexedElement
         var memberAccess = invocation.Expression as MemberAccessExpressionSyntax;
         Assert.IsNotNull(memberAccess);
@@ -66,7 +67,7 @@ public class AccessObjectKeyNodeProcessorTests
         // Assert
         var invocation = result.Expression as InvocationExpressionSyntax;
         var arguments = invocation?.ArgumentList.Arguments;
-        
+
         Assert.IsNotNull(arguments);
         Assert.AreEqual(3, arguments.Value.Count);
 
@@ -101,14 +102,14 @@ public class AccessObjectKeyNodeProcessorTests
         // Assert
         Assert.IsNotNull(result);
         Assert.IsNotNull(result.Expression);
-        
+
         var invocation = result.Expression as InvocationExpressionSyntax;
         Assert.IsNotNull(invocation);
-        
+
         // Verify that the complex expression is properly parenthesized
         var firstArg = invocation.ArgumentList.Arguments[0].Expression as MemberAccessExpressionSyntax;
         Assert.IsNotNull(firstArg);
-        
+
         var parenthesizedExp = firstArg.Expression as ParenthesizedExpressionSyntax;
         Assert.IsNotNull(parenthesizedExp);
     }
@@ -128,7 +129,7 @@ public class AccessObjectKeyNodeProcessorTests
         // Assert
         var invocation = result.Expression as InvocationExpressionSyntax;
         var secondArg = invocation?.ArgumentList.Arguments[1].Expression as LiteralExpressionSyntax;
-        
+
         Assert.IsNotNull(secondArg);
         Assert.AreEqual("\"Special@Key#123\"", secondArg.Token.ToString());
     }
@@ -141,14 +142,16 @@ public class AccessObjectKeyNodeProcessorTests
         _nodes.Push(expression);
 
         // Act
-        Assert.Throws<ArgumentNullException>(() => AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(null!, _nodes));
+        Assert.Throws<ArgumentNullException>(() =>
+            AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(null!, _nodes));
     }
 
     [TestMethod]
     public void ProcessAccessObjectKeyNode_NullNodes_ThrowsArgumentNullException()
     {
         // Act
-        Assert.Throws<ArgumentNullException>(() => AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(_accessObjectKeyNode, null!));
+        Assert.Throws<ArgumentNullException>(() =>
+            AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(_accessObjectKeyNode, null!));
     }
 
     [TestMethod]
@@ -157,7 +160,8 @@ public class AccessObjectKeyNodeProcessorTests
         // Arrange - empty stack
 
         // Act
-        Assert.Throws<InvalidOperationException>(() => AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(_accessObjectKeyNode, _nodes));
+        Assert.Throws<InvalidOperationException>(() =>
+            AccessObjectKeyNodeProcessor.ProcessAccessObjectKeyNode(_accessObjectKeyNode, _nodes));
     }
 
     [TestMethod]
@@ -208,10 +212,10 @@ public class AccessObjectKeyNodeProcessorTests
         // Assert
         Assert.IsNotNull(result);
         Assert.IsNotNull(result.Expression);
-        
+
         var invocation = result.Expression as InvocationExpressionSyntax;
         var firstArg = invocation?.ArgumentList.Arguments[0].Expression as MemberAccessExpressionSyntax;
-        
+
         Assert.IsNotNull(firstArg);
         Assert.AreEqual("", firstArg.Name.Identifier.Text);
     }
@@ -232,7 +236,7 @@ public class AccessObjectKeyNodeProcessorTests
         // Assert
         var invocation = result.Expression as InvocationExpressionSyntax;
         var firstArg = invocation?.ArgumentList.Arguments[0].Expression as MemberAccessExpressionSyntax;
-        
+
         Assert.IsNotNull(firstArg);
         Assert.AreEqual(longPropertyName, firstArg.Name.Identifier.Text);
     }
@@ -250,9 +254,7 @@ public class AccessObjectKeyNodeProcessorTests
         // Assert
         var syntaxTree = SyntaxFactory.SyntaxTree(result.Expression);
         var diagnostics = syntaxTree.GetDiagnostics(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(0, diagnostics.Count(d => d.Severity == DiagnosticSeverity.Error));
     }
-
-    public TestContext TestContext { get; set; }
 }

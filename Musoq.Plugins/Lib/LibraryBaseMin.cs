@@ -5,17 +5,19 @@ namespace Musoq.Plugins;
 public partial class LibraryBase
 {
     /// <summary>
-    /// Gets the min value of a given group.
+    ///     Gets the min value of a given group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
     /// <returns>Min of group</returns>
     [AggregationGetMethod]
     public decimal Min([InjectGroup] Group group, string name)
-        => Min(group, name, 0);
+    {
+        return Min(group, name, 0);
+    }
 
     /// <summary>
-    /// Gets the min value of a given group.
+    ///     Gets the min value of a given group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">The name</param>
@@ -29,7 +31,7 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    /// Sets the value of the min group.
+    ///     Sets the value of the min group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -37,10 +39,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetMin([InjectGroup] Group group, string name, byte? value, int parent = 0)
-        => SetMin(group, name, (decimal?)value, parent);
+    {
+        SetMin(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the min group.
+    ///     Sets the value of the min group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -48,10 +52,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetMin([InjectGroup] Group group, string name, sbyte? value, int parent = 0)
-        => SetMin(group, name, (decimal?)value, parent);
+    {
+        SetMin(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the min group.
+    ///     Sets the value of the min group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -59,10 +65,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetMin([InjectGroup] Group group, string name, short? value, int parent = 0)
-        => SetMin(group, name, (decimal?)value, parent);
+    {
+        SetMin(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the min group.
+    ///     Sets the value of the min group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -70,10 +78,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetMin([InjectGroup] Group group, string name, ushort? value, int parent = 0)
-        => SetMin(group, name, (decimal?)value, parent);
+    {
+        SetMin(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the min group.
+    ///     Sets the value of the min group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -81,10 +91,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetMin([InjectGroup] Group group, string name, int? value, int parent = 0)
-        => SetMin(group, name, (decimal?)value, parent);
+    {
+        SetMin(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the min group.
+    ///     Sets the value of the min group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -92,10 +104,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetMin([InjectGroup] Group group, string name, uint? value, int parent = 0)
-        => SetMin(group, name, (decimal?)value, parent);
+    {
+        SetMin(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the min group.
+    ///     Sets the value of the min group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -103,10 +117,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetMin([InjectGroup] Group group, string name, long? value, int parent = 0)
-        => SetMin(group, name, (decimal?)value, parent);
+    {
+        SetMin(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the min group.
+    ///     Sets the value of the min group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -114,10 +130,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetMin([InjectGroup] Group group, string name, ulong? value, int parent = 0)
-        => SetMin(group, name, (decimal?)value, parent);
+    {
+        SetMin(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the min group.
+    ///     Sets the value of the min group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -125,10 +143,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetMin([InjectGroup] Group group, string name, float? value, int parent = 0)
-        => SetMin(group, name, (decimal?)value, parent);
+    {
+        SetMin(group, name, (decimal?)value, parent);
+    }
 
     /// <summary>
-    /// Sets the value of the min group.
+    ///     Sets the value of the min group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
@@ -136,10 +156,12 @@ public partial class LibraryBase
     /// <param name="parent">Which group should be used to store value</param>
     [AggregationSetMethod]
     public void SetMin([InjectGroup] Group group, string name, double? value, int parent = 0)
-        => SetMin(group, name, (decimal?)value, parent);
-        
+    {
+        SetMin(group, name, (decimal?)value, parent);
+    }
+
     /// <summary>
-    /// Sets the value of the min group.
+    ///     Sets the value of the min group.
     /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>

@@ -8,6 +8,8 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class RowNumberTests : BasicEntityTestBase
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void WhenRowNumberSimpleTest_ShouldPass()
     {
@@ -17,24 +19,24 @@ public class RowNumberTests : BasicEntityTestBase
         {
             {
                 "#A", [
-                    new BasicEntity {Country = "Poland"},
-                    new BasicEntity {Country = "Brazil"}
+                    new BasicEntity { Country = "Poland" },
+                    new BasicEntity { Country = "Brazil" }
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count);
-        
+
         var orderedNumbers = table.Select(f => (int)f.Values[0]).OrderBy(f => f).ToList();
-        
+
         Assert.AreEqual(1, orderedNumbers[0]);
         Assert.AreEqual(2, orderedNumbers[1]);
     }
-    
+
     // -- create
     // CREATE TABLE Cities (
     //     City TEXT NOT NULL,
@@ -57,20 +59,20 @@ public class RowNumberTests : BasicEntityTestBase
         {
             {
                 "#A", [
-                    new BasicEntity {Country = "Poland"},
-                    new BasicEntity {Country = "Germany"}
+                    new BasicEntity { Country = "Poland" },
+                    new BasicEntity { Country = "Germany" }
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual(1, table[0].Values[1]);
         Assert.AreEqual(2, table[1].Values[1]);
-        
+
         Assert.AreEqual("Germany", table[0].Values[0]);
         Assert.AreEqual("Poland", table[1].Values[0]);
     }
@@ -84,20 +86,22 @@ public class RowNumberTests : BasicEntityTestBase
         {
             {
                 "#A", [
-                    new BasicEntity {Country = "Poland"},
-                    new BasicEntity {Country = "Germany"},
-                    new BasicEntity {Country = "Poland"}
+                    new BasicEntity { Country = "Poland" },
+                    new BasicEntity { Country = "Germany" },
+                    new BasicEntity { Country = "Poland" }
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Poland" && (int)row.Values[1] == 1), "Expected row with Poland, 1 not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Poland" && (int)row.Values[1] == 2), "Expected row with Poland, 2 not found");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Poland" && (int)row.Values[1] == 1),
+            "Expected row with Poland, 1 not found");
+        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Poland" && (int)row.Values[1] == 2),
+            "Expected row with Poland, 2 not found");
     }
 
     [TestMethod]
@@ -109,23 +113,23 @@ public class RowNumberTests : BasicEntityTestBase
         {
             {
                 "#A", [
-                    new BasicEntity {Country = "Poland"},
-                    new BasicEntity {Country = "Germany"},
-                    new BasicEntity {Country = "Poland"}
+                    new BasicEntity { Country = "Poland" },
+                    new BasicEntity { Country = "Germany" },
+                    new BasicEntity { Country = "Poland" }
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
-        
+
         Assert.AreEqual(2, table[0].Values[1]);
         Assert.AreEqual("Poland", table[0].Values[0]);
     }
-    
+
     // -- create
     //     CREATE TABLE Cities (
     //     City TEXT NOT NULL,
@@ -149,23 +153,23 @@ public class RowNumberTests : BasicEntityTestBase
         {
             {
                 "#A", [
-                    new BasicEntity {Country = "Poland"},
-                    new BasicEntity {Country = "Germany"},
-                    new BasicEntity {Country = "Poland"}
+                    new BasicEntity { Country = "Poland" },
+                    new BasicEntity { Country = "Germany" },
+                    new BasicEntity { Country = "Poland" }
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
-        
+
         Assert.AreEqual(2, table[0].Values[1]);
         Assert.AreEqual("Poland", table[0].Values[0]);
     }
-    
+
     // -- create
     // CREATE TABLE Cities (
     //     City TEXT NOT NULL,
@@ -189,22 +193,20 @@ public class RowNumberTests : BasicEntityTestBase
         {
             {
                 "#A", [
-                    new BasicEntity {Country = "Poland"},
-                    new BasicEntity {Country = "Germany"},
-                    new BasicEntity {Country = "Poland"}
+                    new BasicEntity { Country = "Poland" },
+                    new BasicEntity { Country = "Germany" },
+                    new BasicEntity { Country = "Poland" }
                 ]
             }
         };
-        
+
         var vm = CreateAndRunVirtualMachine(query, sources);
-        
+
         var table = vm.Run(TestContext.CancellationToken);
-        
+
         Assert.AreEqual(1, table.Count);
-        
+
         Assert.AreEqual(1, table[0].Values[1]);
         Assert.AreEqual("Germany", table[0].Values[0]);
     }
-
-    public TestContext TestContext { get; set; }
 }
