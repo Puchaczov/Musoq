@@ -478,6 +478,7 @@ public class PluginsAttributesTests
 
     #endregion
 
+    [BindableClass]
     private sealed class AttributeTargetsFixture
     {
         [BindablePropertyAsTable]
