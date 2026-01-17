@@ -5,14 +5,9 @@ using System.Text;
 namespace Musoq.Evaluator.Tables;
 
 [DebuggerDisplay("{ToString()}")]
-public class GroupKey
+public class GroupKey(params object[] values)
 {
-    public readonly object[] Values;
-
-    public GroupKey(params object[] values)
-    {
-        Values = values;
-    }
+    public readonly object[] Values = values;
 
     public bool Equals(GroupKey other)
     {
@@ -51,7 +46,7 @@ public class GroupKey
             key.Append($"{value},");
         }
 
-        value = Values[Values.Length - 1] == null ? "null" : Values[Values.Length - 1].ToString();
+        value = Values[^1] == null ? "null" : Values[^1].ToString();
         key.Append(value);
 
         return key.ToString();
@@ -105,7 +100,7 @@ public class GroupKey
                 continue;
             }
 
-            if (f == null && s != null)
+            if (f == null)
             {
                 areEqual = false;
                 continue;

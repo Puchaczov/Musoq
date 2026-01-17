@@ -821,11 +821,8 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void PercentRank_WhenValueNull_ReturnsNull()
     {
-        // Due to generic constraints (T : IComparable<T>), we can't pass nullable types directly
-        // The null check in the method handles null window and value scenarios
-        // Testing with a reference type that can be null
-        string?[] window = ["a", "b", "c"];
-        Assert.IsNull(Library.PercentRank<string>(window, null));
+        string[] window = ["a", "b", "c"];
+        Assert.IsNull(Library.PercentRank(window, null));
     }
 
     [TestMethod]

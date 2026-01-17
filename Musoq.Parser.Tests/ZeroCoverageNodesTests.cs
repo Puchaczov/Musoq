@@ -386,15 +386,14 @@ public class ZeroCoverageNodesTests
     {
         // Arrange
         var table = "users";
-        var negate = true;
         var keys = new[] { "id", "name" };
         
         // Act
-        var node = new ShouldBePresentInTheTable(table, negate, keys);
+        var node = new ShouldBePresentInTheTable(table, true, keys);
         
         // Assert
         Assert.AreEqual(table, node.Table);
-        Assert.AreEqual(negate, node.ExpectedResult);
+        Assert.IsTrue(node.ExpectedResult);
         Assert.HasCount(2, node.Keys);
     }
     
