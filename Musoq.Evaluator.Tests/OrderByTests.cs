@@ -1001,7 +1001,6 @@ table.Count(row =>
     }
 
     [TestMethod]
-    [Ignore("DISTINCT keyword conflicts with column name resolution")]
     public void WhenOrderByDescWithDistinct_ShouldWork()
     {
         var query = @"select distinct Country from #A.Entities() order by Country desc";

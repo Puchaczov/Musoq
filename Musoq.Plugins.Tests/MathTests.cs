@@ -617,5 +617,490 @@ public class MathTests : LibraryBaseBaseTests
         Assert.IsFalse(LibraryBase.IsBetweenExclusive(10.0m, 1.0m, 10.0m));
     }
 
+    [TestMethod]
+    public void IsBetweenExclusive_Decimal_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.IsBetweenExclusive((decimal?)null, 1.0m, 10.0m));
+        Assert.IsNull(LibraryBase.IsBetweenExclusive(5.0m, (decimal?)null, 10.0m));
+        Assert.IsNull(LibraryBase.IsBetweenExclusive(5.0m, 1.0m, (decimal?)null));
+    }
+
+    [TestMethod]
+    public void IsBetweenExclusive_Int_WhenMinNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.IsBetweenExclusive(5, (int?)null, 10));
+    }
+
+    [TestMethod]
+    public void IsBetweenExclusive_Int_WhenMaxNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.IsBetweenExclusive(5, 1, (int?)null));
+    }
+
+    [TestMethod]
+    public void IsBetween_Long_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.IsBetween((long?)null, 1L, 10L));
+        Assert.IsNull(LibraryBase.IsBetween(5L, (long?)null, 10L));
+        Assert.IsNull(LibraryBase.IsBetween(5L, 1L, (long?)null));
+    }
+
+    #endregion
+
+    #region Rand Tests
+
+    [TestMethod]
+    public void Rand_ReturnsInteger()
+    {
+        var result = Library.Rand();
+        Assert.IsGreaterThanOrEqualTo(0, result);
+    }
+
+    [TestMethod]
+    public void Rand_WithRange_ReturnsValueInRange()
+    {
+        var result = Library.Rand(5, 10);
+        Assert.IsNotNull(result);
+        Assert.IsTrue(result >= 5 && result < 10);
+    }
+
+    [TestMethod]
+    public void Rand_WithMinNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Rand(null, 10));
+    }
+
+    [TestMethod]
+    public void Rand_WithMaxNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Rand(5, null));
+    }
+
+    [TestMethod]
+    public void Rand_WithBothNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Rand(null, null));
+    }
+
+    #endregion
+
+    #region Pow Tests
+
+    [TestMethod]
+    public void Pow_Decimal_WhenXNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Pow((decimal?)null, 2m));
+    }
+
+    [TestMethod]
+    public void Pow_Decimal_WhenYNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Pow(2m, (decimal?)null));
+    }
+
+    [TestMethod]
+    public void Pow_Decimal_WhenBothNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Pow((decimal?)null, (decimal?)null));
+    }
+
+    [TestMethod]
+    public void Pow_Decimal_ValidValues_ReturnsCorrectResult()
+    {
+        var result = Library.Pow(2m, 3m);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(8.0, result.Value, 0.0001);
+    }
+
+    [TestMethod]
+    public void Pow_Double_WhenXNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Pow((double?)null, 2.0));
+    }
+
+    [TestMethod]
+    public void Pow_Double_WhenYNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Pow(2.0, (double?)null));
+    }
+
+    [TestMethod]
+    public void Pow_Double_WhenBothNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Pow((double?)null, (double?)null));
+    }
+
+    [TestMethod]
+    public void Pow_Double_ValidValues_ReturnsCorrectResult()
+    {
+        var result = Library.Pow(2.0, 3.0);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(8.0, result);
+    }
+
+    [TestMethod]
+    public void Pow_Double_Zero_ReturnsOne()
+    {
+        var result = Library.Pow(5.0, 0.0);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(1.0, result);
+    }
+
+    [TestMethod]
+    public void Pow_Double_Fractional_ReturnsCorrectResult()
+    {
+        var result = Library.Pow(4.0, 0.5);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(2.0, result.Value, 0.0001);
+    }
+
+    #endregion
+
+    #region Sqrt Tests
+
+    [TestMethod]
+    public void Sqrt_Decimal_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Sqrt((decimal?)null));
+    }
+
+    [TestMethod]
+    public void Sqrt_Decimal_ValidValue_ReturnsCorrectResult()
+    {
+        var result = Library.Sqrt(4m);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(2.0, result.Value, 0.0001);
+    }
+
+    [TestMethod]
+    public void Sqrt_Decimal_Zero_ReturnsZero()
+    {
+        var result = Library.Sqrt(0m);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(0.0, result);
+    }
+
+    [TestMethod]
+    public void Sqrt_Double_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Sqrt((double?)null));
+    }
+
+    [TestMethod]
+    public void Sqrt_Double_ValidValue_ReturnsCorrectResult()
+    {
+        var result = Library.Sqrt(9.0);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(3.0, result.Value, 0.0001);
+    }
+
+    [TestMethod]
+    public void Sqrt_Long_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Sqrt((long?)null));
+    }
+
+    [TestMethod]
+    public void Sqrt_Long_ValidValue_ReturnsCorrectResult()
+    {
+        var result = Library.Sqrt(16L);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(4.0, result.Value, 0.0001);
+    }
+
+    #endregion
+
+    #region PercentRank Tests
+
+    [TestMethod]
+    public void PercentRank_WhenWindowNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.PercentRank<int>(null, 5));
+    }
+
+    [TestMethod]
+    public void PercentRank_WhenValueNull_ReturnsNull()
+    {
+        // Due to generic constraints (T : IComparable<T>), we can't pass nullable types directly
+        // The null check in the method handles null window and value scenarios
+        // Testing with a reference type that can be null
+        string?[] window = ["a", "b", "c"];
+        Assert.IsNull(Library.PercentRank<string>(window, null));
+    }
+
+    [TestMethod]
+    public void PercentRank_ValidValues_ReturnsCorrectResult()
+    {
+        var window = new[] { 1, 2, 3, 4, 5 };
+        var result = Library.PercentRank(window, 3);
+        Assert.IsNotNull(result);
+    }
+
+    #endregion
+
+    #region Log Tests
+
+    [TestMethod]
+    public void Log_WhenBaseNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Log((decimal?)null, 100m));
+    }
+
+    [TestMethod]
+    public void Log_WhenValueNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Log(10m, (decimal?)null));
+    }
+
+    [TestMethod]
+    public void Log_WhenBaseIsZero_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Log(0m, 100m));
+    }
+
+    [TestMethod]
+    public void Log_WhenBaseIsOne_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Log(1m, 100m));
+    }
+
+    [TestMethod]
+    public void Log_WhenBaseIsNegative_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Log(-10m, 100m));
+    }
+
+    [TestMethod]
+    public void Log_WhenValueIsZero_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Log(10m, 0m));
+    }
+
+    [TestMethod]
+    public void Log_WhenValueIsNegative_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Log(10m, -100m));
+    }
+
+    [TestMethod]
+    public void Log_ValidValues_ReturnsCorrectResult()
+    {
+        var result = LibraryBase.Log(10m, 100m);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(2.0, result.Value, 0.0001);
+    }
+
+    [TestMethod]
+    public void Log_Base2_ReturnsCorrectResult()
+    {
+        var result = LibraryBase.Log(2m, 8m);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(3.0, result.Value, 0.0001);
+    }
+
+    #endregion
+
+    #region Sin Tests
+
+    [TestMethod]
+    public void Sin_Decimal_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Sin((decimal?)null));
+    }
+
+    [TestMethod]
+    public void Sin_Decimal_Zero_ReturnsZero()
+    {
+        var result = LibraryBase.Sin(0m);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(0m, result);
+    }
+
+    [TestMethod]
+    public void Sin_Double_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Sin((double?)null));
+    }
+
+    [TestMethod]
+    public void Sin_Double_Zero_ReturnsZero()
+    {
+        var result = LibraryBase.Sin(0.0);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(0.0, result);
+    }
+
+    [TestMethod]
+    public void Sin_Double_PiOver2_ReturnsOne()
+    {
+        var result = LibraryBase.Sin(System.Math.PI / 2);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(1.0, result.Value, 0.0001);
+    }
+
+    [TestMethod]
+    public void Sin_Float_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Sin((float?)null));
+    }
+
+    [TestMethod]
+    public void Sin_Float_Zero_ReturnsZero()
+    {
+        var result = LibraryBase.Sin(0f);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(0f, result);
+    }
+
+    #endregion
+
+    #region Cos Tests
+
+    [TestMethod]
+    public void Cos_Decimal_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Cos((decimal?)null));
+    }
+
+    [TestMethod]
+    public void Cos_Decimal_Zero_ReturnsOne()
+    {
+        var result = LibraryBase.Cos(0m);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(1m, result);
+    }
+
+    [TestMethod]
+    public void Cos_Double_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Cos((double?)null));
+    }
+
+    [TestMethod]
+    public void Cos_Double_Zero_ReturnsOne()
+    {
+        var result = LibraryBase.Cos(0.0);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(1.0, result);
+    }
+
+    [TestMethod]
+    public void Cos_Double_Pi_ReturnsNegativeOne()
+    {
+        var result = LibraryBase.Cos(System.Math.PI);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(-1.0, result.Value, 0.0001);
+    }
+
+    [TestMethod]
+    public void Cos_Float_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Cos((float?)null));
+    }
+
+    [TestMethod]
+    public void Cos_Float_Zero_ReturnsOne()
+    {
+        var result = LibraryBase.Cos(0f);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(1f, result);
+    }
+
+    #endregion
+
+    #region Additional Clamp Tests
+
+    [TestMethod]
+    public void Clamp_Long_WhenValueNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Clamp((long?)null, 0L, 10L));
+    }
+
+    [TestMethod]
+    public void Clamp_Long_WhenMinNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Clamp(5L, (long?)null, 10L));
+    }
+
+    [TestMethod]
+    public void Clamp_Long_WhenMaxNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Clamp(5L, 0L, (long?)null));
+    }
+
+    [TestMethod]
+    public void Clamp_Long_ValueInRange_ReturnsValue()
+    {
+        Assert.AreEqual(5L, LibraryBase.Clamp(5L, 0L, 10L));
+    }
+
+    [TestMethod]
+    public void Clamp_Long_ValueBelowMin_ReturnsMin()
+    {
+        Assert.AreEqual(0L, LibraryBase.Clamp(-5L, 0L, 10L));
+    }
+
+    [TestMethod]
+    public void Clamp_Long_ValueAboveMax_ReturnsMax()
+    {
+        Assert.AreEqual(10L, LibraryBase.Clamp(15L, 0L, 10L));
+    }
+
+    [TestMethod]
+    public void Clamp_Decimal_WhenValueNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Clamp((decimal?)null, 0m, 10m));
+    }
+
+    [TestMethod]
+    public void Clamp_Decimal_WhenMinNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Clamp(5m, (decimal?)null, 10m));
+    }
+
+    [TestMethod]
+    public void Clamp_Decimal_WhenMaxNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Clamp(5m, 0m, (decimal?)null));
+    }
+
+    [TestMethod]
+    public void Clamp_Double_WhenValueNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Clamp((double?)null, 0.0, 10.0));
+    }
+
+    [TestMethod]
+    public void Clamp_Double_WhenMinNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Clamp(5.0, (double?)null, 10.0));
+    }
+
+    [TestMethod]
+    public void Clamp_Double_WhenMaxNull_ReturnsNull()
+    {
+        Assert.IsNull(LibraryBase.Clamp(5.0, 0.0, (double?)null));
+    }
+
+    #endregion
+
+    #region Additional Tan Tests
+
+    [TestMethod]
+    public void Tan_Decimal_PiOver4_ReturnsOne()
+    {
+        var result = LibraryBase.Tan((decimal)(System.Math.PI / 4));
+        Assert.IsNotNull(result);
+        Assert.AreEqual(1m, System.Math.Round(result.Value, 0));
+    }
+
+    [TestMethod]
+    public void Tan_Double_PiOver4_ReturnsOne()
+    {
+        var result = LibraryBase.Tan(System.Math.PI / 4);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(1.0, result.Value, 0.0001);
+    }
+
     #endregion
 }

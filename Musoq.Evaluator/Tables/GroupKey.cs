@@ -19,11 +19,25 @@ public class GroupKey
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
 
-        var equals = true;
+        if (Values.Length != other.Values.Length)
+            return false;
 
-        for (var i = 0; i < Values.Length && equals; i++) equals &= Values[i].Equals(other.Values[i]);
+        for (var i = 0; i < Values.Length; i++)
+        {
+            var thisValue = Values[i];
+            var otherValue = other.Values[i];
 
-        return equals;
+            if (thisValue == null && otherValue == null)
+                continue;
+
+            if (thisValue == null || otherValue == null)
+                return false;
+
+            if (!thisValue.Equals(otherValue))
+                return false;
+        }
+
+        return true;
     }
 
     public override string ToString()

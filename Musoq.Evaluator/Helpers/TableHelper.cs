@@ -10,7 +10,11 @@ public static class TableHelper
     public static Table OrderBy(this Table table, Func<List<Row>, List<Row>> orderByFunc)
     {
         Table newTable = new Table(table.Name, table.Columns.ToArray());
-        var orderedList = orderByFunc(table.Rows);
+        
+        // Access rows via the public accessor (table[i]) or via enumeration 
+        // to ensure pending rows are flushed before ordering
+        var rows = table.ToList();
+        var orderedList = orderByFunc(rows);
 
         foreach (var row in orderedList)
             newTable.Add(row);

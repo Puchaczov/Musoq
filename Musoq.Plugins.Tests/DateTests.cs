@@ -591,4 +591,341 @@ public class DateTests : LibraryBaseBaseTests
     }
 
     #endregion
+
+    #region GetDate Tests
+
+    [TestMethod]
+    public void GetDate_ReturnsCurrentDate()
+    {
+        var before = DateTimeOffset.Now;
+        var result = Library.GetDate();
+        var after = DateTimeOffset.Now;
+
+        Assert.IsNotNull(result);
+        Assert.IsTrue(result >= before);
+        Assert.IsTrue(result <= after);
+    }
+
+    [TestMethod]
+    public void UtcGetDate_ReturnsCurrentUtcDate()
+    {
+        var before = DateTimeOffset.UtcNow;
+        var result = Library.UtcGetDate();
+        var after = DateTimeOffset.UtcNow;
+
+        Assert.IsNotNull(result);
+        Assert.IsTrue(result >= before);
+        Assert.IsTrue(result <= after);
+    }
+
+    #endregion
+
+    #region Time Components Tests
+
+    [TestMethod]
+    public void Hour_WhenProvided_ReturnsHour()
+    {
+        var dto = new DateTimeOffset(2024, 6, 15, 14, 30, 45, TimeSpan.Zero);
+        Assert.AreEqual(14, Library.Hour(dto));
+    }
+
+    [TestMethod]
+    public void Hour_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Hour(null));
+    }
+
+    [TestMethod]
+    public void Minute_WhenProvided_ReturnsMinute()
+    {
+        var dto = new DateTimeOffset(2024, 6, 15, 14, 30, 45, TimeSpan.Zero);
+        Assert.AreEqual(30, Library.Minute(dto));
+    }
+
+    [TestMethod]
+    public void Minute_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Minute(null));
+    }
+
+    [TestMethod]
+    public void Second_WhenProvided_ReturnsSecond()
+    {
+        var dto = new DateTimeOffset(2024, 6, 15, 14, 30, 45, TimeSpan.Zero);
+        Assert.AreEqual(45, Library.Second(dto));
+    }
+
+    [TestMethod]
+    public void Second_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Second(null));
+    }
+
+    [TestMethod]
+    public void Milliseconds_WhenProvided_ReturnsMilliseconds()
+    {
+        var dto = new DateTimeOffset(2024, 6, 15, 14, 30, 45, 123, TimeSpan.Zero);
+        Assert.AreEqual(123, Library.Milliseconds(dto));
+    }
+
+    [TestMethod]
+    public void Milliseconds_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.Milliseconds(null));
+    }
+
+    [TestMethod]
+    public void DayOfWeek_WhenProvided_ReturnsDayOfWeek()
+    {
+        var dto = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero); // Saturday
+        Assert.AreEqual((int)System.DayOfWeek.Saturday, Library.DayOfWeek(dto));
+    }
+
+    [TestMethod]
+    public void DayOfWeek_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.DayOfWeek(null));
+    }
+
+    #endregion
+
+    #region AddDays Tests
+
+    [TestMethod]
+    public void AddDays_DateTime_WhenProvided_AddsDays()
+    {
+        var date = new DateTime(2024, 6, 15);
+        var result = Library.AddDays(date, 5);
+        Assert.AreEqual(new DateTime(2024, 6, 20), result);
+    }
+
+    [TestMethod]
+    public void AddDays_DateTime_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.AddDays((DateTime?)null, 5));
+    }
+
+    [TestMethod]
+    public void AddDays_DateTimeOffset_WhenProvided_AddsDays()
+    {
+        var date = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero);
+        var result = Library.AddDays(date, 5);
+        Assert.AreEqual(new DateTimeOffset(2024, 6, 20, 0, 0, 0, TimeSpan.Zero), result);
+    }
+
+    [TestMethod]
+    public void AddDays_DateTimeOffset_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.AddDays((DateTimeOffset?)null, 5));
+    }
+
+    #endregion
+
+    #region ExtractTimeSpan Tests
+
+    [TestMethod]
+    public void ExtractTimeSpan_WhenProvided_ReturnsTimeOfDay()
+    {
+        var dto = new DateTimeOffset(2024, 6, 15, 14, 30, 45, TimeSpan.Zero);
+        var result = Library.ExtractTimeSpan(dto);
+        Assert.AreEqual(new TimeSpan(14, 30, 45), result);
+    }
+
+    [TestMethod]
+    public void ExtractTimeSpan_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.ExtractTimeSpan(null));
+    }
+
+    #endregion
+
+    #region AddHours/AddMinutes/AddSeconds DateTimeOffset Tests
+
+    [TestMethod]
+    public void AddHours_DateTimeOffset_WhenProvided_AddsHours()
+    {
+        var date = new DateTimeOffset(2024, 6, 15, 10, 0, 0, TimeSpan.Zero);
+        var result = Library.AddHours(date, 5);
+        Assert.AreEqual(new DateTimeOffset(2024, 6, 15, 15, 0, 0, TimeSpan.Zero), result);
+    }
+
+    [TestMethod]
+    public void AddHours_DateTimeOffset_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.AddHours((DateTimeOffset?)null, 5));
+    }
+
+    [TestMethod]
+    public void AddMinutes_DateTimeOffset_WhenProvided_AddsMinutes()
+    {
+        var date = new DateTimeOffset(2024, 6, 15, 10, 0, 0, TimeSpan.Zero);
+        var result = Library.AddMinutes(date, 30);
+        Assert.AreEqual(new DateTimeOffset(2024, 6, 15, 10, 30, 0, TimeSpan.Zero), result);
+    }
+
+    [TestMethod]
+    public void AddMinutes_DateTimeOffset_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.AddMinutes((DateTimeOffset?)null, 30));
+    }
+
+    [TestMethod]
+    public void AddSeconds_DateTimeOffset_WhenProvided_AddsSeconds()
+    {
+        var date = new DateTimeOffset(2024, 6, 15, 10, 0, 0, TimeSpan.Zero);
+        var result = Library.AddSeconds(date, 45);
+        Assert.AreEqual(new DateTimeOffset(2024, 6, 15, 10, 0, 45, TimeSpan.Zero), result);
+    }
+
+    [TestMethod]
+    public void AddSeconds_DateTimeOffset_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.AddSeconds((DateTimeOffset?)null, 45));
+    }
+
+    #endregion
+
+    #region IsWeekend/IsWeekday Additional Tests
+
+    [TestMethod]
+    public void IsWeekend_DateTime_WhenSaturday2024_ReturnsTrue()
+    {
+        var date = new DateTime(2024, 6, 15); // Saturday
+        Assert.IsTrue(Library.IsWeekend(date));
+    }
+
+    [TestMethod]
+    public void IsWeekend_DateTime_WhenSunday2024_ReturnsTrue()
+    {
+        var date = new DateTime(2024, 6, 16); // Sunday
+        Assert.IsTrue(Library.IsWeekend(date));
+    }
+
+    [TestMethod]
+    public void IsWeekend_DateTime_WhenMonday2024_ReturnsFalse()
+    {
+        var date = new DateTime(2024, 6, 17); // Monday
+        Assert.IsFalse(Library.IsWeekend(date));
+    }
+
+    [TestMethod]
+    public void IsWeekend_DateTimeOffset_WhenSaturday2024_ReturnsTrue()
+    {
+        var date = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero); // Saturday
+        Assert.IsTrue(Library.IsWeekend(date));
+    }
+
+    [TestMethod]
+    public void IsWeekday_DateTime_WhenMonday2024_ReturnsTrue()
+    {
+        var date = new DateTime(2024, 6, 17); // Monday
+        Assert.IsTrue(Library.IsWeekday(date));
+    }
+
+    [TestMethod]
+    public void IsWeekday_DateTime_WhenSaturday2024_ReturnsFalse()
+    {
+        var date = new DateTime(2024, 6, 15); // Saturday
+        Assert.IsFalse(Library.IsWeekday(date));
+    }
+
+    [TestMethod]
+    public void IsWeekday_DateTimeOffset_WhenMonday2024_ReturnsTrue()
+    {
+        var date = new DateTimeOffset(2024, 6, 17, 0, 0, 0, TimeSpan.Zero); // Monday
+        Assert.IsTrue(Library.IsWeekday(date));
+    }
+
+    #endregion
+
+    #region DateDiff Tests
+
+    [TestMethod]
+    public void DateDiffInDays_DateTime_CalculatesDifference()
+    {
+        var date1 = new DateTime(2024, 6, 10);
+        var date2 = new DateTime(2024, 6, 15);
+        Assert.AreEqual(5, Library.DateDiffInDays(date1, date2));
+    }
+
+    [TestMethod]
+    public void DateDiffInDays_DateTime_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.DateDiffInDays((DateTime?)null, new DateTime(2024, 6, 15)));
+        Assert.IsNull(Library.DateDiffInDays(new DateTime(2024, 6, 15), (DateTime?)null));
+    }
+
+    [TestMethod]
+    public void DateDiffInDays_DateTimeOffset_CalculatesDifference()
+    {
+        var date1 = new DateTimeOffset(2024, 6, 10, 0, 0, 0, TimeSpan.Zero);
+        var date2 = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero);
+        Assert.AreEqual(5, Library.DateDiffInDays(date1, date2));
+    }
+
+    [TestMethod]
+    public void DateDiffInHours_DateTime_CalculatesDifference()
+    {
+        var date1 = new DateTime(2024, 6, 15, 10, 0, 0);
+        var date2 = new DateTime(2024, 6, 15, 15, 0, 0);
+        Assert.AreEqual(5, Library.DateDiffInHours(date1, date2));
+    }
+
+    [TestMethod]
+    public void DateDiffInHours_DateTime_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.DateDiffInHours((DateTime?)null, new DateTime(2024, 6, 15)));
+    }
+
+    [TestMethod]
+    public void DateDiffInMinutes_DateTime_CalculatesDifference()
+    {
+        var date1 = new DateTime(2024, 6, 15, 10, 0, 0);
+        var date2 = new DateTime(2024, 6, 15, 10, 30, 0);
+        Assert.AreEqual(30, Library.DateDiffInMinutes(date1, date2));
+    }
+
+    [TestMethod]
+    public void DateDiffInMinutes_DateTime_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.DateDiffInMinutes((DateTime?)null, new DateTime(2024, 6, 15)));
+    }
+
+    [TestMethod]
+    public void DateDiffInSeconds_DateTime_CalculatesDifference()
+    {
+        var date1 = new DateTime(2024, 6, 15, 10, 0, 0);
+        var date2 = new DateTime(2024, 6, 15, 10, 0, 45);
+        Assert.AreEqual(45, Library.DateDiffInSeconds(date1, date2));
+    }
+
+    [TestMethod]
+    public void DateDiffInSeconds_DateTime_WhenNull_ReturnsNull()
+    {
+        Assert.IsNull(Library.DateDiffInSeconds((DateTime?)null, new DateTime(2024, 6, 15)));
+    }
+
+    #endregion
+
+    #region WeekOfYear Additional Tests
+
+    [TestMethod]
+    public void WeekOfYear_DateTime2024_ReturnsWeekNumber()
+    {
+        var date = new DateTime(2024, 1, 15);
+        var result = Library.WeekOfYear(date);
+        Assert.IsNotNull(result);
+        Assert.IsTrue(result >= 1 && result <= 53);
+    }
+
+    [TestMethod]
+    public void WeekOfYear_DateTimeOffset2024_ReturnsWeekNumber()
+    {
+        var date = new DateTimeOffset(2024, 1, 15, 0, 0, 0, TimeSpan.Zero);
+        var result = Library.WeekOfYear(date);
+        Assert.IsNotNull(result);
+        Assert.IsTrue(result >= 1 && result <= 53);
+    }
+
+    #endregion
 }
