@@ -258,7 +258,7 @@ public class DescStatementTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // Should only return methods from schema A
+        
         Assert.IsGreaterThan(0, table.Count, "Should return methods");
         Assert.AreEqual(1, table.Columns.Count(), "Should have 1 column");
     }
@@ -785,10 +785,10 @@ signature, $"Method signature should include return type and method name: {signa
         
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
         
-        // Verify we get library methods (like Trim, Substring, etc.)
+        
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(")), "Should contain library methods");
         
-        // Check descriptions are present
+        
         foreach (var row in table)
         {
             var description = (string)row[1];

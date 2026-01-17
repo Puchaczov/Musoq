@@ -383,30 +383,30 @@ table.Count(row =>
 
         var expectedPairs = new List<(double First, double Second)>
         {
-            // Pairs for first value = 1
+            
             (1.0, 1.1),
     
-            // Pairs for first value = 2
+            
             (2.0, 2.1),
             (2.0, 2.2),
             (2.0, 3.3),
     
-            // Pairs for first value = 3
+            
             (3.0, 2.1),
             (3.0, 2.2),
             (3.0, 3.3),
     
-            // Pairs for first value = 4
+            
             (4.0, 4.1),
             (4.0, 5.1),
             (4.0, 6.1),
     
-            // Pairs for first value = 5
+            
             (5.0, 4.1),
             (5.0, 5.1),
             (5.0, 6.1),
     
-            // Pairs for first value = 6
+            
             (6.0, 4.1),
             (6.0, 5.1),
             (6.0, 6.1)
@@ -415,7 +415,7 @@ table.Count(row =>
         foreach (var expected in expectedPairs)
         {
             var matchCount = actualPairs.Count(actual =>
-                Math.Abs(actual.First - expected.First) < 0.0001 &&  // Using small epsilon for double comparison
+                Math.Abs(actual.First - expected.First) < 0.0001 &&  
                 Math.Abs(actual.Second - expected.Second) < 0.0001
             );
     

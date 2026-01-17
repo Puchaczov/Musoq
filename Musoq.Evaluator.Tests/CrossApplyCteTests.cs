@@ -256,26 +256,26 @@ select [a.Name], [b.Value] from p";
 
         foreach (var name in new[] { "Name1", "Name2", "Name3" })
         {
-            // Get expected skills for this name
+            
             var expectedSkills = expectedPairs
                 .Where(p => p.Name == name)
                 .Select(p => p.Skill)
                 .ToList();
 
-            // Get actual skills for this name
+            
             var actualSkills = actualPairs
                 .Where(p => (string) p.Name == name)
                 .Select(p => p.Skill)
                 .ToList();
 
-            // Compare the skills
+            
             CollectionAssert.AreEquivalent(
                 expectedSkills,
                 actualSkills,
                 $"Skills for {name} do not match expected values"
             );
 
-            // Verify count of appearances
+            
             Assert.AreEqual(3, actualPairs.Count(p => (string)p.Name == name),
                 $"{name} should appear exactly 3 times");
         }

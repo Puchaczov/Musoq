@@ -1,4 +1,4 @@
-﻿using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.Tables;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +11,8 @@ public static class TableHelper
     {
         Table newTable = new Table(table.Name, table.Columns.ToArray());
         
-        // Access rows via the public accessor (table[i]) or via enumeration 
-        // to ensure pending rows are flushed before ordering
+        
+        
         var rows = table.ToList();
         var orderedList = orderByFunc(rows);
 

@@ -163,7 +163,7 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
         }
         catch (VisitorException)
         {
-            // Re-throw visitor exceptions as-is
+            
             throw;
         }
         catch (Exception ex)
@@ -196,7 +196,7 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
         }
         catch (VisitorException)
         {
-            // Re-throw visitor exceptions as-is
+            
             throw;
         }
         catch (Exception ex)

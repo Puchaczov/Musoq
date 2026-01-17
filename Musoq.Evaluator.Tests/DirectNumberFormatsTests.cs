@@ -102,25 +102,25 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void OperatorPrecedence_MultiplicationFirst()
         {
-            TestMethodTemplate("0x2 + 0x3 * 0x4", 14L); // 2 + (3 * 4) = 14
+            TestMethodTemplate("0x2 + 0x3 * 0x4", 14L); 
         }
         
         [TestMethod]
         public void OperatorPrecedence_DivisionFirst()
         {
-            TestMethodTemplate("0x10 + 0x8 / 0x2", 20L); // 16 + (8 / 2) = 20
+            TestMethodTemplate("0x10 + 0x8 / 0x2", 20L); 
         }
         
         [TestMethod]
         public void Parentheses_OverridePrecedence()
         {
-            TestMethodTemplate("(0x2 + 0x3) * 0x4", 20L); // (2 + 3) * 4 = 20
+            TestMethodTemplate("(0x2 + 0x3) * 0x4", 20L); 
         }
         
         [TestMethod]
         public void Associativity_LeftToRight()
         {
-            TestMethodTemplate("0x10 - 0x5 - 0x2", 9L); // ((16 - 5) - 2) = 9
+            TestMethodTemplate("0x10 - 0x5 - 0x2", 9L); 
         }
         
         // Complex nested expressions
@@ -259,7 +259,7 @@ namespace Musoq.Evaluator.Tests
         public void DivisionByZero_ShouldHandleCorrectly()
         {
             // Note: These might throw exceptions or return special values
-            // depending on the implementation. Adjust expectations accordingly.
+            
             try
             {
                 TestMethodTemplate<long?>("0xFF / 0x0", null);
@@ -291,7 +291,7 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void ChainedOperations_MixedFormats()
         {
-            TestMethodTemplate("0xFF + 0b101 + 0o77 + 42 + 1", 366L); // Fixed calculation: 255+5+63+42+1=366
+            TestMethodTemplate("0xFF + 0b101 + 0o77 + 42 + 1", 366L); 
             TestMethodTemplate("0xFF * 0b10 / 0o4 + 1", 128L);
         }
         
@@ -299,15 +299,15 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void PowersOfTwo_AllFormats()
         {
-            TestMethodTemplate("0x1", 1L);   // 2^0
-            TestMethodTemplate("0x2", 2L);   // 2^1
-            TestMethodTemplate("0x4", 4L);   // 2^2
-            TestMethodTemplate("0x8", 8L);   // 2^3
-            TestMethodTemplate("0x10", 16L); // 2^4
-            TestMethodTemplate("0x20", 32L); // 2^5
-            TestMethodTemplate("0x40", 64L); // 2^6
-            TestMethodTemplate("0x80", 128L);// 2^7
-            TestMethodTemplate("0x100", 256L); // 2^8
+            TestMethodTemplate("0x1", 1L);   
+            TestMethodTemplate("0x2", 2L);   
+            TestMethodTemplate("0x4", 4L);   
+            TestMethodTemplate("0x8", 8L);   
+            TestMethodTemplate("0x10", 16L); 
+            TestMethodTemplate("0x20", 32L); 
+            TestMethodTemplate("0x40", 64L); 
+            TestMethodTemplate("0x80", 128L);
+            TestMethodTemplate("0x100", 256L); 
             
             TestMethodTemplate("0b1", 1L);
             TestMethodTemplate("0b10", 2L);
@@ -334,29 +334,29 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void BoundaryValues_MaxSingleDigits()
         {
-            TestMethodTemplate("0xF", 15L);     // Max single hex digit
-            TestMethodTemplate("0b1", 1L);      // Max single binary digit
-            TestMethodTemplate("0o7", 7L);      // Max single octal digit
+            TestMethodTemplate("0xF", 15L);     
+            TestMethodTemplate("0b1", 1L);      
+            TestMethodTemplate("0o7", 7L);      
         }
         
         [TestMethod]
         public void BoundaryValues_Operations()
         {
-            TestMethodTemplate("0xF + 0x1", 16L); // Hex overflow to next digit
-            TestMethodTemplate("0b1 + 0b1", 2L);  // Binary carry
-            TestMethodTemplate("0o7 + 0o1", 8L);  // Octal carry
+            TestMethodTemplate("0xF + 0x1", 16L); 
+            TestMethodTemplate("0b1 + 0b1", 2L);  
+            TestMethodTemplate("0o7 + 0o1", 8L);  
         }
         
         // Comprehensive format equivalence tests
         [TestMethod]
         public void FormatEquivalence_SameValues()
         {
-            // All should equal 15
+            
             TestMethodTemplate("0xF", 15L);
             TestMethodTemplate("0b1111", 15L);
             TestMethodTemplate("0o17", 15L);
             
-            // All should equal 255
+            
             TestMethodTemplate("0xFF", 255L);
             TestMethodTemplate("0b11111111", 255L);
             TestMethodTemplate("0o377", 255L);
@@ -365,60 +365,60 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void FormatEquivalence_ArithmeticResults()
         {
-            // Different representations of same calculation
+            
             TestMethodTemplate("0xF + 0x1", 16L);
             TestMethodTemplate("0b1111 + 0b1", 16L);
             TestMethodTemplate("0o17 + 0o1", 16L);
-            TestMethodTemplate("15 + 1", 16); // Decimal literals return int, not long
+            TestMethodTemplate("15 + 1", 16); 
         }
 
         // Overflow Protection Tests
         [TestMethod]
         public void HexadecimalOverflow_TooLargeForLong()
         {
-            // This hex value is too large for long (more than 16 hex digits)
+            
             Assert.Throws<AstValidationException>(() => TestMethodTemplate("0xFFFFFFFFFFFFFFFF1", 0L));
         }
 
         [TestMethod]
         public void BinaryOverflow_TooLargeForLong()
         {
-            // This binary value has 65 bits (too large for 64-bit long)
+            
             Assert.Throws<AstValidationException>(() => TestMethodTemplate("0b11111111111111111111111111111111111111111111111111111111111111111", 0L));
         }
 
         [TestMethod]
         public void OctalOverflow_TooLargeForLong()
         {
-            // This octal value is too large for long (more than 21 octal digits)
+            
             Assert.Throws<AstValidationException>(() => TestMethodTemplate("0o7777777777777777777777", 0L));
         }
 
         [TestMethod]
         public void MaximumValidValues_HexBinaryOctal()
         {
-            // Test maximum valid values that should work
-            TestMethodTemplate("0x7FFFFFFFFFFFFFFF", 9223372036854775807L); // long.MaxValue in hex
-            TestMethodTemplate("0b111111111111111111111111111111111111111111111111111111111111111", 9223372036854775807L); // long.MaxValue in binary (63 bits)
-            TestMethodTemplate("0o777777777777777777777", 9223372036854775807L); // long.MaxValue in octal
+            
+            TestMethodTemplate("0x7FFFFFFFFFFFFFFF", 9223372036854775807L); 
+            TestMethodTemplate("0b111111111111111111111111111111111111111111111111111111111111111", 9223372036854775807L); 
+            TestMethodTemplate("0o777777777777777777777", 9223372036854775807L); 
         }
 
         [TestMethod]
         public void BoundaryValues_IntToLongTransition()
         {
-            // Test values around int.MaxValue (all return long for consistency)
-            TestMethodTemplate("0x7FFFFFFF", 2147483647L); // int.MaxValue in hex
-            TestMethodTemplate("0x80000000", 2147483648L); // int.MaxValue + 1 in hex
-            TestMethodTemplate("0b1111111111111111111111111111111", 2147483647L); // int.MaxValue in binary (31 bits)
-            TestMethodTemplate("0b10000000000000000000000000000000", 2147483648L); // int.MaxValue + 1 in binary (32 bits)
-            TestMethodTemplate("0o17777777777", 2147483647L); // int.MaxValue in octal
-            TestMethodTemplate("0o20000000000", 2147483648L); // int.MaxValue + 1 in octal
+            
+            TestMethodTemplate("0x7FFFFFFF", 2147483647L); 
+            TestMethodTemplate("0x80000000", 2147483648L); 
+            TestMethodTemplate("0b1111111111111111111111111111111", 2147483647L); 
+            TestMethodTemplate("0b10000000000000000000000000000000", 2147483648L); 
+            TestMethodTemplate("0o17777777777", 2147483647L); 
+            TestMethodTemplate("0o20000000000", 2147483648L); 
         }
 
         [TestMethod]
         public void EdgeCases_ZeroAndOne()
         {
-            // Test edge cases with minimal values
+            
             TestMethodTemplate("0x0", 0L);
             TestMethodTemplate("0b0", 0L);
             TestMethodTemplate("0o0", 0L);
@@ -431,67 +431,67 @@ namespace Musoq.Evaluator.Tests
         [TestMethod]
         public void MinimumValidValues_HexBinaryOctal()
         {
-            // Test minimum valid values (long.MinValue) - these should work
-            TestMethodTemplate("0x8000000000000000", -9223372036854775808L); // long.MinValue in hex
-            TestMethodTemplate("0b1000000000000000000000000000000000000000000000000000000000000000", -9223372036854775808L); // long.MinValue in binary (64 bits)
-            TestMethodTemplate("0o1000000000000000000000", -9223372036854775808L); // long.MinValue in octal
+            
+            TestMethodTemplate("0x8000000000000000", -9223372036854775808L); 
+            TestMethodTemplate("0b1000000000000000000000000000000000000000000000000000000000000000", -9223372036854775808L); 
+            TestMethodTemplate("0o1000000000000000000000", -9223372036854775808L); 
         }
 
         [TestMethod]
         public void NegativeRepresentations_TwosComplement()
         {
-            // Test negative values represented in two's complement
-            TestMethodTemplate("0xFFFFFFFFFFFFFFFF", -1L); // -1 in hex
-            TestMethodTemplate("0xFFFFFFFFFFFFFFFE", -2L); // -2 in hex
-            TestMethodTemplate("0x8000000000000001", -9223372036854775807L); // long.MinValue + 1 in hex
             
-            // Test binary negative representations
-            TestMethodTemplate("0b1111111111111111111111111111111111111111111111111111111111111111", -1L); // -1 in binary
-            TestMethodTemplate("0b1111111111111111111111111111111111111111111111111111111111111110", -2L); // -2 in binary
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFF", -1L); 
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFE", -2L); 
+            TestMethodTemplate("0x8000000000000001", -9223372036854775807L); 
             
-            // Test octal negative representations  
-            TestMethodTemplate("0o1777777777777777777777", -1L); // -1 in octal
-            TestMethodTemplate("0o1777777777777777777776", -2L); // -2 in octal
+            
+            TestMethodTemplate("0b1111111111111111111111111111111111111111111111111111111111111111", -1L); 
+            TestMethodTemplate("0b1111111111111111111111111111111111111111111111111111111111111110", -2L); 
+            
+            
+            TestMethodTemplate("0o1777777777777777777777", -1L); 
+            TestMethodTemplate("0o1777777777777777777776", -2L); 
         }
 
         [TestMethod]
         public void UnderflowArithmetic_Operations()
         {
-            // Test arithmetic that results in values near the lower boundary
-            TestMethodTemplate("0x8000000000000000 + 0x1", -9223372036854775807L); // MinValue + 1
-            TestMethodTemplate("0x8000000000000001 - 0x1", -9223372036854775808L); // Back to MinValue
-            TestMethodTemplate("0xFFFFFFFFFFFFFFFF + 0x1", 0L); // -1 + 1 = 0
-            TestMethodTemplate("0xFFFFFFFFFFFFFFFE + 0x2", 0L); // -2 + 2 = 0
+            
+            TestMethodTemplate("0x8000000000000000 + 0x1", -9223372036854775807L); 
+            TestMethodTemplate("0x8000000000000001 - 0x1", -9223372036854775808L); 
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFF + 0x1", 0L); 
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFE + 0x2", 0L); 
         }
 
         [TestMethod]
         public void UnderflowBoundaryValues_CrossFormat()
         {
-            // Test cross-format operations with boundary values
-            TestMethodTemplate("0x8000000000000000 + 0b1", -9223372036854775807L); // MinValue + 1 (cross-format)
-            TestMethodTemplate("0o1000000000000000000000 + 0x1", -9223372036854775807L); // MinValue + 1 (cross-format)
-            TestMethodTemplate("0xFFFFFFFFFFFFFFFF + 0b1", 0L); // -1 + 1 = 0 (cross-format)
+            
+            TestMethodTemplate("0x8000000000000000 + 0b1", -9223372036854775807L); 
+            TestMethodTemplate("0o1000000000000000000000 + 0x1", -9223372036854775807L); 
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFF + 0b1", 0L); 
         }
 
         [TestMethod]
         public void SignedValueInterpretation_ConsistencyTests()
         {
-            // Verify that signed interpretation is consistent across formats
+            
             // Note: Convert.ToInt64() treats values as unsigned until they exceed long range
-            // So 0x80000000 = 2147483648L (not int.MinValue when converted to long)
-            TestMethodTemplate("0x80000000", 2147483648L); // 0x80000000 as long (unsigned interpretation)
-            TestMethodTemplate("0b10000000000000000000000000000000", 2147483648L); // 0x80000000 as binary
-            TestMethodTemplate("0o20000000000", 2147483648L); // 0x80000000 as octal
             
-            // Test that max unsigned 32-bit values are interpreted as positive when cast to long
-            TestMethodTemplate("0xFFFFFFFF", 4294967295L); // uint.MaxValue (positive in long)
-            TestMethodTemplate("0b11111111111111111111111111111111", 4294967295L); // uint.MaxValue as binary
-            TestMethodTemplate("0o37777777777", 4294967295L); // uint.MaxValue as octal
+            TestMethodTemplate("0x80000000", 2147483648L); 
+            TestMethodTemplate("0b10000000000000000000000000000000", 2147483648L); 
+            TestMethodTemplate("0o20000000000", 2147483648L); 
             
-            // Test 64-bit values that are truly negative (two's complement)
-            TestMethodTemplate("0x8000000000000000", -9223372036854775808L); // long.MinValue (signed interpretation)
-            TestMethodTemplate("0xFFFFFFFFFFFFFFFF", -1L); // -1 in two's complement
-            TestMethodTemplate("0xFFFFFFFFFFFFFFFE", -2L); // -2 in two's complement
+            
+            TestMethodTemplate("0xFFFFFFFF", 4294967295L); 
+            TestMethodTemplate("0b11111111111111111111111111111111", 4294967295L); 
+            TestMethodTemplate("0o37777777777", 4294967295L); 
+            
+            
+            TestMethodTemplate("0x8000000000000000", -9223372036854775808L); 
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFF", -1L); 
+            TestMethodTemplate("0xFFFFFFFFFFFFFFFE", -2L); 
         }
     }
 }

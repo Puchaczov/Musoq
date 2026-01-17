@@ -320,11 +320,11 @@ namespace Musoq.Evaluator.Visitors.Helpers
         /// <returns>Method declaration for OnPhaseChanged</returns>
         public static MethodDeclarationSyntax CreateOnPhaseChangedMethod()
         {
-            // Creates:
-            // private void OnPhaseChanged(string queryId, QueryPhase phase)
-            // {
-            //     PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
-            // }
+            
+            
+            
+            
+            
             var body = SyntaxFactory.Block(
                 SyntaxFactory.ExpressionStatement(
                     SyntaxFactory.ConditionalAccessExpression(
@@ -396,11 +396,11 @@ namespace Musoq.Evaluator.Visitors.Helpers
         /// <returns>Method declaration for OnDataSourceProgress</returns>
         public static MethodDeclarationSyntax CreateOnDataSourceProgressMethod()
         {
-            // Creates:
-            // private void OnDataSourceProgress(object sender, DataSourceEventArgs e)
-            // {
-            //     DataSourceProgress?.Invoke(this, e);
-            // }
+            
+            
+            
+            
+            
             var body = SyntaxFactory.Block(
                 SyntaxFactory.ExpressionStatement(
                     SyntaxFactory.ConditionalAccessExpression(

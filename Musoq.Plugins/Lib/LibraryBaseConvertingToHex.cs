@@ -82,7 +82,7 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(hexString))
             return null;
 
-        // Remove common delimiters
+        
         var cleanHex = hexString
             .Replace(" ", "")
             .Replace("-", "")
@@ -91,7 +91,7 @@ public partial class LibraryBase
             .Replace("0X", "");
 
         if (cleanHex.Length % 2 != 0)
-            return null; // Invalid hex string - must have even number of characters
+            return null; 
 
         try
         {

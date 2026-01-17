@@ -96,7 +96,7 @@ public class CaseInsensitiveMethodResolutionTests
 
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
-        Assert.AreEqual("MyMethod", method.Name); // Should return original method name
+        Assert.AreEqual("MyMethod", method.Name); 
     }
 
     [TestMethod]
@@ -108,7 +108,7 @@ public class CaseInsensitiveMethodResolutionTests
 
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
-        Assert.AreEqual("MyMethod", method.Name); // Should return original method name
+        Assert.AreEqual("MyMethod", method.Name); 
     }
 
     [TestMethod]
@@ -120,7 +120,7 @@ public class CaseInsensitiveMethodResolutionTests
 
         Assert.IsTrue(success);
         Assert.IsNotNull(method);
-        Assert.AreEqual("MyMethod", method.Name); // Should return original method name
+        Assert.AreEqual("MyMethod", method.Name); 
     }
 
     [TestMethod]
@@ -142,7 +142,7 @@ public class CaseInsensitiveMethodResolutionTests
     {
         var types = new Type[0];
 
-        // Test the method originally named "My_Underscore_Method"
+        
         var testCases = new[]
         {
             "my_underscore_method",
@@ -166,7 +166,7 @@ public class CaseInsensitiveMethodResolutionTests
     {
         var types = new Type[0];
 
-        // Test the method originally named "UPPERCASE_METHOD"
+        
         var testCases = new[]
         {
             "uppercase_method",
@@ -190,7 +190,7 @@ public class CaseInsensitiveMethodResolutionTests
     {
         var types = new Type[0];
 
-        // Test the method originally named "mixedCaseMethod"
+        
         var testCases = new[]
         {
             "mixedcasemethod",
@@ -214,8 +214,8 @@ public class CaseInsensitiveMethodResolutionTests
     {
         var types = new Type[0];
 
-        // If we have both "simple" (exact match) and could match other methods, 
-        // exact match should take precedence
+        
+        
         var success = _methodsMetadata.TryGetMethod("simple", types, _entityType, out var method);
 
         Assert.IsTrue(success);

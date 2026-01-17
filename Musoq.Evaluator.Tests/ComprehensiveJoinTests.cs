@@ -93,10 +93,10 @@ inner join #B.entities() b on a.Population > b.Population";
                 }
             };
 
-            // A1(100) > B1(50) -> Match
-            // A1(100) > B2(150) -> No
-            // A2(200) > B1(50) -> Match
-            // A2(200) > B2(150) -> Match
+            
+            
+            
+            
 
             var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
             var vm = CreateAndRunVirtualMachine(query, sources, options);
@@ -138,10 +138,10 @@ inner join #B.entities() b on a.Population < b.Population";
                 }
             };
 
-            // A1(100) < B1(50) -> No
-            // A1(100) < B2(150) -> Match
-            // A2(200) < B1(50) -> No
-            // A2(200) < B2(150) -> No
+            
+            
+            
+            
 
             var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
             var vm = CreateAndRunVirtualMachine(query, sources, options);
@@ -180,9 +180,9 @@ inner join #B.entities() b on a.Population >= b.Population";
                 }
             };
 
-            // A1(100) >= B1(50) -> Match
-            // A1(100) >= B2(100) -> Match
-            // A1(100) >= B3(150) -> No
+            
+            
+            
 
             var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
             var vm = CreateAndRunVirtualMachine(query, sources, options);
@@ -223,9 +223,9 @@ inner join #B.entities() b on a.Population <= b.Population";
                 }
             };
 
-            // A1(100) <= B1(50) -> No
-            // A1(100) <= B2(100) -> Match
-            // A1(100) <= B3(150) -> Match
+            
+            
+            
 
             var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
             var vm = CreateAndRunVirtualMachine(query, sources, options);
@@ -244,8 +244,8 @@ inner join #B.entities() b on a.Population <= b.Population";
         public void InnerJoin_Mixed_EquiAndNonEqui_ShouldMatch(bool useSortMergeJoin)
         {
             // Note: SortMergeJoin currently only supports single key non-equi join optimization if it's the ONLY condition or handled specifically.
-            // If there are multiple conditions, it might fall back or handle it.
-            // Let's see how it behaves.
+            
+            
             
             var query = @"
 select 
@@ -264,8 +264,8 @@ inner join #B.entities() b on a.Id = b.Id AND a.Population > b.Population";
                 },
                 {
                     "#B", [
-                        new BasicEntity { Name = "B1", Id = 1, Population = 50 },  // Match Id=1, 100 > 50 -> Match
-                        new BasicEntity { Name = "B2", Id = 2, Population = 250 } // Match Id=2, 200 > 250 -> No
+                        new BasicEntity { Name = "B1", Id = 1, Population = 50 },  
+                        new BasicEntity { Name = "B2", Id = 2, Population = 250 } 
                     ]
                 }
             };
@@ -381,10 +381,10 @@ inner join #B.entities() b on a.Id <> b.Id";
                 }
             };
 
-            // A1(1) <> B1(1) -> No
-            // A1(1) <> B2(2) -> Match
-            // A2(2) <> B1(1) -> Match
-            // A2(2) <> B2(2) -> No
+            
+            
+            
+            
 
             var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
             var vm = CreateAndRunVirtualMachine(query, sources, options);
@@ -419,15 +419,15 @@ inner join #B.entities() b on a.Id = b.Id OR a.Population = b.Population";
                 },
                 {
                     "#B", [
-                        new BasicEntity { Name = "B1", Id = 1, Population = 999 }, // Match Id=1
-                        new BasicEntity { Name = "B2", Id = 999, Population = 200 }, // Match Population=200
-                        new BasicEntity { Name = "B3", Id = 3, Population = 300 } // No match
+                        new BasicEntity { Name = "B1", Id = 1, Population = 999 }, 
+                        new BasicEntity { Name = "B2", Id = 999, Population = 200 }, 
+                        new BasicEntity { Name = "B3", Id = 3, Population = 300 } 
                     ]
                 }
             };
 
-            // A1(1, 100) matches B1(1, 999) via Id
-            // A2(2, 200) matches B2(999, 200) via Population
+            
+            
 
             var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
             var vm = CreateAndRunVirtualMachine(query, sources, options);
@@ -463,9 +463,9 @@ inner join #B.entities() b on a.Id = b.Id AND (a.Population > b.Population OR a.
                 },
                 {
                     "#B", [
-                        new BasicEntity { Name = "B1", Id = 1, Population = 50 },   // Match Id=1 AND Pop(100 > 50) -> Match
-                        new BasicEntity { Name = "B2", Id = 2, Population = 250 },  // Match Id=2 BUT Pop(200 > 250) False AND Name(A2!=B2) False -> No Match
-                        new BasicEntity { Name = "SameName", Id = 3, Population = 50 } // Match Id=3 AND (Pop(10 > 50) False OR Name(SameName=SameName) True) -> Match
+                        new BasicEntity { Name = "B1", Id = 1, Population = 50 },   
+                        new BasicEntity { Name = "B2", Id = 2, Population = 250 },  
+                        new BasicEntity { Name = "SameName", Id = 3, Population = 50 } 
                     ]
                 }
             };

@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
@@ -82,25 +82,25 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromHexTest()
     {
-        // Basic hex parsing
+        
         Assert.AreEqual(255L, Library.FromHex("FF"));
         Assert.AreEqual(255L, Library.FromHex("ff"));
         Assert.AreEqual(10L, Library.FromHex("A"));
         Assert.AreEqual(16L, Library.FromHex("10"));
         
-        // With 0x prefix
+        
         Assert.AreEqual(255L, Library.FromHex("0xFF"));
         Assert.AreEqual(255L, Library.FromHex("0xff"));
         Assert.AreEqual(255L, Library.FromHex("0XFF"));
         
-        // Negative values
+        
         Assert.AreEqual(-1L, Library.FromHex("FFFFFFFFFFFFFFFF"));
         
-        // Edge cases
+        
         Assert.AreEqual(0L, Library.FromHex("0"));
         Assert.AreEqual(0L, Library.FromHex("0x0"));
         
-        // Invalid inputs
+        
         Assert.IsNull(Library.FromHex(null));
         Assert.IsNull(Library.FromHex(""));
         Assert.IsNull(Library.FromHex("   "));
@@ -111,21 +111,21 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromBinTest()
     {
-        // Basic binary parsing
+        
         Assert.AreEqual(5L, Library.FromBin("101"));
         Assert.AreEqual(10L, Library.FromBin("1010"));
         Assert.AreEqual(15L, Library.FromBin("1111"));
         
-        // With 0b prefix
+        
         Assert.AreEqual(5L, Library.FromBin("0b101"));
         Assert.AreEqual(5L, Library.FromBin("0B101"));
         
-        // Edge cases
+        
         Assert.AreEqual(0L, Library.FromBin("0"));
         Assert.AreEqual(0L, Library.FromBin("0b0"));
         Assert.AreEqual(1L, Library.FromBin("1"));
         
-        // Invalid inputs
+        
         Assert.IsNull(Library.FromBin(null));
         Assert.IsNull(Library.FromBin(""));
         Assert.IsNull(Library.FromBin("   "));
@@ -136,21 +136,21 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromOctTest()
     {
-        // Basic octal parsing
+        
         Assert.AreEqual(8L, Library.FromOct("10"));
         Assert.AreEqual(64L, Library.FromOct("100"));
         Assert.AreEqual(7L, Library.FromOct("7"));
         Assert.AreEqual(511L, Library.FromOct("777"));
         
-        // With 0o prefix
+        
         Assert.AreEqual(8L, Library.FromOct("0o10"));
         Assert.AreEqual(8L, Library.FromOct("0O10"));
         
-        // Edge cases
+        
         Assert.AreEqual(0L, Library.FromOct("0"));
         Assert.AreEqual(0L, Library.FromOct("0o0"));
         
-        // Invalid inputs
+        
         Assert.IsNull(Library.FromOct(null));
         Assert.IsNull(Library.FromOct(""));
         Assert.IsNull(Library.FromOct("   "));
@@ -172,17 +172,17 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromHexToBytes_WithDelimiters_ShouldConvertCorrectly()
     {
-        // Space-delimited
+        
         var result1 = Library.FromHexToBytes("48 65 6C 6C 6F");
         Assert.IsNotNull(result1);
         Assert.AreEqual("Hello", System.Text.Encoding.UTF8.GetString(result1));
 
-        // Dash-delimited
+        
         var result2 = Library.FromHexToBytes("48-65-6C-6C-6F");
         Assert.IsNotNull(result2);
         Assert.AreEqual("Hello", System.Text.Encoding.UTF8.GetString(result2));
 
-        // Colon-delimited (MAC address style)
+        
         var result3 = Library.FromHexToBytes("48:65:6C:6C:6F");
         Assert.IsNotNull(result3);
         Assert.AreEqual("Hello", System.Text.Encoding.UTF8.GetString(result3));
@@ -544,8 +544,8 @@ public class MathTests : LibraryBaseBaseTests
     public void IsBetween_Int_WhenInRange_ReturnsTrue()
     {
         Assert.IsTrue(LibraryBase.IsBetween(5, 1, 10));
-        Assert.IsTrue(LibraryBase.IsBetween(1, 1, 10)); // inclusive min
-        Assert.IsTrue(LibraryBase.IsBetween(10, 1, 10)); // inclusive max
+        Assert.IsTrue(LibraryBase.IsBetween(1, 1, 10)); 
+        Assert.IsTrue(LibraryBase.IsBetween(10, 1, 10)); 
     }
 
     [TestMethod]
@@ -600,8 +600,8 @@ public class MathTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetweenExclusive_Int_WhenAtBoundary_ReturnsFalse()
     {
-        Assert.IsFalse(LibraryBase.IsBetweenExclusive(1, 1, 10)); // exclusive min
-        Assert.IsFalse(LibraryBase.IsBetweenExclusive(10, 1, 10)); // exclusive max
+        Assert.IsFalse(LibraryBase.IsBetweenExclusive(1, 1, 10)); 
+        Assert.IsFalse(LibraryBase.IsBetweenExclusive(10, 1, 10)); 
     }
 
     [TestMethod]

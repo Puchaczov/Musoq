@@ -84,7 +84,7 @@ public static class QueryRewriteUtilities
         foreach (var method in refreshMethods)
         {
             if (method == null)
-                continue; // Skip null methods rather than throwing
+                continue; 
 
             if (method.Method?.GetCustomAttribute<AggregateSetDoNotResolveAttribute>() != null)
                 continue;
@@ -145,7 +145,7 @@ public static class QueryRewriteUtilities
         foreach (var groupField in groupByFields)
         {
             if (groupField?.Expression == null)
-                continue; // Skip invalid group fields
+                continue; 
 
             var hasField =
                 selectFields.Any(field => field?.Expression?.ToString() == groupField.Expression.ToString());

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -282,7 +282,7 @@ public static class EvaluationHelper
     {
         if (type is NullNode.NullType) return "object";
         
-        // Fast path for common primitive types (no cache lookup needed)
+        
         if (type == typeof(string)) return "string";
         if (type == typeof(int)) return "int";
         if (type == typeof(long)) return "long";
@@ -300,7 +300,7 @@ public static class EvaluationHelper
         if (type == typeof(object)) return "object";
         if (type == typeof(void)) return "void";
 
-        // Use cache for more complex types
+        
         return CastableTypeCache.GetOrAdd(type, ComputeCastableType);
     }
     

@@ -43,9 +43,9 @@ public class CommonSubexpressionEliminationBenchmark
         var testData = CreateTestData(RowsCount);
         var schemaProvider = new CseTestSchemaProvider(testData);
 
-        // Query with ExpensiveMethod appearing in both WHERE and SELECT (2x computation)
-        // Current behavior: ExpensiveMethod called twice per row
-        // With CSE: ExpensiveMethod called once per row, result cached
+        
+        
+        
         _queryWithDuplicateExpressions = InstanceCreator.CompileForExecution(
             @"SELECT ExpensiveMethod(Value), Name 
               FROM #test.entities() 
@@ -54,8 +54,8 @@ public class CommonSubexpressionEliminationBenchmark
             schemaProvider,
             _loggerResolver);
 
-        // Query where ExpensiveMethod appears only once (baseline)
-        // This gives us the ideal performance - what CSE should achieve
+        
+        
         _queryWithoutDuplicateExpressions = InstanceCreator.CompileForExecution(
             @"SELECT Value * 2, Name 
               FROM #test.entities() 
@@ -64,7 +64,7 @@ public class CommonSubexpressionEliminationBenchmark
             schemaProvider,
             _loggerResolver);
 
-        // Query with ExpensiveMethod appearing three times (3x computation without CSE)
+        
         _queryWithTripleDuplicates = InstanceCreator.CompileForExecution(
             @"SELECT ExpensiveMethod(Value), ExpensiveMethod(Value) + 10, Name 
               FROM #test.entities() 
@@ -73,7 +73,7 @@ public class CommonSubexpressionEliminationBenchmark
             schemaProvider,
             _loggerResolver);
 
-        // Query with nested duplicates: both outer and inner expressions repeat
+        
         _queryWithNestedDuplicates = InstanceCreator.CompileForExecution(
             @"SELECT ExpensiveMethod(Value) * 2, ExpensiveMethod(Value) / 2 
               FROM #test.entities() 
@@ -82,8 +82,8 @@ public class CommonSubexpressionEliminationBenchmark
             schemaProvider,
             _loggerResolver);
 
-        // CASE WHEN: ExpensiveMethod appears in SELECT and inside CASE WHEN
-        // With CSE: cached value passed to CaseWhen method as parameter
+        
+        
         _queryCaseWhenWithDuplicateInSelect = InstanceCreator.CompileForExecution(
             @"SELECT ExpensiveMethod(Value), 
                      CASE WHEN ExpensiveMethod(Value) > 200 THEN 'High' ELSE 'Low' END
@@ -92,7 +92,7 @@ public class CommonSubexpressionEliminationBenchmark
             schemaProvider,
             _loggerResolver);
 
-        // CASE WHEN: ExpensiveMethod appears in WHERE and inside CASE WHEN
+        
         _queryCaseWhenWithDuplicateInWhere = InstanceCreator.CompileForExecution(
             @"SELECT Name, 
                      CASE WHEN ExpensiveMethod(Value) > 200 THEN 'High' ELSE 'Low' END
@@ -102,7 +102,7 @@ public class CommonSubexpressionEliminationBenchmark
             schemaProvider,
             _loggerResolver);
 
-        // CASE WHEN baseline: ExpensiveMethod only inside CASE WHEN (no CSE benefit expected)
+        
         _queryCaseWhenNoDuplicate = InstanceCreator.CompileForExecution(
             @"SELECT Name, 
                      CASE WHEN ExpensiveMethod(Value) > 200 THEN 'High' ELSE 'Low' END
@@ -190,7 +190,7 @@ public class CommonSubexpressionEliminationBenchmark
         {
             Id = i,
             Name = $"Name{i}",
-            Value = i % 500,  // Values 0-499 to control ExpensiveMethod output distribution
+            Value = i % 500,  
             Category = $"Category{i % 10}"
         }).ToList();
     }
@@ -208,7 +208,7 @@ public class CseTestLibrary : LibraryBase
     [BindableMethod]
     public int ExpensiveMethod(int value)
     {
-        // Simulate expensive computation (e.g., regex, string parsing, complex math)
+        
         double result = value;
         for (int i = 0; i < 500; i++)
         {
@@ -223,7 +223,7 @@ public class CseTestLibrary : LibraryBase
     [BindableMethod]
     public string ExpensiveStringMethod(string value)
     {
-        // Simulate expensive string processing
+        
         var result = value;
         for (int i = 0; i < 100; i++)
         {

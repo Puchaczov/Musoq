@@ -50,9 +50,9 @@ left join #B.entities() b on a.Population > b.Population";
                 }
             };
 
-            // A1 (100) > B1 (50) -> Match
-            // A2 (10) > B1 (50) -> No Match -> Left Join produces row with null B
-            // Expected: 2 rows.
+            
+            
+            
 
             var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: false, useSortMergeJoin: true));
             var table = vm.Run(TestContext.CancellationToken);
@@ -92,12 +92,12 @@ right join #B.entities() b on a.Population > b.Population";
                 }
             };
 
-            // A1 (100) > B1 (50) -> Match
-            // A1 (100) > B2 (200) -> False.
-            // B2 is not matched by any A.
-            // Right Join should produce:
-            // 1. A1, B1
-            // 2. null, B2
+            
+            
+            
+            
+            
+            
             
             var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: false, useSortMergeJoin: true));
             var table = vm.Run(TestContext.CancellationToken);

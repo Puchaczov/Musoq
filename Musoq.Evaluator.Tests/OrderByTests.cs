@@ -841,7 +841,7 @@ table.Count(row =>
         var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(5, table.Count);
-        // Non-null values should come first in descending order, nulls at the end
+        
         Assert.AreEqual(3, table[0].Values[1]);
         Assert.AreEqual(2, table[1].Values[1]);
         Assert.AreEqual(1, table[2].Values[1]);
@@ -992,7 +992,7 @@ table.Count(row =>
         var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Count);
-        // Should be sorted descending
+        
         var cities = table.Select(r => (string)r.Values[0]).ToList();
         Assert.AreEqual("gamma", cities[0]);
         Assert.AreEqual("delta", cities[1]);
@@ -1130,7 +1130,7 @@ table.Count(row =>
         var table = vm.Run(TestContext.CancellationToken);
         
         Assert.AreEqual(4, table.Count);
-        // Should be sorted by uppercase version
+        
         Assert.AreEqual("Zebra", table[0].Values[0]);
         Assert.AreEqual("Cherry", table[1].Values[0]);
         Assert.AreEqual("banana", table[2].Values[0]);

@@ -228,7 +228,7 @@ inner join #C.entities() population on cities.City = population.City";
 
         Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);// Verify the total count
+        Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
         Assert.AreEqual(5, table.Count);
 
         Assert.IsTrue(table.Any(row => 

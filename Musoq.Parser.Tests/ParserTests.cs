@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
@@ -923,11 +923,11 @@ namespace Musoq.Parser.Tests;
         
         var lexer = new Lexer(query, true);
         
-        // Token 1: select
+        
         var token1 = lexer.Next();
         Assert.AreEqual(Tokens.TokenType.Select, token1.TokenType, $"Token 1 should be Select, got {token1.TokenType} with value '{token1.Value}'");
         
-        // Token 2: distinct
+        
         var token2 = lexer.Next();
         Assert.AreEqual(Tokens.TokenType.Distinct, token2.TokenType, $"Token 2 should be Distinct, got {token2.TokenType} with value '{token2.Value}'");
     }
@@ -943,7 +943,7 @@ namespace Musoq.Parser.Tests;
         
         Assert.IsNotNull(result);
         
-        // Verify that IsDistinct is set correctly
+        
         var statementsArray = result.Expression as Nodes.StatementsArrayNode;
         Assert.IsNotNull(statementsArray);
         var singleSet = statementsArray.Statements[0].Node as Nodes.SingleSetNode;

@@ -40,7 +40,7 @@ public sealed class CompilationContextManager
     /// </summary>
     public void InitializeDefaults()
     {
-        // Add default namespaces
+        
         TrackNamespace("System");
         TrackNamespace("System.Threading");
         TrackNamespace("System.Collections.Generic");
@@ -64,11 +64,11 @@ public sealed class CompilationContextManager
     /// <param name="assemblies">Plugin assemblies to reference.</param>
     public void InitializeCoreReferences(IEnumerable<Assembly> assemblies)
     {
-        // Add Microsoft.Extensions.Logging.Abstractions
+        
         var abstractionDll = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Microsoft.Extensions.Logging.Abstractions.dll");
         AddAssemblyReference(abstractionDll);
         
-        // Add core type references
+        
         TrackTypes(
             typeof(object),
             typeof(CancellationToken),
@@ -80,7 +80,7 @@ public sealed class CompilationContextManager
             typeof(SchemaFromNode),
             typeof(ILogger));
         
-        // Add plugin assemblies
+        
         AddAssemblyReferences(assemblies is Assembly[] arr ? arr : [.. assemblies]);
     }
 

@@ -171,7 +171,7 @@ namespace Musoq.Plugins.Tests
         public void ToInt32_FromFloat_ShouldReturnInteger()
         {
             var result = Library.ToInt32((float?)123.7f);
-            Assert.AreEqual(124, result); // Rounded by Convert.ToInt32
+            Assert.AreEqual(124, result); 
         }
 
         [TestMethod]
@@ -185,7 +185,7 @@ namespace Musoq.Plugins.Tests
         public void ToInt32_FromDouble_ShouldReturnInteger()
         {
             var result = Library.ToInt32((double?)456.2);
-            Assert.AreEqual(456, result); // Truncated by Convert.ToInt32
+            Assert.AreEqual(456, result); 
         }
 
         [TestMethod]
@@ -199,7 +199,7 @@ namespace Musoq.Plugins.Tests
         public void ToInt32_FromDecimal_ShouldReturnInteger()
         {
             var result = Library.ToInt32((decimal?)789.9m);
-            Assert.AreEqual(790, result); // Rounded by Convert.ToInt32
+            Assert.AreEqual(790, result); 
         }
 
         [TestMethod]

@@ -45,8 +45,8 @@ public class DiffTests : LibraryBaseBaseTests
     [TestMethod]
     public void Diff_FullThresholdMode_MixedRegions_ReturnsExpectedOutput()
     {
-        // "aaXbbbbbbbbbY", "aaZbbbbbbbbbW" with threshold 5
-        // aa (2 chars, <= 5, show literally) + changes + 9 b's (> 5, collapse) + changes
+        
+        
         var result = Library.Diff("aaXbbbbbbbbbY", "aaZbbbbbbbbbW", "full:5");
         Assert.AreEqual("aa[-X][+Z][=9][-Y][+W]", result);
     }
@@ -100,15 +100,15 @@ public class DiffTests : LibraryBaseBaseTests
     [TestMethod]
     public void Diff_NullVsEmpty_AreDifferent()
     {
-        // Null first should return [+...]
+        
         var resultNullFirst = Library.Diff(null, "test");
         Assert.AreEqual("[+test]", resultNullFirst);
 
-        // Empty first should also return [+...]
+        
         var resultEmptyFirst = Library.Diff("", "test");
         Assert.AreEqual("[+test]", resultEmptyFirst);
 
-        // But null on both should return null
+        
         var resultBothNull = Library.Diff(null, null);
         Assert.IsNull(resultBothNull);
     }
@@ -137,7 +137,7 @@ public class DiffTests : LibraryBaseBaseTests
     public void Diff_NullMode_UsesDefaultFull()
     {
         var result = Library.Diff("abc", "xyz", null);
-        Assert.AreEqual("[-abc][+xyz]", result); // Null mode uses default "full"
+        Assert.AreEqual("[-abc][+xyz]", result); 
     }
 
     [TestMethod]
@@ -165,7 +165,7 @@ public class DiffTests : LibraryBaseBaseTests
     public void Diff_FullThresholdOne_Works()
     {
         var result = Library.Diff("aXb", "aYb", "full:1");
-        // With threshold 1, unchanged regions of length 1 are shown literally
+        
         Assert.AreEqual("a[-X][+Y]b", result);
     }
 
@@ -470,13 +470,13 @@ public class DiffTests : LibraryBaseBaseTests
     [TestMethod]
     public void DiffSegments_AlternatingChanges_HandlesCorrectly()
     {
-        // Every other character is different
+        
         var result = Library.DiffSegments("aXbYcZ", "aAbBcC").ToList();
 
-        // Should have alternating unchanged and change patterns
+        
         Assert.IsNotEmpty(result);
         
-        // Verify first unchanged
+        
         Assert.AreEqual("a", result[0].Text);
         Assert.AreEqual("Unchanged", result[0].Kind);
     }

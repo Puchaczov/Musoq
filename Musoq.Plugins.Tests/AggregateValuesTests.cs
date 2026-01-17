@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
@@ -303,7 +303,7 @@ public class AggregateValuesTests : LibraryBaseBaseTests
         Library.SetAggregateValues(Group, "test", 3.5f);
 
         var result = Library.AggregateValues(Group, "test");
-        Assert.Contains(",,", result); // Contains empty value
+        Assert.Contains(",,", result); 
     }
 
     #endregion
@@ -329,7 +329,7 @@ public class AggregateValuesTests : LibraryBaseBaseTests
         Library.SetAggregateValues(Group, "test", 3.25);
 
         var result = Library.AggregateValues(Group, "test");
-        Assert.Contains(",,", result); // Contains empty value
+        Assert.Contains(",,", result); 
     }
 
     #endregion
@@ -448,7 +448,7 @@ public class AggregateValuesTests : LibraryBaseBaseTests
         Library.SetAggregateValues(Group, "test", DateTime.Parse("03/03/2020"));
 
         var result = Library.AggregateValues(Group, "test");
-        Assert.Contains(",,", result); // Contains empty value
+        Assert.Contains(",,", result); 
     }
 
     #endregion
@@ -463,7 +463,7 @@ public class AggregateValuesTests : LibraryBaseBaseTests
         Library.SetAggregateValues(Group, "test", DateTimeOffset.Parse("03.03.2020 00:00:00 +01:00"));
 
         var result = Library.AggregateValues(Group, "test");
-        Assert.Contains(",,", result); // Contains empty value
+        Assert.Contains(",,", result); 
     }
 
     #endregion

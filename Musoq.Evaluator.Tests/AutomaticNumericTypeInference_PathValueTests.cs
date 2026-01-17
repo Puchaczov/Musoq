@@ -100,14 +100,14 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
 
         var entities = new List<PathValueEntity>
         {
-            new() { Path = "a.b", Value = "100" },  // String "100" should NOT work with arithmetic - null * 2 = null, null > 100 = false
-            new() { Path = "a.c", Value = 100 },    // int 100: 100 * 2 = 200, 200 > 100 = true
-            new() { Path = "a.d", Value = 200L }    // long 200: 200 * 2 = 400, 400 > 100 = true
+            new() { Path = "a.b", Value = "100" },  
+            new() { Path = "a.c", Value = 100 },    
+            new() { Path = "a.d", Value = 200L }    
         };
 
         var table = RunQuery(query, entities);
 
-        // Only numeric values should pass the filter - strings result in null arithmetic which fails comparison
+        
         Assert.AreEqual(2, table.Count);
         var paths = table.Select(row => (string)row[0]).OrderBy(x => x).ToList();
         Assert.AreEqual("a.c", paths[0]);
@@ -211,7 +211,7 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         {
             new() { Path = "a", Value = 50 },
             new() { Path = "b", Value = 25L }
-            // Removed string "75" - strings should not auto-convert for arithmetic
+            
         };
 
         var table = RunQuery(query, entities);
@@ -288,7 +288,7 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
             new() { Path = "a", Value = 5 },
             new() { Path = "b", Value = 10 },
             new() { Path = "c", Value = 9L },
-            new() { Path = "d", Value = "8" },  // String should still work for comparisons
+            new() { Path = "d", Value = "8" },  
             new() { Path = "e", Value = 15.5 }
         };
 
@@ -315,7 +315,7 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         {
             new() { Path = "a", Value = 42 },
             new() { Path = "b", Value = 42L },
-            new() { Path = "c", Value = "42" },  // String should still work for comparisons
+            new() { Path = "c", Value = "42" },  
             new() { Path = "d", Value = 41 },
             new() { Path = "e", Value = "43" }
         };
@@ -343,7 +343,7 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         {
             new() { Path = "a", Value = 5 },
             new() { Path = "b", Value = 10L },
-            new() { Path = "c", Value = 15 },  // Changed from 15.0 to keep it as long
+            new() { Path = "c", Value = 15 },  
             new() { Path = "d", Value = 3 },
             new() { Path = "e", Value = 20 }
         };
@@ -370,7 +370,7 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var entities = new List<PathValueEntity>
         {
             new() { Path = "a", Value = 100 },
-            new() { Path = "c", Value = "100" }          // String - comparisons still work
+            new() { Path = "c", Value = "100" }          
         };
 
         var table = RunQuery(query, entities);
@@ -426,7 +426,7 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         {
             new() { Path = "a", Value = "prefix" },
             new() { Path = "b", Value = "test" },
-            new() { Path = "c", Value = 100 }  // Non-string will be converted to string by C#
+            new() { Path = "c", Value = 100 }  
         };
 
         var table = RunQuery(query, entities);
@@ -458,7 +458,7 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
 
         Assert.AreEqual(2, table.Count);
         
-        // Verify we can retrieve both string and numeric values from object column
+        
         var stringRow = table.FirstOrDefault(r => (string)r[0] == "string");
         var numericRow = table.FirstOrDefault(r => (string)r[0] == "numeric");
         
@@ -542,9 +542,9 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
 
         Assert.AreEqual(3, table.Count);
         var results = table.Select(row => (long)row[0]).OrderBy(x => x).ToList();
-        Assert.AreEqual(0L, results[0]);  // 15 % 3 = 0
-        Assert.AreEqual(1L, results[1]);  // 7 % 3 = 1
-        Assert.AreEqual(1L, results[2]);  // 10 % 3 = 1
+        Assert.AreEqual(0L, results[0]);  
+        Assert.AreEqual(1L, results[1]);  
+        Assert.AreEqual(1L, results[2]);  
     }
 
     [TestMethod]
@@ -560,13 +560,13 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var entities = new List<PathValueEntity>
         {
             new() { Path = "a", Value = 10 },
-            new() { Path = "b", Value = "15" },  // String should be rejected
+            new() { Path = "b", Value = "15" },  
             new() { Path = "c", Value = 7 }
         };
 
         var table = RunQuery(query, entities);
 
-        // Only numeric values should pass
+        
         Assert.AreEqual(2, table.Count);
         var paths = table.Select(row => (string)row[0]).ToList();
         CollectionAssert.Contains(paths, "a");
@@ -673,9 +673,9 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
 
         Assert.AreEqual(3, table.Count);
         var results = table.Select(row => (long)row[0]).OrderBy(x => x).ToList();
-        Assert.AreEqual(30L, results[0]);  // (5 + 10) * 2 = 30
-        Assert.AreEqual(40L, results[1]);  // (10 + 10) * 2 = 40
-        Assert.AreEqual(50L, results[2]);  // (15 + 10) * 2 = 50
+        Assert.AreEqual(30L, results[0]);  
+        Assert.AreEqual(40L, results[1]);  
+        Assert.AreEqual(50L, results[2]);  
     }
 
     [TestMethod]
@@ -699,9 +699,9 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
 
         Assert.AreEqual(3, table.Count);
         var results = table.Select(row => (long)row[0]).OrderBy(x => x).ToList();
-        Assert.AreEqual(20L, results[0]);  // 8 * 2 + 8 / 2 = 16 + 4 = 20
-        Assert.AreEqual(25L, results[1]);  // 10 * 2 + 10 / 2 = 20 + 5 = 25
-        Assert.AreEqual(50L, results[2]);  // 20 * 2 + 20 / 2 = 40 + 10 = 50
+        Assert.AreEqual(20L, results[0]);  
+        Assert.AreEqual(25L, results[1]);  
+        Assert.AreEqual(50L, results[2]);  
     }
 
     [TestMethod]
@@ -932,13 +932,13 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
         var entities = new List<PathValueEntity>
         {
             new() { Path = "valid", Value = 10.5 },
-            new() { Path = "invalid", Value = "7.5" },  // String should be rejected
-            new() { Path = "low", Value = 4 }  // 4 * 2 = 8, not > 10
+            new() { Path = "invalid", Value = "7.5" },  
+            new() { Path = "low", Value = 4 }  
         };
 
         var table = RunQuery(query, entities);
 
-        // Only the value where multiplication result > 10
+        
         Assert.AreEqual(1, table.Count);
         var paths = table.Select(row => (string)row[0]).ToList();
         CollectionAssert.Contains(paths, "valid");

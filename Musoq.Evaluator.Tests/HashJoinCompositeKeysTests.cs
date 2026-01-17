@@ -35,9 +35,9 @@ on a.Country = b.Country AND a.City = b.City";
             },
             {
                 "#B", [
-                    new BasicEntity { Name = "Doe", City = "New York", Country = "USA" }, // Match John
-                    new BasicEntity { Name = "Smith", City = "London", Country = "UK" },  // Match Alice
-                    new BasicEntity { Name = "Pierre", City = "Lyon", Country = "France" } // No match (different city)
+                    new BasicEntity { Name = "Doe", City = "New York", Country = "USA" }, 
+                    new BasicEntity { Name = "Smith", City = "London", Country = "UK" },  
+                    new BasicEntity { Name = "Pierre", City = "Lyon", Country = "France" } 
                 ]
             }
         };
@@ -116,8 +116,8 @@ on a.Country = b.Country AND a.City = b.City";
             },
             {
                 "#B", [
-                    new BasicEntity { Name = "Doe", City = "New York", Country = "USA" }, // Match John
-                    new BasicEntity { Name = "Pierre", City = "Paris", Country = "France" } // No match
+                    new BasicEntity { Name = "Doe", City = "New York", Country = "USA" }, 
+                    new BasicEntity { Name = "Pierre", City = "Paris", Country = "France" } 
                 ]
             }
         };
@@ -188,8 +188,8 @@ on a.Country = b.Country AND a.City = b.City AND a.Month = b.Month";
             },
             {
                 "#B", [
-                    new BasicEntity { Name = "Doe", City = "NY", Country = "USA", Month = "Jan" }, // Match John
-                    new BasicEntity { Name = "Smith", City = "NY", Country = "USA", Month = "Mar" } // No match
+                    new BasicEntity { Name = "Doe", City = "NY", Country = "USA", Month = "Jan" }, 
+                    new BasicEntity { Name = "Smith", City = "NY", Country = "USA", Month = "Mar" } 
                 ]
             }
         };
@@ -221,7 +221,7 @@ on a.Country = b.Country AND a.City = b.City";
                 ]
             },
             {
-                "#B", new List<BasicEntity>() // Empty
+                "#B", new List<BasicEntity>() 
             }
         };
 
@@ -253,8 +253,8 @@ on a.Country = b.Country AND a.City = b.City AND a.Population > b.Population";
             },
             {
                 "#B", [
-                    new BasicEntity { Name = "SmallCity", City = "NY", Country = "USA", Population = 100 }, // Match (1000 > 100)
-                    new BasicEntity { Name = "HugeCity", City = "NY", Country = "USA", Population = 2000 }  // No match (1000 < 2000)
+                    new BasicEntity { Name = "SmallCity", City = "NY", Country = "USA", Population = 100 }, 
+                    new BasicEntity { Name = "HugeCity", City = "NY", Country = "USA", Population = 2000 }  
                 ]
             }
         };

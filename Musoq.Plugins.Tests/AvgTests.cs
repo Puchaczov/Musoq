@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
@@ -129,7 +129,7 @@ public class AvgTests : LibraryBaseBaseTests
         Library.SetAvg(Group, "test", (sbyte)20);
         Library.SetAvg(Group, "test", (sbyte?)null);
 
-        // (10 + (-10) + 20) / 3 = 20 / 3 = 6.666...
+        
         var result = Library.Avg(Group, "test");
         Assert.IsTrue(result > 6.6m && result < 6.7m);
     }
@@ -288,7 +288,7 @@ public class AvgTests : LibraryBaseBaseTests
         Library.SetAvg(Group, "test", -5.0f);
         Library.SetAvg(Group, "test", 10.0f);
 
-        // (10 + (-5) + 10) / 3 = 15 / 3 = 5
+        
         Assert.AreEqual(5m, Library.Avg(Group, "test"));
     }
 
@@ -326,7 +326,7 @@ public class AvgTests : LibraryBaseBaseTests
         Library.SetAvg(Group, "test", -50.0d);
         Library.SetAvg(Group, "test", 100.0d);
 
-        // (100 + (-50) + 100) / 3 = 150 / 3 = 50
+        
         Assert.AreEqual(50m, Library.Avg(Group, "test"));
     }
 

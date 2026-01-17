@@ -180,8 +180,8 @@ public class EscapeTests : BasicEntityTestBase
     [TestMethod]
     public void WhenQuoteWithBackslashCombinations_ShouldBePresent()
     {
-        // Testing various combinations of quotes and backslashes
-        const string query = """select '\\\'' from #A.entities()""";  // Escaped backslash followed by escaped quote
+        
+        const string query = """select '\\\'' from #A.entities()""";  
     
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -194,8 +194,8 @@ public class EscapeTests : BasicEntityTestBase
     [TestMethod]
     public void WhenInvalidUnicodeSequences_ShouldHandleGracefully()
     {
-        // Incomplete or invalid unicode sequences
-        const string query = """select '\u123' from #A.entities()""";  // Incomplete unicode
+        
+        const string query = """select '\u123' from #A.entities()""";  
     
         var sources = CreateSource();
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -236,7 +236,7 @@ public class EscapeTests : BasicEntityTestBase
     [TestMethod]
     public void WhenUsingExtendedUnicode_ShouldBeHandledCorrectly()
     {
-        // Testing surrogate pairs and other special Unicode characters
+        
         const string query = """select '\u0001\uFFFF\u0000' from #A.entities()""";
     
         var sources = CreateSource();

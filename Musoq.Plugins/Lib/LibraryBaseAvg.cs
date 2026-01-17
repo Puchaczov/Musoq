@@ -1,4 +1,4 @@
-﻿using Musoq.Plugins.Attributes;
+using Musoq.Plugins.Attributes;
 
 namespace Musoq.Plugins;
 
@@ -175,7 +175,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, float? value, int parent = 0)
     {
-        //convert value to decimal
+        
         SetSum(group, name, (decimal?)value, parent);
         var parentGroup = GetParentGroup(group, parent);
         if(value.HasValue)
@@ -193,7 +193,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, double? value, int parent = 0)
     {
-        //convert value to decimal
+        
         SetSum(group, name, (decimal?)value, parent);
         var parentGroup = GetParentGroup(group, parent);
         if(value.HasValue)

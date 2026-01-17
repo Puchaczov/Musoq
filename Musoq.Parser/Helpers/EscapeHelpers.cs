@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -89,14 +89,14 @@ public static class EscapeHelpers
 
             switch (next)
             {
-                // Handle Unicode and Hex escapes first
+                
                 case UnicodePrefix when TryParseUnicodeEscape(span, i, out var unicodeChar):
                 {
                     result.Append(unicodeChar);
                     i += 1 + UnicodeEscapeLength;
                     continue;
                 }
-                // Invalid unicode sequence - preserve the entire sequence
+                
                 case UnicodePrefix:
                 {
                     result.Append(EscapeChar).Append(next);
@@ -116,7 +116,7 @@ public static class EscapeHelpers
                     result.Append(hexChar);
                     i += 1 + HexEscapeLength;
                     continue;
-                // Invalid hex sequence - preserve the entire sequence
+                
                 case HexPrefix:
                 {
                     result.Append(EscapeChar).Append(next);
@@ -134,7 +134,7 @@ public static class EscapeHelpers
                 }
             }
 
-            // Handle simple escapes
+            
             var found = false;
             foreach (var (escapeChar, value) in EscapeMap)
             {

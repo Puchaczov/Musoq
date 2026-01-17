@@ -197,7 +197,7 @@ public class ToStringMethodsTests : LibraryBaseBaseTests
         var result = Library.ToString(1234567, "N0");
 
         Assert.IsNotNull(result);
-        // Format varies by culture, just check it contains digits
+        
         Assert.IsGreaterThan(0, result.Length);
     }
 
@@ -344,7 +344,7 @@ public class ToStringMethodsTests : LibraryBaseBaseTests
         var result = Library.ToString(3.14159f, "F2");
 
         Assert.IsNotNull(result);
-        // Decimal separator depends on culture
+        
     }
 
     [TestMethod]

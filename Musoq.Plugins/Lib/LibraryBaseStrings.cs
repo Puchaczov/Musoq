@@ -1899,7 +1899,7 @@ public partial class LibraryBase
             }
         }
 
-        // Count incomplete sentence at end (no terminator)
+        
         if (inSentence)
             count++;
 

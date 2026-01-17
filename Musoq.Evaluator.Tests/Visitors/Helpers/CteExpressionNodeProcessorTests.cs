@@ -21,17 +21,17 @@ public class CteExpressionNodeProcessorTests
     [TestInitialize]
     public void Initialize()
     {
-        // Create test CTE inner expression
+        
         var innerValue = new FieldNode(new IntegerNode("1"), 0, "test");
         var cteInnerExpression = new CteInnerExpressionNode(innerValue, "testCte");
         
-        // Create test CTE node with one inner expression
+        
         var outerExpression = new FieldNode(new IntegerNode("2"), 0, "outer");
         _cteNode = new CteExpressionNode([cteInnerExpression], outerExpression);
         
         _methodNames = new Stack<string>();
-        _methodNames.Push("InnerMethod"); // Inner expression method name (pushed first)
-        _methodNames.Push("TestMethod");  // Result CTE method name (pushed last, popped first)
+        _methodNames.Push("InnerMethod"); 
+        _methodNames.Push("TestMethod");  
         
         _nodes = new Stack<SyntaxNode>();
         _nodes.Push(SyntaxFactory.ExpressionStatement(SyntaxFactory.IdentifierName("testStatement")));

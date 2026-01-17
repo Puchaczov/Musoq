@@ -976,7 +976,7 @@ public class AdditionalTableAndHelpersTests
     
     private static ISchemaTable CreateVariableTable(ISchemaColumn[] columns, Type metadata = null)
     {
-        // Use reflection to create internal VariableTable
+        
         var type = typeof(Table).Assembly.GetType("Musoq.Evaluator.Tables.VariableTable");
         return (ISchemaTable)Activator.CreateInstance(type, columns, metadata);
     }

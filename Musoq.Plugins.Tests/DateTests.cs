@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
@@ -260,28 +260,28 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsWeekend_DateTime_Saturday_ReturnsTrue()
     {
-        var date = new DateTime(2023, 6, 17); // Saturday
+        var date = new DateTime(2023, 6, 17); 
         Assert.IsTrue(Library.IsWeekend(date));
     }
 
     [TestMethod]
     public void IsWeekend_DateTime_Sunday_ReturnsTrue()
     {
-        var date = new DateTime(2023, 6, 18); // Sunday
+        var date = new DateTime(2023, 6, 18); 
         Assert.IsTrue(Library.IsWeekend(date));
     }
 
     [TestMethod]
     public void IsWeekend_DateTime_Monday_ReturnsFalse()
     {
-        var date = new DateTime(2023, 6, 19); // Monday
+        var date = new DateTime(2023, 6, 19); 
         Assert.IsFalse(Library.IsWeekend(date));
     }
 
     [TestMethod]
     public void IsWeekend_DateTime_Friday_ReturnsFalse()
     {
-        var date = new DateTime(2023, 6, 16); // Friday
+        var date = new DateTime(2023, 6, 16); 
         Assert.IsFalse(Library.IsWeekend(date));
     }
 
@@ -298,14 +298,14 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsWeekday_DateTime_Monday_ReturnsTrue()
     {
-        var date = new DateTime(2023, 6, 19); // Monday
+        var date = new DateTime(2023, 6, 19); 
         Assert.IsTrue(Library.IsWeekday(date));
     }
 
     [TestMethod]
     public void IsWeekday_DateTime_Saturday_ReturnsFalse()
     {
-        var date = new DateTime(2023, 6, 17); // Saturday
+        var date = new DateTime(2023, 6, 17); 
         Assert.IsFalse(Library.IsWeekday(date));
     }
 
@@ -454,7 +454,7 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void DayOfYear_DateTime_Dec31_Returns365()
     {
-        var date = new DateTime(2023, 12, 31); // Non-leap year
+        var date = new DateTime(2023, 12, 31); 
         Assert.AreEqual(365, Library.DayOfYear(date));
     }
 
@@ -524,8 +524,8 @@ public class DateTests : LibraryBaseBaseTests
     {
         var start = new DateTime(2024, 1, 1);
         var end = new DateTime(2024, 12, 31);
-        Assert.IsTrue(Library.IsBetween(start, start, end)); // inclusive start
-        Assert.IsTrue(Library.IsBetween(end, start, end)); // inclusive end
+        Assert.IsTrue(Library.IsBetween(start, start, end)); 
+        Assert.IsTrue(Library.IsBetween(end, start, end)); 
     }
 
     [TestMethod]
@@ -568,8 +568,8 @@ public class DateTests : LibraryBaseBaseTests
     {
         var start = new DateTime(2024, 1, 1);
         var end = new DateTime(2024, 12, 31);
-        Assert.IsFalse(Library.IsBetweenExclusive(start, start, end)); // exclusive start
-        Assert.IsFalse(Library.IsBetweenExclusive(end, start, end)); // exclusive end
+        Assert.IsFalse(Library.IsBetweenExclusive(start, start, end)); 
+        Assert.IsFalse(Library.IsBetweenExclusive(end, start, end)); 
     }
 
     [TestMethod]
@@ -586,8 +586,8 @@ public class DateTests : LibraryBaseBaseTests
     {
         var start = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero);
         var end = new DateTimeOffset(2024, 12, 31, 23, 59, 59, TimeSpan.Zero);
-        Assert.IsFalse(Library.IsBetweenExclusive(start, start, end)); // exclusive start
-        Assert.IsFalse(Library.IsBetweenExclusive(end, start, end)); // exclusive end
+        Assert.IsFalse(Library.IsBetweenExclusive(start, start, end)); 
+        Assert.IsFalse(Library.IsBetweenExclusive(end, start, end)); 
     }
 
     #endregion
@@ -677,7 +677,7 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void DayOfWeek_WhenProvided_ReturnsDayOfWeek()
     {
-        var dto = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero); // Saturday
+        var dto = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero); 
         Assert.AreEqual((int)System.DayOfWeek.Saturday, Library.DayOfWeek(dto));
     }
 
@@ -790,49 +790,49 @@ public class DateTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsWeekend_DateTime_WhenSaturday2024_ReturnsTrue()
     {
-        var date = new DateTime(2024, 6, 15); // Saturday
+        var date = new DateTime(2024, 6, 15); 
         Assert.IsTrue(Library.IsWeekend(date));
     }
 
     [TestMethod]
     public void IsWeekend_DateTime_WhenSunday2024_ReturnsTrue()
     {
-        var date = new DateTime(2024, 6, 16); // Sunday
+        var date = new DateTime(2024, 6, 16); 
         Assert.IsTrue(Library.IsWeekend(date));
     }
 
     [TestMethod]
     public void IsWeekend_DateTime_WhenMonday2024_ReturnsFalse()
     {
-        var date = new DateTime(2024, 6, 17); // Monday
+        var date = new DateTime(2024, 6, 17); 
         Assert.IsFalse(Library.IsWeekend(date));
     }
 
     [TestMethod]
     public void IsWeekend_DateTimeOffset_WhenSaturday2024_ReturnsTrue()
     {
-        var date = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero); // Saturday
+        var date = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero); 
         Assert.IsTrue(Library.IsWeekend(date));
     }
 
     [TestMethod]
     public void IsWeekday_DateTime_WhenMonday2024_ReturnsTrue()
     {
-        var date = new DateTime(2024, 6, 17); // Monday
+        var date = new DateTime(2024, 6, 17); 
         Assert.IsTrue(Library.IsWeekday(date));
     }
 
     [TestMethod]
     public void IsWeekday_DateTime_WhenSaturday2024_ReturnsFalse()
     {
-        var date = new DateTime(2024, 6, 15); // Saturday
+        var date = new DateTime(2024, 6, 15); 
         Assert.IsFalse(Library.IsWeekday(date));
     }
 
     [TestMethod]
     public void IsWeekday_DateTimeOffset_WhenMonday2024_ReturnsTrue()
     {
-        var date = new DateTimeOffset(2024, 6, 17, 0, 0, 0, TimeSpan.Zero); // Monday
+        var date = new DateTimeOffset(2024, 6, 17, 0, 0, 0, TimeSpan.Zero); 
         Assert.IsTrue(Library.IsWeekday(date));
     }
 

@@ -379,20 +379,20 @@ public class RewriteQueryVisitorTests
     [TestMethod]
     public void Visit_ComplexExpression_ShouldHandleCorrectly()
     {
-        // Test a more complex expression: (5 + 3) * 2
+        
         var five = new IntegerNode("5");
         var three = new IntegerNode("3");
         var two = new IntegerNode("2");
 
-        // Build: 5 + 3
+        
         PushNode(five);
         PushNode(three);
         _visitor.Visit(new AddNode(five, three));
 
-        // At this point, we have the result of (5 + 3) on the stack
-        // Now we want to multiply it by 2
+        
+        
         PushNode(two);
-        _visitor.Visit(new StarNode(five, two)); // Use five as placeholder since the actual left operand comes from stack
+        _visitor.Visit(new StarNode(five, two)); 
 
         // Assert
         Assert.AreEqual(1, GetNodesCount(), "Complex expression should result in single node");
@@ -508,7 +508,7 @@ public class RewriteQueryVisitorTests
     [TestMethod]
     public void Stack_Underflow_Prevention_ShouldProvideInformativeErrors()
     {
-        // Test that we get informative error messages for various stack underflow scenarios
+        
         var operations = new[]
         {
             (Action)(() => _visitor.Visit(new StarNode(new IntegerNode("1"), new IntegerNode("2")))),
@@ -562,7 +562,7 @@ ex.Message, $"Error message should be informative: {ex.Message}");
 ex.Message, $"Error message should be informative: {ex.Message}");
             }
 
-            // Clear the stack for next test
+            
             while (GetNodesCount() > 0)
             {
                 GetPrivateNodes().Pop();

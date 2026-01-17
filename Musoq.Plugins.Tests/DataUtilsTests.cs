@@ -43,7 +43,7 @@ public class DataUtilsTests : LibraryBaseBaseTests
     [TestMethod]
     public void JwtDecode_WhenValidJwtProvided_ShouldReturnPayload()
     {
-        // JWT with payload: {"sub":"1234567890","name":"John Doe","iat":1516239022}
+        
         var jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
         var result = Library.JwtDecode(jwt);
 
@@ -83,7 +83,7 @@ public class DataUtilsTests : LibraryBaseBaseTests
     [TestMethod]
     public void JwtGetHeader_WhenValidJwtProvided_ShouldReturnHeader()
     {
-        // JWT with header: {"alg":"HS256","typ":"JWT"}
+        
         var jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
         var result = Library.JwtGetHeader(jwt);
 
@@ -337,7 +337,7 @@ public class DataUtilsTests : LibraryBaseBaseTests
 
         Assert.IsNotNull(result);
         Assert.Contains("\n", result);
-        Assert.Contains("  ", result); // Indentation
+        Assert.Contains("  ", result); 
     }
 
     [TestMethod]
@@ -505,7 +505,7 @@ public class DataUtilsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToHumanReadableSize_WhenKilobytesProvided_ShouldReturnKB()
     {
-        var result = Library.ToHumanReadableSize(1536); // 1.5 KB
+        var result = Library.ToHumanReadableSize(1536); 
 
         Assert.IsNotNull(result);
         Assert.Contains("KB", result);
@@ -515,7 +515,7 @@ public class DataUtilsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToHumanReadableSize_WhenMegabytesProvided_ShouldReturnMB()
     {
-        var result = Library.ToHumanReadableSize(1048576); // 1 MB
+        var result = Library.ToHumanReadableSize(1048576); 
 
         Assert.AreEqual("1 MB", result);
     }
@@ -523,7 +523,7 @@ public class DataUtilsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToHumanReadableSize_WhenGigabytesProvided_ShouldReturnGB()
     {
-        var result = Library.ToHumanReadableSize(1073741824L); // 1 GB
+        var result = Library.ToHumanReadableSize(1073741824L); 
 
         Assert.AreEqual("1 GB", result);
     }
@@ -531,7 +531,7 @@ public class DataUtilsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToHumanReadableSize_WhenTerabytesProvided_ShouldReturnTB()
     {
-        var result = Library.ToHumanReadableSize(1099511627776L); // 1 TB
+        var result = Library.ToHumanReadableSize(1099511627776L); 
 
         Assert.AreEqual("1 TB", result);
     }
@@ -575,7 +575,7 @@ public class DataUtilsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToHumanReadableDuration_WhenHoursProvided_ShouldReturnHoursMinutesSeconds()
     {
-        var result = Library.ToHumanReadableDuration(3661); // 1h 1m 1s
+        var result = Library.ToHumanReadableDuration(3661); 
 
         Assert.AreEqual("1h 1m 1s", result);
     }
@@ -583,7 +583,7 @@ public class DataUtilsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToHumanReadableDuration_WhenDaysProvided_ShouldReturnDaysHoursMinutesSeconds()
     {
-        var result = Library.ToHumanReadableDuration(90061); // 1d 1h 1m 1s
+        var result = Library.ToHumanReadableDuration(90061); 
 
         Assert.AreEqual("1d 1h 1m 1s", result);
     }
@@ -591,7 +591,7 @@ public class DataUtilsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToHumanReadableDuration_WhenExactHourProvided_ShouldNotShowZeroComponents()
     {
-        var result = Library.ToHumanReadableDuration(3600); // 1h
+        var result = Library.ToHumanReadableDuration(3600); 
 
         Assert.AreEqual("1h", result);
     }
@@ -666,7 +666,7 @@ public class DataUtilsTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBase64_WhenValidBase64Provided_ShouldReturnTrue()
     {
-        var result = Library.IsBase64("SGVsbG8gV29ybGQh"); // "Hello World!"
+        var result = Library.IsBase64("SGVsbG8gV29ybGQh"); 
 
         Assert.IsTrue(result);
     }
@@ -674,7 +674,7 @@ public class DataUtilsTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBase64_WhenValidBase64WithPaddingProvided_ShouldReturnTrue()
     {
-        var result = Library.IsBase64("SGVsbG8="); // "Hello"
+        var result = Library.IsBase64("SGVsbG8="); 
 
         Assert.IsTrue(result);
     }
@@ -682,7 +682,7 @@ public class DataUtilsTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBase64_WhenInvalidLengthProvided_ShouldReturnFalse()
     {
-        var result = Library.IsBase64("abc"); // Length not divisible by 4
+        var result = Library.IsBase64("abc"); 
 
         Assert.IsFalse(result);
     }

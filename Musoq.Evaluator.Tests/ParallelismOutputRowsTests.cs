@@ -49,7 +49,7 @@ public class ParallelismOutputRowsTests
 
         Assert.AreEqual(rowCount, table.Count, $"Expected {rowCount} rows but got {table.Count}");
         
-        // Verify all IDs are present
+        
         var resultIds = table.Select(row => (int)row[1]).OrderBy(x => x).ToList();
         var expectedIds = Enumerable.Range(0, rowCount).ToList();
         CollectionAssert.AreEqual(expectedIds, resultIds, "Not all expected IDs were returned");
@@ -72,7 +72,7 @@ public class ParallelismOutputRowsTests
 
         Assert.AreEqual(rowCount, table.Count, $"Expected {rowCount} rows but got {table.Count}");
         
-        // Verify all IDs are present
+        
         var resultIds = table.Select(row => (int)row[1]).OrderBy(x => x).ToList();
         var expectedIds = Enumerable.Range(0, rowCount).ToList();
         CollectionAssert.AreEqual(expectedIds, resultIds, "Not all expected IDs were returned");
@@ -129,7 +129,7 @@ public class ParallelismOutputRowsTests
 
         Assert.AreEqual(2500, table.Count, $"Expected 2500 rows but got {table.Count}");
         
-        // Verify all returned IDs are >= 2500
+        
         var resultIds = table.Select(row => (int)row[1]).OrderBy(x => x).ToList();
         Assert.IsTrue(resultIds.All(id => id >= 2500), "Some rows have Id < 2500");
         
@@ -154,7 +154,7 @@ public class ParallelismOutputRowsTests
 
         Assert.AreEqual(2500, table.Count, $"Expected 2500 rows but got {table.Count}");
         
-        // Verify all returned IDs are >= 2500
+        
         var resultIds = table.Select(row => (int)row[1]).OrderBy(x => x).ToList();
         Assert.IsTrue(resultIds.All(id => id >= 2500), "Some rows have Id < 2500");
         
@@ -207,7 +207,7 @@ public class ParallelismOutputRowsTests
         var vm = CreateVirtualMachineWithOptions(query, sources, new CompilationOptions(ParallelizationMode.Full));
         var table = vm.Run();
 
-        // Count how many names contain "500"
+        
         var expectedCount = entities.Count(e => e.Name.Contains("500"));
         Assert.AreEqual(expectedCount, table.Count, $"Expected {expectedCount} rows but got {table.Count}");
     }
@@ -310,7 +310,7 @@ public class ParallelismOutputRowsTests
         Assert.AreEqual(tableNonParallel.Count, tableParallel.Count, 
             $"Row count mismatch: Parallel={tableParallel.Count}, NonParallel={tableNonParallel.Count}");
 
-        // Convert to dictionaries for comparison
+        
         var parallelResults = tableParallel.ToDictionary(row => (string)row[0], row => (
             Count: Convert.ToInt32(row[1]), 
             Sum: Convert.ToDecimal(row[2]),
@@ -355,7 +355,7 @@ public class ParallelismOutputRowsTests
 
         Assert.AreEqual(rowCount, table.Count, $"Expected {rowCount} rows but got {table.Count}");
         
-        // Verify all IDs are present and unique
+        
         var resultIds = table.Select(row => (int)row[1]).OrderBy(x => x).ToList();
         Assert.AreEqual(rowCount, resultIds.Distinct().Count(), "Duplicate IDs found in results");
         
@@ -422,7 +422,7 @@ public class ParallelismOutputRowsTests
         var nonParallelIds = tableNonParallel.Select(row => (int)row[1]).OrderBy(x => x).ToList();
         CollectionAssert.AreEqual(nonParallelIds, parallelIds, "Result sets differ between parallel and non-parallel execution");
         
-        // Verify correctness
+        
         Assert.IsTrue(parallelIds.All(id => id % 7 == 0 || id % 11 == 0), "Filter not correctly applied");
     }
 
@@ -444,7 +444,7 @@ public class ParallelismOutputRowsTests
         
         Assert.AreEqual(size, table.Count, $"Expected {size} rows but got {table.Count}");
         
-        // Verify content
+        
         var resultPairs = table.Select(row => ((string)row[0], (string)row[1])).OrderBy(x => int.Parse(x.Item1)).ToList();
         for (int i = 0; i < size; i++)
         {
@@ -506,7 +506,7 @@ public class ParallelismOutputRowsTests
         
         Assert.AreEqual(leftSize, table.Count, $"Expected {leftSize} rows but got {table.Count}");
         
-        // Verify matched and unmatched rows
+        
         var matchedCount = table.Count(row => row[1] != null);
         var unmatchedCount = table.Count(row => row[1] == null);
         
@@ -594,7 +594,7 @@ public class ParallelismOutputRowsTests
 
         Assert.AreEqual(rowCount, table.Count, $"Expected {rowCount} rows but got {table.Count}");
         
-        // Verify order
+        
         var resultIds = table.Select(row => (int)row[1]).ToList();
         var expectedIds = Enumerable.Range(0, rowCount).Reverse().ToList();
         CollectionAssert.AreEqual(expectedIds, resultIds, "Order is incorrect");

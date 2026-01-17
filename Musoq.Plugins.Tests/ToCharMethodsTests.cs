@@ -95,7 +95,7 @@ public class ToCharMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToChar_WhenDigitIntProvided_ShouldReturnDigitChar()
     {
-        var result = Library.ToChar(48); // '0'
+        var result = Library.ToChar(48); 
 
         Assert.AreEqual('0', result);
     }

@@ -514,8 +514,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var identifier = _identifier;
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
 
-        if (!string.IsNullOrWhiteSpace(node.Alias) /* r.* */ ||
-            (!tableSymbol.IsCompoundTable && string.IsNullOrWhiteSpace(node.Alias)) /* * from #abc.cda() */)
+        if (!string.IsNullOrWhiteSpace(node.Alias)  ||
+            (!tableSymbol.IsCompoundTable && string.IsNullOrWhiteSpace(node.Alias)) )
         {
             ProcessSingleTable(node, tableSymbol, identifier);
         }
@@ -1373,7 +1373,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         
         var queryNode = new QueryNode(select, from, where, groupBy, orderBy, skip, take);
         
-        // Validate primitive types in all query clauses
+        
         ValidateSelectFieldsArePrimitive(queryNode.Select.Fields, "SELECT");
         
         if (where != null)

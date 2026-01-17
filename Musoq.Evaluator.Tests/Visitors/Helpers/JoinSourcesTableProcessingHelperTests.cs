@@ -148,29 +148,29 @@ public class JoinSourcesTableProcessingHelperTests
 
     private static JoinSourcesTableFromNode CreateMockJoinNode(JoinType joinType)
     {
-        // Create mock aliases
+        
         var firstAlias = new AliasedFromNode(
             "testId",
-            null, // args
+            null, 
             "FirstAlias",
             typeof(object),
-            0); // inSourcePosition
+            0); 
         
         var secondAlias = new AliasedFromNode(
             "testId2",
-            null, // args
+            null, 
             "SecondAlias",
             typeof(object),
-            0); // inSourcePosition
+            0); 
 
-        // Create a simple expression node (we'll use an integer literal)
-        var expression = new IntegerNode("1", "");  // empty abbreviation for int
+        
+        var expression = new IntegerNode("1", "");  
 
         return new JoinSourcesTableFromNode(
             firstAlias,
             secondAlias,
             expression,
             joinType,
-            typeof(object)); // return type
+            typeof(object)); 
     }
 }

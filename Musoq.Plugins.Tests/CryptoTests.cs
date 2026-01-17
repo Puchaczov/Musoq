@@ -16,7 +16,7 @@ public class CryptoTests : LibraryBaseBaseTests
         var result = Library.Sha384("hello");
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(96, result.Length); // SHA-384 produces 48 bytes = 96 hex chars
+        Assert.AreEqual(96, result.Length); 
     }
 
     [TestMethod]
@@ -103,7 +103,7 @@ public class CryptoTests : LibraryBaseBaseTests
         var result = Library.Crc32("hello");
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(8, result.Length); // CRC32 = 4 bytes = 8 hex chars
+        Assert.AreEqual(8, result.Length); 
     }
 
     [TestMethod]
@@ -183,11 +183,11 @@ public class CryptoTests : LibraryBaseBaseTests
     [TestMethod]
     public void Crc32_WhenKnownInput_ShouldReturnExpectedChecksum()
     {
-        // "hello" has a known CRC32 value
+        
         var result = Library.Crc32("hello");
 
         Assert.IsNotNull(result);
-        // Just verify it's consistent hex output
+        
         Assert.IsTrue(result.All(c => c is (>= '0' and <= '9') or (>= 'a' and <= 'f')));
     }
 
@@ -201,7 +201,7 @@ public class CryptoTests : LibraryBaseBaseTests
         var result = Library.HmacSha256("message", "secret");
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(64, result.Length); // SHA-256 = 32 bytes = 64 hex chars
+        Assert.AreEqual(64, result.Length); 
     }
 
     [TestMethod]
@@ -292,7 +292,7 @@ public class CryptoTests : LibraryBaseBaseTests
         var result = Library.HmacSha512("message", "secret");
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(128, result.Length); // SHA-512 = 64 bytes = 128 hex chars
+        Assert.AreEqual(128, result.Length); 
     }
 
     [TestMethod]

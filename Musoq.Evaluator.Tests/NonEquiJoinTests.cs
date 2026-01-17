@@ -35,10 +35,10 @@ inner join #B.entities() b on a.Population > b.Population";
                 }
             };
 
-            // A1 (100) > B1 (50) -> Match
-            // A1 (100) > B2 (150) -> No Match
-            // A2 (200) > B1 (50) -> Match
-            // A2 (200) > B2 (150) -> Match
+            
+            
+            
+            
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run(TestContext.CancellationToken);
@@ -68,22 +68,22 @@ inner join #C.entities() c on b.Population > c.Population";
                 {
                     "#B", [
                         new BasicEntity { Name = "B1", Population = 200 },
-                        new BasicEntity { Name = "B2", Population = 400 } // Should not match A1
+                        new BasicEntity { Name = "B2", Population = 400 } 
                     ]
                 },
                 {
                     "#C", [
                         new BasicEntity { Name = "C1", Population = 100 },
-                        new BasicEntity { Name = "C2", Population = 250 } // Should match B2 but B2 doesn't match A1
+                        new BasicEntity { Name = "C2", Population = 250 } 
                     ]
                 }
             };
 
-            // A1(300) > B1(200) -> Match
-            //   B1(200) > C1(100) -> Match -> (A1, B1, C1)
-            //   B1(200) > C2(250) -> No Match
             
-            // A1(300) > B2(400) -> No Match
+            
+            
+            
+            
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run(TestContext.CancellationToken);
@@ -119,8 +119,8 @@ inner join #B.entities() b on a.Population < b.Population";
                 }
             };
 
-            // A1 (100) < B1 (50) -> No Match
-            // A1 (100) < B2 (150) -> Match
+            
+            
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run(TestContext.CancellationToken);
@@ -156,9 +156,9 @@ inner join #B.entities() b on a.Population >= b.Population";
                 }
             };
 
-            // A1 (100) >= B1 (100) -> Match
-            // A1 (100) >= B2 (50) -> Match
-            // A1 (100) >= B3 (150) -> No Match
+            
+            
+            
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run(TestContext.CancellationToken);
@@ -192,9 +192,9 @@ inner join #B.entities() b on a.Population <= b.Population";
                 }
             };
 
-            // A1 (100) <= B1 (100) -> Match
-            // A1 (100) <= B2 (50) -> No Match
-            // A1 (100) <= B3 (150) -> Match
+            
+            
+            
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run(TestContext.CancellationToken);
@@ -227,8 +227,8 @@ inner join #B.entities() b on a.Population <> b.Population";
                 }
             };
 
-            // A1 (100) <> B1 (100) -> No Match
-            // A1 (100) <> B2 (50) -> Match
+            
+            
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run(TestContext.CancellationToken);
@@ -264,8 +264,8 @@ inner join #B.entities() b on a.Time > b.Time";
                 }
             };
 
-            // A1 (Now) > B1 (Yesterday) -> Match
-            // A1 (Now) > B2 (Tomorrow) -> No Match
+            
+            
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run(TestContext.CancellationToken);
@@ -302,13 +302,13 @@ inner join #B.entities() b on a.Country = b.Country AND a.Population > b.Populat
                 }
             };
 
-            // A1 (PL, 100) vs B1 (PL, 50) -> Match (Country match, 100 > 50)
-            // A1 (PL, 100) vs B2 (PL, 150) -> No Match (Country match, 100 !> 150)
-            // A1 (PL, 100) vs B3 (DE, 50) -> No Match (Country mismatch)
             
-            // A2 (DE, 100) vs B1 (PL, 50) -> No Match (Country mismatch)
-            // A2 (DE, 100) vs B2 (PL, 150) -> No Match (Country mismatch)
-            // A2 (DE, 100) vs B3 (DE, 50) -> Match (Country match, 100 > 50)
+            
+            
+            
+            
+            
+            
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run(TestContext.CancellationToken);
@@ -335,9 +335,9 @@ inner join #B.entities() b on (a.Population > b.Population OR a.Money > b.Money)
                 },
                 {
                     "#B", [
-                        new BasicEntity { Name = "B1", Population = 50, Money = 200 }, // Pop match, Money no match -> Match
-                        new BasicEntity { Name = "B2", Population = 150, Money = 50 }, // Pop no match, Money match -> Match
-                        new BasicEntity { Name = "B3", Population = 150, Money = 150 } // Neither match -> No Match
+                        new BasicEntity { Name = "B1", Population = 50, Money = 200 }, 
+                        new BasicEntity { Name = "B2", Population = 150, Money = 50 }, 
+                        new BasicEntity { Name = "B3", Population = 150, Money = 150 } 
                     ]
                 }
             };
@@ -373,8 +373,8 @@ left join #B.entities() b on a.Population > b.Population";
                 }
             };
 
-            // A1 (100) > B1 (50) -> Match -> (A1, B1)
-            // A2 (10) > B1 (50) -> No Match -> (A2, null)
+            
+            
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run(TestContext.CancellationToken);
@@ -412,10 +412,10 @@ inner join #A.entities() b on a.Population > b.Population";
                 }
             };
 
-            // High (100) > High (100) -> No
-            // High (100) > Low (50) -> Yes
-            // Low (50) > High (100) -> No
-            // Low (50) > Low (50) -> No
+            
+            
+            
+            
 
             var vm = CreateAndRunVirtualMachine(query, sources);
             var table = vm.Run(TestContext.CancellationToken);

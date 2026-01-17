@@ -35,7 +35,7 @@ public static class CteExpressionNodeProcessor
         var statements = new List<StatementSyntax>();
         var resultCteMethodName = methodNames.Pop();
 
-        // Collect statements from inner expressions
+        
         foreach (var _ in node.InnerExpression)
         {
             methodNames.Pop();
@@ -46,10 +46,10 @@ public static class CteExpressionNodeProcessor
 
         const string methodName = "CteResultQuery";
 
-        // Add return statement with method invocation
+        
         statements.Add(CreateReturnStatement(resultCteMethodName));
 
-        // Create the method declaration
+        
         var method = CreateCteMethodDeclaration(methodName, statements);
 
         return (method, methodName);

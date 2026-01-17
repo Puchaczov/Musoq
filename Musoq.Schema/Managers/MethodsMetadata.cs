@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -223,7 +223,7 @@ public class MethodsMetadata
     {
         return _methodIndexCache.TryGetValue((name, method), out var index) 
             ? index 
-            : _methods[name].IndexOf(method); // Fallback for safety
+            : _methods[name].IndexOf(method); 
     }
 
     /// <summary>
@@ -310,14 +310,14 @@ public class MethodsMetadata
     /// <returns>True if some method fits, else false.</returns>
     private bool TryGetRawMethod(string name, Type[] methodArgs, out int index, out string actualMethodName)
     {
-        // First, try exact match
+        
         if (TryGetRawMethodByExactName(name, methodArgs, out index))
         {
             actualMethodName = name;
             return true;
         }
         
-        // Then try case-insensitive match
+        
         var normalizedName = MethodNameNormalizer.Normalize(name);
         if (_normalizedToOriginalMethodNames.TryGetValue(normalizedName, out var originalName))
         {
@@ -443,7 +443,7 @@ public class MethodsMetadata
             var paramsParameter = metadata.ParamsParameters;
             var parametersToInject = metadata.ParametersToInject;
 
-            //Wrong amount of argument's. That's not our function.
+            
             if (!paramsParameter.HasParameters() &&
                 (HasMoreArgumentsThanMethodDefinitionContains(methodArgs, notAnnotatedParametersCount) ||
                  !CanUseSomeArgumentsAsDefaultParameters(methodArgs, notAnnotatedParametersCount,
@@ -458,9 +458,9 @@ public class MethodsMetadata
                  f < g;
                  ++f)
             {
-                //1. When constant value, it won't be nullable<type> but type.
-                //So it is possible to call function with such value. 
-                //That's why GetUnderlyingNullable exists here.
+                
+                
+                
                 var rawParam = parameters[f + parametersToInject].ParameterType;
                 var param = rawParam.GetUnderlyingNullable();
                 var arg = methodArgs[f].GetUnderlyingNullable();
@@ -497,8 +497,8 @@ public class MethodsMetadata
             if (!hasMatchedArgTypes)
                 continue;
 
-            //When both methods X(A a) and X(B b) exists, we must rely on in what context that method was called.
-            //EntityType is used to determine that. It provides information about type of entity that called method was invoked with.
+            
+            
             if (entityType is not null)
             {
                 var injectTypeAttributes = GetInjectTypeAttribute(methodInfo);

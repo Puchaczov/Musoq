@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Helpers;
@@ -263,10 +263,10 @@ sw.ElapsedMilliseconds, $"Processing took too long: {sw.ElapsedMilliseconds}ms")
     [TestMethod]
     public void Unescape_SpecialCharacters()
     {
-        Assert.AreEqual("\0", @"\0".Unescape()); // Null character
-        Assert.AreEqual("\b", @"\b".Unescape()); // Backspace
-        Assert.AreEqual("\f", @"\f".Unescape()); // Form feed
-        Assert.AreEqual("\u001B", @"\e".Unescape()); // Escape character
+        Assert.AreEqual("\0", @"\0".Unescape()); 
+        Assert.AreEqual("\b", @"\b".Unescape()); 
+        Assert.AreEqual("\f", @"\f".Unescape()); 
+        Assert.AreEqual("\u001B", @"\e".Unescape()); 
     }
 
     [TestMethod]
@@ -282,10 +282,10 @@ sw.ElapsedMilliseconds, $"Processing took too long: {sw.ElapsedMilliseconds}ms")
     [TestMethod]
     public void Unescape_InvalidUnicodeSequences()
     {
-        Assert.AreEqual("\\uZZZZ", @"\uZZZZ".Unescape()); // Invalid unicode
-        Assert.AreEqual("\\xZZ", @"\xZZ".Unescape()); // Invalid hex
-        Assert.AreEqual("\\u123", @"\u123".Unescape()); // Incomplete unicode
-        Assert.AreEqual("\\x1", @"\x1".Unescape()); // Incomplete hex
+        Assert.AreEqual("\\uZZZZ", @"\uZZZZ".Unescape()); 
+        Assert.AreEqual("\\xZZ", @"\xZZ".Unescape()); 
+        Assert.AreEqual("\\u123", @"\u123".Unescape()); 
+        Assert.AreEqual("\\x1", @"\x1".Unescape()); 
     }
 
     [TestMethod]

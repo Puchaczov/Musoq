@@ -166,7 +166,7 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3, item4, item5]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // All except Byte50 should match (Value > 100)
+        
         Assert.AreEqual(4, table.Count);
         var results = table.Select(row => row.Values[0]).Cast<string>().OrderBy(x => x).ToList();
         CollectionAssert.Contains(results, "Int150");

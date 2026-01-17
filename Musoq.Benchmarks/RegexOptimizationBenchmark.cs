@@ -33,16 +33,16 @@ public class RegexOptimizationBenchmark : BenchmarkBase
         var mediumData = allData.Take(10000).ToList();
         var largeData = allData;
 
-        // LIKE query - single pattern (tests regex caching)
+        
         const string likeQuery = "select FirstName, LastName, Email from #A.Entities() where Email like '%.co.uk'";
         
-        // RLIKE query - regex pattern
+        
         const string rlikeQuery = "select FirstName, LastName, Email from #A.Entities() where Email rlike '.*\\.co\\.uk$'";
         
-        // Multiple LIKE patterns in same query
+        
         const string multipleLikeQuery = "select FirstName, LastName, Email from #A.Entities() where Email like '%.co.uk' or Email like '%.com' or Email like '%.org'";
         
-        // Baseline query without pattern matching (for comparison)
+        
         const string baselineQuery = "select FirstName, LastName, Email from #A.Entities() where Gender = 'Male'";
 
         var smallSources = new Dictionary<string, IEnumerable<ProfileEntity>> { { "#A", smallData } };

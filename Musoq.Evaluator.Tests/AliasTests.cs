@@ -11,7 +11,7 @@ public class AliasTests : MultiSchemaTestBase
     [TestMethod]
     public void WhenUniqueColumnAcrossJoinedDataSetOccurred_ShouldNotNeedToUseAlias()
     {
-        //ZeroItem doesn't need an alias as it is unique column within those two data sources
+        
         const string query = "select ZeroItem from #schema.first() first inner join #schema.second() second on 1 = 1";
         
         var vm = CreateAndRunVirtualMachine(query, [
@@ -42,7 +42,7 @@ public class AliasTests : MultiSchemaTestBase
     [TestMethod]
     public void WhenAmbiguousColumnAcrossJoinedDataSetOccurred_ShouldNeedToUseAlias()
     {
-        //FirstItem needs an alias as it is ambiguous column within those two data sources
+        
         const string query = "select first.FirstItem, second.FirstItem from #schema.first() first inner join #schema.second() second on 1 = 1";
         
         var vm = CreateAndRunVirtualMachine(query, [
@@ -62,7 +62,7 @@ public class AliasTests : MultiSchemaTestBase
     [TestMethod]
     public void WhenCteInheritsAliasedName_ShouldBeAccessibleByRawColumnNameAccessSyntax()
     {
-        //FirstItem needs an alias as it is ambiguous column within those two data sources and we will use it's inherited name as is
+        
         const string query = @"
 with p as (
     select 
@@ -90,7 +90,7 @@ select [first.FirstItem], [second.FirstItem] from p";
     [TestMethod]
     public void WhenCteInheritsAliasedName_ShouldBeAccessibleByAliasedColumnNameAccessSyntax()
     {
-        //FirstItem needs an alias as it is ambiguous column within those two data sources and we will use it's inherited name as is
+        
         const string query = @"
 with p as (
     select 
@@ -119,7 +119,7 @@ select p.[first.FirstItem], p.[second.FirstItem] from p";
     [TestMethod]
     public void WhenCteInheritsAliasedName_ShouldBeAccessibleByAliasedColumnNameAccessSyntaxWithAlias()
     {
-        //FirstItem needs an alias as it is ambiguous column within those two data sources and we will use it's inherited name as is
+        
         const string query = @"
 with p as (
     select 
@@ -149,7 +149,7 @@ select q.FirstItem, q.SecondItem from q";
     [TestMethod]
     public void WhenCteInheritsAliasedName_ShouldBeAccessibleByAliasedColumnNameAccessSyntaxWithAliasAndAlias()
     {
-        //FirstItem needs an alias as it is ambiguous column within those two data sources and we will use it's inherited name as is
+        
         const string query = @"
 with p as (
     select 

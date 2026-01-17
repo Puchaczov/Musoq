@@ -57,7 +57,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         item2.Name = "Item B";
 
         dynamic item3 = new ExpandoObject();
-        item3.Price = (object)30.00; // Exact value, no precision loss
+        item3.Price = (object)30.00; 
         item3.Name = "Item C";
 
         return [item1, item2, item3];
@@ -259,8 +259,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithObjectFloatColumn());
         var table = vm.Run(TestContext.CancellationToken);
 
-        // Price 19.99 is stored as double, comparison should work
-        Assert.AreEqual(0, table.Count); // No items less than 19.99
+        
+        Assert.AreEqual(0, table.Count); 
     }
 
     [TestMethod]
@@ -295,17 +295,17 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
                              "select Name from Items() where Value = 100";
 
         dynamic item1 = new ExpandoObject();
-        item1.Value = (object)100.5; // Has fractional part
+        item1.Value = (object)100.5; 
         item1.Name = "Float";
 
         dynamic item2 = new ExpandoObject();
-        item2.Value = (object)100; // Exact integer
+        item2.Value = (object)100; 
         item2.Name = "Int";
 
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // Only the exact integer match should be returned (strict mode rejects 100.5)
+        
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Int", table[0].Values[0]);
     }
@@ -323,7 +323,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, CreateTestDataWithObjectFloatColumn());
         var table = vm.Run(TestContext.CancellationToken);
 
-        // Decimal comparison should work with floats
+        
         Assert.AreEqual(3, table.Count);
     }
 
@@ -425,8 +425,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         var highCount = table.Count(row => row.Values[1] as string == "High");
         var lowCount = table.Count(row => row.Values[1] as string == "Low");
 
-        Assert.AreEqual(2, highCount); // Medium and Large
-        Assert.AreEqual(1, lowCount);  // Small
+        Assert.AreEqual(2, highCount); 
+        Assert.AreEqual(1, lowCount);  
     }
 
     #endregion
@@ -454,7 +454,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // Only valid numeric string should match
+        
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Valid", table[0].Values[0]);
     }
@@ -480,7 +480,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // Only non-null value should match
+        
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Valid", table[0].Values[0]);
     }
@@ -531,7 +531,7 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // 0b1111 = 15, so Size > 15 should return "20"
+        
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("Large", table[0].Values[0]);
     }

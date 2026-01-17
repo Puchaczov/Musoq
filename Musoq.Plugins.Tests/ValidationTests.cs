@@ -346,7 +346,7 @@ public class ValidationTests
     [TestMethod]
     public void IsValidDecimal_WhenDecimal_ReturnsTrue()
     {
-        // Use comma as decimal separator for culture-independent test
+        
         Assert.IsTrue(_library.IsValidDecimal("123,456"));
     }
 

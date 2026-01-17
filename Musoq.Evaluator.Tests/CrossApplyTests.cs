@@ -208,7 +208,7 @@ public class CrossApplyTests : GenericEntityTestBase
     [TestMethod]
     public void WhenSchemaMethodCrossAppliedWithAnotherSchema_HashOptionalOnFromHashOnApply_ShouldPass()
     {
-        // Hash-optional on FROM, hash prefix on APPLY
+        
         const string query = "select a.City, b.Country from schema.first() a cross apply #schema.second(a.Country) b";
 
         var firstSource = new List<CrossApplyClass1>

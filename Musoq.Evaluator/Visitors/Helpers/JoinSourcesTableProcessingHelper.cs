@@ -1000,8 +1000,8 @@ public static class JoinSourcesTableProcessingHelper
         var computingBlock = SyntaxFactory.Block();
         
         var isRightJoin = node.JoinType == JoinType.OuterRight;
-        var probeAlias = isRightJoin ? node.Second.Alias : node.First.Alias; // Outer
-        var buildAlias = isRightJoin ? node.First.Alias : node.Second.Alias; // Inner
+        var probeAlias = isRightJoin ? node.Second.Alias : node.First.Alias; 
+        var buildAlias = isRightJoin ? node.First.Alias : node.Second.Alias; 
         
         var buildKeyExpr = isRightJoin ? leftKey : rightKey;
         var probeKeyExpr = isRightJoin ? rightKey : leftKey;
@@ -1439,7 +1439,7 @@ public static class JoinSourcesTableProcessingHelper
                                 ))
                             ),
                             
-                            // Initial Limit Search
+                            
                             SyntaxFactory.WhileStatement(
                                 SyntaxFactory.BinaryExpression(
                                     SyntaxKind.LogicalAndExpression,
@@ -1449,7 +1449,7 @@ public static class JoinSourcesTableProcessingHelper
                                         SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName(innerKeysVar), SyntaxFactory.IdentifierName("Length"))
                                     ),
                                     SyntaxFactory.BinaryExpression(
-                                        comparisonKind, // e.g. GreaterThan
+                                        comparisonKind, 
                                         SyntaxFactory.ElementAccessExpression(
                                             SyntaxFactory.IdentifierName(outerKeysVar),
                                             SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
