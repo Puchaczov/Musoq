@@ -63,6 +63,7 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
         _accessColumns.TryAdd(node.SourceAlias, []);
         _accessColumns[node.SourceAlias].Add(
             new AccessColumnNode(node.FirstProperty.PropertyName, node.SourceAlias, node.ReturnType, TextSpan.Empty));
+        _accessColumns.TryAdd(node.Alias, []);
 
         base.Visit(node);
     }
