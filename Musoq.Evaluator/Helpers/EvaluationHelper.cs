@@ -25,6 +25,9 @@ public static class EvaluationHelper
 
     public static RowSource ConvertEnumerableToSource<T>(IEnumerable<T> enumerable)
     {
+        if (enumerable is null)
+            return new GenericRowsSource<T>(Enumerable.Empty<T>());
+        
         if (typeof(T).IsPrimitive || typeof(T) == typeof(string))
             return new GenericRowsSource<PrimitiveTypeEntity<T>>(enumerable.Select(f => new PrimitiveTypeEntity<T>(f)));
 

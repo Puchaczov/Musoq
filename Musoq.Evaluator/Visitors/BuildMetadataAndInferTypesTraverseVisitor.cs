@@ -295,7 +295,8 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         join.Source.Accept(this);
         join.With.Accept(this);
 
-        var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[join.Source.Id]);
+        var sourceId = join.Source is ApplyFromNode ? MetaAttributes.ProcessedQueryId : join.Source.Id;
+        var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[sourceId]);
         var secondTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[join.With.Id]);
 
         switch (join.JoinType)
@@ -308,13 +309,13 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
                 break;
             case JoinType.OuterRight:
                 firstTableSymbol = firstTableSymbol.MakeNullableIfPossible();
-                Scope.ScopeSymbolTable.UpdateSymbol(Scope[join.Source.Id], firstTableSymbol);
+                Scope.ScopeSymbolTable.UpdateSymbol(Scope[sourceId], firstTableSymbol);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
 
-        var id = $"{Scope[join.Source.Id]}{Scope[join.With.Id]}";
+        var id = $"{Scope[sourceId]}{Scope[join.With.Id]}";
 
         Scope.ScopeSymbolTable.AddSymbol(id, firstTableSymbol.MergeSymbols(secondTableSymbol));
         Scope[MetaAttributes.ProcessedQueryId] = id;
