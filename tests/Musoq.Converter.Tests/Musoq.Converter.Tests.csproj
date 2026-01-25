@@ -17,11 +17,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Musoq.Converter\Musoq.Converter.csproj"/>
-        <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj"/>
-        <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj"/>
-        <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj"/>
-        <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj"/>
+        <ProjectReference Include="..\..\src\dotnet\Musoq.Converter\Musoq.Converter.csproj"/>
+        <ProjectReference Include="..\..\src\dotnet\Musoq.Evaluator\Musoq.Evaluator.csproj"/>
+        <ProjectReference Include="..\..\src\dotnet\Musoq.Parser\Musoq.Parser.csproj"/>
+        <ProjectReference Include="..\..\src\dotnet\Musoq.Plugins\Musoq.Plugins.csproj"/>
+        <ProjectReference Include="..\..\src\dotnet\Musoq.Schema\Musoq.Schema.csproj"/>
         <ProjectReference Include="..\Musoq.Tests.Common\Musoq.Tests.Common.csproj"/>
     </ItemGroup>
 

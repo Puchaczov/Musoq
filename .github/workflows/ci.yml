@@ -5,7 +5,7 @@ on:
     branches:
       - '**'
     paths-ignore:
-      - 'badges/**'
+      - 'docs/assets/**'
 
 jobs:
   build:
@@ -87,10 +87,10 @@ jobs:
       run: |
         git config --global user.name "github-actions"
         git config --global user.email "github-actions@github.com"
-        mkdir -p badges
-        rm -f badges/tests-badge.svg
-        mv tests-badge.svg badges/tests-badge.svg
-        git add badges/tests-badge.svg
+        mkdir -p docs/assets
+        rm -f docs/assets/tests-badge.svg
+        mv tests-badge.svg docs/assets/tests-badge.svg
+        git add docs/assets/tests-badge.svg
         if ! git diff --cached --quiet; then
           git commit -m "Update test results badge [skip ci]"
           git push --force
