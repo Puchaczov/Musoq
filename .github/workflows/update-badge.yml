@@ -1,0 +1,139 @@
+name: Update Test Badge
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Every Sunday at midnight UTC
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  update-badge:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    name: Update test results badge
+    timeout-minutes: 60
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+        fetch-depth: 0
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Install trx2junit
+      run: dotnet tool install -g trx2junit
+    
+    - name: Build & Run tests
+      run: dotnet test src/dotnet/Musoq.sln --configuration Release --logger "trx;LogFileName=test-results.trx"
+    
+    - name: Convert TRX to JUnit
+      run: |
+        $trxFiles = Get-ChildItem -Recurse -Filter test-results.trx
+        $trx2junitPath = (Get-Command trx2junit).Source
+        foreach ($trxFile in $trxFiles) {
+          & $trx2junitPath $trxFile.FullName --output ($trxFile.DirectoryName + "\test-results.xml")
+        }
+    
+    - name: Merge JUnit results
+      run: |
+        $xmlFiles = Get-ChildItem -Recurse -File -Filter test-results.xml
+        $mergedXml = [xml]"<testsuites></testsuites>"
+        foreach ($xmlFile in $xmlFiles) {
+          $content = [xml](Get-Content $xmlFile.FullName)
+          foreach ($testsuite in $content.testsuites.testsuite) {
+            $importedNode = $mergedXml.ImportNode($testsuite, $true)
+            $mergedXml.DocumentElement.AppendChild($importedNode) > $null
+          }
+        }
+        $mergedXml.Save("merged-test-results.xml")
+    
+    - name: Parse test results
+      shell: pwsh
+      id: parse
+      run: |
+        [xml]$testResults = Get-Content merged-test-results.xml
+        $total = ($testResults.testsuites.testsuite | Measure-Object -Property tests -Sum).Sum
+        $failures = ($testResults.testsuites.testsuite | Measure-Object -Property failures -Sum).Sum
+        $skipped = ($testResults.testsuites.testsuite | Measure-Object -Property skipped -Sum).Sum
+        $passed = $total - $failures - $skipped
+        "TOTAL=$total" >> $env:GITHUB_ENV
+        "PASSED=$passed" >> $env:GITHUB_ENV
+        "FAILURES=$failures" >> $env:GITHUB_ENV
+        "SKIPPED=$skipped" >> $env:GITHUB_ENV
+    
+    - name: Check existing badge
+      id: check
+      shell: bash
+      run: |
+        if [ -f "docs/assets/tests-badge.svg" ]; then
+          # Extract current values from existing badge
+          CURRENT_BADGE=$(cat docs/assets/tests-badge.svg)
+          echo "Current badge exists, will compare with new values"
+        else
+          echo "No existing badge found"
+        fi
+        echo "new_total=$TOTAL" >> $GITHUB_OUTPUT
+        echo "new_passed=$PASSED" >> $GITHUB_OUTPUT
+        echo "new_failures=$FAILURES" >> $GITHUB_OUTPUT
+        echo "new_skipped=$SKIPPED" >> $GITHUB_OUTPUT
+    
+    - name: Create badge
+      shell: bash
+      run: |
+        PASSED=${PASSED:-0}
+        FAILURES=${FAILURES:-0}
+        SKIPPED=${SKIPPED:-0}
+        TOTAL=$((PASSED + FAILURES + SKIPPED))
+
+        if [ "$FAILURES" -gt 0 ]; then
+          COLOR="red"
+        elif [ "$SKIPPED" -gt 0 ]; then
+          COLOR="yellow"
+        else
+          COLOR="green"
+        fi
+
+        # Generate the badge URL
+        BADGE_URL="https://img.shields.io/badge/tests-${PASSED}%2F${TOTAL}%20%28${FAILURES}%20failed%2C%20${SKIPPED}%20skipped%29-${COLOR}.svg"
+
+        # Fetch the badge
+        curl -o tests-badge-new.svg "${BADGE_URL}"
+    
+    - name: Commit badge if changed
+      shell: bash
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        
+        mkdir -p docs/assets
+        
+        # Check if badge content changed
+        if [ -f "docs/assets/tests-badge.svg" ]; then
+          # Compare old and new badge (ignore minor SVG differences, compare by checking test counts in URL)
+          OLD_SIZE=$(wc -c < docs/assets/tests-badge.svg)
+          NEW_SIZE=$(wc -c < tests-badge-new.svg)
+          
+          # Simple comparison - if files differ, update
+          if cmp -s docs/assets/tests-badge.svg tests-badge-new.svg; then
+            echo "Badge unchanged, skipping commit"
+            exit 0
+          fi
+        fi
+        
+        echo "Badge changed or new, committing..."
+        mv tests-badge-new.svg docs/assets/tests-badge.svg
+        git add docs/assets/tests-badge.svg
+        
+        if ! git diff --cached --quiet; then
+          git commit -m "Update test results badge [skip ci]
+
+Tests: $PASSED/$TOTAL (failures: $FAILURES, skipped: $SKIPPED)"
+          git push origin main
+          echo "Badge updated successfully"
+        else
+          echo "No changes to commit"
+        fi

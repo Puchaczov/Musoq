@@ -24,18 +24,18 @@ jobs:
         dotnet-version: '8.0.x'
     
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore src/dotnet/Musoq.sln
     
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build src/dotnet/Musoq.sln --configuration Release --no-restore
     
     - name: Pack specific projects
       run: |
-        dotnet pack Musoq.Converter/Musoq.Converter.csproj --configuration Release --no-build --output ./nupkgs
-        dotnet pack Musoq.Evaluator/Musoq.Evaluator.csproj --configuration Release --no-build --output ./nupkgs
-        dotnet pack Musoq.Parser/Musoq.Parser.csproj --configuration Release --no-build --output ./nupkgs
-        dotnet pack Musoq.Plugins/Musoq.Plugins.csproj --configuration Release --no-build --output ./nupkgs
-        dotnet pack Musoq.Schema/Musoq.Schema.csproj --configuration Release --no-build --output ./nupkgs
+        dotnet pack src/dotnet/Musoq.Converter/Musoq.Converter.csproj --configuration Release --no-build --output ./nupkgs
+        dotnet pack src/dotnet/Musoq.Evaluator/Musoq.Evaluator.csproj --configuration Release --no-build --output ./nupkgs
+        dotnet pack src/dotnet/Musoq.Parser/Musoq.Parser.csproj --configuration Release --no-build --output ./nupkgs
+        dotnet pack src/dotnet/Musoq.Plugins/Musoq.Plugins.csproj --configuration Release --no-build --output ./nupkgs
+        dotnet pack src/dotnet/Musoq.Schema/Musoq.Schema.csproj --configuration Release --no-build --output ./nupkgs
     
     - name: Publish to NuGet.org
       run: |
