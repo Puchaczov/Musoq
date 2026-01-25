@@ -9,31 +9,31 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B2C3D4E5
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmarks", "benchmarks", "{C3D4E5F6-A7B8-9012-CDEF-123456789012}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Parser", "src\dotnet\Musoq.Parser\Musoq.Parser.csproj", "{38B5F6DB-2DCB-46BF-A250-219D97B1C973}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Parser", "Musoq.Parser\Musoq.Parser.csproj", "{38B5F6DB-2DCB-46BF-A250-219D97B1C973}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Evaluator", "src\dotnet\Musoq.Evaluator\Musoq.Evaluator.csproj", "{B50CC668-94C3-429A-9D1F-45F4BB40CB0B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Evaluator", "Musoq.Evaluator\Musoq.Evaluator.csproj", "{B50CC668-94C3-429A-9D1F-45F4BB40CB0B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Converter", "src\dotnet\Musoq.Converter\Musoq.Converter.csproj", "{F6710F80-75DF-4141-9C36-9E981D680665}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Converter", "Musoq.Converter\Musoq.Converter.csproj", "{F6710F80-75DF-4141-9C36-9E981D680665}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema", "src\dotnet\Musoq.Schema\Musoq.Schema.csproj", "{1B7D2E6C-05A9-42E1-BE32-9A6821E390CA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema", "Musoq.Schema\Musoq.Schema.csproj", "{1B7D2E6C-05A9-42E1-BE32-9A6821E390CA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Plugins", "src\dotnet\Musoq.Plugins\Musoq.Plugins.csproj", "{10775A77-BC60-47FD-A6FF-F02C3EA41944}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Plugins", "Musoq.Plugins\Musoq.Plugins.csproj", "{10775A77-BC60-47FD-A6FF-F02C3EA41944}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Playground", "src\dotnet\Musoq.Playground\Musoq.Playground.csproj", "{D4E5F6A7-B8C9-0123-DEF0-234567890123}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Playground", "Musoq.Playground\Musoq.Playground.csproj", "{D4E5F6A7-B8C9-0123-DEF0-234567890123}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Evaluator.Tests", "tests\Musoq.Evaluator.Tests\Musoq.Evaluator.Tests.csproj", "{A04EDDB1-F09A-499F-BC2C-9714E9234C9C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Evaluator.Tests", "Musoq.Evaluator.Tests\Musoq.Evaluator.Tests.csproj", "{A04EDDB1-F09A-499F-BC2C-9714E9234C9C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.Tests", "tests\Musoq.Schema.Tests\Musoq.Schema.Tests.csproj", "{BCACBD4A-2F62-48A4-AE71-3A947E038510}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Schema.Tests", "Musoq.Schema.Tests\Musoq.Schema.Tests.csproj", "{BCACBD4A-2F62-48A4-AE71-3A947E038510}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Converter.Tests", "tests\Musoq.Converter.Tests\Musoq.Converter.Tests.csproj", "{49CB3E2D-6464-4EBF-9832-A29DB4163566}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Converter.Tests", "Musoq.Converter.Tests\Musoq.Converter.Tests.csproj", "{49CB3E2D-6464-4EBF-9832-A29DB4163566}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Plugins.Tests", "tests\Musoq.Plugins.Tests\Musoq.Plugins.Tests.csproj", "{895E89E8-CCB8-4C29-B15E-8A37B3EFAECD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Plugins.Tests", "Musoq.Plugins.Tests\Musoq.Plugins.Tests.csproj", "{895E89E8-CCB8-4C29-B15E-8A37B3EFAECD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Parser.Tests", "tests\Musoq.Parser.Tests\Musoq.Parser.Tests.csproj", "{595C2DAB-96F1-4EE7-B056-BAF77611F648}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Parser.Tests", "Musoq.Parser.Tests\Musoq.Parser.Tests.csproj", "{595C2DAB-96F1-4EE7-B056-BAF77611F648}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Tests.Common", "tests\Musoq.Tests.Common\Musoq.Tests.Common.csproj", "{1162A6DB-ECB8-4256-B974-3DF409E74276}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Tests.Common", "Musoq.Tests.Common\Musoq.Tests.Common.csproj", "{1162A6DB-ECB8-4256-B974-3DF409E74276}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Benchmarks", "benchmarks\Musoq.Benchmarks\Musoq.Benchmarks.csproj", "{E2229395-ED21-4F0D-82C6-931A8089B7C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musoq.Benchmarks", "Musoq.Benchmarks\Musoq.Benchmarks.csproj", "{E2229395-ED21-4F0D-82C6-931A8089B7C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

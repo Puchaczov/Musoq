@@ -13,32 +13,34 @@ Always reference these instructions first and fallback to search or bash command
 Bootstrap, build, and test the repository:
 ```bash
 # 1. Initial setup - takes ~30 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
-dotnet restore
+dotnet restore src/dotnet/Musoq.sln
 
 # 2. Build solution - takes ~20 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
-dotnet build --configuration Release --no-restore
+dotnet build src/dotnet/Musoq.sln --configuration Release --no-restore
 
 # 3. Run full test suite - takes ~2.1 minutes. NEVER CANCEL. Set timeout to 180+ seconds.
-dotnet test --configuration Release --no-build --verbosity normal
+dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --verbosity normal
 
 # 4. Clean when needed - takes ~1 second
-dotnet clean
+dotnet clean src/dotnet/Musoq.sln
 
 # 5. Package for distribution - takes ~2 seconds
-dotnet pack --configuration Release --no-build
+dotnet pack src/dotnet/Musoq.sln --configuration Release --no-build
 ```
 
 ### Project Structure and Key Components
-Musoq is organized into these core modules located in `src/dotnet/`:
+Musoq is organized into these modules, all located in `src/dotnet/`:
 - **Musoq.Parser**: SQL syntax parsing and AST generation
 - **Musoq.Evaluator**: Query execution engine and runtime
 - **Musoq.Converter**: Code generation and compilation
 - **Musoq.Schema**: Type system and data source abstraction
 - **Musoq.Plugins**: Built-in functions and operations
 - **Musoq.Playground**: Interactive testing project
+- **Musoq.*.Tests**: Test projects for each module
+- **Musoq.Tests.Common**: Shared test utilities
+- **Musoq.Benchmarks**: Performance benchmarks
 
-Test projects are in `tests/` and benchmarks in `benchmarks/`.
-Each module has corresponding test projects (*.Tests) with comprehensive coverage.
+The solution file `Musoq.sln` is located in `src/dotnet/` with all projects as siblings.
 
 ## Multi-Session Communication
 
@@ -94,19 +96,19 @@ Each module has corresponding test projects (*.Tests) with comprehensive coverag
 - **For targeted testing**, run specific modules:
   ```bash
   # Test parser changes - takes ~1.5 seconds (148 tests)
-  dotnet test tests/Musoq.Parser.Tests --configuration Release --no-build
+  dotnet test src/dotnet/Musoq.Parser.Tests --configuration Release --no-build
   
   # Test evaluator changes - takes ~90 seconds (largest test suite)
-  dotnet test tests/Musoq.Evaluator.Tests --configuration Release --no-build
+  dotnet test src/dotnet/Musoq.Evaluator.Tests --configuration Release --no-build
   
   # Test converter changes - takes ~4 seconds (2 tests)
-  dotnet test tests/Musoq.Converter.Tests --configuration Release --no-build
+  dotnet test src/dotnet/Musoq.Converter.Tests --configuration Release --no-build
   
   # Test schema changes - takes ~1.5 seconds (85 tests)
-  dotnet test tests/Musoq.Schema.Tests --configuration Release --no-build
+  dotnet test src/dotnet/Musoq.Schema.Tests --configuration Release --no-build
   
   # Test plugins changes - takes ~1.7 seconds (421 tests)
-  dotnet test tests/Musoq.Plugins.Tests --configuration Release --no-build
+  dotnet test src/dotnet/Musoq.Plugins.Tests --configuration Release --no-build
   ```
 
 ### Query Engine Validation
@@ -129,7 +131,7 @@ Each module has corresponding test projects (*.Tests) with comprehensive coverag
 - **No build-time dependencies**: Only requires .NET 8.0 SDK
 
 ### Performance and Benchmarks Validation
-- **Benchmarks validate functionality**: Run `dotnet run --project benchmarks/Musoq.Benchmarks --configuration Release` to verify core query engine works
+- **Benchmarks validate functionality**: Run `dotnet run --project src/dotnet/Musoq.Benchmarks --configuration Release` to verify core query engine works
 - **Performance regression testing**: Use benchmarks to measure impact of changes
 - **Memory usage validation**: Monitor compilation and execution phases for memory efficiency
 
@@ -176,10 +178,10 @@ After making changes to core components, validate actual SQL functionality:
 When modifying SQL parsing logic:
 ```bash
 # Validate syntax parsing
-dotnet test tests/Musoq.Parser.Tests --verbosity detailed
+dotnet test src/dotnet/Musoq.Parser.Tests --verbosity detailed
 
 # Test integration with evaluator
-dotnet test tests/Musoq.Evaluator.Tests --filter TestCategory=Parser
+dotnet test src/dotnet/Musoq.Evaluator.Tests --filter TestCategory=Parser
 ```
 Key areas: Token recognition, AST generation, operator precedence, error reporting.
 
@@ -187,10 +189,10 @@ Key areas: Token recognition, AST generation, operator precedence, error reporti
 When adding new data source types:
 ```bash
 # Test schema functionality
-dotnet test tests/Musoq.Schema.Tests
+dotnet test src/dotnet/Musoq.Schema.Tests
 
 # Test schema integration
-dotnet test tests/Musoq.Evaluator.Tests --filter TestCategory=Schema
+dotnet test src/dotnet/Musoq.Evaluator.Tests --filter TestCategory=Schema
 ```
 Key considerations: Method resolution, type inference, runtime context handling.
 
@@ -198,10 +200,10 @@ Key considerations: Method resolution, type inference, runtime context handling.
 When modifying query execution:
 ```bash
 # Test core evaluation engine
-dotnet test tests/Musoq.Evaluator.Tests
+dotnet test src/dotnet/Musoq.Evaluator.Tests
 
 # Run benchmarks to check performance impact
-dotnet run --project benchmarks/Musoq.Benchmarks --configuration Release
+dotnet run --project src/dotnet/Musoq.Benchmarks --configuration Release
 ```
 Key areas: Query compilation, runtime execution, memory management.
 
@@ -209,10 +211,10 @@ Key areas: Query compilation, runtime execution, memory management.
 When modifying code generation:
 ```bash
 # Test code generation
-dotnet test tests/Musoq.Converter.Tests
+dotnet test src/dotnet/Musoq.Converter.Tests
 
 # Verify generated code compiles
-dotnet test tests/Musoq.Evaluator.Tests --filter TestCategory=CodeGeneration
+dotnet test src/dotnet/Musoq.Evaluator.Tests --filter TestCategory=CodeGeneration
 ```
 Key areas: C# code generation, assembly compilation, runtime loading.
 
@@ -300,11 +302,11 @@ dotnet test --filter TestCategory=Performance
 ### Debugging Failed Tests
 ```bash
 # Run specific failing test with detailed output
-dotnet test tests/Musoq.Evaluator.Tests --configuration Release --verbosity detailed --filter "TestMethodName"
+dotnet test src/dotnet/Musoq.Evaluator.Tests --configuration Release --verbosity detailed --filter "TestMethodName"
 
 # Check for test data dependencies
-dotnet test tests/Musoq.Parser.Tests --configuration Release --verbosity detailed --logger "console;verbosity=diagnostic"
+dotnet test src/dotnet/Musoq.Parser.Tests --configuration Release --verbosity detailed --logger "console;verbosity=diagnostic"
 
 # Run tests in isolation to identify environment conflicts
-dotnet test tests/Musoq.Schema.Tests --configuration Release --verbosity normal --collect:"XPlat Code Coverage"
+dotnet test src/dotnet/Musoq.Schema.Tests --configuration Release --verbosity normal --collect:"XPlat Code Coverage"
 ```

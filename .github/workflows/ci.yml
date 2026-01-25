@@ -23,7 +23,7 @@ jobs:
     - name: Install trx2junit
       run: dotnet tool install -g trx2junit
     - name: Build & Run tests
-      run: dotnet test --configuration Release --logger "trx;LogFileName=test-results.trx"
+      run: dotnet test src/dotnet/Musoq.sln --configuration Release --logger "trx;LogFileName=test-results.trx"
     - name: Convert TRX to JUnit
       if: "github.ref != 'refs/heads/master'"
       run: |

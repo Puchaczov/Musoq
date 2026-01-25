@@ -24,10 +24,10 @@ jobs:
         dotnet-version: '8.0.x'
     
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore src/dotnet/Musoq.sln
     
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build src/dotnet/Musoq.sln --configuration Release --no-restore
     
     - name: Pack specific projects
       run: |
