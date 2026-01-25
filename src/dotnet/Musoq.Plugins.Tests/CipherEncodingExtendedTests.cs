@@ -129,7 +129,7 @@ public class CipherEncodingExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.ToMorse("HELLO");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("...."));
+        Assert.Contains("....", result);
     }
 
     [TestMethod]
@@ -297,7 +297,7 @@ public class CipherEncodingExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.ToBinaryString("AB");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains(" "));
+        Assert.Contains(" ", result);
     }
 
     #endregion

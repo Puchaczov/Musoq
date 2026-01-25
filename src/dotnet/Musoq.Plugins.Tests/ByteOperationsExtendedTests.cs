@@ -31,7 +31,7 @@ public class ByteOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.GetBytes("");
         Assert.IsNotNull(result);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     #endregion
@@ -139,7 +139,7 @@ public class ByteOperationsExtendedTests : LibraryBaseBaseTests
         var result = Library.GetBytes(value);
         Assert.IsNotNull(result);
 
-        Assert.IsTrue(result.Length > 0);
+        Assert.IsNotEmpty(result);
     }
 
     [TestMethod]
@@ -148,7 +148,7 @@ public class ByteOperationsExtendedTests : LibraryBaseBaseTests
         var value = -12345;
         var result = Library.GetBytes(value);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Length > 0);
+        Assert.IsNotEmpty(result);
     }
 
     #endregion
@@ -238,7 +238,7 @@ public class ByteOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.GetBytes(12345.67m);
         Assert.IsNotNull(result);
-        Assert.AreEqual(16, result.Length);
+        Assert.HasCount(16, result);
     }
 
     [TestMethod]
@@ -246,7 +246,7 @@ public class ByteOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.GetBytes(-12345.67m);
         Assert.IsNotNull(result);
-        Assert.AreEqual(16, result.Length);
+        Assert.HasCount(16, result);
     }
 
     #endregion
@@ -264,7 +264,7 @@ public class ByteOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.GetBytes(123.456);
         Assert.IsNotNull(result);
-        Assert.AreEqual(8, result.Length);
+        Assert.HasCount(8, result);
     }
 
     [TestMethod]
@@ -272,7 +272,7 @@ public class ByteOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.GetBytes(-123.456);
         Assert.IsNotNull(result);
-        Assert.AreEqual(8, result.Length);
+        Assert.HasCount(8, result);
     }
 
     #endregion
@@ -322,7 +322,7 @@ public class ByteOperationsExtendedTests : LibraryBaseBaseTests
         var result = Library.ToHex(new byte[] { 255, 0, 128 }, ":");
 
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains(":"));
+        Assert.Contains(":", result);
     }
 
     #endregion
@@ -334,7 +334,7 @@ public class ByteOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.ToHex(255);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.StartsWith("FF"));
+        Assert.StartsWith("FF", result);
     }
 
     [TestMethod]
@@ -342,7 +342,7 @@ public class ByteOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.ToHex((byte)255);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("FF"));
+        Assert.Contains("FF", result);
     }
 
     [TestMethod]
@@ -358,7 +358,7 @@ public class ByteOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.ToHex((short)255);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("FF"));
+        Assert.Contains("FF", result);
     }
 
     #endregion

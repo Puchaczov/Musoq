@@ -396,21 +396,21 @@ public class DateTimeExtendedTests : LibraryBaseBaseTests
     public void IsWeekend_Saturday_ReturnsTrue()
     {
         var date = new DateTime(2024, 6, 15);
-        Assert.AreEqual(true, Library.IsWeekend(date));
+        Assert.IsTrue(Library.IsWeekend(date));
     }
 
     [TestMethod]
     public void IsWeekend_Sunday_ReturnsTrue()
     {
         var date = new DateTime(2024, 6, 16);
-        Assert.AreEqual(true, Library.IsWeekend(date));
+        Assert.IsTrue(Library.IsWeekend(date));
     }
 
     [TestMethod]
     public void IsWeekend_Monday_ReturnsFalse()
     {
         var date = new DateTime(2024, 6, 17);
-        Assert.AreEqual(false, Library.IsWeekend(date));
+        Assert.IsFalse(Library.IsWeekend(date));
     }
 
     [TestMethod]
@@ -423,7 +423,7 @@ public class DateTimeExtendedTests : LibraryBaseBaseTests
     public void IsWeekend_DateTimeOffset_Saturday_ReturnsTrue()
     {
         var date = new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero);
-        Assert.AreEqual(true, Library.IsWeekend(date));
+        Assert.IsTrue(Library.IsWeekend(date));
     }
 
     #endregion
@@ -440,14 +440,14 @@ public class DateTimeExtendedTests : LibraryBaseBaseTests
     public void IsWeekday_Monday_ReturnsTrue()
     {
         var date = new DateTime(2024, 6, 17);
-        Assert.AreEqual(true, Library.IsWeekday(date));
+        Assert.IsTrue(Library.IsWeekday(date));
     }
 
     [TestMethod]
     public void IsWeekday_Saturday_ReturnsFalse()
     {
         var date = new DateTime(2024, 6, 15);
-        Assert.AreEqual(false, Library.IsWeekday(date));
+        Assert.IsFalse(Library.IsWeekday(date));
     }
 
     [TestMethod]
@@ -460,7 +460,7 @@ public class DateTimeExtendedTests : LibraryBaseBaseTests
     public void IsWeekday_DateTimeOffset_Monday_ReturnsTrue()
     {
         var date = new DateTimeOffset(2024, 6, 17, 0, 0, 0, TimeSpan.Zero);
-        Assert.AreEqual(true, Library.IsWeekday(date));
+        Assert.IsTrue(Library.IsWeekday(date));
     }
 
     #endregion
@@ -719,13 +719,13 @@ public class DateTimeExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsLeapYear_2024_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsLeapYear(new DateTime(2024, 1, 1)));
+        Assert.IsTrue(Library.IsLeapYear(new DateTime(2024, 1, 1)));
     }
 
     [TestMethod]
     public void IsLeapYear_2023_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsLeapYear(new DateTime(2023, 1, 1)));
+        Assert.IsFalse(Library.IsLeapYear(new DateTime(2023, 1, 1)));
     }
 
     [TestMethod]
@@ -737,7 +737,7 @@ public class DateTimeExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsLeapYear_DateTimeOffset_2024_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsLeapYear(new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero)));
+        Assert.IsTrue(Library.IsLeapYear(new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero)));
     }
 
     #endregion
@@ -765,15 +765,13 @@ public class DateTimeExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetween_ValueInRange_ReturnsTrue()
     {
-        Assert.AreEqual(true,
-            Library.IsBetween(new DateTime(2024, 6, 15), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31)));
+        Assert.IsTrue(Library.IsBetween(new DateTime(2024, 6, 15), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31)));
     }
 
     [TestMethod]
     public void IsBetween_ValueOutOfRange_ReturnsFalse()
     {
-        Assert.AreEqual(false,
-            Library.IsBetween(new DateTime(2025, 6, 15), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31)));
+        Assert.IsFalse(Library.IsBetween(new DateTime(2025, 6, 15), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31)));
     }
 
     [TestMethod]
@@ -787,7 +785,7 @@ public class DateTimeExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetween_DateTimeOffset_ValueInRange_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsBetween(
+        Assert.IsTrue(Library.IsBetween(
             new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero),
             new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
             new DateTimeOffset(2024, 12, 31, 0, 0, 0, TimeSpan.Zero)));
@@ -806,23 +804,20 @@ public class DateTimeExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetweenExclusive_ValueAtStart_ReturnsFalse()
     {
-        Assert.AreEqual(false,
-            Library.IsBetweenExclusive(new DateTime(2024, 1, 1), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31)));
+        Assert.IsFalse(Library.IsBetweenExclusive(new DateTime(2024, 1, 1), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31)));
     }
 
     [TestMethod]
     public void IsBetweenExclusive_ValueAtEnd_ReturnsFalse()
     {
-        Assert.AreEqual(false,
-            Library.IsBetweenExclusive(new DateTime(2024, 12, 31), new DateTime(2024, 1, 1),
+        Assert.IsFalse(Library.IsBetweenExclusive(new DateTime(2024, 12, 31), new DateTime(2024, 1, 1),
                 new DateTime(2024, 12, 31)));
     }
 
     [TestMethod]
     public void IsBetweenExclusive_ValueInRange_ReturnsTrue()
     {
-        Assert.AreEqual(true,
-            Library.IsBetweenExclusive(new DateTime(2024, 6, 15), new DateTime(2024, 1, 1),
+        Assert.IsTrue(Library.IsBetweenExclusive(new DateTime(2024, 6, 15), new DateTime(2024, 1, 1),
                 new DateTime(2024, 12, 31)));
     }
 
@@ -837,7 +832,7 @@ public class DateTimeExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetweenExclusive_DateTimeOffset_ValueInRange_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsBetweenExclusive(
+        Assert.IsTrue(Library.IsBetweenExclusive(
             new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero),
             new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero),
             new DateTimeOffset(2024, 12, 31, 0, 0, 0, TimeSpan.Zero)));

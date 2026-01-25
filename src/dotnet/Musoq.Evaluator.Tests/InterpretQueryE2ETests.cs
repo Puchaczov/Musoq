@@ -1328,7 +1328,7 @@ public class InterpretQueryE2ETests
         Assert.AreEqual((byte)0x01, table[0][0]);
         Assert.AreEqual((byte)0x03, table[0][1]);
         var value = (byte[])table[0][2];
-        Assert.AreEqual(3, value.Length);
+        Assert.HasCount(3, value);
         Assert.AreEqual((byte)0xAA, value[0]);
     }
 
@@ -1398,10 +1398,10 @@ public class InterpretQueryE2ETests
         Assert.AreEqual(2, table.Count);
         var names = new HashSet<string> { (string)table[0][0], (string)table[1][0] };
         var values = new HashSet<string> { (string)table[0][1], (string)table[1][1] };
-        Assert.IsTrue(names.Contains("PATH"));
-        Assert.IsTrue(names.Contains("HOME"));
-        Assert.IsTrue(values.Contains("/usr/bin:/usr/local/bin"));
-        Assert.IsTrue(values.Contains("/home/user"));
+        Assert.Contains("PATH", names);
+        Assert.Contains("HOME", names);
+        Assert.Contains("/usr/bin:/usr/local/bin", values);
+        Assert.Contains("/home/user", values);
     }
 
     #endregion

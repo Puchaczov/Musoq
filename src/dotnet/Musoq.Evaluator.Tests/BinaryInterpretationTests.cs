@@ -3338,7 +3338,7 @@ public class BinaryInterpretationTests
         var payload = GetPropertyValue<byte[]>(result, "EmptyPayload");
 
         Assert.IsNotNull(payload);
-        Assert.AreEqual(0, payload.Length);
+        Assert.IsEmpty(payload);
     }
 
     /// <summary>

@@ -125,7 +125,7 @@ public class DiffMethodsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.Diff("hello", "hello world");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("[+"));
+        Assert.Contains("[+", result);
     }
 
     [TestMethod]
@@ -133,7 +133,7 @@ public class DiffMethodsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.Diff("hello world", "hello");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("[-"));
+        Assert.Contains("[-", result);
     }
 
     [TestMethod]
@@ -158,7 +158,7 @@ public class DiffMethodsExtendedTests : LibraryBaseBaseTests
     public void DiffSegments_FirstNull_ReturnsInserted()
     {
         var result = Library.DiffSegments(null, "hello").ToList();
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("Inserted", result[0].Kind);
         Assert.AreEqual("hello", result[0].Text);
         Assert.AreEqual(0, result[0].Position);
@@ -169,7 +169,7 @@ public class DiffMethodsExtendedTests : LibraryBaseBaseTests
     public void DiffSegments_SecondNull_ReturnsDeleted()
     {
         var result = Library.DiffSegments("hello", null).ToList();
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("Deleted", result[0].Kind);
         Assert.AreEqual("hello", result[0].Text);
     }
@@ -185,7 +185,7 @@ public class DiffMethodsExtendedTests : LibraryBaseBaseTests
     public void DiffSegments_FirstEmpty_ReturnsInserted()
     {
         var result = Library.DiffSegments(string.Empty, "hello").ToList();
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("Inserted", result[0].Kind);
     }
 
@@ -193,7 +193,7 @@ public class DiffMethodsExtendedTests : LibraryBaseBaseTests
     public void DiffSegments_SecondEmpty_ReturnsDeleted()
     {
         var result = Library.DiffSegments("hello", string.Empty).ToList();
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("Deleted", result[0].Kind);
     }
 
@@ -201,7 +201,7 @@ public class DiffMethodsExtendedTests : LibraryBaseBaseTests
     public void DiffSegments_Identical_ReturnsUnchanged()
     {
         var result = Library.DiffSegments("hello", "hello").ToList();
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("Unchanged", result[0].Kind);
         Assert.AreEqual("hello", result[0].Text);
     }
@@ -210,7 +210,7 @@ public class DiffMethodsExtendedTests : LibraryBaseBaseTests
     public void DiffSegments_SimpleChange_ReturnsMultipleSegments()
     {
         var result = Library.DiffSegments("hello", "hallo").ToList();
-        Assert.IsTrue(result.Count >= 2);
+        Assert.IsGreaterThanOrEqualTo(2, result.Count);
     }
 
     [TestMethod]

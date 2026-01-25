@@ -142,7 +142,7 @@ public class NullTypeTests
     {
         var methods = NullTypeInstance.GetMethods(BindingFlags.Public | BindingFlags.Instance);
         Assert.IsNotNull(methods);
-        Assert.IsTrue(methods.Length > 0);
+        Assert.IsNotEmpty(methods);
     }
 
     [TestMethod]
@@ -193,7 +193,7 @@ public class NullTypeTests
     {
         var members = NullTypeInstance.GetMembers(BindingFlags.Public | BindingFlags.Instance);
         Assert.IsNotNull(members);
-        Assert.IsTrue(members.Length > 0);
+        Assert.IsNotEmpty(members);
     }
 
     [TestMethod]
@@ -384,7 +384,7 @@ public class NullTypeTests
     public void Attributes_ReturnsExpected()
     {
         var attributes = NullTypeInstance.Attributes;
-        Assert.IsTrue((attributes & TypeAttributes.Public) == TypeAttributes.Public);
+        Assert.AreEqual(TypeAttributes.Public, attributes & TypeAttributes.Public);
     }
 
     #endregion

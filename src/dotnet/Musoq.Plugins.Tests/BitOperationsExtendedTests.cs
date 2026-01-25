@@ -389,7 +389,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((byte?)5, (sbyte?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -397,7 +397,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((byte?)5, (short?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -405,7 +405,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((byte?)5, (ushort?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -413,7 +413,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((byte?)5, (int?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -421,7 +421,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((byte?)5, (uint?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((uint)4, result.Value);
     }
 
     [TestMethod]
@@ -429,7 +429,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((byte?)5, (long?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4L, result.Value);
     }
 
     [TestMethod]
@@ -437,7 +437,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((byte?)5, (ulong?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((ulong)4, result.Value);
     }
 
     #endregion
@@ -449,7 +449,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((sbyte?)5, (byte?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -465,7 +465,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((sbyte?)5, (short?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -473,7 +473,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((sbyte?)5, (ushort?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -481,7 +481,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((sbyte?)5, (int?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -489,7 +489,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((sbyte?)5, (uint?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((uint)4, result.Value);
     }
 
     [TestMethod]
@@ -497,7 +497,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((sbyte?)5, (long?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4L, result.Value);
     }
 
     #endregion
@@ -509,7 +509,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((short?)5, (byte?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -517,7 +517,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((short?)5, (sbyte?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -533,7 +533,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((short?)5, (ushort?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -541,7 +541,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((short?)5, (int?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -549,7 +549,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((short?)5, (uint?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((uint)4, result.Value);
     }
 
     [TestMethod]
@@ -557,7 +557,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((short?)5, (long?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4L, result.Value);
     }
 
     #endregion
@@ -569,7 +569,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((ushort?)5, (byte?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -577,7 +577,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((ushort?)5, (sbyte?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -585,7 +585,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((ushort?)5, (short?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -601,7 +601,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((ushort?)5, (int?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -609,7 +609,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((ushort?)5, (uint?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((uint)4, result.Value);
     }
 
     [TestMethod]
@@ -617,7 +617,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((ushort?)5, (long?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4L, result.Value);
     }
 
     [TestMethod]
@@ -625,7 +625,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((ushort?)5, (ulong?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((ulong)4, result.Value);
     }
 
     #endregion
@@ -637,7 +637,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((int?)5, (byte?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -645,7 +645,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((int?)5, (sbyte?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -653,7 +653,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((int?)5, (short?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -661,7 +661,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((int?)5, (ushort?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4, result.Value);
     }
 
     [TestMethod]
@@ -677,7 +677,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((int?)5, (uint?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((uint)4, result.Value);
     }
 
     [TestMethod]
@@ -685,7 +685,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((int?)5, (long?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4L, result.Value);
     }
 
     #endregion
@@ -697,7 +697,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((uint?)5, (byte?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((uint)4, result.Value);
     }
 
     [TestMethod]
@@ -705,7 +705,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((uint?)5, (sbyte?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((uint)4, result.Value);
     }
 
     [TestMethod]
@@ -713,7 +713,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((uint?)5, (short?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((uint)4, result.Value);
     }
 
     [TestMethod]
@@ -721,7 +721,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((uint?)5, (ushort?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((uint)4, result.Value);
     }
 
     [TestMethod]
@@ -729,7 +729,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((uint?)5, (int?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((uint)4, result.Value);
     }
 
     [TestMethod]
@@ -745,7 +745,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((uint?)5, (long?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((ulong)4, result.Value);
     }
 
     [TestMethod]
@@ -753,7 +753,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((uint?)5, (ulong?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((ulong)4, result.Value);
     }
 
     #endregion
@@ -765,7 +765,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((long?)5, (byte?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4L, result.Value);
     }
 
     [TestMethod]
@@ -773,7 +773,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((long?)5, (sbyte?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4L, result.Value);
     }
 
     [TestMethod]
@@ -781,7 +781,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((long?)5, (short?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4L, result.Value);
     }
 
     [TestMethod]
@@ -789,7 +789,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((long?)5, (ushort?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4L, result.Value);
     }
 
     [TestMethod]
@@ -797,7 +797,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((long?)5, (int?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4L, result.Value);
     }
 
     [TestMethod]
@@ -805,7 +805,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((long?)5, (uint?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual(4L, result.Value);
     }
 
     [TestMethod]
@@ -825,7 +825,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((ulong?)5, (byte?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((ulong)4, result.Value);
     }
 
     [TestMethod]
@@ -833,7 +833,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((ulong?)5, (ushort?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((ulong)4, result.Value);
     }
 
     [TestMethod]
@@ -841,7 +841,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.And((ulong?)5, (uint?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 4);
+        Assert.AreEqual((ulong)4, result.Value);
     }
 
     [TestMethod]
@@ -1097,7 +1097,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.Or((byte?)4, (sbyte?)1);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 5);
+        Assert.AreEqual(5, result.Value);
     }
 
     [TestMethod]
@@ -1133,7 +1133,7 @@ public class BitOperationsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.Xor((byte?)5, (sbyte?)4);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value == 1);
+        Assert.AreEqual(1, result.Value);
     }
 
     [TestMethod]

@@ -24,7 +24,7 @@ public class CompressionExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.CompressZLib("hello world");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Length > 0);
+        Assert.IsNotEmpty(result);
     }
 
     [TestMethod]
@@ -45,7 +45,7 @@ public class CompressionExtendedTests : LibraryBaseBaseTests
         var bytes = Encoding.UTF8.GetBytes("hello world");
         var result = Library.CompressZLib(bytes);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Length > 0);
+        Assert.IsNotEmpty(result);
     }
 
     [TestMethod]
@@ -118,7 +118,7 @@ public class CompressionExtendedTests : LibraryBaseBaseTests
         Assert.IsNotNull(result);
 
         var decoded = Convert.FromBase64String(result);
-        Assert.IsTrue(decoded.Length > 0);
+        Assert.IsNotEmpty(decoded);
     }
 
     [TestMethod]
@@ -178,7 +178,7 @@ public class CompressionExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.CompressGZip("hello world");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Length > 0);
+        Assert.IsNotEmpty(result);
     }
 
     [TestMethod]
@@ -256,7 +256,7 @@ public class CompressionExtendedTests : LibraryBaseBaseTests
         var result = Library.CompressGZipToBase64("hello world");
         Assert.IsNotNull(result);
         var decoded = Convert.FromBase64String(result);
-        Assert.IsTrue(decoded.Length > 0);
+        Assert.IsNotEmpty(decoded);
     }
 
     [TestMethod]
@@ -295,7 +295,7 @@ public class CompressionExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.CompressDeflate("hello world");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Length > 0);
+        Assert.IsNotEmpty(result);
     }
 
     [TestMethod]
@@ -355,7 +355,7 @@ public class CompressionExtendedTests : LibraryBaseBaseTests
         var result = Library.CompressDeflateToBase64("hello world");
         Assert.IsNotNull(result);
         var decoded = Convert.FromBase64String(result);
-        Assert.IsTrue(decoded.Length > 0);
+        Assert.IsNotEmpty(decoded);
     }
 
     [TestMethod]
@@ -385,7 +385,7 @@ public class CompressionExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.CompressBrotli("hello world");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Length > 0);
+        Assert.IsNotEmpty(result);
     }
 
     [TestMethod]
@@ -445,7 +445,7 @@ public class CompressionExtendedTests : LibraryBaseBaseTests
         var result = Library.CompressBrotliToBase64("hello world");
         Assert.IsNotNull(result);
         var decoded = Convert.FromBase64String(result);
-        Assert.IsTrue(decoded.Length > 0);
+        Assert.IsNotEmpty(decoded);
     }
 
     [TestMethod]

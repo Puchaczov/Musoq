@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Build;
@@ -447,14 +449,14 @@ public class TextInterpretationTests
     {
         var property = obj.GetType().GetProperty(propertyName);
         if (property == null) Assert.Fail($"Property '{propertyName}' not found on type {obj.GetType().Name}");
-        return (T)property!.GetValue(obj)!;
+        return (T)property.GetValue(obj)!;
     }
 
     private T? GetNullablePropertyValue<T>(object obj, string propertyName) where T : class
     {
         var property = obj.GetType().GetProperty(propertyName);
         if (property == null) Assert.Fail($"Property '{propertyName}' not found on type {obj.GetType().Name}");
-        return (T?)property!.GetValue(obj);
+        return (T?)property.GetValue(obj);
     }
 
     private static TextFieldDefinitionNode CreateTextField(

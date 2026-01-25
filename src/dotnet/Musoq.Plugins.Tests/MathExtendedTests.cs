@@ -674,25 +674,25 @@ public class MathExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetween_IntInRange_ReturnsTrue()
     {
-        Assert.AreEqual(true, LibraryBase.IsBetween(5, 0, 10));
+        Assert.IsTrue(LibraryBase.IsBetween(5, 0, 10));
     }
 
     [TestMethod]
     public void IsBetween_IntOutOfRange_ReturnsFalse()
     {
-        Assert.AreEqual(false, LibraryBase.IsBetween(15, 0, 10));
+        Assert.IsFalse(LibraryBase.IsBetween(15, 0, 10));
     }
 
     [TestMethod]
     public void IsBetween_IntAtMin_ReturnsTrue()
     {
-        Assert.AreEqual(true, LibraryBase.IsBetween(0, 0, 10));
+        Assert.IsTrue(LibraryBase.IsBetween(0, 0, 10));
     }
 
     [TestMethod]
     public void IsBetween_IntAtMax_ReturnsTrue()
     {
-        Assert.AreEqual(true, LibraryBase.IsBetween(10, 0, 10));
+        Assert.IsTrue(LibraryBase.IsBetween(10, 0, 10));
     }
 
     [TestMethod]
@@ -704,7 +704,7 @@ public class MathExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetween_LongInRange_ReturnsTrue()
     {
-        Assert.AreEqual(true, LibraryBase.IsBetween(5L, 0L, 10L));
+        Assert.IsTrue(LibraryBase.IsBetween(5L, 0L, 10L));
     }
 
     [TestMethod]
@@ -716,7 +716,7 @@ public class MathExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetween_DecimalInRange_ReturnsTrue()
     {
-        Assert.AreEqual(true, LibraryBase.IsBetween(5m, 0m, 10m));
+        Assert.IsTrue(LibraryBase.IsBetween(5m, 0m, 10m));
     }
 
     [TestMethod]
@@ -728,7 +728,7 @@ public class MathExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetween_DoubleInRange_ReturnsTrue()
     {
-        Assert.AreEqual(true, LibraryBase.IsBetween(5.0, 0.0, 10.0));
+        Assert.IsTrue(LibraryBase.IsBetween(5.0, 0.0, 10.0));
     }
 
     #endregion
@@ -756,19 +756,19 @@ public class MathExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetweenExclusive_IntInRange_ReturnsTrue()
     {
-        Assert.AreEqual(true, LibraryBase.IsBetweenExclusive(5, 0, 10));
+        Assert.IsTrue(LibraryBase.IsBetweenExclusive(5, 0, 10));
     }
 
     [TestMethod]
     public void IsBetweenExclusive_IntAtMin_ReturnsFalse()
     {
-        Assert.AreEqual(false, LibraryBase.IsBetweenExclusive(0, 0, 10));
+        Assert.IsFalse(LibraryBase.IsBetweenExclusive(0, 0, 10));
     }
 
     [TestMethod]
     public void IsBetweenExclusive_IntAtMax_ReturnsFalse()
     {
-        Assert.AreEqual(false, LibraryBase.IsBetweenExclusive(10, 0, 10));
+        Assert.IsFalse(LibraryBase.IsBetweenExclusive(10, 0, 10));
     }
 
     [TestMethod]
@@ -780,7 +780,7 @@ public class MathExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetweenExclusive_DecimalInRange_ReturnsTrue()
     {
-        Assert.AreEqual(true, LibraryBase.IsBetweenExclusive(5m, 0m, 10m));
+        Assert.IsTrue(LibraryBase.IsBetweenExclusive(5m, 0m, 10m));
     }
 
     #endregion

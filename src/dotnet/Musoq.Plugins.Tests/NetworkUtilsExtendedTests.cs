@@ -34,48 +34,48 @@ public class NetworkUtilsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsPrivateIP_10Network_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsPrivateIP("10.0.0.1"));
-        Assert.AreEqual(true, Library.IsPrivateIP("10.255.255.255"));
+        Assert.IsTrue(Library.IsPrivateIP("10.0.0.1"));
+        Assert.IsTrue(Library.IsPrivateIP("10.255.255.255"));
     }
 
     [TestMethod]
     public void IsPrivateIP_172Network_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsPrivateIP("172.16.0.1"));
-        Assert.AreEqual(true, Library.IsPrivateIP("172.31.255.255"));
+        Assert.IsTrue(Library.IsPrivateIP("172.16.0.1"));
+        Assert.IsTrue(Library.IsPrivateIP("172.31.255.255"));
     }
 
     [TestMethod]
     public void IsPrivateIP_172NetworkOutsideRange_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsPrivateIP("172.15.0.1"));
-        Assert.AreEqual(false, Library.IsPrivateIP("172.32.0.1"));
+        Assert.IsFalse(Library.IsPrivateIP("172.15.0.1"));
+        Assert.IsFalse(Library.IsPrivateIP("172.32.0.1"));
     }
 
     [TestMethod]
     public void IsPrivateIP_192168Network_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsPrivateIP("192.168.0.1"));
-        Assert.AreEqual(true, Library.IsPrivateIP("192.168.255.255"));
+        Assert.IsTrue(Library.IsPrivateIP("192.168.0.1"));
+        Assert.IsTrue(Library.IsPrivateIP("192.168.255.255"));
     }
 
     [TestMethod]
     public void IsPrivateIP_Localhost_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsPrivateIP("127.0.0.1"));
+        Assert.IsTrue(Library.IsPrivateIP("127.0.0.1"));
     }
 
     [TestMethod]
     public void IsPrivateIP_PublicIP_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsPrivateIP("8.8.8.8"));
-        Assert.AreEqual(false, Library.IsPrivateIP("1.1.1.1"));
+        Assert.IsFalse(Library.IsPrivateIP("8.8.8.8"));
+        Assert.IsFalse(Library.IsPrivateIP("1.1.1.1"));
     }
 
     [TestMethod]
     public void IsPrivateIP_IPv6_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsPrivateIP("::1"));
+        Assert.IsFalse(Library.IsPrivateIP("::1"));
     }
 
     #endregion
@@ -231,19 +231,19 @@ public class NetworkUtilsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsInSubnet_InSubnet_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsInSubnet("192.168.0.100", "192.168.0.0/24"));
+        Assert.IsTrue(Library.IsInSubnet("192.168.0.100", "192.168.0.0/24"));
     }
 
     [TestMethod]
     public void IsInSubnet_NotInSubnet_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsInSubnet("192.168.1.100", "192.168.0.0/24"));
+        Assert.IsFalse(Library.IsInSubnet("192.168.1.100", "192.168.0.0/24"));
     }
 
     [TestMethod]
     public void IsInSubnet_PrefixZero_AllIPsMatch()
     {
-        Assert.AreEqual(true, Library.IsInSubnet("1.2.3.4", "192.168.0.0/0"));
+        Assert.IsTrue(Library.IsInSubnet("1.2.3.4", "192.168.0.0/0"));
     }
 
     #endregion
@@ -567,8 +567,8 @@ public class NetworkUtilsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.ExtractUrls("Visit https://a.com and http://b.com");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("https://a.com"));
-        Assert.IsTrue(result.Contains("http://b.com"));
+        Assert.Contains("https://a.com", result);
+        Assert.Contains("http://b.com", result);
     }
 
     #endregion
@@ -604,8 +604,8 @@ public class NetworkUtilsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.ExtractEmails("Contact a@b.com or c@d.com");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("a@b.com"));
-        Assert.IsTrue(result.Contains("c@d.com"));
+        Assert.Contains("a@b.com", result);
+        Assert.Contains("c@d.com", result);
     }
 
     #endregion
@@ -641,8 +641,8 @@ public class NetworkUtilsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.ExtractIPs("Servers 192.168.0.1 and 10.0.0.1");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("192.168.0.1"));
-        Assert.IsTrue(result.Contains("10.0.0.1"));
+        Assert.Contains("192.168.0.1", result);
+        Assert.Contains("10.0.0.1", result);
     }
 
     #endregion
@@ -668,7 +668,7 @@ public class NetworkUtilsExtendedTests : LibraryBaseBaseTests
     public void NewGuidCompact_ReturnsGuidWithoutDashes()
     {
         var result = Library.NewGuidCompact();
-        Assert.IsFalse(result.Contains("-"));
+        Assert.DoesNotContain("-", result);
         Assert.AreEqual(32, result.Length);
     }
 

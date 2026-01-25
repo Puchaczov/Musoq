@@ -349,8 +349,8 @@ public class InterpretationFunctionsFeatureTests
 
         Assert.AreEqual(2, table.Count);
         var lines = new HashSet<string> { (string)table[0][0], (string)table[1][0] };
-        Assert.IsTrue(lines.Contains("Has:colon"));
-        Assert.IsTrue(lines.Contains("NoColonHere"));
+        Assert.Contains("Has:colon", lines);
+        Assert.Contains("NoColonHere", lines);
 
         var foundHasRow = false;
         for (var i = 0; i < table.Count; i++)

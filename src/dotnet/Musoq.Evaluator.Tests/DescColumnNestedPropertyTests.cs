@@ -719,7 +719,7 @@ public class DescColumnNestedPropertyTests : BasicEntityTestBase
         var indices = table.Select(row => (int)row[1]).Distinct().ToList();
 
 
-        Assert.AreEqual(1, indices.Count, "All nested properties should reference the same original column index");
+        Assert.HasCount(1, indices, "All nested properties should reference the same original column index");
     }
 
     #endregion

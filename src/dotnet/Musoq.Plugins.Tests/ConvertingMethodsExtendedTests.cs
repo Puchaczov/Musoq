@@ -298,7 +298,7 @@ public class ConvertingMethodsExtendedTests
     {
         var result = _library.ToBin(new byte[] { 0x01, 0x02 }, " ");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains(" "));
+        Assert.Contains(" ", result);
     }
 
     #endregion

@@ -623,32 +623,32 @@ public class StringMethodsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void RegexExtractAll_NullValue_ReturnsEmpty()
     {
-        Assert.AreEqual(0, Library.RegexExtractAll(null, @"\d+").Length);
+        Assert.IsEmpty(Library.RegexExtractAll(null, @"\d+"));
     }
 
     [TestMethod]
     public void RegexExtractAll_NullPattern_ReturnsEmpty()
     {
-        Assert.AreEqual(0, Library.RegexExtractAll("test123", null).Length);
+        Assert.IsEmpty(Library.RegexExtractAll("test123", null));
     }
 
     [TestMethod]
     public void RegexExtractAll_EmptyValue_ReturnsEmpty()
     {
-        Assert.AreEqual(0, Library.RegexExtractAll(string.Empty, @"\d+").Length);
+        Assert.IsEmpty(Library.RegexExtractAll(string.Empty, @"\d+"));
     }
 
     [TestMethod]
     public void RegexExtractAll_EmptyPattern_ReturnsEmpty()
     {
-        Assert.AreEqual(0, Library.RegexExtractAll("test123", string.Empty).Length);
+        Assert.IsEmpty(Library.RegexExtractAll("test123", string.Empty));
     }
 
     [TestMethod]
     public void RegexExtractAll_MultipleMatches_ReturnsAll()
     {
         var result = Library.RegexExtractAll("a1b2c3", @"(\d)", 1);
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual("1", result[0]);
         Assert.AreEqual("2", result[1]);
         Assert.AreEqual("3", result[2]);
@@ -657,20 +657,20 @@ public class StringMethodsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void RegexExtractAll_NoMatch_ReturnsEmpty()
     {
-        Assert.AreEqual(0, Library.RegexExtractAll("hello", @"\d+").Length);
+        Assert.IsEmpty(Library.RegexExtractAll("hello", @"\d+"));
     }
 
     [TestMethod]
     public void RegexExtractAll_InvalidGroupIndex_ReturnsEmpty()
     {
         var result = Library.RegexExtractAll("a1b2", @"(\d)", 5);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
     public void RegexExtractAll_InvalidRegex_ReturnsEmpty()
     {
-        Assert.AreEqual(0, Library.RegexExtractAll("test", @"[invalid").Length);
+        Assert.IsEmpty(Library.RegexExtractAll("test", @"[invalid"));
     }
 
     #endregion
@@ -692,19 +692,19 @@ public class StringMethodsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsMatch_Matches_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsMatch("test123", @"\d+"));
+        Assert.IsTrue(Library.IsMatch("test123", @"\d+"));
     }
 
     [TestMethod]
     public void IsMatch_NoMatch_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsMatch("test", @"\d+"));
+        Assert.IsFalse(Library.IsMatch("test", @"\d+"));
     }
 
     [TestMethod]
     public void IsMatch_InvalidRegex_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsMatch("test", @"[invalid"));
+        Assert.IsFalse(Library.IsMatch("test", @"[invalid"));
     }
 
     #endregion
@@ -1002,31 +1002,31 @@ public class StringMethodsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsNumeric_EmptyString_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsNumeric(string.Empty));
+        Assert.IsFalse(Library.IsNumeric(string.Empty));
     }
 
     [TestMethod]
     public void IsNumeric_AllDigits_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsNumeric("12345"));
+        Assert.IsTrue(Library.IsNumeric("12345"));
     }
 
     [TestMethod]
     public void IsNumeric_ContainsLetter_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsNumeric("123a5"));
+        Assert.IsFalse(Library.IsNumeric("123a5"));
     }
 
     [TestMethod]
     public void IsNumeric_ContainsSpace_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsNumeric("123 45"));
+        Assert.IsFalse(Library.IsNumeric("123 45"));
     }
 
     [TestMethod]
     public void IsNumeric_SingleDigit_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsNumeric("5"));
+        Assert.IsTrue(Library.IsNumeric("5"));
     }
 
     #endregion
@@ -1042,31 +1042,31 @@ public class StringMethodsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsAlpha_EmptyString_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsAlpha(string.Empty));
+        Assert.IsFalse(Library.IsAlpha(string.Empty));
     }
 
     [TestMethod]
     public void IsAlpha_AllLetters_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsAlpha("Hello"));
+        Assert.IsTrue(Library.IsAlpha("Hello"));
     }
 
     [TestMethod]
     public void IsAlpha_ContainsDigit_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsAlpha("Hello1"));
+        Assert.IsFalse(Library.IsAlpha("Hello1"));
     }
 
     [TestMethod]
     public void IsAlpha_ContainsSpace_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsAlpha("Hello World"));
+        Assert.IsFalse(Library.IsAlpha("Hello World"));
     }
 
     [TestMethod]
     public void IsAlpha_SingleLetter_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsAlpha("A"));
+        Assert.IsTrue(Library.IsAlpha("A"));
     }
 
     #endregion
@@ -1082,37 +1082,37 @@ public class StringMethodsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsAlphaNumeric_EmptyString_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsAlphaNumeric(string.Empty));
+        Assert.IsFalse(Library.IsAlphaNumeric(string.Empty));
     }
 
     [TestMethod]
     public void IsAlphaNumeric_OnlyLetters_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsAlphaNumeric("Hello"));
+        Assert.IsTrue(Library.IsAlphaNumeric("Hello"));
     }
 
     [TestMethod]
     public void IsAlphaNumeric_OnlyDigits_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsAlphaNumeric("12345"));
+        Assert.IsTrue(Library.IsAlphaNumeric("12345"));
     }
 
     [TestMethod]
     public void IsAlphaNumeric_Mixed_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsAlphaNumeric("Hello123"));
+        Assert.IsTrue(Library.IsAlphaNumeric("Hello123"));
     }
 
     [TestMethod]
     public void IsAlphaNumeric_ContainsSpace_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsAlphaNumeric("Hello 123"));
+        Assert.IsFalse(Library.IsAlphaNumeric("Hello 123"));
     }
 
     [TestMethod]
     public void IsAlphaNumeric_ContainsSymbol_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsAlphaNumeric("Hello@123"));
+        Assert.IsFalse(Library.IsAlphaNumeric("Hello@123"));
     }
 
     #endregion

@@ -26,7 +26,7 @@ public class TextCharsFeatureTests
     public void Text_Chars_InWhereClause_ShouldFilter()
     {
         var query = @"
-            text Record { 
+            text Record {
                 Type: chars[1],
                 Data: rest
             };
@@ -49,8 +49,8 @@ public class TextCharsFeatureTests
 
         Assert.AreEqual(2, table.Count);
         var values = new HashSet<string> { (string)table[0][0], (string)table[1][0] };
-        Assert.IsTrue(values.Contains("Data1"));
-        Assert.IsTrue(values.Contains("Data3"));
+        Assert.Contains("Data1", values);
+        Assert.Contains("Data3", values);
     }
 
     #endregion
@@ -64,7 +64,7 @@ public class TextCharsFeatureTests
     public void Text_Chars_MixedWithUntil_ShouldParseBoth()
     {
         var query = @"
-            text Data { 
+            text Data {
                 Fixed: chars[4],
                 Delimiter: chars[1],
                 Variable: until ';',
@@ -99,7 +99,7 @@ public class TextCharsFeatureTests
     public void Text_Chars_MultipleRows_ShouldParseAll()
     {
         var query = @"
-            text Record { 
+            text Record {
                 Code: chars[3] trim,
                 Value: chars[5] trim
             };
@@ -136,7 +136,7 @@ public class TextCharsFeatureTests
     public void Text_Chars_BasicCapture_ShouldReturnExactLength()
     {
         var query = @"
-            text Data { 
+            text Data {
                 Code: chars[4]
             };
             select d.Code from #test.lines() l
@@ -161,7 +161,7 @@ public class TextCharsFeatureTests
     public void Text_Chars_WithExtraContent_ShouldCaptureExactly()
     {
         var query = @"
-            text Data { 
+            text Data {
                 First: chars[5],
                 Rest: rest
             };
@@ -188,7 +188,7 @@ public class TextCharsFeatureTests
     public void Text_Chars_SingleCharacter_ShouldCapture()
     {
         var query = @"
-            text Data { 
+            text Data {
                 Char: chars[1],
                 Rest: rest
             };
@@ -219,7 +219,7 @@ public class TextCharsFeatureTests
     public void Text_Chars_MultipleFields_ShouldParseSequentially()
     {
         var query = @"
-            text FixedRecord { 
+            text FixedRecord {
                 Id: chars[4],
                 Code: chars[3],
                 Status: chars[2]
@@ -248,7 +248,7 @@ public class TextCharsFeatureTests
     public void Text_Chars_CobolStyleRecord_ShouldParse()
     {
         var query = @"
-            text CobolRecord { 
+            text CobolRecord {
                 CustomerId: chars[10],
                 Name: chars[30],
                 Balance: chars[12]
@@ -280,7 +280,7 @@ public class TextCharsFeatureTests
     public void Text_Chars_WithTrim_ShouldRemovePadding()
     {
         var query = @"
-            text Data { 
+            text Data {
                 Name: chars[10] trim
             };
             select d.Name from #test.lines() l
@@ -305,7 +305,7 @@ public class TextCharsFeatureTests
     public void Text_Chars_WithRtrim_ShouldRemoveTrailingOnly()
     {
         var query = @"
-            text Data { 
+            text Data {
                 Name: chars[10] rtrim
             };
             select d.Name from #test.lines() l
@@ -330,7 +330,7 @@ public class TextCharsFeatureTests
     public void Text_Chars_WithLtrim_ShouldRemoveLeadingOnly()
     {
         var query = @"
-            text Data { 
+            text Data {
                 Name: chars[10] ltrim
             };
             select d.Name from #test.lines() l

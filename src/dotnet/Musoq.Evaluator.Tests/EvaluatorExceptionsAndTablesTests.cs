@@ -29,8 +29,8 @@ public class EvaluatorExceptionsAndTablesTests
     {
         var exception = CannotResolveMethodException.CreateForNullArguments("MyMethod");
 
-        Assert.IsTrue(exception.Message.Contains("MyMethod"));
-        Assert.IsTrue(exception.Message.Contains("null arguments"));
+        Assert.Contains("MyMethod", exception.Message);
+        Assert.Contains("null arguments", exception.Message);
     }
 
     [TestMethod]
@@ -38,8 +38,8 @@ public class EvaluatorExceptionsAndTablesTests
     {
         var exception = CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments("MyMethod", []);
 
-        Assert.IsTrue(exception.Message.Contains("MyMethod"));
-        Assert.IsTrue(exception.Message.Contains("cannot be resolved"));
+        Assert.Contains("MyMethod", exception.Message);
+        Assert.Contains("cannot be resolved", exception.Message);
     }
 
     [TestMethod]
@@ -48,8 +48,8 @@ public class EvaluatorExceptionsAndTablesTests
         var args = new Node[] { new IntegerNode("1"), new StringNode("test") };
         var exception = CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments("MyMethod", args);
 
-        Assert.IsTrue(exception.Message.Contains("MyMethod"));
-        Assert.IsTrue(exception.Message.Contains("cannot be resolved"));
+        Assert.Contains("MyMethod", exception.Message);
+        Assert.Contains("cannot be resolved", exception.Message);
     }
 
     #endregion
@@ -122,7 +122,7 @@ public class EvaluatorExceptionsAndTablesTests
         var nameToIndex = new Dictionary<string, int> { { "Id", 0 } };
         var resolver = new RowResolver(row, nameToIndex);
 
-        Assert.AreEqual(1, resolver.Contexts.Length);
+        Assert.HasCount(1, resolver.Contexts);
         Assert.AreSame(context, resolver.Contexts[0]);
     }
 
@@ -159,7 +159,7 @@ public class EvaluatorExceptionsAndTablesTests
         var ctx2 = new object();
         var row = new ObjectsRow([1], [ctx1, ctx2]);
 
-        Assert.AreEqual(2, row.Contexts.Length);
+        Assert.HasCount(2, row.Contexts);
         Assert.AreSame(ctx1, row.Contexts[0]);
         Assert.AreSame(ctx2, row.Contexts[1]);
     }
@@ -299,7 +299,7 @@ public class EvaluatorExceptionsAndTablesTests
         var columns = new[] { 0, 1 };
         var key = new Key(values, columns);
 
-        Assert.AreEqual(2, key.Values.Length);
+        Assert.HasCount(2, key.Values);
         Assert.AreEqual(1, key.Values[0]);
         Assert.AreEqual("test", key.Values[1]);
     }
@@ -355,8 +355,8 @@ public class EvaluatorExceptionsAndTablesTests
         var str = key.ToString();
 
         Assert.IsNotNull(str);
-        Assert.IsTrue(str.Contains("0"));
-        Assert.IsTrue(str.Contains("1"));
+        Assert.Contains("0", str);
+        Assert.Contains("1", str);
     }
 
     [TestMethod]
@@ -401,7 +401,7 @@ public class EvaluatorExceptionsAndTablesTests
     {
         var key = new GroupKey(1, "test", 3.14);
 
-        Assert.AreEqual(3, key.Values.Length);
+        Assert.HasCount(3, key.Values);
         Assert.AreEqual(1, key.Values[0]);
         Assert.AreEqual("test", key.Values[1]);
         Assert.AreEqual(3.14, key.Values[2]);
@@ -494,7 +494,7 @@ public class EvaluatorExceptionsAndTablesTests
 
         var str = key.ToString();
 
-        Assert.IsTrue(str.Contains("null"));
+        Assert.Contains("null", str);
     }
 
     [TestMethod]

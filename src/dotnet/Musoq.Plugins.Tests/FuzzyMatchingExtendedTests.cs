@@ -21,7 +21,7 @@ public class FuzzyMatchingExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.Soundex("Robert");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Length >= 1);
+        Assert.IsGreaterThanOrEqualTo(1, result.Length);
     }
 
     [TestMethod]

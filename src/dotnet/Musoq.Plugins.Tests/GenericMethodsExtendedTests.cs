@@ -553,13 +553,13 @@ public class GenericMethodsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void Match_Matches_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.Match(@"\d+", "test123"));
+        Assert.IsTrue(Library.Match(@"\d+", "test123"));
     }
 
     [TestMethod]
     public void Match_NoMatch_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.Match(@"\d+", "test"));
+        Assert.IsFalse(Library.Match(@"\d+", "test"));
     }
 
     #endregion
@@ -622,7 +622,7 @@ public class GenericMethodsExtendedTests : LibraryBaseBaseTests
         var result = Library.Skip(new[] { 1, 2, 3, 4, 5 }, 2);
         Assert.IsNotNull(result);
         var array = result.ToArray();
-        Assert.AreEqual(3, array.Length);
+        Assert.HasCount(3, array);
         Assert.AreEqual(3, array[0]);
     }
 
@@ -642,7 +642,7 @@ public class GenericMethodsExtendedTests : LibraryBaseBaseTests
         var result = Library.Take(new[] { 1, 2, 3, 4, 5 }, 2);
         Assert.IsNotNull(result);
         var array = result.ToArray();
-        Assert.AreEqual(2, array.Length);
+        Assert.HasCount(2, array);
         Assert.AreEqual(1, array[0]);
         Assert.AreEqual(2, array[1]);
     }
@@ -663,7 +663,7 @@ public class GenericMethodsExtendedTests : LibraryBaseBaseTests
         var result = Library.SkipAndTake(new[] { 1, 2, 3, 4, 5 }, 1, 2);
         Assert.IsNotNull(result);
         var array = result.ToArray();
-        Assert.AreEqual(2, array.Length);
+        Assert.HasCount(2, array);
         Assert.AreEqual(2, array[0]);
         Assert.AreEqual(3, array[1]);
     }
@@ -684,7 +684,7 @@ public class GenericMethodsExtendedTests : LibraryBaseBaseTests
         var result = Library.Distinct(new[] { 1, 2, 2, 3, 3, 3 });
         Assert.IsNotNull(result);
         var array = result.ToArray();
-        Assert.AreEqual(3, array.Length);
+        Assert.HasCount(3, array);
     }
 
     #endregion
@@ -702,7 +702,7 @@ public class GenericMethodsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.EnumerableToArray(Enumerable.Range(1, 3));
         Assert.IsNotNull(result);
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
     }
 
     #endregion
@@ -720,7 +720,7 @@ public class GenericMethodsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.MergeArrays(new[] { 1, 2 }, new[] { 3, 4 }, new[] { 5 });
         Assert.IsNotNull(result);
-        Assert.AreEqual(5, result.Length);
+        Assert.HasCount(5, result);
         Assert.AreEqual(1, result[0]);
         Assert.AreEqual(5, result[4]);
     }
@@ -812,7 +812,7 @@ public class GenericMethodsExtendedTests : LibraryBaseBaseTests
         var result = Library.LongestCommonSequence(new[] { 1, 2, 3, 4, 5 }, new[] { 2, 3, 4 });
         Assert.IsNotNull(result);
         var array = result.ToArray();
-        Assert.AreEqual(3, array.Length);
+        Assert.HasCount(3, array);
         Assert.AreEqual(2, array[0]);
         Assert.AreEqual(3, array[1]);
         Assert.AreEqual(4, array[2]);

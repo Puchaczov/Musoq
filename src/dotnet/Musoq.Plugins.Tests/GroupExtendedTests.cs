@@ -160,7 +160,7 @@ public class GroupExtendedTests
         // Assert
         Assert.IsTrue(factoryCalled);
         Assert.IsNotNull(result);
-        Assert.AreEqual(3, result.Count);
+        Assert.HasCount(3, result);
     }
 
     [TestMethod]

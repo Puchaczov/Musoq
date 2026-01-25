@@ -1354,8 +1354,8 @@ public class DescStatementTests : BasicEntityTestBase
         var childrenRow = table.FirstOrDefault(row => (string)row[0] == "Children");
         Assert.IsNotNull(childrenRow, "Should have Children row");
         var childrenType = (string)childrenRow[2];
-        Assert.IsTrue(childrenType.Contains("BasicEntity"),
-            $"Children should be BasicEntity type, got: {childrenType}");
+        Assert.Contains("BasicEntity",
+childrenType, $"Children should be BasicEntity type, got: {childrenType}");
     }
 
     [TestMethod]
@@ -1434,8 +1434,8 @@ public class DescStatementTests : BasicEntityTestBase
 
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
         var methodNames = table.Select(row => (string)row[0]).ToList();
-        Assert.IsTrue(methodNames.Contains("empty"), "Should contain 'empty' method");
-        Assert.IsTrue(methodNames.Contains("entities"), "Should contain 'entities' method");
+        Assert.Contains("empty", methodNames, "Should contain 'empty' method");
+        Assert.Contains("entities", methodNames, "Should contain 'entities' method");
     }
 
     [TestMethod]
@@ -1463,8 +1463,8 @@ public class DescStatementTests : BasicEntityTestBase
 
         Assert.IsGreaterThan(0, table.Count, "Should return methods");
         var methodNames = table.Select(row => (string)row[0]).ToList();
-        Assert.IsTrue(methodNames.Contains("empty"), "Should contain 'empty' method");
-        Assert.IsTrue(methodNames.Contains("entities"), "Should contain 'entities' method");
+        Assert.Contains("empty", methodNames, "Should contain 'empty' method");
+        Assert.Contains("entities", methodNames, "Should contain 'entities' method");
     }
 
     [TestMethod]
@@ -1492,8 +1492,8 @@ public class DescStatementTests : BasicEntityTestBase
 
         Assert.IsGreaterThan(0, table.Count, "Should return methods");
         var methodNames = table.Select(row => (string)row[0]).ToList();
-        Assert.IsTrue(methodNames.Contains("empty"), "Should contain 'empty' method");
-        Assert.IsTrue(methodNames.Contains("entities"), "Should contain 'entities' method");
+        Assert.Contains("empty", methodNames, "Should contain 'empty' method");
+        Assert.Contains("entities", methodNames, "Should contain 'entities' method");
     }
 
     [TestMethod]
@@ -1693,9 +1693,9 @@ public class DescStatementTests : BasicEntityTestBase
 
         Assert.IsGreaterThan(0, table.Count, "Should return column information");
         var columnNames = table.Select(row => (string)row[0]).ToList();
-        Assert.IsTrue(columnNames.Contains("Name"), "Should contain 'Name' column");
-        Assert.IsTrue(columnNames.Contains("City"), "Should contain 'City' column");
-        Assert.IsTrue(columnNames.Contains("Country"), "Should contain 'Country' column");
+        Assert.Contains("Name", columnNames, "Should contain 'Name' column");
+        Assert.Contains("City", columnNames, "Should contain 'City' column");
+        Assert.Contains("Country", columnNames, "Should contain 'Country' column");
     }
 
     [TestMethod]
@@ -1829,8 +1829,8 @@ public class DescStatementTests : BasicEntityTestBase
 
 
         for (var i = 1; i < categories.Count; i++)
-            Assert.IsTrue(string.Compare(categories[i - 1], categories[i], StringComparison.Ordinal) <= 0,
-                $"Category '{categories[i - 1]}' should come before or equal to '{categories[i]}'");
+            Assert.IsLessThanOrEqualTo(0,
+string.Compare(categories[i - 1], categories[i], StringComparison.Ordinal), $"Category '{categories[i - 1]}' should come before or equal to '{categories[i]}'");
     }
 
     [TestMethod]

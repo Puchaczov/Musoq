@@ -33,8 +33,8 @@ public class DataUtilsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.JwtDecode(ValidJwtToken);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("\"sub\""));
-        Assert.IsTrue(result.Contains("\"name\""));
+        Assert.Contains("\"sub\"", result);
+        Assert.Contains("\"name\"", result);
     }
 
     [TestMethod]
@@ -86,8 +86,8 @@ public class DataUtilsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.JwtGetHeader(ValidJwtToken);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("\"alg\""));
-        Assert.IsTrue(result.Contains("\"typ\""));
+        Assert.Contains("\"alg\"", result);
+        Assert.Contains("\"typ\"", result);
     }
 
     [TestMethod]
@@ -305,7 +305,7 @@ public class DataUtilsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.CalculateEntropy("abcdefghij");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result > 3.0);
+        Assert.IsTrue(result.Value > 3.0);
     }
 
     #endregion
@@ -327,25 +327,25 @@ public class DataUtilsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBase64_ValidBase64_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsBase64("SGVsbG8gV29ybGQ="));
+        Assert.IsTrue(Library.IsBase64("SGVsbG8gV29ybGQ="));
     }
 
     [TestMethod]
     public void IsBase64_InvalidLength_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsBase64("abc"));
+        Assert.IsFalse(Library.IsBase64("abc"));
     }
 
     [TestMethod]
     public void IsBase64_InvalidChars_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsBase64("!@#$%^&*"));
+        Assert.IsFalse(Library.IsBase64("!@#$%^&*"));
     }
 
     [TestMethod]
     public void IsBase64_ValidNoPadding_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsBase64("YWI="));
+        Assert.IsTrue(Library.IsBase64("YWI="));
     }
 
     #endregion
@@ -367,31 +367,31 @@ public class DataUtilsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsHex_ValidHexLower_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsHex("0123456789abcdef"));
+        Assert.IsTrue(Library.IsHex("0123456789abcdef"));
     }
 
     [TestMethod]
     public void IsHex_ValidHexUpper_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsHex("0123456789ABCDEF"));
+        Assert.IsTrue(Library.IsHex("0123456789ABCDEF"));
     }
 
     [TestMethod]
     public void IsHex_ValidHexMixed_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsHex("aAbBcCdDeEfF"));
+        Assert.IsTrue(Library.IsHex("aAbBcCdDeEfF"));
     }
 
     [TestMethod]
     public void IsHex_InvalidChars_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsHex("0123456789abcdefg"));
+        Assert.IsFalse(Library.IsHex("0123456789abcdefg"));
     }
 
     [TestMethod]
     public void IsHex_WithSpaces_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsHex("ab cd ef"));
+        Assert.IsFalse(Library.IsHex("ab cd ef"));
     }
 
     #endregion
@@ -413,25 +413,25 @@ public class DataUtilsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsJwt_ValidJwt_ReturnsTrue()
     {
-        Assert.AreEqual(true, Library.IsJwt(ValidJwtToken));
+        Assert.IsTrue(Library.IsJwt(ValidJwtToken));
     }
 
     [TestMethod]
     public void IsJwt_TwoParts_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsJwt("header.payload"));
+        Assert.IsFalse(Library.IsJwt("header.payload"));
     }
 
     [TestMethod]
     public void IsJwt_FourParts_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsJwt("a.b.c.d"));
+        Assert.IsFalse(Library.IsJwt("a.b.c.d"));
     }
 
     [TestMethod]
     public void IsJwt_InvalidBase64Parts_ReturnsFalse()
     {
-        Assert.AreEqual(false, Library.IsJwt("!!!.!!!.!!!"));
+        Assert.IsFalse(Library.IsJwt("!!!.!!!.!!!"));
     }
 
     #endregion
@@ -559,7 +559,7 @@ public class DataUtilsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.FormatJson("{\"a\":1,\"b\":2}");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("\n"));
+        Assert.Contains("\n", result);
     }
 
     [TestMethod]
@@ -590,7 +590,7 @@ public class DataUtilsExtendedTests : LibraryBaseBaseTests
         var formatted = "{\n  \"a\": 1,\n  \"b\": 2\n}";
         var result = Library.MinifyJson(formatted);
         Assert.IsNotNull(result);
-        Assert.IsFalse(result.Contains("\n"));
+        Assert.DoesNotContain("\n", result);
     }
 
     [TestMethod]

@@ -45,8 +45,8 @@ public class SchemaExtendedTests
     {
         var ex = SchemaArgumentException.ForEmptyString("paramName", "some operation");
 
-        Assert.IsTrue(ex.Message.Contains("paramName"));
-        Assert.IsTrue(ex.Message.Contains("some operation"));
+        Assert.Contains("paramName", ex.Message);
+        Assert.Contains("some operation", ex.Message);
     }
 
     [TestMethod]
@@ -54,8 +54,8 @@ public class SchemaExtendedTests
     {
         var ex = SchemaArgumentException.ForNullArgument("argName", "another operation");
 
-        Assert.IsTrue(ex.Message.Contains("argName"));
-        Assert.IsTrue(ex.Message.Contains("another operation"));
+        Assert.Contains("argName", ex.Message);
+        Assert.Contains("another operation", ex.Message);
     }
 
     [TestMethod]
@@ -64,7 +64,7 @@ public class SchemaExtendedTests
         var availableTables = "table1, table2";
         var ex = SchemaArgumentException.ForInvalidMethodName("unknownMethod", availableTables);
 
-        Assert.IsTrue(ex.Message.Contains("unknownMethod"));
+        Assert.Contains("unknownMethod", ex.Message);
     }
 
     [TestMethod]
@@ -88,10 +88,10 @@ public class SchemaExtendedTests
 
         var ex = MethodResolutionException.ForUnresolvedMethod("TestMethod", providedTypes, availableSignatures);
 
-        Assert.IsTrue(ex.Message.Contains("TestMethod"));
+        Assert.Contains("TestMethod", ex.Message);
         Assert.AreEqual("TestMethod", ex.MethodName);
-        Assert.AreEqual(2, ex.ProvidedParameterTypes.Length);
-        Assert.AreEqual(2, ex.AvailableSignatures.Length);
+        Assert.HasCount(2, ex.ProvidedParameterTypes);
+        Assert.HasCount(2, ex.AvailableSignatures);
     }
 
     [TestMethod]
@@ -102,7 +102,7 @@ public class SchemaExtendedTests
 
         var ex = MethodResolutionException.ForUnresolvedMethod("TestMethod", providedTypes, availableSignatures);
 
-        Assert.IsTrue(ex.Message.Contains("no parameters"));
+        Assert.Contains("no parameters", ex.Message);
     }
 
     [TestMethod]
@@ -113,7 +113,7 @@ public class SchemaExtendedTests
 
         var ex = MethodResolutionException.ForUnresolvedMethod("TestMethod", providedTypes, availableSignatures);
 
-        Assert.IsTrue(ex.Message.Contains("No methods available"));
+        Assert.Contains("No methods available", ex.Message);
     }
 
     [TestMethod]
@@ -124,7 +124,7 @@ public class SchemaExtendedTests
 
         var ex = MethodResolutionException.ForAmbiguousMethod("TestMethod", providedTypes, matchingSignatures);
 
-        Assert.IsTrue(ex.Message.Contains("ambiguous"));
+        Assert.Contains("ambiguous", ex.Message);
         Assert.AreEqual("TestMethod", ex.MethodName);
     }
 
@@ -232,7 +232,7 @@ public class SchemaExtendedTests
             null
         );
 
-        Assert.AreEqual(2, ctx.AllColumns.Count);
+        Assert.HasCount(2, ctx.AllColumns);
     }
 
     [TestMethod]
@@ -494,7 +494,7 @@ public class SchemaExtendedTests
 
         var constructors = schema.GetConstructors();
 
-        Assert.IsTrue(constructors.Length > 0);
+        Assert.IsNotEmpty(constructors);
     }
 
     [TestMethod]
@@ -504,7 +504,7 @@ public class SchemaExtendedTests
 
         var constructors = schema.GetConstructors("custom_table");
 
-        Assert.AreEqual(1, constructors.Length);
+        Assert.HasCount(1, constructors);
     }
 
     [TestMethod]
@@ -514,7 +514,7 @@ public class SchemaExtendedTests
 
         var constructors = schema.GetConstructors("nonexistent_table");
 
-        Assert.AreEqual(0, constructors.Length);
+        Assert.IsEmpty(constructors);
     }
 
     [TestMethod]
@@ -526,7 +526,7 @@ public class SchemaExtendedTests
         var ex = Assert.Throws<SchemaArgumentException>(() =>
             schema.GetTableByName("", ctx));
 
-        Assert.IsTrue(ex.Message.Contains("empty"));
+        Assert.Contains("empty", ex.Message);
     }
 
     [TestMethod]
@@ -538,7 +538,7 @@ public class SchemaExtendedTests
         var ex = Assert.Throws<SchemaArgumentException>(() =>
             schema.GetTableByName("   ", ctx));
 
-        Assert.IsTrue(ex.Message.Contains("empty"));
+        Assert.Contains("empty", ex.Message);
     }
 
     [TestMethod]
@@ -549,7 +549,7 @@ public class SchemaExtendedTests
         var ex = Assert.Throws<SchemaArgumentException>(() =>
             schema.GetTableByName("custom", null!));
 
-        Assert.IsTrue(ex.Message.Contains("null"));
+        Assert.Contains("null", ex.Message);
     }
 
     [TestMethod]
@@ -573,7 +573,7 @@ public class SchemaExtendedTests
         var ex = Assert.Throws<SchemaArgumentException>(() =>
             schema.GetRowSource("", ctx));
 
-        Assert.IsTrue(ex.Message.Contains("empty"));
+        Assert.Contains("empty", ex.Message);
     }
 
     [TestMethod]
@@ -584,7 +584,7 @@ public class SchemaExtendedTests
         var ex = Assert.Throws<SchemaArgumentException>(() =>
             schema.GetRowSource("custom", null!));
 
-        Assert.IsTrue(ex.Message.Contains("null"));
+        Assert.Contains("null", ex.Message);
     }
 
     [TestMethod]
@@ -607,7 +607,7 @@ public class SchemaExtendedTests
         var ex = Assert.Throws<SchemaArgumentException>(() =>
             schema.AddTablePublic<SingleRowSchemaTable>(""));
 
-        Assert.IsTrue(ex.Message.Contains("empty"));
+        Assert.Contains("empty", ex.Message);
     }
 
     [TestMethod]
@@ -618,7 +618,7 @@ public class SchemaExtendedTests
         var ex = Assert.Throws<SchemaArgumentException>(() =>
             schema.AddSourcePublic<SingleRowSource>(""));
 
-        Assert.IsTrue(ex.Message.Contains("empty"));
+        Assert.Contains("empty", ex.Message);
     }
 
     [TestMethod]
@@ -629,7 +629,7 @@ public class SchemaExtendedTests
 
         var rawConstructors = schema.GetRawConstructors(ctx);
 
-        Assert.IsTrue(rawConstructors.Length >= 1);
+        Assert.IsGreaterThanOrEqualTo(1, rawConstructors.Length);
     }
 
     [TestMethod]
@@ -640,7 +640,7 @@ public class SchemaExtendedTests
 
         var rawConstructors = schema.GetRawConstructors("custom", ctx);
 
-        Assert.AreEqual(1, rawConstructors.Length);
+        Assert.HasCount(1, rawConstructors);
         Assert.AreEqual("custom", rawConstructors[0].MethodName);
     }
 
@@ -699,7 +699,7 @@ public class SchemaExtendedTests
         var ex = Assert.Throws<SchemaArgumentException>(() =>
             new TestSchemaWithNullAggregator("valid", null!));
 
-        Assert.IsTrue(ex.Message.Contains("null"));
+        Assert.Contains("null", ex.Message);
     }
 
     [TestMethod]

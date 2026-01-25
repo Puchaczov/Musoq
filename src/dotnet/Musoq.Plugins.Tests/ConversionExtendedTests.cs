@@ -431,7 +431,7 @@ public class ConversionExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.ToBin(1.0);
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Length > 0);
+        Assert.IsGreaterThan(0, result.Length);
     }
 
     [TestMethod]

@@ -91,8 +91,8 @@ public class ParserNodesExtendedTests
         var node = new AccessMethodNode(token, args, extraArgs, false, null, "myAlias");
 
         var str = node.ToString();
-        Assert.IsTrue(str.Contains("myAlias"));
-        Assert.IsTrue(str.Contains("Func"));
+        Assert.Contains("myAlias", str);
+        Assert.Contains("Func", str);
     }
 
     [TestMethod]
@@ -148,7 +148,7 @@ public class ParserNodesExtendedTests
         var node = new AccessMethodNode(token, args, extraArgs, false);
 
         var str = node.ToString();
-        Assert.IsTrue(str.StartsWith("TestFunc("));
+        Assert.StartsWith("TestFunc(", str);
     }
 
     #endregion
@@ -160,9 +160,9 @@ public class ParserNodesExtendedTests
     {
         var node = new RefreshNode([]);
 
-        Assert.AreEqual(0, node.Nodes.Length);
+        Assert.IsEmpty(node.Nodes);
         Assert.IsNotNull(node.Id);
-        Assert.IsTrue(node.Id.StartsWith("RefreshNode"));
+        Assert.StartsWith("RefreshNode", node.Id);
     }
 
     [TestMethod]
@@ -174,7 +174,7 @@ public class ParserNodesExtendedTests
 
         var node = new RefreshNode([accessMethod]);
 
-        Assert.AreEqual(1, node.Nodes.Length);
+        Assert.HasCount(1, node.Nodes);
         Assert.AreSame(accessMethod, node.Nodes[0]);
     }
 
@@ -207,7 +207,7 @@ public class ParserNodesExtendedTests
 
         var str = node.ToString();
         Assert.IsNotNull(str);
-        Assert.IsTrue(str.StartsWith("refresh ("));
+        Assert.StartsWith("refresh (", str);
     }
 
     #endregion
@@ -307,7 +307,7 @@ public class ParserNodesExtendedTests
 
         var str = node.ToString();
         Assert.IsNotNull(str);
-        Assert.IsTrue(str.StartsWith("with"));
+        Assert.StartsWith("with", str);
     }
 
     [TestMethod]
@@ -324,8 +324,8 @@ public class ParserNodesExtendedTests
 
         var str = node.ToString();
         Assert.IsNotNull(str);
-        Assert.IsTrue(str.Contains("cte1"));
-        Assert.IsTrue(str.Contains("cte2"));
+        Assert.Contains("cte1", str);
+        Assert.Contains("cte2", str);
     }
 
     #endregion
@@ -464,7 +464,7 @@ public class ParserNodesExtendedTests
 
         var str = node.ToString();
         Assert.IsNotNull(str);
-        Assert.IsTrue(str.Contains("alias"));
+        Assert.Contains("alias", str);
     }
 
     [TestMethod]
@@ -475,7 +475,7 @@ public class ParserNodesExtendedTests
 
         var str = node.ToString();
         Assert.IsNotNull(str);
-        Assert.IsFalse(str.Contains(" "));
+        Assert.DoesNotContain(" ", str);
     }
 
     [TestMethod]
@@ -579,7 +579,7 @@ public class ParserNodesExtendedTests
 
         var node = new SingleSetNode(query);
 
-        Assert.IsTrue(node.Id.StartsWith("SingleSetNode"));
+        Assert.StartsWith("SingleSetNode", node.Id);
     }
 
     #endregion
@@ -610,7 +610,7 @@ public class ParserNodesExtendedTests
         var intNode = new IntegerNode("99");
         var cteInner = new CteInnerExpressionNode(intNode, "test");
 
-        Assert.IsTrue(cteInner.Id.StartsWith("CteInnerExpressionNode"));
+        Assert.StartsWith("CteInnerExpressionNode", cteInner.Id);
     }
 
     [TestMethod]
@@ -619,8 +619,8 @@ public class ParserNodesExtendedTests
         var cteInner = new CteInnerExpressionNode(new IntegerNode("1"), "myCte");
 
         var str = cteInner.ToString();
-        Assert.IsTrue(str.Contains("myCte"));
-        Assert.IsTrue(str.Contains("as"));
+        Assert.Contains("myCte", str);
+        Assert.Contains("as", str);
     }
 
     #endregion
@@ -699,9 +699,9 @@ public class ParserNodesExtendedTests
         var node = new ExceptNode("result", keys, left, right, false, false);
 
         var str = node.ToString();
-        Assert.IsTrue(str.Contains("except"));
-        Assert.IsTrue(str.Contains("id"));
-        Assert.IsTrue(str.Contains("name"));
+        Assert.Contains("except", str);
+        Assert.Contains("id", str);
+        Assert.Contains("name", str);
     }
 
     [TestMethod]
@@ -740,8 +740,8 @@ public class ParserNodesExtendedTests
         var node = new IntersectNode("result", keys, left, right, false, false);
 
         var str = node.ToString();
-        Assert.IsTrue(str.Contains("intersect"));
-        Assert.IsTrue(str.Contains("key"));
+        Assert.Contains("intersect", str);
+        Assert.Contains("key", str);
     }
 
     [TestMethod]
@@ -779,8 +779,8 @@ public class ParserNodesExtendedTests
         var node = new UnionNode("result", keys, left, right, false, false);
 
         var str = node.ToString();
-        Assert.IsTrue(str.Contains("union"));
-        Assert.IsTrue(str.Contains("x"));
+        Assert.Contains("union", str);
+        Assert.Contains("x", str);
     }
 
     [TestMethod]
@@ -814,7 +814,7 @@ public class ParserNodesExtendedTests
         var node = new UnionAllNode("result", [], left, right, false, false);
 
         var str = node.ToString();
-        Assert.IsTrue(str.Contains("union all"));
+        Assert.Contains("union all", str);
     }
 
     #endregion

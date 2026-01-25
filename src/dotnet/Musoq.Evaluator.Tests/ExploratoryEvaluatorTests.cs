@@ -4081,7 +4081,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.IsTrue(table.Count <= 5);
+        Assert.IsLessThanOrEqualTo(5, table.Count);
     }
 
     #endregion

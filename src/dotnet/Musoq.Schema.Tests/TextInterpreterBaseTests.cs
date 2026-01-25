@@ -542,7 +542,7 @@ public class TextInterpreterBaseTests
         var interpreter = new TestTextInterpreter();
         var ex = Assert.Throws<ParseException>(() =>
             interpreter.TestExpectLiteral("goodbye".AsSpan(), "hello"));
-        Assert.IsTrue(ex.Message.Contains("Expected 'hello'"));
+        Assert.Contains("Expected 'hello'", ex.Message);
     }
 
     [TestMethod]
@@ -665,7 +665,7 @@ public class TextInterpreterBaseTests
         var ex = Assert.Throws<ParseException>(() =>
             interpreter.TestValidate(false, "testField", "validation failed"));
         Assert.AreEqual("testField", ex.FieldName);
-        Assert.IsTrue(ex.Message.Contains("validation failed"));
+        Assert.Contains("validation failed", ex.Message);
     }
 
     #endregion

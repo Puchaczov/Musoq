@@ -292,8 +292,8 @@ public class LowCoverageAreasTests
 
         var result = key.ToString();
 
-        Assert.IsTrue(result.Contains("0(1)"));
-        Assert.IsTrue(result.Contains("1(test)"));
+        Assert.Contains("0(1)", result);
+        Assert.Contains("1(test)", result);
     }
 
     [TestMethod]
@@ -394,7 +394,7 @@ public class LowCoverageAreasTests
         var result = table.TryGetIndexedValues(key, out var values);
 
         Assert.IsFalse(result);
-        Assert.AreEqual(0, values.Count);
+        Assert.IsEmpty(values);
     }
 
     [TestMethod]
@@ -425,7 +425,7 @@ public class LowCoverageAreasTests
 
         var resultColumns = new List<Column>(table.Columns);
 
-        Assert.AreEqual(2, resultColumns.Count);
+        Assert.HasCount(2, resultColumns);
     }
 
     [TestMethod]
@@ -547,7 +547,7 @@ public class LowCoverageAreasTests
 
         var values = groupRow.Values;
 
-        Assert.AreEqual(1, values.Length);
+        Assert.HasCount(1, values);
         Assert.AreEqual(42, values[0]);
     }
 
@@ -828,7 +828,7 @@ public class LowCoverageAreasTests
         var values = new object[] { 1, "test", 3.14 };
         var row = new ObjectsRow(values);
 
-        Assert.AreEqual(3, row.Values.Length);
+        Assert.HasCount(3, row.Values);
         Assert.AreEqual(1, row.Values[0]);
     }
 
@@ -884,7 +884,7 @@ public class LowCoverageAreasTests
         var ex = Assert.Throws<NotSupportedException>(() =>
             table.Add(new ObjectsRow(new object[] { 1, 2 })));
 
-        Assert.IsTrue(ex.Message.Contains("2 values"));
+        Assert.Contains("2 values", ex.Message);
     }
 
     [TestMethod]
@@ -896,7 +896,7 @@ public class LowCoverageAreasTests
         var ex = Assert.Throws<NotSupportedException>(() =>
             table.Add(new ObjectsRow(new object[] { "string" })));
 
-        Assert.IsTrue(ex.Message.Contains("Mismatched"));
+        Assert.Contains("Mismatched", ex.Message);
     }
 
     [TestMethod]
@@ -1094,8 +1094,8 @@ public class LowCoverageAreasTests
 
         var result = key.ToString();
 
-        Assert.IsTrue(result.Contains("1"));
-        Assert.IsTrue(result.Contains("test"));
+        Assert.Contains("1", result);
+        Assert.Contains("test", result);
     }
 
     [TestMethod]
@@ -1105,7 +1105,7 @@ public class LowCoverageAreasTests
 
         var result = key.ToString();
 
-        Assert.IsTrue(result.Contains("null"));
+        Assert.Contains("null", result);
     }
 
     [TestMethod]
@@ -1274,7 +1274,7 @@ public class LowCoverageAreasTests
 
         var schemas = registry.Schemas;
 
-        Assert.AreEqual(3, schemas.Count);
+        Assert.HasCount(3, schemas);
         Assert.AreEqual("first", schemas[0].Name);
         Assert.AreEqual("second", schemas[1].Name);
         Assert.AreEqual("third", schemas[2].Name);
@@ -1349,7 +1349,7 @@ public class LowCoverageAreasTests
 
         var child = parent.AddScope("child");
 
-        Assert.AreEqual(1, parent.Child.Count);
+        Assert.HasCount(1, parent.Child);
         Assert.AreEqual("child", child.Name);
         Assert.AreSame(parent, child.Parent);
     }
@@ -1362,7 +1362,7 @@ public class LowCoverageAreasTests
         var child1 = parent.AddScope("child1");
         var child2 = parent.AddScope("child2");
 
-        Assert.AreEqual(2, parent.Child.Count);
+        Assert.HasCount(2, parent.Child);
         Assert.AreEqual(0, child1.SelfIndex);
         Assert.AreEqual(1, child2.SelfIndex);
     }

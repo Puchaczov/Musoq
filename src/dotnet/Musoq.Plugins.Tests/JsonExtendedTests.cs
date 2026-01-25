@@ -49,8 +49,8 @@ public class JsonExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.ToJson(new { Name = "Test", Value = 42 });
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("\"Name\":\"Test\""));
-        Assert.IsTrue(result.Contains("\"Value\":42"));
+        Assert.Contains("\"Name\":\"Test\"", result);
+        Assert.Contains("\"Value\":42", result);
     }
 
     #endregion
@@ -96,35 +96,35 @@ public class JsonExtendedTests : LibraryBaseBaseTests
     public void ExtractFromJsonToArray_NullJson_ReturnsEmptyArray()
     {
         var result = Library.ExtractFromJsonToArray(null, "$.name");
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
     public void ExtractFromJsonToArray_EmptyJson_ReturnsEmptyArray()
     {
         var result = Library.ExtractFromJsonToArray(string.Empty, "$.name");
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
     public void ExtractFromJsonToArray_NullPath_ReturnsEmptyArray()
     {
         var result = Library.ExtractFromJsonToArray("{\"name\":\"test\"}", null);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
     public void ExtractFromJsonToArray_EmptyPath_ReturnsEmptyArray()
     {
         var result = Library.ExtractFromJsonToArray("{\"name\":\"test\"}", string.Empty);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
     public void ExtractFromJsonToArray_ValidPath_ReturnsArray()
     {
         var result = Library.ExtractFromJsonToArray("{\"name\":\"test\"}", "$.name");
-        Assert.IsTrue(result.Length > 0);
+        Assert.IsNotEmpty(result);
         Assert.AreEqual("test", result[0]);
     }
 
@@ -132,7 +132,7 @@ public class JsonExtendedTests : LibraryBaseBaseTests
     public void ExtractFromJsonToArray_ArrayPath_ReturnsMultipleValues()
     {
         var result = Library.ExtractFromJsonToArray("{\"names\":[\"a\",\"b\",\"c\"]}", "$.names[*]");
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
     }
 
     #endregion

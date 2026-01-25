@@ -173,10 +173,10 @@ public class TextBetweenFeatureTests
         Assert.AreEqual(2, table.Count);
         var timestamps = new HashSet<string> { (string)table[0][0], (string)table[1][0] };
         var messages = new HashSet<string> { (string)table[0][1], (string)table[1][1] };
-        Assert.IsTrue(timestamps.Contains("2024-01-15 10:30:00"));
-        Assert.IsTrue(timestamps.Contains("2024-01-15 10:30:05"));
-        Assert.IsTrue(messages.Contains("Application started"));
-        Assert.IsTrue(messages.Contains("Connected to database"));
+        Assert.Contains("2024-01-15 10:30:00", timestamps);
+        Assert.Contains("2024-01-15 10:30:05", timestamps);
+        Assert.Contains("Application started", messages);
+        Assert.Contains("Connected to database", messages);
     }
 
     #endregion

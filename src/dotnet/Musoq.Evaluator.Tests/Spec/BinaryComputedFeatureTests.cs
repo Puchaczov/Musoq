@@ -150,7 +150,7 @@ public class BinaryComputedFeatureTests
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(10, table[0][0]);
-        Assert.AreEqual(true, table[0][1]);
+        Assert.IsTrue((bool?)table[0][1]);
     }
 
     #endregion

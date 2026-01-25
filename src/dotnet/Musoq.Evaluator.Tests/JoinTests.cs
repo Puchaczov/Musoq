@@ -935,8 +935,8 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
             ((int?)table[1][0], (int?)table[1][1])
         };
 
-        Assert.IsTrue(rows.Contains((1, null)), "Expected row (1, null) not found");
-        Assert.IsTrue(rows.Contains((2, 2)), "Expected row (2, 2) not found");
+        Assert.Contains((1, null), rows, "Expected row (1, null) not found");
+        Assert.Contains((2, 2), rows, "Expected row (2, 2) not found");
     }
 
     [TestMethod]
@@ -962,8 +962,8 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
             ((int?)table[1][0], (int?)table[1][1])
         };
 
-        Assert.IsTrue(rows.Contains((1, null)), "Expected row (1, null) not found");
-        Assert.IsTrue(rows.Contains((2, 2)), "Expected row (2, 2) not found");
+        Assert.Contains((1, null), rows, "Expected row (1, null) not found");
+        Assert.Contains((2, 2), rows, "Expected row (2, 2) not found");
     }
 
     [TestMethod]

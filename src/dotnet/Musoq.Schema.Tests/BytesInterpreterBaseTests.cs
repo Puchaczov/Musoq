@@ -477,7 +477,7 @@ public class BytesInterpreterBaseTests
     {
         var interpreter = new TestBytesInterpreter();
         var result = interpreter.TestReadBytes([0x01, 0x02], 0);
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod]
@@ -711,7 +711,7 @@ public class BytesInterpreterBaseTests
         var ex = Assert.Throws<ParseException>(() =>
             interpreter.TestValidate(false, "testField", "validation failed"));
         Assert.AreEqual("testField", ex.FieldName);
-        Assert.IsTrue(ex.Message.Contains("validation failed"));
+        Assert.Contains("validation failed", ex.Message);
     }
 
     #endregion
