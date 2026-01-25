@@ -6,6 +6,7 @@ using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -142,6 +143,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         }
 
         var ident = theMostOuter.Root as IdentifierNode;
+
         if (ident != null && node == theMostOuter && Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
         {
             if (theMostOuter.Expression is AccessObjectArrayNode arrayNode)
@@ -151,10 +153,17 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
                 if (columnInfo != null)
                 {
+                    string elementIntendedTypeName = null;
+                    if (!string.IsNullOrEmpty(columnInfo.IntendedTypeName) &&
+                        columnInfo.IntendedTypeName.EndsWith("[]"))
+                        elementIntendedTypeName =
+                            columnInfo.IntendedTypeName.Substring(0, columnInfo.IntendedTypeName.Length - 2);
+
                     var enhancedArrayNode = new AccessObjectArrayNode(
                         arrayNode.Token,
                         columnInfo.ColumnType,
-                        ident.Name
+                        ident.Name,
+                        elementIntendedTypeName
                     );
                     enhancedArrayNode.Accept(_visitor);
                     return;
@@ -430,6 +439,12 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
+    public virtual void Visit(InterpretFromNode node)
+    {
+        node.InterpretCall.Accept(this);
+        node.Accept(_visitor);
+    }
+
     public virtual void Visit(AccessMethodFromNode node)
     {
         node.AccessMethod.Accept(this);
@@ -531,6 +546,41 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     }
 
     public virtual void Visit(HyphenNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public virtual void Visit(BitwiseAndNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public virtual void Visit(BitwiseOrNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public virtual void Visit(BitwiseXorNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public virtual void Visit(LeftShiftNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public virtual void Visit(RightShiftNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
@@ -851,6 +901,103 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
     public virtual void Visit(FieldLinkNode node)
     {
         node.Accept(_visitor);
+    }
+
+    public virtual void Visit(InterpretCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public virtual void Visit(ParseCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public virtual void Visit(TryInterpretCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public virtual void Visit(TryParseCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public virtual void Visit(PartialInterpretCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public virtual void Visit(InterpretAtCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Offset.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public virtual void Visit(BinarySchemaNode node)
+    {
+    }
+
+    public virtual void Visit(TextSchemaNode node)
+    {
+    }
+
+    public virtual void Visit(FieldDefinitionNode node)
+    {
+    }
+
+    public virtual void Visit(ComputedFieldNode node)
+    {
+    }
+
+    public virtual void Visit(TextFieldDefinitionNode node)
+    {
+    }
+
+    public virtual void Visit(FieldConstraintNode node)
+    {
+    }
+
+    public virtual void Visit(PrimitiveTypeNode node)
+    {
+    }
+
+    public virtual void Visit(ByteArrayTypeNode node)
+    {
+    }
+
+    public virtual void Visit(StringTypeNode node)
+    {
+    }
+
+    public virtual void Visit(SchemaReferenceTypeNode node)
+    {
+    }
+
+    public virtual void Visit(ArrayTypeNode node)
+    {
+    }
+
+    public virtual void Visit(BitsTypeNode node)
+    {
+    }
+
+    public virtual void Visit(AlignmentNode node)
+    {
+    }
+
+    public virtual void Visit(RepeatUntilTypeNode node)
+    {
+    }
+
+    public virtual void Visit(InlineSchemaTypeNode node)
+    {
     }
 
     public virtual void QueryBegins()

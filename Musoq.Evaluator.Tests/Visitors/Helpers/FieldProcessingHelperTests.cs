@@ -54,14 +54,13 @@ public class FieldProcessingHelperTests
     [TestMethod]
     public void CreateFields_WhenEmptyOldFields_ShouldReturnEmptyArray()
     {
-        // Arrange
         var oldFields = new FieldNode[0];
         var nodes = new Stack<Node>();
 
-        // Act
+
         var result = FieldProcessingHelper.CreateFields(oldFields, nodes);
 
-        // Assert
+
         Assert.IsEmpty(result);
     }
 }

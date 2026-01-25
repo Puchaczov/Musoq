@@ -3,7 +3,7 @@
 /// <summary>
 ///     Represents statistics of the query.
 /// </summary>
-public class QueryStats
+public class QueryStats : IQueryStats
 {
     /// <summary>
     ///     Number of rows in the result set.

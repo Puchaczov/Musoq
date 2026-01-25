@@ -319,11 +319,23 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(value))
             return null;
 
-        var frequencies = value.GroupBy(c => c)
-            .Select(g => (double)g.Count() / value.Length)
-            .ToList();
 
-        return -frequencies.Sum(f => f * Math.Log2(f));
+        var charCounts = new Dictionary<char, int>();
+        foreach (var c in value)
+            if (charCounts.TryGetValue(c, out var count))
+                charCounts[c] = count + 1;
+            else
+                charCounts[c] = 1;
+
+        var length = (double)value.Length;
+        var entropy = 0.0;
+        foreach (var count in charCounts.Values)
+        {
+            var frequency = count / length;
+            entropy -= frequency * Math.Log2(frequency);
+        }
+
+        return entropy;
     }
 
     /// <summary>

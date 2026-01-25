@@ -23,7 +23,22 @@ public class Key : IEquatable<Key>
 
         var equals = Equals(Columns, other.Columns);
 
-        for (var i = 0; i < Columns.Length && equals; i++) equals &= Values[i].Equals(other.Values[i]);
+        for (var i = 0; i < Columns.Length && equals; i++)
+        {
+            var thisValue = Values[i];
+            var otherValue = other.Values[i];
+
+            if (thisValue == null && otherValue == null)
+                continue;
+
+            if (thisValue == null || otherValue == null)
+            {
+                equals = false;
+                break;
+            }
+
+            equals &= thisValue.Equals(otherValue);
+        }
 
         return equals;
     }
@@ -33,9 +48,17 @@ public class Key : IEquatable<Key>
         var key = new StringBuilder();
 
         for (var i = 0; i < Columns.Length - 1; i++)
-            key.Append($"{Columns[i]}({Values[i]}), ");
+        {
+            key.Append(Columns[i]);
+            key.Append('(');
+            key.Append(Values[i]);
+            key.Append("), ");
+        }
 
-        key.Append($"{Columns[Columns.Length - 1]}({Values[Values.Length - 1]})");
+        key.Append(Columns[Columns.Length - 1]);
+        key.Append('(');
+        key.Append(Values[Values.Length - 1]);
+        key.Append(')');
 
         return key.ToString();
     }
@@ -61,7 +84,7 @@ public class Key : IEquatable<Key>
             for (var i = 0; i < Columns.Length; ++i)
             {
                 hash += Columns[i].GetHashCode();
-                hash += Values[i].GetHashCode();
+                hash += Values[i]?.GetHashCode() ?? 0;
             }
 
             return hash;

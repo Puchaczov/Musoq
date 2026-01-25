@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Helpers;
@@ -8,6 +8,7 @@ using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Evaluator.Visitors.Helpers;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Parser.Nodes.InterpretationSchema;
 using AccessMethodFromNode = Musoq.Parser.Nodes.From.AccessMethodFromNode;
 using AliasedFromNode = Musoq.Parser.Nodes.From.AliasedFromNode;
 using ApplyFromNode = Musoq.Parser.Nodes.From.ApplyFromNode;
@@ -17,6 +18,7 @@ using ArgumentOutOfRangeException = System.ArgumentOutOfRangeException;
 using ExpressionFromNode = Musoq.Parser.Nodes.From.ExpressionFromNode;
 using InMemoryGroupedFromNode = Musoq.Evaluator.Parser.InMemoryGroupedFromNode;
 using InMemoryTableFromNode = Musoq.Parser.Nodes.From.InMemoryTableFromNode;
+using InterpretFromNode = Musoq.Parser.Nodes.From.InterpretFromNode;
 using JoinFromNode = Musoq.Parser.Nodes.From.JoinFromNode;
 using JoinInMemoryWithSourceTableFromNode = Musoq.Parser.Nodes.From.JoinInMemoryWithSourceTableFromNode;
 using JoinNode = Musoq.Parser.Nodes.From.JoinNode;
@@ -44,7 +46,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     public void Visit(DescNode node)
     {
         var from = (SchemaFromNode)Nodes.Pop();
-        Nodes.Push(new DescNode(from, node.Type));
+        Nodes.Push(new DescNode(from, node.Type, node.Column));
     }
 
     public void Visit(StarNode node)
@@ -70,6 +72,31 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     public void Visit(HyphenNode node)
     {
         BinaryOperationVisitorHelper.ProcessHyphenOperation(Nodes);
+    }
+
+    public void Visit(BitwiseAndNode node)
+    {
+        BinaryOperationVisitorHelper.ProcessBitwiseAndOperation(Nodes);
+    }
+
+    public void Visit(BitwiseOrNode node)
+    {
+        BinaryOperationVisitorHelper.ProcessBitwiseOrOperation(Nodes);
+    }
+
+    public void Visit(BitwiseXorNode node)
+    {
+        BinaryOperationVisitorHelper.ProcessBitwiseXorOperation(Nodes);
+    }
+
+    public void Visit(LeftShiftNode node)
+    {
+        BinaryOperationVisitorHelper.ProcessLeftShiftOperation(Nodes);
+    }
+
+    public void Visit(RightShiftNode node)
+    {
+        BinaryOperationVisitorHelper.ProcessRightShiftOperation(Nodes);
     }
 
     public void Visit(AndNode node)
@@ -237,7 +264,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(AccessColumnNode node)
     {
-        Nodes.Push(new AccessColumnNode(node.Name, node.Alias, node.ReturnType, node.Span));
+        Nodes.Push(new AccessColumnNode(node.Name, node.Alias, node.ReturnType, node.Span, node.IntendedTypeName));
     }
 
     public void Visit(AllColumnsNode node)
@@ -253,7 +280,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     public void Visit(AccessObjectArrayNode node)
     {
         if (node.IsColumnAccess)
-            Nodes.Push(new AccessObjectArrayNode(node.Token, node.ColumnType, node.TableAlias));
+            Nodes.Push(new AccessObjectArrayNode(node.Token, node.ColumnType, node.TableAlias, node.IntendedTypeName));
         else
             Nodes.Push(new AccessObjectArrayNode(node.Token, node.PropertyInfo));
     }
@@ -273,7 +300,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         var exp = Nodes.Pop();
         var root = Nodes.Pop();
 
-        Nodes.Push(new DotNode(root, exp, node.IsTheMostInner, node.Name, exp.ReturnType));
+        Nodes.Push(new DotNode(root, exp, node.IsTheMostInner, node.Name, exp.ReturnType, node.IntendedTypeName));
     }
 
     public void Visit(AccessCallChainNode node)
@@ -343,6 +370,13 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(ApplySourcesTableFromNode node)
     {
+        var second = (FromNode)Nodes.Pop();
+
+
+        var first = (FromNode)Nodes.Pop();
+
+
+        Nodes.Push(new Parser.ApplySourcesTableFromNode(first, second, node.ApplyType));
     }
 
     public void Visit(JoinFromNode node)
@@ -358,8 +392,10 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     {
         var right = (FromNode)Nodes.Pop();
         var left = (FromNode)Nodes.Pop();
-        Nodes.Push(new Parser.ApplyFromNode(left, right, node.ApplyType));
-        _joinedTables.Add(node);
+        var newApply = new Parser.ApplyFromNode(left, right, node.ApplyType);
+        Nodes.Push(newApply);
+
+        _joinedTables.Add(newApply);
     }
 
     public void Visit(ExpressionFromNode node)
@@ -377,6 +413,12 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         Nodes.Push(new AccessMethodFromNode(node.Alias, node.SourceAlias, node.AccessMethod, node.ReturnType));
     }
 
+    public void Visit(InterpretFromNode node)
+    {
+        var interpretCall = Nodes.Pop();
+        Nodes.Push(new InterpretFromNode(node.Alias, interpretCall, node.ApplyType, node.ReturnType));
+    }
+
     public void Visit(SchemaMethodFromNode node)
     {
     }
@@ -388,6 +430,8 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(AliasedFromNode node)
     {
+        var identifier = node.Identifier;
+        if (identifier == "Interpret" || identifier == "Parse" || identifier == "InterpretAt") Nodes.Push(node);
     }
 
     public void Visit(CreateTransformationTableNode node)
@@ -626,8 +670,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                         current.With.Alias,
                         (name, alias) => NamingHelper.ToColumnName(alias, name),
                         QueryRewriteUtilities.IncludeKnownColumnsForWithOnly(
-                            extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current),
-                        0);
+                            extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current));
 
                 bothForSelect =
                     FieldProcessingHelper.CreateAndConcatFields(
@@ -641,8 +684,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                         (name, alias) => NamingHelper.ToColumnName(alias, name),
                         (name, alias) => name,
                         QueryRewriteUtilities.IncludeKnownColumnsForWithOnly(
-                            extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current),
-                        0);
+                            extractAccessedColumnsVisitor.GetForAlias(current.With.Alias), current));
 
                 scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.Source.Alias, trimmedLeft);
                 scopeJoinedQuery.ScopeSymbolTable.AddSymbol(current.With.Alias, trimmedRight);
@@ -770,7 +812,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
             var aggSelect = new SelectNode(QueryRewriteUtilities
                 .ConcatAggregateFieldsWithGroupByFields(splitSelectFields[0], groupBy.Fields)
                 .Reverse().ToArray());
-            var outSelect = new SelectNode(splitSelectFields[1]);
+            var outSelect = new SelectNode(splitSelectFields[1], select.IsDistinct);
 
             var scopeCreateTransformingTable = _scope.AddScope("Table");
             var scopeTransformedQuery = _scope.AddScope("Query");
@@ -927,7 +969,8 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(RootNode node)
     {
-        RootScript = new RootNode(Nodes.Pop());
+        var poppedNode = Nodes.Pop();
+        RootScript = new RootNode(poppedNode);
     }
 
     public void Visit(SingleSetNode node)
@@ -1087,11 +1130,299 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         Nodes.Push(new FieldLinkNode($"::{node.Index}", node.ReturnType));
     }
 
+    public void Visit(InterpretCallNode node)
+    {
+        Nodes.Push(node);
+    }
+
+    public void Visit(ParseCallNode node)
+    {
+        Nodes.Push(node);
+    }
+
+    public void Visit(TryInterpretCallNode node)
+    {
+        Nodes.Push(node);
+    }
+
+    public void Visit(TryParseCallNode node)
+    {
+        Nodes.Push(node);
+    }
+
+    public void Visit(PartialInterpretCallNode node)
+    {
+        Nodes.Push(node);
+    }
+
+    public void Visit(InterpretAtCallNode node)
+    {
+        Nodes.Push(node);
+    }
+
+    public void Visit(BinarySchemaNode node)
+    {
+    }
+
+    public void Visit(TextSchemaNode node)
+    {
+    }
+
+    public void Visit(FieldDefinitionNode node)
+    {
+    }
+
+    public void Visit(ComputedFieldNode node)
+    {
+    }
+
+    public void Visit(TextFieldDefinitionNode node)
+    {
+    }
+
+    public void Visit(FieldConstraintNode node)
+    {
+    }
+
+    public void Visit(PrimitiveTypeNode node)
+    {
+    }
+
+    public void Visit(ByteArrayTypeNode node)
+    {
+    }
+
+    public void Visit(StringTypeNode node)
+    {
+    }
+
+    public void Visit(SchemaReferenceTypeNode node)
+    {
+    }
+
+    public void Visit(ArrayTypeNode node)
+    {
+    }
+
+    public void Visit(BitsTypeNode node)
+    {
+    }
+
+    public void Visit(AlignmentNode node)
+    {
+    }
+
+    public void Visit(RepeatUntilTypeNode node)
+    {
+    }
+
+    public void Visit(InlineSchemaTypeNode node)
+    {
+    }
+
     private void VisitAccessMethod(AccessMethodNode node)
     {
         var args = Nodes.Pop() as ArgsListNode;
 
+
+        var functionName = node.FunctionToken.Value;
+
+        if (IsInterpretFunctionCall(functionName, args, out var schemaName, out var dataSource))
+        {
+            Nodes.Push(new InterpretCallNode(dataSource, schemaName, null));
+            return;
+        }
+
+        if (IsParseFunctionCall(functionName, args, out schemaName, out dataSource))
+        {
+            Nodes.Push(new ParseCallNode(dataSource, schemaName, null));
+            return;
+        }
+
+        if (IsInterpretAtFunctionCall(functionName, args, out schemaName, out dataSource, out var offset))
+        {
+            Nodes.Push(new InterpretAtCallNode(dataSource, offset, schemaName, null));
+            return;
+        }
+
+        if (IsTryInterpretFunctionCall(functionName, args, out schemaName, out dataSource))
+        {
+            Nodes.Push(new TryInterpretCallNode(dataSource, schemaName, null));
+            return;
+        }
+
+        if (IsTryParseFunctionCall(functionName, args, out schemaName, out dataSource))
+        {
+            Nodes.Push(new TryParseCallNode(dataSource, schemaName, null));
+            return;
+        }
+
+        if (IsPartialInterpretFunctionCall(functionName, args, out schemaName, out dataSource))
+        {
+            Nodes.Push(new PartialInterpretCallNode(dataSource, schemaName, null));
+            return;
+        }
+
         Nodes.Push(new AccessMethodNode(node.FunctionToken, args, null, node.CanSkipInjectSource, node.Method,
             node.Alias));
+    }
+
+    /// <summary>
+    ///     Checks if the function call is Interpret(dataSource, 'SchemaName')
+    /// </summary>
+    private static bool IsInterpretFunctionCall(string functionName, ArgsListNode? args, out string schemaName,
+        out Node dataSource)
+    {
+        schemaName = string.Empty;
+        dataSource = null!;
+
+        if (!string.Equals(functionName, "Interpret", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (args?.Args == null || args.Args.Length != 2)
+            return false;
+
+
+        var schemaArg = args.Args[1];
+        if (schemaArg is StringNode stringNode)
+        {
+            schemaName = stringNode.Value;
+            dataSource = args.Args[0];
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    ///     Checks if the function call is Parse(dataSource, 'SchemaName')
+    /// </summary>
+    private static bool IsParseFunctionCall(string functionName, ArgsListNode? args, out string schemaName,
+        out Node dataSource)
+    {
+        schemaName = string.Empty;
+        dataSource = null!;
+
+        if (!string.Equals(functionName, "Parse", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (args?.Args == null || args.Args.Length != 2)
+            return false;
+
+        var schemaArg = args.Args[1];
+        if (schemaArg is StringNode stringNode)
+        {
+            schemaName = stringNode.Value;
+            dataSource = args.Args[0];
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    ///     Checks if the function call is InterpretAt(dataSource, offset, 'SchemaName')
+    /// </summary>
+    private static bool IsInterpretAtFunctionCall(string functionName, ArgsListNode? args, out string schemaName,
+        out Node dataSource, out Node offset)
+    {
+        schemaName = string.Empty;
+        dataSource = null!;
+        offset = null!;
+
+        if (!string.Equals(functionName, "InterpretAt", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (args?.Args == null || args.Args.Length != 3)
+            return false;
+
+        var schemaArg = args.Args[2];
+        if (schemaArg is StringNode stringNode)
+        {
+            schemaName = stringNode.Value;
+            dataSource = args.Args[0];
+            offset = args.Args[1];
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    ///     Checks if the function call is TryInterpret(dataSource, 'SchemaName')
+    /// </summary>
+    private static bool IsTryInterpretFunctionCall(string functionName, ArgsListNode? args, out string schemaName,
+        out Node dataSource)
+    {
+        schemaName = string.Empty;
+        dataSource = null!;
+
+        if (!string.Equals(functionName, "TryInterpret", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (args?.Args == null || args.Args.Length != 2)
+            return false;
+
+        var schemaArg = args.Args[1];
+        if (schemaArg is StringNode stringNode)
+        {
+            schemaName = stringNode.Value;
+            dataSource = args.Args[0];
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    ///     Checks if the function call is TryParse(dataSource, 'SchemaName')
+    /// </summary>
+    private static bool IsTryParseFunctionCall(string functionName, ArgsListNode? args, out string schemaName,
+        out Node dataSource)
+    {
+        schemaName = string.Empty;
+        dataSource = null!;
+
+        if (!string.Equals(functionName, "TryParse", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (args?.Args == null || args.Args.Length != 2)
+            return false;
+
+        var schemaArg = args.Args[1];
+        if (schemaArg is StringNode stringNode)
+        {
+            schemaName = stringNode.Value;
+            dataSource = args.Args[0];
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    ///     Checks if the function call is PartialInterpret(dataSource, 'SchemaName')
+    /// </summary>
+    private static bool IsPartialInterpretFunctionCall(string functionName, ArgsListNode? args, out string schemaName,
+        out Node dataSource)
+    {
+        schemaName = string.Empty;
+        dataSource = null!;
+
+        if (!string.Equals(functionName, "PartialInterpret", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (args?.Args == null || args.Args.Length != 2)
+            return false;
+
+        var schemaArg = args.Args[1];
+        if (schemaArg is StringNode stringNode)
+        {
+            schemaName = stringNode.Value;
+            dataSource = args.Args[0];
+            return true;
+        }
+
+        return false;
     }
 }

@@ -16,17 +16,16 @@ public class LogicalOperationVisitorHelperTests
     [TestMethod]
     public void ProcessAndOperation_WhenTwoNodesOnStack_ShouldCreateAndNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new BooleanNode(true);
         var rightNode = new BooleanNode(false);
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         LogicalOperationVisitorHelper.ProcessAndOperation(nodes, IdentityRewriter);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(AndNode));
@@ -38,17 +37,16 @@ public class LogicalOperationVisitorHelperTests
     [TestMethod]
     public void ProcessOrOperation_WhenTwoNodesOnStack_ShouldCreateOrNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new BooleanNode(true);
         var rightNode = new BooleanNode(false);
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         LogicalOperationVisitorHelper.ProcessOrOperation(nodes, IdentityRewriter);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(OrNode));
@@ -60,15 +58,14 @@ public class LogicalOperationVisitorHelperTests
     [TestMethod]
     public void ProcessNotOperation_WhenOneNodeOnStack_ShouldCreateNotNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var operandNode = new BooleanNode(true);
         nodes.Push(operandNode);
 
-        // Act
+
         LogicalOperationVisitorHelper.ProcessNotOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(NotNode));
@@ -79,17 +76,16 @@ public class LogicalOperationVisitorHelperTests
     [TestMethod]
     public void ProcessContainsOperation_WhenTwoNodesOnStack_ShouldCreateContainsNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new StringNode("Hello World");
         var rightNode = new ArgsListNode([new StringNode("World")]);
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         LogicalOperationVisitorHelper.ProcessContainsOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(ContainsNode));
@@ -101,15 +97,14 @@ public class LogicalOperationVisitorHelperTests
     [TestMethod]
     public void ProcessIsNullOperation_WhenOneNodeOnStack_ShouldCreateIsNullNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var operandNode = new IdentifierNode("x");
         nodes.Push(operandNode);
 
-        // Act
+
         LogicalOperationVisitorHelper.ProcessIsNullOperation(nodes, true);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(IsNullNode));
@@ -121,7 +116,6 @@ public class LogicalOperationVisitorHelperTests
     [TestMethod]
     public void ProcessInOperation_WhenTwoNodesOnStack_ShouldCreateOrChain()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IdentifierNode("x");
         var argsNode = new ArgsListNode([
@@ -132,14 +126,14 @@ public class LogicalOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(argsNode);
 
-        // Act
+
         LogicalOperationVisitorHelper.ProcessInOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
 
-        // Should create: ((x = 1) OR (x = 2)) OR (x = 3)
+
         Assert.IsInstanceOfType(result, typeof(OrNode));
         var outerOr = (OrNode)result;
         Assert.IsInstanceOfType(outerOr.Left, typeof(OrNode));
@@ -149,7 +143,6 @@ public class LogicalOperationVisitorHelperTests
     [TestMethod]
     public void ProcessAndOperation_WithNullableRewriter_ShouldApplyRewriter()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new BooleanNode(true);
         var rightNode = new BooleanNode(false);
@@ -164,10 +157,10 @@ public class LogicalOperationVisitorHelperTests
             return node;
         }
 
-        // Act
+
         LogicalOperationVisitorHelper.ProcessAndOperation(nodes, TestRewriter);
 
-        // Assert
+
         Assert.IsTrue(rewriterCalled);
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -177,7 +170,6 @@ public class LogicalOperationVisitorHelperTests
     [TestMethod]
     public void ProcessOrOperation_WithNullableRewriter_ShouldApplyRewriter()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new BooleanNode(true);
         var rightNode = new BooleanNode(false);
@@ -192,10 +184,10 @@ public class LogicalOperationVisitorHelperTests
             return node;
         }
 
-        // Act
+
         LogicalOperationVisitorHelper.ProcessOrOperation(nodes, TestRewriter);
 
-        // Assert
+
         Assert.IsTrue(rewriterCalled);
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
@@ -205,7 +197,6 @@ public class LogicalOperationVisitorHelperTests
     [TestMethod]
     public void ProcessInOperation_WithSingleValue_ShouldCreateSingleEquality()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IdentifierNode("x");
         var argsNode = new ArgsListNode([
@@ -214,10 +205,10 @@ public class LogicalOperationVisitorHelperTests
         nodes.Push(leftNode);
         nodes.Push(argsNode);
 
-        // Act
+
         LogicalOperationVisitorHelper.ProcessInOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(EqualityNode));
@@ -228,17 +219,16 @@ public class LogicalOperationVisitorHelperTests
     [TestMethod]
     public void ProcessInOperation_WithEmptyArgs_ShouldCreateBooleanFalse()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IdentifierNode("x");
         var argsNode = new ArgsListNode([]);
         nodes.Push(leftNode);
         nodes.Push(argsNode);
 
-        // Act
+
         LogicalOperationVisitorHelper.ProcessInOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(BooleanNode));

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Text;
 using Musoq.Plugins.Attributes;
 
@@ -171,12 +170,11 @@ public partial class LibraryBase
         if (value == null)
             return null;
 
-        var bytes = new List<byte>();
-
-        foreach (var integerValue in decimal.GetBits(value.Value))
-            bytes.AddRange(BitConverter.GetBytes(integerValue));
-
-        return bytes.ToArray();
+        var bits = decimal.GetBits(value.Value);
+        var result = new byte[16];
+        for (var i = 0; i < 4; i++)
+            BitConverter.TryWriteBytes(result.AsSpan(i * 4, 4), bits[i]);
+        return result;
     }
 
     /// <summary>

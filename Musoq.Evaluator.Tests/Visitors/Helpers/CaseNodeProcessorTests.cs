@@ -97,7 +97,7 @@ public class CaseNodeProcessorTests
 
         // Assert
         Assert.IsNotNull(result.Method);
-        Assert.AreEqual(3, result.Method.ParameterList.Parameters.Count); // score + 2 instantiated types
+        Assert.AreEqual(3, result.Method.ParameterList.Parameters.Count);
         Assert.IsTrue(result.Method.ParameterList.Parameters.Any(p => p.Identifier.ValueText == "var1"));
         Assert.IsTrue(result.Method.ParameterList.Parameters.Any(p => p.Identifier.ValueText == "var2"));
     }
@@ -185,12 +185,11 @@ public class CaseNodeProcessorTests
     [TestMethod]
     public void ProcessCaseNode_WithNullNode_ThrowsArgumentNullException()
     {
-        // Arrange
         var nodes = new Stack<SyntaxNode>();
         var typesToInstantiate = new Dictionary<string, Type>();
         var caseWhenMethodIndex = 1;
 
-        // Act
+
         Assert.Throws<ArgumentNullException>(() => CaseNodeProcessor.ProcessCaseNode(null, nodes, typesToInstantiate,
             MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex));
     }
@@ -198,13 +197,12 @@ public class CaseNodeProcessorTests
     [TestMethod]
     public void ProcessCaseNode_WithNullNodes_ThrowsArgumentNullException()
     {
-        // Arrange
         var whenThenPairs = new (Node When, Node Then)[] { (null, null) };
         var caseNode = new CaseNode(whenThenPairs, null, typeof(string));
         var typesToInstantiate = new Dictionary<string, Type>();
         var caseWhenMethodIndex = 1;
 
-        // Act
+
         Assert.Throws<ArgumentNullException>(() => CaseNodeProcessor.ProcessCaseNode(caseNode, null, typesToInstantiate,
             MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex));
     }
@@ -212,13 +210,12 @@ public class CaseNodeProcessorTests
     [TestMethod]
     public void ProcessCaseNode_WithNullTypesToInstantiate_ThrowsArgumentNullException()
     {
-        // Arrange
         var nodes = new Stack<SyntaxNode>();
         var whenThenPairs = new (Node When, Node Then)[] { (null, null) };
         var caseNode = new CaseNode(whenThenPairs, null, typeof(string));
         var caseWhenMethodIndex = 1;
 
-        // Act
+
         Assert.Throws<ArgumentNullException>(() => CaseNodeProcessor.ProcessCaseNode(caseNode, nodes, null,
             MethodAccessType.ResultQuery, "test", ref caseWhenMethodIndex));
     }
@@ -262,7 +259,7 @@ public class CaseNodeProcessorTests
         Assert.AreEqual("CaseWhen_5", result.Method.Identifier.ValueText);
         Assert.AreEqual(6, caseWhenMethodIndex);
 
-        // Verify the method body contains nested if-else structure
+
         var methodBody = result.Method.Body.Statements.First() as IfStatementSyntax;
         Assert.IsNotNull(methodBody);
         Assert.IsNotNull(methodBody.Else);

@@ -223,9 +223,6 @@ inner join #B.entities() b on a.Population <= b.Population";
     [DataRow(true)]
     public void InnerJoin_Mixed_EquiAndNonEqui_ShouldMatch(bool useSortMergeJoin)
     {
-        // Note: SortMergeJoin currently only supports single key non-equi join optimization if it's the ONLY condition or handled specifically.
-
-
         var query = @"
 select 
     a.Name, 
@@ -437,8 +434,14 @@ inner join #B.entities() b on a.Id = b.Id AND (a.Population > b.Population OR a.
             {
                 "#B", [
                     new BasicEntity { Name = "B1", Id = 1, Population = 50 },
-                    new BasicEntity { Name = "B2", Id = 2, Population = 250 },
-                    new BasicEntity { Name = "SameName", Id = 3, Population = 50 }
+                    new BasicEntity
+                    {
+                        Name = "B2", Id = 2, Population = 250
+                    },
+                    new BasicEntity
+                    {
+                        Name = "SameName", Id = 3, Population = 50
+                    }
                 ]
             }
         };

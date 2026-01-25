@@ -122,6 +122,9 @@ public sealed class CompilationContextManager
 
     public void AddAssemblyReference(Assembly assembly)
     {
+        if (string.IsNullOrEmpty(assembly.Location))
+            return;
+
         if (_loadedAssemblies.Contains(assembly.Location))
             return;
 
@@ -149,6 +152,9 @@ public sealed class CompilationContextManager
 
         foreach (var assembly in assemblies)
         {
+            if (string.IsNullOrEmpty(assembly.Location))
+                continue;
+
             if (_loadedAssemblies.Contains(assembly.Location))
                 continue;
 

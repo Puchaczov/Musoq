@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Reflection;
@@ -221,7 +221,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests
         {
         }
 
-        // Null handling with multiple compatible overloads
+
         public void NullableMethod(int? value)
         {
         }

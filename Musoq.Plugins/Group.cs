@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace Musoq.Plugins;
 
@@ -23,7 +22,7 @@ public sealed class Group
     {
         Parent = parent;
 #if DEBUG
-        Name = fieldNames.Length == 0 ? "root" : fieldNames.Aggregate((a, b) => a + ',' + b);
+        Name = fieldNames.Length == 0 ? "root" : string.Join(",", fieldNames);
 #endif
         for (var i = 0; i < fieldNames.Length; i++) Values.Add(fieldNames[i], values[i]);
     }

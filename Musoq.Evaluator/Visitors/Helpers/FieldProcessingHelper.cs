@@ -144,7 +144,8 @@ public static class FieldProcessingHelper
                 createLeftColumnName(column.ColumnName, compoundTable),
                 leftAlias,
                 column.ColumnType,
-                TextSpan.Empty);
+                TextSpan.Empty,
+                column.IntendedTypeName);
 
             if (isKnownColumn == null || !isKnownColumn(accessColumnNode))
                 continue;
@@ -159,7 +160,8 @@ public static class FieldProcessingHelper
                 createRightColumnName(column.ColumnName, compoundTable),
                 rightAlias,
                 column.ColumnType,
-                TextSpan.Empty);
+                TextSpan.Empty,
+                column.IntendedTypeName);
 
             if (isKnownColumn == null || !isKnownColumn(accessColumnNode))
                 continue;

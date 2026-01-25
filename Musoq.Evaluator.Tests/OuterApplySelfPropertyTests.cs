@@ -472,9 +472,9 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
     public void WhenApplyChainedProperty_WithPrimitiveList_ShouldPass()
     {
         const string query = """
-                             select 
-                                b.Value 
-                             from #schema.first() a 
+                             select
+                                b.Value
+                             from #schema.first() a
                              outer apply a.ComplexType.PrimitiveValues as b
                              """;
 
@@ -513,9 +513,9 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
     public void WhenApplyChainedProperty_WithComplexList_ShouldPass()
     {
         const string query = """
-                             select 
-                                b.Value 
-                             from #schema.first() a 
+                             select
+                                b.Value
+                             from #schema.first() a
                              outer apply a.ComplexType.ComplexValues as b
                              """;
 

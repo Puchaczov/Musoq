@@ -101,11 +101,13 @@ public class BuildItems : Dictionary<string, object>
     }
 
     public Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions,
-        BuildMetadataAndInferTypesVisitor> CreateBuildMetadataAndInferTypesVisitor
+            BuildMetadataAndInferTypesVisitor>
+        CreateBuildMetadataAndInferTypesVisitor
     {
         get =>
             (Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions,
-                BuildMetadataAndInferTypesVisitor>)this["CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR"];
+                BuildMetadataAndInferTypesVisitor>)this[
+                "CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR"];
         set => this["CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR"] = value;
     }
 
@@ -119,5 +121,21 @@ public class BuildItems : Dictionary<string, object>
             return (CompilationOptions)this["COMPILATION_OPTIONS"];
         }
         set => this["COMPILATION_OPTIONS"] = value;
+    }
+
+    public SchemaRegistry SchemaRegistry
+    {
+        get => ContainsKey("SCHEMA_REGISTRY") ? (SchemaRegistry)this["SCHEMA_REGISTRY"] : null;
+        set => this["SCHEMA_REGISTRY"] = value;
+    }
+
+    /// <summary>
+    ///     Gets or sets the generated C# source code for interpreter classes.
+    ///     This code will be included in the main query assembly compilation.
+    /// </summary>
+    public string? InterpreterSourceCode
+    {
+        get => ContainsKey("INTERPRETER_SOURCE_CODE") ? (string)this["INTERPRETER_SOURCE_CODE"] : null;
+        set => this["INTERPRETER_SOURCE_CODE"] = value;
     }
 }

@@ -8,7 +8,7 @@ public class RawFunctionNode : Node
     public RawFunctionNode(Node[] args)
     {
         Parameters = args;
-        Id = $"{nameof(RawFunctionNode)}{args.Select(f => f.Id).Aggregate((a, b) => a + b)}";
+        Id = $"{nameof(RawFunctionNode)}{string.Concat(args.Select(f => f.Id))}";
     }
 
     public Node[] Parameters { get; }

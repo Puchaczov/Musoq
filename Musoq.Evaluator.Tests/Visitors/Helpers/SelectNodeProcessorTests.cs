@@ -34,12 +34,12 @@ public class SelectNodeProcessorTests
         Assert.IsNotNull(result);
         Assert.AreEqual(2, result.Statements.Count);
 
-        // Verify variable declaration
+
         var firstStatement = result.Statements[0] as LocalDeclarationStatementSyntax;
         Assert.IsNotNull(firstStatement);
         Assert.AreEqual("var", firstStatement.Declaration.Type.ToString());
 
-        // Verify expression statement
+
         var secondStatement = result.Statements[1] as ExpressionStatementSyntax;
         Assert.IsNotNull(secondStatement);
     }
@@ -47,7 +47,6 @@ public class SelectNodeProcessorTests
     [TestMethod]
     public void ProcessSelectNode_EmptyFields_HandlesEmptyArray()
     {
-        // Arrange
         var selectNode = new SelectNode([]);
         var nodes = new Stack<SyntaxNode>();
 
@@ -55,10 +54,10 @@ public class SelectNodeProcessorTests
         scope["SelectIntoVariableName"] = "resultTable";
         scope["Contexts"] = "test";
 
-        // Act
+
         var result = SelectNodeProcessor.ProcessSelectNode(selectNode, nodes, scope, MethodAccessType.ResultQuery);
 
-        // Assert
+
         Assert.IsNotNull(result);
         Assert.AreEqual(2, result.Statements.Count);
     }
@@ -111,11 +110,10 @@ public class SelectNodeProcessorTests
     [TestMethod]
     public void ProcessSelectNode_NullSelectNode_ThrowsArgumentNullException()
     {
-        // Arrange
         var nodes = new Stack<SyntaxNode>();
         var scope = new Scope(null, 0, "test");
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             SelectNodeProcessor.ProcessSelectNode(null!, nodes, scope, MethodAccessType.ResultQuery));
     }
@@ -123,12 +121,11 @@ public class SelectNodeProcessorTests
     [TestMethod]
     public void ProcessSelectNode_NullNodes_ThrowsArgumentNullException()
     {
-        // Arrange
         var fieldNode = new FieldNode(new IntegerNode("1", ""), 0, "TestField");
         var selectNode = new SelectNode([fieldNode]);
         var scope = new Scope(null, 0, "test");
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             SelectNodeProcessor.ProcessSelectNode(selectNode, null!, scope, MethodAccessType.ResultQuery));
     }
@@ -136,12 +133,11 @@ public class SelectNodeProcessorTests
     [TestMethod]
     public void ProcessSelectNode_NullScope_ThrowsArgumentNullException()
     {
-        // Arrange
         var fieldNode = new FieldNode(new IntegerNode("1", ""), 0, "TestField");
         var selectNode = new SelectNode([fieldNode]);
         var nodes = new Stack<SyntaxNode>();
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             SelectNodeProcessor.ProcessSelectNode(selectNode, nodes, null!, MethodAccessType.ResultQuery));
     }
@@ -165,7 +161,7 @@ public class SelectNodeProcessorTests
         // Assert
         Assert.IsNotNull(result);
 
-        // Verify the generated syntax is valid C#
+
         var code = result.ToFullString();
         Assert.Contains("var select = ", code);
         Assert.Contains("resultTable.Add(", code);

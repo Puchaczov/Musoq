@@ -39,15 +39,15 @@ public class GroupKey(params object[] values)
     {
         var key = new StringBuilder();
 
-        string value;
         for (var i = 0; i < Values.Length - 1; i++)
         {
-            value = Values[i] == null ? "null" : Values[i].ToString();
-            key.Append($"{value},");
+            var value = Values[i] == null ? "null" : Values[i].ToString();
+            key.Append(value);
+            key.Append(',');
         }
 
-        value = Values[^1] == null ? "null" : Values[^1].ToString();
-        key.Append(value);
+        var lastValue = Values[^1] == null ? "null" : Values[^1].ToString();
+        key.Append(lastValue);
 
         return key.ToString();
     }

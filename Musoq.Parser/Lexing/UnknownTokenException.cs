@@ -1,11 +1,32 @@
-﻿using System;
+﻿namespace Musoq.Parser.Lexing;
 
-namespace Musoq.Parser.Lexing;
-
-public class UnknownTokenException : Exception
+/// <summary>
+///     Exception thrown when the lexer encounters an unrecognized token.
+/// </summary>
+public class UnknownTokenException : LexerException
 {
-    public UnknownTokenException(int position, char c, string s)
-        : base($"Token '{c}' that starts at position {position} was unrecognized. Rest of the unparsed query is '{s}'")
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="UnknownTokenException" /> class.
+    /// </summary>
+    /// <param name="position">The position in the input where the unknown token was found.</param>
+    /// <param name="character">The unrecognized character.</param>
+    /// <param name="remainingInput">The remaining unparsed input.</param>
+    public UnknownTokenException(int position, char character, string remainingInput)
+        : base(
+            $"Token '{character}' that starts at position {position} was unrecognized. Rest of the unparsed query is '{remainingInput}'",
+            position)
     {
+        Character = character;
+        RemainingInput = remainingInput;
     }
+
+    /// <summary>
+    ///     Gets the unrecognized character.
+    /// </summary>
+    public char Character { get; }
+
+    /// <summary>
+    ///     Gets the remaining unparsed input.
+    /// </summary>
+    public string RemainingInput { get; }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -17,6 +19,8 @@ using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 using ExpressionFromNode = Musoq.Parser.Nodes.From.ExpressionFromNode;
 using InMemoryTableFromNode = Musoq.Parser.Nodes.From.InMemoryTableFromNode;
+using InterpretFromNode = Musoq.Parser.Nodes.From.InterpretFromNode;
+using ApplyType = Musoq.Parser.Nodes.ApplyType;
 using JoinInMemoryWithSourceTableFromNode = Musoq.Parser.Nodes.From.JoinInMemoryWithSourceTableFromNode;
 using JoinSourcesTableFromNode = Musoq.Parser.Nodes.From.JoinSourcesTableFromNode;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
@@ -36,11 +40,14 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private readonly Dictionary<string, LocalDeclarationStatementSyntax> _getRowsSourceStatement = new();
 
     private readonly Dictionary<string, int> _inMemoryTableIndexes = new();
+    private readonly Dictionary<string, string> _interpreterInstances = new();
+    private readonly string? _interpreterSourceCode;
 
     private readonly List<SyntaxNode> _members = [];
     private readonly Stack<string> _methodNames = new();
     private readonly QueryClauseEmitter _queryClauseEmitter;
     private readonly QueryEmitter _queryEmitter;
+    private readonly SchemaRegistry? _schemaRegistry;
 
     private readonly SetOperationEmitter _setOperationEmitter;
 
@@ -73,7 +80,9 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         IDictionary<string, int[]> setOperatorFieldIndexes,
         IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> inferredColumns,
         string assemblyName,
-        CompilationOptions compilationOptions)
+        CompilationOptions compilationOptions,
+        SchemaRegistry? schemaRegistry = null,
+        string? interpreterSourceCode = null)
     {
         ValidateConstructorParameter(nameof(assemblies), assemblies);
         ValidateConstructorParameter(nameof(setOperatorFieldIndexes), setOperatorFieldIndexes);
@@ -81,6 +90,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         ValidateStringParameter(nameof(assemblyName), assemblyName, "constructor");
         ValidateConstructorParameter(nameof(compilationOptions), compilationOptions);
 
+        _schemaRegistry = schemaRegistry;
+        _interpreterSourceCode = interpreterSourceCode;
         _setOperationEmitter = new SetOperationEmitter(new Dictionary<string, int[]>(setOperatorFieldIndexes));
         InferredColumns = inferredColumns;
         Workspace = RoslynSharedFactory.Workspace;
@@ -97,6 +108,10 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         _compilationContext = new CompilationContextManager(RoslynSharedFactory.CreateCompilation(assemblyName));
         _compilationContext.InitializeDefaults();
         _compilationContext.InitializeCoreReferences(assemblies);
+
+        // Track interpreter namespace if we have interpreter source code
+        if (!string.IsNullOrEmpty(interpreterSourceCode))
+            _compilationContext.TrackNamespace("Musoq.Generated.Interpreters");
 
         AccessToClassPath = $"{Namespace}.{ClassName}";
     }
@@ -167,6 +182,31 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     public override void Visit(HyphenNode node)
     {
         SyntaxBinaryOperationHelper.ProcessSubtractOperation(Nodes, Generator);
+    }
+
+    public override void Visit(BitwiseAndNode node)
+    {
+        SyntaxBinaryOperationHelper.ProcessBitwiseAndOperation(Nodes, Generator);
+    }
+
+    public override void Visit(BitwiseOrNode node)
+    {
+        SyntaxBinaryOperationHelper.ProcessBitwiseOrOperation(Nodes, Generator);
+    }
+
+    public override void Visit(BitwiseXorNode node)
+    {
+        SyntaxBinaryOperationHelper.ProcessBitwiseXorOperation(Nodes, Generator);
+    }
+
+    public override void Visit(LeftShiftNode node)
+    {
+        SyntaxBinaryOperationHelper.ProcessLeftShiftOperation(Nodes, Generator);
+    }
+
+    public override void Visit(RightShiftNode node)
+    {
+        SyntaxBinaryOperationHelper.ProcessRightShiftOperation(Nodes, Generator);
     }
 
     public override void Visit(AndNode node)
@@ -310,6 +350,96 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         Nodes.Push(resultExpr);
     }
 
+    public override void Visit(InterpretCallNode node)
+    {
+        var interpretExpr = InterpretCallNodeProcessor.ProcessInterpretCallNode(
+            node,
+            Generator,
+            Nodes,
+            Statements,
+            _interpreterInstances,
+            AddNamespace,
+            _schemaRegistry);
+
+        var resultExpr = ApplyCseIfNeeded(node.Id, interpretExpr, node.ReturnType);
+        Nodes.Push(resultExpr);
+    }
+
+    public override void Visit(ParseCallNode node)
+    {
+        var parseExpr = InterpretCallNodeProcessor.ProcessParseCallNode(
+            node,
+            Generator,
+            Nodes,
+            Statements,
+            _interpreterInstances,
+            AddNamespace,
+            _schemaRegistry);
+
+        var resultExpr = ApplyCseIfNeeded(node.Id, parseExpr, node.ReturnType);
+        Nodes.Push(resultExpr);
+    }
+
+    public override void Visit(TryInterpretCallNode node)
+    {
+        var tryInterpretExpr = InterpretCallNodeProcessor.ProcessTryInterpretCallNode(
+            node,
+            Generator,
+            Nodes,
+            Statements,
+            _interpreterInstances,
+            AddNamespace,
+            _schemaRegistry);
+
+        var resultExpr = ApplyCseIfNeeded(node.Id, tryInterpretExpr, node.ReturnType);
+        Nodes.Push(resultExpr);
+    }
+
+    public override void Visit(TryParseCallNode node)
+    {
+        var tryParseExpr = InterpretCallNodeProcessor.ProcessTryParseCallNode(
+            node,
+            Generator,
+            Nodes,
+            Statements,
+            _interpreterInstances,
+            AddNamespace,
+            _schemaRegistry);
+
+        var resultExpr = ApplyCseIfNeeded(node.Id, tryParseExpr, node.ReturnType);
+        Nodes.Push(resultExpr);
+    }
+
+    public override void Visit(PartialInterpretCallNode node)
+    {
+        var partialInterpretExpr = InterpretCallNodeProcessor.ProcessPartialInterpretCallNode(
+            node,
+            Generator,
+            Nodes,
+            Statements,
+            _interpreterInstances,
+            AddNamespace,
+            _schemaRegistry);
+
+        var resultExpr = ApplyCseIfNeeded(node.Id, partialInterpretExpr, node.ReturnType);
+        Nodes.Push(resultExpr);
+    }
+
+    public override void Visit(InterpretAtCallNode node)
+    {
+        var interpretAtExpr = InterpretCallNodeProcessor.ProcessInterpretAtCallNode(
+            node,
+            Generator,
+            Nodes,
+            Statements,
+            _interpreterInstances,
+            AddNamespace,
+            _schemaRegistry);
+
+        var resultExpr = ApplyCseIfNeeded(node.Id, interpretAtExpr, node.ReturnType);
+        Nodes.Push(resultExpr);
+    }
+
     public override void Visit(AccessRawIdentifierNode node)
     {
         Nodes.Push(SyntaxFactory.IdentifierName(node.Name));
@@ -336,7 +466,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public override void Visit(AccessObjectArrayNode node)
     {
-        var result = AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, Nodes);
+        var result = AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, Nodes, _type);
         AddNamespace(result.RequiredNamespace);
         Nodes.Push(result.Expression);
     }
@@ -464,6 +594,54 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         Nodes.Push(StatementEmitter.CreateEmptyBlock());
     }
 
+    public override void Visit(InterpretFromNode node)
+    {
+        var sourceExpression = (ExpressionSyntax)Nodes.Pop();
+
+
+        string? typeName = null;
+        if (_schemaRegistry != null && _schemaRegistry.TryGetSchema(node.SchemaName, out var registration))
+        {
+            if (registration?.GeneratedType != null)
+            {
+                AddNamespace(registration.GeneratedType);
+                typeName = EvaluationHelper.GetCastableType(registration.GeneratedType);
+            }
+            else if (!string.IsNullOrEmpty(registration?.GeneratedTypeName))
+            {
+                typeName = registration.GeneratedTypeName;
+
+                var lastDotIndex = typeName.LastIndexOf('.');
+                if (lastDotIndex > 0)
+                {
+                    var ns = typeName.Substring(0, lastDotIndex);
+                    AddNamespace(ns);
+                }
+            }
+        }
+
+
+        if (string.IsNullOrEmpty(typeName) && node.ReturnType != null)
+        {
+            AddNamespace(node.ReturnType);
+            typeName = EvaluationHelper.GetCastableType(node.ReturnType);
+        }
+
+
+        if (string.IsNullOrEmpty(typeName))
+            throw new InvalidOperationException(
+                $"Could not determine the interpreter type for schema '{node.SchemaName}'. " +
+                "Ensure the schema is properly registered.");
+
+        var wrappedExpression = SchemaNodeEmitter.CreateScalarToArrayWrapperByTypeName(
+            sourceExpression,
+            typeName,
+            node.ApplyType == ApplyType.Cross);
+
+        _getRowsSourceStatement.Add(node.Alias,
+            SchemaNodeEmitter.CreateInterpretRowsSource(node.Alias, wrappedExpression));
+    }
+
     public override void Visit(AccessMethodFromNode node)
     {
         AddNamespace(node.ReturnType);
@@ -563,6 +741,15 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         var formatted = ClassEmitter.FormatCompilationUnit(compilationUnit, Workspace);
 
         _compilationContext.AddSyntaxTree(ClassEmitter.CreateSyntaxTree(formatted));
+
+
+        if (!string.IsNullOrEmpty(_interpreterSourceCode))
+        {
+            var interpreterTree = CSharpSyntaxTree.ParseText(
+                _interpreterSourceCode,
+                new CSharpParseOptions(LanguageVersion.CSharp11));
+            _compilationContext.AddSyntaxTree(interpreterTree);
+        }
     }
 
     public override void Visit(UnionNode node)

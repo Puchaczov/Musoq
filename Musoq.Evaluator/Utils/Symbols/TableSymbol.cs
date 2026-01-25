@@ -120,7 +120,7 @@ public class TableSymbol : Symbol
 
         compoundTableColumns.AddRange(other.FullTable.Columns);
 
-        symbol._fullTableName = symbol._orders.Aggregate((a, b) => a + b);
+        symbol._fullTableName = string.Concat(symbol._orders);
         symbol.FullTable = new DynamicTable(compoundTableColumns.ToArray());
         symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol.FullTable);
 
@@ -141,7 +141,7 @@ public class TableSymbol : Symbol
             symbol._orders.Add(item.Key);
         }
 
-        symbol._fullTableName = symbol._orders.Aggregate((a, b) => a + b);
+        symbol._fullTableName = string.Concat(symbol._orders);
         symbol.FullTable = new DynamicTable(compoundTableColumns.ToArray());
         symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol.FullTable);
 
@@ -177,7 +177,7 @@ public class TableSymbol : Symbol
             compoundTableColumns.AddRange(dynamicTable.Columns);
         }
 
-        symbol._fullTableName = symbol._orders.Aggregate((a, b) => a + b);
+        symbol._fullTableName = string.Concat(symbol._orders);
         symbol.FullTable = new DynamicTable(compoundTableColumns.ToArray());
         symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol.FullTable);
 

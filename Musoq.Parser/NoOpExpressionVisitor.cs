@@ -1,5 +1,6 @@
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Parser;
 
@@ -261,6 +262,10 @@ public abstract class NoOpExpressionVisitor : IExpressionVisitor
     {
     }
 
+    public virtual void Visit(InterpretFromNode node)
+    {
+    }
+
     public virtual void Visit(SchemaMethodFromNode node)
     {
     }
@@ -398,6 +403,113 @@ public abstract class NoOpExpressionVisitor : IExpressionVisitor
     }
 
     public virtual void Visit(FieldLinkNode node)
+    {
+    }
+
+
+    public virtual void Visit(BitwiseAndNode node)
+    {
+    }
+
+    public virtual void Visit(BitwiseOrNode node)
+    {
+    }
+
+    public virtual void Visit(BitwiseXorNode node)
+    {
+    }
+
+    public virtual void Visit(LeftShiftNode node)
+    {
+    }
+
+    public virtual void Visit(RightShiftNode node)
+    {
+    }
+
+
+    public virtual void Visit(InterpretCallNode node)
+    {
+    }
+
+    public virtual void Visit(ParseCallNode node)
+    {
+    }
+
+    public virtual void Visit(InterpretAtCallNode node)
+    {
+    }
+
+    public virtual void Visit(TryInterpretCallNode node)
+    {
+    }
+
+    public virtual void Visit(TryParseCallNode node)
+    {
+    }
+
+    public virtual void Visit(PartialInterpretCallNode node)
+    {
+    }
+
+
+    public virtual void Visit(BinarySchemaNode node)
+    {
+    }
+
+    public virtual void Visit(TextSchemaNode node)
+    {
+    }
+
+    public virtual void Visit(FieldDefinitionNode node)
+    {
+    }
+
+    public virtual void Visit(TextFieldDefinitionNode node)
+    {
+    }
+
+    public virtual void Visit(ComputedFieldNode node)
+    {
+    }
+
+    public virtual void Visit(FieldConstraintNode node)
+    {
+    }
+
+    public virtual void Visit(PrimitiveTypeNode node)
+    {
+    }
+
+    public virtual void Visit(ByteArrayTypeNode node)
+    {
+    }
+
+    public virtual void Visit(StringTypeNode node)
+    {
+    }
+
+    public virtual void Visit(SchemaReferenceTypeNode node)
+    {
+    }
+
+    public virtual void Visit(ArrayTypeNode node)
+    {
+    }
+
+    public virtual void Visit(BitsTypeNode node)
+    {
+    }
+
+    public virtual void Visit(AlignmentNode node)
+    {
+    }
+
+    public virtual void Visit(RepeatUntilTypeNode node)
+    {
+    }
+
+    public virtual void Visit(InlineSchemaTypeNode node)
     {
     }
 }

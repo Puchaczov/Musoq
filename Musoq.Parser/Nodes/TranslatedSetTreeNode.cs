@@ -9,7 +9,7 @@ public class TranslatedSetTreeNode : Node
     public TranslatedSetTreeNode(List<TranslatedSetOperatorNode> nodes)
     {
         Nodes = nodes;
-        var setId = nodes.Count == 0 ? string.Empty : nodes.Select(f => f.Id).Aggregate((a, b) => a + b);
+        var setId = nodes.Count == 0 ? string.Empty : string.Concat(nodes.Select(f => f.Id));
         Id = $"{nameof(TranslatedSetTreeNode)}{setId}";
     }
 
@@ -26,6 +26,6 @@ public class TranslatedSetTreeNode : Node
 
     public override string ToString()
     {
-        return Nodes.ConvertAll(f => f.ToString()).Aggregate((a, b) => $"{a}{Environment.NewLine}{b}");
+        return string.Join(Environment.NewLine, Nodes.ConvertAll(f => f.ToString()));
     }
 }

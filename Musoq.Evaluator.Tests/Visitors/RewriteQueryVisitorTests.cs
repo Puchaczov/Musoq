@@ -4,8 +4,10 @@ using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Parser.Tokens;
 
 namespace Musoq.Evaluator.Tests.Visitors;
 
@@ -49,7 +51,7 @@ public class RewriteQueryVisitorTests
         var right = new IntegerNode("3");
         var starNode = new StarNode(left, right);
 
-        // Simulate the visitor pattern - push operands first
+
         PushNode(left);
         PushNode(right);
 
@@ -68,7 +70,7 @@ public class RewriteQueryVisitorTests
         var right = new IntegerNode("20");
         var addNode = new AddNode(left, right);
 
-        // Push operands
+
         PushNode(left);
         PushNode(right);
 
@@ -87,7 +89,7 @@ public class RewriteQueryVisitorTests
         var right = new IntegerNode("5");
         var equalityNode = new EqualityNode(left, right);
 
-        // Push operands
+
         PushNode(left);
         PushNode(right);
 
@@ -101,19 +103,18 @@ public class RewriteQueryVisitorTests
     [TestMethod]
     public void Visit_AndNode_ShouldProcessCorrectly()
     {
-        // Arrange
         var left = new BooleanNode(true);
         var right = new BooleanNode(false);
         var andNode = new AndNode(left, right);
 
-        // Push operands
+
         PushNode(left);
         PushNode(right);
 
-        // Act
+
         _visitor.Visit(andNode);
 
-        // Assert
+
         Assert.AreEqual(1, GetNodesCount(), "Should have one result node after AND operation");
     }
 
@@ -124,7 +125,7 @@ public class RewriteQueryVisitorTests
         var expression = new IdentifierNode("TestField");
         var fieldNode = new FieldNode(expression, 0, "TestField");
 
-        // Push expression
+
         PushNode(expression);
 
         // Act
@@ -142,7 +143,7 @@ public class RewriteQueryVisitorTests
         var arg2 = new StringNode("test");
         var argsListNode = new ArgsListNode([arg1, arg2]);
 
-        // Push arguments in reverse order (as expected by visitor)
+
         PushNode(arg2);
         PushNode(arg1);
 
@@ -161,7 +162,7 @@ public class RewriteQueryVisitorTests
         var field2 = new FieldNode(new IdentifierNode("Field2"), 1, "Field2");
         var groupByNode = new GroupByNode([field1, field2], null);
 
-        // Push fields in reverse order
+
         PushNode(field2);
         PushNode(field1);
 
@@ -205,7 +206,7 @@ public class RewriteQueryVisitorTests
         var argsListNode = new ArgsListNode([]);
         var schemaFromNode = new SchemaFromNode("testSchema", "testMethod", argsListNode, "alias", typeof(object), 0);
 
-        // Push args list
+
         PushNode(argsListNode);
 
         // Act
@@ -215,17 +216,13 @@ public class RewriteQueryVisitorTests
         Assert.AreEqual(1, GetNodesCount(), "Should have one result node after schema from processing");
     }
 
-    // ============================================
-    // ERROR HANDLING AND DEFENSIVE PROGRAMMING TESTS
-    // ============================================
 
     [TestMethod]
     public void Visit_StarNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
-        // Arrange
         var starNode = new StarNode(new IntegerNode("5"), new IntegerNode("3"));
 
-        // Act - calling visit without pushing operands should fail
+
         Assert.Throws<InvalidOperationException>(() => _visitor.Visit(starNode));
     }
 
@@ -235,7 +232,7 @@ public class RewriteQueryVisitorTests
         // Arrange
         var addNode = new AddNode(new IntegerNode("10"), new IntegerNode("20"));
 
-        // Push only one operand when two are required
+
         PushNode(new IntegerNode("10"));
 
         // Act
@@ -245,33 +242,30 @@ public class RewriteQueryVisitorTests
     [TestMethod]
     public void Visit_EqualityNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
-        // Arrange
         var equalityNode = new EqualityNode(new IntegerNode("5"), new IntegerNode("5"));
 
-        // Act - no operands pushed
+
         Assert.Throws<InvalidOperationException>(() => _visitor.Visit(equalityNode));
     }
 
     [TestMethod]
     public void Visit_AndNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
-        // Arrange
         var andNode = new AndNode(new BooleanNode(true), new BooleanNode(false));
 
-        // Push only one operand
+
         PushNode(new BooleanNode(true));
 
-        // Act
+
         Assert.Throws<InvalidOperationException>(() => _visitor.Visit(andNode));
     }
 
     [TestMethod]
     public void Visit_FieldNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
-        // Arrange
         var fieldNode = new FieldNode(new IdentifierNode("TestField"), 0, "TestField");
 
-        // Act - no expression pushed
+
         Assert.Throws<InvalidOperationException>(() => _visitor.Visit(fieldNode));
     }
 
@@ -281,7 +275,7 @@ public class RewriteQueryVisitorTests
         // Arrange
         var argsListNode = new ArgsListNode([new IntegerNode("1"), new StringNode("test")]);
 
-        // Push only one argument when two are expected
+
         PushNode(new IntegerNode("1"));
 
         // Act
@@ -291,26 +285,24 @@ public class RewriteQueryVisitorTests
     [TestMethod]
     public void Visit_GroupByNode_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
-        // Arrange
         var field1 = new FieldNode(new IdentifierNode("Field1"), 0, "Field1");
         var field2 = new FieldNode(new IdentifierNode("Field2"), 1, "Field2");
         var groupByNode = new GroupByNode([field1, field2], null);
 
-        // Push only one field when two are expected
+
         PushNode(field1);
 
-        // Act
+
         Assert.Throws<InvalidOperationException>(() => _visitor.Visit(groupByNode));
     }
 
     [TestMethod]
     public void Visit_SchemaFromNode_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
-        // Arrange
         var argsListNode = new ArgsListNode([]);
         var schemaFromNode = new SchemaFromNode("testSchema", "testMethod", argsListNode, "alias", typeof(object), 0);
 
-        // Act - no args list pushed
+
         Assert.Throws<InvalidOperationException>(() => _visitor.Visit(schemaFromNode));
     }
 
@@ -320,11 +312,11 @@ public class RewriteQueryVisitorTests
         // Arrange
         var starNode = new StarNode(new IntegerNode("5"), new IntegerNode("3"));
 
-        // Push null operands to test null handling
+
         PushNode(null);
         PushNode(new IntegerNode("5"));
 
-        // Act - should now throw ArgumentException due to defensive programming
+
         Assert.Throws<ArgumentException>(() => _visitor.Visit(starNode));
     }
 
@@ -336,13 +328,13 @@ public class RewriteQueryVisitorTests
         var val2 = new IntegerNode("20");
         var val3 = new IntegerNode("30");
 
-        // Act - perform multiple operations to test stack management
+
         PushNode(val1);
         PushNode(val2);
-        _visitor.Visit(new AddNode(val1, val2)); // Should result in one node
+        _visitor.Visit(new AddNode(val1, val2));
 
         PushNode(val3);
-        _visitor.Visit(new StarNode(val1, val3)); // Should multiply previous result with val3
+        _visitor.Visit(new StarNode(val1, val3));
 
         // Assert
         Assert.AreEqual(1, GetNodesCount(), "Stack should be consistent after multiple operations");
@@ -351,11 +343,10 @@ public class RewriteQueryVisitorTests
     [TestMethod]
     public void Scope_Operations_ShouldNotThrowWithValidScope()
     {
-        // Arrange & Act - These operations might access the scope
         var field = new FieldNode(new IdentifierNode("TestField"), 0, "TestField");
         PushNode(new IdentifierNode("TestField"));
 
-        // This should not throw
+
         _visitor.Visit(field);
 
         // Assert
@@ -365,16 +356,9 @@ public class RewriteQueryVisitorTests
     [TestMethod]
     public void SetScope_WithNull_ShouldNotThrowImmediately()
     {
-        // Arrange & Act
         _visitor.SetScope(null);
-
-        // Assert - setting null scope shouldn't throw immediately
-        // but might cause issues during actual visitor operations
     }
 
-    // ============================================
-    // ADDITIONAL COMPREHENSIVE TESTS FOR DEFENSIVE PROGRAMMING
-    // ============================================
 
     [TestMethod]
     public void Visit_ComplexExpression_ShouldHandleCorrectly()
@@ -390,7 +374,8 @@ public class RewriteQueryVisitorTests
 
 
         PushNode(two);
-        _visitor.Visit(new StarNode(five, two));
+        _visitor.Visit(new StarNode(five,
+            two));
 
         // Assert
         Assert.AreEqual(1, GetNodesCount(), "Complex expression should result in single node");
@@ -406,7 +391,7 @@ public class RewriteQueryVisitorTests
         var joinExpression = new EqualityNode(new IdentifierNode("left.id"), new IdentifierNode("right.id"));
         var joinNode = new JoinFromNode(leftFrom, rightFrom, joinExpression, JoinType.Inner, typeof(object));
 
-        // Push required nodes in correct order
+
         PushNode(leftFrom);
         PushNode(rightFrom);
         PushNode(joinExpression);
@@ -425,7 +410,7 @@ public class RewriteQueryVisitorTests
         var havingExpression = new GreaterNode(new IdentifierNode("count"), new IntegerNode("5"));
         var havingNode = new HavingNode(havingExpression);
 
-        // Push expression
+
         PushNode(havingExpression);
 
         // Act
@@ -438,10 +423,9 @@ public class RewriteQueryVisitorTests
     [TestMethod]
     public void Visit_HavingNode_WithEmptyStack_ShouldThrow()
     {
-        // Arrange
         var havingNode = new HavingNode(new GreaterNode(new IdentifierNode("count"), new IntegerNode("5")));
 
-        // Act - no expression pushed
+
         Assert.Throws<InvalidOperationException>(() => _visitor.Visit(havingNode));
     }
 
@@ -453,7 +437,7 @@ public class RewriteQueryVisitorTests
         var field2 = new FieldNode(new IdentifierNode("Field2"), 1, "Field2");
         var createTableNode = new CreateTransformationTableNode("TestTable", [], [field1, field2], false);
 
-        // Push fields in reverse order
+
         PushNode(field2);
         PushNode(field1);
 
@@ -493,8 +477,6 @@ public class RewriteQueryVisitorTests
     [TestMethod]
     public void Visit_AccessMethodFromNode_ShouldProcessCorrectly()
     {
-        // Arrange - use simpler approach since AccessMethodFromNode constructor is complex
-        // This test verifies the basic Visit pattern rather than complex node creation
         var simpleNode = new InMemoryTableFromNode("variableName", "alias", typeof(object));
 
         // Act
@@ -564,4 +546,139 @@ public class RewriteQueryVisitorTests
             while (GetNodesCount() > 0) GetPrivateNodes().Pop();
         }
     }
+
+    #region Interpret Function Detection Tests
+
+    [TestMethod]
+    public void Visit_AccessMethodNode_WithInterpretCall_ShouldTransformToInterpretCallNode()
+    {
+        // Arrange
+        var dataSourceNode = new AccessColumnNode("data", "source", typeof(byte[]), TextSpan.Empty);
+        var schemaNameNode = new StringNode("MySchema");
+        var argsListNode = new ArgsListNode([dataSourceNode, schemaNameNode]);
+        var functionToken = new FunctionToken("Interpret", TextSpan.Empty);
+        var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
+
+
+        PushNode(argsListNode);
+
+        // Act
+        _visitor.Visit(accessMethodNode);
+
+        // Assert
+        var result = GetPrivateNodes().Pop();
+        Assert.IsInstanceOfType(result, typeof(InterpretCallNode));
+        var interpretNode = (InterpretCallNode)result;
+        Assert.AreEqual("MySchema", interpretNode.SchemaName);
+    }
+
+    [TestMethod]
+    public void Visit_AccessMethodNode_WithParseCall_ShouldTransformToParseCallNode()
+    {
+        // Arrange
+        var dataSourceNode = new AccessColumnNode("data", "source", typeof(byte[]), TextSpan.Empty);
+        var schemaNameNode = new StringNode("MyParser");
+        var argsListNode = new ArgsListNode([dataSourceNode, schemaNameNode]);
+        var functionToken = new FunctionToken("Parse", TextSpan.Empty);
+        var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
+
+
+        PushNode(argsListNode);
+
+        // Act
+        _visitor.Visit(accessMethodNode);
+
+        // Assert
+        var result = GetPrivateNodes().Pop();
+        Assert.IsInstanceOfType(result, typeof(ParseCallNode));
+        var parseNode = (ParseCallNode)result;
+        Assert.AreEqual("MyParser", parseNode.SchemaName);
+    }
+
+    [TestMethod]
+    public void Visit_AccessMethodNode_WithInterpretAtCall_ShouldTransformToInterpretAtCallNode()
+    {
+        // Arrange
+        var dataSourceNode = new AccessColumnNode("data", "source", typeof(byte[]), TextSpan.Empty);
+        var offsetNode = new IntegerNode("10");
+        var schemaNameNode = new StringNode("MyOffsetSchema");
+        var argsListNode = new ArgsListNode([dataSourceNode, offsetNode, schemaNameNode]);
+        var functionToken = new FunctionToken("InterpretAt", TextSpan.Empty);
+        var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
+
+
+        PushNode(argsListNode);
+
+        // Act
+        _visitor.Visit(accessMethodNode);
+
+        // Assert
+        var result = GetPrivateNodes().Pop();
+        Assert.IsInstanceOfType(result, typeof(InterpretAtCallNode));
+        var interpretAtNode = (InterpretAtCallNode)result;
+        Assert.AreEqual("MyOffsetSchema", interpretAtNode.SchemaName);
+    }
+
+    [TestMethod]
+    public void Visit_AccessMethodNode_WithNonInterpretFunction_ShouldRemainAsAccessMethodNode()
+    {
+        // Arrange
+        var arg1 = new IntegerNode("42");
+        var argsListNode = new ArgsListNode([arg1]);
+        var functionToken = new FunctionToken("SomeOtherFunction", TextSpan.Empty);
+        var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
+
+
+        PushNode(argsListNode);
+
+        // Act
+        _visitor.Visit(accessMethodNode);
+
+        // Assert
+        var result = GetPrivateNodes().Pop();
+        Assert.IsInstanceOfType(result, typeof(AccessMethodNode));
+        var methodNode = (AccessMethodNode)result;
+        Assert.AreEqual("SomeOtherFunction", methodNode.FunctionToken.Value);
+    }
+
+    [TestMethod]
+    public void Visit_AccessMethodNode_InterpretWithWrongArgCount_ShouldRemainAsAccessMethodNode()
+    {
+        var dataSourceNode = new AccessColumnNode("data", "source", typeof(byte[]), TextSpan.Empty);
+        var argsListNode = new ArgsListNode([dataSourceNode]);
+        var functionToken = new FunctionToken("Interpret", TextSpan.Empty);
+        var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
+
+
+        PushNode(argsListNode);
+
+
+        _visitor.Visit(accessMethodNode);
+
+
+        var result = GetPrivateNodes().Pop();
+        Assert.IsInstanceOfType(result, typeof(AccessMethodNode));
+    }
+
+    [TestMethod]
+    public void Visit_AccessMethodNode_InterpretCaseInsensitive_ShouldTransformToInterpretCallNode()
+    {
+        var dataSourceNode = new AccessColumnNode("data", "source", typeof(byte[]), TextSpan.Empty);
+        var schemaNameNode = new StringNode("MySchema");
+        var argsListNode = new ArgsListNode([dataSourceNode, schemaNameNode]);
+        var functionToken = new FunctionToken("INTERPRET", TextSpan.Empty);
+        var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
+
+
+        PushNode(argsListNode);
+
+
+        _visitor.Visit(accessMethodNode);
+
+
+        var result = GetPrivateNodes().Pop();
+        Assert.IsInstanceOfType(result, typeof(InterpretCallNode));
+    }
+
+    #endregion
 }

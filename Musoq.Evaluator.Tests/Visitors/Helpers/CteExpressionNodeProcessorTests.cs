@@ -37,10 +37,9 @@ public class CteExpressionNodeProcessorTests
     [TestMethod]
     public void ProcessCteExpressionNode_ValidInput_ReturnsMethodAndName()
     {
-        // Act
         var result = CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, _methodNames, _nodes);
 
-        // Assert
+
         Assert.IsNotNull(result.Method);
         Assert.AreEqual("CteResultQuery", result.MethodName);
         Assert.IsInstanceOfType(result.Method, typeof(MethodDeclarationSyntax));
@@ -49,10 +48,9 @@ public class CteExpressionNodeProcessorTests
     [TestMethod]
     public void ProcessCteExpressionNode_ValidInput_CreatesCorrectMethodSignature()
     {
-        // Act
         var result = CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, _methodNames, _nodes);
 
-        // Assert
+
         var method = result.Method;
         Assert.AreEqual("CteResultQuery", method.Identifier.Text);
         Assert.AreEqual("Table", method.ReturnType.ToString());
@@ -63,10 +61,9 @@ public class CteExpressionNodeProcessorTests
     [TestMethod]
     public void ProcessCteExpressionNode_ValidInput_CreatesCorrectParameterList()
     {
-        // Act
         var result = CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, _methodNames, _nodes);
 
-        // Assert
+
         var method = result.Method;
         Assert.AreEqual(5, method.ParameterList.Parameters.Count);
 
@@ -81,10 +78,9 @@ public class CteExpressionNodeProcessorTests
     [TestMethod]
     public void ProcessCteExpressionNode_ValidInput_CreatesCorrectParameterTypes()
     {
-        // Act
         var result = CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, _methodNames, _nodes);
 
-        // Assert
+
         var method = result.Method;
         var parameters = method.ParameterList.Parameters;
 
@@ -98,14 +94,13 @@ public class CteExpressionNodeProcessorTests
     [TestMethod]
     public void ProcessCteExpressionNode_ValidInput_CreatesReturnStatement()
     {
-        // Act
         var result = CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, _methodNames, _nodes);
 
-        // Assert
+
         var method = result.Method;
         var statements = method.Body.Statements;
 
-        // Should have the inner statement plus the return statement
+
         Assert.AreEqual(2, statements.Count);
         Assert.IsInstanceOfType(statements[1], typeof(ReturnStatementSyntax));
 
@@ -116,10 +111,9 @@ public class CteExpressionNodeProcessorTests
     [TestMethod]
     public void ProcessCteExpressionNode_ValidInput_CallsCorrectMethodInReturn()
     {
-        // Act
         var result = CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, _methodNames, _nodes);
 
-        // Assert
+
         var method = result.Method;
         var returnStatement = (ReturnStatementSyntax)method.Body.Statements[1];
         var invocation = (InvocationExpressionSyntax)returnStatement.Expression;
@@ -131,10 +125,9 @@ public class CteExpressionNodeProcessorTests
     [TestMethod]
     public void ProcessCteExpressionNode_ValidInput_HasCorrectArgumentsInReturn()
     {
-        // Act
         var result = CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, _methodNames, _nodes);
 
-        // Assert
+
         var method = result.Method;
         var returnStatement = (ReturnStatementSyntax)method.Body.Statements[1];
         var invocation = (InvocationExpressionSyntax)returnStatement.Expression;
@@ -150,7 +143,6 @@ public class CteExpressionNodeProcessorTests
     [TestMethod]
     public void ProcessCteExpressionNode_NullNode_ThrowsArgumentNullException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
             CteExpressionNodeProcessor.ProcessCteExpressionNode(null, _methodNames, _nodes));
     }
@@ -158,7 +150,6 @@ public class CteExpressionNodeProcessorTests
     [TestMethod]
     public void ProcessCteExpressionNode_NullMethodNames_ThrowsArgumentNullException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
             CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, null, _nodes));
     }
@@ -166,7 +157,6 @@ public class CteExpressionNodeProcessorTests
     [TestMethod]
     public void ProcessCteExpressionNode_NullNodes_ThrowsArgumentNullException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
             CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, _methodNames, null));
     }
@@ -180,7 +170,7 @@ public class CteExpressionNodeProcessorTests
         var outerExpression = new FieldNode(new IntegerNode("3"), 0, "outer");
         var multiExpressionNode = new CteExpressionNode([inner1, inner2], outerExpression);
 
-        _methodNames.Push("ExtraMethod"); // Additional method name for second expression (pushed first)
+        _methodNames.Push("ExtraMethod");
         _nodes.Push(SyntaxFactory.ExpressionStatement(SyntaxFactory.IdentifierName("testStatement2")));
 
         // Act
@@ -190,7 +180,7 @@ public class CteExpressionNodeProcessorTests
         var method = result.Method;
         var statements = method.Body.Statements;
 
-        // Should have two inner statements plus the return statement
+
         Assert.AreEqual(3, statements.Count);
         Assert.IsInstanceOfType(statements[0], typeof(ExpressionStatementSyntax));
         Assert.IsInstanceOfType(statements[1], typeof(ExpressionStatementSyntax));
@@ -200,27 +190,24 @@ public class CteExpressionNodeProcessorTests
     [TestMethod]
     public void ProcessCteExpressionNode_ValidInput_PopsCorrectNumberOfStackItems()
     {
-        // Arrange
         var initialMethodCount = _methodNames.Count;
         var initialNodeCount = _nodes.Count;
 
-        // Act
+
         var result = CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, _methodNames, _nodes);
 
-        // Assert
-        // Should pop one method name for result CTE and one for each inner expression
+
         Assert.HasCount(initialMethodCount - 2, _methodNames);
-        // Should pop one node for each inner expression
+
         Assert.HasCount(initialNodeCount - 1, _nodes);
     }
 
     [TestMethod]
     public void ProcessCteExpressionNode_ValidInput_GeneratesValidCSharpSyntax()
     {
-        // Act
         var result = CteExpressionNodeProcessor.ProcessCteExpressionNode(_cteNode, _methodNames, _nodes);
 
-        // Assert
+
         var method = result.Method;
         var syntaxText = method.ToFullString();
 

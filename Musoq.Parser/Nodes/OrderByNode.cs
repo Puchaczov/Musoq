@@ -8,7 +8,7 @@ public class OrderByNode : Node
     public OrderByNode(FieldOrderedNode[] fields)
     {
         Fields = fields;
-        var fieldsId = fields.Length == 0 ? string.Empty : fields.Select(f => f.Id).Aggregate((a, b) => a + b);
+        var fieldsId = fields.Length == 0 ? string.Empty : string.Concat(fields.Select(f => f.Id));
         Id = $"{nameof(OrderByNode)}{fieldsId}";
     }
 
@@ -27,7 +27,7 @@ public class OrderByNode : Node
     {
         var fieldsTxt = Fields.Length == 0
             ? string.Empty
-            : Fields.Select(FieldToString).Aggregate((a, b) => $"{a}, {b}");
+            : string.Join(", ", Fields.Select(FieldToString));
         return $"order by {fieldsTxt}";
     }
 

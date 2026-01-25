@@ -170,10 +170,10 @@ public class EscapeHelpersTests
     }
 
     [TestMethod]
-    [DataRow(@"\", @"\")] // Single backslash
-    [DataRow(@"\\", @"\")] // Double backslash
-    [DataRow(@"\\\", @"\\")] // Triple backslash
-    [DataRow(@"\\\\", @"\\")] // Four backslashes
+    [DataRow(@"\", @"\")]
+    [DataRow(@"\\", @"\")]
+    [DataRow(@"\\\", @"\\")]
+    [DataRow(@"\\\\", @"\\")]
     [DataRow(@"text\", @"text\")]
     [DataRow(@"text\\", @"text\")]
     [DataRow(@"text\\\", @"text\\")]
@@ -223,13 +223,13 @@ public class EscapeHelpersTests
     }
 
     [TestMethod]
-    [DataRow(@"\u0041", "A")] // Basic ASCII
-    [DataRow(@"\\u0041", @"\u0041")] // Escaped unicode sequence
-    [DataRow(@"\u00A9", "©")] // Copyright symbol
+    [DataRow(@"\u0041", "A")]
+    [DataRow(@"\\u0041", @"\u0041")]
+    [DataRow(@"\u00A9", "©")]
     [DataRow(@"\\u00A9", @"\u00A9")]
-    [DataRow(@"\u0394", "Δ")] // Greek Delta
+    [DataRow(@"\u0394", "Δ")]
     [DataRow(@"\\u0394", @"\u0394")]
-    [DataRow(@"\u2665", "♥")] // Heart symbol
+    [DataRow(@"\u2665", "♥")]
     [DataRow(@"\\u2665", @"\u2665")]
     public void Unescape_UnicodeSequences(string input, string expected)
     {
@@ -237,9 +237,9 @@ public class EscapeHelpersTests
     }
 
     [TestMethod]
-    [DataRow(@"\x41", "A")] // Basic ASCII
-    [DataRow(@"\\x41", @"\x41")] // Escaped hex sequence
-    [DataRow(@"\x7E", "~")] // Tilde
+    [DataRow(@"\x41", "A")]
+    [DataRow(@"\\x41", @"\x41")]
+    [DataRow(@"\x7E", "~")]
     [DataRow(@"\\x7E", @"\x7E")]
     public void Unescape_HexSequences(string input, string expected)
     {
@@ -264,8 +264,8 @@ public class EscapeHelpersTests
     }
 
     [TestMethod]
-    [DataRow(@"\z", @"\z")] // Unknown escape sequence
-    [DataRow(@"\\z", @"\z")] // Escaped unknown sequence
+    [DataRow(@"\z", @"\z")]
+    [DataRow(@"\\z", @"\z")]
     [DataRow(@"\-", @"\-")]
     [DataRow(@"\\-", @"\-")]
     public void Unescape_UnknownSequences(string input, string expected)

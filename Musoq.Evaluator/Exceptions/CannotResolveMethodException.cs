@@ -15,10 +15,10 @@ public class CannotResolveMethodException(string message)
     public static CannotResolveMethodException CreateForCannotMatchMethodNameOrArguments(string methodName, Node[] args)
     {
         var types = args.Length > 0
-            ? args.Select(f => f.ReturnType.ToString()).Aggregate((a, b) => a + ", " + b)
+            ? string.Join(", ", args.Select(f => f.ReturnType.ToString()))
             : string.Empty;
 
         return new CannotResolveMethodException(
-            $"Method {methodName} with argument types {string.Join(", ", types)} cannot be resolved");
+            $"Method {methodName} with argument types {types} cannot be resolved");
     }
 }

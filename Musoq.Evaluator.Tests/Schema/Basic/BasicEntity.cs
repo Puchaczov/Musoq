@@ -24,7 +24,8 @@ public class BasicEntity
             { nameof(NullableValue), 19 },
             { nameof(Other), 20 },
             { nameof(Array), 21 },
-            { nameof(Dictionary), 22 }
+            { nameof(Dictionary), 22 },
+            { nameof(Children), 23 }
         };
 
         TestIndexToObjectAccessMap = new Dictionary<int, Func<BasicEntity, object>>
@@ -41,7 +42,8 @@ public class BasicEntity
             { 19, arg => arg.NullableValue },
             { 20, arg => arg.Other },
             { 21, arg => arg.Array },
-            { 22, arg => arg.Dictionary }
+            { 22, arg => arg.Dictionary },
+            { 23, arg => arg.Children }
         };
     }
 
@@ -112,6 +114,8 @@ public class BasicEntity
     public int Id { get; set; }
 
     public int[] Array => [0, 1, 2];
+
+    public BasicEntity[] Children => [new("child1"), new("child2")];
 
     public Dictionary<string, string> Dictionary => new()
     {

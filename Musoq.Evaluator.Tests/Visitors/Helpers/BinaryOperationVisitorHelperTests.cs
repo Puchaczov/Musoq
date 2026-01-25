@@ -12,17 +12,16 @@ public class BinaryOperationVisitorHelperTests
     [TestMethod]
     public void ProcessStarOperation_WhenTwoNodesOnStack_ShouldCreateStarNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IntegerNode("5");
         var rightNode = new IntegerNode("3");
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         BinaryOperationVisitorHelper.ProcessStarOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(StarNode));
@@ -34,17 +33,16 @@ public class BinaryOperationVisitorHelperTests
     [TestMethod]
     public void ProcessFSlashOperation_WhenTwoNodesOnStack_ShouldCreateFSlashNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IntegerNode("10");
         var rightNode = new IntegerNode("2");
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         BinaryOperationVisitorHelper.ProcessFSlashOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(FSlashNode));
@@ -56,17 +54,16 @@ public class BinaryOperationVisitorHelperTests
     [TestMethod]
     public void ProcessModuloOperation_WhenTwoNodesOnStack_ShouldCreateModuloNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IntegerNode("7");
         var rightNode = new IntegerNode("3");
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         BinaryOperationVisitorHelper.ProcessModuloOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(ModuloNode));
@@ -78,17 +75,16 @@ public class BinaryOperationVisitorHelperTests
     [TestMethod]
     public void ProcessAddOperation_WhenTwoNodesOnStack_ShouldCreateAddNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IntegerNode("4");
         var rightNode = new IntegerNode("6");
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         BinaryOperationVisitorHelper.ProcessAddOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(AddNode));
@@ -100,17 +96,16 @@ public class BinaryOperationVisitorHelperTests
     [TestMethod]
     public void ProcessHyphenOperation_WhenTwoNodesOnStack_ShouldCreateHyphenNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IntegerNode("8");
         var rightNode = new IntegerNode("3");
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         BinaryOperationVisitorHelper.ProcessHyphenOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(HyphenNode));
@@ -122,7 +117,6 @@ public class BinaryOperationVisitorHelperTests
     [TestMethod]
     public void ProcessStarOperation_WhenNullStack_ShouldThrowArgumentNullException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
             BinaryOperationVisitorHelper.ProcessStarOperation(null));
     }
@@ -130,11 +124,10 @@ public class BinaryOperationVisitorHelperTests
     [TestMethod]
     public void ProcessStarOperation_WhenInsufficientNodes_ShouldThrowInvalidOperationException()
     {
-        // Arrange
         var nodes = new Stack<Node>();
-        nodes.Push(new IntegerNode("5")); // Only one node
+        nodes.Push(new IntegerNode("5"));
 
-        // Act & Assert
+
         Assert.Throws<InvalidOperationException>(() =>
             BinaryOperationVisitorHelper.ProcessStarOperation(nodes));
     }

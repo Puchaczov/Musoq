@@ -9,7 +9,7 @@ public class SelectNode : Node
     {
         Fields = fields;
         IsDistinct = isDistinct;
-        var fieldsId = fields.Length == 0 ? string.Empty : fields.Select(f => f.Id).Aggregate((a, b) => a + b);
+        var fieldsId = fields.Length == 0 ? string.Empty : string.Concat(fields.Select(f => f.Id));
         var distinctPrefix = isDistinct ? "Distinct" : "";
         Id = $"{distinctPrefix}{nameof(SelectNode)}{fieldsId}";
     }
@@ -32,7 +32,7 @@ public class SelectNode : Node
         var distinctKeyword = IsDistinct ? "distinct " : "";
         var fieldsTxt = Fields.Length == 0
             ? string.Empty
-            : Fields.Select(FieldToString).Aggregate((a, b) => $"{a}, {b}");
+            : string.Join(", ", Fields.Select(FieldToString));
         return $"select {distinctKeyword}{fieldsTxt} ";
     }
 

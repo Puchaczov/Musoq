@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tables;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins;
@@ -27,7 +28,7 @@ public static class EvaluationHelper
     {
         if (enumerable is null)
             return new GenericRowsSource<T>(Enumerable.Empty<T>());
-        
+
         if (typeof(T).IsPrimitive || typeof(T) == typeof(string))
             return new GenericRowsSource<PrimitiveTypeEntity<T>>(enumerable.Select(f => new PrimitiveTypeEntity<T>(f)));
 
@@ -44,6 +45,26 @@ public static class EvaluationHelper
         return new ListRowSource(list);
     }
 
+    public static Table ToDistinctTable(Table table)
+    {
+        var distinctTable = new Table(table.Name, table.Columns.ToArray());
+        var seenRows = new HashSet<Row>(table.Count);
+
+        foreach (var row in table)
+            if (seenRows.Add(row))
+                distinctTable.Add(row);
+
+        return distinctTable;
+    }
+
+    public static IEnumerable<T> WrapScalarForCrossApply<T>(T value, bool isCrossApply) where T : class
+    {
+        if (value == null)
+            return isCrossApply ? [] : [null!];
+
+        return [value];
+    }
+
     public static Table GetSpecificTableDescription(ISchemaTable table)
     {
         var newTable = new Table("desc", [
@@ -57,6 +78,103 @@ public static class EvaluationHelper
             newTable.Add(new ObjectsRow([complexField.FieldName, column.ColumnIndex, complexField.Type.FullName]));
 
         return newTable;
+    }
+
+    public static Table GetSpecificColumnDescription(ISchemaTable table, string columnName)
+    {
+        var newTable = new Table("desc", [
+            new Column("Name", typeof(string), 0),
+            new Column("Index", typeof(int), 1),
+            new Column("Type", typeof(string), 2)
+        ]);
+
+
+        var pathParts = columnName.Split('.');
+        var rootColumnName = pathParts[0];
+
+
+        var targetColumn = table.Columns.FirstOrDefault(c =>
+            string.Equals(c.ColumnName, rootColumnName, StringComparison.OrdinalIgnoreCase));
+
+        if (targetColumn == null)
+            throw new UnknownColumnOrAliasException($"Column '{rootColumnName}' does not exist in the table.");
+
+
+        var canonicalPathParts = new List<string> { targetColumn.ColumnName };
+
+
+        var currentType = targetColumn.ColumnType;
+
+
+        for (var i = 1; i < pathParts.Length; i++)
+        {
+            if (currentType.IsArray)
+                currentType = currentType.GetElementType()!;
+            else if (IsGenericEnumerable(currentType, out var elementTypeFromEnumerable))
+                currentType = elementTypeFromEnumerable;
+
+            var propertyName = pathParts[i];
+            var property = currentType.GetProperties()
+                .FirstOrDefault(p => string.Equals(p.Name, propertyName, StringComparison.OrdinalIgnoreCase));
+
+            if (property == null)
+                throw new UnknownColumnOrAliasException(
+                    $"Property '{propertyName}' does not exist on type '{currentType.Name}'.");
+
+            canonicalPathParts.Add(property.Name);
+            currentType = property.PropertyType;
+        }
+
+        var canonicalPath = string.Join(".", canonicalPathParts);
+
+
+        Type elementType;
+
+        if (currentType.IsArray)
+            elementType = currentType.GetElementType()!;
+        else if (IsGenericEnumerable(currentType, out var genericElementType))
+            elementType = genericElementType;
+        else if (currentType.IsPrimitive || currentType == typeof(string) || currentType == typeof(object))
+            throw new ColumnMustBeAnArrayOrImplementIEnumerableException();
+        else
+            elementType = currentType;
+
+
+        var prefixLength = canonicalPath.Length;
+
+        foreach (var complexField in CreateTypeComplexDescription(canonicalPath, elementType))
+        {
+            var relativeFieldName =
+                complexField.FieldName.Length > prefixLength && complexField.FieldName[prefixLength] == '.'
+                    ? complexField.FieldName.Substring(prefixLength + 1)
+                    : complexField.FieldName == canonicalPath
+                        ? canonicalPath.Substring(canonicalPath.LastIndexOf('.') + 1)
+                        : complexField.FieldName;
+
+            newTable.Add(new ObjectsRow([relativeFieldName, targetColumn.ColumnIndex, complexField.Type.FullName]));
+        }
+
+        return newTable;
+    }
+
+    private static bool IsGenericEnumerable(Type type, out Type elementType)
+    {
+        elementType = null!;
+
+        if (!type.IsGenericType) return false;
+
+        var interfaces = type.GetInterfaces().Concat([type]);
+
+        foreach (var interfaceType in interfaces)
+        {
+            if (!interfaceType.IsGenericType ||
+                interfaceType.GetGenericTypeDefinition() != typeof(IEnumerable<>)) continue;
+
+            elementType = interfaceType.GetGenericArguments()[0];
+            return true;
+        }
+
+        return false;
     }
 
     public static Table GetSpecificSchemaDescriptions(ISchema schema, RuntimeContext runtimeContext)
@@ -78,10 +196,16 @@ public static class EvaluationHelper
 
         var newTable = new Table("desc", [
             new Column("Method", typeof(string), 0),
-            new Column("Description", typeof(string), 1)
+            new Column("Description", typeof(string), 1),
+            new Column("Category", typeof(string), 2),
+            new Column("Source", typeof(string), 3)
         ]);
 
-        foreach (var (methodName, methodInfos) in libraryMethods.OrderBy(kvp => kvp.Key))
+
+        var methodRows =
+            new List<(string Signature, string Description, string Category, string Source, int SortOrder)>();
+
+        foreach (var (methodName, methodInfos) in libraryMethods)
         foreach (var methodInfo in methodInfos)
         {
             runtimeContext.EndWorkToken.ThrowIfCancellationRequested();
@@ -95,11 +219,43 @@ public static class EvaluationHelper
 
             var signature = CSharpTypeNameHelper.FormatMethodSignature(methodInfo);
             var description = GetXmlDocumentation(methodInfo);
+            var category = GetMethodCategory(methodInfo);
+            var source = GetMethodSource(methodInfo);
+            var sortOrder = source == "Schema" ? 0 : 1;
 
-            newTable.Add(new ObjectsRow([signature, description]));
+            methodRows.Add((signature, description, category, source, sortOrder));
         }
 
+
+        var sortedRows = methodRows
+            .OrderBy(row => row.SortOrder)
+            .ThenBy(row => row.Category)
+            .ThenBy(row => row.Signature);
+
+        foreach (var row in sortedRows)
+            newTable.Add(new ObjectsRow([row.Signature, row.Description, row.Category, row.Source]));
+
         return newTable;
+    }
+
+    private static string GetMethodCategory(MethodInfo methodInfo)
+    {
+        var categoryAttr = methodInfo.GetCustomAttribute<MethodCategoryAttribute>();
+        return categoryAttr?.Category ?? "Unknown";
+    }
+
+    private static string GetMethodSource(MethodInfo methodInfo)
+    {
+        var declaringType = methodInfo.DeclaringType;
+        if (declaringType == null)
+            return "Unknown";
+
+
+        if (declaringType == typeof(LibraryBase))
+            return "Library";
+
+
+        return "Schema";
     }
 
     private static string GetXmlDocumentation(MethodInfo methodInfo)
@@ -242,6 +398,7 @@ public static class EvaluationHelper
             if (current.Level > 3)
                 continue;
 
+
             if (current.Type.IsPrimitive || current.Type == typeof(string) || current.Type == typeof(object))
                 continue;
 
@@ -250,12 +407,22 @@ public static class EvaluationHelper
                 if (prop.MemberType != MemberTypes.Property)
                     continue;
 
+                var complexName = $"{current.FieldName}.{prop.Name}";
+
+
+                output.Add((complexName, prop.PropertyType));
+
+
+                // Note: We only skip arrays, not other IEnumerable types like List<T> or Dictionary<K,V>
+
+                if (prop.PropertyType.IsArray)
+                    continue;
+
+
                 if (prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) ||
                     prop.PropertyType == typeof(object))
                     continue;
 
-                var complexName = $"{current.FieldName}.{prop.Name}";
-                output.Add((complexName, prop.PropertyType));
 
                 if (prop.PropertyType == current.Type)
                     continue;
@@ -488,8 +655,65 @@ public static class EvaluationHelper
 
         private static IReadOnlyDictionary<int, Func<T, object>> IndexToObjectAccessMap { get; }
 
-        public override IEnumerable<IObjectResolver> Rows => entities.Select(entity =>
-            new EntityResolver<T>(entity, NameToIndexMap, IndexToObjectAccessMap));
+        public override IEnumerable<IObjectResolver> Rows => entities.Select<T, IObjectResolver>(entity =>
+        {
+            // For object arrays, check if the actual runtime object is a dictionary (ExpandoObject)
+            if (typeof(T) == typeof(object) && entity is IDictionary<string, object> dict)
+                return new DynamicObjectResolver(dict);
+
+            // For object arrays with dynamically generated types (e.g., interpreters),
+            // use reflection on the actual runtime type
+            if (typeof(T) == typeof(object) && entity != null && NameToIndexMap.Count == 0)
+                return new DynamicTypeResolver(entity);
+
+            return new EntityResolver<T>(entity, NameToIndexMap, IndexToObjectAccessMap);
+        });
+    }
+
+    /// <summary>
+    ///     Resolver for dynamically generated types (interpreter types).
+    ///     Uses reflection on the actual runtime type.
+    /// </summary>
+    private class DynamicTypeResolver : IObjectResolver
+    {
+        private readonly object _entity;
+        private readonly IReadOnlyDictionary<string, PropertyInfo> _propertyMap;
+
+        public DynamicTypeResolver(object entity)
+        {
+            _entity = entity;
+            var type = entity.GetType();
+            _propertyMap = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .ToDictionary(p => p.Name, p => p);
+        }
+
+        public object[] Contexts => [_entity];
+
+        public object this[string name] => _propertyMap.TryGetValue(name, out var prop) ? prop.GetValue(_entity) : null;
+
+        public object this[int index] => null;
+
+        public bool HasColumn(string name)
+        {
+            return _propertyMap.ContainsKey(name);
+        }
+    }
+
+    /// <summary>
+    ///     Resolver for dynamic objects (ExpandoObject) that implements IDictionary&lt;string, object&gt;.
+    /// </summary>
+    private class DynamicObjectResolver(IDictionary<string, object> dict) : IObjectResolver
+    {
+        public object[] Contexts => [dict];
+
+        public object this[string name] => dict.TryGetValue(name, out var value) ? value : null;
+
+        public object this[int index] => null;
+
+        public bool HasColumn(string name)
+        {
+            return dict.ContainsKey(name);
+        }
     }
 
     private class ListRowSource(List<Group> list) : RowSource

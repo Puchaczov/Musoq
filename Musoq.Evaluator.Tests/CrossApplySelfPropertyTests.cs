@@ -490,9 +490,9 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     public void WhenApplyChainedProperty_WithPrimitiveList_ShouldPass()
     {
         const string query = """
-                             select 
-                                b.Value 
-                             from #schema.first() a 
+                             select
+                                b.Value
+                             from #schema.first() a
                              cross apply a.ComplexType.PrimitiveValues as b
                              """;
 
@@ -525,9 +525,9 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     public void WhenApplyChainedProperty_WithComplexList_ShouldPass()
     {
         const string query = """
-                             select 
-                                b.Value 
-                             from #schema.first() a 
+                             select
+                                b.Value
+                             from #schema.first() a
                              cross apply a.ComplexType.ComplexValues as b
                              """;
 
@@ -561,9 +561,9 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     public void WhenGroupByAndOrderByWithAccessMethod_ShouldPass()
     {
         const string query = """
-                             select 
+                             select
                                 b.GetTypeName(b.Value)
-                             from #schema.first() a 
+                             from #schema.first() a
                              cross apply a.ComplexType.ComplexValues as b
                              group by b.GetTypeName(b.Value)
                              order by b.GetTypeName(b.Value)

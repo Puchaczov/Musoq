@@ -20,7 +20,7 @@ public class ApplyInMemoryWithSourceTableNodeProcessorTests
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
         var scope = new Scope(null, 1, "test");
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             ApplyInMemoryWithSourceTableNodeProcessor.ProcessApplyInMemoryWithSourceTable(
                 null, generator, scope, "testQuery",
@@ -35,7 +35,7 @@ public class ApplyInMemoryWithSourceTableNodeProcessorTests
         var node = new ApplyInMemoryWithSourceTableFromNode("memTable", sourceTable, ApplyType.Cross, typeof(object));
         var scope = new Scope(null, 1, "test");
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             ApplyInMemoryWithSourceTableNodeProcessor.ProcessApplyInMemoryWithSourceTable(
                 node, null, scope, "testQuery",
@@ -52,7 +52,7 @@ public class ApplyInMemoryWithSourceTableNodeProcessorTests
         var node = new ApplyInMemoryWithSourceTableFromNode("memTable", sourceTable, ApplyType.Cross, typeof(object));
         var scope = new Scope(null, 1, "test");
 
-        // Act & Assert
+
         Assert.Throws<ArgumentException>(() =>
             ApplyInMemoryWithSourceTableNodeProcessor.ProcessApplyInMemoryWithSourceTable(
                 node, generator, scope, "",
@@ -69,7 +69,7 @@ public class ApplyInMemoryWithSourceTableNodeProcessorTests
         var node = new ApplyInMemoryWithSourceTableFromNode("memTable", sourceTable, (ApplyType)999, typeof(object));
         var scope = new Scope(null, 1, "test");
 
-        // Act & Assert
+
         Assert.Throws<ArgumentException>(() =>
             ApplyInMemoryWithSourceTableNodeProcessor.ProcessApplyInMemoryWithSourceTable(
                 node, generator, scope, "testQuery",

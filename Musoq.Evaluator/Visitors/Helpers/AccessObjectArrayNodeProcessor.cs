@@ -19,12 +19,14 @@ public static class AccessObjectArrayNodeProcessor
     /// </summary>
     /// <param name="node">The AccessObjectArrayNode to process</param>
     /// <param name="nodes">The syntax node stack</param>
+    /// <param name="methodAccessType">The method access type context (optional, used for column-based access)</param>
     /// <returns>Processing result containing the expression and required namespace</returns>
     /// <exception cref="ArgumentNullException">Thrown when node or nodes is null</exception>
     /// <exception cref="InvalidOperationException">Thrown when property access is attempted without a parent expression</exception>
     public static AccessObjectArrayProcessingResult ProcessAccessObjectArrayNode(
         AccessObjectArrayNode node,
-        Stack<SyntaxNode> nodes)
+        Stack<SyntaxNode> nodes,
+        MethodAccessType methodAccessType = MethodAccessType.ResultQuery)
     {
         if (node == null)
             throw new ArgumentNullException(nameof(node));
@@ -35,7 +37,7 @@ public static class AccessObjectArrayNodeProcessor
         ExpressionSyntax resultExpression;
 
         if (node.IsColumnAccess)
-            resultExpression = ProcessColumnBasedAccess(node);
+            resultExpression = ProcessColumnBasedAccess(node, methodAccessType);
         else
             resultExpression = ProcessPropertyBasedAccess(node, nodes);
 
@@ -45,12 +47,20 @@ public static class AccessObjectArrayNodeProcessor
     /// <summary>
     ///     Processes column-based indexed access (e.g., Name[0], f.Name[0]).
     /// </summary>
-    private static ExpressionSyntax ProcessColumnBasedAccess(AccessObjectArrayNode node)
+    private static ExpressionSyntax ProcessColumnBasedAccess(AccessObjectArrayNode node,
+        MethodAccessType methodAccessType)
     {
+        var variableName = methodAccessType switch
+        {
+            MethodAccessType.TransformingQuery => $"{node.TableAlias}Row",
+            MethodAccessType.ResultQuery or MethodAccessType.CaseWhen => "score",
+            _ => "score"
+        };
+
         var columnAccess = SyntaxFactory.CastExpression(
             GetCSharpType(node.ColumnType),
             SyntaxFactory.ParenthesizedExpression(
-                SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("score"))
+                SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName(variableName))
                     .WithArgumentList(SyntaxFactory.BracketedArgumentList(
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
@@ -61,7 +71,8 @@ public static class AccessObjectArrayNodeProcessor
         if (node.ColumnType == typeof(string)) return CreateStringCharacterAccess(columnAccess, node.Token.Index);
 
         if (node.ColumnType.IsArray)
-            return CreateArrayElementAccess(columnAccess, node.ColumnType.GetElementType(), node.Token.Index);
+            return CreateArrayElementAccessWithIntendedType(columnAccess, node.ColumnType.GetElementType(),
+                node.Token.Index, node.IntendedTypeName);
 
         return CreateDirectElementAccess(columnAccess, node.Token.Index);
     }
@@ -132,6 +143,24 @@ public static class AccessObjectArrayNodeProcessor
                         SyntaxKind.NumericLiteralExpression,
                         SyntaxFactory.Literal(index)))
                 ])));
+    }
+
+    /// <summary>
+    ///     Creates array element access with support for IntendedTypeName.
+    ///     When element type is object but we have an IntendedTypeName, we cast the result to the intended type.
+    /// </summary>
+    private static ExpressionSyntax CreateArrayElementAccessWithIntendedType(
+        ExpressionSyntax columnAccess, Type elementType, int index, string intendedTypeName)
+    {
+        var basicAccess = CreateArrayElementAccess(columnAccess, elementType, index);
+
+
+        if (elementType == typeof(object) && !string.IsNullOrEmpty(intendedTypeName))
+            return SyntaxFactory.CastExpression(
+                SyntaxFactory.ParseTypeName(intendedTypeName),
+                SyntaxFactory.ParenthesizedExpression(basicAccess));
+
+        return basicAccess;
     }
 
     /// <summary>

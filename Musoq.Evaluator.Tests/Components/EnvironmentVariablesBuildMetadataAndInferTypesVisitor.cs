@@ -17,14 +17,12 @@ public class EnvironmentVariablesBuildMetadataAndInferTypesVisitor(
     CompilationOptions compilationOptions = null)
     : BuildMetadataAndInferTypesVisitor(provider, columns, logger, compilationOptions)
 {
-    private readonly List<Type> _passedSchemaArguments = [];
-
-    public IReadOnlyCollection<Type> PassedSchemaArguments => _passedSchemaArguments;
+    public List<Type> PassedSchemaArguments { get; } = [];
 
     protected override IReadOnlyDictionary<string, string> RetrieveEnvironmentVariables(uint position,
         SchemaFromNode node)
     {
-        _passedSchemaArguments.AddRange(node.Parameters.Args.Select(f => f.ReturnType));
+        PassedSchemaArguments.AddRange(node.Parameters.Args.Select(f => f.ReturnType));
 
         if (sources.TryGetValue(position, out var environmentVariables))
         {

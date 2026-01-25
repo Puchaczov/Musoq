@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -7,8 +6,8 @@ using Musoq.Evaluator.Tests.Schema.Generic;
 namespace Musoq.Evaluator.Tests;
 
 /// <summary>
-/// Tests for reproducing issue where cross apply alias is defined but not used anywhere.
-/// This can cause a "key not found in dictionary" exception.
+///     Tests for reproducing issue where cross apply alias is defined but not used anywhere.
+///     This can cause a "key not found in dictionary" exception.
 /// </summary>
 [TestClass]
 public class CrossApplyUnusedAliasTests : GenericEntityTestBase
@@ -16,14 +15,13 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     public TestContext TestContext { get; set; }
 
     /// <summary>
-    /// Test case where cross apply alias 't' is defined but only columns from 'a' are selected.
-    /// The alias 't' is completely unused in the query.
-    /// Expected: Should either work gracefully or throw a clear error message.
+    ///     Test case where cross apply alias 't' is defined but only columns from 'a' are selected.
+    ///     The alias 't' is completely unused in the query.
+    ///     Expected: Should either work gracefully or throw a clear error message.
     /// </summary>
     [TestMethod]
     public void CrossApply_WithUnusedAlias_ShouldNotThrowKeyNotFound()
     {
-        // The alias 't' is defined in cross apply but never used in SELECT
         const string query = "select a.City from #schema.first() a cross apply #schema.second(a.Country) t";
 
         var firstSource = new List<CrossApplyClass1>
@@ -58,12 +56,11 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test case with two cross applies where the second alias is unused.
+    ///     Test case with two cross applies where the second alias is unused.
     /// </summary>
     [TestMethod]
     public void CrossApply_WithSecondUnusedAlias_ShouldNotThrowKeyNotFound()
     {
-        // The alias 'c' is defined but never used
         const string query = @"
             select a.City, b.Money 
             from #schema.first() a 
@@ -89,13 +86,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -103,12 +94,11 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test case where cross apply uses property access but the alias is not used in select.
+    ///     Test case where cross apply uses property access but the alias is not used in select.
     /// </summary>
     [TestMethod]
     public void CrossApply_PropertyAccessWithUnusedAlias_ShouldNotThrowKeyNotFound()
     {
-        // The alias 'b' is defined but never used in SELECT
         const string query = "select a.City from #schema.first() a cross apply a.Values as b";
 
         var firstSource = new List<CrossApplyClass1>
@@ -130,7 +120,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test case where cross apply alias is only used in WHERE but not in SELECT.
+    ///     Test case where cross apply alias is only used in WHERE but not in SELECT.
     /// </summary>
     [TestMethod]
     public void CrossApply_AliasUsedOnlyInWhere_ShouldWork()
@@ -170,12 +160,11 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test case where the first alias 'a' is not used anywhere (but cross apply's 'b' is used).
+    ///     Test case where the first alias 'a' is not used anywhere (but cross apply's 'b' is used).
     /// </summary>
     [TestMethod]
     public void CrossApply_FirstAliasUnused_ShouldNotThrowKeyNotFound()
     {
-        // Only 'b' alias is used in select
         const string query = "select b.Money from #schema.first() a cross apply #schema.second(a.Country) b";
 
         var firstSource = new List<CrossApplyClass1>
@@ -206,12 +195,11 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test case with only literal values selected (no alias used at all).
+    ///     Test case with only literal values selected (no alias used at all).
     /// </summary>
     [TestMethod]
     public void CrossApply_NoAliasUsedInSelect_ShouldNotThrowKeyNotFound()
     {
-        // Neither 'a' nor 't' aliases are used in SELECT
         const string query = "select 1 as Value from #schema.first() a cross apply #schema.second(a.Country) t";
 
         var firstSource = new List<CrossApplyClass1>
@@ -239,34 +227,12 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
         Assert.IsNotNull(table);
     }
 
-    public class CrossApplyClass1
-    {
-        public string City { get; set; }
-        public string Country { get; set; }
-        public int Population { get; set; }
-        public int[] Values { get; set; }
-    }
-
-    public class CrossApplyClass2
-    {
-        public string Country { get; set; }
-        public decimal Money { get; set; }
-        public string Month { get; set; }
-    }
-
-    public class CrossApplyClass3
-    {
-        public int Id { get; set; }
-        public string Description { get; set; }
-    }
-
     /// <summary>
-    /// Test case where cross apply with CTE and unused alias.
+    ///     Test case where cross apply with CTE and unused alias.
     /// </summary>
     [TestMethod]
     public void CrossApply_CteWithUnusedAlias_ShouldNotThrowKeyNotFound()
     {
-        // CTE with cross apply where the applied alias 't' is unused
         const string query = @"
             with cte as (
                 select a.City as City, a.Country as Country 
@@ -300,12 +266,11 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test case where cross apply with method call on alias but alias not used in select.
+    ///     Test case where cross apply with method call on alias but alias not used in select.
     /// </summary>
     [TestMethod]
     public void CrossApply_MethodCallWithUnusedAlias_ShouldNotThrowKeyNotFound()
     {
-        // Method call cross apply where alias 't2' is unused
         const string query = @"
             select a.City
             from #schema.first() a
@@ -327,7 +292,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test case CTE cross apply with method call and unused alias.
+    ///     Test case CTE cross apply with method call and unused alias.
     /// </summary>
     [TestMethod]
     public void CrossApply_CteWithMethodCallAndUnusedAlias_ShouldNotThrowKeyNotFound()
@@ -349,12 +314,11 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test star expansion with cross apply where second alias is not explicitly used.
+    ///     Test star expansion with cross apply where second alias is not explicitly used.
     /// </summary>
     [TestMethod]
     public void CrossApply_StarExpansionWithUnusedSecondAlias_ShouldNotThrowKeyNotFound()
     {
-        // Using a.* instead of explicit column references - alias 't' is not explicitly used
         const string query = "select a.* from #schema.first() a cross apply #schema.second(a.Country) t";
 
         var firstSource = new List<CrossApplyClass1>
@@ -383,12 +347,11 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test where cross apply is chained but middle alias is unused.
+    ///     Test where cross apply is chained but middle alias is unused.
     /// </summary>
     [TestMethod]
     public void CrossApply_ChainedWithMiddleAliasUnused_ShouldNotThrowKeyNotFound()
     {
-        // Using a and c, but not b
         const string query = @"
             select a.City, c.Money
             from #schema.first() a
@@ -405,7 +368,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             new() { Country = "Country1", Money = 1000, Month = "January" }
         }.ToArray();
 
-        // For this test, we need the third source with Money property
+
         var thirdSource = new List<CrossApplyClass2>
         {
             new() { Country = "Any", Money = 5000, Month = "March" }
@@ -415,13 +378,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -429,12 +386,11 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test with multiple chained cross applies where intermediate aliases are unused.
+    ///     Test with multiple chained cross applies where intermediate aliases are unused.
     /// </summary>
     [TestMethod]
     public void CrossApply_MultipleChained_WithIntermediateUnusedAliases_ShouldNotThrowKeyNotFound()
     {
-        // a -> b -> c: only 'a' is used in SELECT
         const string query = @"
             select a.City
             from #schema.first() a
@@ -467,12 +423,11 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test outer apply with unused alias.
+    ///     Test outer apply with unused alias.
     /// </summary>
     [TestMethod]
     public void OuterApply_WithUnusedAlias_ShouldNotThrowKeyNotFound()
     {
-        // Outer apply where 't' is unused
         const string query = "select a.City from #schema.first() a outer apply #schema.second(a.Country) t";
 
         var firstSource = new List<CrossApplyClass1>
@@ -502,12 +457,11 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test cross apply with count(*) aggregation where cross apply alias is not directly used.
+    ///     Test cross apply with count(*) aggregation where cross apply alias is not directly used.
     /// </summary>
     [TestMethod]
     public void CrossApply_WithCountAggregation_UnusedAliasInSelect_ShouldNotThrowKeyNotFound()
     {
-        // Cross apply alias 't' is not directly used but count(*) aggregates over all rows
         const string query = @"
             select a.City, a.Count(1) as Cnt
             from #schema.first() a
@@ -539,16 +493,15 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, (int)table[0].Values[1]); // Should count 2 rows from cross apply
+        Assert.AreEqual(2, (int)table[0].Values[1]);
     }
 
     /// <summary>
-    /// Test case where cross apply with only accessing properties through nested path.
+    ///     Test case where cross apply with only accessing properties through nested path.
     /// </summary>
-    [TestMethod] 
+    [TestMethod]
     public void CrossApply_NestedPropertyAccess_UnusedIntermediateAlias_ShouldNotThrowKeyNotFound()
     {
-        // Access a.Values but cross apply to 'b' which is unused
         const string query = "select a.City from #schema.first() a cross apply a.Values as b";
 
         var firstSource = new List<CrossApplyClass1>
@@ -564,16 +517,15 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count); // Should have 3 rows due to cross apply expansion
+        Assert.AreEqual(3, table.Count);
     }
 
     /// <summary>
-    /// Test cross apply followed by a join where the cross apply alias is unused.
+    ///     Test cross apply followed by a join where the cross apply alias is unused.
     /// </summary>
     [TestMethod]
     public void CrossApply_FollowedByJoin_WithUnusedMiddleAlias_ShouldWork()
     {
-        // Cross apply creates 't' but it's not used, then join uses 'c'
         const string query = @"
             select a.City, c.Country
             from #schema.first() a
@@ -599,13 +551,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -616,7 +562,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test cross apply followed by join where all aliases are used.
+    ///     Test cross apply followed by join where all aliases are used.
     /// </summary>
     [TestMethod]
     public void CrossApply_FollowedByJoin_AllAliasesUsed_ShouldWork()
@@ -646,13 +592,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -664,7 +604,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test cross apply followed by left outer join.
+    ///     Test cross apply followed by left outer join.
     /// </summary>
     [TestMethod]
     public void CrossApply_FollowedByLeftOuterJoin_ShouldWork()
@@ -696,13 +636,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -711,7 +645,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test cross apply followed by right outer join.
+    ///     Test cross apply followed by right outer join.
     /// </summary>
     [TestMethod]
     public void CrossApply_FollowedByRightOuterJoin_ShouldWork()
@@ -742,13 +676,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -757,7 +685,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test outer apply followed by inner join.
+    ///     Test outer apply followed by inner join.
     /// </summary>
     [TestMethod]
     public void OuterApply_FollowedByInnerJoin_ShouldWork()
@@ -787,13 +715,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -802,7 +724,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test CTE with cross apply followed by join.
+    ///     Test CTE with cross apply followed by join.
     /// </summary>
     [TestMethod]
     public void Cte_CrossApply_FollowedByJoin_ShouldWork()
@@ -836,13 +758,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -851,7 +767,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test CTE with cross apply followed by left outer join.
+    ///     Test CTE with cross apply followed by left outer join.
     /// </summary>
     [TestMethod]
     public void Cte_CrossApply_FollowedByLeftOuterJoin_ShouldWork()
@@ -887,13 +803,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -902,7 +812,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test multiple cross applies followed by join.
+    ///     Test multiple cross applies followed by join.
     /// </summary>
     [TestMethod]
     public void MultipleCrossApplies_FollowedByJoin_ShouldWork()
@@ -933,13 +843,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -948,7 +852,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test join followed by cross apply (reverse order).
+    ///     Test join followed by cross apply (reverse order).
     /// </summary>
     [TestMethod]
     public void Join_FollowedByCrossApply_ShouldWork()
@@ -978,13 +882,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -993,7 +891,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test CTE with join followed by cross apply.
+    ///     Test CTE with join followed by cross apply.
     /// </summary>
     [TestMethod]
     public void Cte_Join_FollowedByCrossApply_ShouldWork()
@@ -1027,13 +925,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -1042,7 +934,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test cross apply, join, cross apply interleaved.
+    ///     Test cross apply, join, cross apply interleaved.
     /// </summary>
     [TestMethod]
     public void CrossApply_Join_CrossApply_Interleaved_ShouldWork()
@@ -1073,13 +965,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -1088,12 +974,11 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test multiple cross applies where only first and last aliases are used.
+    ///     Test multiple cross applies where only first and last aliases are used.
     /// </summary>
     [TestMethod]
     public void CrossApply_MultipleWithOnlyFirstAndLastUsed_ShouldNotThrowKeyNotFound()
     {
-        // a -> b -> c: a and c used, b unused
         const string query = @"
             select a.City, c.Money
             from #schema.first() a
@@ -1119,13 +1004,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -1133,13 +1012,12 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test cross apply with a standalone function call (Test() t pattern).
-    /// This is the exact pattern from the reported issue.
+    ///     Test cross apply with a standalone function call (Test() t pattern).
+    ///     This is the exact pattern from the reported issue.
     /// </summary>
     [TestMethod]
     public void CrossApply_StandaloneFunction_WithUnusedAlias_ShouldNotThrowKeyNotFound()
     {
-        // The specific pattern: cross apply Test() t where t is unused
         const string query = "select a.City from #schema.first() a cross apply #schema.second() t";
 
         var firstSource = new List<CrossApplyClass1>
@@ -1155,11 +1033,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
         var vm = CreateAndRunVirtualMachine(
             query,
             firstSource,
-            secondSource,
-            null,
-            null,
-            null,
-            null);
+            secondSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -1167,12 +1041,11 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test cross apply with standalone function call without any parameters.
+    ///     Test cross apply with standalone function call without any parameters.
     /// </summary>
     [TestMethod]
     public void CrossApply_NoParamsFunction_UnusedAlias_ShouldNotThrowKeyNotFound()
     {
-        // cross apply with no parameter function call
         const string query = "select a.City from #schema.first() a cross apply #schema.third() t";
 
         var firstSource = new List<CrossApplyClass1>
@@ -1194,29 +1067,62 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
             query,
             firstSource,
             secondSource,
-            thirdSource,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
+            thirdSource);
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
     }
 
+    public class CrossApplyClass1
+    {
+        public string City { get; set; }
+        public string Country { get; set; }
+        public int Population { get; set; }
+        public int[] Values { get; set; }
+    }
+
+    public class CrossApplyClass2
+    {
+        public string Country { get; set; }
+        public decimal Money { get; set; }
+        public string Month { get; set; }
+    }
+
+    public class CrossApplyClass3
+    {
+        public int Id { get; set; }
+        public string Description { get; set; }
+    }
+
+    public class CrossApplyMultiProperty
+    {
+        public string Name { get; set; }
+        public int[] Values1 { get; set; }
+        public int[] Values2 { get; set; }
+        public int[] Values3 { get; set; }
+    }
+
+    public class CrossApplyNestedProperty
+    {
+        public string Name { get; set; }
+        public NestedValue[] NestedValues { get; set; }
+    }
+
+    public class NestedValue
+    {
+        public int Value { get; set; }
+    }
+
     #region Multiple Property Cross Applies - Dictionary Key Issue
 
     /// <summary>
-    /// Test multiple cross applies on different properties from same source.
-    /// Pattern: m.A a cross apply m.B b - where both A and B are properties of m.
+    ///     Test multiple cross applies on different properties from same source.
+    ///     Pattern: m.A a cross apply m.B b - where both A and B are properties of m.
     /// </summary>
     [TestMethod]
     public void CrossApply_TwoPropertiesFromSameSource_ShouldWork()
     {
-        // select 1 from #schema.method() m cross apply m.A a cross apply m.B b
         const string query = @"
             select 1
             from #schema.first() m
@@ -1239,7 +1145,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test multiple cross applies on properties - selecting from applied aliases.
+    ///     Test multiple cross applies on properties - selecting from applied aliases.
     /// </summary>
     [TestMethod]
     public void CrossApply_TwoPropertiesFromSameSource_SelectFromBoth_ShouldWork()
@@ -1267,7 +1173,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test multiple cross applies on properties - selecting only from second applied alias.
+    ///     Test multiple cross applies on properties - selecting only from second applied alias.
     /// </summary>
     [TestMethod]
     public void CrossApply_TwoPropertiesFromSameSource_SelectOnlyFromSecond_ShouldWork()
@@ -1294,7 +1200,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test multiple cross applies on properties - original source alias used in select.
+    ///     Test multiple cross applies on properties - original source alias used in select.
     /// </summary>
     [TestMethod]
     public void CrossApply_TwoPropertiesFromSameSource_SelectFromOriginal_ShouldWork()
@@ -1322,7 +1228,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test three cross applies on properties from same source.
+    ///     Test three cross applies on properties from same source.
     /// </summary>
     [TestMethod]
     public void CrossApply_ThreePropertiesFromSameSource_ShouldWork()
@@ -1351,7 +1257,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test CTE with multiple property cross applies from same source.
+    ///     Test CTE with multiple property cross applies from same source.
     /// </summary>
     [TestMethod]
     public void Cte_CrossApply_TwoPropertiesFromSameSource_ShouldWork()
@@ -1382,7 +1288,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test cross apply on property, then method call on same source.
+    ///     Test cross apply on property, then method call on same source.
     /// </summary>
     [TestMethod]
     public void CrossApply_PropertyThenMethodOnSameSource_ShouldWork()
@@ -1409,7 +1315,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test cross apply chain: source -> property -> property on applied result.
+    ///     Test cross apply chain: source -> property -> property on applied result.
     /// </summary>
     [TestMethod]
     public void CrossApply_ChainedPropertyAccess_ShouldWork()
@@ -1421,7 +1327,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyNestedProperty>
         {
-            new() { Name = "Test1", NestedValues = [new() { Value = 1 }, new() { Value = 2 }] }
+            new() { Name = "Test1", NestedValues = [new NestedValue { Value = 1 }, new NestedValue { Value = 2 }] }
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(
@@ -1436,7 +1342,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test outer apply on two properties from same source.
+    ///     Test outer apply on two properties from same source.
     /// </summary>
     [TestMethod]
     public void OuterApply_TwoPropertiesFromSameSource_ShouldWork()
@@ -1464,7 +1370,7 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     /// <summary>
-    /// Test mixed cross apply and outer apply on properties from same source.
+    ///     Test mixed cross apply and outer apply on properties from same source.
     /// </summary>
     [TestMethod]
     public void CrossApply_ThenOuterApply_OnPropertiesFromSameSource_ShouldWork()
@@ -1491,23 +1397,4 @@ public class CrossApplyUnusedAliasTests : GenericEntityTestBase
     }
 
     #endregion
-
-    public class CrossApplyMultiProperty
-    {
-        public string Name { get; set; }
-        public int[] Values1 { get; set; }
-        public int[] Values2 { get; set; }
-        public int[] Values3 { get; set; }
-    }
-
-    public class CrossApplyNestedProperty
-    {
-        public string Name { get; set; }
-        public NestedValue[] NestedValues { get; set; }
-    }
-
-    public class NestedValue
-    {
-        public int Value { get; set; }
-    }
 }

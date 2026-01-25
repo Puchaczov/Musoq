@@ -25,7 +25,21 @@ public abstract class Row : IEquatable<Row>, IValue<Key>, IReadOnlyRow
         var isEqual = true;
 
         for (var i = 0; i < Count && isEqual; ++i)
-            isEqual &= this[i].Equals(other[i]);
+        {
+            var thisValue = this[i];
+            var otherValue = other[i];
+
+            if (thisValue == null && otherValue == null)
+                continue;
+
+            if (thisValue == null || otherValue == null)
+            {
+                isEqual = false;
+                break;
+            }
+
+            isEqual &= thisValue.Equals(otherValue);
+        }
 
         return isEqual;
     }
@@ -47,7 +61,10 @@ public abstract class Row : IEquatable<Row>, IValue<Key>, IReadOnlyRow
         var hashCode = -1000162029;
 
         for (int i = 0, j = Count; i < j; ++i)
-            hashCode = hashCode * -1521134295 + this[i].GetHashCode();
+        {
+            var value = this[i];
+            hashCode = hashCode * -1521134295 + (value?.GetHashCode() ?? 0);
+        }
 
         return hashCode;
     }
@@ -57,7 +74,21 @@ public abstract class Row : IEquatable<Row>, IValue<Key>, IReadOnlyRow
         var isMatch = true;
 
         for (var i = 0; i < key.Columns.Length; i++)
-            isMatch &= this[key.Columns[i]].Equals(key.Values[i]);
+        {
+            var rowValue = this[key.Columns[i]];
+            var keyValue = key.Values[i];
+
+            if (rowValue == null && keyValue == null)
+                continue;
+
+            if (rowValue == null || keyValue == null)
+            {
+                isMatch = false;
+                break;
+            }
+
+            isMatch &= rowValue.Equals(keyValue);
+        }
 
         return isMatch;
     }

@@ -103,7 +103,7 @@ public static class RuntimeLibraries
                 finally
                 {
                     _hasLoadedReferences = true;
-                    // ReSharper disable once InconsistentlySynchronizedField
+
                     _readInProgress = false;
                     _readFinished = true;
 

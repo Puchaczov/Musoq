@@ -32,8 +32,9 @@ public static class InstanceCreator
         RuntimeLibraries.CreateReferences();
 
         var chain = new CreateTree(
-            new TransformTree(
-                new TurnQueryIntoRunnableCode(null), loggerResolver));
+            new CompileInterpretationSchemas(
+                new TransformTree(
+                    new TurnQueryIntoRunnableCode(null), loggerResolver)));
 
         chain.Build(items);
 
@@ -63,8 +64,9 @@ public static class InstanceCreator
             schemaProvider,
             loggerResolver,
             () => new CreateTree(
-                new TransformTree(
-                    new TurnQueryIntoRunnableCode(null), loggerResolver)),
+                new CompileInterpretationSchemas(
+                    new TransformTree(
+                        new TurnQueryIntoRunnableCode(null), loggerResolver))),
             _ => { });
     }
 
@@ -77,8 +79,9 @@ public static class InstanceCreator
             schemaProvider,
             loggerResolver,
             () => new CreateTree(
-                new TransformTree(
-                    new TurnQueryIntoRunnableCode(null), loggerResolver)),
+                new CompileInterpretationSchemas(
+                    new TransformTree(
+                        new TurnQueryIntoRunnableCode(null), loggerResolver))),
             buildItems => { buildItems.CompilationOptions = compilationOptions; });
     }
 
@@ -136,11 +139,17 @@ public static class InstanceCreator
         if (!Directory.Exists(tempPath))
             Directory.CreateDirectory(tempPath);
 
+
         var builder = new StringBuilder();
-        using (var writer = new StringWriter(builder))
-        {
-            items.Compilation?.SyntaxTrees.ElementAt(0).GetRoot().WriteTo(writer);
-        }
+        if (items.Compilation?.SyntaxTrees != null)
+            for (var i = 0; i < items.Compilation.SyntaxTrees.Count(); i++)
+            {
+                builder.AppendLine($"// === SYNTAX TREE {i} ===");
+                using var writer = new StringWriter();
+                items.Compilation.SyntaxTrees.ElementAt(i).GetRoot().WriteTo(writer);
+                builder.AppendLine(writer.ToString());
+                builder.AppendLine();
+            }
 
         using (var file = new StreamWriter(File.Open(csPath, FileMode.Create)))
         {
@@ -233,5 +242,15 @@ public static class InstanceCreator
         return runnable;
     }
 
-    private class DebugAssemblyLoadContext() : AssemblyLoadContext(true);
+    private class DebugAssemblyLoadContext : AssemblyLoadContext
+    {
+        public DebugAssemblyLoadContext() : base(true)
+        {
+        }
+
+        protected override Assembly? Load(AssemblyName assemblyName)
+        {
+            return null;
+        }
+    }
 }

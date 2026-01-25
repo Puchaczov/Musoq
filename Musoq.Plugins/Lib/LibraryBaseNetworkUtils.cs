@@ -17,7 +17,6 @@ public partial class LibraryBase
     /// <returns>True if the IP is private</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Network)]
-    // ReSharper disable once InconsistentNaming
     public bool? IsPrivateIP(string? ipAddress)
     {
         if (string.IsNullOrEmpty(ipAddress))

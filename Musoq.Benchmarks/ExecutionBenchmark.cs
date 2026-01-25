@@ -31,17 +31,6 @@ public class ExecutionBenchmark : BenchmarkBase
         _queryForJoinWithoutHashJoin = ComputeJoinWithOptions(new CompilationOptions(useHashJoin: false));
     }
 
-    // [Benchmark]
-    // public Table ComputeSimpleSelect_WithParallelization_1MbOfData_Countries()
-    // {
-    //     return _queryForComputeCountriesWithParallelization.Run();
-    // }
-    //
-    // [Benchmark]
-    // public Table ComputeSimpleSelect_WithoutParallelization_1MbOfData_Countries()
-    // {
-    //     return _queryForComputeCountriesWithoutParallelization.Run();
-    // }
 
     [Benchmark]
     public Table ComputeSimpleSelect_WithParallelization_10MbOfData_Profiles()

@@ -1068,7 +1068,6 @@ public class ParserTests
         Assert.IsNotNull(result);
     }
 
-    // Hash-optional schema syntax tests
 
     [TestMethod]
     public void SchemaWithoutHash_BasicSelect_ShouldParse()

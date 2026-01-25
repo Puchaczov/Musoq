@@ -25,7 +25,6 @@ public class MultiStatementNode : Node
 
     public override string ToString()
     {
-        return Nodes.Select(f => f.ToString())
-            .Aggregate((a, b) => $"{a.ToString()}{Environment.NewLine}{b.ToString()}");
+        return string.Join(Environment.NewLine, Nodes.Select(f => f.ToString()));
     }
 }

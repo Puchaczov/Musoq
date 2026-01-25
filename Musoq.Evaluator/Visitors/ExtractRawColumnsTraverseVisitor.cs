@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -310,6 +311,13 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
+    public void Visit(InterpretFromNode node)
+    {
+        SetQueryPart(QueryPart.From);
+        node.InterpretCall.Accept(this);
+        node.Accept(_visitor);
+    }
+
     public void Visit(AccessMethodFromNode node)
     {
         node.AccessMethod.Accept(this);
@@ -412,6 +420,41 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
     }
 
     public void Visit(HyphenNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BitwiseAndNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BitwiseOrNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BitwiseXorNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(LeftShiftNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(RightShiftNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
@@ -703,6 +746,127 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
 
     public void Visit(FieldLinkNode node)
     {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(InterpretCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(ParseCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(InterpretAtCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Offset.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(TryInterpretCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(TryParseCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(PartialInterpretCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BinarySchemaNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(TextSchemaNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(FieldDefinitionNode node)
+    {
+        node.AtOffset?.Accept(this);
+        node.WhenCondition?.Accept(this);
+        node.Constraint?.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(ComputedFieldNode node)
+    {
+        node.Expression.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(TextFieldDefinitionNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(FieldConstraintNode node)
+    {
+        node.Expression.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(PrimitiveTypeNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(ByteArrayTypeNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(StringTypeNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(SchemaReferenceTypeNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(ArrayTypeNode node)
+    {
+        node.ElementType.Accept(this);
+        node.SizeExpression.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BitsTypeNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(AlignmentNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(RepeatUntilTypeNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(InlineSchemaTypeNode node)
+    {
+        foreach (var field in node.Fields)
+            field.Accept(this);
         node.Accept(_visitor);
     }
 

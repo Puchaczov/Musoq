@@ -71,7 +71,6 @@ public static class NonDeterministicMethodsScanner
         }
         catch (ReflectionTypeLoadException)
         {
-            // Some types may not be loadable; skip them
         }
 
         return methods;

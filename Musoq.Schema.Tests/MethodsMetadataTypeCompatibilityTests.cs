@@ -146,7 +146,7 @@ public class MethodsMetadataTypeCompatibilityTests
         {
         }
 
-        // Method for inheritance tests
+
         public void BaseClassMethod(Animal animal)
         {
         }

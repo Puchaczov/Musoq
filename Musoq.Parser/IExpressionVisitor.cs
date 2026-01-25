@@ -1,5 +1,6 @@
 ﻿using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Parser;
 
@@ -68,6 +69,7 @@ public interface IExpressionVisitor
     void Visit(JoinFromNode node);
     void Visit(ApplyFromNode node);
     void Visit(ExpressionFromNode node);
+    void Visit(InterpretFromNode node);
     void Visit(SchemaMethodFromNode node);
     void Visit(PropertyFromNode node);
     void Visit(AccessMethodFromNode node);
@@ -103,4 +105,36 @@ public interface IExpressionVisitor
     void Visit(ThenNode node);
     void Visit(ElseNode node);
     void Visit(FieldLinkNode node);
+
+    // Bitwise operator nodes
+    void Visit(BitwiseAndNode node);
+    void Visit(BitwiseOrNode node);
+    void Visit(BitwiseXorNode node);
+    void Visit(LeftShiftNode node);
+    void Visit(RightShiftNode node);
+
+    // Interpret/Parse call nodes
+    void Visit(InterpretCallNode node);
+    void Visit(ParseCallNode node);
+    void Visit(InterpretAtCallNode node);
+    void Visit(TryInterpretCallNode node);
+    void Visit(TryParseCallNode node);
+    void Visit(PartialInterpretCallNode node);
+
+    // Interpretation Schema nodes
+    void Visit(BinarySchemaNode node);
+    void Visit(TextSchemaNode node);
+    void Visit(FieldDefinitionNode node);
+    void Visit(TextFieldDefinitionNode node);
+    void Visit(ComputedFieldNode node);
+    void Visit(FieldConstraintNode node);
+    void Visit(PrimitiveTypeNode node);
+    void Visit(ByteArrayTypeNode node);
+    void Visit(StringTypeNode node);
+    void Visit(SchemaReferenceTypeNode node);
+    void Visit(ArrayTypeNode node);
+    void Visit(BitsTypeNode node);
+    void Visit(AlignmentNode node);
+    void Visit(RepeatUntilTypeNode node);
+    void Visit(InlineSchemaTypeNode node);
 }

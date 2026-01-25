@@ -1039,7 +1039,7 @@ public class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.AreEqual(4, table.Columns.Count(), "Should have 4 columns: Method, Description, Category, and Source");
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
     }
 
@@ -1055,7 +1055,7 @@ public class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.AreEqual(4, table.Columns.Count(), "Should have 4 columns: Method, Description, Category, and Source");
         Assert.IsGreaterThan(0, table.Count, "Should return at least one library method");
     }
 
@@ -1071,7 +1071,7 @@ public class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.AreEqual(4, table.Columns.Count(), "Should have 4 columns: Method, Description, Category, and Source");
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
     }
 

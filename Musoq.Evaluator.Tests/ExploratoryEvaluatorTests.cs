@@ -6,13 +6,108 @@ using Musoq.Evaluator.Tests.Schema.Generic;
 namespace Musoq.Evaluator.Tests;
 
 /// <summary>
-/// Exploratory tests to discover edge cases and potential bugs in the evaluator.
-/// These tests focus on complex query patterns, unusual combinations, and boundary conditions.
+///     Exploratory tests to discover edge cases and potential bugs in the evaluator.
+///     These tests focus on complex query patterns, unusual combinations, and boundary conditions.
 /// </summary>
 [TestClass]
 public class ExploratoryEvaluatorTests : GenericEntityTestBase
 {
     public TestContext TestContext { get; set; }
+
+    #region Exploration 12: Union with Cross Apply
+
+    [TestMethod]
+    public void Explore12_CrossApply_WithUnion_ShouldWork()
+    {
+        const string query = @"
+            select
+                p.Name,
+                t.Value
+            from #schema.first() p
+            cross apply p.Tags t
+            where p.Age > 25
+            union all (Name, Value)
+            select
+                p.Name,
+                t.Value
+            from #schema.first() p
+            cross apply p.Tags t
+            where p.Age <= 25";
+
+        var source = new List<Person>
+        {
+            new() { Name = "John", Age = 30, Tags = ["older"] },
+            new() { Name = "Jane", Age = 20, Tags = ["younger"] }
+        }.ToArray();
+
+        var vm = CreateAndRunVirtualMachine(query, source);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.IsNotNull(table);
+
+        Assert.AreEqual(2, table.Count);
+
+        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "John" && (string)r.Values[1] == "older"));
+        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Jane" && (string)r.Values[1] == "younger"));
+    }
+
+    #endregion
+
+    #region Exploration 13: Self-referential and Manager patterns
+
+    [TestMethod]
+    public void Explore13_CrossApply_OnSameArrayTwice_ShouldWork()
+    {
+        const string query = @"
+            select t1.Value as First, t2.Value as Second
+            from #schema.first() p
+            cross apply p.Tags t1
+            cross apply p.Tags t2
+            where t1.Value <> t2.Value";
+
+        var source = new List<Person>
+        {
+            new() { Name = "John", Age = 30, Tags = ["a", "b", "c"] }
+        }.ToArray();
+
+        var vm = CreateAndRunVirtualMachine(query, source);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.IsNotNull(table);
+        Assert.AreEqual(6, table.Count);
+    }
+
+    #endregion
+
+    #region Exploration 18: Complex join conditions
+
+    [TestMethod]
+    public void Explore18_CrossApply_JoinWithComplexCondition_ShouldWork()
+    {
+        const string query = @"
+            select p.Name, t.Value, o.OrderId
+            from #schema.first() p
+            cross apply p.Tags t
+            inner join #schema.second() o on p.Name = o.CustomerName and o.Total > 50";
+
+        var persons = new List<Person>
+        {
+            new() { Name = "John", Age = 30, Tags = ["vip"] }
+        }.ToArray();
+
+        var orders = new List<Order>
+        {
+            new() { OrderId = 1, CustomerName = "John", Total = 100 },
+            new() { OrderId = 2, CustomerName = "John", Total = 30 }
+        }.ToArray();
+
+        var vm = CreateAndRunVirtualMachine(query, persons, orders);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.IsNotNull(table);
+    }
+
+    #endregion
 
     #region Test Data Classes
 
@@ -76,7 +171,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // "John" and "Doe"
+        Assert.AreEqual(2, table.Count);
     }
 
     [TestMethod]
@@ -117,7 +212,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(6, table.Count); // 2 tags * 3 scores = 6 rows
+        Assert.AreEqual(6, table.Count);
     }
 
     #endregion
@@ -134,11 +229,11 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Person>
         {
-            new() 
-            { 
-                Name = "John", 
-                Age = 30, 
-                Addresses = [new Address { City = "NYC", Street = "Broadway" }] 
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Addresses = [new Address { City = "NYC", Street = "Broadway" }]
             }
         }.ToArray();
 
@@ -160,14 +255,15 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Person>
         {
-            new() 
-            { 
-                Name = "John", 
-                Age = 30, 
-                Addresses = [
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Addresses =
+                [
                     new Address { City = "NYC", Street = "Broadway", PhoneNumbers = ["111", "222"] },
                     new Address { City = "LA", Street = "Hollywood", PhoneNumbers = ["333"] }
-                ] 
+                ]
             }
         }.ToArray();
 
@@ -175,7 +271,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count); // NYC has 2 phones, LA has 1 phone = 3 rows
+        Assert.AreEqual(3, table.Count);
     }
 
     [TestMethod]
@@ -189,14 +285,15 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<TreeNode>
         {
-            new() 
-            { 
-                Id = 1, 
+            new()
+            {
+                Id = 1,
                 Value = "Root",
-                Children = [
-                    new TreeNode 
-                    { 
-                        Id = 2, 
+                Children =
+                [
+                    new TreeNode
+                    {
+                        Id = 2,
                         Value = "Child1",
                         Children = [new TreeNode { Id = 3, Value = "Grandchild1" }]
                     }
@@ -254,7 +351,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // tag 'a' with scores 3 and 4
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -366,8 +463,8 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Scores = [1, 2, 3] },      // Total 6
-            new() { Name = "Jane", Age = 25, Scores = [10, 20, 30] }    // Total 60
+            new() { Name = "John", Age = 30, Scores = [1, 2, 3] },
+            new() { Name = "Jane", Age = 25, Scores = [10, 20, 30] }
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -444,7 +541,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var persons = new List<Person>
         {
             new() { Name = "John", Age = 30, Tags = ["vip"] },
-            new() { Name = "Jane", Age = 25, Tags = ["new"] }  // No matching order
+            new() { Name = "Jane", Age = 25, Tags = ["new"] }
         }.ToArray();
 
         var orders = new List<Order>
@@ -472,14 +569,14 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = [] }  // Empty tags
+            new() { Name = "John", Age = 30, Tags = [] }
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);  // Should have one row with null tag
+        Assert.AreEqual(1, table.Count);
     }
 
     [TestMethod]
@@ -492,7 +589,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = null }  // Null tags
+            new() { Name = "John", Age = 30, Tags = null }
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -512,7 +609,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["a"], Scores = [] }  // Has tags but no scores
+            new() { Name = "John", Age = 30, Tags = ["a"], Scores = [] }
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -664,7 +761,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore10_CrossApply_WithComplexSelectExpressions_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name + ' - ' + t.Value as Combined,
                 Length(t.Value) as TagLength,
                 p.Age * 2 as DoubleAge
@@ -687,7 +784,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore10_CrossApply_WithCaseWhen_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 case when s.Value > 50 then 'High' else 'Low' end as ScoreLevel
             from #schema.first() p
@@ -709,7 +806,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore10_CrossApply_WithCoalesce_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 Coalesce(t.Value, 'NoTag') as TagOrDefault
             from #schema.first() p
@@ -740,15 +837,15 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Tags = ["a", "b", "a"] },  // Duplicate 'a'
-            new() { Name = "Jane", Age = 25, Tags = ["b", "c"] }       // Another 'b'
+            new() { Name = "John", Age = 30, Tags = ["a", "b", "a"] },
+            new() { Name = "Jane", Age = 25, Tags = ["b", "c"] }
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count);  // a, b, c
+        Assert.AreEqual(3, table.Count);
     }
 
     [TestMethod]
@@ -758,7 +855,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
             select distinct p.Name, t.Value
             from #schema.first() p
             cross apply p.Tags t
-            cross apply p.Tags t2";  // Cartesian product of tags
+            cross apply p.Tags t2";
 
         var source = new List<Person>
         {
@@ -773,70 +870,13 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
     #endregion
 
-    #region Exploration 12: Union with Cross Apply
-
-    [TestMethod]
-    [Ignore("UNION with cross apply requires key columns - potential design limitation")]
-    public void Explore12_CrossApply_WithUnion_ShouldWork()
-    {
-        const string query = @"
-            select p.Name, t.Value
-            from #schema.first() p
-            cross apply p.Tags t
-            where p.Age > 25
-            union all
-            select p.Name, t.Value
-            from #schema.first() p
-            cross apply p.Tags t
-            where p.Age <= 25";
-
-        var source = new List<Person>
-        {
-            new() { Name = "John", Age = 30, Tags = ["older"] },
-            new() { Name = "Jane", Age = 20, Tags = ["younger"] }
-        }.ToArray();
-
-        var vm = CreateAndRunVirtualMachine(query, source);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.IsNotNull(table);
-    }
-
-    #endregion
-
-    #region Exploration 13: Self-referential and Manager patterns
-
-    [TestMethod]
-    public void Explore13_CrossApply_OnSameArrayTwice_ShouldWork()
-    {
-        const string query = @"
-            select t1.Value as First, t2.Value as Second
-            from #schema.first() p
-            cross apply p.Tags t1
-            cross apply p.Tags t2
-            where t1.Value <> t2.Value";
-
-        var source = new List<Person>
-        {
-            new() { Name = "John", Age = 30, Tags = ["a", "b", "c"] }
-        }.ToArray();
-
-        var vm = CreateAndRunVirtualMachine(query, source);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.IsNotNull(table);
-        Assert.AreEqual(6, table.Count);  // 3*3 - 3 (excluding same pairs) = 6
-    }
-
-    #endregion
-
     #region Exploration 14: Aggregation edge cases
 
     [TestMethod]
     public void Explore14_CrossApply_WithMultipleAggregates_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 Count(s.Value) as ScoreCount,
                 Sum(s.Value) as TotalScore,
@@ -863,7 +903,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore14_CrossApply_AggregateWithoutGroupBy_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 Count(s.Value) as TotalScores
             from #schema.first() p
             cross apply p.Scores s";
@@ -879,7 +919,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(5, (int)table[0].Values[0]);  // 3 + 2 = 5 scores total
+        Assert.AreEqual(5, (int)table[0].Values[0]);
     }
 
     #endregion
@@ -941,7 +981,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
             from #schema.first() p
             cross apply p.Tags t";
 
-        var source = new List<Person>().ToArray();  // Empty source
+        var source = new List<Person>().ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
@@ -968,7 +1008,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(0, table.Count);  // Cross apply with empty arrays produces no rows
+        Assert.AreEqual(0, table.Count);
     }
 
     #endregion
@@ -981,7 +1021,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         const string query = @"
             select p.Name, Name.Value
             from #schema.first() p
-            cross apply p.Tags Name";  // Alias 'Name' same as column 'Name'
+            cross apply p.Tags Name";
 
         var source = new List<Person>
         {
@@ -1015,36 +1055,6 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
     #endregion
 
-    #region Exploration 18: Complex join conditions
-
-    [TestMethod]
-    public void Explore18_CrossApply_JoinWithComplexCondition_ShouldWork()
-    {
-        const string query = @"
-            select p.Name, t.Value, o.OrderId
-            from #schema.first() p
-            cross apply p.Tags t
-            inner join #schema.second() o on p.Name = o.CustomerName and o.Total > 50";
-
-        var persons = new List<Person>
-        {
-            new() { Name = "John", Age = 30, Tags = ["vip"] }
-        }.ToArray();
-
-        var orders = new List<Order>
-        {
-            new() { OrderId = 1, CustomerName = "John", Total = 100 },
-            new() { OrderId = 2, CustomerName = "John", Total = 30 }  // Won't match
-        }.ToArray();
-
-        var vm = CreateAndRunVirtualMachine(query, persons, orders);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.IsNotNull(table);
-    }
-
-    #endregion
-
     #region Exploration 19: Order items cross apply
 
     [TestMethod]
@@ -1057,12 +1067,13 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var orders = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
-                CustomerName = "John", 
+            new()
+            {
+                OrderId = 1,
+                CustomerName = "John",
                 Total = 100,
-                Items = [
+                Items =
+                [
                     new OrderItem { ProductName = "Widget", Quantity = 2, Price = 25 },
                     new OrderItem { ProductName = "Gadget", Quantity = 1, Price = 50 }
                 ]
@@ -1087,12 +1098,13 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var orders = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
-                CustomerName = "John", 
+            new()
+            {
+                OrderId = 1,
+                CustomerName = "John",
                 Total = 100,
-                Items = [
+                Items =
+                [
                     new OrderItem { ProductName = "Widget", Quantity = 2, Price = 25 },
                     new OrderItem { ProductName = "Gadget", Quantity = 1, Price = 50 }
                 ]
@@ -1104,7 +1116,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(100m, table[0].Values[1]);  // 2*25 + 1*50 = 100
+        Assert.AreEqual(100m, table[0].Values[1]);
     }
 
     #endregion
@@ -1121,7 +1133,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Person>
         {
-            new() { Name = "John", Age = 30, Addresses = null }  // Null addresses
+            new() { Name = "John", Age = 30, Addresses = null }
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -1149,7 +1161,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);  // Only John's tags
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -1264,8 +1276,8 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);  // 2 tags
-        Assert.AreEqual(2, table.Columns.Count());  // Name and UpperTag
+        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual(2, table.Columns.Count());
     }
 
     [TestMethod]
@@ -1364,8 +1376,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count);  // 3 scores
-        // Verify arithmetic operations work - don't check specific column index as order may vary
+        Assert.AreEqual(3, table.Count);
     }
 
     [TestMethod]
@@ -1386,7 +1397,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(120m, table[0].Values[1]);  // (10+20+30)*2 = 120
+        Assert.AreEqual(120m, table[0].Values[1]);
     }
 
     #endregion
@@ -1410,10 +1421,10 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var orders = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
-                CustomerName = "John", 
+            new()
+            {
+                OrderId = 1,
+                CustomerName = "John",
                 Total = 100,
                 Items = [new OrderItem { ProductName = "Widget", Quantity = 1, Price = 100 }]
             }
@@ -1433,7 +1444,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore26_CrossApply_SelectExpressionWithAlias_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name as PersonName,
                 t.Value as TagValue,
                 p.Name + '-' + t.Value as Combined
@@ -1449,10 +1460,8 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        // Find the combined value - column order may vary
-        var foundCombined = false;
-        foreach (var val in table[0].Values)
-            if (val?.ToString() == "John-a") foundCombined = true;
+
+        var foundCombined = table.Any(row => row.Values.Any(val => val?.ToString() == "John-a"));
         Assert.IsTrue(foundCombined, "John-a should be in the result");
     }
 
@@ -1491,7 +1500,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var source = new List<Person>
         {
             new() { Name = "John", Age = 30, Tags = ["a", "b"] },
-            new() { Name = "Jane", Age = 25, Tags = [] },  // Empty - will be filtered
+            new() { Name = "Jane", Age = 25, Tags = [] },
             new() { Name = "Bob", Age = 35, Tags = ["c"] }
         }.ToArray();
 
@@ -1499,7 +1508,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count);  // John has 2, Jane has 0, Bob has 1
+        Assert.AreEqual(3, table.Count);
     }
 
     #endregion
@@ -1613,7 +1622,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var orders = new List<Order>
         {
-            new() { OrderId = 1, CustomerName = "Jane", Total = 100 }  // Different customer
+            new() { OrderId = 1, CustomerName = "Jane", Total = 100 }
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
@@ -1669,14 +1678,14 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var orders = new List<Order>
         {
-            new() { OrderId = 1, CustomerName = "Jane", Total = 100 }  // Different customer
+            new() { OrderId = 1, CustomerName = "Jane", Total = 100 }
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);  // Should have the order with null person
+        Assert.AreEqual(1, table.Count);
     }
 
     #endregion
@@ -1695,7 +1704,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var persons = new List<Person>
         {
             new() { Name = "John", Age = 30 },
-            new() { Name = "Jane", Age = 30 },  // Same age as John
+            new() { Name = "Jane", Age = 30 },
             new() { Name = "Bob", Age = 25 }
         }.ToArray();
 
@@ -1703,7 +1712,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);  // John-Jane and Jane-John
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -1714,7 +1723,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore34_ConditionalCount_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 Count(case when s.Value > 50 then 1 else null end) as HighScoreCount
             from #schema.first() p
@@ -1740,7 +1749,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore35_MultipleAggregatesInSingleQuery_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 Count(s.Value) as ScoreCount,
                 Sum(s.Value) as TotalScore,
@@ -1783,7 +1792,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count);  // John, Doe, Smith
+        Assert.AreEqual(3, table.Count);
     }
 
     #endregion
@@ -1848,7 +1857,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var source = new List<Person>
         {
             new() { Name = "John", Age = 30, Tags = ["a"] },
-            new() { Name = "Jane", Age = 25, Tags = [] }  // Empty tags
+            new() { Name = "Jane", Age = 25, Tags = [] }
         }.ToArray();
 
         var vm = CreateAndRunVirtualMachine(query, source);
@@ -1904,12 +1913,13 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var orders = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
-                CustomerName = "John", 
+            new()
+            {
+                OrderId = 1,
+                CustomerName = "John",
                 Total = 100,
-                Items = [
+                Items =
+                [
                     new OrderItem { ProductName = "Widget", Quantity = 2, Price = 25.50m },
                     new OrderItem { ProductName = "Gadget", Quantity = 3, Price = 15.75m }
                 ]
@@ -1935,7 +1945,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore41_CrossApply_CaseWhenInSelect_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value,
                 case when t.Value = 'admin' then 'Admin User' else 'Regular User' end as UserType
@@ -1958,7 +1968,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore41_CrossApply_CaseWhenWithNull_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 case when p.Tags is null then 'No Tags' else 'Has Tags' end as TagStatus
             from #schema.first() p";
@@ -1984,7 +1994,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore42_MultipleCrossApplies_DifferentArrayTypes_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value as Tag,
                 a.Street
@@ -1994,10 +2004,10 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Person>
         {
-            new() 
-            { 
-                Name = "John", 
-                Age = 30, 
+            new()
+            {
+                Name = "John",
+                Age = 30,
                 Tags = ["vip"],
                 Addresses = [new Address { Street = "123 Main St", City = "NYC" }]
             }
@@ -2007,7 +2017,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count); // 1 tag x 1 address
+        Assert.AreEqual(1, table.Count);
     }
 
     #endregion
@@ -2018,7 +2028,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore43_CrossApply_NestedPropertyAccess_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 o.OrderId,
                 i.ProductName,
                 i.Price * i.Quantity as LineTotal
@@ -2027,10 +2037,10 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
-                Items = 
+            new()
+            {
+                OrderId = 1,
+                Items =
                 [
                     new OrderItem { ProductName = "Widget", Price = 10.00m, Quantity = 2 },
                     new OrderItem { ProductName = "Gadget", Price = 25.50m, Quantity = 1 }
@@ -2053,7 +2063,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore44_CrossApply_CaseWhenNull_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 case when a.City is null then 'Unknown' else a.City end as City
             from #schema.first() p
@@ -2079,7 +2089,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore45_CrossApply_StringFunctions_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 ToUpper(t.Value) as UpperTag,
                 ToLower(t.Value) as LowerTag
@@ -2106,7 +2116,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore46_CrossApply_GroupByHaving_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 Count(t.Value) as TagCount
             from #schema.first() p
@@ -2124,7 +2134,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count); // Only John has more than 1 tag
+        Assert.AreEqual(1, table.Count);
     }
 
     #endregion
@@ -2149,7 +2159,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count); // distinct: a, b, c
+        Assert.AreEqual(3, table.Count);
     }
 
     #endregion
@@ -2160,7 +2170,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore48_CrossApply_NegativeNumbers_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 i.ProductName,
                 -i.Price as NegativePrice,
                 i.Price * -1 as AlsoNegative
@@ -2169,9 +2179,9 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
+            new()
+            {
+                OrderId = 1,
                 Items = [new OrderItem { ProductName = "Widget", Price = 10.00m, Quantity = 1 }]
             }
         }.ToArray();
@@ -2191,7 +2201,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore49_CrossApply_BooleanExpression_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value,
                 t.Value = 'admin' as IsAdmin
@@ -2214,7 +2224,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore49_CrossApply_AndOrExpression_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -2230,7 +2240,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // admin and vip
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -2241,7 +2251,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore50_CrossApply_ToStringConversion_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 ToString(p.Age) as AgeString,
                 p.Age + 0 as AgeNumber
@@ -2263,7 +2273,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore50_CrossApply_DecimalToInt_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 i.ProductName,
                 ToInt32(i.Price) as RoundedPrice
             from #schema.first() o
@@ -2271,9 +2281,9 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
+            new()
+            {
+                OrderId = 1,
                 Items = [new OrderItem { ProductName = "Widget", Price = 10.99m, Quantity = 1 }]
             }
         }.ToArray();
@@ -2296,9 +2306,8 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     [TestMethod]
     public void Explore51_TripleCrossApply_ShouldWork()
     {
-        // Test three levels of cross apply
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value as Tag,
                 a.City
@@ -2309,10 +2318,10 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Person>
         {
-            new() 
-            { 
-                Name = "John", 
-                Age = 30, 
+            new()
+            {
+                Name = "John",
+                Age = 30,
                 Tags = ["vip", "premium"],
                 Addresses = [new Address { City = "NYC" }, new Address { City = "LA" }]
             }
@@ -2322,7 +2331,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // 1 tag (vip) x 2 addresses
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -2333,7 +2342,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore52_SameTableJoinedTwice_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p1.Name as Name1,
                 p2.Name as Name2
             from #schema.first() p1
@@ -2351,7 +2360,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // John-Jane and Jane-John
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -2362,7 +2371,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore53_ArithmeticWithNullValues_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 i.ProductName,
                 i.Price + 0 as PricePlusZero,
                 i.Quantity * 1 as QuantityTimesOne
@@ -2371,9 +2380,9 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
+            new()
+            {
+                OrderId = 1,
                 Items = [new OrderItem { ProductName = "Widget", Price = 10.50m, Quantity = 2 }]
             }
         }.ToArray();
@@ -2393,7 +2402,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore54_MultipleAggregatesWithCrossApply_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 o.OrderId,
                 Sum(i.Price) as TotalPrice,
                 Avg(i.Price) as AvgPrice,
@@ -2405,10 +2414,10 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
-                Items = 
+            new()
+            {
+                OrderId = 1,
+                Items =
                 [
                     new OrderItem { ProductName = "A", Price = 10m, Quantity = 1 },
                     new OrderItem { ProductName = "B", Price = 20m, Quantity = 1 },
@@ -2432,7 +2441,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore55_CrossApply_EmptyArrayWithJoin_ShouldReturnNoRows()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -2449,8 +2458,8 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        // John has no tags, so cross apply produces 0 rows for John
-        // Jane has 1 tag and matches herself, so 1 row
+
+
         Assert.AreEqual(1, table.Count);
     }
 
@@ -2462,7 +2471,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore56_WhereOnCrossAppliedProperty_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 o.OrderId,
                 i.ProductName
             from #schema.first() o
@@ -2471,10 +2480,10 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
-                Items = 
+            new()
+            {
+                OrderId = 1,
+                Items =
                 [
                     new OrderItem { ProductName = "Cheap", Price = 5m, Quantity = 1 },
                     new OrderItem { ProductName = "Expensive", Price = 50m, Quantity = 1 }
@@ -2497,7 +2506,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore57_StringConcatenation_WithNulls_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name + ' - ' + ToString(p.Age) as NameAge
             from #schema.first() p";
 
@@ -2536,7 +2545,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // Age 30 and 25
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -2547,7 +2556,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore59_NotEquals_WithCrossApply_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -2563,7 +2572,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // user, viewer
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -2574,7 +2583,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore60_InClause_WithCrossApply_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -2590,7 +2599,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count); // admin only
+        Assert.AreEqual(1, table.Count);
     }
 
     #endregion
@@ -2605,7 +2614,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore61_Like_WithCrossApply_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -2621,7 +2630,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // admin, administrator
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -2632,7 +2641,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore62_Contains_WithCrossApply_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -2648,7 +2657,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // admin, administrator
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -2659,7 +2668,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore63_MultipleCaseWhen_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 case when p.Age > 50 then 'Senior' when p.Age > 30 then 'Middle' else 'Young' end as AgeGroup,
                 case when p.Tags is not null then 'Has Tags' else 'No Tags' end as TagStatus
@@ -2686,7 +2695,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore64_OrderByWithCrossApplyResult_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -2703,7 +2712,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         Assert.IsNotNull(table);
         Assert.AreEqual(3, table.Count);
-        // Check order (apple, mango, zebra)
+
         Assert.AreEqual("apple", table[0].Values[1]);
     }
 
@@ -2715,7 +2724,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore65_ComplexJoinCondition_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 o.OrderId
             from #schema.first() p
@@ -2737,7 +2746,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count); // Only John (age 30 > 20)
+        Assert.AreEqual(1, table.Count);
     }
 
     #endregion
@@ -2749,7 +2758,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore66_CountDistinct_WithCrossApply_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 Count(distinct t.Value) as UniqueTagCount
             from #schema.first() p
             cross apply p.Tags t";
@@ -2775,7 +2784,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore67_CrossApply_ArrayOfObjects_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 a.Street,
                 a.City
@@ -2784,11 +2793,11 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Person>
         {
-            new() 
-            { 
-                Name = "John", 
-                Age = 30, 
-                Addresses = 
+            new()
+            {
+                Name = "John",
+                Age = 30,
+                Addresses =
                 [
                     new Address { Street = "123 Main", City = "NYC" },
                     new Address { Street = "456 Oak", City = "LA" }
@@ -2811,7 +2820,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore68_TakeWithCrossApply_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -2838,7 +2847,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore69_SkipTakeWithCrossApply_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -2865,7 +2874,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore70_AliasedAggregateInHaving_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Age,
                 Count(p.Name) as NameCount
             from #schema.first() p
@@ -2883,7 +2892,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count); // Only age 30 has 2 people
+        Assert.AreEqual(1, table.Count);
     }
 
     #endregion
@@ -2897,7 +2906,6 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     [TestMethod]
     public void Explore71_SubqueryLikePattern_InnerJoinForExists_ShouldWork()
     {
-        // Simulate EXISTS using inner join
         const string query = @"
             select distinct p.Name
             from #schema.first() p
@@ -2920,7 +2928,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count); // Only John has orders
+        Assert.AreEqual(1, table.Count);
     }
 
     #endregion
@@ -2928,11 +2936,12 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     #region Exploration 72: Complex expression in GROUP BY - Potential Bug
 
     [TestMethod]
-    [Ignore("Potential bug: Complex expressions in GROUP BY may fail with 'Group does not have value' - needs investigation")]
+    [Ignore(
+        "Potential bug: Complex expressions in GROUP BY may fail with 'Group does not have value' - needs investigation")]
     public void Explore72_ComplexExpressionInGroupBy_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Age / 10 * 10 as AgeDecade,
                 Count(p.Name) as PersonCount
             from #schema.first() p
@@ -2949,7 +2958,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // 30s and 40s
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -2976,7 +2985,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         Assert.IsNotNull(table);
         Assert.AreEqual(3, table.Count);
-        // Age 30 first (desc), then Anna before John (asc)
+
         Assert.AreEqual("Anna", table[0].Values[0]);
     }
 
@@ -2988,7 +2997,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore74_ArithmeticInWhere_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 i.ProductName,
                 i.Price * i.Quantity as Total
             from #schema.first() o
@@ -2997,13 +3006,13 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
-                Items = 
+            new()
+            {
+                OrderId = 1,
+                Items =
                 [
-                    new OrderItem { ProductName = "Cheap", Price = 5m, Quantity = 2 }, // 10
-                    new OrderItem { ProductName = "Expensive", Price = 15m, Quantity = 3 } // 45
+                    new OrderItem { ProductName = "Cheap", Price = 5m, Quantity = 2 },
+                    new OrderItem { ProductName = "Expensive", Price = 15m, Quantity = 3 }
                 ]
             }
         }.ToArray();
@@ -3023,7 +3032,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore75_CrossApplyWithParentFilter_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -3040,7 +3049,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count); // John's admin tag only
+        Assert.AreEqual(1, table.Count);
     }
 
     #endregion
@@ -3051,7 +3060,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore76_MultipleStringFunctions_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 ToUpper(p.Name) as Upper,
                 ToLower(p.Name) as Lower,
@@ -3077,9 +3086,8 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     [TestMethod]
     public void Explore77_DateFunctions_ShouldWork()
     {
-        // Use date functions with existing schema
         const string query = @"
-            select 
+            select
                 p.Name,
                 GetDate() as CurrentDate,
                 Year(GetDate()) as CurrentYear
@@ -3105,7 +3113,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore78_OrConditionWithCrossApply_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -3122,7 +3130,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // John's admin + Jane's viewer
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -3133,11 +3141,11 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore79_NestedCaseExpressions_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
-                case 
+                case
                     when p.Age >= 60 then 'Retired'
-                    when p.Age >= 30 then 
+                    when p.Age >= 30 then
                         case when p.Age >= 40 then 'Senior' else 'Adult' end
                     else 'Young'
                 end as Category
@@ -3165,7 +3173,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore80_CrossApplyAfterLeftJoin_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 o.OrderId,
                 t.Value
@@ -3187,7 +3195,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // 1 order x 2 tags
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -3202,7 +3210,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore81_CrossApply_EmptySource_ShouldReturnEmpty()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -3240,7 +3248,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // John (age 30) and Bob (name match)
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -3251,7 +3259,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore83_AggregateWithoutGroupBy_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 Count(p.Name) as TotalPeople,
                 Sum(p.Age) as TotalAge
             from #schema.first() p";
@@ -3277,7 +3285,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore84_SimpleGroupBy_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Age,
                 Count(p.Name) as PersonCount
             from #schema.first() p
@@ -3305,7 +3313,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore85_CrossApply_OrderByAppliedColumn_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 o.OrderId,
                 i.ProductName
             from #schema.first() o
@@ -3314,10 +3322,10 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
-                Items = 
+            new()
+            {
+                OrderId = 1,
+                Items =
                 [
                     new OrderItem { ProductName = "Apple", Price = 1m, Quantity = 1 },
                     new OrderItem { ProductName = "Zebra", Price = 2m, Quantity = 1 }
@@ -3341,7 +3349,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore86_MultipleCrossApplies_WithAggregation_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 Count(t.Value) as TagCount,
                 Count(a.City) as AddressCount
@@ -3352,10 +3360,10 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Person>
         {
-            new() 
-            { 
-                Name = "John", 
-                Age = 30, 
+            new()
+            {
+                Name = "John",
+                Age = 30,
                 Tags = ["a", "b"],
                 Addresses = [new Address { City = "NYC" }]
             }
@@ -3376,7 +3384,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore87_CastFunction_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 ToDecimal(p.Age) * 1.5 as AgeMultiplied
             from #schema.first() p";
@@ -3401,7 +3409,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore88_SubstringFunction_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 Substring(p.Name, 0, 2) as FirstTwo
             from #schema.first() p";
@@ -3426,7 +3434,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore89_ReplaceFunction_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 t.Value,
                 Replace(t.Value, 'a', 'X') as Replaced
             from #schema.first() p
@@ -3452,7 +3460,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore90_TrimFunctions_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 Trim(p.Name) as Trimmed,
                 TrimStart(p.Name) as LeftTrimmed,
@@ -3483,7 +3491,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore91_OuterApply_AllNullArrays_ShouldReturnPersonsWithNulls()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -3499,7 +3507,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // Each person with null value
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -3526,7 +3534,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // John and Jane
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -3537,7 +3545,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore93_SumWithCrossApply_Decimals_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 o.OrderId,
                 Sum(i.Price * i.Quantity) as Total
             from #schema.first() o
@@ -3546,10 +3554,10 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
-                Items = 
+            new()
+            {
+                OrderId = 1,
+                Items =
                 [
                     new OrderItem { ProductName = "A", Price = 10.50m, Quantity = 2 },
                     new OrderItem { ProductName = "B", Price = 5.25m, Quantity = 4 }
@@ -3562,7 +3570,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);
-        // 10.50*2 + 5.25*4 = 21 + 21 = 42
+
         Assert.AreEqual(42m, table[0].Values[1]);
     }
 
@@ -3574,7 +3582,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore94_AvgWithCrossApply_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 o.OrderId,
                 Avg(i.Price) as AvgPrice
             from #schema.first() o
@@ -3583,10 +3591,10 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
-                Items = 
+            new()
+            {
+                OrderId = 1,
+                Items =
                 [
                     new OrderItem { ProductName = "A", Price = 10m, Quantity = 1 },
                     new OrderItem { ProductName = "B", Price = 20m, Quantity = 1 }
@@ -3609,7 +3617,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore95_MixedAggregatesWithWhere_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 o.OrderId,
                 Count(i.ProductName) as ItemCount,
                 Sum(i.Price) as TotalPrice
@@ -3620,10 +3628,10 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
-                Items = 
+            new()
+            {
+                OrderId = 1,
+                Items =
                 [
                     new OrderItem { ProductName = "Cheap", Price = 3m, Quantity = 1 },
                     new OrderItem { ProductName = "Expensive", Price = 15m, Quantity = 1 },
@@ -3661,7 +3669,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        // Only lowercase 'john' should match
+
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("john", table[0].Values[0]);
     }
@@ -3674,7 +3682,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore97_CrossApply_SingleRowSource_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -3700,7 +3708,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore98_JoinWithOrCondition_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 o.OrderId
             from #schema.first() p
@@ -3722,7 +3730,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        // John matches on name for order 1, John (age 2) matches order 2 on age
+
         Assert.AreEqual(2, table.Count);
     }
 
@@ -3734,7 +3742,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore99_StartsWithEndsWith_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 t.Value,
                 StartsWith(t.Value, 'a') as StartsWithA,
                 EndsWith(t.Value, 'le') as EndsWithLE
@@ -3761,7 +3769,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore100_ConcatFunction_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 Concat(p.Name, '-', ToString(p.Age)) as Combined
             from #schema.first() p";
@@ -3790,7 +3798,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore101_IsNullCheck_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 p.Tags is null as HasNoTags
             from #schema.first() p";
@@ -3816,7 +3824,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore102_IsNotNullCheck_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name
             from #schema.first() p
             where p.Tags is not null";
@@ -3843,7 +3851,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore103_CrossApply_WhereOnBothSources_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -3860,7 +3868,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count); // Only John's admin tag
+        Assert.AreEqual(1, table.Count);
     }
 
     #endregion
@@ -3871,7 +3879,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore104_AbsFunction_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Age,
                 Abs(p.Age - 35) as DistanceFrom35
             from #schema.first() p";
@@ -3897,7 +3905,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore105_RoundFunction_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 i.ProductName,
                 i.Price,
                 Round(i.Price, 0) as RoundedPrice
@@ -3906,10 +3914,10 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
-                Items = 
+            new()
+            {
+                OrderId = 1,
+                Items =
                 [
                     new OrderItem { ProductName = "A", Price = 10.49m, Quantity = 1 },
                     new OrderItem { ProductName = "B", Price = 10.51m, Quantity = 1 }
@@ -3932,7 +3940,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore106_Floor_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 i.ProductName,
                 i.Price,
                 Floor(i.Price) as FloorPrice
@@ -3941,9 +3949,9 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
+            new()
+            {
+                OrderId = 1,
                 Items = [new OrderItem { ProductName = "A", Price = 10.5m, Quantity = 1 }]
             }
         }.ToArray();
@@ -3963,7 +3971,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore107_CrossApply_ComputedFilter_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 o.OrderId,
                 i.ProductName,
                 i.Price * i.Quantity as LineTotal
@@ -3973,13 +3981,13 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         var source = new List<Order>
         {
-            new() 
-            { 
-                OrderId = 1, 
-                Items = 
+            new()
+            {
+                OrderId = 1,
+                Items =
                 [
-                    new OrderItem { ProductName = "Small", Price = 5m, Quantity = 2 }, // 10
-                    new OrderItem { ProductName = "Big", Price = 10m, Quantity = 3 } // 30
+                    new OrderItem { ProductName = "Small", Price = 5m, Quantity = 2 },
+                    new OrderItem { ProductName = "Big", Price = 10m, Quantity = 3 }
                 ]
             }
         }.ToArray();
@@ -3999,7 +4007,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore108_CrossApply_Skip_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -4015,7 +4023,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // c, d
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -4026,7 +4034,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore109_CrossApply_SkipAndTake_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 t.Value
             from #schema.first() p
@@ -4042,7 +4050,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count); // b, c
+        Assert.AreEqual(2, table.Count);
     }
 
     #endregion
@@ -4053,7 +4061,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     public void Explore110_ComplexCombinedQuery_ShouldWork()
     {
         const string query = @"
-            select 
+            select
                 p.Name,
                 ToUpper(t.Value) as TagUpper,
                 p.Age * 2 as DoubleAge

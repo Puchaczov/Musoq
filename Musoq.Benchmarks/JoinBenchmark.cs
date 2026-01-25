@@ -46,8 +46,8 @@ public class JoinBenchmark
         }
 
         var script = $@"
-                select 
-                    a.Name, 
+                select
+                    a.Name,
                     b.Country
                 from #test.entities() a
                 {joinClause} #test.entities() b on a.Id = b.Id";

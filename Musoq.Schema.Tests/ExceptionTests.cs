@@ -1,6 +1,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.Exceptions;
+using Musoq.Schema.Interpreters;
 
 namespace Musoq.Schema.Tests;
 
@@ -324,6 +325,208 @@ public class ExceptionTests
         }
 
         Assert.IsTrue(exceptionCaught);
+    }
+
+    #endregion
+
+    #region ParseException Tests
+
+    [TestMethod]
+    public void ParseException_BasicConstructor_ShouldSetAllProperties()
+    {
+        var ex = new ParseException(
+            ParseErrorCode.InsufficientData,
+            "TestSchema",
+            "TestField",
+            42,
+            "Not enough bytes");
+
+        Assert.AreEqual(ParseErrorCode.InsufficientData, ex.ErrorCode);
+        Assert.AreEqual("TestSchema", ex.SchemaName);
+        Assert.AreEqual("TestField", ex.FieldName);
+        Assert.AreEqual(42, ex.Position);
+        Assert.AreEqual("Not enough bytes", ex.Details);
+    }
+
+    [TestMethod]
+    public void ParseException_FormattedErrorCode_ShouldFormatCorrectly()
+    {
+        var ex = new ParseException(
+            ParseErrorCode.InsufficientData,
+            "Schema",
+            null,
+            0,
+            "details");
+
+        Assert.AreEqual("ISE0001", ex.FormattedErrorCode);
+    }
+
+    [TestMethod]
+    public void ParseException_FormattedErrorCode_ShouldPadToFourDigits()
+    {
+        var testCases = new (ParseErrorCode code, string expected)[]
+        {
+            (ParseErrorCode.InsufficientData, "ISE0001"),
+            (ParseErrorCode.ValidationFailed, "ISE0002"),
+            (ParseErrorCode.PatternMismatch, "ISE0003"),
+            (ParseErrorCode.LiteralMismatch, "ISE0004"),
+            (ParseErrorCode.DelimiterNotFound, "ISE0005"),
+            (ParseErrorCode.ExpectedDelimiter, "ISE0006"),
+            (ParseErrorCode.InvalidSize, "ISE0007"),
+            (ParseErrorCode.InvalidPosition, "ISE0008"),
+            (ParseErrorCode.MaxIterationsExceeded, "ISE0009"),
+            (ParseErrorCode.EncodingError, "ISE0010"),
+            (ParseErrorCode.ExpectedWhitespace, "ISE0011"),
+            (ParseErrorCode.NoAlternativeMatched, "ISE0012"),
+            (ParseErrorCode.InvalidSchemaReference, "ISE0013"),
+            (ParseErrorCode.FieldReferenceError, "ISE0014"),
+            (ParseErrorCode.GeneralError, "ISE0015")
+        };
+
+        foreach (var (code, expected) in testCases)
+        {
+            var ex = new ParseException(code, "Schema", null, 0, "details");
+            Assert.AreEqual(expected, ex.FormattedErrorCode, $"Error code {code} should format as {expected}");
+        }
+    }
+
+    [TestMethod]
+    public void ParseException_Message_ShouldIncludeAllComponents()
+    {
+        var ex = new ParseException(
+            ParseErrorCode.PatternMismatch,
+            "BinaryHeader",
+            "MagicNumber",
+            16,
+            "Expected 0x4D5A but found 0x0000");
+
+        Assert.Contains("ISE0003", ex.Message);
+        Assert.Contains("BinaryHeader", ex.Message);
+        Assert.Contains("MagicNumber", ex.Message);
+        Assert.Contains("16", ex.Message);
+        Assert.Contains("Expected 0x4D5A but found 0x0000", ex.Message);
+    }
+
+    [TestMethod]
+    public void ParseException_WithNullFieldName_ShouldNotIncludeFieldPart()
+    {
+        var ex = new ParseException(
+            ParseErrorCode.InvalidSize,
+            "TestSchema",
+            null,
+            0,
+            "Size was negative");
+
+        Assert.Contains("TestSchema", ex.Message);
+        Assert.DoesNotContain("TestSchema.", ex.Message);
+    }
+
+    [TestMethod]
+    public void ParseException_WithFieldName_ShouldIncludeFieldPart()
+    {
+        var ex = new ParseException(
+            ParseErrorCode.InvalidSize,
+            "TestSchema",
+            "Length",
+            0,
+            "Size was negative");
+
+        Assert.Contains("TestSchema.Length", ex.Message);
+    }
+
+    [TestMethod]
+    public void ParseException_WithInnerException_ShouldPreserveInnerException()
+    {
+        var innerException = new InvalidOperationException("Inner failure");
+        var ex = new ParseException(
+            ParseErrorCode.EncodingError,
+            "TextSchema",
+            "Content",
+            100,
+            "UTF-8 decoding failed",
+            innerException);
+
+        Assert.IsNotNull(ex.InnerException);
+        Assert.IsInstanceOfType<InvalidOperationException>(ex.InnerException);
+        Assert.AreEqual("Inner failure", ex.InnerException.Message);
+    }
+
+    [TestMethod]
+    public void ParseException_IsException()
+    {
+        var ex = new ParseException(
+            ParseErrorCode.GeneralError,
+            "Schema",
+            null,
+            0,
+            "General error");
+
+        Assert.IsInstanceOfType<Exception>(ex);
+    }
+
+    [TestMethod]
+    public void ParseException_CanBeCaughtAsException()
+    {
+        var exceptionCaught = false;
+
+        try
+        {
+            throw new ParseException(
+                ParseErrorCode.DelimiterNotFound,
+                "LogSchema",
+                "Timestamp",
+                0,
+                "Expected ':' delimiter");
+        }
+        catch (Exception ex)
+        {
+            exceptionCaught = true;
+            Assert.IsInstanceOfType<ParseException>(ex);
+        }
+
+        Assert.IsTrue(exceptionCaught);
+    }
+
+    [TestMethod]
+    public void ParseException_Position_CanBeZero()
+    {
+        var ex = new ParseException(
+            ParseErrorCode.InsufficientData,
+            "Schema",
+            null,
+            0,
+            "Empty input");
+
+        Assert.AreEqual(0, ex.Position);
+    }
+
+    [TestMethod]
+    public void ParseException_Position_CanBeLargeValue()
+    {
+        var ex = new ParseException(
+            ParseErrorCode.InsufficientData,
+            "Schema",
+            null,
+            1_000_000,
+            "Unexpected end of file");
+
+        Assert.AreEqual(1_000_000, ex.Position);
+    }
+
+    [TestMethod]
+    public void ParseException_AllErrorCodes_ShouldCreateValidException()
+    {
+        var errorCodes = (ParseErrorCode[])Enum.GetValues(typeof(ParseErrorCode));
+
+        foreach (var code in errorCodes)
+        {
+            var ex = new ParseException(code, "TestSchema", "TestField", 0, "Test details");
+
+            Assert.IsNotNull(ex);
+            Assert.AreEqual(code, ex.ErrorCode);
+            Assert.IsFalse(string.IsNullOrEmpty(ex.Message));
+            Assert.IsFalse(string.IsNullOrEmpty(ex.FormattedErrorCode));
+        }
     }
 
     #endregion

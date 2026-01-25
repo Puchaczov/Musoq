@@ -116,7 +116,7 @@ public static class ClassEmitter
     {
         return SyntaxFactory.ParseSyntaxTree(
             formattedCode.ToFullString(),
-            new CSharpParseOptions(LanguageVersion.CSharp8),
+            new CSharpParseOptions(LanguageVersion.CSharp11),
             null,
             Encoding.ASCII);
     }

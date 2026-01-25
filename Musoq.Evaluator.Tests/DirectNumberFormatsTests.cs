@@ -79,7 +79,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0o17 % 0o5", 0L);
     }
 
-    // Edge cases with zero values
+
     [TestMethod]
     public void ZeroValues_AllFormats()
     {
@@ -97,7 +97,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0o77 * 0o0", 0L);
     }
 
-    // Precedence and associativity tests
+
     [TestMethod]
     public void OperatorPrecedence_MultiplicationFirst()
     {
@@ -122,7 +122,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0x10 - 0x5 - 0x2", 9L);
     }
 
-    // Complex nested expressions
+
     [TestMethod]
     public void NestedParentheses_ComplexExpression()
     {
@@ -135,7 +135,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("(((0x10 + 0b10) * 0o2) - (0xFF / 0x5)) / 0b11", -5L);
     }
 
-    // Single digit values
+
     [TestMethod]
     public void SingleDigit_HexValues()
     {
@@ -161,7 +161,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0o7", 7L);
     }
 
-    // Large values testing
+
     [TestMethod]
     public void LargeValues_Hexadecimal()
     {
@@ -183,7 +183,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0o177777", 65535L);
     }
 
-    // Mixed case variations
+
     [TestMethod]
     public void MixedCase_AllVariations()
     {
@@ -203,7 +203,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0o77 + 0O77", 126L);
     }
 
-    // Cross-format arithmetic comprehensive tests
+
     [TestMethod]
     public void CrossFormat_HexAndBinary_AllOperations()
     {
@@ -234,7 +234,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0b11111111 % 0o77", 3L);
     }
 
-    // Integration with regular integers
+
     [TestMethod]
     public void MixedWithRegularIntegers_Addition()
     {
@@ -253,23 +253,20 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("100 - (0xFF - 0b101) + 0o10", -142L);
     }
 
-    // Division by zero and other edge conditions
+
     [TestMethod]
     public void DivisionByZero_ShouldHandleCorrectly()
     {
-        // Note: These might throw exceptions or return special values
-
         try
         {
             TestMethodTemplate<long?>("0xFF / 0x0", null);
         }
         catch
         {
-            // Expected behavior for division by zero
         }
     }
 
-    // Negative results (subtracting larger from smaller)
+
     [TestMethod]
     public void NegativeResults_SubtractionOperations()
     {
@@ -278,7 +275,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0o7 - 0o77", -56L);
     }
 
-    // Chained operations
+
     [TestMethod]
     public void ChainedOperations_SameFormat()
     {
@@ -294,7 +291,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0xFF * 0b10 / 0o4 + 1", 128L);
     }
 
-    // Powers of 2 and common values
+
     [TestMethod]
     public void PowersOfTwo_AllFormats()
     {
@@ -329,7 +326,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0o400", 256L);
     }
 
-    // Boundary values
+
     [TestMethod]
     public void BoundaryValues_MaxSingleDigits()
     {
@@ -346,7 +343,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0o7 + 0o1", 8L);
     }
 
-    // Comprehensive format equivalence tests
+
     [TestMethod]
     public void FormatEquivalence_SameValues()
     {
@@ -369,7 +366,7 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("15 + 1", 16);
     }
 
-    // Overflow Protection Tests
+
     [TestMethod]
     public void HexadecimalOverflow_TooLargeForLong()
     {
@@ -393,7 +390,8 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
     public void MaximumValidValues_HexBinaryOctal()
     {
         TestMethodTemplate("0x7FFFFFFFFFFFFFFF", 9223372036854775807L);
-        TestMethodTemplate("0b111111111111111111111111111111111111111111111111111111111111111", 9223372036854775807L);
+        TestMethodTemplate("0b111111111111111111111111111111111111111111111111111111111111111",
+            9223372036854775807L);
         TestMethodTemplate("0o777777777777777777777", 9223372036854775807L);
     }
 
@@ -419,12 +417,13 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
         TestMethodTemplate("0o1", 1L);
     }
 
-    // Underflow Protection and Boundary Tests
+
     [TestMethod]
     public void MinimumValidValues_HexBinaryOctal()
     {
         TestMethodTemplate("0x8000000000000000", -9223372036854775808L);
-        TestMethodTemplate("0b1000000000000000000000000000000000000000000000000000000000000000", -9223372036854775808L);
+        TestMethodTemplate("0b1000000000000000000000000000000000000000000000000000000000000000",
+            -9223372036854775808L);
         TestMethodTemplate("0o1000000000000000000000", -9223372036854775808L);
     }
 
@@ -464,8 +463,6 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
     [TestMethod]
     public void SignedValueInterpretation_ConsistencyTests()
     {
-        // Note: Convert.ToInt64() treats values as unsigned until they exceed long range
-
         TestMethodTemplate("0x80000000", 2147483648L);
         TestMethodTemplate("0b10000000000000000000000000000000", 2147483648L);
         TestMethodTemplate("0o20000000000", 2147483648L);

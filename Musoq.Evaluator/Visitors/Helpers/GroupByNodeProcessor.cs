@@ -135,14 +135,14 @@ public static class GroupByNodeProcessor
         for (var i = 0; i < groupFields.Names.Length - 1; i++)
         {
             var fieldName =
-                $"new string[]{{{groupFields.Names.Where((f, idx) => idx <= i).Select(f => $"@\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
+                $"new string[]{{{string.Join(",", groupFields.Names.Where((f, idx) => idx <= i).Select(f => $"@\"{f}\""))}}}";
             fieldNames.Append(fieldName);
             fieldNames.Append(',');
         }
 
 
         var lastFieldName =
-            $"new string[]{{{groupFields.Names.Select(f => $"@\"{f}\"").Aggregate((a, b) => a + "," + b)}}}";
+            $"new string[]{{{string.Join(",", groupFields.Names.Select(f => $"@\"{f}\""))}}}";
         fieldNames.Append(lastFieldName);
         fieldNames.Append("};");
 

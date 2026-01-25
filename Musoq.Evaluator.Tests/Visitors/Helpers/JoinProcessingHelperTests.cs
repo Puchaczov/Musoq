@@ -64,7 +64,7 @@ public class JoinProcessingHelperTests
         Assert.IsInstanceOfType(result, typeof(BlockSyntax));
         Assert.IsGreaterThan(0, result.Statements.Count, "Block should contain statements");
 
-        // Verify the structure contains a foreach statement (the outer join loop)
+
         var firstStatement = result.Statements[0];
         Assert.IsInstanceOfType(firstStatement, typeof(ForEachStatementSyntax),
             "First statement should be a foreach loop");
@@ -73,7 +73,6 @@ public class JoinProcessingHelperTests
     [TestMethod]
     public void ProcessInnerJoin_NullNode_ThrowsArgumentNullException()
     {
-        // Arrange
         StatementSyntax GetRowsSourceOrEmpty(string alias)
         {
             return SyntaxFactory.EmptyStatement();
@@ -84,7 +83,7 @@ public class JoinProcessingHelperTests
             return SyntaxFactory.EmptyStatement();
         }
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             JoinProcessingHelper.ProcessInnerJoin(
                 null,
@@ -98,7 +97,6 @@ public class JoinProcessingHelperTests
     [TestMethod]
     public void ProcessInnerJoin_NullIfStatement_ThrowsArgumentNullException()
     {
-        // Arrange
         StatementSyntax GetRowsSourceOrEmpty(string alias)
         {
             return SyntaxFactory.EmptyStatement();
@@ -109,10 +107,10 @@ public class JoinProcessingHelperTests
             return SyntaxFactory.EmptyStatement();
         }
 
-        // Create a minimal join node for this test
+
         var mockJoinNode = CreateMockJoinNode();
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             JoinProcessingHelper.ProcessInnerJoin(
                 mockJoinNode,
@@ -126,7 +124,6 @@ public class JoinProcessingHelperTests
     [TestMethod]
     public void ProcessInnerJoin_NullGenerator_ThrowsArgumentNullException()
     {
-        // Arrange
         StatementSyntax GetRowsSourceOrEmpty(string alias)
         {
             return SyntaxFactory.EmptyStatement();
@@ -137,10 +134,10 @@ public class JoinProcessingHelperTests
             return SyntaxFactory.EmptyStatement();
         }
 
-        // Create a minimal join node for this test
+
         var mockJoinNode = CreateMockJoinNode();
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             JoinProcessingHelper.ProcessInnerJoin(
                 mockJoinNode,
@@ -154,16 +151,15 @@ public class JoinProcessingHelperTests
     [TestMethod]
     public void ProcessInnerJoin_NullGetRowsSourceOrEmpty_ThrowsArgumentNullException()
     {
-        // Arrange
         StatementSyntax GenerateCancellationExpression()
         {
             return SyntaxFactory.EmptyStatement();
         }
 
-        // Create a minimal join node for this test
+
         var mockJoinNode = CreateMockJoinNode();
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             JoinProcessingHelper.ProcessInnerJoin(
                 mockJoinNode,
@@ -177,16 +173,15 @@ public class JoinProcessingHelperTests
     [TestMethod]
     public void ProcessInnerJoin_NullGenerateCancellationExpression_ThrowsArgumentNullException()
     {
-        // Arrange
         StatementSyntax GetRowsSourceOrEmpty(string alias)
         {
             return SyntaxFactory.EmptyStatement();
         }
 
-        // Create a minimal join node for this test
+
         var mockJoinNode = CreateMockJoinNode();
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             JoinProcessingHelper.ProcessInnerJoin(
                 mockJoinNode,

@@ -16,13 +16,13 @@ public class CrossApplyMixedTests : GenericEntityTestBase
     public void CrossApply_SchemaAndProperty_WithNestedProperty()
     {
         const string query = @"
-        select 
-            a.City, 
-            b.Country, 
-            c.StreetName, 
-            c.HouseNumber 
-        from #schema.first() a 
-        cross apply #schema.second(a.Country) b 
+        select
+            a.City,
+            b.Country,
+            c.StreetName,
+            c.HouseNumber
+        from #schema.first() a
+        cross apply #schema.second(a.Country) b
         cross apply b.Addresses c";
 
         var firstSource = new CrossApplyClass1[]
@@ -110,14 +110,14 @@ public class CrossApplyMixedTests : GenericEntityTestBase
     public void CrossApply_SchemaAndMethod_WithComplexObjects()
     {
         const string query = @"
-        select 
+        select
             a.Department,
             a.Budget,
-            b.Name, 
+            b.Name,
             b.Salary,
             c.Value
-        from #schema.first() a 
-        cross apply #schema.second(a.Department) b 
+        from #schema.first() a
+        cross apply #schema.second(a.Department) b
         cross apply b.Distinct(b.Skills) c";
 
         var firstSource = new CrossApplyClass3[]
@@ -236,12 +236,12 @@ public class CrossApplyMixedTests : GenericEntityTestBase
     public void CrossApply_PropertyAndMethod_WithFiltering()
     {
         const string query = @"
-    select 
+    select
         a.Department,
         b.Name,
         c.Value
-    from #schema.first() a 
-    cross apply a.Employees b 
+    from #schema.first() a
+    cross apply a.Employees b
     cross apply a.Distinct(b.Skills) c
     where a.Budget > 400000";
 
@@ -305,11 +305,11 @@ public class CrossApplyMixedTests : GenericEntityTestBase
     public void CrossApply_PropertyAndMethod_GroupBy_WithFiltering()
     {
         const string query = @"
-    select 
+    select
         a.Department,
         Count(a.Department)
-    from #schema.first() a 
-    cross apply a.Employees b 
+    from #schema.first() a
+    cross apply a.Employees b
     cross apply a.Distinct(b.Skills) c
     where a.Budget > 400000
     group by a.Department";
@@ -365,7 +365,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
     public void CrossApply_InnerJoinAndUseProperty_ShouldPass()
     {
         const string query = @"
-    select 
+    select
         a.Name,
         a.Surname,
         c.Value
@@ -436,7 +436,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
     public void CrossApply_LeftJoinAndUseProperty_ShouldPass()
     {
         const string query = @"
-    select 
+    select
         a.Name,
         a.Surname,
         c.Value

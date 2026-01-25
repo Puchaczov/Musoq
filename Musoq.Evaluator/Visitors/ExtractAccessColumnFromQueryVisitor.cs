@@ -74,4 +74,25 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
 
         base.Visit(node);
     }
+
+    public override void Visit(AccessObjectArrayNode node)
+    {
+        if (node.IsColumnAccess && !string.IsNullOrEmpty(node.TableAlias))
+        {
+            var alias = node.TableAlias;
+            var columnName = node.Token.Name;
+
+            if (_accessColumns.TryGetValue(alias, out var list))
+            {
+                if (!list.Any(f => f.Name == columnName))
+                    list.Add(new AccessColumnNode(columnName, alias, node.ColumnType, TextSpan.Empty));
+            }
+            else
+            {
+                _accessColumns.Add(alias, [new AccessColumnNode(columnName, alias, node.ColumnType, TextSpan.Empty)]);
+            }
+        }
+
+        base.Visit(node);
+    }
 }

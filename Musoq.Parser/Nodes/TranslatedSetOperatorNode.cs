@@ -15,7 +15,7 @@ public class TranslatedSetOperatorNode : Node
         ResultTableName = resultTableName;
         Keys = keys;
         Id =
-            $"{nameof(TranslatedSetOperatorNode)}{createTableNode.Select(f => f.Id).Aggregate((a, b) => a + b)}{fQuery.Id}{sQuery.Id}{resultTableName}{keys.Aggregate((a, b) => a + b)}";
+            $"{nameof(TranslatedSetOperatorNode)}{string.Concat(createTableNode.Select(f => f.Id))}{fQuery.Id}{sQuery.Id}{resultTableName}{string.Concat(keys)}";
     }
 
     public override Type ReturnType => null;

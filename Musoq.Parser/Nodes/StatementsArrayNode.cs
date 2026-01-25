@@ -31,7 +31,6 @@ public class StatementsArrayNode : Node
         if (Statements.Length == 1)
             return Statements[0].ToString();
 
-        return Statements.Select(f => f.ToString())
-            .Aggregate((a, b) => $"{a}{Environment.NewLine}{b}");
+        return string.Join(Environment.NewLine, Statements.Select(f => f.ToString()));
     }
 }
