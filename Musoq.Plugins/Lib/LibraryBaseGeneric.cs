@@ -92,11 +92,19 @@ public partial class LibraryBase
         if (values == null)
             return null;
 
-        var result = new List<T>();
+        var totalLength = 0;
+        foreach (var value in values)
+            totalLength += value.Length;
 
-        foreach (var value in values) result.AddRange(value);
+        var result = new T[totalLength];
+        var offset = 0;
+        foreach (var value in values)
+        {
+            Array.Copy(value, 0, result, offset, value.Length);
+            offset += value.Length;
+        }
 
-        return result.ToArray();
+        return result;
     }
 
     /// <summary>

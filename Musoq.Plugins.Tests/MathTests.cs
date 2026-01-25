@@ -137,6 +137,7 @@ public class MathTests : LibraryBaseBaseTests
         Assert.IsNull(Library.FromOct("8"));
         Assert.IsNull(Library.FromOct("0o8"));
     }
+
     #region Hex String Conversion Tests
 
     [TestMethod]

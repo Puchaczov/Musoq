@@ -701,7 +701,21 @@ public partial class LibraryBase
         if (value.Length == 1)
             return value;
 
-        return string.Concat(value.Reverse());
+        var length = value.Length;
+        if (length <= 256)
+        {
+            Span<char> buffer = stackalloc char[length];
+            for (var i = 0; i < length; i++)
+                buffer[i] = value[length - 1 - i];
+            return new string(buffer);
+        }
+        else
+        {
+            var buffer = new char[length];
+            for (var i = 0; i < length; i++)
+                buffer[i] = value[length - 1 - i];
+            return new string(buffer);
+        }
     }
 
     /// <summary>
@@ -1140,7 +1154,10 @@ public partial class LibraryBase
             new Regex(p, RegexOptions.Compiled));
 
         var matches = compiledRegex.Matches(content);
-        return matches.Select(m => m.Value).ToArray();
+        var result = new string[matches.Count];
+        for (var i = 0; i < matches.Count; i++)
+            result[i] = matches[i].Value;
+        return result;
     }
 
     /// <summary>
@@ -1158,8 +1175,7 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(input))
             return [];
 
-        // ReSharper disable once UseCollectionExpression
-        // ReSharper disable once RedundantExplicitArrayCreation
+
         return input.Split(Separator, StringSplitOptions.None);
     }
 

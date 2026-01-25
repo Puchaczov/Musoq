@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Nodes;
 
@@ -22,12 +23,14 @@ public class AccessObjectArrayNode : IdentifierNode
     /// <summary>
     ///     Constructor for column-based indexed access (e.g., Name[0], f.Name[0])
     /// </summary>
-    public AccessObjectArrayNode(NumericAccessToken token, Type columnType, string tableAlias = null)
+    public AccessObjectArrayNode(NumericAccessToken token, Type columnType, string tableAlias = null,
+        string intendedTypeName = null)
         : this(token)
     {
         ColumnType = columnType;
         TableAlias = tableAlias;
         IsColumnAccess = true;
+        IntendedTypeName = intendedTypeName;
     }
 
     public NumericAccessToken Token { get; }
@@ -48,6 +51,12 @@ public class AccessObjectArrayNode : IdentifierNode
     ///     Column type for column access
     /// </summary>
     public Type ColumnType { get; }
+
+    /// <summary>
+    ///     For schema reference arrays, the intended type name of elements (e.g., "Musoq.Generated.Interpreters.Point").
+    ///     This is used for code generation to cast array elements to the generated type.
+    /// </summary>
+    public string IntendedTypeName { get; }
 
     public override Type ReturnType
     {

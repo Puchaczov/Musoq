@@ -7,6 +7,7 @@ public class GroupRow : Row
 {
     private readonly IDictionary<int, string> _columnToValue;
     private readonly Group _group;
+    private object[] _cachedValues;
 
     public GroupRow(Group group, IDictionary<int, string> columnToValue)
     {
@@ -23,11 +24,15 @@ public class GroupRow : Row
     {
         get
         {
+            if (_cachedValues != null)
+                return _cachedValues;
+
             var items = new object[Count];
 
             for (var i = 0; i < Count; i++)
                 items[i] = this[i];
 
+            _cachedValues = items;
             return items;
         }
     }

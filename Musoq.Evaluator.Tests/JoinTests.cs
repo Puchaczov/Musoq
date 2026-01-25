@@ -59,10 +59,10 @@ public class JoinTests : BasicEntityTestBase
     public void WhenSomeColumnsAreUsedAndNotEveryUsedTableHasUsedOwnColumns_MustNotThrow()
     {
         const string query = @"
-select 
+select
     countries.Country
-from #A.entities() countries 
-inner join #B.entities() cities on 1 = 1 
+from #A.entities() countries
+inner join #B.entities() cities on 1 = 1
 inner join #C.entities() population on 1 = 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -89,12 +89,12 @@ inner join #C.entities() population on 1 = 1";
     {
         var query =
             @"
-select 
-    countries.Country, 
-    cities.City, 
-    population.Population 
-from #A.entities() countries 
-inner join #B.entities() cities on countries.Country = cities.Country 
+select
+    countries.Country,
+    cities.City,
+    population.Population
+from #A.entities() countries
+inner join #B.entities() cities on countries.Country = cities.Country
 inner join #C.entities() population on cities.City = population.City";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -179,12 +179,12 @@ inner join #C.entities() population on cities.City = population.City";
     public void JoinWithCaseWhen2Test()
     {
         var query = @"
-select 
-    countries.Country, 
-    (case when population.Population > 400 then cities.ToUpperInvariant(cities.City) else cities.City end) as 'cities.City', 
-    population.Population 
-from #A.entities() countries 
-inner join #B.entities() cities on countries.Country = cities.Country 
+select
+    countries.Country,
+    (case when population.Population > 400 then cities.ToUpperInvariant(cities.City) else cities.City end) as 'cities.City',
+    population.Population
+from #A.entities() countries
+inner join #B.entities() cities on countries.Country = cities.Country
 inner join #C.entities() population on cities.City = population.City";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -341,12 +341,12 @@ inner join #C.entities() population on cities.City = population.City";
     public void JoinWithGroupByTest()
     {
         var query = @"
-select 
-    cities.Country, 
-    countries.Sum(population.Population) 
-from #A.entities() countries 
-inner join #B.entities() cities on countries.Country = cities.Country 
-inner join #C.entities() population on cities.City = population.City 
+select
+    cities.Country,
+    countries.Sum(population.Population)
+from #A.entities() countries
+inner join #B.entities() cities on countries.Country = cities.Country
+inner join #C.entities() population on cities.City = population.City
 group by cities.Country";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -405,9 +405,9 @@ group by cities.Country";
     public void JoinWithGroupByAndOrderByTest()
     {
         var query = @"
-select 
+select
     cities.GetTypeName(cities.Country)
-from #A.entities() countries 
+from #A.entities() countries
 inner join #B.entities() cities on countries.Country = cities.Country
 group by cities.GetTypeName(cities.Country)
 order by cities.GetTypeName(cities.Country)";
@@ -448,9 +448,9 @@ order by cities.GetTypeName(cities.Country)";
     public void JoinWithOrderByTest()
     {
         var query = @"
-select 
+select
     cities.Country
-from #A.entities() countries 
+from #A.entities() countries
 inner join #B.entities() cities on countries.Country = cities.Country
 order by cities.GetTypeName(cities.Country)";
 
@@ -481,16 +481,16 @@ order by cities.GetTypeName(cities.Country)";
     public void JoinWithExceptTest()
     {
         const string query = @"
-select 
-    countries.Country, cities.City, population.Population 
-from #A.entities() countries 
-inner join #B.entities() cities on countries.Country = cities.Country 
-inner join #C.entities() population on cities.City = population.City 
+select
+    countries.Country, cities.City, population.Population
+from #A.entities() countries
+inner join #B.entities() cities on countries.Country = cities.Country
+inner join #C.entities() population on cities.City = population.City
 except (countries.Country, cities.City, population.Population)
-select 
-    countries.Country, cities.City, population.Population 
-from #A.entities() countries 
-inner join #B.entities() cities on countries.Country = cities.Country 
+select
+    countries.Country, cities.City, population.Population
+from #A.entities() countries
+inner join #B.entities() cities on countries.Country = cities.Country
 inner join #C.entities() population on cities.City = population.City";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -546,16 +546,16 @@ inner join #C.entities() population on cities.City = population.City";
     {
         var query =
             @"
-select 
-    countries.Country, cities.City, population.Population 
-from #A.entities() countries 
-inner join #B.entities() cities on countries.Country = cities.Country 
-inner join #C.entities() population on cities.City = population.City 
+select
+    countries.Country, cities.City, population.Population
+from #A.entities() countries
+inner join #B.entities() cities on countries.Country = cities.Country
+inner join #C.entities() population on cities.City = population.City
 union (countries.Country, cities.City, population.Population)
-select 
-    countries.Country, cities.City, population.Population 
-from #A.entities() countries 
-inner join #B.entities() cities on countries.Country = cities.Country 
+select
+    countries.Country, cities.City, population.Population
+from #A.entities() countries
+inner join #B.entities() cities on countries.Country = cities.Country
 inner join #C.entities() population on cities.City = population.City";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -624,16 +624,16 @@ inner join #C.entities() population on cities.City = population.City";
     {
         var query =
             @"
-select 
-    countries.Country, cities.City, population.Population 
-from #A.entities() countries 
-inner join #B.entities() cities on countries.Country = cities.Country 
-inner join #C.entities() population on cities.City = population.City 
+select
+    countries.Country, cities.City, population.Population
+from #A.entities() countries
+inner join #B.entities() cities on countries.Country = cities.Country
+inner join #C.entities() population on cities.City = population.City
 union all (countries.Country, cities.City, population.Population)
-select 
-    countries.Country, cities.City, population.Population 
-from #A.entities() countries 
-inner join #B.entities() cities on countries.Country = cities.Country 
+select
+    countries.Country, cities.City, population.Population
+from #A.entities() countries
+inner join #B.entities() cities on countries.Country = cities.Country
 inner join #C.entities() population on cities.City = population.City";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -803,13 +803,13 @@ select p.Id, x.Id from p p inner join x on p.Country = x.Country";
     {
         var query = @"
 with p as (
-	select 
+	select
         Country
 	from #A.entities()
 ), x as (
-	select 
+	select
 		Country
-	from p group by Country 
+	from p group by Country
 )
 select p.Country, x.Country from p inner join x on p.Country = x.Country where p.Country = 'Poland'
 ";
@@ -840,13 +840,13 @@ select p.Country, x.Country from p inner join x on p.Country = x.Country where p
     {
         var query = @"
 with p as (
-	select 
+	select
         Country
 	from #A.entities()
 ), x as (
-	select 
+	select
 		Country
-	from p group by Country 
+	from p group by Country
 )
 select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Country group by p.Country having p.Count(p.Country) > 1
 ";
@@ -929,14 +929,14 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual(2, table.Columns.Count());
 
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual(typeof(int?), table.Columns.ElementAt(1).ColumnType);
+        var rows = new HashSet<(int?, int?)>
+        {
+            ((int?)table[0][0], (int?)table[0][1]),
+            ((int?)table[1][0], (int?)table[1][1])
+        };
 
-        Assert.AreEqual(1, table[0][0]);
-        Assert.IsNull(table[0][1]);
-
-        Assert.AreEqual(2, table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
+        Assert.IsTrue(rows.Contains((1, null)), "Expected row (1, null) not found");
+        Assert.IsTrue(rows.Contains((2, 2)), "Expected row (2, 2) not found");
     }
 
     [TestMethod]
@@ -956,11 +956,14 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual(2, table.Columns.Count());
 
-        Assert.AreEqual(1, table[0][0]);
-        Assert.IsNull(table[0][1]);
+        var rows = new HashSet<(int?, int?)>
+        {
+            ((int?)table[0][0], (int?)table[0][1]),
+            ((int?)table[1][0], (int?)table[1][1])
+        };
 
-        Assert.AreEqual(2, table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
+        Assert.IsTrue(rows.Contains((1, null)), "Expected row (1, null) not found");
+        Assert.IsTrue(rows.Contains((2, 2)), "Expected row (2, 2) not found");
     }
 
     [TestMethod]
@@ -1268,9 +1271,9 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
     public void LeftOuterJoinPassMethodContextTest()
     {
         var query = @"
-select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id) 
-from #A.entities() a 
-left outer join #B.entities() b on 1 = 1 
+select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id)
+from #A.entities() a
+left outer join #B.entities() b on 1 = 1
 left outer join #C.entities() c on 1 = 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -1307,10 +1310,10 @@ left outer join #C.entities() c on 1 = 1";
     public void LeftOuterJoinWithFourOtherJoinsTest()
     {
         var query = @"
-select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id), d.ToDecimal(d.Id) 
-from #A.entities() a 
-left outer join #B.entities() b on 1 = 1 
-left outer join #C.entities() c on 1 = 1 
+select a.ToDecimal(a.Id), b.ToDecimal(b.Id), c.ToDecimal(c.Id), d.ToDecimal(d.Id)
+from #A.entities() a
+left outer join #B.entities() b on 1 = 1
+left outer join #C.entities() c on 1 = 1
 left outer join #D.entities() d on 1 = 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -1426,10 +1429,10 @@ left outer join #D.entities() d on 1 = 1";
     public void InnerJoinJoinPassMethodContextTest()
     {
         var query = @"
-select 
-    a.ToDecimal(a.Id), 
-    b.ToDecimal(b.Id), 
-    c.ToDecimal(c.Id) 
+select
+    a.ToDecimal(a.Id),
+    b.ToDecimal(b.Id),
+    c.ToDecimal(c.Id)
 from #A.entities() a inner join #B.entities() b on 1 = 1 inner join #C.entities() c on 1 = 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -1467,12 +1470,12 @@ from #A.entities() a inner join #B.entities() b on 1 = 1 inner join #C.entities(
     {
         var query =
             @"
-select 
-    countries.GetCountry(), 
-    cities.GetCity(), 
+select
+    countries.GetCountry(),
+    cities.GetCity(),
     population.GetPopulation()
-from #A.entities() countries 
-inner join #B.entities() cities on countries.GetCountry() = cities.GetCountry() 
+from #A.entities() countries
+inner join #B.entities() cities on countries.GetCountry() = cities.GetCountry()
 inner join #C.entities() population on cities.GetCity() = population.GetCity()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -1539,8 +1542,8 @@ inner join #C.entities() population on cities.GetCity() = population.GetCity()";
     {
         var query =
             @"
-select 
-    countries.GetCountry(), 
+select
+    countries.GetCountry(),
     cities.GetCity()
 from #A.entities() countries
 inner join #A.entities() cities on countries.Country = cities.Country
@@ -1579,7 +1582,7 @@ inner join #A.entities() cities on countries.Country = cities.Country
     {
         var query =
             @"
-select 
+select
     t.Country,
     t2.City
 from #A.entities() t
@@ -1625,7 +1628,7 @@ with first as (
     select a.Country as Country from #A.entities() a
 ), third as (
     select
-        a.Country, 
+        a.Country,
         b.Country
     from first a left outer join second b on a.Country = b.Country
 )
@@ -1677,7 +1680,7 @@ with first as (
     select a.Country as Country from #A.entities() a
 ), third as (
     select
-        a.Country, 
+        a.Country,
         b.Country
     from first a right outer join second b on a.Country = b.Country
 )

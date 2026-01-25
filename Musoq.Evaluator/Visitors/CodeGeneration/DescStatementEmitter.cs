@@ -53,6 +53,9 @@ public class DescStatementEmitter(SyntaxGenerator generator)
             case DescForType.FunctionsForSchema:
                 EmitDescForFunctionsForSchema(node, statements, members, methodNames);
                 break;
+            case DescForType.SpecificColumn:
+                EmitDescForSpecificColumn(node, statements, members, methodNames);
+                break;
             case DescForType.None:
                 break;
             default:
@@ -73,6 +76,34 @@ public class DescStatementEmitter(SyntaxGenerator generator)
             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("schemaTable")));
 
         EmitDescMethod(node, invocation, true, statements, members, methodNames);
+    }
+
+    private void EmitDescForSpecificColumn(
+        DescNode node,
+        List<StatementSyntax> statements,
+        IList<SyntaxNode> members,
+        Stack<string> methodNames)
+    {
+        var columnPath = ExtractPropertyPath(node.Column!);
+        var invocation = CreateHelperInvocation(
+            nameof(EvaluationHelper.GetSpecificColumnDescription),
+            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("schemaTable")),
+            SyntaxHelper.StringLiteralArgument(columnPath));
+
+        EmitDescMethod(node, invocation, true, statements, members, methodNames);
+    }
+
+    private static string ExtractPropertyPath(Node node)
+    {
+        return node switch
+        {
+            DotNode d => $"{ExtractPropertyPath(d.Root)}.{ExtractPropertyPath(d.Expression)}",
+            PropertyValueNode p => p.Name,
+            WordNode w => w.Value,
+            IdentifierNode i => i.Name,
+            _ => throw new InvalidOperationException(
+                $"Invalid column path node type: {node.GetType().Name}")
+        };
     }
 
     private void EmitDescForSchema(

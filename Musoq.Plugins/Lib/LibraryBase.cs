@@ -24,6 +24,18 @@ public partial class LibraryBase : UserMethodsLibrary
     }
 
     /// <summary>
+    ///     Gets the row number of the current row (overload for struct-based stats to avoid allocations).
+    /// </summary>
+    /// <param name="info" injectedByRuntime="true">The queryStats object</param>
+    /// <returns>The row number</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Utility)]
+    public int RowNumber([InjectQueryStats] IQueryStats info)
+    {
+        return info.RowNumber;
+    }
+
+    /// <summary>
     ///     Gets the typename of passed object.
     /// </summary>
     /// <param name="obj">Object of unknown type that the typename have to be retrieved</param>

@@ -74,7 +74,8 @@ public static class QueryNodeProcessor
             detailedQuery.ReturnVariableName,
             isResultParallelizationPossible,
             generator,
-            queryId);
+            queryId,
+            node.Select.IsDistinct);
 
         return new QueryNodeResult
         {

@@ -26,4 +26,10 @@
         <PackageReference Include="DiffPlex" Version="1.9.0"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <Compile Update="QueryStats.cs">
+            <DependentUpon>IQueryStats.cs</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
 </Project>

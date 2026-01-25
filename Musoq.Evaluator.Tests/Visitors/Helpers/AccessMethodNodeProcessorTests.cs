@@ -15,7 +15,6 @@ public class AccessMethodNodeProcessorTests
     [TestMethod]
     public void ProcessAccessMethodNode_WithNullNode_ShouldThrowArgumentNullException()
     {
-        // Arrange
         var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
         var nodes = new Stack<SyntaxNode>();
@@ -25,7 +24,7 @@ public class AccessMethodNodeProcessorTests
 
         nodes.Push(SyntaxFactory.ArgumentList());
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             AccessMethodNodeProcessor.ProcessAccessMethodNode(
                 null,
@@ -33,8 +32,8 @@ public class AccessMethodNodeProcessorTests
                 nodes,
                 statements,
                 typesToInstantiate,
-                null, // scope
-                0, // type
+                null,
+                0,
                 false,
                 nullSuspiciousNodes,
                 _ => { }));
@@ -43,7 +42,6 @@ public class AccessMethodNodeProcessorTests
     [TestMethod]
     public void ProcessAccessMethodNode_WithNullGenerator_ShouldThrowArgumentNullException()
     {
-        // Arrange
         var nodes = new Stack<SyntaxNode>();
         var statements = new List<StatementSyntax>();
         var typesToInstantiate = new Dictionary<string, Type>();
@@ -51,10 +49,10 @@ public class AccessMethodNodeProcessorTests
 
         nodes.Push(SyntaxFactory.ArgumentList());
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             AccessMethodNodeProcessor.ProcessAccessMethodNode(
-                null, // This should cause ArgumentNullException before generator
+                null,
                 null,
                 nodes,
                 statements,
@@ -69,17 +67,16 @@ public class AccessMethodNodeProcessorTests
     [TestMethod]
     public void ProcessAccessMethodNode_WithNullNodes_ShouldThrowArgumentNullException()
     {
-        // Arrange
         var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
         var statements = new List<StatementSyntax>();
         var typesToInstantiate = new Dictionary<string, Type>();
         var nullSuspiciousNodes = new List<Stack<SyntaxNode>>();
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             AccessMethodNodeProcessor.ProcessAccessMethodNode(
-                null, // This should cause ArgumentNullException before nodes
+                null,
                 generator,
                 null,
                 statements,
@@ -94,7 +91,6 @@ public class AccessMethodNodeProcessorTests
     [TestMethod]
     public void ProcessAccessMethodNode_WithNullStatements_ShouldThrowArgumentNullException()
     {
-        // Arrange
         var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
         var nodes = new Stack<SyntaxNode>();
@@ -103,10 +99,10 @@ public class AccessMethodNodeProcessorTests
 
         nodes.Push(SyntaxFactory.ArgumentList());
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             AccessMethodNodeProcessor.ProcessAccessMethodNode(
-                null, // This should cause ArgumentNullException before statements
+                null,
                 generator,
                 nodes,
                 null,
@@ -121,7 +117,6 @@ public class AccessMethodNodeProcessorTests
     [TestMethod]
     public void ProcessAccessMethodNode_WithNullTypesToInstantiate_ShouldThrowArgumentNullException()
     {
-        // Arrange
         var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
         var nodes = new Stack<SyntaxNode>();
@@ -130,10 +125,10 @@ public class AccessMethodNodeProcessorTests
 
         nodes.Push(SyntaxFactory.ArgumentList());
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             AccessMethodNodeProcessor.ProcessAccessMethodNode(
-                null, // This should cause ArgumentNullException before typesToInstantiate
+                null,
                 generator,
                 nodes,
                 statements,
@@ -148,7 +143,6 @@ public class AccessMethodNodeProcessorTests
     [TestMethod]
     public void ProcessAccessMethodNode_WithNullAddNamespaceAction_ShouldThrowArgumentNullException()
     {
-        // Arrange
         var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
         var nodes = new Stack<SyntaxNode>();
@@ -158,10 +152,10 @@ public class AccessMethodNodeProcessorTests
 
         nodes.Push(SyntaxFactory.ArgumentList());
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             AccessMethodNodeProcessor.ProcessAccessMethodNode(
-                null, // This should cause ArgumentNullException before addNamespaceAction
+                null,
                 generator,
                 nodes,
                 statements,

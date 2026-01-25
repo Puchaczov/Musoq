@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 
 namespace Musoq.Evaluator.Tables;
 
@@ -23,12 +22,28 @@ public class ObjectsRow : Row
         if (leftContexts == null && rightContexts == null)
             throw new NotSupportedException("Both contexts cannot be null");
 
+        // Optimized: Avoid LINQ allocations by using Array.Copy directly
         if (leftContexts == null)
-            Contexts = new object[] { null }.Concat(rightContexts).ToArray();
+        {
+            var result = new object[1 + rightContexts.Length];
+            result[0] = null;
+            Array.Copy(rightContexts, 0, result, 1, rightContexts.Length);
+            Contexts = result;
+        }
         else if (rightContexts == null)
-            Contexts = leftContexts.Concat([null]).ToArray();
+        {
+            var result = new object[leftContexts.Length + 1];
+            Array.Copy(leftContexts, 0, result, 0, leftContexts.Length);
+            result[leftContexts.Length] = null;
+            Contexts = result;
+        }
         else
-            Contexts = leftContexts.Concat(rightContexts).ToArray();
+        {
+            var result = new object[leftContexts.Length + rightContexts.Length];
+            Array.Copy(leftContexts, 0, result, 0, leftContexts.Length);
+            Array.Copy(rightContexts, 0, result, leftContexts.Length, rightContexts.Length);
+            Contexts = result;
+        }
 
         _values = values;
     }

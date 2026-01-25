@@ -1,6 +1,7 @@
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -58,6 +59,41 @@ public class CommonSubexpressionAnalysisTraverseVisitor : IExpressionVisitor
     }
 
     public void Visit(HyphenNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BitwiseAndNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BitwiseOrNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BitwiseXorNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(LeftShiftNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(RightShiftNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
@@ -402,6 +438,12 @@ public class CommonSubexpressionAnalysisTraverseVisitor : IExpressionVisitor
         node.Accept(_visitor);
     }
 
+    public void Visit(InterpretFromNode node)
+    {
+        node.InterpretCall.Accept(this);
+        node.Accept(_visitor);
+    }
+
     public void Visit(SchemaMethodFromNode node)
     {
         node.Accept(_visitor);
@@ -624,5 +666,89 @@ public class CommonSubexpressionAnalysisTraverseVisitor : IExpressionVisitor
     public void Visit(FieldLinkNode node)
     {
         node.Accept(_visitor);
+    }
+
+    public void Visit(InterpretCallNode node)
+    {
+    }
+
+    public void Visit(ParseCallNode node)
+    {
+    }
+
+    public void Visit(InterpretAtCallNode node)
+    {
+    }
+
+    public void Visit(TryInterpretCallNode node)
+    {
+    }
+
+    public void Visit(TryParseCallNode node)
+    {
+    }
+
+    public void Visit(PartialInterpretCallNode node)
+    {
+    }
+
+    public void Visit(BinarySchemaNode node)
+    {
+    }
+
+    public void Visit(TextSchemaNode node)
+    {
+    }
+
+    public void Visit(FieldDefinitionNode node)
+    {
+    }
+
+    public void Visit(ComputedFieldNode node)
+    {
+    }
+
+    public void Visit(TextFieldDefinitionNode node)
+    {
+    }
+
+    public void Visit(FieldConstraintNode node)
+    {
+    }
+
+    public void Visit(PrimitiveTypeNode node)
+    {
+    }
+
+    public void Visit(ByteArrayTypeNode node)
+    {
+    }
+
+    public void Visit(StringTypeNode node)
+    {
+    }
+
+    public void Visit(SchemaReferenceTypeNode node)
+    {
+    }
+
+    public void Visit(ArrayTypeNode node)
+    {
+    }
+
+    public void Visit(BitsTypeNode node)
+    {
+    }
+
+    public void Visit(AlignmentNode node)
+    {
+    }
+
+    public void Visit(RepeatUntilTypeNode node)
+    {
+    }
+
+    public void Visit(InlineSchemaTypeNode node)
+    {
     }
 }

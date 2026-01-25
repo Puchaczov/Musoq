@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Visitors.Helpers;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Tokens;
 
 namespace Musoq.Evaluator.Tests.Visitors.Helpers;
 
@@ -16,10 +17,9 @@ public class AccessObjectArrayNodeProcessorTests
     [TestMethod]
     public void ProcessAccessObjectArrayNode_WithNullNode_ThrowsArgumentNullException()
     {
-        // Arrange
         var nodes = new Stack<SyntaxNode>();
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(null, nodes));
     }
@@ -27,10 +27,9 @@ public class AccessObjectArrayNodeProcessorTests
     [TestMethod]
     public void ProcessAccessObjectArrayNode_WithNullNodes_ThrowsArgumentNullException()
     {
-        // Arrange
         var node = CreateAccessObjectArrayNode("test", 0, typeof(string), true);
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, null));
     }
@@ -72,7 +71,7 @@ public class AccessObjectArrayNodeProcessorTests
 
         var expressionString = result.Expression.ToString();
         Console.WriteLine($"Expression: {expressionString}");
-        // Update assertions based on actual output
+
         Assert.Contains("SafeArrayAccess.GetArrayElement", expressionString);
         Assert.Contains("1", expressionString);
     }
@@ -127,7 +126,7 @@ public class AccessObjectArrayNodeProcessorTests
         Assert.IsNotNull(result);
         var expressionString = result.Expression.ToString();
         Console.WriteLine($"Expression: {expressionString}");
-        // For non-array types, we expect direct element access
+
         Assert.Contains("[5]", expressionString);
     }
 
@@ -146,7 +145,7 @@ public class AccessObjectArrayNodeProcessorTests
         Assert.IsNotNull(result);
         var expressionString = result.Expression.ToString();
         Assert.Contains("(parentObject).Property[1]", expressionString);
-        Assert.IsEmpty(nodes); // Should have popped the expression
+        Assert.IsEmpty(nodes);
     }
 
     [TestMethod]
@@ -156,7 +155,7 @@ public class AccessObjectArrayNodeProcessorTests
         var node = CreateAccessObjectArrayNode("Property", 1, typeof(string), false);
         var nodes = new Stack<SyntaxNode>();
 
-        // Act & Assert
+
         var exception = Assert.Throws<InvalidOperationException>(() =>
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes));
 
@@ -170,9 +169,9 @@ public class AccessObjectArrayNodeProcessorTests
         // Arrange
         var node = CreateAccessObjectArrayNode("Property", 1, typeof(string), false);
         var nodes = new Stack<SyntaxNode>();
-        nodes.Push(SyntaxFactory.Block()); // Non-expression syntax node
+        nodes.Push(SyntaxFactory.Block());
 
-        // Act & Assert
+
         var exception = Assert.Throws<InvalidOperationException>(() =>
             AccessObjectArrayNodeProcessor.ProcessAccessObjectArrayNode(node, nodes));
 
@@ -189,10 +188,9 @@ public class AccessObjectArrayNodeProcessorTests
     [DataRow(typeof(object), "object")]
     public void GetCSharpType_WithPrimitiveTypes_ReturnsCorrectSyntax(Type inputType, string expectedKeyword)
     {
-        // Act
         var result = AccessObjectArrayNodeProcessor.GetCSharpType(inputType);
 
-        // Assert
+
         Assert.IsNotNull(result);
         if (result is PredefinedTypeSyntax predefinedType)
             Assert.AreEqual(expectedKeyword, predefinedType.Keyword.ValueText);
@@ -203,13 +201,12 @@ public class AccessObjectArrayNodeProcessorTests
     [TestMethod]
     public void GetCSharpType_WithComplexType_ReturnsIdentifierName()
     {
-        // Arrange
         var complexType = typeof(DateTime);
 
-        // Act
+
         var result = AccessObjectArrayNodeProcessor.GetCSharpType(complexType);
 
-        // Assert
+
         Assert.IsNotNull(result);
         Assert.IsInstanceOfType(result, typeof(IdentifierNameSyntax));
         var identifierName = (IdentifierNameSyntax)result;
@@ -219,7 +216,6 @@ public class AccessObjectArrayNodeProcessorTests
     [TestMethod]
     public void GetCSharpType_WithNullType_ThrowsArgumentNullException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
             AccessObjectArrayNodeProcessor.GetCSharpType(null));
     }
@@ -227,14 +223,13 @@ public class AccessObjectArrayNodeProcessorTests
     [TestMethod]
     public void AccessObjectArrayProcessingResult_Constructor_WithValidArguments_SetsProperties()
     {
-        // Arrange
         var expression = SyntaxFactory.IdentifierName("test");
         var namespaceName = "TestNamespace";
 
-        // Act
+
         var result = new AccessObjectArrayNodeProcessor.AccessObjectArrayProcessingResult(expression, namespaceName);
 
-        // Assert
+
         Assert.AreEqual(expression, result.Expression);
         Assert.AreEqual(namespaceName, result.RequiredNamespace);
     }
@@ -242,7 +237,6 @@ public class AccessObjectArrayNodeProcessorTests
     [TestMethod]
     public void AccessObjectArrayProcessingResult_Constructor_WithNullExpression_ThrowsArgumentNullException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
             new AccessObjectArrayNodeProcessor.AccessObjectArrayProcessingResult(null, "namespace"));
     }
@@ -250,10 +244,9 @@ public class AccessObjectArrayNodeProcessorTests
     [TestMethod]
     public void AccessObjectArrayProcessingResult_Constructor_WithNullNamespace_ThrowsArgumentNullException()
     {
-        // Arrange
         var expression = SyntaxFactory.IdentifierName("test");
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             new AccessObjectArrayNodeProcessor.AccessObjectArrayProcessingResult(expression, null));
     }

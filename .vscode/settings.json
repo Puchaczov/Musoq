@@ -1,0 +1,9 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "git checkout": true,
+        "git add": true,
+        "ForEach-Object": true,
+        "dotnet clean": true,
+        "git stash": true
+    }
+}

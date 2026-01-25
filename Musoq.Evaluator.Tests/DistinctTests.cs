@@ -22,7 +22,7 @@ public class DistinctTests : BasicEntityTestBase
         var parser = new Musoq.Parser.Parser(lexer);
         var root = parser.ComposeAll();
 
-        // Navigate the tree structure: RootNode -> StatementsArrayNode -> StatementNode[] -> SingleSetNode -> QueryNode
+
         var statementsArray = root.Expression as StatementsArrayNode;
         Assert.IsNotNull(statementsArray, "Root.Expression should be StatementsArrayNode");
         Assert.HasCount(1, statementsArray.Statements, "Should have one statement");
@@ -41,12 +41,12 @@ public class DistinctTests : BasicEntityTestBase
         root.Accept(traverser);
         var transformedRoot = traverser.Root;
 
-        // Navigate the transformed tree - the visitor clones the tree so structure should be preserved
+
         var transformedStatementsArray = transformedRoot.Expression as StatementsArrayNode;
         Assert.IsNotNull(transformedStatementsArray, "Transformed Root.Expression should be StatementsArrayNode");
         Assert.HasCount(1, transformedStatementsArray.Statements, "Should still have one statement");
 
-        // The statement node could be QueryNode directly or wrapped in SingleSetNode
+
         QueryNode queryNode = null;
         var statementNode = transformedStatementsArray.Statements[0].Node;
         if (statementNode is SingleSetNode transformedSingleSet)

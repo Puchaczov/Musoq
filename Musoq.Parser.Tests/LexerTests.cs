@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,7 +11,7 @@ namespace Musoq.Parser.Tests;
 public class LexerTests
 {
     [TestMethod]
-    public void CheckEmptyString_ShouldReturnWordToken()
+    public void CheckEmptyString_ShouldReturnStringLiteralToken()
     {
         var lexer = new Lexer("''", true);
 
@@ -20,7 +21,7 @@ public class LexerTests
 
         token = lexer.Next();
 
-        Assert.AreEqual(TokenType.Word, token.TokenType);
+        Assert.AreEqual(TokenType.StringLiteral, token.TokenType);
         Assert.AreEqual(string.Empty, token.Value);
     }
 
@@ -35,7 +36,7 @@ public class LexerTests
 
         token = lexer.Next();
 
-        Assert.AreEqual(TokenType.Word, token.TokenType);
+        Assert.AreEqual(TokenType.StringLiteral, token.TokenType);
         Assert.AreEqual("test", token.Value);
     }
 
@@ -335,5 +336,262 @@ public class LexerTests
         }
 
         Assert.AreEqual(9, operatorCount, "Should have 9 arithmetic operators");
+    }
+
+    [TestMethod]
+    public void BitwiseAnd_ShouldReturnAmpersandToken()
+    {
+        var lexer = new Lexer("a & b", true);
+
+        var tokens = new List<Token>();
+        var token = lexer.Next();
+        while (token.TokenType != TokenType.EndOfFile)
+        {
+            tokens.Add(token);
+            token = lexer.Next();
+        }
+
+
+        var tokenString = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"));
+
+
+        var nonWhitespaceTokens = tokens.Where(t => t.TokenType != TokenType.WhiteSpace).ToList();
+        Assert.HasCount(3, nonWhitespaceTokens, $"Expected 3 non-whitespace tokens, got: {tokenString}");
+
+
+        Assert.AreEqual(TokenType.Ampersand, nonWhitespaceTokens[1].TokenType,
+            $"Expected Ampersand but got {nonWhitespaceTokens[1].TokenType}:{nonWhitespaceTokens[1].Value}. All tokens: {tokenString}");
+    }
+
+    [TestMethod]
+    public void BitwiseOperators_InParentheses_ShouldTokenizeCorrectly()
+    {
+        var lexer = new Lexer("(Flags & 0x01)", true);
+
+        var tokens = new List<Token>();
+        var token = lexer.Next();
+        while (token.TokenType != TokenType.EndOfFile)
+        {
+            if (token.TokenType != TokenType.WhiteSpace)
+                tokens.Add(token);
+            token = lexer.Next();
+        }
+
+
+        Assert.HasCount(5, tokens,
+            $"Expected 5 tokens but got {tokens.Count}: {string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"))}");
+        Assert.AreEqual(TokenType.LeftParenthesis, tokens[0].TokenType);
+
+        Assert.IsTrue(tokens[1].TokenType == TokenType.Word || tokens[1].TokenType == TokenType.Identifier,
+            $"Expected Word or Identifier but got {tokens[1].TokenType}:{tokens[1].Value}");
+        Assert.AreEqual(TokenType.Ampersand, tokens[2].TokenType,
+            $"Expected Ampersand but got {tokens[2].TokenType}:{tokens[2].Value}");
+        Assert.AreEqual(TokenType.HexadecimalInteger, tokens[3].TokenType);
+        Assert.AreEqual(TokenType.RightParenthesis, tokens[4].TokenType);
+    }
+
+    [TestMethod]
+    public void SchemaContext_GenericWithArray_ShouldTokenizeCorrectly()
+    {
+        var lexer = new Lexer("Wrapper<Data>[5]", true);
+        lexer.IsSchemaContext = true;
+
+        var tokens = new List<Token>();
+        var token = lexer.Next();
+        while (token.TokenType != TokenType.EndOfFile)
+        {
+            tokens.Add(token);
+            token = lexer.Next();
+        }
+
+
+        var tokenStr = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"));
+
+
+        Assert.HasCount(7, tokens, $"Expected 7 tokens but got {tokens.Count}: {tokenStr}");
+        Assert.IsTrue(tokens[0].TokenType == TokenType.Word || tokens[0].TokenType == TokenType.Identifier,
+            $"Token 0: Expected Word or Identifier but got {tokens[0].TokenType}:{tokens[0].Value}");
+        Assert.AreEqual("Wrapper", tokens[0].Value);
+
+        Assert.AreEqual(TokenType.Less, tokens[1].TokenType,
+            $"Token 1: Expected Less but got {tokens[1].TokenType}:{tokens[1].Value}");
+
+        Assert.IsTrue(tokens[2].TokenType == TokenType.Word || tokens[2].TokenType == TokenType.Identifier,
+            $"Token 2: Expected Word or Identifier but got {tokens[2].TokenType}:{tokens[2].Value}");
+        Assert.AreEqual("Data", tokens[2].Value);
+
+        Assert.AreEqual(TokenType.Greater, tokens[3].TokenType,
+            $"Token 3: Expected Greater but got {tokens[3].TokenType}:{tokens[3].Value}");
+
+        Assert.AreEqual(TokenType.LeftSquareBracket, tokens[4].TokenType,
+            $"Token 4: Expected LeftSquareBracket but got {tokens[4].TokenType}:{tokens[4].Value}");
+
+        Assert.AreEqual(TokenType.Integer, tokens[5].TokenType,
+            $"Token 5: Expected Integer but got {tokens[5].TokenType}:{tokens[5].Value}");
+        Assert.AreEqual("5", tokens[5].Value);
+
+        Assert.AreEqual(TokenType.RightSquareBracket, tokens[6].TokenType,
+            $"Token 6: Expected RightSquareBracket but got {tokens[6].TokenType}:{tokens[6].Value}");
+    }
+
+    [TestMethod]
+    public void SchemaContext_BracketedNumber_ShouldSplit()
+    {
+        var lexer = new Lexer("[5]", true);
+        lexer.IsSchemaContext = true;
+
+        var tokens = new List<Token>();
+        var token = lexer.Next();
+        while (token.TokenType != TokenType.EndOfFile)
+        {
+            tokens.Add(token);
+            token = lexer.Next();
+        }
+
+        var tokenStr = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}(type={t.GetType().Name})"));
+
+        Assert.HasCount(3, tokens, $"Expected 3 tokens but got {tokens.Count}: {tokenStr}");
+        Assert.AreEqual(TokenType.LeftSquareBracket, tokens[0].TokenType,
+            $"Token 0: Expected LeftSquareBracket but got {tokens[0].TokenType}:{tokens[0].Value}");
+        Assert.AreEqual(TokenType.Integer, tokens[1].TokenType,
+            $"Token 1: Expected Integer but got {tokens[1].TokenType}:{tokens[1].Value}");
+        Assert.AreEqual("5", tokens[1].Value);
+        Assert.AreEqual(TokenType.RightSquareBracket, tokens[2].TokenType,
+            $"Token 2: Expected RightSquareBracket but got {tokens[2].TokenType}:{tokens[2].Value}");
+    }
+
+    [TestMethod]
+    public void ArithmeticExpression_SubtractionWithSpaces_ShouldTokenize()
+    {
+        var lexer = new Lexer("Total - HeaderSize", true);
+
+        var tokens = new List<Token>();
+        var token = lexer.Next();
+        while (token.TokenType != TokenType.EndOfFile)
+        {
+            tokens.Add(token);
+            token = lexer.Next();
+        }
+
+        var tokenStr = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"));
+
+
+        Assert.HasCount(3, tokens, $"Expected 3 tokens but got {tokens.Count}: {tokenStr}");
+        Assert.AreEqual(TokenType.Identifier, tokens[0].TokenType, $"Token 0: Expected Identifier but got {tokenStr}");
+        Assert.AreEqual("Total", tokens[0].Value);
+        Assert.AreEqual(TokenType.Hyphen, tokens[1].TokenType, $"Token 1: Expected Hyphen but got {tokenStr}");
+        Assert.AreEqual(TokenType.Identifier, tokens[2].TokenType, $"Token 2: Expected Identifier but got {tokenStr}");
+        Assert.AreEqual("HeaderSize", tokens[2].Value);
+    }
+
+    [TestMethod]
+    public void BracketedArithmeticExpression_WithoutSchemaContext_TokenizesAsIdentifier()
+    {
+        var lexer = new Lexer("[Total - HeaderSize]", true);
+
+        var tokens = new List<Token>();
+        var token = lexer.Next();
+        while (token.TokenType != TokenType.EndOfFile)
+        {
+            tokens.Add(token);
+            token = lexer.Next();
+        }
+
+        var tokenStr = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"));
+
+
+        Assert.HasCount(1, tokens, $"Expected 1 token but got {tokens.Count}: {tokenStr}");
+    }
+
+    [TestMethod]
+    public void KeyAccessWithArithmetic_InSchemaContext_ShouldSplit()
+    {
+        var lexer = new Lexer("byte[Total - HeaderSize]", true);
+        lexer.IsSchemaContext = true;
+
+        var tokens = new List<Token>();
+        var token = lexer.Next();
+        while (token.TokenType != TokenType.EndOfFile)
+        {
+            tokens.Add(token);
+            token = lexer.Next();
+        }
+
+        var tokenStr = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"));
+
+
+        Assert.HasCount(6, tokens, $"Expected 6 tokens but got {tokens.Count}: {tokenStr}");
+    }
+
+    [TestMethod]
+    public void QuestionMark_Alone_TokenizesAsWord()
+    {
+        var lexer = new Lexer("?", true);
+        lexer.IsSchemaContext = true;
+
+        var tokens = new List<Token>();
+        var token = lexer.Next();
+        while (token.TokenType != TokenType.EndOfFile)
+        {
+            tokens.Add(token);
+            token = lexer.Next();
+        }
+
+        var tokenStr = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"));
+
+
+        Assert.HasCount(1, tokens, $"Expected 1 token but got {tokens.Count}: {tokenStr}");
+        Assert.AreEqual(TokenType.Word, tokens[0].TokenType, $"Token 0: Expected Word but got {tokenStr}");
+        Assert.AreEqual("?", tokens[0].Value, $"Token 0: Expected value '?' but got '{tokens[0].Value}'");
+    }
+
+    [TestMethod]
+    public void QuestionMark_InSchemaContext_TokenizesAsWord()
+    {
+        var lexer = new Lexer("whitespace?", true);
+        lexer.IsSchemaContext = true;
+
+        var tokens = new List<Token>();
+        var token = lexer.Next();
+        while (token.TokenType != TokenType.EndOfFile)
+        {
+            tokens.Add(token);
+            token = lexer.Next();
+        }
+
+        var tokenStr = string.Join(", ", tokens.Select(t => $"{t.TokenType}:{t.Value}"));
+
+
+        Assert.HasCount(2, tokens, $"Expected 2 tokens but got {tokens.Count}: {tokenStr}");
+        Assert.AreEqual(TokenType.Whitespace, tokens[0].TokenType, $"Token 0: Expected Whitespace but got {tokenStr}");
+        Assert.AreEqual(TokenType.Word, tokens[1].TokenType, $"Token 1: Expected Word but got {tokenStr}");
+        Assert.AreEqual("?", tokens[1].Value, $"Token 1: Expected value '?' but got '{tokens[1].Value}'");
+    }
+
+    [TestMethod]
+    public void EndKeyword_AfterDot_ShouldBePropertyToken()
+    {
+        var lexer = new Lexer("l.End.X", true);
+
+        var token = lexer.Next();
+        Assert.AreEqual(TokenType.Identifier, token.TokenType,
+            $"First token should be Identifier, got {token.TokenType}");
+        Assert.AreEqual("l", token.Value);
+
+        token = lexer.Next();
+        Assert.AreEqual(TokenType.Dot, token.TokenType, $"Second token should be Dot, got {token.TokenType}");
+
+        token = lexer.Next();
+        Assert.AreEqual(TokenType.Property, token.TokenType,
+            $"Third token 'End' should be Property (not End keyword), got {token.TokenType}:{token.Value}");
+        Assert.AreEqual("End", token.Value);
+
+        token = lexer.Next();
+        Assert.AreEqual(TokenType.Dot, token.TokenType, $"Fourth token should be Dot, got {token.TokenType}");
+
+        token = lexer.Next();
+        Assert.AreEqual(TokenType.Property, token.TokenType,
+            $"Fifth token 'X' should be Property, got {token.TokenType}");
+        Assert.AreEqual("X", token.Value);
     }
 }

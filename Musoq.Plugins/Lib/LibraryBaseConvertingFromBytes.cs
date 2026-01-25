@@ -125,4 +125,31 @@ public partial class LibraryBase
     {
         return Encoding.UTF8.GetString(value);
     }
+
+    /// <summary>
+    ///     Converts bytes to a string using the specified encoding.
+    /// </summary>
+    /// <param name="value">Byte array containing the value to convert.</param>
+    /// <param name="encodingName">The encoding to use (e.g., "utf-8", "ascii", "utf-16le", "utf-16be", "latin1").</param>
+    /// <returns>The string value.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
+    public string ToText(byte[] value, string encodingName)
+    {
+        if (value == null || value.Length == 0)
+            return string.Empty;
+
+        var encoding = encodingName?.ToLowerInvariant() switch
+        {
+            "utf-8" or "utf8" => Encoding.UTF8,
+            "utf-16" or "utf16" or "unicode" => Encoding.Unicode,
+            "utf-16le" or "utf16le" => Encoding.Unicode,
+            "utf-16be" or "utf16be" => Encoding.BigEndianUnicode,
+            "ascii" => Encoding.ASCII,
+            "latin1" or "iso-8859-1" => Encoding.Latin1,
+            _ => Encoding.UTF8
+        };
+
+        return encoding.GetString(value);
+    }
 }

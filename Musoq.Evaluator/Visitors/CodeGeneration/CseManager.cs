@@ -144,7 +144,7 @@ public sealed class CseManager
 
         var genericTypeName = type.GetGenericTypeDefinition().FullName!;
         genericTypeName = genericTypeName[..genericTypeName.IndexOf('`')];
-        var genericArgs = string.Join(", ", Enumerable.Select(type.GetGenericArguments(), GetTypeName));
+        var genericArgs = string.Join(", ", type.GetGenericArguments().Select(GetTypeName));
         return $"{genericTypeName}<{genericArgs}>";
     }
 

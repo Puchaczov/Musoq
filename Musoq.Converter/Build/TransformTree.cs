@@ -29,7 +29,8 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
             items.CreateBuildMetadataAndInferTypesVisitor?.Invoke(items.SchemaProvider, extractColumnsVisitor.Columns,
                 items.CompilationOptions) ??
             new BuildMetadataAndInferTypesVisitor(items.SchemaProvider, extractColumnsVisitor.Columns,
-                loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(), items.CompilationOptions);
+                loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(), items.CompilationOptions,
+                items.SchemaRegistry);
         var metadataTraverser = new BuildMetadataAndInferTypesTraverseVisitor(metadata);
 
         queryTree.Accept(metadataTraverser);
@@ -67,7 +68,9 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
             metadata.SetOperatorFieldPositions,
             metadata.InferredColumns,
             items.AssemblyName,
-            items.CompilationOptions);
+            items.CompilationOptions,
+            items.SchemaRegistry,
+            items.InterpreterSourceCode);
     }
 
     private static IReadOnlyDictionary<SchemaFromNode, WhereNode> RewriteWhereNodes(

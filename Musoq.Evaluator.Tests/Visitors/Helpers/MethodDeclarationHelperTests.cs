@@ -13,10 +13,9 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreateStandardParameterList_ReturnsParameterListWithCorrectParameters()
     {
-        // Act
         var parameterList = MethodDeclarationHelper.CreateStandardParameterList();
 
-        // Assert
+
         Assert.IsNotNull(parameterList);
         Assert.AreEqual(5, parameterList.Parameters.Count);
 
@@ -37,19 +36,19 @@ public class MethodDeclarationHelperTests
         // Assert
         var parameters = parameterList.Parameters.ToArray();
 
-        // Check provider parameter type
+
         Assert.Contains("ISchemaProvider", parameters[0].Type.ToString());
 
-        // Check positionalEnvironmentVariables parameter type
+
         Assert.Contains("IReadOnlyDictionary", parameters[1].Type.ToString());
 
-        // Check queriesInformation parameter type
+
         Assert.Contains("IReadOnlyDictionary", parameters[2].Type.ToString());
 
-        // Check logger parameter type
+
         Assert.Contains("ILogger", parameters[3].Type.ToString());
 
-        // Check token parameter type
+
         Assert.Contains("CancellationToken", parameters[4].Type.ToString());
     }
 
@@ -71,16 +70,15 @@ public class MethodDeclarationHelperTests
         Assert.Contains("Table", method.ReturnType.ToString());
         Assert.AreEqual(5, method.ParameterList.Parameters.Count);
         Assert.IsNotNull(method.Body);
-        Assert.AreEqual(0, method.Body.Statements.Count); // Empty block should have 0 statements
+        Assert.AreEqual(0, method.Body.Statements.Count);
     }
 
     [TestMethod]
     public void CreateStandardPrivateMethod_WithNullMethodName_ThrowsArgumentException()
     {
-        // Arrange
         var body = SyntaxFactory.Block();
 
-        // Act & Assert
+
         Assert.Throws<ArgumentException>(() =>
             MethodDeclarationHelper.CreateStandardPrivateMethod(null, body));
     }
@@ -88,10 +86,9 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreateStandardPrivateMethod_WithEmptyMethodName_ThrowsArgumentException()
     {
-        // Arrange
         var body = SyntaxFactory.Block();
 
-        // Act & Assert
+
         Assert.Throws<ArgumentException>(() =>
             MethodDeclarationHelper.CreateStandardPrivateMethod("", body));
     }
@@ -99,10 +96,9 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreateStandardPrivateMethod_WithWhitespaceMethodName_ThrowsArgumentException()
     {
-        // Arrange
         var body = SyntaxFactory.Block();
 
-        // Act & Assert
+
         Assert.Throws<ArgumentException>(() =>
             MethodDeclarationHelper.CreateStandardPrivateMethod("   ", body));
     }
@@ -110,7 +106,6 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreateStandardPrivateMethod_WithNullBody_ThrowsArgumentNullException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
             MethodDeclarationHelper.CreateStandardPrivateMethod("TestMethod", null));
     }
@@ -118,14 +113,13 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreatePublicProperty_WithValidInputs_ReturnsCorrectPropertyDeclaration()
     {
-        // Arrange
         var typeName = "string";
         var propertyName = "TestProperty";
 
-        // Act
+
         var property = MethodDeclarationHelper.CreatePublicProperty(typeName, propertyName);
 
-        // Assert
+
         Assert.IsNotNull(property);
         Assert.AreEqual(propertyName, property.Identifier.ValueText);
         Assert.Contains(typeName, property.Type.ToString());
@@ -139,7 +133,6 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreatePublicProperty_WithNullTypeName_ThrowsArgumentException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentException>(() =>
             MethodDeclarationHelper.CreatePublicProperty(null, "TestProperty"));
     }
@@ -147,7 +140,6 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreatePublicProperty_WithEmptyTypeName_ThrowsArgumentException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentException>(() =>
             MethodDeclarationHelper.CreatePublicProperty("", "TestProperty"));
     }
@@ -155,7 +147,6 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreatePublicProperty_WithNullPropertyName_ThrowsArgumentException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentException>(() =>
             MethodDeclarationHelper.CreatePublicProperty("string", null));
     }
@@ -163,7 +154,6 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreatePublicProperty_WithEmptyPropertyName_ThrowsArgumentException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentException>(() =>
             MethodDeclarationHelper.CreatePublicProperty("string", ""));
     }
@@ -171,10 +161,9 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreatePositionalEnvironmentVariablesProperty_ReturnsCorrectPropertyDeclaration()
     {
-        // Act
         var property = MethodDeclarationHelper.CreatePositionalEnvironmentVariablesProperty();
 
-        // Assert
+
         Assert.IsNotNull(property);
         Assert.AreEqual("PositionalEnvironmentVariables", property.Identifier.ValueText);
         Assert.Contains("IReadOnlyDictionary", property.Type.ToString());
@@ -188,10 +177,9 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreateQueriesInformationProperty_ReturnsCorrectPropertyDeclaration()
     {
-        // Act
         var property = MethodDeclarationHelper.CreateQueriesInformationProperty();
 
-        // Assert
+
         Assert.IsNotNull(property);
         Assert.AreEqual("QueriesInformation", property.Identifier.ValueText);
         Assert.Contains("IReadOnlyDictionary", property.Type.ToString());
@@ -226,7 +214,7 @@ public class MethodDeclarationHelperTests
         Assert.AreEqual("token", method.ParameterList.Parameters[0].Identifier.ValueText);
         Assert.Contains("CancellationToken", method.ParameterList.Parameters[0].Type.ToString());
 
-        // Check method body contains the return statement
+
         var bodyText = method.Body.ToString();
         Assert.Contains("return", bodyText);
         Assert.Contains(methodCallExpression, bodyText);
@@ -235,7 +223,6 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreateRunMethod_WithNullMethodCallExpression_ThrowsArgumentException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentException>(() =>
             MethodDeclarationHelper.CreateRunMethod(null));
     }
@@ -243,7 +230,6 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreateRunMethod_WithEmptyMethodCallExpression_ThrowsArgumentException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentException>(() =>
             MethodDeclarationHelper.CreateRunMethod(""));
     }
@@ -251,7 +237,6 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void CreateRunMethod_WithWhitespaceMethodCallExpression_ThrowsArgumentException()
     {
-        // Act & Assert
         Assert.Throws<ArgumentException>(() =>
             MethodDeclarationHelper.CreateRunMethod("   "));
     }
@@ -259,17 +244,16 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void ComplexParameterTypes_AreCorrectlyGenerated()
     {
-        // Act
         var parameterList = MethodDeclarationHelper.CreateStandardParameterList();
         var posProperty = MethodDeclarationHelper.CreatePositionalEnvironmentVariablesProperty();
         var queriesProperty = MethodDeclarationHelper.CreateQueriesInformationProperty();
 
-        // Assert - verify parameter list creates consistent types with properties
+
         var posParam = parameterList.Parameters[1];
         Assert.AreEqual(posParam.Type.ToString(), posProperty.Type.ToString());
 
         var queriesParam = parameterList.Parameters[2];
-        // Note: Parameter and property may have slight formatting differences, so check key components
+
         Assert.Contains("IReadOnlyDictionary", queriesParam.Type.ToString());
         Assert.Contains("IReadOnlyDictionary", queriesProperty.Type.ToString());
     }
@@ -277,7 +261,6 @@ public class MethodDeclarationHelperTests
     [TestMethod]
     public void AllMethods_ProduceValidSyntax()
     {
-        // Arrange & Act
         var parameterList = MethodDeclarationHelper.CreateStandardParameterList();
         var method = MethodDeclarationHelper.CreateStandardPrivateMethod("TestMethod", SyntaxFactory.Block());
         var property1 = MethodDeclarationHelper.CreatePublicProperty("string", "TestProperty");
@@ -285,7 +268,7 @@ public class MethodDeclarationHelperTests
         var property3 = MethodDeclarationHelper.CreateQueriesInformationProperty();
         var runMethod = MethodDeclarationHelper.CreateRunMethod("TestCall()");
 
-        // Assert - all should be valid syntax nodes without compilation errors
+
         Assert.IsFalse(parameterList.ContainsDiagnostics);
         Assert.IsFalse(method.ContainsDiagnostics);
         Assert.IsFalse(property1.ContainsDiagnostics);

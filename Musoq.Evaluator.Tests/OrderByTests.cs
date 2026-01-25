@@ -811,7 +811,7 @@ public class OrderByTests : BasicEntityTestBase
     public void WhenOrderByWithGroupBy_ShouldSucceed()
     {
         const string query = """
-                             select 
+                             select
                                 a.GetTypeName(a.Name),
                                 a.Count(a.Name)
                              from #A.Entities() a
@@ -958,8 +958,8 @@ public class OrderByTests : BasicEntityTestBase
     public void WhenOrderByDescWithSubquery_ShouldWork()
     {
         var query = @"
-            select City, Money from 
-            (select City, Money from #A.Entities() order by Money desc) 
+            select City, Money from
+            (select City, Money from #A.Entities() order by Money desc)
             order by City desc";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -1047,8 +1047,8 @@ public class OrderByTests : BasicEntityTestBase
     public void WhenOrderByDescWithComplexWhereClause_ShouldWork()
     {
         var query = @"
-            select City, Money from #A.Entities() 
-            where Money > 100 and Money < 500 
+            select City, Money from #A.Entities()
+            where Money > 100 and Money < 500
             order by Money desc";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>

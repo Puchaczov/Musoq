@@ -25,7 +25,7 @@ public class JoinSourcesTableProcessingHelperTests
             SyntaxFactory.Block());
         var emptyBlock = SyntaxFactory.Block();
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
                 null,
@@ -50,7 +50,7 @@ public class JoinSourcesTableProcessingHelperTests
             SyntaxFactory.Block());
         var emptyBlock = SyntaxFactory.Block();
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
                 node,
@@ -68,7 +68,6 @@ public class JoinSourcesTableProcessingHelperTests
     [TestMethod]
     public void ProcessJoinSourcesTable_WithNullScope_ThrowsArgumentNullException()
     {
-        // Arrange
         var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
         var node = CreateMockJoinNode(JoinType.Inner);
@@ -76,7 +75,7 @@ public class JoinSourcesTableProcessingHelperTests
             SyntaxFactory.Block());
         var emptyBlock = SyntaxFactory.Block();
 
-        // Act & Assert
+
         Assert.Throws<ArgumentNullException>(() =>
             JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
                 node,
@@ -97,13 +96,13 @@ public class JoinSourcesTableProcessingHelperTests
         // Arrange
         var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
-        var node = CreateMockJoinNode((JoinType)999); // Invalid join type
+        var node = CreateMockJoinNode((JoinType)999);
         var scope = new Scope(null, 0, "test");
         var ifStatement = SyntaxFactory.IfStatement(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression),
             SyntaxFactory.Block());
         var emptyBlock = SyntaxFactory.Block();
 
-        // Act & Assert
+
         var exception = Assert.Throws<ArgumentException>(() =>
             JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
                 node,

@@ -4,6 +4,7 @@ using System.Dynamic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.Dynamic;
 using Musoq.Plugins;
@@ -550,9 +551,11 @@ public class DescStatementTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.AreEqual(4, table.Columns.Count(), "Should have 4 columns: Method, Description, Category, and Source");
         Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual("Description", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("Category", table.Columns.ElementAt(2).ColumnName);
+        Assert.AreEqual("Source", table.Columns.ElementAt(3).ColumnName);
 
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
 
@@ -573,7 +576,11 @@ public class DescStatementTests : BasicEntityTestBase
         foreach (var row in table)
         {
             var description = (string)row[1];
+            var category = (string)row[2];
+            var source = (string)row[3];
             Assert.IsNotNull(description, "Description should not be null");
+            Assert.IsNotNull(category, "Category should not be null");
+            Assert.IsNotNull(source, "Source should not be null");
         }
     }
 
@@ -619,7 +626,7 @@ public class DescStatementTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns even with semicolon");
+        Assert.AreEqual(4, table.Columns.Count(), "Should have 4 columns even with semicolon");
         Assert.IsGreaterThan(0, table.Count, "Should return methods even with semicolon");
     }
 
@@ -659,7 +666,7 @@ public class DescStatementTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsGreaterThan(0, table.Count, "Should return library methods even with empty source");
-        Assert.AreEqual(2, table.Columns.Count(), "Should have Method and Description columns");
+        Assert.AreEqual(4, table.Columns.Count(), "Should have Method, Description, Category, and Source columns");
     }
 
     [TestMethod]
@@ -685,7 +692,7 @@ public class DescStatementTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.IsGreaterThan(0, table.Count, "Should return methods");
-        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns");
+        Assert.AreEqual(4, table.Columns.Count(), "Should have 4 columns");
     }
 
     [TestMethod]
@@ -707,6 +714,8 @@ public class DescStatementTests : BasicEntityTestBase
 
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType, "Method column should be string");
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType, "Description column should be string");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType, "Category column should be string");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(3).ColumnType, "Source column should be string");
     }
 
     [TestMethod]
@@ -822,7 +831,8 @@ public class DescStatementTests : BasicEntityTestBase
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count(), "Should have exactly 2 columns: Method and Description");
+        Assert.AreEqual(4, table.Columns.Count(),
+            "Should have exactly 4 columns: Method, Description, Category, and Source");
         Assert.IsGreaterThan(0, table.Count, "Should return library methods");
 
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
@@ -830,11 +840,14 @@ public class DescStatementTests : BasicEntityTestBase
 
         Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(")), "Should contain library methods");
 
-
         foreach (var row in table)
         {
             var description = (string)row[1];
+            var category = (string)row[2];
+            var source = (string)row[3];
             Assert.IsNotNull(description, "Description should not be null");
+            Assert.IsNotNull(category, "Category should not be null");
+            Assert.IsNotNull(source, "Source should not be null");
         }
     }
 
@@ -855,9 +868,11 @@ public class DescStatementTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.AreEqual(4, table.Columns.Count(), "Should have 4 columns: Method, Description, Category, and Source");
         Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual("Description", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("Category", table.Columns.ElementAt(2).ColumnName);
+        Assert.AreEqual("Source", table.Columns.ElementAt(3).ColumnName);
 
         Assert.IsGreaterThan(0, table.Count, "Should return at least one library method");
 
@@ -883,9 +898,11 @@ public class DescStatementTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.AreEqual(4, table.Columns.Count(), "Should have 4 columns: Method, Description, Category, and Source");
         Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual("Description", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("Category", table.Columns.ElementAt(2).ColumnName);
+        Assert.AreEqual("Source", table.Columns.ElementAt(3).ColumnName);
 
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
 
@@ -911,7 +928,7 @@ public class DescStatementTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: Method and Description");
+        Assert.AreEqual(4, table.Columns.Count(), "Should have 4 columns: Method, Description, Category, and Source");
         Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
 
         var methodSignatures = table.Select(row => (string)row[0]).ToList();
@@ -1033,4 +1050,821 @@ public class DescStatementTests : BasicEntityTestBase
     }
 
     private record TypeWithConstructor(int Id, string Name, decimal Value);
+
+    #region Desc Column Tests
+
+    [TestMethod]
+    public void DescSchemaMethodColumn_Debug_ShouldShowGeneratedCode()
+    {
+        var query = "desc #A.entities() column Array";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var items = InstanceCreator.CreateForAnalyze(
+            query,
+            Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(sources),
+            LoggerResolver);
+
+        var sourceCode = items.Compilation?.SyntaxTrees.ElementAt(0).GetRoot().ToFullString();
+        TestContext.WriteLine("Generated source code:");
+        TestContext.WriteLine(sourceCode);
+
+        Assert.IsNotNull(sourceCode, "Source code should be generated");
+        Assert.Contains("GetSpecificColumnDescription", sourceCode, "Should call GetSpecificColumnDescription");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodColumn_ArrayOfPrimitives_ShouldReturnElementTypeInfo()
+    {
+        var query = "desc #A.entities() column Array";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(3, table.Columns.Count(), "Should have 3 columns: Name, Index, Type");
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Index", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("Type", table.Columns.ElementAt(2).ColumnName);
+
+        Assert.AreEqual(1, table.Count, "Should return one row for primitive array element type");
+
+        var columnName = (string)table[0][0];
+        Assert.AreEqual("Array", columnName, "First row should be the Array column");
+
+        var typeName = (string)table[0][2];
+        Assert.Contains("Int32", typeName, $"Array element should be Int32 type, got: {typeName}");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodColumn_CaseInsensitive_ShouldWork()
+    {
+        var query = "desc #A.entities() column array";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count, "Should find column with case-insensitive match");
+
+        var columnName = (string)table[0][0];
+        Assert.AreEqual("Array", columnName, "Should return the actual column name (Array)");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodColumn_ComplexArrayType_ShouldReturnNestedProperties()
+    {
+        var query = "desc #A.entities() column Children";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.IsGreaterThan(1, table.Count,
+            "Should return multiple rows for complex array element type with nested properties");
+
+        var columnNames = table.Select(row => (string)row[0]).ToList();
+
+        Assert.Contains("Children", columnNames, "Should contain the Children column itself");
+        Assert.IsTrue(columnNames.Any(n => n.Contains(".")),
+            "Should contain nested properties like Name, Id from BasicEntity");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodColumn_NotFound_ShouldThrowException()
+    {
+        var query = "desc #A.entities() column NonExistentColumn";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+
+        var exception = Assert.Throws<UnknownColumnOrAliasException>(() => vm.Run(TestContext.CancellationToken));
+        Assert.Contains("NonExistentColumn", exception.Message, "Exception message should contain the column name");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodColumn_NonArrayColumn_ShouldThrowException()
+    {
+        var query = "desc #A.entities() column Name";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+
+
+        Assert.Throws<ColumnMustBeAnArrayOrImplementIEnumerableException>(() => vm.Run(TestContext.CancellationToken));
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodColumn_NonArrayComplexType_ShouldDescribeType()
+    {
+        var query = "desc #A.entities() column Self";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.IsGreaterThan(0, table.Count, "Complex type should show its properties");
+        var columnNames = table.Select(row => (string)row[0]).ToList();
+        Assert.IsTrue(columnNames.Any(c => c.Equals("Children", StringComparison.OrdinalIgnoreCase)),
+            "Should show Children property for exploratory navigation");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodColumn_WithSemicolon_ShouldWork()
+    {
+        var query = "desc #A.entities() column Array;";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count, "Should work with semicolon");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodColumn_HashOptional_ShouldWork()
+    {
+        var query = "desc A.entities() column Array";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count, "Should work without hash prefix");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodColumn_ColumnIndex_ShouldBeCorrect()
+    {
+        var query = "desc #A.entities() column Array";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count, "Should return column info");
+
+        var columnIndex = (int)table[0][1];
+        Assert.IsGreaterThanOrEqualTo(0, columnIndex, "Column index should be non-negative");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodColumn_DictionaryType_ShouldWork()
+    {
+        var query = "desc #A.entities() column Dictionary";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.IsGreaterThan(0, table.Count, "Dictionary implements IEnumerable and should work");
+
+        var columnName = (string)table[0][0];
+        Assert.AreEqual("Dictionary", columnName, "Should return Dictionary column");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodColumn_NestedPath_TwoLevels_ShouldWork()
+    {
+        var query = "desc #A.entities() column Self.Children";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.AreEqual(3, table.Columns.Count(), "Should have exactly 3 columns");
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
+        Assert.AreEqual("Index", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
+        Assert.AreEqual("Type", table.Columns.ElementAt(2).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
+        Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
+
+
+        Assert.IsGreaterThan(0, table.Count, "Should return nested property info");
+        var columnNames = table.Select(row => (string)row[0]).ToList();
+        Assert.Contains("Children", columnNames, "Should contain base column name");
+
+
+        Assert.IsFalse(columnNames.Any(c => c.StartsWith("Self.")),
+            "Property names should be relative to Self.Children, not include Self prefix");
+
+
+        var childrenRow = table.FirstOrDefault(row => (string)row[0] == "Children");
+        Assert.IsNotNull(childrenRow, "Should have Children row");
+        var childrenType = (string)childrenRow[2];
+        Assert.IsTrue(childrenType.Contains("BasicEntity"),
+            $"Children should be BasicEntity type, got: {childrenType}");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodColumn_NestedPath_ThreeLevels_ShouldWork()
+    {
+        var query = "desc #A.entities() column Self.Other.Children";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.AreEqual(3, table.Columns.Count(), "Should have exactly 3 columns");
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual("Index", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual("Type", table.Columns.ElementAt(2).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
+
+
+        Assert.IsGreaterThan(0, table.Count, "Should support three-level nested paths");
+        var columnNames = table.Select(row => (string)row[0]).ToList();
+        Assert.Contains("Children", columnNames, "Should contain Children base name");
+
+
+        Assert.IsFalse(columnNames.Any(c => c.StartsWith("Self.")),
+            "Property names should not include Self prefix");
+        Assert.IsFalse(columnNames.Any(c => c.StartsWith("Other.")),
+            "Property names should not include Other prefix");
+
+
+        foreach (var row in table)
+        {
+            Assert.IsNotNull(row[0], "Name should not be null");
+            Assert.IsInstanceOfType(row[1], typeof(int), "Index should be int");
+            Assert.IsNotNull(row[2], "Type should not be null");
+        }
+    }
+
+    #endregion
+
+    #region Additional Coverage Tests
+
+    [TestMethod]
+    public void DescSchema_WithSemicolon_ShouldWork()
+    {
+        var query = "desc #A;";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.AreEqual(1, table.Columns.Count(), "Should have exactly 1 column");
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
+
+
+        Assert.IsGreaterThan(0, table.Count, "Should return at least one method");
+        var methodNames = table.Select(row => (string)row[0]).ToList();
+        Assert.IsTrue(methodNames.Contains("empty"), "Should contain 'empty' method");
+        Assert.IsTrue(methodNames.Contains("entities"), "Should contain 'entities' method");
+    }
+
+    [TestMethod]
+    public void DescSchema_CaseInsensitive_ShouldWork()
+    {
+        var query = "DESC #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.AreEqual(1, table.Columns.Count(), "Should have exactly 1 column");
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+
+        Assert.IsGreaterThan(0, table.Count, "Should return methods");
+        var methodNames = table.Select(row => (string)row[0]).ToList();
+        Assert.IsTrue(methodNames.Contains("empty"), "Should contain 'empty' method");
+        Assert.IsTrue(methodNames.Contains("entities"), "Should contain 'entities' method");
+    }
+
+    [TestMethod]
+    public void DescSchema_HashOptional_ShouldWork()
+    {
+        var query = "desc A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.AreEqual(1, table.Columns.Count(), "Should have exactly 1 column");
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+
+        Assert.IsGreaterThan(0, table.Count, "Should return methods");
+        var methodNames = table.Select(row => (string)row[0]).ToList();
+        Assert.IsTrue(methodNames.Contains("empty"), "Should contain 'empty' method");
+        Assert.IsTrue(methodNames.Contains("entities"), "Should contain 'entities' method");
+    }
+
+    [TestMethod]
+    public void DescSchema_OutputStructure_ShouldBeCorrect()
+    {
+        var query = "desc #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.AreEqual(1, table.Columns.Count(), "Should have exactly 1 column");
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName, "Column should be named 'Name'");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType, "Column should be string type");
+        Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex, "Column index should be 0");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethod_OutputStructure_ShouldBeCorrect()
+    {
+        var query = "desc #A.entities";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.IsGreaterThanOrEqualTo(1, table.Columns.Count(), "Should have at least Name column");
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName, "First column should be 'Name'");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType, "Name column should be string");
+
+
+        if (table.Columns.Count() > 1)
+            for (var i = 1; i < table.Columns.Count(); i++)
+            {
+                Assert.AreEqual($"Param {i - 1}", table.Columns.ElementAt(i).ColumnName,
+                    $"Column {i} should be named 'Param {i - 1}'");
+                Assert.AreEqual(typeof(string), table.Columns.ElementAt(i).ColumnType,
+                    $"Param {i - 1} column should be string type");
+            }
+    }
+
+    [TestMethod]
+    public void DescSchemaMethod_WithSemicolon_ShouldWork()
+    {
+        var query = "desc #A.entities;";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.IsGreaterThanOrEqualTo(1, table.Columns.Count(), "Should have at least Name column");
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
+
+
+        Assert.AreEqual(1, table.Count, "Should return exactly one method overload");
+        Assert.AreEqual("entities", (string)table[0][0], "Should return 'entities' method");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethod_CaseInsensitive_ShouldWork()
+    {
+        // Note: Method names are case-sensitive in schema registration
+
+        var query = "DESC #A.entities";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count, "Should return method constructor information");
+        Assert.AreEqual("entities", (string)table[0][0], "DESC keyword should be case insensitive");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethod_HashOptional_ShouldWork()
+    {
+        var query = "desc A.entities";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.IsGreaterThanOrEqualTo(1, table.Columns.Count(), "Should have at least Name column");
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+
+
+        Assert.AreEqual(1, table.Count, "Should return exactly one method overload");
+        Assert.AreEqual("entities", (string)table[0][0], "Should return 'entities' method");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodWithParentheses_OutputStructure_ShouldBeCorrect()
+    {
+        var query = "desc #A.entities()";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.AreEqual(3, table.Columns.Count(), "Should have exactly 3 columns");
+
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName, "First column should be 'Name'");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType, "Name column should be string");
+        Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex, "Name column index should be 0");
+
+        Assert.AreEqual("Index", table.Columns.ElementAt(1).ColumnName, "Second column should be 'Index'");
+        Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType, "Index column should be int");
+        Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex, "Index column index should be 1");
+
+        Assert.AreEqual("Type", table.Columns.ElementAt(2).ColumnName, "Third column should be 'Type'");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType, "Type column should be string");
+        Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex, "Type column index should be 2");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodWithParentheses_HashOptional_ShouldWork()
+    {
+        var query = "desc A.entities()";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.AreEqual(3, table.Columns.Count(), "Should have exactly 3 columns");
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual("Index", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual("Type", table.Columns.ElementAt(2).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
+
+
+        Assert.IsGreaterThan(0, table.Count, "Should return column information");
+        var columnNames = table.Select(row => (string)row[0]).ToList();
+        Assert.IsTrue(columnNames.Contains("Name"), "Should contain 'Name' column");
+        Assert.IsTrue(columnNames.Contains("City"), "Should contain 'City' column");
+        Assert.IsTrue(columnNames.Contains("Country"), "Should contain 'Country' column");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchema_OutputStructure_ShouldBeCorrect()
+    {
+        var query = "desc functions #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.AreEqual(4, table.Columns.Count(), "Should have exactly 4 columns");
+
+        Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName, "First column should be 'Method'");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType, "Method column should be string");
+        Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex, "Method column index should be 0");
+
+        Assert.AreEqual("Description", table.Columns.ElementAt(1).ColumnName, "Second column should be 'Description'");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType, "Description column should be string");
+        Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex, "Description column index should be 1");
+
+        Assert.AreEqual("Category", table.Columns.ElementAt(2).ColumnName, "Third column should be 'Category'");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType, "Category column should be string");
+        Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex, "Category column index should be 2");
+
+        Assert.AreEqual("Source", table.Columns.ElementAt(3).ColumnName, "Fourth column should be 'Source'");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(3).ColumnType, "Source column should be string");
+        Assert.AreEqual(3, table.Columns.ElementAt(3).ColumnIndex, "Source column index should be 3");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchema_HashOptional_ShouldWork()
+    {
+        var query = "desc functions A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.AreEqual(4, table.Columns.Count(), "Should have exactly 4 columns");
+        Assert.AreEqual("Method", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
+        Assert.AreEqual("Description", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
+        Assert.AreEqual("Category", table.Columns.ElementAt(2).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
+        Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
+        Assert.AreEqual("Source", table.Columns.ElementAt(3).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(3).ColumnType);
+        Assert.AreEqual(3, table.Columns.ElementAt(3).ColumnIndex);
+
+
+        Assert.IsGreaterThan(0, table.Count, "Should return library methods");
+        var methodSignatures = table.Select(row => (string)row[0]).ToList();
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Trim(")), "Should contain Trim method");
+        Assert.IsTrue(methodSignatures.Any(m => m.Contains("Substring(")), "Should contain Substring method");
+
+
+        foreach (var row in table)
+        {
+            Assert.IsNotNull(row[0], "Method should not be null");
+            Assert.IsNotNull(row[1], "Description should not be null");
+            Assert.IsNotNull(row[2], "Category should not be null");
+            Assert.IsNotNull(row[3], "Source should not be null");
+            var source = (string)row[3];
+            Assert.IsTrue(source == "Library" || source == "Schema",
+                $"Source should be either 'Library' or 'Schema', got: {source}");
+        }
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchema_SortOrder_ShouldBeCorrect()
+    {
+        var query = "desc functions #A";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        var allRows = table.Select(row => new
+        {
+            Method = (string)row[0],
+            Category = (string)row[2],
+            Source = (string)row[3]
+        }).ToList();
+
+        // Note: BasicSchema only has Library methods, no Schema-specific methods
+        var libraryRows = allRows.Where(r => r.Source == "Library").ToList();
+
+
+        var categories = libraryRows.Select(r => r.Category).Distinct().ToList();
+        foreach (var category in categories)
+        {
+            var categoryMethods = libraryRows.Where(r => r.Category == category).ToList();
+            var firstIndex = libraryRows.IndexOf(categoryMethods.First());
+            var lastIndex = libraryRows.LastIndexOf(categoryMethods.Last());
+            var countInRange = lastIndex - firstIndex + 1;
+
+            Assert.AreEqual(categoryMethods.Count, countInRange,
+                $"All methods from category '{category}' should appear consecutively (found {categoryMethods.Count} methods spread across {countInRange} positions)");
+        }
+
+
+        for (var i = 1; i < categories.Count; i++)
+            Assert.IsTrue(string.Compare(categories[i - 1], categories[i], StringComparison.Ordinal) <= 0,
+                $"Category '{categories[i - 1]}' should come before or equal to '{categories[i]}'");
+    }
+
+    [TestMethod]
+    public void DescSchemaMethodColumn_OutputStructure_ShouldBeCorrect()
+    {
+        var query = "desc #A.entities() column Array";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+
+        Assert.AreEqual(3, table.Columns.Count(), "Should have exactly 3 columns");
+
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName, "First column should be 'Name'");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType, "Name column should be string");
+        Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex, "Name column index should be 0");
+
+        Assert.AreEqual("Index", table.Columns.ElementAt(1).ColumnName, "Second column should be 'Index'");
+        Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType, "Index column should be int");
+        Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex, "Index column index should be 1");
+
+        Assert.AreEqual("Type", table.Columns.ElementAt(2).ColumnName, "Third column should be 'Type'");
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType, "Type column should be string");
+        Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex, "Type column index should be 2");
+    }
+
+    #endregion
 }

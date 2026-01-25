@@ -1,23 +1,26 @@
-﻿using System;
+﻿#nullable enable
+using System;
 
 namespace Musoq.Parser.Nodes;
 
-public class DescNode : Node
+public class DescNode(FromNode from, DescForType type, Node? column) : Node
 {
     public DescNode(FromNode from, DescForType type)
+        : this(from, type, null)
     {
-        From = from;
-        Id = $"{nameof(DescNode)}{from.Id}";
-        Type = type;
     }
 
-    public DescForType Type { get; set; }
+    public DescForType Type { get; set; } = type;
 
-    public FromNode From { get; }
+    public FromNode From { get; } = from;
+
+    public Node? Column { get; } = column;
 
     public override Type ReturnType { get; }
 
-    public override string Id { get; }
+    public override string Id { get; } = column != null
+        ? $"{nameof(DescNode)}{from.Id}_{column.Id}"
+        : $"{nameof(DescNode)}{from.Id}";
 
     public override void Accept(IExpressionVisitor visitor)
     {
@@ -26,6 +29,8 @@ public class DescNode : Node
 
     public override string ToString()
     {
-        return $"desc {From.ToString()}";
+        return column != null
+            ? $"desc {From.ToString()} column {column.ToString()}"
+            : $"desc {From.ToString()}";
     }
 }

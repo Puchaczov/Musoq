@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Musoq.Evaluator.Tables;
 
@@ -8,6 +7,8 @@ public abstract class IndexedList<TKey, TValue>
     where TValue : IValue<TKey>
     where TKey : IEquatable<TKey>
 {
+    private static readonly IReadOnlyList<TValue> EmptyList = Array.Empty<TValue>();
+
     protected readonly Dictionary<TKey, List<int>> Indexes = new();
     protected internal readonly List<TValue> Rows = [];
 
@@ -15,7 +16,15 @@ public abstract class IndexedList<TKey, TValue>
 
     public virtual int Count => Rows.Count;
 
-    public virtual IEnumerable<TValue> this[TKey key] => Indexes[key].Select(f => Rows[f]);
+    public virtual IEnumerable<TValue> this[TKey key]
+    {
+        get
+        {
+            var indexes = Indexes[key];
+            for (var i = 0; i < indexes.Count; i++)
+                yield return Rows[indexes[i]];
+        }
+    }
 
     public virtual bool Contains(TValue value)
     {
@@ -24,7 +33,10 @@ public abstract class IndexedList<TKey, TValue>
 
     public virtual bool Contains(TValue value, Func<TValue, TValue, bool> comparer)
     {
-        return Rows.Any(row => comparer(row, value));
+        for (var i = 0; i < Rows.Count; i++)
+            if (comparer(Rows[i], value))
+                return true;
+        return false;
     }
 
     public virtual bool Contains(TKey key, TValue value)
@@ -45,7 +57,7 @@ public abstract class IndexedList<TKey, TValue>
     {
         if (Indexes.TryGetValue(key, out var matchedIndexes))
         {
-            var resultValues = new List<TValue>();
+            var resultValues = new List<TValue>(matchedIndexes.Count);
 
             foreach (var rowIndex in matchedIndexes)
                 resultValues.Add(Rows[rowIndex]);
@@ -54,7 +66,7 @@ public abstract class IndexedList<TKey, TValue>
             return true;
         }
 
-        values = new List<TValue>();
+        values = EmptyList;
         return false;
     }
 

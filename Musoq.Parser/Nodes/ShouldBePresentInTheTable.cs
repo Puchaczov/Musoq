@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 
 namespace Musoq.Parser.Nodes;
 
@@ -10,7 +9,7 @@ public class ShouldBePresentInTheTable : Node
         Table = table;
         ExpectedResult = negate;
         Keys = keys;
-        var idKeys = keys.Length == 0 ? string.Empty : keys.Aggregate((a, b) => a + b);
+        var idKeys = keys.Length == 0 ? string.Empty : string.Concat(keys);
         Id = $"{nameof(ShouldBePresentInTheTable)}{table}{negate}{idKeys}";
     }
 

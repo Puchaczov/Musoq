@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Musoq.Evaluator.Visitors.Helpers;
@@ -219,6 +221,90 @@ public static class SyntaxBinaryOperationHelper
         ValidateUnaryOperation(nodes, generator);
         var operand = nodes.Pop();
         nodes.Push(generator.LogicalNotExpression(operand));
+    }
+
+    /// <summary>
+    ///     Processes a bitwise AND operation.
+    /// </summary>
+    /// <param name="nodes">The syntax node stack.</param>
+    /// <param name="generator">The syntax generator.</param>
+    /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    public static void ProcessBitwiseAndOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
+    {
+        ValidateBinaryOperation(nodes, generator);
+        var right = nodes.Pop();
+        var left = nodes.Pop();
+        nodes.Push(generator.BitwiseAndExpression(left, right));
+    }
+
+    /// <summary>
+    ///     Processes a bitwise OR operation.
+    /// </summary>
+    /// <param name="nodes">The syntax node stack.</param>
+    /// <param name="generator">The syntax generator.</param>
+    /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    public static void ProcessBitwiseOrOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
+    {
+        ValidateBinaryOperation(nodes, generator);
+        var right = nodes.Pop();
+        var left = nodes.Pop();
+        nodes.Push(generator.BitwiseOrExpression(left, right));
+    }
+
+    /// <summary>
+    ///     Processes a bitwise XOR operation.
+    /// </summary>
+    /// <param name="nodes">The syntax node stack.</param>
+    /// <param name="generator">The syntax generator.</param>
+    /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    public static void ProcessBitwiseXorOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
+    {
+        ValidateBinaryOperation(nodes, generator);
+        var right = nodes.Pop();
+        var left = nodes.Pop();
+        nodes.Push(SyntaxFactory.BinaryExpression(
+            SyntaxKind.ExclusiveOrExpression,
+            (ExpressionSyntax)left,
+            (ExpressionSyntax)right));
+    }
+
+    /// <summary>
+    ///     Processes a left shift operation.
+    /// </summary>
+    /// <param name="nodes">The syntax node stack.</param>
+    /// <param name="generator">The syntax generator.</param>
+    /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    public static void ProcessLeftShiftOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
+    {
+        ValidateBinaryOperation(nodes, generator);
+        var right = nodes.Pop();
+        var left = nodes.Pop();
+        nodes.Push(SyntaxFactory.BinaryExpression(
+            SyntaxKind.LeftShiftExpression,
+            (ExpressionSyntax)left,
+            (ExpressionSyntax)right));
+    }
+
+    /// <summary>
+    ///     Processes a right shift operation.
+    /// </summary>
+    /// <param name="nodes">The syntax node stack.</param>
+    /// <param name="generator">The syntax generator.</param>
+    /// <exception cref="ArgumentNullException">Thrown when nodes or generator is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
+    public static void ProcessRightShiftOperation(Stack<SyntaxNode> nodes, SyntaxGenerator generator)
+    {
+        ValidateBinaryOperation(nodes, generator);
+        var right = nodes.Pop();
+        var left = nodes.Pop();
+        nodes.Push(SyntaxFactory.BinaryExpression(
+            SyntaxKind.RightShiftExpression,
+            (ExpressionSyntax)left,
+            (ExpressionSyntax)right));
     }
 
     /// <summary>

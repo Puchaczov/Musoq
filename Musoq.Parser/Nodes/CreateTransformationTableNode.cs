@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 
 namespace Musoq.Parser.Nodes;
 
@@ -11,7 +10,7 @@ public class CreateTransformationTableNode : Node
         Keys = keys;
         Fields = fields;
         ForGrouping = forGrouping;
-        var keysId = keys.Length == 0 ? string.Empty : keys.Aggregate((a, b) => a + b);
+        var keysId = keys.Length == 0 ? string.Empty : string.Concat(keys);
         Id = $"{nameof(CreateTransformationTableNode)}{name}{keysId}";
     }
 

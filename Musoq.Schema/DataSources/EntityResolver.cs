@@ -15,10 +15,10 @@ public class EntityResolver<T>(
     public object[] Contexts => [entity];
 
     object IObjectResolver.this[string name]
-        => indexToObjectAccessMap[nameToIndexMap[name]](entity);
+        => entity == null ? null : indexToObjectAccessMap[nameToIndexMap[name]](entity);
 
     object IObjectResolver.this[int index]
-        => indexToObjectAccessMap[index](entity);
+        => entity == null ? null : indexToObjectAccessMap[index](entity);
 
     public bool HasColumn(string name)
     {
@@ -28,7 +28,7 @@ public class EntityResolver<T>(
 #if DEBUG
     public string DebugString()
     {
-        return $"{entity.ToString()}";
+        return $"{entity?.ToString() ?? "null"}";
     }
 #endif
 }

@@ -210,6 +210,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             {
                 var param = parameters[0];
                 if (param != null && int.TryParse(param.ToString(), out var intParam))
+
                     return new ObjectRowsSource(source.Rows.Where(f =>
                         f["FilterKey"]?.ToString() == intParam.ToString()).ToArray());
                 return new ObjectRowsSource(source.Rows.Where(f =>

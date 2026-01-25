@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Musoq.Parser.Tokens;
+﻿using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Nodes;
 
@@ -18,7 +17,7 @@ public class ExceptNode : SetOperatorNode
 
     public override string ToString()
     {
-        var keys = Keys.Length == 0 ? string.Empty : Keys.Aggregate((a, b) => a + "," + b);
+        var keys = Keys.Length == 0 ? string.Empty : string.Join(",", Keys);
         return $"{Left.ToString()} except ({keys}) {Right.ToString()}";
     }
 }

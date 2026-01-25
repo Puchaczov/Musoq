@@ -1,6 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -12,19 +15,26 @@ public class EvaluationHelperTests
     {
         var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("Test", typeof(TestClass)).ToArray();
 
+
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test" && pair.Type == typeof(TestClass)));
+
 
         Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.Test" && pair.Type == typeof(TestClass)));
         Assert.IsTrue(typeDescriptions.Any(pair =>
             pair.FieldName == "Test.SubClass" && pair.Type == typeof(TestSubClass)));
 
-        Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeInt" && pair.Type == typeof(int)));
-        Assert.IsFalse(typeDescriptions.Any(pair =>
+
+        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Test.SomeInt" && pair.Type == typeof(int)));
+        Assert.IsTrue(typeDescriptions.Any(pair =>
             pair.FieldName == "Test.SomeString" && pair.Type == typeof(string)));
-        Assert.IsFalse(typeDescriptions.Any(pair =>
+        Assert.IsTrue(typeDescriptions.Any(pair =>
             pair.FieldName == "Test.SomeObject" && pair.Type == typeof(object)));
-        Assert.IsFalse(typeDescriptions.Any(pair =>
+        Assert.IsTrue(typeDescriptions.Any(pair =>
             pair.FieldName == "Test.SubClass.SomeInt" && pair.Type == typeof(int)));
+
+
+        Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName.StartsWith("Test.SomeInt.")));
+        Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName.StartsWith("Test.SomeString.")));
     }
 
     [TestMethod]
@@ -85,6 +95,96 @@ public class EvaluationHelperTests
         Assert.HasCount(1, typeDescriptions);
         Assert.AreEqual("ObjectValue", typeDescriptions[0].FieldName);
         Assert.AreEqual(typeof(object), typeDescriptions[0].Type);
+    }
+
+    [TestMethod]
+    public void GetSpecificColumnDescription_WithArrayColumn_ShouldReturnElementTypeInfo()
+    {
+        var table = new BasicEntityTable();
+
+        var result = EvaluationHelper.GetSpecificColumnDescription(table, "Array");
+
+        Assert.IsGreaterThan(0, result.Count, "Should return at least one row for the 'Array' column");
+        Assert.AreEqual(3, result.Columns.Count(), "Should have 3 columns: Name, Index, Type");
+        Assert.AreEqual("Array", result[0][0], "First row should contain 'Array' column name");
+    }
+
+    [TestMethod]
+    public void GetSpecificColumnDescription_WithNonExistentColumn_ShouldThrowException()
+    {
+        var table = new BasicEntityTable();
+
+        var exception = Assert.Throws<UnknownColumnOrAliasException>(() =>
+            EvaluationHelper.GetSpecificColumnDescription(table, "NonExistent"));
+
+        Assert.Contains("NonExistent", exception.Message, "Exception message should contain the column name");
+    }
+
+    [TestMethod]
+    public void GetSpecificColumnDescription_WithCaseInsensitiveMatch_ShouldReturnColumnInfo()
+    {
+        var table = new BasicEntityTable();
+
+        var result = EvaluationHelper.GetSpecificColumnDescription(table, "array");
+
+        Assert.IsGreaterThan(0, result.Count, "Should find column with case-insensitive match");
+        Assert.AreEqual("Array", result[0][0], "Should return the actual column name (Array)");
+    }
+
+    [TestMethod]
+    public void GetSpecificColumnDescription_WithNonArrayColumn_ShouldDescribeType()
+    {
+        var table = new BasicEntityTable();
+
+
+        Assert.Throws<ColumnMustBeAnArrayOrImplementIEnumerableException>(() =>
+            EvaluationHelper.GetSpecificColumnDescription(table, "Name"));
+    }
+
+    [TestMethod]
+    public void CreateComplexTypeDescription_WithArrayProperty_ShouldNotExplodeArray()
+    {
+        var typeDescriptions = EvaluationHelper.CreateTypeComplexDescription("Entity", typeof(TestClassWithArray))
+            .ToArray();
+
+
+        Assert.IsTrue(
+            typeDescriptions.Any(pair => pair.FieldName == "Entity" && pair.Type == typeof(TestClassWithArray)));
+
+
+        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Entity.Id" && pair.Type == typeof(int)));
+        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Entity.Name" && pair.Type == typeof(string)));
+
+
+        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Entity.Numbers" && pair.Type == typeof(int[])));
+        Assert.IsTrue(typeDescriptions.Any(pair =>
+            pair.FieldName == "Entity.Items" && pair.Type == typeof(TestSubClass[])));
+
+
+        Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName.StartsWith("Entity.Numbers.")));
+        Assert.IsFalse(typeDescriptions.Any(pair => pair.FieldName.StartsWith("Entity.Items.")));
+
+
+        Assert.IsTrue(typeDescriptions.Any(pair =>
+            pair.FieldName == "Entity.SubClass" && pair.Type == typeof(TestSubClass)));
+        Assert.IsTrue(typeDescriptions.Any(pair =>
+            pair.FieldName == "Entity.SubClass.SomeInt" && pair.Type == typeof(int)));
+
+
+        // Note: This is different from arrays - Lists have Count, Capacity, etc.
+        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName == "Entity.StringList"));
+
+        Assert.IsTrue(typeDescriptions.Any(pair => pair.FieldName.StartsWith("Entity.StringList.")));
+    }
+
+    public class TestClassWithArray
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public int[] Numbers { get; set; }
+        public TestSubClass[] Items { get; set; }
+        public List<string> StringList { get; set; }
+        public TestSubClass SubClass { get; set; }
     }
 
     public class TestSubClass

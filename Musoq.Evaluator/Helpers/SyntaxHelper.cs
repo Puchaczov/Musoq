@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -243,9 +242,7 @@ public static class SyntaxHelper
     {
         var newKeyword = SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.NewKeyword,
             SyntaxTriviaList.Create(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ")));
-        var syntaxList = new SeparatedSyntaxList<ExpressionSyntax>();
-
-        syntaxList = expressions.Aggregate(syntaxList, (current, expression) => current.Add(expression));
+        var syntaxList = SyntaxFactory.SeparatedList(expressions);
 
         var rankSpecifiers = new SyntaxList<ArrayRankSpecifierSyntax>();
 
@@ -300,7 +297,7 @@ public static class SyntaxHelper
                 SyntaxFactory.TriviaList(WhiteSpace),
                 SyntaxKind.StringLiteralToken,
                 $"\"{text}\"",
-                "",
+                text,
                 SyntaxFactory.TriviaList(WhiteSpace))
         );
     }

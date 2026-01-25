@@ -40,7 +40,7 @@ public class RewriteToUpdatedColumnAccess(IReadOnlyDictionary<string, string> us
     {
         base.Visit(usedTables.TryGetValue(node.Alias, out var alias)
             ? new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), alias, node.ReturnType,
-                TextSpan.Empty)
+                TextSpan.Empty, node.IntendedTypeName)
             : node);
     }
 

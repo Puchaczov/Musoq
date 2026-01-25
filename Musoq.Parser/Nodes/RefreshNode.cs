@@ -8,7 +8,7 @@ public class RefreshNode : Node
     public RefreshNode(AccessMethodNode[] nodes)
     {
         Nodes = nodes;
-        var nodesId = nodes.Length == 0 ? string.Empty : nodes.Select(f => f.Id).Aggregate((a, b) => a + b);
+        var nodesId = nodes.Length == 0 ? string.Empty : string.Concat(nodes.Select(f => f.Id));
         Id = $"{nameof(RefreshNode)}{nodesId}";
     }
 
@@ -27,7 +27,7 @@ public class RefreshNode : Node
     {
         var methods = Nodes.Length == 0
             ? string.Empty
-            : Nodes.Select(f => f.ToString()).Aggregate((a, b) => $"{a}, {b}");
+            : string.Join(", ", Nodes.Select(f => f.ToString()));
 
         return $"refresh ({methods})";
     }

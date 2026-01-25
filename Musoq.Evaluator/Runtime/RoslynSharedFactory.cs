@@ -54,6 +54,7 @@ public static class RoslynSharedFactory
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
                     deterministic: true)
                 .WithConcurrentBuild(true)
-                .WithMetadataImportOptions(MetadataImportOptions.Public));
+                .WithMetadataImportOptions(MetadataImportOptions.Public)
+                .WithPlatform(Platform.AnyCpu));
     }
 }

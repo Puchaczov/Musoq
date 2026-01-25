@@ -11,17 +11,16 @@ public class ComparisonOperationVisitorHelperTests
     [TestMethod]
     public void ProcessEqualityOperation_WhenTwoNodesOnStack_ShouldCreateEqualityNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IntegerNode("5");
         var rightNode = new IntegerNode("5");
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         ComparisonOperationVisitorHelper.ProcessEqualityOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(EqualityNode));
@@ -33,17 +32,16 @@ public class ComparisonOperationVisitorHelperTests
     [TestMethod]
     public void ProcessGreaterOrEqualOperation_WhenTwoNodesOnStack_ShouldCreateGreaterEqualNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IntegerNode("10");
         var rightNode = new IntegerNode("5");
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         ComparisonOperationVisitorHelper.ProcessGreaterOrEqualOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(GreaterOrEqualNode));
@@ -55,17 +53,16 @@ public class ComparisonOperationVisitorHelperTests
     [TestMethod]
     public void ProcessLessOrEqualOperation_WhenTwoNodesOnStack_ShouldCreateLessEqualNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IntegerNode("3");
         var rightNode = new IntegerNode("7");
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         ComparisonOperationVisitorHelper.ProcessLessOrEqualOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(LessOrEqualNode));
@@ -77,17 +74,16 @@ public class ComparisonOperationVisitorHelperTests
     [TestMethod]
     public void ProcessGreaterOperation_WhenTwoNodesOnStack_ShouldCreateGreaterNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IntegerNode("8");
         var rightNode = new IntegerNode("3");
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         ComparisonOperationVisitorHelper.ProcessGreaterOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(GreaterNode));
@@ -99,17 +95,16 @@ public class ComparisonOperationVisitorHelperTests
     [TestMethod]
     public void ProcessLessOperation_WhenTwoNodesOnStack_ShouldCreateLessNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IntegerNode("2");
         var rightNode = new IntegerNode("9");
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         ComparisonOperationVisitorHelper.ProcessLessOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(LessNode));
@@ -121,17 +116,16 @@ public class ComparisonOperationVisitorHelperTests
     [TestMethod]
     public void ProcessDiffOperation_WhenTwoNodesOnStack_ShouldCreateDiffNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new IntegerNode("4");
         var rightNode = new IntegerNode("6");
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         ComparisonOperationVisitorHelper.ProcessDiffOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(DiffNode));
@@ -143,17 +137,16 @@ public class ComparisonOperationVisitorHelperTests
     [TestMethod]
     public void ProcessLikeOperation_WhenTwoNodesOnStack_ShouldCreateLikeNode()
     {
-        // Arrange
         var nodes = new Stack<Node>();
         var leftNode = new StringNode("Hello World");
         var rightNode = new StringNode("Hello%");
         nodes.Push(leftNode);
         nodes.Push(rightNode);
 
-        // Act
+
         ComparisonOperationVisitorHelper.ProcessLikeOperation(nodes);
 
-        // Assert
+
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
         Assert.IsInstanceOfType(result, typeof(LikeNode));

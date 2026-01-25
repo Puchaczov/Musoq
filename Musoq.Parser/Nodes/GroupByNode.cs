@@ -9,7 +9,7 @@ public class GroupByNode : Node
     {
         Fields = fields;
         Having = node;
-        var fieldsIds = fields.Length == 0 ? string.Empty : fields.Select(f => f.Id).Aggregate((a, b) => a + b);
+        var fieldsIds = fields.Length == 0 ? string.Empty : string.Concat(fields.Select(f => f.Id));
         Id = $"{nameof(GroupByNode)}{fieldsIds}{node?.Id}";
     }
 
@@ -30,7 +30,7 @@ public class GroupByNode : Node
     {
         var fields = Fields.Length == 0
             ? string.Empty
-            : Fields.Select(f => f.ToString()).Aggregate((a, b) => $"{a.ToString()}, {b.ToString()}");
+            : string.Join(", ", Fields.Select(f => f.ToString()));
         var groupBy = $"group by {fields}";
 
         if (Having == null)

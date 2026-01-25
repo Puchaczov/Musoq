@@ -193,6 +193,34 @@ internal static class SchemaNodeEmitter
     }
 
     /// <summary>
+    ///     Creates a row source statement for interpret functions where the source expression
+    ///     is already an IEnumerable (wrapped by CreateScalarToArrayWrapper).
+    ///     Unlike CreateEnumerableRowsSource, this doesn't add an extra cast.
+    /// </summary>
+    public static LocalDeclarationStatementSyntax CreateInterpretRowsSource(
+        string alias,
+        ExpressionSyntax wrappedEnumerableExpression)
+    {
+        return SyntaxFactory.LocalDeclarationStatement(
+            SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                .WithVariables(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(alias.ToRowsSource()))
+                            .WithInitializer(
+                                SyntaxFactory.EqualsValueClause(
+                                    SyntaxFactory.InvocationExpression(
+                                            SyntaxFactory.MemberAccessExpression(
+                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                                                SyntaxFactory.IdentifierName(
+                                                    nameof(EvaluationHelper.ConvertEnumerableToSource))))
+                                        .WithArgumentList(
+                                            SyntaxFactory.ArgumentList(
+                                                SyntaxFactory.SingletonSeparatedList(
+                                                    SyntaxFactory.Argument(wrappedEnumerableExpression)))))))));
+    }
+
+    /// <summary>
     ///     Creates a row source statement for property chain navigation.
     /// </summary>
     public static LocalDeclarationStatementSyntax CreatePropertyRowsSource(
@@ -243,6 +271,51 @@ internal static class SchemaNodeEmitter
                                                             SyntaxFactory.ParseTypeName(
                                                                 EvaluationHelper.GetCastableType(returnType)),
                                                             propertyAccess))))))))));
+    }
+
+    /// <summary>
+    ///     Creates an expression that wraps a scalar value in an array for CROSS APPLY compatibility.
+    ///     Per spec: Single object T -> new[] { result }
+    ///     null with CROSS -> Array.Empty&lt;T&gt;()
+    ///     null with OUTER -> new T[] { null }
+    /// </summary>
+    public static ExpressionSyntax CreateScalarToArrayWrapper(
+        ExpressionSyntax sourceExpression,
+        Type returnType,
+        bool isCrossApply)
+    {
+        var typeName = EvaluationHelper.GetCastableType(returnType);
+        return CreateScalarToArrayWrapperByTypeName(sourceExpression, typeName, isCrossApply);
+    }
+
+    /// <summary>
+    ///     Creates an expression that wraps a scalar value in an array for CROSS APPLY compatibility.
+    ///     Uses a type name string instead of a Type object.
+    /// </summary>
+    public static ExpressionSyntax CreateScalarToArrayWrapperByTypeName(
+        ExpressionSyntax sourceExpression,
+        string typeName,
+        bool isCrossApply)
+    {
+        return SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                    SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier(nameof(EvaluationHelper.WrapScalarForCrossApply)))
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    SyntaxFactory.ParseTypeName(typeName))))))
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SeparatedList(new[]
+                    {
+                        SyntaxFactory.Argument(sourceExpression),
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(
+                                isCrossApply ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression))
+                    })));
     }
 
     /// <summary>

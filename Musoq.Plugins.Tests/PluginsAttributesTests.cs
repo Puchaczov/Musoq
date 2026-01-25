@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins.Attributes;
 
@@ -100,6 +101,37 @@ public class PluginsAttributesTests
 
     #endregion
 
+    [BindableClass]
+    private sealed class AttributeTargetsFixture
+    {
+        [BindablePropertyAsTable] public string TableProperty { get; } = "table";
+
+        [BindableMethod]
+        [AggregationMethod]
+        [AggregationGetMethod]
+        [AggregationSetMethod]
+        [AggregateSetDoNotResolve]
+        [NonDeterministic]
+        [MethodCategory("TestCategory")]
+        public void SampleMethod()
+        {
+        }
+
+        [DynamicObjectPropertyTypeHint("First", typeof(string))]
+        [DynamicObjectPropertyTypeHint("Second", typeof(int))]
+        public sealed class WithMultipleHints
+        {
+        }
+    }
+
+    private sealed class TestQueryStats : QueryStats
+    {
+        public void SetRowNumber(int value)
+        {
+            RowNumber = value;
+        }
+    }
+
     #region BindableMethodAttribute Tests
 
     [TestMethod]
@@ -110,7 +142,7 @@ public class PluginsAttributesTests
 
         // Assert
         var isInternalProperty = typeof(BindableMethodAttribute)
-            .GetProperty("IsInternal", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            .GetProperty("IsInternal", BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.IsNotNull(isInternalProperty);
         var isInternalValue = (bool?)isInternalProperty.GetValue(attr);
         Assert.IsFalse(isInternalValue);
@@ -252,7 +284,8 @@ public class PluginsAttributesTests
     {
         // Arrange
         var attributes = (DynamicObjectPropertyTypeHintAttribute[])Attribute
-            .GetCustomAttributes(typeof(AttributeTargetsFixture.WithMultipleHints), typeof(DynamicObjectPropertyTypeHintAttribute), false);
+            .GetCustomAttributes(typeof(AttributeTargetsFixture.WithMultipleHints),
+                typeof(DynamicObjectPropertyTypeHintAttribute), false);
 
         // Assert
         Assert.HasCount(2, attributes);
@@ -477,36 +510,4 @@ public class PluginsAttributesTests
     }
 
     #endregion
-
-    [BindableClass]
-    private sealed class AttributeTargetsFixture
-    {
-        [BindablePropertyAsTable]
-        public string TableProperty { get; } = "table";
-
-        [BindableMethod]
-        [AggregationMethod]
-        [AggregationGetMethod]
-        [AggregationSetMethod]
-        [AggregateSetDoNotResolve]
-        [NonDeterministic]
-        [MethodCategory("TestCategory")]
-        public void SampleMethod()
-        {
-        }
-
-        [DynamicObjectPropertyTypeHint("First", typeof(string))]
-        [DynamicObjectPropertyTypeHint("Second", typeof(int))]
-        public sealed class WithMultipleHints
-        {
-        }
-    }
-
-    private sealed class TestQueryStats : QueryStats
-    {
-        public void SetRowNumber(int value)
-        {
-            RowNumber = value;
-        }
-    }
 }

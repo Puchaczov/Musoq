@@ -22,112 +22,104 @@ public class OperatorsNullHandlingTests
     [TestMethod]
     public void Contains_WhenArrayIsNull_ShouldReturnFalse()
     {
-        // Arrange
         var value = "test";
         string[] array = null;
 
-        // Act
+
         var result = _operators.Contains(value, array);
 
-        // Assert
+
         Assert.IsFalse(result);
     }
 
     [TestMethod]
     public void Contains_WhenValueIsNullAndArrayIsNull_ShouldReturnFalse()
     {
-        // Arrange
         string value = null;
         string[] array = null;
 
-        // Act
+
         var result = _operators.Contains(value, array);
 
-        // Assert
+
         Assert.IsFalse(result);
     }
 
     [TestMethod]
     public void Contains_WhenValueIsNullAndArrayContainsNull_ShouldReturnTrue()
     {
-        // Arrange
         string value = null;
         var array = new[] { "a", null, "c" };
 
-        // Act
+
         var result = _operators.Contains(value, array);
 
-        // Assert
+
         Assert.IsTrue(result);
     }
 
     [TestMethod]
     public void Contains_WhenValueIsNullAndArrayDoesNotContainNull_ShouldReturnFalse()
     {
-        // Arrange
         string value = null;
         var array = new[] { "a", "b", "c" };
 
-        // Act
+
         var result = _operators.Contains(value, array);
 
-        // Assert
+
         Assert.IsFalse(result);
     }
 
     [TestMethod]
     public void Contains_WhenValueExistsInArray_ShouldReturnTrue()
     {
-        // Arrange
         var value = "b";
         var array = new[] { "a", "b", "c" };
 
-        // Act
+
         var result = _operators.Contains(value, array);
 
-        // Assert
+
         Assert.IsTrue(result);
     }
 
     [TestMethod]
     public void Contains_WhenValueDoesNotExistInArray_ShouldReturnFalse()
     {
-        // Arrange
         var value = "d";
         var array = new[] { "a", "b", "c" };
 
-        // Act
+
         var result = _operators.Contains(value, array);
 
-        // Assert
+
         Assert.IsFalse(result);
     }
 
     [TestMethod]
     public void Contains_WithIntegersWhenArrayIsNull_ShouldReturnFalse()
     {
-        // Arrange
         var value = 5;
         int[] array = null;
 
-        // Act
+
         var result = _operators.Contains(value, array);
 
-        // Assert
+
         Assert.IsFalse(result);
     }
 
     [TestMethod]
     public void Contains_WithNullableIntegersWhenValueIsNull_ShouldWork()
     {
-        // Arrange
         int? value = null;
         var array = new int?[] { 1, null, 3 };
 
-        // Act
+
         var result = _operators.Contains(value, array);
 
-        // Assert
+
         Assert.IsTrue(result);
     }
 

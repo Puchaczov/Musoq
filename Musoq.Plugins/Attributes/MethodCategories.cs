@@ -79,4 +79,9 @@ public static class MethodCategories
     ///     TimeSpan operations.
     /// </summary>
     public const string TimeSpan = "TimeSpan";
+
+    /// <summary>
+    ///     Binary and text data interpretation using schema definitions.
+    /// </summary>
+    public const string Interpretation = "Interpretation";
 }

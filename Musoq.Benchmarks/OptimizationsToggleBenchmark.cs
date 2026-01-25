@@ -20,10 +20,7 @@ public class OptimizationsToggleBenchmark
 {
     // Compilation options
     private static readonly CompilationOptions OptimizationsEnabled = new(
-        ParallelizationMode.Full,
-        true,
-        true,
-        true);
+        ParallelizationMode.Full);
 
     private static readonly CompilationOptions OptimizationsDisabled = new(
         ParallelizationMode.None,

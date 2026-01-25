@@ -8,9 +8,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class ArithmeticForCrossTypesTests : BasicEntityTestBase
 {
-    //ub - byte / 0 to 255
-    //b - signed byte / -128 to 127
-
     [TestMethod]
     public void WhenSByteAndSByteUsed_ShouldHaveColumnOfThatType()
     {

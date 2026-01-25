@@ -31,7 +31,14 @@ public static class AccessColumnEmitter
 
         var accessExpression = CreateElementAccessExpression(variableName, node.Name, generator);
         var types = EvaluationHelper.GetNestedTypes(node.ReturnType);
-        var typeIdentifier = GetTypeIdentifier(node.ReturnType);
+
+
+        TypeSyntax typeIdentifier;
+        if (!string.IsNullOrEmpty(node.IntendedTypeName))
+            typeIdentifier = SyntaxFactory.ParseTypeName(node.IntendedTypeName);
+        else
+            typeIdentifier = GetTypeIdentifier(node.ReturnType);
+
         var castExpression = generator.CastExpression(typeIdentifier, accessExpression);
 
         return new AccessColumnResult

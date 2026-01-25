@@ -16,31 +16,30 @@ public class CaseInsensitiveEndToEndTests
         var methodsManager = new MethodsManager();
         var testLibrary = new TestLibrary();
 
-        // Register the test library
+
         methodsManager.RegisterLibraries(testLibrary);
 
-        // Act & Assert - Test various case variations
+
         var testCases = new[]
         {
-            // ToUpper method variations
             ("ToUpper", "toupper"),
             ("ToUpper", "TOUPPER"),
             ("ToUpper", "to_upper"),
             ("ToUpper", "TO_UPPER"),
 
-            // Format_String method variations  
+
             ("Format_String", "format_string"),
             ("Format_String", "FORMAT_STRING"),
             ("Format_String", "formatstring"),
             ("Format_String", "FORMATSTRING"),
 
-            // Multiply_By_Two method variations
+
             ("Multiply_By_Two", "multiply_by_two"),
             ("Multiply_By_Two", "MULTIPLY_BY_TWO"),
             ("Multiply_By_Two", "multiplybytwo"),
             ("Multiply_By_Two", "MULTIPLYBYTWO"),
 
-            // ConcatenateStrings method variations
+
             ("ConcatenateStrings", "concatenatestrings"),
             ("ConcatenateStrings", "CONCATENATESTRINGS"),
             ("ConcatenateStrings", "concatenate_strings"),
@@ -49,12 +48,11 @@ public class CaseInsensitiveEndToEndTests
 
         foreach (var (originalName, testName) in testCases)
         {
-            // Get the expected method by original name
             var expectedSuccess = methodsManager.TryGetMethod(originalName, GetParameterTypesForMethod(originalName),
                 null, out var expectedMethod);
             Assert.IsTrue(expectedSuccess, $"Failed to resolve original method: {originalName}");
 
-            // Test that case-insensitive name resolves to the same method
+
             var actualSuccess = methodsManager.TryGetMethod(testName, GetParameterTypesForMethod(originalName), null,
                 out var actualMethod);
             Assert.IsTrue(actualSuccess, $"Failed to resolve case-insensitive method: {testName}");
@@ -69,13 +67,12 @@ public class CaseInsensitiveEndToEndTests
     [TestMethod]
     public void MethodsManager_ExactMatchShouldTakePrecedence()
     {
-        // Arrange
         var methodsManager = new MethodsManager();
         var testLibrary = new TestLibrary();
 
         methodsManager.RegisterLibraries(testLibrary);
 
-        // Act & Assert - Exact match should work and return original method
+
         var success = methodsManager.TryGetMethod("ToUpper", new[] { typeof(string) }, null, out var method);
 
         Assert.IsTrue(success);

@@ -252,8 +252,10 @@ on a.Country = b.Country AND a.City = b.City AND a.Population > b.Population";
             },
             {
                 "#B", [
-                    new BasicEntity { Name = "SmallCity", City = "NY", Country = "USA", Population = 100 },
-                    new BasicEntity { Name = "HugeCity", City = "NY", Country = "USA", Population = 2000 }
+                    new BasicEntity
+                        { Name = "SmallCity", City = "NY", Country = "USA", Population = 100 },
+                    new BasicEntity
+                        { Name = "HugeCity", City = "NY", Country = "USA", Population = 2000 }
                 ]
             }
         };

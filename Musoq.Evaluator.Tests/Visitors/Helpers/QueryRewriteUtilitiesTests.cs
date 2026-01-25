@@ -10,26 +10,24 @@ public class QueryRewriteUtilitiesTests
     [TestMethod]
     public void RewriteNullableBoolExpressions_WhenNodeIsNotNullableBool_ShouldReturnOriginalNode()
     {
-        // Arrange
         var node = new IntegerNode("42");
 
-        // Act
+
         var result = QueryRewriteUtilities.RewriteNullableBoolExpressions(node);
 
-        // Assert
+
         Assert.AreEqual(node, result);
     }
 
     [TestMethod]
     public void RewriteNullableBoolExpressions_WhenNodeIsBinaryNode_ShouldReturnOriginalNode()
     {
-        // Arrange
         var binaryNode = new AndNode(new BooleanNode(true), new BooleanNode(false));
 
-        // Act
+
         var result = QueryRewriteUtilities.RewriteNullableBoolExpressions(binaryNode);
 
-        // Assert
+
         Assert.AreEqual(binaryNode, result);
     }
 

@@ -260,6 +260,7 @@ public class QueryEmitter(SyntaxGenerator generator)
     /// <param name="useParallel">Whether to use parallel iteration.</param>
     /// <param name="generator">The syntax generator.</param>
     /// <param name="queryId">The unique query identifier for phase tracking.</param>
+    /// <param name="isDistinct">Whether to apply DISTINCT to the result.</param>
     /// <returns>The full query block statements.</returns>
     public static IEnumerable<StatementSyntax> CreateFullQueryBlock(
         StatementSyntax rowsSource,
@@ -269,7 +270,8 @@ public class QueryEmitter(SyntaxGenerator generator)
         string returnVariableName,
         bool useParallel,
         SyntaxGenerator generator,
-        string? queryId = null)
+        string? queryId = null,
+        bool isDistinct = false)
     {
         var fullBlock = StatementEmitter.CreateEmptyBlock();
 
@@ -291,9 +293,22 @@ public class QueryEmitter(SyntaxGenerator generator)
         if (!string.IsNullOrEmpty(queryId))
             fullBlock = fullBlock.AddStatements(GeneratePhaseChangeStatement(queryId, QueryPhase.End));
 
+        ExpressionSyntax returnExpression = SyntaxFactory.IdentifierName(returnVariableName);
+
+        if (isDistinct)
+            returnExpression = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ToDistinctTable))))
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName(returnVariableName)))));
+
         fullBlock = fullBlock.AddStatements(
-            (StatementSyntax)generator.ReturnStatement(
-                SyntaxFactory.IdentifierName(returnVariableName)));
+            (StatementSyntax)generator.ReturnStatement(returnExpression));
 
         return fullBlock.Statements;
     }

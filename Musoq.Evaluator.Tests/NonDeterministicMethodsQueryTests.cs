@@ -19,8 +19,8 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     public void WhenNonDeterministicMethodInWhereAndSelect_ShouldNotBeCached()
     {
         const string query = @"
-            SELECT RandomNumber() as RandomVal, Name 
-            FROM #A.Entities() 
+            SELECT RandomNumber() as RandomVal, Name
+            FROM #A.Entities()
             WHERE RandomNumber() >= 0";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -50,9 +50,9 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     public void WhenNonDeterministicMethodInCaseWhen_ShouldWork()
     {
         const string query = @"
-            SELECT 
+            SELECT
                 CASE WHEN RandomNumber() < 50 THEN 'Low' ELSE 'High' END as Category,
-                Name 
+                Name
             FROM #A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -226,10 +226,10 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     public void WhenNonDeterministicMethodInMultipleArithmeticExpressions_ShouldNotBeCached()
     {
         const string query = @"
-            SELECT 
-                RandomNumber() + 100 as Shifted1, 
+            SELECT
+                RandomNumber() + 100 as Shifted1,
                 RandomNumber() * 2 as Doubled,
-                Name 
+                Name
             FROM #A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -298,12 +298,12 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     public void WhenMixingDeterministicAndNonDeterministic_ShouldHandleCorrectly()
     {
         const string query = @"
-            SELECT 
+            SELECT
                 Length(Name) as NameLength,
                 Length(Name) + 10 as LengthPlus10,
                 RandomNumber() as Random1,
                 RandomNumber() as Random2,
-                Name 
+                Name
             FROM #A.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -346,9 +346,8 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNonDeterministicMethodWithGroupBy_ShouldWork()
     {
-        // Note: RandomNumber() is evaluated once per group in the SELECT clause
         const string query = @"
-            SELECT 
+            SELECT
                 Name,
                 Count(Name) as Cnt
             FROM #A.Entities()
@@ -386,7 +385,7 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     public void WhenNonDeterministicMethodInHaving_ShouldNotBeCached()
     {
         const string query = @"
-            SELECT 
+            SELECT
                 Name,
                 Count(Name) as Cnt
             FROM #A.Entities()

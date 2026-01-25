@@ -14,13 +14,13 @@ public class OuterApplyMixedTests : GenericEntityTestBase
     public void OuterApply_SchemaAndProperty_WithNestedProperty_ShouldPass()
     {
         const string query = @"
-        select 
-            a.City, 
-            b.Country, 
-            c.StreetName, 
-            c.HouseNumber 
-        from #schema.first() a 
-        outer apply #schema.second(a.Country) b 
+        select
+            a.City,
+            b.Country,
+            c.StreetName,
+            c.HouseNumber
+        from #schema.first() a
+        outer apply #schema.second(a.Country) b
         outer apply b.Addresses c";
 
         var firstSource = new OuterApplyClass1[]
@@ -104,14 +104,14 @@ public class OuterApplyMixedTests : GenericEntityTestBase
     public void OuterApply_SchemaAndMethod_WithComplexObjects_ShouldPass()
     {
         const string query = @"
-        select 
+        select
             a.Department,
             a.Budget,
-            b.Name, 
+            b.Name,
             b.Salary,
             c.Value
-        from #schema.first() a 
-        outer apply #schema.second(a.Department) b 
+        from #schema.first() a
+        outer apply #schema.second(a.Department) b
         outer apply b.Distinct(b.Skills) c";
 
         var firstSource = new OuterApplyClass3[]
@@ -180,12 +180,12 @@ public class OuterApplyMixedTests : GenericEntityTestBase
     public void OuterApply_PropertyAndMethod_WithFiltering_ShouldPass()
     {
         const string query = @"
-    select 
+    select
         a.Department,
         b.Name,
         c.Value
-    from #schema.first() a 
-    outer apply a.Employees b 
+    from #schema.first() a
+    outer apply a.Employees b
     outer apply a.Distinct(b.Skills) c
     where a.Budget > 400000";
 
@@ -244,11 +244,11 @@ public class OuterApplyMixedTests : GenericEntityTestBase
     public void OuterApply_PropertyAndMethod_GroupBy_WithFiltering_ShouldPass()
     {
         const string query = @"
-    select 
+    select
         a.Department,
         Count(a.Department)
-    from #schema.first() a 
-    outer apply a.Employees b 
+    from #schema.first() a
+    outer apply a.Employees b
     outer apply a.Distinct(b.Skills) c
     where a.Budget > 400000
     group by a.Department";
@@ -302,7 +302,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
     public void OuterApply_InnerJoinAndUseProperty_ShouldPass()
     {
         const string query = @"
-    select 
+    select
         a.Name,
         a.Surname,
         c.Value
@@ -378,7 +378,7 @@ public class OuterApplyMixedTests : GenericEntityTestBase
     public void OuterApply_LeftJoinAndUseProperty_ShouldPass()
     {
         const string query = @"
-    select 
+    select
         a.Name,
         a.Surname,
         c.Value

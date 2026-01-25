@@ -20,7 +20,7 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
     public override void Visit(AccessColumnNode node)
     {
         Nodes.Push(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), string.Empty,
-            node.ReturnType, TextSpan.Empty));
+            node.ReturnType, TextSpan.Empty, node.IntendedTypeName));
     }
 
     public override void Visit(DotNode node)

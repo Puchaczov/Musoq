@@ -100,7 +100,10 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
 
         var entities = new List<PathValueEntity>
         {
-            new() { Path = "a.b", Value = "100" },
+            new()
+            {
+                Path = "a.b", Value = "100"
+            },
             new() { Path = "a.c", Value = 100 },
             new() { Path = "a.d", Value = 200L }
         };

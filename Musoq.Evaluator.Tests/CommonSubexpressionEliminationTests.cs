@@ -45,8 +45,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenExpressionWithImplicitConversionIsDuplicated_ShouldReturnCorrectResults()
     {
         const string query = @"
-            SELECT ToString(Population) 
-            FROM #A.Entities() 
+            SELECT ToString(Population)
+            FROM #A.Entities()
             WHERE ToString(Population) LIKE '1%'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -77,8 +77,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenSubexpressionIsDuplicated_ShouldReturnCorrectResults()
     {
         const string query = @"
-            SELECT Length(Name) * 10, Length(Name) + 5 
-            FROM #A.Entities() 
+            SELECT Length(Name) * 10, Length(Name) + 5
+            FROM #A.Entities()
             WHERE Length(Name) > 2";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -185,8 +185,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenExpressionAppearsThreeTimes_ShouldReturnCorrectResults()
     {
         const string query = @"
-            SELECT Name, Length(Name) as Len 
-            FROM #A.Entities() 
+            SELECT Name, Length(Name) as Len
+            FROM #A.Entities()
             WHERE Length(Name) >= 3
             ORDER BY Length(Name) DESC";
 
@@ -216,8 +216,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenMultipleDifferentExpressionsAreDuplicated_ShouldReturnCorrectResults()
     {
         const string query = @"
-            SELECT Length(Name), ToUpper(Name) 
-            FROM #A.Entities() 
+            SELECT Length(Name), ToUpper(Name)
+            FROM #A.Entities()
             WHERE Length(Name) > 2 AND ToUpper(Name) LIKE 'A%'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -249,8 +249,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenArithmeticExpressionIsDuplicated_ShouldReturnCorrectResults()
     {
         const string query = @"
-            SELECT Population * 2 as DoublePopulation 
-            FROM #A.Entities() 
+            SELECT Population * 2 as DoublePopulation
+            FROM #A.Entities()
             WHERE Population * 2 > 100";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -277,8 +277,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenStringConcatenationIsDuplicated_ShouldReturnCorrectResults()
     {
         const string query = @"
-            SELECT City + ', ' + Country as Location 
-            FROM #A.Entities() 
+            SELECT City + ', ' + Country as Location
+            FROM #A.Entities()
             WHERE City + ', ' + Country LIKE '%Poland%'";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -308,9 +308,9 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenAggregateUsedInHaving_ShouldNotAffectResult()
     {
         const string query = @"
-            SELECT Country, Count(Country) as Cnt 
-            FROM #A.Entities() 
-            GROUP BY Country 
+            SELECT Country, Count(Country) as Cnt
+            FROM #A.Entities()
+            GROUP BY Country
             HAVING Count(Country) > 1";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -338,8 +338,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenSameAggregateAppearsMultipleTimes_ShouldReturnCorrectResults()
     {
         const string query = @"
-            SELECT Country, Sum(Population) as Total, Sum(Population) * 2 as DoubleTotal 
-            FROM #A.Entities() 
+            SELECT Country, Sum(Population) as Total, Sum(Population) * 2 as DoubleTotal
+            FROM #A.Entities()
             GROUP BY Country";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -376,8 +376,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenExpressionEvaluatesToNull_ShouldHandleCorrectly()
     {
         const string query = @"
-            SELECT NullableValue, NullableValue + 1 
-            FROM #A.Entities() 
+            SELECT NullableValue, NullableValue + 1
+            FROM #A.Entities()
             WHERE NullableValue IS NOT NULL";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -404,8 +404,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenMethodReturnsNullAndIsUsedTwice_ShouldHandleCorrectly()
     {
         const string query = @"
-            SELECT NullableValue 
-            FROM #A.Entities() 
+            SELECT NullableValue
+            FROM #A.Entities()
             WHERE NullableValue IS NULL";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -435,8 +435,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenNoExpressionIsDuplicated_ShouldStillWorkCorrectly()
     {
         const string query = @"
-            SELECT City, Country, Population 
-            FROM #A.Entities() 
+            SELECT City, Country, Population
+            FROM #A.Entities()
             WHERE Population > 50";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -491,8 +491,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenSameExpressionInCaseWhenBranches_ShouldReturnCorrectResults()
     {
         const string query = @"
-            SELECT 
-                CASE 
+            SELECT
+                CASE
                     WHEN Length(Name) > 3 THEN 'Long'
                     WHEN Length(Name) > 1 THEN 'Medium'
                     ELSE 'Short'
@@ -528,7 +528,7 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenExpressionAppearsInSelectAndCaseWhen_ShouldReturnCorrectResults()
     {
         const string query = @"
-            SELECT 
+            SELECT
                 Length(Name) as Len,
                 CASE WHEN Length(Name) > 3 THEN 'Long' ELSE 'Short' END as Category
             FROM #A.Entities()";
@@ -564,7 +564,7 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenExpressionAppearsInWhereAndCaseWhen_ShouldReturnCorrectResults()
     {
         const string query = @"
-            SELECT 
+            SELECT
                 Name,
                 CASE WHEN Length(Name) >= 4 THEN 'Long' ELSE 'Medium' END as Category
             FROM #A.Entities()
@@ -602,7 +602,7 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenExpressionOnlyAppearsInsideCaseWhen_ShouldReturnCorrectResults()
     {
         const string query = @"
-            SELECT 
+            SELECT
                 Name,
                 CASE WHEN ToUpper(Name) = 'ABC' THEN 'Match' ELSE 'NoMatch' END as Category
             FROM #A.Entities()";
@@ -642,8 +642,8 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
     public void WhenExpensiveMethodCalledTwice_ShouldReturnCorrectResults()
     {
         const string query = @"
-            SELECT Inc(Population), Inc(Population) + 10 
-            FROM #A.Entities() 
+            SELECT Inc(Population), Inc(Population) + 10
+            FROM #A.Entities()
             WHERE Inc(Population) > 100";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>

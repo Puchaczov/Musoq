@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -51,6 +50,6 @@ public class BuildMetadataAndInferTypesVisitorTests
 
         Assert.HasCount(1, visitor.PassedSchemaArguments);
 
-        Assert.AreEqual(typeof(string), visitor.PassedSchemaArguments.ElementAt(0));
+        Assert.AreEqual(typeof(string), visitor.PassedSchemaArguments[0]);
     }
 }

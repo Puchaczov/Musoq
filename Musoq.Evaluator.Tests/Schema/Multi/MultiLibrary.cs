@@ -42,7 +42,8 @@ public class MultiLibrary : LibraryBase
 
     [AggregationSetMethod]
     public void SetAggregateMethodA([InjectGroup] Group group,
-        [InjectSpecificSource(typeof(FirstEntity))] FirstEntity entity, string name)
+        [InjectSpecificSource(typeof(FirstEntity))]
+        FirstEntity entity, string name)
     {
         var list = group.GetOrCreateValue(name, new List<int>());
 

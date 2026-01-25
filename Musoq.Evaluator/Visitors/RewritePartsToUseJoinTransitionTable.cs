@@ -1,5 +1,7 @@
 ﻿using Musoq.Evaluator.Helpers;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Tokens;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -18,7 +20,21 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
     public override void Visit(AccessColumnNode node)
     {
         base.Visit(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), alias, node.ReturnType,
-            node.Span));
+            node.Span, node.IntendedTypeName));
+    }
+
+    public override void Visit(AccessObjectArrayNode node)
+    {
+        if (node.IsColumnAccess)
+        {
+            var newColumnName = NamingHelper.ToColumnName(node.TableAlias, node.Token.Name);
+            var newToken = new NumericAccessToken(newColumnName, node.Token.Index.ToString(), TextSpan.Empty);
+            Nodes.Push(new AccessObjectArrayNode(newToken, node.ColumnType, alias, node.IntendedTypeName));
+        }
+        else
+        {
+            base.Visit(node);
+        }
     }
 
     public override void Visit(SelectNode node)

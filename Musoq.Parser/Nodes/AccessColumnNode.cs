@@ -13,11 +13,24 @@ public class AccessColumnNode(string column, string alias, Type type, TextSpan s
     {
     }
 
+    public AccessColumnNode(string column, string alias, Type type, TextSpan span, string? intendedTypeName)
+        : this(column, alias, type, span)
+    {
+        IntendedTypeName = intendedTypeName;
+    }
+
     public string Alias { get; } = alias;
 
     public TextSpan Span { get; } = span;
 
     public override Type ReturnType => _type;
+
+    /// <summary>
+    ///     Gets the intended fully-qualified type name for this column.
+    ///     Used when the actual Type is not available at compile time
+    ///     (e.g., for embedded interpreter types).
+    /// </summary>
+    public string? IntendedTypeName { get; private set; }
 
     public override string Id => $"{nameof(AccessColumnNode)}{_column}{_type?.Name ?? string.Empty}";
 
@@ -34,5 +47,10 @@ public class AccessColumnNode(string column, string alias, Type type, TextSpan s
     public void ChangeReturnType(Type returnType)
     {
         _type = returnType;
+    }
+
+    public void SetIntendedTypeName(string? intendedTypeName)
+    {
+        IntendedTypeName = intendedTypeName;
     }
 }

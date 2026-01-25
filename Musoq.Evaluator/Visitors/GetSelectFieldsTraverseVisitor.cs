@@ -59,6 +59,13 @@ public class GetSelectFieldsTraverseVisitor : RawTraverseVisitor<IQueryPartAware
         Visitor.SetQueryPart(QueryPart.None);
     }
 
+    public override void Visit(InterpretFromNode node)
+    {
+        Visitor.SetQueryPart(QueryPart.From);
+        base.Visit(node);
+        Visitor.SetQueryPart(QueryPart.None);
+    }
+
     public override void Visit(InMemoryTableFromNode node)
     {
         Visitor.SetQueryPart(QueryPart.From);

@@ -9,7 +9,7 @@ public class ArgsListNode : Node
     {
         Args = args;
 
-        var argsId = args.Length == 0 ? string.Empty : args.Select(f => f.Id).Aggregate((a, b) => a + b);
+        var argsId = args.Length == 0 ? string.Empty : string.Concat(args.Select(f => f.Id));
         Id = $"{nameof(ArgsListNode)}{argsId}";
     }
 
@@ -28,17 +28,16 @@ public class ArgsListNode : Node
 
     public override string ToString()
     {
-        var str = Args.Length == 0
+        return Args.Length == 0
             ? string.Empty
-            : Args.Select(f => f.ToString()).Aggregate((a, b) => $"{a.ToString()}, {b.ToString()}");
-        return str;
+            : string.Join(", ", Args.Select(f => f.ToString()));
     }
 
     public string ToStringWithBrackets()
     {
         var str = Args.Length == 0
             ? string.Empty
-            : Args.Select(f => f.ToString()).Aggregate((a, b) => $"{a.ToString()}, {b.ToString()}");
+            : string.Join(", ", Args.Select(f => f.ToString()));
         return $"({str})";
     }
 }

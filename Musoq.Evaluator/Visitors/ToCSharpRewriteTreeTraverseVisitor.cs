@@ -4,6 +4,7 @@ using Musoq.Evaluator.Utils;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -236,6 +237,9 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         node.First.Accept(this);
         node.Second.Accept(this);
 
+
+        _visitor.SetQueryIdentifier(node.Alias);
+
         node.Accept(_visitor);
 
         _visitor.SetInsideJoinOrApply(false);
@@ -316,6 +320,13 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
     {
         _visitor.SetQueryIdentifier(node.Alias);
         node.Expression.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(InterpretFromNode node)
+    {
+        _visitor.SetQueryIdentifier(node.Alias);
+        node.InterpretCall.Accept(this);
         node.Accept(_visitor);
     }
 
@@ -592,6 +603,41 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         node.Accept(_visitor);
     }
 
+    public void Visit(BitwiseAndNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BitwiseOrNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BitwiseXorNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(LeftShiftNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(RightShiftNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
     public void Visit(InternalQueryNode node)
     {
         _walker = _walker.NextChild();
@@ -664,8 +710,7 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         _walker = _walker.NextChild();
         _visitor.SetScope(_walker.Scope);
 
-        foreach (var cNode in node.Nodes)
-            cNode.Accept(this);
+        foreach (var cNode in node.Nodes) cNode.Accept(this);
         node.Accept(_visitor);
 
         _walker = _walker.Parent();
@@ -789,6 +834,103 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
     public void Visit(FieldLinkNode node)
     {
         throw new NotSupportedException();
+    }
+
+    public void Visit(InterpretCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(ParseCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(TryInterpretCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(TryParseCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(PartialInterpretCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(InterpretAtCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Offset.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BinarySchemaNode node)
+    {
+    }
+
+    public void Visit(TextSchemaNode node)
+    {
+    }
+
+    public void Visit(FieldDefinitionNode node)
+    {
+    }
+
+    public void Visit(ComputedFieldNode node)
+    {
+    }
+
+    public void Visit(TextFieldDefinitionNode node)
+    {
+    }
+
+    public void Visit(FieldConstraintNode node)
+    {
+    }
+
+    public void Visit(PrimitiveTypeNode node)
+    {
+    }
+
+    public void Visit(ByteArrayTypeNode node)
+    {
+    }
+
+    public void Visit(StringTypeNode node)
+    {
+    }
+
+    public void Visit(SchemaReferenceTypeNode node)
+    {
+    }
+
+    public void Visit(ArrayTypeNode node)
+    {
+    }
+
+    public void Visit(BitsTypeNode node)
+    {
+    }
+
+    public void Visit(AlignmentNode node)
+    {
+    }
+
+    public void Visit(RepeatUntilTypeNode node)
+    {
+    }
+
+    public void Visit(InlineSchemaTypeNode node)
+    {
     }
 
     public void Visit(FromNode node)

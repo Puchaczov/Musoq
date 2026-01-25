@@ -24,16 +24,15 @@ public class SyntaxBinaryOperationHelperTests
     [TestMethod]
     public void ProcessMultiplyOperation_ShouldCreateMultiplyExpression()
     {
-        // Arrange
         var left = _generator.LiteralExpression(5);
         var right = _generator.LiteralExpression(3);
         _nodes.Push(left);
         _nodes.Push(right);
 
-        // Act
+
         SyntaxBinaryOperationHelper.ProcessMultiplyOperation(_nodes, _generator);
 
-        // Assert
+
         Assert.HasCount(1, _nodes);
         var result = _nodes.Pop();
         var code = result.ToString();
@@ -43,16 +42,15 @@ public class SyntaxBinaryOperationHelperTests
     [TestMethod]
     public void ProcessAddOperation_ShouldCreateAddExpression()
     {
-        // Arrange
         var left = _generator.LiteralExpression(10);
         var right = _generator.LiteralExpression(20);
         _nodes.Push(left);
         _nodes.Push(right);
 
-        // Act
+
         SyntaxBinaryOperationHelper.ProcessAddOperation(_nodes, _generator);
 
-        // Assert
+
         Assert.HasCount(1, _nodes);
         var result = _nodes.Pop();
         var code = result.ToString();
@@ -62,16 +60,15 @@ public class SyntaxBinaryOperationHelperTests
     [TestMethod]
     public void ProcessLogicalAndOperation_ShouldCreateLogicalAndExpression()
     {
-        // Arrange
         var left = _generator.LiteralExpression(true);
         var right = _generator.LiteralExpression(false);
         _nodes.Push(left);
         _nodes.Push(right);
 
-        // Act
+
         SyntaxBinaryOperationHelper.ProcessLogicalAndOperation(_nodes, _generator);
 
-        // Assert
+
         Assert.HasCount(1, _nodes);
         var result = _nodes.Pop();
         var code = result.ToString();
@@ -100,7 +97,6 @@ public class SyntaxBinaryOperationHelperTests
     [TestMethod]
     public void ProcessMultiplyOperation_WithNullNodes_ShouldThrowArgumentNullException()
     {
-        // Act
         Assert.Throws<ArgumentNullException>(() =>
             SyntaxBinaryOperationHelper.ProcessMultiplyOperation(null, _generator));
     }
@@ -108,17 +104,15 @@ public class SyntaxBinaryOperationHelperTests
     [TestMethod]
     public void ProcessAddOperation_WithNullGenerator_ShouldThrowArgumentNullException()
     {
-        // Act
         Assert.Throws<ArgumentNullException>(() => SyntaxBinaryOperationHelper.ProcessAddOperation(_nodes, null));
     }
 
     [TestMethod]
     public void ProcessDivideOperation_WithInsufficientNodes_ShouldThrowInvalidOperationException()
     {
-        // Arrange - only one node in stack
         _nodes.Push(_generator.LiteralExpression(10));
 
-        // Act
+
         Assert.Throws<InvalidOperationException>(() =>
             SyntaxBinaryOperationHelper.ProcessDivideOperation(_nodes, _generator));
     }
@@ -126,7 +120,6 @@ public class SyntaxBinaryOperationHelperTests
     [TestMethod]
     public void ProcessSubtractOperation_WithEmptyStack_ShouldThrowInvalidOperationException()
     {
-        // Act
         Assert.Throws<InvalidOperationException>(() =>
             SyntaxBinaryOperationHelper.ProcessSubtractOperation(_nodes, _generator));
     }
@@ -134,16 +127,15 @@ public class SyntaxBinaryOperationHelperTests
     [TestMethod]
     public void ProcessGreaterThanOperation_ShouldCreateGreaterThanExpression()
     {
-        // Arrange
         var left = _generator.LiteralExpression(10);
         var right = _generator.LiteralExpression(5);
         _nodes.Push(left);
         _nodes.Push(right);
 
-        // Act
+
         SyntaxBinaryOperationHelper.ProcessGreaterThanOperation(_nodes, _generator);
 
-        // Assert
+
         Assert.HasCount(1, _nodes);
         var result = _nodes.Pop();
         var code = result.ToString();
@@ -153,16 +145,15 @@ public class SyntaxBinaryOperationHelperTests
     [TestMethod]
     public void ProcessLessThanOrEqualOperation_ShouldCreateLessThanOrEqualExpression()
     {
-        // Arrange
         var left = _generator.LiteralExpression(5);
         var right = _generator.LiteralExpression(10);
         _nodes.Push(left);
         _nodes.Push(right);
 
-        // Act
+
         SyntaxBinaryOperationHelper.ProcessLessThanOrEqualOperation(_nodes, _generator);
 
-        // Assert
+
         Assert.HasCount(1, _nodes);
         var result = _nodes.Pop();
         var code = result.ToString();

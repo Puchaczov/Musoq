@@ -12,14 +12,13 @@ public class SyntaxGenerationHelperTests
     [TestMethod]
     public void CreateArgumentList_WithExpressions_ShouldCreateCorrectArgumentList()
     {
-        // Arrange
         var expr1 = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1));
         var expr2 = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(2));
 
-        // Act
+
         var result = SyntaxGenerationHelper.CreateArgumentList(expr1, expr2);
 
-        // Assert
+
         Assert.IsNotNull(result);
         Assert.AreEqual(2, result.Arguments.Count);
         var code = result.ToString();
@@ -29,16 +28,15 @@ public class SyntaxGenerationHelperTests
     [TestMethod]
     public void CreateArgumentList_WithArguments_ShouldCreateCorrectArgumentList()
     {
-        // Arrange
         var arg1 = SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
             SyntaxFactory.Literal(10)));
         var arg2 = SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
             SyntaxFactory.Literal(20)));
 
-        // Act
+
         var result = SyntaxGenerationHelper.CreateArgumentList(arg1, arg2);
 
-        // Assert
+
         Assert.IsNotNull(result);
         Assert.AreEqual(2, result.Arguments.Count);
         var code = result.ToString();
@@ -109,10 +107,9 @@ public class SyntaxGenerationHelperTests
     [TestMethod]
     public void CreateNumericLiteral_ShouldCreateCorrectNumericLiteral()
     {
-        // Act
         var result = SyntaxGenerationHelper.CreateNumericLiteral(123);
 
-        // Assert
+
         Assert.IsNotNull(result);
         var code = result.ToString();
         Assert.AreEqual("123", code);
@@ -121,10 +118,9 @@ public class SyntaxGenerationHelperTests
     [TestMethod]
     public void CreateBooleanLiteral_WithTrue_ShouldCreateTrueLiteral()
     {
-        // Act
         var result = SyntaxGenerationHelper.CreateBooleanLiteral(true);
 
-        // Assert
+
         Assert.IsNotNull(result);
         var code = result.ToString();
         Assert.AreEqual("true", code);
@@ -133,10 +129,9 @@ public class SyntaxGenerationHelperTests
     [TestMethod]
     public void CreateBooleanLiteral_WithFalse_ShouldCreateFalseLiteral()
     {
-        // Act
         var result = SyntaxGenerationHelper.CreateBooleanLiteral(false);
 
-        // Assert
+
         Assert.IsNotNull(result);
         var code = result.ToString();
         Assert.AreEqual("false", code);
@@ -145,10 +140,9 @@ public class SyntaxGenerationHelperTests
     [TestMethod]
     public void CreateNullLiteral_ShouldCreateNullLiteral()
     {
-        // Act
         var result = SyntaxGenerationHelper.CreateNullLiteral();
 
-        // Assert
+
         Assert.IsNotNull(result);
         var code = result.ToString();
         Assert.AreEqual("null", code);
@@ -196,14 +190,12 @@ public class SyntaxGenerationHelperTests
     [TestMethod]
     public void CreateArgumentList_WithNullExpressions_ShouldThrowArgumentNullException()
     {
-        // Act
         Assert.Throws<ArgumentNullException>(() => SyntaxGenerationHelper.CreateArgumentList((ExpressionSyntax[])null));
     }
 
     [TestMethod]
     public void CreateMethodInvocation_WithNullTarget_ShouldThrowArgumentNullException()
     {
-        // Act
         Assert.Throws<ArgumentNullException>(() =>
             SyntaxGenerationHelper.CreateMethodInvocation((ExpressionSyntax)null, "method"));
     }
@@ -211,14 +203,12 @@ public class SyntaxGenerationHelperTests
     [TestMethod]
     public void CreateStringLiteral_WithNullValue_ShouldThrowArgumentNullException()
     {
-        // Act
         Assert.Throws<ArgumentNullException>(() => SyntaxGenerationHelper.CreateStringLiteral(null));
     }
 
     [TestMethod]
     public void CreateIdentifier_WithEmptyString_ShouldThrowArgumentException()
     {
-        // Act
         Assert.Throws<ArgumentException>(() => SyntaxGenerationHelper.CreateIdentifier(""));
     }
 

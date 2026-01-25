@@ -1,15 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using Musoq.Evaluator.Utils;
+using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
 
 public class RewriteQueryTraverseVisitor : IExpressionVisitor
 {
     private readonly IScopeAwareExpressionVisitor _visitor;
+
+    /// <summary>
+    ///     Tracks the current ApplyType when traversing inside an ApplyFromNode.With.
+    ///     Used to detect when AccessMethodFromNode with Interpret() should be transformed to InterpretFromNode.
+    /// </summary>
+    private ApplyType? _currentApplyType;
+
     private ScopeWalker _walker;
 
     public RewriteQueryTraverseVisitor(IScopeAwareExpressionVisitor visitor, ScopeWalker walker)
@@ -135,6 +144,37 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
     public void Visit(DotNode node)
     {
         node.Root.Accept(this);
+
+
+        if (node.Root is IdentifierNode ident &&
+            node.Expression is AccessObjectArrayNode arrayNode &&
+            !arrayNode.IsColumnAccess &&
+            _walker.Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name))
+        {
+            var tableSymbol = _walker.Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(ident.Name);
+            var columnInfo = tableSymbol?.GetColumnByAliasAndName(ident.Name, arrayNode.ObjectName);
+
+            if (columnInfo != null)
+            {
+                string elementIntendedTypeName = null;
+                if (!string.IsNullOrEmpty(columnInfo.IntendedTypeName) && columnInfo.IntendedTypeName.EndsWith("[]"))
+                    elementIntendedTypeName =
+                        columnInfo.IntendedTypeName.Substring(0, columnInfo.IntendedTypeName.Length - 2);
+
+
+                var enhancedArrayNode = new AccessObjectArrayNode(
+                    arrayNode.Token,
+                    columnInfo.ColumnType,
+                    ident.Name,
+                    elementIntendedTypeName);
+
+
+                enhancedArrayNode.Accept(this);
+                node.Accept(_visitor);
+                return;
+            }
+        }
+
         node.Expression.Accept(this);
         node.Accept(_visitor);
     }
@@ -206,7 +246,11 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
     public void Visit(ApplySourcesTableFromNode node)
     {
         node.First.Accept(this);
+
+
+        _currentApplyType = node.ApplyType;
         node.Second.Accept(this);
+        _currentApplyType = null;
 
         node.Accept(_visitor);
     }
@@ -264,20 +308,35 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
         apply = applies.Pop();
 
         apply.Source.Accept(this);
+
+
+        _currentApplyType = apply.ApplyType;
         apply.With.Accept(this);
+        _currentApplyType = null;
+
         apply.Accept(_visitor);
 
         while (applies.Count > 1)
         {
             apply = applies.Pop();
+
+
+            _currentApplyType = apply.ApplyType;
             apply.With.Accept(this);
+            _currentApplyType = null;
+
             apply.Accept(_visitor);
         }
 
         if (applies.Count <= 0) return;
 
         apply = applies.Pop();
+
+
+        _currentApplyType = apply.ApplyType;
         apply.With.Accept(this);
+        _currentApplyType = null;
+
         apply.Accept(_visitor);
     }
 
@@ -287,8 +346,28 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
         node.Accept(_visitor);
     }
 
+    public void Visit(InterpretFromNode node)
+    {
+        node.InterpretCall.Accept(this);
+        node.Accept(_visitor);
+    }
+
     public void Visit(AccessMethodFromNode node)
     {
+        if (_currentApplyType.HasValue && IsInterpretFunctionCall(node.AccessMethod.Name))
+        {
+            var interpretCallNode = CreateInterpretCallNode(node.AccessMethod);
+
+
+            interpretCallNode.Accept(this);
+
+
+            var interpretFromNode = new InterpretFromNode(node.Alias, interpretCallNode, _currentApplyType.Value);
+            interpretFromNode.Accept(_visitor);
+            return;
+        }
+
+
         node.Accept(_visitor);
     }
 
@@ -304,6 +383,20 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
 
     public void Visit(AliasedFromNode node)
     {
+        if (_currentApplyType.HasValue && IsInterpretFunctionCall(node.Identifier))
+        {
+            var interpretCallNode = CreateInterpretCallNodeFromAliasedFrom(node);
+
+
+            interpretCallNode.Accept(this);
+
+
+            var interpretFromNode =
+                new InterpretFromNode(node.Alias, interpretCallNode, _currentApplyType.Value, node.ReturnType);
+            interpretFromNode.Accept(_visitor);
+            return;
+        }
+
         node.Accept(_visitor);
     }
 
@@ -542,6 +635,41 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
         node.Accept(_visitor);
     }
 
+    public void Visit(BitwiseAndNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BitwiseOrNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BitwiseXorNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(LeftShiftNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
+    public void Visit(RightShiftNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(_visitor);
+    }
+
     public void Visit(InternalQueryNode node)
     {
         _walker = _walker.NextChild();
@@ -714,6 +842,206 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
     public void Visit(FieldLinkNode node)
     {
         node.Accept(_visitor);
+    }
+
+    public void Visit(InterpretCallNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(ParseCallNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(TryInterpretCallNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(TryParseCallNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(PartialInterpretCallNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(InterpretAtCallNode node)
+    {
+        node.Accept(_visitor);
+    }
+
+    public void Visit(BinarySchemaNode node)
+    {
+    }
+
+    public void Visit(TextSchemaNode node)
+    {
+    }
+
+    public void Visit(FieldDefinitionNode node)
+    {
+    }
+
+    public void Visit(ComputedFieldNode node)
+    {
+    }
+
+    public void Visit(TextFieldDefinitionNode node)
+    {
+    }
+
+    public void Visit(FieldConstraintNode node)
+    {
+    }
+
+    public void Visit(PrimitiveTypeNode node)
+    {
+    }
+
+    public void Visit(ByteArrayTypeNode node)
+    {
+    }
+
+    public void Visit(StringTypeNode node)
+    {
+    }
+
+    public void Visit(SchemaReferenceTypeNode node)
+    {
+    }
+
+    public void Visit(ArrayTypeNode node)
+    {
+    }
+
+    public void Visit(BitsTypeNode node)
+    {
+    }
+
+    public void Visit(AlignmentNode node)
+    {
+    }
+
+    public void Visit(RepeatUntilTypeNode node)
+    {
+    }
+
+    public void Visit(InlineSchemaTypeNode node)
+    {
+    }
+
+    /// <summary>
+    ///     Checks if the method name is one of the interpret functions (Interpret, Parse, InterpretAt, TryInterpret,
+    ///     TryParse).
+    /// </summary>
+    private static bool IsInterpretFunctionCall(string methodName)
+    {
+        return methodName.Equals("Interpret", StringComparison.OrdinalIgnoreCase) ||
+               methodName.Equals("Parse", StringComparison.OrdinalIgnoreCase) ||
+               methodName.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase) ||
+               methodName.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase) ||
+               methodName.Equals("TryParse", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    ///     Creates the appropriate interpret call node based on the method name.
+    /// </summary>
+    private static Node CreateInterpretCallNode(AccessMethodNode accessMethod)
+    {
+        var args = accessMethod.Arguments.Args;
+
+
+        if (accessMethod.Name.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase))
+        {
+            if (args.Length < 3)
+                throw new InvalidOperationException(
+                    "InterpretAt function requires 3 arguments: data, offset, and schema name");
+
+            var dataNode = args[0];
+            var offsetNode = args[1];
+            var schemaNameNode = args[2] as StringNode
+                                 ?? throw new InvalidOperationException(
+                                     "Third argument of InterpretAt must be a string literal schema name");
+
+            return new InterpretAtCallNode(dataNode, offsetNode, schemaNameNode.Value);
+        }
+
+        if (args.Length < 2)
+            throw new InvalidOperationException(
+                $"{accessMethod.Name} function requires 2 arguments: data and schema name");
+
+        var dataArg = args[0];
+        var schemaArg = args[1] as StringNode
+                        ?? throw new InvalidOperationException(
+                            $"Second argument of {accessMethod.Name} must be a string literal schema name");
+
+        if (accessMethod.Name.Equals("Parse", StringComparison.OrdinalIgnoreCase))
+            return new ParseCallNode(dataArg, schemaArg.Value);
+
+        if (accessMethod.Name.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase))
+            return new TryInterpretCallNode(dataArg, schemaArg.Value);
+
+        if (accessMethod.Name.Equals("TryParse", StringComparison.OrdinalIgnoreCase))
+            return new TryParseCallNode(dataArg, schemaArg.Value);
+
+        return new InterpretCallNode(dataArg, schemaArg.Value);
+    }
+
+    /// <summary>
+    ///     Creates the appropriate interpret call node (InterpretCallNode, ParseCallNode, or InterpretAtCallNode)
+    ///     from an AliasedFromNode that represents an Interpret/Parse/InterpretAt call.
+    /// </summary>
+    private Node CreateInterpretCallNodeFromAliasedFrom(AliasedFromNode node)
+    {
+        if (node.Args.Args.Length < 2)
+            throw new InvalidOperationException(
+                $"Interpret call requires at least 2 arguments, got {node.Args.Args.Length}");
+
+        var dataSource = node.Args.Args[0];
+
+
+        if (node.Identifier.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase))
+        {
+            if (node.Args.Args.Length < 3)
+                throw new InvalidOperationException(
+                    $"InterpretAt call requires 3 arguments, got {node.Args.Args.Length}");
+
+            var offset = node.Args.Args[1];
+            var schemaNameForAt = node.Args.Args[2] switch
+            {
+                StringNode stringNode => stringNode.Value,
+                WordNode wordNode => wordNode.Value,
+                _ => throw new InvalidOperationException(
+                    $"Expected schema name as string or identifier, got {node.Args.Args[2].GetType().Name}")
+            };
+
+            return new InterpretAtCallNode(dataSource, offset, schemaNameForAt, node.ReturnType);
+        }
+
+
+        var schemaName = node.Args.Args[1] switch
+        {
+            StringNode stringNode => stringNode.Value,
+            WordNode wordNode => wordNode.Value,
+            _ => throw new InvalidOperationException(
+                $"Expected schema name as string or identifier, got {node.Args.Args[1].GetType().Name}")
+        };
+
+
+        if (node.Identifier.Equals("Parse", StringComparison.OrdinalIgnoreCase))
+            return new ParseCallNode(dataSource, schemaName, node.ReturnType);
+
+        if (node.Identifier.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase))
+            return new TryInterpretCallNode(dataSource, schemaName, node.ReturnType);
+
+        if (node.Identifier.Equals("TryParse", StringComparison.OrdinalIgnoreCase))
+            return new TryParseCallNode(dataSource, schemaName, node.ReturnType);
+
+        return new InterpretCallNode(dataSource, schemaName, node.ReturnType);
     }
 
     public void Visit(FromNode node)

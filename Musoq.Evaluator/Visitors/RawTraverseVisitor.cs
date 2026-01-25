@@ -2,6 +2,7 @@
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -229,6 +230,12 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
     public virtual void Visit(ExpressionFromNode node)
     {
         node.Expression.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(InterpretFromNode node)
+    {
+        node.InterpretCall.Accept(this);
         node.Accept(Visitor);
     }
 
@@ -476,6 +483,41 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
         node.Accept(Visitor);
     }
 
+    public virtual void Visit(BitwiseAndNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(BitwiseOrNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(BitwiseXorNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(LeftShiftNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(RightShiftNode node)
+    {
+        node.Left.Accept(this);
+        node.Right.Accept(this);
+        node.Accept(Visitor);
+    }
+
     public virtual void Visit(InternalQueryNode node)
     {
     }
@@ -622,6 +664,127 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
 
     public virtual void Visit(FieldLinkNode node)
     {
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(InterpretCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(ParseCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(InterpretAtCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Offset.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(TryInterpretCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(TryParseCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(PartialInterpretCallNode node)
+    {
+        node.DataSource.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(BinarySchemaNode node)
+    {
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(TextSchemaNode node)
+    {
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(FieldDefinitionNode node)
+    {
+        node.AtOffset?.Accept(this);
+        node.WhenCondition?.Accept(this);
+        node.Constraint?.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(ComputedFieldNode node)
+    {
+        node.Expression.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(TextFieldDefinitionNode node)
+    {
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(FieldConstraintNode node)
+    {
+        node.Expression.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(PrimitiveTypeNode node)
+    {
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(ByteArrayTypeNode node)
+    {
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(StringTypeNode node)
+    {
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(SchemaReferenceTypeNode node)
+    {
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(ArrayTypeNode node)
+    {
+        node.ElementType.Accept(this);
+        node.SizeExpression.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(BitsTypeNode node)
+    {
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(AlignmentNode node)
+    {
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(RepeatUntilTypeNode node)
+    {
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(InlineSchemaTypeNode node)
+    {
+        foreach (var field in node.Fields)
+            field.Accept(this);
         node.Accept(Visitor);
     }
 
