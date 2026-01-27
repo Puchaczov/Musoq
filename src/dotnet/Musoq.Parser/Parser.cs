@@ -41,6 +41,7 @@ public class Parser
 
     private bool _hasReplacedToken;
     private Token _replacedToken;
+    private readonly Stack<HashSet<string>> _fromAliasesStack = new();
 
     public Parser(ILexer lexer)
     {
@@ -51,12 +52,6 @@ public class Parser
     private Token Current => _hasReplacedToken ? _replacedToken : _lexer.Current();
 
     private Token Previous { get; set; }
-
-    private void ReplaceCurrentToken(Token newToken)
-    {
-        _replacedToken = newToken;
-        _hasReplacedToken = true;
-    }
 
     public RootNode ComposeAll()
     {
@@ -319,12 +314,17 @@ public class Parser
     private CteExpressionNode ComposeCteExpression()
     {
         Consume(TokenType.With);
+        
+        PushFromAliasesScope();
+        try
+        {
+            var expressions = new List<CteInnerExpressionNode>();
 
-        var expressions = new List<CteInnerExpressionNode>();
+            if (ComposeBaseTypes() is not IdentifierNode col)
+                throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
+                    _lexer.AlreadyResolvedQueryPart);
 
-        if (ComposeBaseTypes() is not IdentifierNode col)
-            throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
-                _lexer.AlreadyResolvedQueryPart);
+        RegisterFromAlias(col.Name);
 
         Consume(TokenType.As);
         Consume(TokenType.LeftParenthesis);
@@ -342,6 +342,8 @@ public class Parser
                 throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
                     _lexer.AlreadyResolvedQueryPart);
 
+            RegisterFromAlias(col.Name);
+
             Consume(TokenType.As);
 
             Consume(TokenType.LeftParenthesis);
@@ -350,9 +352,14 @@ public class Parser
             expressions.Add(new CteInnerExpressionNode(innerSets, col.Name));
         }
 
-        var outerSets = ComposeSetOperators(0);
+            var outerSets = ComposeSetOperators(0);
 
-        return new CteExpressionNode(expressions.ToArray(), outerSets);
+            return new CteExpressionNode(expressions.ToArray(), outerSets);
+        }
+        finally
+        {
+            PopFromAliasesScope();
+        }
     }
 
     private Node ComposeSetOperators(int nestingLevel)
@@ -449,32 +456,48 @@ public class Parser
 
     private QueryNode ComposeRegularQuery()
     {
-        _fromPosition += 1;
-        var selectNode = ComposeSelectNode();
-        var fromNode = ComposeFrom();
+        PushFromAliasesScope();
+        try
+        {
+            _fromPosition += 1;
+            var selectNode = ComposeSelectNode();
+            var fromNode = ComposeFrom();
 
-        fromNode = ComposeJoinOrApply(fromNode);
+            fromNode = ComposeJoinOrApply(fromNode);
 
-        var whereNode = ComposeWhere(false);
-        var groupBy = ComposeGroupByNode();
-        var orderBy = ComposeOrderBy();
-        var skip = ComposeSkip();
-        var take = ComposeTake();
-        return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
+            var whereNode = ComposeWhere(false);
+            var groupBy = ComposeGroupByNode();
+            var orderBy = ComposeOrderBy();
+            var skip = ComposeSkip();
+            var take = ComposeTake();
+            return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
+        }
+        finally
+        {
+            PopFromAliasesScope();
+        }
     }
 
     private QueryNode ComposeReorderedQuery()
     {
-        _fromPosition += 1;
-        var fromNode = ComposeFrom();
-        fromNode = ComposeJoinOrApply(fromNode);
-        var whereNode = ComposeWhere(false);
-        var groupBy = ComposeGroupByNode();
-        var selectNode = ComposeSelectNode();
-        var orderBy = ComposeOrderBy();
-        var skip = ComposeSkip();
-        var take = ComposeTake();
-        return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
+        PushFromAliasesScope();
+        try
+        {
+            _fromPosition += 1;
+            var fromNode = ComposeFrom();
+            fromNode = ComposeJoinOrApply(fromNode);
+            var whereNode = ComposeWhere(false);
+            var groupBy = ComposeGroupByNode();
+            var selectNode = ComposeSelectNode();
+            var orderBy = ComposeOrderBy();
+            var skip = ComposeSkip();
+            var take = ComposeTake();
+            return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
+        }
+        finally
+        {
+            PopFromAliasesScope();
+        }
     }
 
     private FromNode ComposeJoinOrApply(FromNode from)
@@ -884,6 +907,9 @@ public class Parser
                 fromNode = new ReferentialFromNode(name.Value, alias);
             }
 
+            if (!string.IsNullOrWhiteSpace(alias))
+                RegisterFromAlias(alias);
+
             return fromNode;
         }
 
@@ -891,6 +917,9 @@ public class Parser
         {
             var method = ComposeAccessMethod(string.Empty);
             alias = ComposeAlias();
+
+            if (!string.IsNullOrWhiteSpace(alias))
+                RegisterFromAlias(alias);
 
             return new AliasedFromNode(method.Name, method.Arguments, alias, _fromPosition);
         }
@@ -901,16 +930,34 @@ public class Parser
             var accessMethod = ComposeAccessMethod(sourceAlias);
             alias = ComposeAlias();
 
-            if (!isApplyContext && !sourceAlias.StartsWith('#'))
+            var isSchemaReference = sourceAlias.StartsWith('#') ||
+                                    !isApplyContext ||
+                                    (isApplyContext && !IsKnownFromAlias(sourceAlias));
+
+            if (isSchemaReference && !sourceAlias.StartsWith('#'))
             {
                 var schemaName = EnsureHashPrefix(sourceAlias);
+                
+                if (!string.IsNullOrWhiteSpace(alias))
+                    RegisterFromAlias(alias);
+                
                 return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+            }
+
+            if (sourceAlias.StartsWith('#'))
+            {
+                if (!string.IsNullOrWhiteSpace(alias))
+                    RegisterFromAlias(alias);
+                
+                return new SchemaFromNode(sourceAlias, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
             }
 
             if (string.IsNullOrWhiteSpace(alias))
                 throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
 
             var fromNode = new AccessMethodFromNode(alias, sourceAlias, accessMethod);
+
+            RegisterFromAlias(alias);
 
             return fromNode;
         }
@@ -934,6 +981,10 @@ public class Parser
                 alias = ComposeAlias();
 
                 var schemaName = EnsureHashPrefix(columnName);
+
+                if (!string.IsNullOrWhiteSpace(alias))
+                    RegisterFromAlias(alias);
+
                 return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
             }
 
@@ -966,6 +1017,7 @@ public class Parser
                 if (string.IsNullOrWhiteSpace(alias))
                     throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
 
+                RegisterFromAlias(alias);
                 return new PropertyFromNode(alias, columnName, properties.ToArray());
             }
 
@@ -973,6 +1025,10 @@ public class Parser
         }
 
         alias = ComposeAlias();
+
+        if (!string.IsNullOrWhiteSpace(alias))
+            RegisterFromAlias(alias);
+        
         return new InMemoryTableFromNode(columnName, alias);
     }
 
@@ -1358,6 +1414,32 @@ public class Parser
     {
         return current.TokenType is TokenType.Decimal or TokenType.Integer or TokenType.HexadecimalInteger
             or TokenType.BinaryInteger or TokenType.OctalInteger;
+    }
+
+    private void ReplaceCurrentToken(Token newToken)
+    {
+        _replacedToken = newToken;
+        _hasReplacedToken = true;
+    }
+    
+    private void PushFromAliasesScope() => _fromAliasesStack.Push(new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+    
+    private void PopFromAliasesScope() => _fromAliasesStack.Pop();
+    
+    private void RegisterFromAlias(string alias)
+    {
+        if (_fromAliasesStack.Count > 0 && !string.IsNullOrEmpty(alias))
+            _fromAliasesStack.Peek().Add(alias);
+    }
+
+    private bool IsKnownFromAlias(string alias)
+    {
+        foreach (var scope in _fromAliasesStack)
+        {
+            if (scope.Contains(alias))
+                return true;
+        }
+        return false;
     }
 
     private enum Associativity
