@@ -255,8 +255,10 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count, "CTE with DISTINCT should produce 2 unique city-country combinations");
 
         var combinations = table.Select(row => (row.Values[0]?.ToString(), row.Values[1]?.ToString())).ToList();
-        Assert.IsTrue(combinations.Any(c => c.Item1 == "Berlin" && c.Item2 == "Germany"), "Should contain Berlin, Germany");
-        Assert.IsTrue(combinations.Any(c => c.Item1 == "Warsaw" && c.Item2 == "Poland"), "Should contain Warsaw, Poland");
+        Assert.IsTrue(combinations.Any(c => c.Item1 == "Berlin" && c.Item2 == "Germany"),
+            "Should contain Berlin, Germany");
+        Assert.IsTrue(combinations.Any(c => c.Item1 == "Warsaw" && c.Item2 == "Poland"),
+            "Should contain Warsaw, Poland");
     }
 
     /// <summary>
@@ -961,7 +963,7 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count, "Should have 2 countries after SKIP 1 TAKE 2");
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        CollectionAssert.AreEquivalent(new[] { "Germany", "Poland" }, countries, 
+        CollectionAssert.AreEquivalent(new[] { "Germany", "Poland" }, countries,
             "Should contain Germany and Poland (ordered distinct, skip France, take 2)");
     }
 
