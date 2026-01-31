@@ -1267,9 +1267,6 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
             node.Alias));
     }
 
-    /// <summary>
-    ///     Checks if the function call is Interpret(dataSource, 'SchemaName')
-    /// </summary>
     private static bool IsInterpretFunctionCall(string functionName, ArgsListNode? args, out string schemaName,
         out Node dataSource)
     {
@@ -1294,9 +1291,6 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         return false;
     }
 
-    /// <summary>
-    ///     Checks if the function call is Parse(dataSource, 'SchemaName')
-    /// </summary>
     private static bool IsParseFunctionCall(string functionName, ArgsListNode? args, out string schemaName,
         out Node dataSource)
     {
@@ -1320,9 +1314,6 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         return false;
     }
 
-    /// <summary>
-    ///     Checks if the function call is InterpretAt(dataSource, offset, 'SchemaName')
-    /// </summary>
     private static bool IsInterpretAtFunctionCall(string functionName, ArgsListNode? args, out string schemaName,
         out Node dataSource, out Node offset)
     {
@@ -1348,9 +1339,6 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         return false;
     }
 
-    /// <summary>
-    ///     Checks if the function call is TryInterpret(dataSource, 'SchemaName')
-    /// </summary>
     private static bool IsTryInterpretFunctionCall(string functionName, ArgsListNode? args, out string schemaName,
         out Node dataSource)
     {
@@ -1374,9 +1362,6 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         return false;
     }
 
-    /// <summary>
-    ///     Checks if the function call is TryParse(dataSource, 'SchemaName')
-    /// </summary>
     private static bool IsTryParseFunctionCall(string functionName, ArgsListNode? args, out string schemaName,
         out Node dataSource)
     {
@@ -1400,9 +1385,6 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         return false;
     }
 
-    /// <summary>
-    ///     Checks if the function call is PartialInterpret(dataSource, 'SchemaName')
-    /// </summary>
     private static bool IsPartialInterpretFunctionCall(string functionName, ArgsListNode? args, out string schemaName,
         out Node dataSource)
     {

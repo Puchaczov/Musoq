@@ -5,10 +5,17 @@ namespace Musoq.Parser.Nodes;
 public class IdentifierNode : Node
 {
     public IdentifierNode(string name, Type returnType = null)
+        : this(name, returnType, default)
+    {
+    }
+
+    public IdentifierNode(string name, Type returnType, TextSpan span)
     {
         Name = name;
         ReturnType = returnType;
         Id = $"{nameof(IdentifierNode)}{Name}";
+        Span = span;
+        FullSpan = span;
     }
 
     public string Name { get; }

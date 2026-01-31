@@ -6,8 +6,6 @@ using System.Runtime.Loader;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Tables;
-using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator;
@@ -30,8 +28,7 @@ public class RunnableDebugDecorator(
         set => runnable.PositionalEnvironmentVariables = value;
     }
 
-    public IReadOnlyDictionary<string, (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> UsedColumns,
-        WhereNode WhereNode, bool HasExternallyProvidedTypes)> QueriesInformation
+    public IReadOnlyDictionary<string, QuerySourceInfo> QueriesInformation
     {
         get => runnable.QueriesInformation;
         set => runnable.QueriesInformation = value;

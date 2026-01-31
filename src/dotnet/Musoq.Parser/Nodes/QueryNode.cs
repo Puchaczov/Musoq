@@ -7,6 +7,12 @@ public class QueryNode : Node
 {
     public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy,
         SkipNode skip, TakeNode take)
+        : this(select, from, where, groupBy, orderBy, skip, take, default)
+    {
+    }
+
+    public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy,
+        SkipNode skip, TakeNode take, TextSpan span)
     {
         Select = select;
         From = from;
@@ -16,6 +22,19 @@ public class QueryNode : Node
         Skip = skip;
         Take = take;
         Id = $"{nameof(QueryNode)}{select.Id}{from.Id}{where?.Id}{groupBy?.Id}{orderBy?.Id}{skip?.Id}{take?.Id}";
+
+        // Compute span from first to last clause
+        if (span.IsEmpty)
+        {
+            var nodes = new Node[] { select, from, where, groupBy, orderBy, skip, take };
+            Span = ComputeSpan(nodes);
+            FullSpan = Span;
+        }
+        else
+        {
+            Span = span;
+            FullSpan = span;
+        }
     }
 
     public SelectNode Select { get; }

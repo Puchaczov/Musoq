@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Parser.Recovery;
 using Musoq.Parser.Tokens;
 using KeyAccessToken = Musoq.Parser.Tokens.KeyAccessToken;
 using NumericAccessToken = Musoq.Parser.Tokens.NumericAccessToken;
@@ -18,6 +20,10 @@ public class Parser
 
     private static readonly TokenType[] SetOperators =
         [TokenType.Union, TokenType.UnionAll, TokenType.Except, TokenType.Intersect];
+
+    private readonly DiagnosticBag? _diagnostics;
+    private readonly bool _enableRecovery;
+    private readonly Stack<HashSet<string>> _fromAliasesStack = new();
 
     private readonly ILexer _lexer;
 
@@ -37,22 +43,126 @@ public class Parser
             { TokenType.Dot, (4, Associativity.Left) }
         };
 
+    private readonly ErrorRecoveryManager? _recoveryManager;
+
     private int _fromPosition;
 
     private bool _hasReplacedToken;
     private Token _replacedToken;
-    private readonly Stack<HashSet<string>> _fromAliasesStack = new();
 
+    /// <summary>
+    ///     Creates a parser with basic lexer (original API - throws on errors).
+    /// </summary>
     public Parser(ILexer lexer)
     {
         _lexer = lexer ?? throw new ArgumentNullException(nameof(lexer),
             "Lexer cannot be null. Please provide a valid lexer instance.");
+        _enableRecovery = false;
+    }
+
+    /// <summary>
+    ///     Creates a parser with diagnostic collection and error recovery support.
+    /// </summary>
+    /// <param name="lexer">The lexer to use.</param>
+    /// <param name="diagnostics">The diagnostic bag to collect errors.</param>
+    /// <param name="enableRecovery">Whether to enable error recovery mode.</param>
+    public Parser(ILexer lexer, DiagnosticBag diagnostics, bool enableRecovery = true)
+    {
+        _lexer = lexer ?? throw new ArgumentNullException(nameof(lexer));
+        _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
+        _enableRecovery = enableRecovery;
+
+        if (enableRecovery && _lexer.SourceText != null)
+            _recoveryManager = new ErrorRecoveryManager(diagnostics, _lexer.SourceText);
     }
 
     private Token Current => _hasReplacedToken ? _replacedToken : _lexer.Current();
 
     private Token Previous { get; set; }
 
+    private void ReplaceCurrentToken(Token newToken)
+    {
+        _replacedToken = newToken;
+        _hasReplacedToken = true;
+    }
+
+    /// <summary>
+    ///     Parses the input and returns a ParseResult with diagnostics.
+    ///     This is the LSP-friendly API that collects errors instead of throwing.
+    /// </summary>
+    public ParseResult ParseWithDiagnostics()
+    {
+        var sourceText = _lexer.SourceText ?? new SourceText(_lexer.Input);
+        var diagnostics = _diagnostics ?? new DiagnosticBag { SourceText = sourceText };
+
+        try
+        {
+            _lexer.Next();
+            var statements = new List<StatementNode>();
+
+            while (Current.TokenType != TokenType.EndOfFile)
+                try
+                {
+                    var statement = ComposeStatement();
+                    if (statement != null)
+                    {
+                        statements.Add(statement);
+                    }
+                    else if (_enableRecovery)
+                    {
+                        RecordError(
+                            DiagnosticCode.MQ2016_IncompleteStatement,
+                            "Failed to compose statement. The SQL query structure is invalid.",
+                            Current.Span);
+
+                        if (!TryRecoverToNextStatement())
+                            break;
+                    }
+                    else
+                    {
+                        RecordError(
+                            DiagnosticCode.MQ2016_IncompleteStatement,
+                            "Failed to compose statement. The SQL query structure is invalid.",
+                            Current.Span);
+                        break;
+                    }
+                }
+                catch (SyntaxException ex) when (_enableRecovery)
+                {
+                    RecordSyntaxException(ex);
+                    if (!TryRecoverToNextStatement())
+                        break;
+                }
+                catch (NotSupportedException ex) when (_enableRecovery)
+                {
+                    RecordError(
+                        DiagnosticCode.MQ2030_UnsupportedSyntax,
+                        ex.Message,
+                        Current.Span);
+                    if (!TryRecoverToNextStatement())
+                        break;
+                }
+
+            var root = statements.Count > 0
+                ? new RootNode(new StatementsArrayNode(statements.ToArray()))
+                : null;
+
+            return new ParseResult(root, sourceText, diagnostics.ToSortedList());
+        }
+        catch (Exception ex)
+        {
+            RecordError(
+                DiagnosticCode.MQ9999_Unknown,
+                $"An unexpected error occurred while parsing: {ex.Message}",
+                Current.Span);
+
+            return ParseResult.Failed(sourceText, diagnostics.ToSortedList());
+        }
+    }
+
+    /// <summary>
+    ///     Original API - throws SyntaxException on errors.
+    /// </summary>
     public RootNode ComposeAll()
     {
         try
@@ -76,6 +186,96 @@ public class Parser
             throw new SyntaxException($"An error occurred while parsing the SQL query: {ex.Message}",
                 _lexer.AlreadyResolvedQueryPart, ex);
         }
+    }
+
+    private void RecordError(DiagnosticCode code, string message, TextSpan span)
+    {
+        if (_diagnostics == null) return;
+
+        _diagnostics.AddError(code, message, span);
+    }
+
+    private void RecordSyntaxException(SyntaxException ex)
+    {
+        if (_diagnostics == null) return;
+
+        var span = ex.Span ?? Current.Span;
+        _diagnostics.AddError(ex.Code, ex.Message, span);
+    }
+
+    private bool TryRecoverToNextStatement()
+    {
+        var syncPoints = new HashSet<TokenType>
+        {
+            TokenType.Select, TokenType.From, TokenType.With,
+            TokenType.Desc, TokenType.Table, TokenType.Couple,
+            TokenType.Semicolon, TokenType.EndOfFile
+        };
+
+        while (Current.TokenType != TokenType.EndOfFile)
+        {
+            if (syncPoints.Contains(Current.TokenType))
+            {
+                if (Current.TokenType == TokenType.Semicolon) _lexer.Next();
+                return Current.TokenType != TokenType.EndOfFile;
+            }
+
+            _lexer.Next();
+        }
+
+        return false;
+    }
+
+    private bool TryConsume(TokenType expected, out Token consumed)
+    {
+        consumed = Current;
+
+        if (Current.TokenType == expected)
+        {
+            Previous = Current;
+            _hasReplacedToken = false;
+            _lexer.Next();
+            return true;
+        }
+
+        if (_enableRecovery && _diagnostics != null)
+        {
+            RecordError(
+                DiagnosticCode.MQ2002_MissingToken,
+                $"Expected '{expected}' but found '{Current.TokenType}'.",
+                Current.Span);
+
+
+            if (TryRecoverFromMissingToken(expected))
+            {
+                consumed = Previous;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool TryRecoverFromMissingToken(TokenType expected)
+    {
+        switch (expected)
+        {
+            case TokenType.From
+                when Current.TokenType is TokenType.Word or TokenType.Identifier or TokenType.MethodAccess:
+
+                return true;
+
+            case TokenType.RightParenthesis
+                when Current.TokenType is TokenType.From or TokenType.Where or TokenType.GroupBy or TokenType.OrderBy:
+
+                return true;
+
+            case TokenType.Comma when Current.TokenType is TokenType.Word or TokenType.Identifier or TokenType.Function:
+
+                return true;
+        }
+
+        return false;
     }
 
     private StatementNode ComposeStatement()
@@ -273,10 +473,6 @@ public class Parser
         return new CoupleNode(from, name, identifierNode.Name);
     }
 
-    /// <summary>
-    ///     Parses a binary or text interpretation schema definition.
-    ///     Delegates to SchemaParser for the actual parsing.
-    /// </summary>
     private Node ComposeInterpretationSchema()
     {
         var schemaParser = new SchemaParser(_lexer);
@@ -314,7 +510,7 @@ public class Parser
     private CteExpressionNode ComposeCteExpression()
     {
         Consume(TokenType.With);
-        
+
         PushFromAliasesScope();
         try
         {
@@ -324,33 +520,34 @@ public class Parser
                 throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
                     _lexer.AlreadyResolvedQueryPart);
 
-        RegisterFromAlias(col.Name);
-
-        Consume(TokenType.As);
-        Consume(TokenType.LeftParenthesis);
-        var innerSets = ComposeSetOperators(0);
-        expressions.Add(new CteInnerExpressionNode(innerSets, col.Name));
-        Consume(TokenType.RightParenthesis);
-
-        while (Current.TokenType == TokenType.Comma)
-        {
-            Consume(TokenType.Comma);
-
-            col = ComposeBaseTypes() as IdentifierNode;
-
-            if (col is null)
-                throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
-                    _lexer.AlreadyResolvedQueryPart);
-
             RegisterFromAlias(col.Name);
 
             Consume(TokenType.As);
-
             Consume(TokenType.LeftParenthesis);
-            innerSets = ComposeSetOperators(0);
-            Consume(TokenType.RightParenthesis);
+            var innerSets = ComposeSetOperators(0);
             expressions.Add(new CteInnerExpressionNode(innerSets, col.Name));
-        }
+            Consume(TokenType.RightParenthesis);
+
+            while (Current.TokenType == TokenType.Comma)
+            {
+                Consume(TokenType.Comma);
+
+                col = ComposeBaseTypes() as IdentifierNode;
+
+                if (col is null)
+                    throw new SyntaxException(
+                        $"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
+                        _lexer.AlreadyResolvedQueryPart);
+
+                RegisterFromAlias(col.Name);
+
+                Consume(TokenType.As);
+
+                Consume(TokenType.LeftParenthesis);
+                innerSets = ComposeSetOperators(0);
+                Consume(TokenType.RightParenthesis);
+                expressions.Add(new CteInnerExpressionNode(innerSets, col.Name));
+            }
 
             var outerSets = ComposeSetOperators(0);
 
@@ -937,10 +1134,10 @@ public class Parser
             if (isSchemaReference && !sourceAlias.StartsWith('#'))
             {
                 var schemaName = EnsureHashPrefix(sourceAlias);
-                
+
                 if (!string.IsNullOrWhiteSpace(alias))
                     RegisterFromAlias(alias);
-                
+
                 return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
             }
 
@@ -948,7 +1145,7 @@ public class Parser
             {
                 if (!string.IsNullOrWhiteSpace(alias))
                     RegisterFromAlias(alias);
-                
+
                 return new SchemaFromNode(sourceAlias, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
             }
 
@@ -1028,7 +1225,7 @@ public class Parser
 
         if (!string.IsNullOrWhiteSpace(alias))
             RegisterFromAlias(alias);
-        
+
         return new InMemoryTableFromNode(columnName, alias);
     }
 
@@ -1251,19 +1448,12 @@ public class Parser
         };
     }
 
-    /// <summary>
-    ///     Treats schema tokens as soft keywords - they can be used as identifiers in non-schema contexts.
-    /// </summary>
     private WordNode ComposeSchemaTokenAsWord()
     {
         var token = ConsumeAndGetToken();
         return new WordNode(token.Value);
     }
 
-    /// <summary>
-    ///     Returns true if the current token is a schema keyword that should be treated as an identifier
-    ///     in non-schema contexts.
-    /// </summary>
     private static bool IsSchemaKeywordToken(TokenType tokenType)
     {
         return tokenType switch
@@ -1416,16 +1606,16 @@ public class Parser
             or TokenType.BinaryInteger or TokenType.OctalInteger;
     }
 
-    private void ReplaceCurrentToken(Token newToken)
+    private void PushFromAliasesScope()
     {
-        _replacedToken = newToken;
-        _hasReplacedToken = true;
+        _fromAliasesStack.Push(new HashSet<string>(StringComparer.OrdinalIgnoreCase));
     }
-    
-    private void PushFromAliasesScope() => _fromAliasesStack.Push(new HashSet<string>(StringComparer.OrdinalIgnoreCase));
-    
-    private void PopFromAliasesScope() => _fromAliasesStack.Pop();
-    
+
+    private void PopFromAliasesScope()
+    {
+        _fromAliasesStack.Pop();
+    }
+
     private void RegisterFromAlias(string alias)
     {
         if (_fromAliasesStack.Count > 0 && !string.IsNullOrEmpty(alias))
@@ -1435,10 +1625,8 @@ public class Parser
     private bool IsKnownFromAlias(string alias)
     {
         foreach (var scope in _fromAliasesStack)
-        {
             if (scope.Contains(alias))
                 return true;
-        }
         return false;
     }
 

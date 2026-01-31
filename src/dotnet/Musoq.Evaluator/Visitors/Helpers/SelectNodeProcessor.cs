@@ -139,13 +139,6 @@ public static class SelectNodeProcessor
         }
     }
 
-    /// <summary>
-    ///     Gets the appropriate row variable name based on the method access type and context.
-    /// </summary>
-    /// <param name="type">The method access type</param>
-    /// <param name="context">The context name</param>
-    /// <returns>The row variable name to use</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when method access type is unsupported</exception>
     private static string GetRowVariableName(MethodAccessType type, string context)
     {
         return type switch

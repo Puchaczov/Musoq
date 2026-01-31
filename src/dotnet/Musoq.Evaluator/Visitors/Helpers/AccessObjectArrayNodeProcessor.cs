@@ -44,9 +44,6 @@ public static class AccessObjectArrayNodeProcessor
         return new AccessObjectArrayProcessingResult(resultExpression, requiredNamespace);
     }
 
-    /// <summary>
-    ///     Processes column-based indexed access (e.g., Name[0], f.Name[0]).
-    /// </summary>
     private static ExpressionSyntax ProcessColumnBasedAccess(AccessObjectArrayNode node,
         MethodAccessType methodAccessType)
     {
@@ -77,9 +74,6 @@ public static class AccessObjectArrayNodeProcessor
         return CreateDirectElementAccess(columnAccess, node.Token.Index);
     }
 
-    /// <summary>
-    ///     Processes property-based access (original logic).
-    /// </summary>
     private static ExpressionSyntax ProcessPropertyBasedAccess(AccessObjectArrayNode node, Stack<SyntaxNode> nodes)
     {
         if (nodes.Count > 0 && nodes.Peek() is ExpressionSyntax)
@@ -104,9 +98,6 @@ public static class AccessObjectArrayNodeProcessor
             $"Cannot generate code for array access {node} - no parent expression available");
     }
 
-    /// <summary>
-    ///     Creates string character access using SafeArrayAccess.GetStringCharacter.
-    /// </summary>
     private static ExpressionSyntax CreateStringCharacterAccess(ExpressionSyntax columnAccess, int index)
     {
         return SyntaxFactory.InvocationExpression(
@@ -123,9 +114,6 @@ public static class AccessObjectArrayNodeProcessor
                 ])));
     }
 
-    /// <summary>
-    ///     Creates array element access using SafeArrayAccess.GetArrayElement&lt;T&gt;.
-    /// </summary>
     private static ExpressionSyntax CreateArrayElementAccess(ExpressionSyntax columnAccess, Type elementType, int index)
     {
         return SyntaxFactory.InvocationExpression(
@@ -145,10 +133,6 @@ public static class AccessObjectArrayNodeProcessor
                 ])));
     }
 
-    /// <summary>
-    ///     Creates array element access with support for IntendedTypeName.
-    ///     When element type is object but we have an IntendedTypeName, we cast the result to the intended type.
-    /// </summary>
     private static ExpressionSyntax CreateArrayElementAccessWithIntendedType(
         ExpressionSyntax columnAccess, Type elementType, int index, string intendedTypeName)
     {
@@ -163,9 +147,6 @@ public static class AccessObjectArrayNodeProcessor
         return basicAccess;
     }
 
-    /// <summary>
-    ///     Creates direct element access for other indexable types.
-    /// </summary>
     private static ExpressionSyntax CreateDirectElementAccess(ExpressionSyntax columnAccess, int index)
     {
         return SyntaxFactory.ElementAccessExpression(

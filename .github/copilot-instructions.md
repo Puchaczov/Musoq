@@ -310,3 +310,7 @@ dotnet test src/dotnet/Musoq.Parser.Tests --configuration Release --verbosity de
 # Run tests in isolation to identify environment conflicts
 dotnet test src/dotnet/Musoq.Schema.Tests --configuration Release --verbosity normal --collect:"XPlat Code Coverage"
 ```
+
+### Avoid it all costs
+
+- Don't create garbage assertions within tests. You must ensure that all assertions are meaningful and validate actual expected behavior. No shortcuts.

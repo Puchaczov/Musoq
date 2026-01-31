@@ -3,8 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Tables;
-using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator;
@@ -45,7 +43,8 @@ public interface IRunnable
 
     /// <summary>
     ///     Gets or sets metadata about all queries (main query and subqueries/CTEs) involved in execution.
-    ///     Maps query identifiers to tuples containing the source node, columns, WHERE clause, and type information.
+    ///     Maps query identifiers to QuerySourceInfo containing the source node, columns, WHERE clause,
+    ///     type information, and optimization hints.
     /// </summary>
     /// <remarks>
     ///     This provides the query execution engine with information about:
@@ -53,10 +52,10 @@ public interface IRunnable
     ///     - Which columns are used by each query
     ///     - The WHERE clause conditions (or AllTrue if no WHERE)
     ///     - Whether types were explicitly provided or inferred
-    ///     Used for query optimization, column pruning, and type inference.
+    ///     - Query hints for optimization (SKIP/TAKE, DISTINCT)
+    ///     Used for query optimization, column pruning, type inference, and pagination hints.
     /// </remarks>
-    IReadOnlyDictionary<string, (SchemaFromNode FromNode, IReadOnlyCollection<ISchemaColumn> UsedColumns, WhereNode
-        WhereNode, bool HasExternallyProvidedTypes)> QueriesInformation { get; set; }
+    IReadOnlyDictionary<string, QuerySourceInfo> QueriesInformation { get; set; }
 
     /// <summary>
     ///     Gets or sets the logger used for diagnostic and error logging during query execution.
@@ -122,18 +121,6 @@ public interface IRunnable
     /// </remarks>
     Table Run(CancellationToken token);
 
-    /// <summary>
-    ///     Executes the compiled query asynchronously and returns the results as a table.
-    /// </summary>
-    /// <param name="token">Cancellation token to allow interrupting the query execution.</param>
-    /// <returns>A task that completes when the query finishes, containing the result table.</returns>
-    /// <remarks>
-    ///     This method wraps the synchronous Run method in a Task.Run call, allowing
-    ///     query execution to happen on a background thread without blocking the calling context.
-    ///     It naturally inherits all tracking from Run, so PhaseChanged and DataSourceProgress
-    ///     events will still fire appropriately during async execution.
-    ///     See Run() documentation for preparation steps and remarks.
-    /// </remarks>
     Task<Table> RunAsync(CancellationToken token)
     {
         return Task.Run(() => Run(token), token);

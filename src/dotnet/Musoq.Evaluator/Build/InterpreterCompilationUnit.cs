@@ -143,9 +143,6 @@ public class InterpreterCompilationUnit
             .Select(d => d.ToString());
     }
 
-    /// <summary>
-    ///     Gets references needed for interpreter compilation.
-    /// </summary>
     private static IEnumerable<MetadataReference> GetInterpreterReferences()
     {
         var references = new List<MetadataReference>();

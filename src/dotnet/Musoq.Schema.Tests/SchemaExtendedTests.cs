@@ -210,7 +210,7 @@ public class SchemaExtendedTests
             CancellationToken.None,
             columns,
             new Dictionary<string, string>(),
-            (null, null, null, false),
+            QuerySourceInfo.Empty,
             null
         );
 
@@ -228,7 +228,7 @@ public class SchemaExtendedTests
             CancellationToken.None,
             columns,
             new Dictionary<string, string>(),
-            (null, null, null, false),
+            QuerySourceInfo.Empty,
             null
         );
 
@@ -245,7 +245,7 @@ public class SchemaExtendedTests
             CancellationToken.None,
             columns,
             envVars,
-            (null, null, null, false),
+            QuerySourceInfo.Empty,
             null
         );
 
@@ -261,7 +261,7 @@ public class SchemaExtendedTests
             CancellationToken.None,
             columns,
             new Dictionary<string, string>(),
-            (null, null, null, false),
+            QuerySourceInfo.Empty,
             null
         );
 
@@ -278,7 +278,7 @@ public class SchemaExtendedTests
             CancellationToken.None,
             columns,
             new Dictionary<string, string>(),
-            (null, null, null, false),
+            QuerySourceInfo.Empty,
             null
         );
 
@@ -295,7 +295,7 @@ public class SchemaExtendedTests
             CancellationToken.None,
             columns,
             new Dictionary<string, string>(),
-            (null, null, null, false),
+            QuerySourceInfo.Empty,
             null
         );
 
@@ -312,7 +312,7 @@ public class SchemaExtendedTests
             CancellationToken.None,
             columns,
             new Dictionary<string, string>(),
-            (null, null, null, false),
+            QuerySourceInfo.Empty,
             null
         );
 
@@ -330,7 +330,7 @@ public class SchemaExtendedTests
             CancellationToken.None,
             columns,
             new Dictionary<string, string>(),
-            (null, null, null, false),
+            QuerySourceInfo.Empty,
             null,
             (sender, args) => received = args
         );
@@ -352,7 +352,7 @@ public class SchemaExtendedTests
             CancellationToken.None,
             columns,
             new Dictionary<string, string>(),
-            (null, null, null, false),
+            QuerySourceInfo.Empty,
             null,
             (sender, args) => received = args
         );
@@ -374,7 +374,7 @@ public class SchemaExtendedTests
             CancellationToken.None,
             columns,
             new Dictionary<string, string>(),
-            (null, null, null, false),
+            QuerySourceInfo.Empty,
             null,
             (sender, args) => received = args
         );
@@ -396,7 +396,7 @@ public class SchemaExtendedTests
             CancellationToken.None,
             columns,
             new Dictionary<string, string>(),
-            (null, null, null, false),
+            QuerySourceInfo.Empty,
             null,
             (sender, args) => received = args
         );
@@ -724,7 +724,7 @@ public class SchemaExtendedTests
             CancellationToken.None,
             Array.Empty<ISchemaColumn>(),
             new Dictionary<string, string>(),
-            (null, null, null, false),
+            QuerySourceInfo.Empty,
             null
         );
     }

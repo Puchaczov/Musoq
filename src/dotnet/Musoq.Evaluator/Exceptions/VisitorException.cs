@@ -1,4 +1,7 @@
+#nullable enable
 using System;
+using Musoq.Parser;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Exceptions;
 
@@ -6,7 +9,7 @@ namespace Musoq.Evaluator.Exceptions;
 ///     Exception thrown when visitor operations encounter validation or processing errors.
 ///     Provides specific guidance for AST processing and visitor pattern issues.
 /// </summary>
-public class VisitorException : Exception
+public class VisitorException : Exception, IDiagnosticException
 {
     /// <summary>
     ///     Initializes a new instance of the VisitorException class.
@@ -19,6 +22,7 @@ public class VisitorException : Exception
     {
         VisitorName = visitorName ?? "Unknown";
         Operation = operation ?? "Unknown";
+        Code = DiagnosticCode.MQ9999_Unknown;
     }
 
     /// <summary>
@@ -33,6 +37,24 @@ public class VisitorException : Exception
     {
         VisitorName = visitorName ?? "Unknown";
         Operation = operation ?? "Unknown";
+        Code = DiagnosticCode.MQ9999_Unknown;
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the VisitorException class with diagnostic information.
+    /// </summary>
+    /// <param name="visitorName">The name of the visitor that encountered the error.</param>
+    /// <param name="operation">The operation that was being performed.</param>
+    /// <param name="message">The error message.</param>
+    /// <param name="code">The diagnostic code.</param>
+    /// <param name="span">The source location span.</param>
+    public VisitorException(string visitorName, string operation, string message, DiagnosticCode code, TextSpan span)
+        : base($"Visitor '{visitorName}' failed during '{operation}': {message}")
+    {
+        VisitorName = visitorName ?? "Unknown";
+        Operation = operation ?? "Unknown";
+        Code = code;
+        Span = span;
     }
 
     /// <summary>
@@ -44,6 +66,25 @@ public class VisitorException : Exception
     ///     The operation that was being performed when the error occurred.
     /// </summary>
     public string Operation { get; }
+
+    /// <summary>
+    ///     Gets the diagnostic code for this exception.
+    /// </summary>
+    public DiagnosticCode Code { get; }
+
+    /// <summary>
+    ///     Gets the source location span where this error occurred.
+    /// </summary>
+    public TextSpan? Span { get; }
+
+    /// <summary>
+    ///     Converts this exception to a Diagnostic instance.
+    /// </summary>
+    public Diagnostic ToDiagnostic(SourceText? sourceText = null)
+    {
+        var span = Span ?? TextSpan.Empty;
+        return Diagnostic.Error(Code, Message, span);
+    }
 
     /// <summary>
     ///     Creates a VisitorException for stack underflow operations.

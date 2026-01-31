@@ -49,16 +49,6 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
         };
     }
 
-    /// <summary>
-    ///     Creates a method invocation expression for a set operation.
-    /// </summary>
-    /// <param name="methodName">The name of the method to invoke (e.g., combined query method name)</param>
-    /// <param name="providerIdentifier">The identifier name for the provider parameter</param>
-    /// <param name="positionalEnvironmentVariablesIdentifier">The identifier for positional environment variables</param>
-    /// <param name="queriesInformationIdentifier">The identifier for queries information</param>
-    /// <param name="loggerIdentifier">The identifier for the logger</param>
-    /// <param name="tokenIdentifier">The identifier for the cancellation token</param>
-    /// <returns>An invocation expression for the set operation method</returns>
     private InvocationExpressionSyntax CreateSetOperationInvocation(
         string methodName,
         string providerIdentifier = "provider",
@@ -87,15 +77,6 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
                         })));
     }
 
-    /// <summary>
-    ///     Generates a set operation method that combines two table expressions using the specified operator.
-    /// </summary>
-    /// <param name="methodName">The name of the generated method</param>
-    /// <param name="setOperator">The set operator name (e.g., "Union", "Except", "Intersect")</param>
-    /// <param name="key">The key used to look up field indexes for comparison</param>
-    /// <param name="firstTableExpression">The expression for the first (left) table</param>
-    /// <param name="secondTableExpression">The expression for the second (right) table</param>
-    /// <returns>A method declaration for the set operation</returns>
     private MethodDeclarationSyntax GenerateSetOperationMethod(
         string methodName,
         string setOperator,
@@ -121,11 +102,6 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
         return MethodDeclarationHelper.CreateStandardPrivateMethod(methodName, body);
     }
 
-    /// <summary>
-    ///     Creates a lambda expression for comparing two rows based on field indexes.
-    /// </summary>
-    /// <param name="key">The key used to look up field indexes</param>
-    /// <returns>A parenthesized lambda expression for row comparison</returns>
     private ParenthesizedLambdaExpressionSyntax CreateComparisonLambda(string key)
     {
         return SyntaxFactory
@@ -140,13 +116,6 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
                     })));
     }
 
-    /// <summary>
-    ///     Generates the body of a comparison lambda that checks equality of field values.
-    /// </summary>
-    /// <param name="first">The identifier for the first row parameter</param>
-    /// <param name="second">The identifier for the second row parameter</param>
-    /// <param name="key">The key used to look up field indexes</param>
-    /// <returns>The syntax node for the lambda body</returns>
     private CSharpSyntaxNode GenerateLambdaBody(string first, string second, string key)
     {
         var indexes = setOperatorFieldIndexes[key];
@@ -168,13 +137,6 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
         return subExpressions.Pop();
     }
 
-    /// <summary>
-    ///     Creates an equality check expression for a specific field index.
-    /// </summary>
-    /// <param name="first">The identifier for the first row</param>
-    /// <param name="second">The identifier for the second row</param>
-    /// <param name="fieldIndex">The index of the field to compare</param>
-    /// <returns>An invocation expression for the equality check</returns>
     private static InvocationExpressionSyntax CreateFieldEquality(string first, string second, int fieldIndex)
     {
         return SyntaxFactory
@@ -189,12 +151,6 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
                         SyntaxFactory.Argument(CreateElementAccess(second, fieldIndex)))));
     }
 
-    /// <summary>
-    ///     Creates an element access expression (e.g., first[0]).
-    /// </summary>
-    /// <param name="identifier">The array/indexer identifier</param>
-    /// <param name="index">The index to access</param>
-    /// <returns>An element access expression</returns>
     private static ElementAccessExpressionSyntax CreateElementAccess(string identifier, int index)
     {
         return SyntaxFactory
@@ -208,13 +164,6 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
                                 SyntaxFactory.Literal(index))))));
     }
 
-    /// <summary>
-    ///     Combines two method names for set operation naming.
-    /// </summary>
-    /// <param name="leftMethodName">The left method name</param>
-    /// <param name="rightMethodName">The right method name</param>
-    /// <param name="operationSuffix">Optional suffix to add (e.g., "Union", "Except")</param>
-    /// <returns>The combined method name</returns>
     private static string CombineMethodNames(string leftMethodName, string rightMethodName,
         string? operationSuffix = null)
     {

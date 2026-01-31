@@ -14,6 +14,7 @@ using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Nodes.InterpretationSchema;
@@ -21,6 +22,7 @@ using Musoq.Parser.Tokens;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
+using Musoq.Schema.Api;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
 using AliasedFromNode = Musoq.Parser.Nodes.From.AliasedFromNode;
@@ -77,6 +79,9 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     private readonly List<Type> _nullSuspiciousTypes = [];
     private readonly ISchemaProvider _provider;
 
+    private readonly IDictionary<SchemaFromNode, QueryHints> _queryHintsPerSchema =
+        new Dictionary<SchemaFromNode, QueryHints>();
+
     private readonly List<AccessMethodNode> _refreshMethods = [];
     private readonly List<object> _schemaFromArgs = [];
 
@@ -116,7 +121,21 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         ILogger<BuildMetadataAndInferTypesVisitor> logger,
         CompilationOptions? compilationOptions = null,
         SchemaRegistry? schemaRegistry = null)
-        : this(provider, columns, logger, null, compilationOptions, schemaRegistry)
+        : this(provider, columns, logger, null, compilationOptions, schemaRegistry, null)
+    {
+    }
+
+    /// <summary>
+    ///     Public constructor for LSP/diagnostic use with error collection.
+    /// </summary>
+    public BuildMetadataAndInferTypesVisitor(
+        ISchemaProvider provider,
+        IReadOnlyDictionary<string, string[]> columns,
+        ILogger<BuildMetadataAndInferTypesVisitor> logger,
+        DiagnosticContext diagnosticContext,
+        CompilationOptions? compilationOptions = null,
+        SchemaRegistry? schemaRegistry = null)
+        : this(provider, columns, logger, null, compilationOptions, schemaRegistry, diagnosticContext)
     {
     }
 
@@ -126,7 +145,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         ILogger<BuildMetadataAndInferTypesVisitor> logger,
         ILibraryMethodResolver? methodResolver,
         CompilationOptions? compilationOptions = null,
-        SchemaRegistry? schemaRegistry = null)
+        SchemaRegistry? schemaRegistry = null,
+        DiagnosticContext? diagnosticContext = null)
     {
         _provider = provider;
         _columns = columns;
@@ -135,7 +155,18 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         _nodeFactory = new TypeConversionNodeFactory(_methodResolver);
         _compilationOptions = compilationOptions ?? new CompilationOptions();
         _schemaRegistry = schemaRegistry;
+        DiagnosticContext = diagnosticContext;
     }
+
+    /// <summary>
+    ///     Gets whether diagnostics are being collected instead of throwing exceptions.
+    /// </summary>
+    protected bool IsCollectingDiagnostics => DiagnosticContext != null;
+
+    /// <summary>
+    ///     Gets the diagnostic context if available.
+    /// </summary>
+    protected DiagnosticContext? DiagnosticContext { get; }
 
     protected override string VisitorName => nameof(BuildMetadataAndInferTypesVisitor);
 
@@ -183,6 +214,16 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         {
             return _usedWhereNodes.ToDictionary(aliasColumnsPair => aliasColumnsPair.Key,
                 aliasColumnsPair => aliasColumnsPair.Value);
+        }
+    }
+
+    public IReadOnlyDictionary<SchemaFromNode, QueryHints> QueryHintsPerSchema
+    {
+        get
+        {
+            return _queryHintsPerSchema.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value);
         }
     }
 
@@ -564,7 +605,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
             if (column == null)
             {
-                PrepareAndThrowUnknownColumnExceptionMessage(node.Name, tuple.Table.Columns);
+                if (TryReportOrThrowUnknownColumn(node.Name, tuple.Table.Columns, node))
+                    return;
                 return;
             }
 
@@ -616,7 +658,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
 
             if (column == null)
-                PrepareAndThrowUnknownColumnExceptionMessage(node.Name, tableSymbol.GetColumns());
+                if (TryReportOrThrowUnknownColumn(node.Name, tableSymbol.GetColumns(), node))
+                    return;
 
             Visit(new AccessColumnNode(node.Name, string.Empty, column?.ColumnType, TextSpan.Empty,
                 column?.IntendedTypeName));
@@ -634,13 +677,22 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 string.IsNullOrEmpty(node.TableAlias) ? _identifier : node.TableAlias);
 
             if (tableSymbol == null)
+            {
+                if (TryReportUnknownProperty(node.TableAlias ?? _identifier, null, node))
+                    return;
                 throw new UnknownPropertyException($"Table {node.TableAlias ?? _identifier} could not be found.");
+            }
 
             var column = tableSymbol.GetColumnByAliasAndName(
                 string.IsNullOrEmpty(node.TableAlias) ? _identifier : node.TableAlias,
                 node.ObjectName);
 
-            if (column == null) throw new UnknownPropertyException($"Column {node.ObjectName} could not be found.");
+            if (column == null)
+            {
+                if (TryReportUnknownProperty(node.ObjectName, null, node))
+                    return;
+                throw new UnknownPropertyException($"Column {node.ObjectName} could not be found.");
+            }
 
             Nodes.Push(node);
             return;
@@ -711,6 +763,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 }
                 catch (Exception ex) when (ex is AmbiguousMatchException or ArgumentException)
                 {
+                    if (TryReportObjectNotArray(
+                            $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
+                            node))
+                        return;
                     throw new ObjectIsNotAnArrayException(
                         $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
                 }
@@ -719,12 +775,22 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(propertyAccess?.PropertyType);
 
                 if (!isArray && !isIndexer)
+                {
+                    if (TryReportObjectNotArray(
+                            $"Object {parentNodeType.Name} property '{node.Name}' is not an array or indexable type.",
+                            node))
+                        return;
                     throw new ObjectIsNotAnArrayException(
                         $"Object {parentNodeType.Name} property '{node.Name}' is not an array or indexable type.");
+                }
 
                 if (propertyAccess == null)
+                {
+                    if (TryReportUnknownProperty(node.Name, parentNodeType, node))
+                        return;
                     throw new UnknownPropertyException(
                         $"Property '{node.Name}' not found on object {parentNodeType.Name}.");
+                }
 
                 Nodes.Push(new AccessObjectArrayNode(node.Token, propertyAccess));
 
@@ -740,6 +806,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 }
                 catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
                 {
+                    if (TryReportObjectNotArray(
+                            $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
+                            node))
+                        return;
                     throw new ObjectIsNotAnArrayException(
                         $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
                 }
@@ -748,17 +818,27 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(property?.PropertyType);
 
                 if (!isArray && !isIndexer)
+                {
+                    if (TryReportObjectNotArray($"Object {node.Name} is not an array or indexable type.", node))
+                        return;
                     throw new ObjectIsNotAnArrayException(
                         $"Object {node.Name} is not an array or indexable type.");
+                }
 
                 if (property == null)
+                {
+                    if (TryReportUnknownProperty(node.Name, parentNodeType, node))
+                        return;
                     throw new UnknownPropertyException(
                         $"Property '{node.Name}' not found on object {parentNodeType.Name}.");
+                }
 
                 Nodes.Push(new AccessObjectArrayNode(node.Token, property));
             }
             else
             {
+                if (TryReportUnknownProperty(node.ObjectName, null, node))
+                    return;
                 throw new UnknownPropertyException(
                     $"Could not resolve array access for {node.ObjectName}[{node.Token.Index}]");
             }
@@ -768,7 +848,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     public override void Visit(AccessObjectKeyNode node)
     {
         if (node.DestinationKind == AccessObjectKeyNode.Destination.Variable)
+        {
+            if (TryReportConstructionNotSupported($"Construction ${node.ToString()} is not yet supported.", node))
+                return;
             throw new ConstructionNotYetSupported($"Construction ${node.ToString()} is not yet supported.");
+        }
 
         var parentNode = SafePeek(Nodes, VisitorOperationNames.VisitAccessObjectKeyNode);
         if (parentNode?.ReturnType == null)
@@ -820,6 +904,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 }
                 catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
                 {
+                    if (TryReportNoIndexer(
+                            $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
+                            node))
+                        return;
                     throw new ObjectDoesNotImplementIndexerException(
                         $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
                 }
@@ -827,12 +915,21 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(propertyAccess?.PropertyType);
 
                 if (!isIndexer)
+                {
+                    if (TryReportNoIndexer(
+                            $"Object {parentNodeType.Name} property '{node.Name}' does not implement indexer.", node))
+                        return;
                     throw new ObjectDoesNotImplementIndexerException(
                         $"Object {parentNodeType.Name} property '{node.Name}' does not implement indexer.");
+                }
 
                 if (propertyAccess == null)
+                {
+                    if (TryReportUnknownProperty(node.Name, parentNodeType, node))
+                        return;
                     throw new UnknownPropertyException(
                         $"Property '{node.Name}' not found on object {parentNodeType.Name}.");
+                }
 
                 Nodes.Push(new AccessObjectKeyNode(node.Token, propertyAccess));
 
@@ -846,6 +943,9 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             }
             catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
             {
+                if (TryReportNoIndexer(
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}", node))
+                    return;
                 throw new ObjectDoesNotImplementIndexerException(
                     $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
             }
@@ -853,12 +953,20 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(property?.PropertyType);
 
             if (!isIndexer)
+            {
+                if (TryReportNoIndexer($"Object {node.Name} does not implement indexer.", node))
+                    return;
                 throw new ObjectDoesNotImplementIndexerException(
                     $"Object {node.Name} does not implement indexer.");
+            }
 
             if (property == null)
+            {
+                if (TryReportUnknownProperty(node.Name, parentNodeType, node))
+                    return;
                 throw new UnknownPropertyException(
                     $"Property '{node.Name}' not found on object {parentNodeType.Name}.");
+            }
 
             Nodes.Push(new AccessObjectKeyNode(node.Token, property));
         }
@@ -929,7 +1037,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             }
 
             if (propertyInfo == null)
+            {
+                if (TryReportUnknownProperty(node.Name, parentNodeType, node))
+                    return;
                 throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}");
+            }
 
             Nodes.Push(new PropertyValueNode(node.Name, propertyInfo));
         }
@@ -1068,9 +1180,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 var property = root.ReturnType.GetProperty(propertyName);
 
                 if (property == null)
+                {
+                    if (TryReportUnknownPropertyWithSuggestions(propertyName, root.ReturnType.GetProperties(), node))
+                        return;
                     PrepareAndThrowUnknownPropertyExceptionMessage(propertyName,
                         root.ReturnType.GetProperties());
-
+                }
 
                 newNode = new DotNode(root, exp, node.IsTheMostInner, string.Empty, exp.ReturnType);
             }
@@ -1079,8 +1194,13 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 var hasProperty = root.ReturnType.GetProperty(identifierNode.Name) != null;
 
                 if (!hasProperty)
+                {
+                    if (TryReportUnknownPropertyWithSuggestions(identifierNode.Name, root.ReturnType.GetProperties(),
+                            node))
+                        return;
                     PrepareAndThrowUnknownPropertyExceptionMessage(identifierNode.Name,
                         root.ReturnType.GetProperties());
+                }
 
                 newNode = new DotNode(root, exp, node.IsTheMostInner, string.Empty, exp.ReturnType);
             }
@@ -1176,7 +1296,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
 
-        if (HasAlreadyUsedAlias(_queryAlias)) throw new AliasAlreadyUsedException(node, _queryAlias);
+        if (HasAlreadyUsedAlias(_queryAlias))
+        {
+            if (TryReportDuplicateAlias(node, _queryAlias, node))
+                return;
+            throw new AliasAlreadyUsedException(node, _queryAlias);
+        }
 
         _generatedAliases.Add(_queryAlias);
 
@@ -1192,10 +1317,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 new RuntimeContext(
                     node.QueryId.ToString(),
                     CancellationToken.None,
-                    _columns[_queryAlias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
-                        .ToArray(),
+                    GetColumnsForAlias(_queryAlias, _schemaFromKey),
                     environmentVariables,
-                    (aliasedSchemaFromNode, [], AllTrueWhereNode, hasExternallyProvidedTypes),
+                    new QuerySourceInfo(aliasedSchemaFromNode, [], AllTrueWhereNode, hasExternallyProvidedTypes,
+                        QueryHints.Empty),
                     _logger
                 ),
                 _schemaFromArgs.ToArray())
@@ -1254,27 +1379,40 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var targetColumn = table.GetColumnByName(node.FirstProperty.PropertyName);
         if (targetColumn == null)
         {
-            PrepareAndThrowUnknownColumnExceptionMessage(node.FirstProperty.PropertyName, table.Columns);
+            if (TryReportOrThrowUnknownColumn(node.FirstProperty.PropertyName, table.Columns, node))
+                return;
             return;
         }
 
-        ValidateBindablePropertyAsTable(table, targetColumn);
+        if (ValidateBindablePropertyAsTableWithDiagnostics(table, targetColumn, node))
+            return;
 
         AddAssembly(targetColumn.ColumnType.Assembly);
 
+        var followedType = FollowPropertiesWithDiagnostics(targetColumn.ColumnType, node.PropertiesChain, node);
+        if (followedType == null)
+            return;
 
         var nestedTable = TurnTypeIntoTableWithIntendedTypeName(
-            FollowProperties(targetColumn.ColumnType, node.PropertiesChain),
-            targetColumn.IntendedTypeName);
+            followedType,
+            targetColumn.IntendedTypeName,
+            node);
+        if (nestedTable == null)
+            return;
         table = nestedTable;
 
         UpdateQueryAliasAndSymbolTable(node, schema, table);
+
+        var rewrittenChain =
+            RewritePropertiesChainWithTargetColumnWithDiagnostics(targetColumn, node.PropertiesChain, node);
+        if (rewrittenChain == null)
+            return;
 
         Nodes.Push(
             new Parser.PropertyFromNode(
                 node.Alias,
                 node.SourceAlias,
-                RewritePropertiesChainWithTargetColumn(targetColumn, node.PropertiesChain)
+                rewrittenChain
             )
         );
     }
@@ -1299,7 +1437,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         _generatedAliases.Add(_queryAlias);
 
         var accessMethodNode = (AccessMethodNode)Nodes.Pop();
-        table = TurnTypeIntoTable(accessMethodNode.ReturnType);
+        var convertedTable = TurnTypeIntoTableWithDiagnostics(accessMethodNode.ReturnType, node);
+        if (convertedTable == null)
+            return;
+        table = convertedTable;
         var tableSymbol = new TableSymbol(_queryAlias, schema, table, !string.IsNullOrEmpty(node.Alias));
         _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
         _currentScope[node.Id] = _queryAlias;
@@ -1384,7 +1525,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 CancellationToken.None,
                 table.Columns,
                 RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode),
-                (aliasedSchemaFromNode, [], AllTrueWhereNode, hasExternallyProvidedTypes),
+                new QuerySourceInfo(aliasedSchemaFromNode, [], AllTrueWhereNode, hasExternallyProvidedTypes,
+                    QueryHints.Empty),
                 _logger
             ),
             _schemaFromArgs.ToArray()
@@ -1451,7 +1593,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             while (scope != null && scope.Name != "CTE") scope = scope.Parent;
 
             if (scope is null)
+            {
+                if (TryReportTableNotDefined(node.VariableName, node))
+                    return;
                 throw new TableIsNotDefinedException(node.VariableName);
+            }
 
             tableSymbol = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.VariableName);
         }
@@ -1645,6 +1791,18 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         if (take != null)
             ValidateExpressionIsPrimitive(take.Expression, "TAKE");
 
+
+        long? skipValue = skip?.Expression is IntegerNode skipInt ? Convert.ToInt64(skipInt.ObjValue) : null;
+        long? takeValue = take?.Expression is IntegerNode takeInt ? Convert.ToInt64(takeInt.ObjValue) : null;
+        var isDistinct = select?.IsDistinct ?? false;
+
+        if (skipValue.HasValue || takeValue.HasValue || isDistinct)
+        {
+            var hints = QueryHints.Create(skipValue, takeValue, isDistinct);
+            foreach (var schemaFromNode in _aliasToSchemaFromNodeMap.Values)
+                _queryHintsPerSchema[schemaFromNode] = hints;
+        }
+
         Nodes.Push(queryNode);
 
         _schemaFromArgs.Clear();
@@ -1751,10 +1909,17 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         if (_compilationOptions.UsePrimitiveTypeValidation)
             foreach (var fieldInfo in collector.CollectedFieldNames)
                 if (!BuildMetadataAndInferTypesVisitorUtilities.IsValidQueryExpressionType(fieldInfo.ColumnType))
+                {
+                    var fieldNode = new FieldNode(new IntegerNode("0", "s"), fieldInfo.ColumnIndex,
+                        fieldInfo.ColumnName);
+                    if (TryReportInvalidExpressionType(fieldNode, fieldInfo.ColumnType, $"CTE '{node.Name}'",
+                            fieldNode))
+                        continue;
                     throw new InvalidQueryExpressionTypeException(
-                        new FieldNode(new IntegerNode("0", "s"), fieldInfo.ColumnIndex, fieldInfo.ColumnName),
+                        fieldNode,
                         fieldInfo.ColumnType,
                         $"CTE '{node.Name}'");
+                }
 
         Nodes.Push(new CteInnerExpressionNode(set, node.Name));
     }
@@ -1799,7 +1964,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             var type = EvaluationHelper.RemapPrimitiveTypeAsNullable(remappedType);
 
             if (type == null)
+            {
+                if (TryReportTypeNotFound(remappedType, node))
+                    continue;
                 throw new TypeNotFoundException($"Type '{remappedType}' could not be found.");
+            }
 
             tableColumns.Add(new SchemaColumn(columnName, i, type));
         }
@@ -1905,7 +2074,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var index = node.Index - 1;
 
         if (_groupByFields.Count <= index)
+        {
+            if (TryReportFieldLinkOutOfRange(index, _groupByFields.Count, node))
+                return;
             throw new FieldLinkIndexOutOfRangeException(index, _groupByFields.Count);
+        }
 
         Nodes.Push(_groupByFields[index].Expression);
     }
@@ -1938,9 +2111,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
     }
 
-    /// <summary>
-    ///     Helper method to handle binary operators that use SafePopMultiple for error handling.
-    /// </summary>
     private void VisitBinaryOperatorWithSafePop<T>(Func<Node, Node, T> nodeFactory, string operationName) where T : Node
     {
         var nodes = SafePopMultiple(Nodes, 2, operationName);
@@ -1949,9 +2119,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         Nodes.Push(nodeFactory(left, right));
     }
 
-    /// <summary>
-    ///     Helper method to handle binary operators that use direct Pop operations.
-    /// </summary>
     private void VisitBinaryOperatorWithDirectPop<T>(Func<Node, Node, T> nodeFactory) where T : Node
     {
         var right = SafePop(Nodes, "VisitBinaryOperatorWithDirectPop (right)");
@@ -1959,17 +2126,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         Nodes.Push(nodeFactory(left, right));
     }
 
-    /// <summary>
-    ///     Visits a binary operator node and applies appropriate type conversions.
-    ///     Handles three conversion strategies:
-    ///     1. Runtime operators for object types (delegates to runtime conversion methods)
-    ///     2. DateTime string literal conversion (converts string literals to DateTime when comparing with DateTime _columns)
-    ///     3. Numeric string/object conversion (converts strings to numbers when used with numeric literals)
-    /// </summary>
-    /// <typeparam name="T">Type of binary operator node to create.</typeparam>
-    /// <param name="nodeFactory">Factory function to create the binary operator node.</param>
-    /// <param name="isRelationalComparison">True for comparison operators (&gt;, &lt;, &gt;=, &lt;=).</param>
-    /// <param name="isArithmeticOperation">True for arithmetic operators (+, -, *, /, %).</param>
     private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory,
         bool isRelationalComparison = false, bool isArithmeticOperation = false) where T : Node
     {
@@ -2136,7 +2292,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     private MethodResolutionContext ResolveMethodContext(AccessMethodNode node, ArgsListNode args)
     {
         if (_usedSchemasQuantity > 1 && string.IsNullOrWhiteSpace(node.Alias))
+        {
+            if (TryReportMissingAlias(node))
+                return default;
             throw new AliasMissingException(node);
+        }
 
         var alias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : _identifier;
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
@@ -2390,11 +2550,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var runtimeContext = new RuntimeContext(
             schemaFrom.QueryId.ToString(),
             CancellationToken.None,
-            _columns[schemaFrom.Alias + _schemaFromKey].Select((f, i) => new SchemaColumn(f, i, typeof(object)))
-                .ToArray(),
-            RetrieveEnvironmentVariables(_schemaFromInfo[schemaFrom.Alias].PositionalEnvironmentVariableKey,
+            GetColumnsForAlias(schemaFrom.Alias, _schemaFromKey),
+            RetrieveEnvironmentVariables(GetPositionalEnvVarKeyForAlias(schemaFrom.Alias),
                 schemaFrom),
-            (schemaFrom, [], AllTrueWhereNode, false),
+            new QuerySourceInfo(schemaFrom, [], AllTrueWhereNode, false, QueryHints.Empty),
             _logger
         );
 
@@ -2426,7 +2585,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         {
             var returnType = field.Expression.ReturnType;
             if (!BuildMetadataAndInferTypesVisitorUtilities.IsValidQueryExpressionType(returnType))
+            {
+                if (TryReportInvalidExpressionType(field, returnType, context, field.Expression))
+                    continue;
                 throw new InvalidQueryExpressionTypeException(field, returnType, context);
+            }
         }
     }
 
@@ -2436,7 +2599,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         var returnType = expression.ReturnType;
         if (!BuildMetadataAndInferTypesVisitorUtilities.IsValidQueryExpressionType(returnType))
+        {
+            if (TryReportInvalidExpressionType(expression.ToString(), returnType, context, expression))
+                return;
             throw new InvalidQueryExpressionTypeException(expression.ToString(), returnType, context);
+        }
     }
 
     private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, QueryNode right,
@@ -2448,11 +2615,20 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         ValidateSelectFieldsArePrimitive(leftFields, "SET operator (left side)");
         ValidateSelectFieldsArePrimitive(rightFields, "SET operator (right side)");
 
-        if (leftFields.Length != rightFields.Length) throw new SetOperatorMustHaveSameQuantityOfColumnsException();
+        if (leftFields.Length != rightFields.Length)
+        {
+            if (TryReportSetOperatorColumnCount(right))
+                return;
+            throw new SetOperatorMustHaveSameQuantityOfColumnsException();
+        }
 
         for (var i = 0; i < leftFields.Length; i++)
             if (leftFields[i].Expression.ReturnType != rightFields[i].Expression.ReturnType)
+            {
+                if (TryReportSetOperatorColumnTypes(leftFields[i], rightFields[i], rightFields[i].Expression))
+                    continue;
                 throw new SetOperatorMustHaveSameTypesOfColumnsException(leftFields[i], rightFields[i]);
+            }
 
         _cachedSetFields.TryAdd(cachedSetOperatorKey, rightFields);
     }
@@ -2465,11 +2641,20 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         ValidateSelectFieldsArePrimitive(leftFields, "SET operator");
 
-        if (leftFields.Length != rightFields.Length) throw new SetOperatorMustHaveSameQuantityOfColumnsException();
+        if (leftFields.Length != rightFields.Length)
+        {
+            if (TryReportSetOperatorColumnCount(left))
+                return;
+            throw new SetOperatorMustHaveSameQuantityOfColumnsException();
+        }
 
         for (var i = 0; i < leftFields.Length; i++)
             if (leftFields[i].Expression.ReturnType != rightFields[i].Expression.ReturnType)
+            {
+                if (TryReportSetOperatorColumnTypes(leftFields[i], rightFields[i], leftFields[i].Expression))
+                    continue;
                 throw new SetOperatorMustHaveSameTypesOfColumnsException(leftFields[i], rightFields[i]);
+            }
 
         _cachedSetFields.TryAdd(currentSetOperatorKey, leftFields);
     }
@@ -2501,6 +2686,27 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         throw new UnknownColumnOrAliasException($"Column or Alias {identifier} could not be found.");
     }
 
+    /// <summary>
+    ///     Reports or throws an unknown column exception. If diagnostic context is available,
+    ///     reports the error and returns true (to allow continuation). Otherwise throws.
+    /// </summary>
+    /// <param name="identifier">The column identifier that was not found.</param>
+    /// <param name="columns">Available columns for suggestions.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (continue execution), false if thrown.</returns>
+    protected bool TryReportOrThrowUnknownColumn(string identifier, ISchemaColumn[] columns, Node node)
+    {
+        if (DiagnosticContext != null)
+        {
+            var availableColumns = columns.Select(c => c.ColumnName);
+            DiagnosticContext.ReportUnknownColumn(identifier, availableColumns, node);
+            return true;
+        }
+
+        PrepareAndThrowUnknownColumnExceptionMessage(identifier, columns);
+        return false;
+    }
+
     private static void PrepareAndThrowUnknownPropertyExceptionMessage(string identifier, PropertyInfo[] properties)
     {
         var library = new TransitionLibrary();
@@ -2528,10 +2734,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         throw new UnknownPropertyException($"Column {identifier} could not be found.");
     }
 
-    /// <summary>
-    ///     Checks if the function name is one of the interpret functions (Interpret, Parse, InterpretAt, TryInterpret,
-    ///     TryParse).
-    /// </summary>
     private static bool IsInterpretFunction(string functionName)
     {
         return functionName.Equals("Interpret", StringComparison.OrdinalIgnoreCase) ||
@@ -2541,11 +2743,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                functionName.Equals("TryParse", StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>
-    ///     Extracts the schema name from Interpret/Parse function arguments.
-    ///     For Interpret/Parse/TryInterpret/TryParse: schema name is at args[1]
-    ///     For InterpretAt: schema name is at args[2] (after data and offset)
-    /// </summary>
     private static string? ExtractSchemaNameFromArgs(ArgsListNode args, string? functionName = null)
     {
         var schemaArgIndex = functionName?.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase) == true ? 2 : 1;
@@ -2567,9 +2764,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             $"DEBUG ExtractSchemaNameFromArgs: args[{schemaArgIndex}] type is {schemaArg?.GetType().Name ?? "null"}, value: {schemaArg}");
     }
 
-    /// <summary>
-    ///     Creates a table with columns from the schema registry for interpret functions.
-    /// </summary>
     private ISchemaTable CreateInterpretTable(string? schemaName)
     {
         if (schemaName == null || _schemaRegistry == null)
@@ -2654,10 +2848,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return new DynamicTable(columns.ToArray());
     }
 
-    /// <summary>
-    ///     Gets all fields from a binary schema, including inherited fields from parent schemas.
-    ///     Parent fields come first, followed by child fields.
-    /// </summary>
     private List<SchemaFieldNode> GetAllBinarySchemaFields(
         BinarySchemaNode binaryNode)
     {
@@ -2677,22 +2867,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return allFields;
     }
 
-    /// <summary>
-    ///     Resolves the actual CLR type for a type annotation, looking up schema references in the registry.
-    ///     For schema references (nested schemas), this returns the generated interpreter type if available,
-    ///     enabling deep property access like h.Child.Value.
-    /// </summary>
     private Type ResolveTypeAnnotationClrType(TypeAnnotationNode typeAnnotation)
     {
         var (type, _) = ResolveTypeAnnotationClrTypeWithIntendedName(typeAnnotation);
         return type;
     }
 
-    /// <summary>
-    ///     Resolves the actual CLR type and intended type name for a type annotation.
-    ///     For schema references (nested schemas), returns typeof(object) as the CLR type
-    ///     but also returns the fully-qualified intended type name for code generation.
-    /// </summary>
     private (Type ClrType, string? IntendedTypeName) ResolveTypeAnnotationClrTypeWithIntendedName(
         TypeAnnotationNode typeAnnotation)
     {
@@ -2740,17 +2920,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return (typeAnnotation.ClrType, null);
     }
 
-    /// <summary>
-    ///     Creates an empty placeholder table for interpret functions.
-    /// </summary>
     private static ISchemaTable CreateEmptyTable()
     {
         return new DynamicTable([]);
     }
 
-    /// <summary>
-    ///     Infers the CLR type for a computed field expression based on the expression structure.
-    /// </summary>
     private static Type InferComputedFieldType(Node expression, List<ISchemaColumn> contextColumns)
     {
         if (expression is EqualityNode or DiffNode or GreaterNode or GreaterOrEqualNode
@@ -2784,9 +2958,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return typeof(object);
     }
 
-    /// <summary>
-    ///     Infers the type of an expression operand.
-    /// </summary>
     private static Type InferOperandType(Node operand, List<ISchemaColumn> contextColumns)
     {
         if (operand is BinaryNode binaryOp) return InferComputedFieldType(binaryOp, contextColumns);
@@ -2811,9 +2982,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return typeof(object);
     }
 
-    /// <summary>
-    ///     Checks if a type is a numeric type.
-    /// </summary>
     private static bool IsNumericType(Type type)
     {
         return type == typeof(byte) || type == typeof(sbyte) ||
@@ -2823,9 +2991,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                type == typeof(float) || type == typeof(double);
     }
 
-    /// <summary>
-    ///     Gets the wider of two numeric types.
-    /// </summary>
     private static Type GetWiderNumericType(Type left, Type right)
     {
         var typeOrder = new[]
@@ -2982,11 +3147,37 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return new DynamicTable(_columns.ToArray(), nestedType);
     }
 
-    /// <summary>
-    ///     Converts a type into a table, with support for IntendedTypeName to resolve schema references.
-    ///     When element type is object but we have an IntendedTypeName, we look up the schema fields.
-    /// </summary>
-    private ISchemaTable TurnTypeIntoTableWithIntendedTypeName(Type type, string? intendedTypeName)
+    private ISchemaTable? TurnTypeIntoTableWithDiagnostics(Type type, Node? node)
+    {
+        var _columns = new List<ISchemaColumn>();
+
+        Type nestedType;
+        if (type.IsArray)
+        {
+            nestedType = type.GetElementType();
+        }
+        else if (IsGenericEnumerable(type, out nestedType))
+        {
+        }
+        else
+        {
+            if (TryReportColumnMustBeArray(node))
+                return null;
+            throw new ColumnMustBeAnArrayOrImplementIEnumerableException();
+        }
+
+        if (nestedType == null) throw new InvalidOperationException("Element type is null.");
+
+        if (nestedType.IsPrimitive || nestedType == typeof(string))
+            return new DynamicTable([new SchemaColumn(nameof(PrimitiveTypeEntity<int>.Value), 0, nestedType)]);
+
+        foreach (var property in nestedType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            _columns.Add(new SchemaColumn(property.Name, _columns.Count, property.PropertyType));
+
+        return new DynamicTable(_columns.ToArray(), nestedType);
+    }
+
+    private ISchemaTable? TurnTypeIntoTableWithIntendedTypeName(Type type, string? intendedTypeName, Node? node)
     {
         Type nestedType;
         if (type.IsArray)
@@ -2998,6 +3189,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         }
         else
         {
+            if (TryReportColumnMustBeArray(node))
+                return null;
             throw new ColumnMustBeAnArrayOrImplementIEnumerableException();
         }
 
@@ -3046,10 +3239,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return new DynamicTable(_columns.ToArray(), nestedType);
     }
 
-    /// <summary>
-    ///     Extracts the element IntendedTypeName from an array IntendedTypeName.
-    ///     For example, "Musoq.Generated.Interpreters.Point[]" returns "Musoq.Generated.Interpreters.Point".
-    /// </summary>
     private static string GetArrayElementIntendedTypeName(string arrayIntendedTypeName)
     {
         if (string.IsNullOrEmpty(arrayIntendedTypeName))
@@ -3095,6 +3284,28 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         if (!isValid) throw new ColumnMustBeMarkedAsBindablePropertyAsTableException();
     }
 
+    private bool ValidateBindablePropertyAsTableWithDiagnostics(ISchemaTable table, ISchemaColumn targetColumn,
+        Node? node)
+    {
+        var propertyInfo = table.Metadata.TableEntityType.GetProperty(targetColumn.ColumnName);
+        var bindablePropertyAsTableAttribute = propertyInfo?.GetCustomAttribute<BindablePropertyAsTableAttribute>();
+
+        if (bindablePropertyAsTableAttribute == null) return false;
+
+        var isValid = IsGenericEnumerable(propertyInfo!.PropertyType, out var elementType) ||
+                      IsArray(propertyInfo.PropertyType!, out elementType) ||
+                      elementType.IsPrimitive || elementType == typeof(string);
+
+        if (!isValid)
+        {
+            if (TryReportColumnNotBindable(targetColumn.ColumnName, node))
+                return true;
+            throw new ColumnMustBeMarkedAsBindablePropertyAsTableException();
+        }
+
+        return false;
+    }
+
     private static bool IsArray(Type type, out Type elementType)
     {
         elementType = null;
@@ -3115,6 +3326,29 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
             if (propertyInfo == null)
             {
+                PrepareAndThrowUnknownPropertyExceptionMessage(property.PropertyName, type.GetProperties());
+                return null;
+            }
+
+            type = propertyInfo.PropertyType;
+        }
+
+        return type;
+    }
+
+    private Type? FollowPropertiesWithDiagnostics(Type type, PropertyFromNode.PropertyNameAndTypePair[] propertiesChain,
+        Node? node)
+    {
+        var propertiesWithoutColumnType = propertiesChain.Skip(1);
+
+        foreach (var property in propertiesWithoutColumnType)
+        {
+            var propertyInfo = type.GetProperty(property.PropertyName);
+
+            if (propertyInfo == null)
+            {
+                if (TryReportUnknownPropertyWithSuggestions(property.PropertyName, type.GetProperties(), node))
+                    return null;
                 PrepareAndThrowUnknownPropertyExceptionMessage(property.PropertyName, type.GetProperties());
                 return null;
             }
@@ -3150,9 +3384,41 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return propertiesChain;
     }
 
+    private PropertyFromNode.PropertyNameAndTypePair[]? RewritePropertiesChainWithTargetColumnWithDiagnostics(
+        ISchemaColumn targetColumn, PropertyFromNode.PropertyNameAndTypePair[] nodePropertiesChain, Node? node)
+    {
+        var propertiesChain = new PropertyFromNode.PropertyNameAndTypePair[nodePropertiesChain.Length];
+        var rootType = targetColumn.ColumnType;
+        propertiesChain[0] = new PropertyFromNode.PropertyNameAndTypePair(targetColumn.ColumnName, rootType);
+
+        for (var i = 1; i < nodePropertiesChain.Length; i++)
+        {
+            var property = nodePropertiesChain[i];
+            var propertyInfo = rootType.GetProperty(property.PropertyName);
+
+            if (propertyInfo == null)
+            {
+                if (TryReportUnknownPropertyWithSuggestions(property.PropertyName, rootType.GetProperties(), node))
+                    return null;
+                PrepareAndThrowUnknownPropertyExceptionMessage(property.PropertyName, rootType.GetProperties());
+                return null;
+            }
+
+            propertiesChain[i] =
+                new PropertyFromNode.PropertyNameAndTypePair(propertyInfo.Name, propertyInfo.PropertyType);
+        }
+
+        return propertiesChain;
+    }
+
     private void VisitSetOperationNode(SetOperatorNode node, string setOperatorName)
     {
-        if (node.Keys.Length == 0) throw SetOperatorDoesNotHaveKeysException(setOperatorName);
+        if (node.Keys.Length == 0)
+        {
+            if (TryReportSetOperatorMissingKeys(setOperatorName, node))
+                return;
+            throw SetOperatorDoesNotHaveKeysException(setOperatorName);
+        }
 
         var key = CreateSetOperatorPositionKey();
         _currentScope[MetaAttributes.SetOperatorName] = key;
@@ -3213,4 +3479,518 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         TableSymbol TableSymbol,
         (ISchema Schema, ISchemaTable Table, string TableName) SchemaTablePair,
         Type EntityType);
+
+    #region Diagnostic Helpers
+
+    /// <summary>
+    ///     Reports an unknown column error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="columnName">The column name that was not found.</param>
+    /// <param name="availableColumns">Available column names for suggestions.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportUnknownColumn(string columnName, IEnumerable<string> availableColumns, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportUnknownColumn(columnName, availableColumns, node);
+            return true;
+        }
+
+
+        var availableList = availableColumns.ToArray();
+        if (availableList.Length > 0)
+        {
+            var library = new TransitionLibrary();
+            var candidates = availableList
+                .Where(col => library.Soundex(col) == library.Soundex(columnName) ||
+                              library.LevenshteinDistance(col, columnName) < 3)
+                .ToArray();
+
+            if (candidates.Length > 0)
+                throw new UnknownColumnOrAliasException(
+                    $"Column or Alias '{columnName}' could not be found. Did you mean to use [{string.Join(", ", candidates)}]?");
+        }
+
+        throw new UnknownColumnOrAliasException($"Column or Alias '{columnName}' could not be found.");
+    }
+
+    /// <summary>
+    ///     Reports an unknown property error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="propertyName">The property name that was not found.</param>
+    /// <param name="objectType">The type of object on which the property was not found.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportUnknownProperty(string propertyName, Type? objectType, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            var availableProperties = objectType?.GetProperties().Select(p => p.Name) ?? [];
+            DiagnosticContext.ReportUnknownColumn(propertyName, availableProperties, node);
+            return true;
+        }
+
+        throw new UnknownPropertyException(
+            objectType != null
+                ? $"Property '{propertyName}' not found on object {objectType.Name}."
+                : $"Property '{propertyName}' could not be found.");
+    }
+
+    /// <summary>
+    ///     Reports a type-related error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="typeName">The type name that was not found or is invalid.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportTypeNotFound(string typeName, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3005_TypeMismatch,
+                $"Type '{typeName}' could not be found or resolved.",
+                node);
+            return true;
+        }
+
+        throw new TypeNotFoundException($"Type '{typeName}' could not be found.");
+    }
+
+    /// <summary>
+    ///     Reports an ambiguous column reference. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="columnName">The ambiguous column name.</param>
+    /// <param name="alias1">First possible source alias.</param>
+    /// <param name="alias2">Second possible source alias.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportAmbiguousColumn(string columnName, string alias1, string alias2, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportAmbiguousColumn(columnName, alias1, alias2, node);
+            return true;
+        }
+
+        throw new AmbiguousColumnException(columnName, alias1, alias2);
+    }
+
+    /// <summary>
+    ///     Reports a general semantic error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <typeparam name="TException">The type of exception to throw if not collecting diagnostics.</typeparam>
+    /// <param name="code">The diagnostic code.</param>
+    /// <param name="message">The error message.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), never returns false (throws instead).</returns>
+    protected bool TryReportSemanticError<TException>(DiagnosticCode code, string message, Node? node)
+        where TException : Exception
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(code, message, node);
+            return true;
+        }
+
+        throw (TException)Activator.CreateInstance(typeof(TException), message)!;
+    }
+
+    /// <summary>
+    ///     Reports a semantic error using an existing exception. If diagnostics are enabled, records the error and returns
+    ///     true.
+    ///     Otherwise rethrows the exception.
+    /// </summary>
+    /// <param name="exception">The exception to report or throw.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), never returns false (throws instead).</returns>
+    protected bool TryReportException(Exception exception, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportException(exception, node?.Span);
+            return true;
+        }
+
+        throw exception;
+    }
+
+    /// <summary>
+    ///     Reports an object-not-array error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportObjectNotArray(string message, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(DiagnosticCode.MQ3017_ObjectNotArray, message, node);
+            return true;
+        }
+
+        throw new ObjectIsNotAnArrayException(message);
+    }
+
+    /// <summary>
+    ///     Reports an no-indexer error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportNoIndexer(string message, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(DiagnosticCode.MQ3018_NoIndexer, message, node);
+            return true;
+        }
+
+        throw new ObjectDoesNotImplementIndexerException(message);
+    }
+
+    /// <summary>
+    ///     Reports a set operator column count error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportSetOperatorColumnCount(Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3019_SetOperatorColumnCount,
+                "Set operator must have the same quantity of columns in both queries",
+                node);
+            return true;
+        }
+
+        throw new SetOperatorMustHaveSameQuantityOfColumnsException();
+    }
+
+    /// <summary>
+    ///     Reports a set operator column type error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="left">The left field node.</param>
+    /// <param name="right">The right field node.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportSetOperatorColumnTypes(FieldNode left, FieldNode right, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3020_SetOperatorColumnTypes,
+                $"Set operator must have the same types of columns in both queries. Left column expression is {left} and right column expression is {right}",
+                node);
+            return true;
+        }
+
+        throw new SetOperatorMustHaveSameTypesOfColumnsException(left, right);
+    }
+
+    /// <summary>
+    ///     Reports a duplicate alias error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="schemaNode">The schema from node.</param>
+    /// <param name="alias">The duplicate alias.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportDuplicateAlias(SchemaFromNode schemaNode, string alias, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3021_DuplicateAlias,
+                $"Alias '{alias}' is already used in query. Please use a different alias.",
+                node);
+            return true;
+        }
+
+        throw new AliasAlreadyUsedException(schemaNode, alias);
+    }
+
+    /// <summary>
+    ///     Reports a missing alias error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="methodNode">The access method node.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportMissingAlias(AccessMethodNode methodNode)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3022_MissingAlias,
+                $"Alias must be provided for method call when more than one schema is used. Problem occurred in method {methodNode}",
+                methodNode);
+            return true;
+        }
+
+        throw new AliasMissingException(methodNode);
+    }
+
+    /// <summary>
+    ///     Reports a table not defined error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="tableName">The undefined table name.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportTableNotDefined(string tableName, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3023_TableNotDefined,
+                $"Table '{tableName}' is not defined in query",
+                node);
+            return true;
+        }
+
+        throw new TableIsNotDefinedException(tableName);
+    }
+
+    /// <summary>
+    ///     Reports a column must be array error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportColumnMustBeArray(Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3025_ColumnMustBeArray,
+                "Column must be an array or implement IEnumerable<T> interface",
+                node);
+            return true;
+        }
+
+        throw new ColumnMustBeAnArrayOrImplementIEnumerableException();
+    }
+
+    /// <summary>
+    ///     Reports an invalid expression type error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="field">The field with invalid type.</param>
+    /// <param name="invalidType">The invalid type.</param>
+    /// <param name="context">The context where the error occurred.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportInvalidExpressionType(FieldNode field, Type? invalidType, string context, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3027_InvalidExpressionType,
+                $"Query output column '{field.FieldName}' has invalid type '{invalidType?.FullName ?? "null"}' in {context}. Only primitive types are allowed in query outputs.",
+                node);
+            return true;
+        }
+
+        throw new InvalidQueryExpressionTypeException(field, invalidType, context);
+    }
+
+    /// <summary>
+    ///     Reports an invalid expression type error for expressions. If diagnostics are enabled, records the error and returns
+    ///     true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="expressionDescription">Description of the expression.</param>
+    /// <param name="invalidType">The invalid type.</param>
+    /// <param name="context">The context where the error occurred.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportInvalidExpressionType(string expressionDescription, Type? invalidType, string context,
+        Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3027_InvalidExpressionType,
+                $"Expression '{expressionDescription}' has invalid type '{invalidType?.FullName ?? "null"}' in {context}. Only primitive types are allowed in query expressions.",
+                node);
+            return true;
+        }
+
+        throw new InvalidQueryExpressionTypeException(expressionDescription, invalidType, context);
+    }
+
+    /// <summary>
+    ///     Reports a field link index out of range error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="index">The invalid index.</param>
+    /// <param name="maxCount">The maximum allowed count.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportFieldLinkOutOfRange(int index, int maxCount, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3024_GroupByIndexOutOfRange,
+                $"Field link index {index} is out of range. Maximum allowed is {maxCount - 1}.",
+                node);
+            return true;
+        }
+
+        throw new FieldLinkIndexOutOfRangeException(index, maxCount);
+    }
+
+    /// <summary>
+    ///     Reports a column must be marked as bindable property error. If diagnostics are enabled, records the error and
+    ///     returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="columnName">The column name.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportColumnNotBindable(string columnName, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3026_ColumnNotBindable,
+                $"Column '{columnName}' must be marked with BindablePropertyAsTable attribute to be used in this context.",
+                node);
+            return true;
+        }
+
+        throw new ColumnMustBeMarkedAsBindablePropertyAsTableException();
+    }
+
+    /// <summary>
+    ///     Reports an unknown column or alias error with suggestions. If diagnostics are enabled, records the error and
+    ///     returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="identifier">The unknown identifier.</param>
+    /// <param name="columns">Available columns for suggestions.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportUnknownColumnWithSuggestions(string identifier, ISchemaColumn[] columns, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            var library = new TransitionLibrary();
+            var candidatesColumns = columns.Where(col =>
+                library.Soundex(col.ColumnName) == library.Soundex(identifier) ||
+                library.LevenshteinDistance(col.ColumnName, identifier) < 3).ToArray();
+
+            var message = candidatesColumns.Length > 0
+                ? $"Column or Alias '{identifier}' could not be found. Did you mean to use [{string.Join(", ", candidatesColumns.Select(c => c.ColumnName))}]?"
+                : $"Column or Alias '{identifier}' could not be found.";
+
+            DiagnosticContext.ReportError(DiagnosticCode.MQ3001_UnknownColumn, message, node);
+            return true;
+        }
+
+
+        return false;
+    }
+
+    /// <summary>
+    ///     Reports an unknown property error with suggestions. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="identifier">The unknown identifier.</param>
+    /// <param name="properties">Available properties for suggestions.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportUnknownPropertyWithSuggestions(string identifier, PropertyInfo[] properties, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            var library = new TransitionLibrary();
+            var candidatesProperties = properties.Where(prop =>
+                library.Soundex(prop.Name) == library.Soundex(identifier) ||
+                library.LevenshteinDistance(prop.Name, identifier) < 3).ToArray();
+
+            var message = candidatesProperties.Length > 0
+                ? $"Property '{identifier}' could not be found. Did you mean to use [{string.Join(", ", candidatesProperties.Select(p => p.Name))}]?"
+                : $"Property '{identifier}' could not be found.";
+
+            DiagnosticContext.ReportError(DiagnosticCode.MQ3028_UnknownProperty, message, node);
+            return true;
+        }
+
+
+        return false;
+    }
+
+    /// <summary>
+    ///     Reports a construction not yet supported error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="description">Description of the unsupported construction.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportConstructionNotSupported(string description, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3030_ConstructionNotSupported,
+                description,
+                node);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    ///     Reports a set operator missing keys error. If diagnostics are enabled, records the error and returns true.
+    ///     Otherwise throws the exception.
+    /// </summary>
+    /// <param name="setOperator">The name of the set operator (UNION, EXCEPT, INTERSECT).</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
+    protected bool TryReportSetOperatorMissingKeys(string setOperator, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3031_SetOperatorMissingKeys,
+                $"{setOperator} operator must have keys. Set operators require key columns to determine how to combine rows.",
+                node);
+            return true;
+        }
+
+        return false;
+    }
+
+    private ISchemaColumn[] GetColumnsForAlias(string alias, int schemaFromKey)
+    {
+        var key = alias + schemaFromKey;
+        if (_columns.TryGetValue(key, out var columnNames))
+            return columnNames.Select((f, i) => new SchemaColumn(f, i, typeof(object))).ToArray();
+
+
+        return [];
+    }
+
+    private uint GetPositionalEnvVarKeyForAlias(string alias)
+    {
+        if (_schemaFromInfo.TryGetValue(alias, out var info)) return info.PositionalEnvironmentVariableKey;
+
+
+        return 0;
+    }
+
+    #endregion
 }

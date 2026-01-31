@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Visitors;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -44,9 +43,6 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
         Successor?.Build(items);
     }
 
-    /// <summary>
-    ///     Removes schema definition nodes from the AST, leaving only query nodes.
-    /// </summary>
     private static RootNode RemoveSchemaDefinitions(RootNode queryTree)
     {
         if (queryTree.Expression is StatementsArrayNode statementsArray)
@@ -67,9 +63,6 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
         return queryTree;
     }
 
-    /// <summary>
-    ///     Extracts interpretation schema definitions from the query AST.
-    /// </summary>
     private static SchemaRegistry ExtractSchemaDefinitions(RootNode queryTree)
     {
         var registry = new SchemaRegistry();
@@ -81,11 +74,6 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
         return registry;
     }
 
-    /// <summary>
-    ///     Generates C# source code for all registered schemas.
-    ///     The generated code will be included in the main query assembly.
-    /// </summary>
-    /// <returns>The generated C# source code, or null if no schemas exist.</returns>
     private static string? GenerateInterpreterSourceCode(SchemaRegistry registry)
     {
         const string interpreterNamespace = "Musoq.Generated.Interpreters";
@@ -101,48 +89,5 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
             registration.GeneratedTypeName = $"{interpreterNamespace}.{registration.Name}";
 
         return sourceCode;
-    }
-}
-
-/// <summary>
-///     Traverse visitor for extracting schema definitions from the AST.
-/// </summary>
-public class SchemaDefinitionTraverseVisitor : NoOpExpressionVisitor
-{
-    private readonly SchemaDefinitionVisitor _visitor;
-
-    public SchemaDefinitionTraverseVisitor(SchemaDefinitionVisitor visitor)
-    {
-        _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
-    }
-
-    public override void Visit(BinarySchemaNode node)
-    {
-        _visitor.Visit(node);
-    }
-
-    public override void Visit(TextSchemaNode node)
-    {
-        _visitor.Visit(node);
-    }
-
-    public override void Visit(RootNode node)
-    {
-        node.Expression?.Accept(this);
-    }
-
-    public override void Visit(StatementsArrayNode node)
-    {
-        foreach (var statement in node.Statements) statement.Accept(this);
-    }
-
-    public override void Visit(StatementNode node)
-    {
-        node.Node?.Accept(this);
-    }
-
-    public override void Visit(MultiStatementNode node)
-    {
-        foreach (var statement in node.Nodes) statement.Accept(this);
     }
 }

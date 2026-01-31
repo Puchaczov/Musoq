@@ -28,9 +28,6 @@ public static class CteEmitter
                 CreateMethodInvocation(methodName)));
     }
 
-    /// <summary>
-    ///     Creates element access expression for _tableResults array.
-    /// </summary>
     private static ElementAccessExpressionSyntax CreateTableResultsAccess(int tableIndex)
     {
         return SyntaxFactory.ElementAccessExpression(
@@ -44,9 +41,6 @@ public static class CteEmitter
                                 SyntaxFactory.Literal(tableIndex))))));
     }
 
-    /// <summary>
-    ///     Creates the method invocation with standard CTE parameters.
-    /// </summary>
     private static InvocationExpressionSyntax CreateMethodInvocation(string methodName)
     {
         var arguments = new[]

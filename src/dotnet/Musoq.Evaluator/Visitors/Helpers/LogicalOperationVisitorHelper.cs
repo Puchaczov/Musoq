@@ -159,12 +159,6 @@ public static class LogicalOperationVisitorHelper
         nodes.Push(exp);
     }
 
-    /// <summary>
-    ///     Validates that the stack is not null and has at least 2 nodes for binary operations.
-    /// </summary>
-    /// <param name="nodes">The node stack to validate.</param>
-    /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
     private static void ValidateBinaryOperation(Stack<Node> nodes)
     {
         if (nodes == null)
@@ -174,12 +168,6 @@ public static class LogicalOperationVisitorHelper
             throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");
     }
 
-    /// <summary>
-    ///     Validates that the stack is not null and has at least 1 node for unary operations.
-    /// </summary>
-    /// <param name="nodes">The node stack to validate.</param>
-    /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack is empty.</exception>
     private static void ValidateUnaryOperation(Stack<Node> nodes)
     {
         if (nodes == null)
@@ -189,12 +177,6 @@ public static class LogicalOperationVisitorHelper
             throw new InvalidOperationException("Stack must contain at least 1 node for unary operation");
     }
 
-    /// <summary>
-    ///     Validates that both operands are not null.
-    /// </summary>
-    /// <param name="left">The left operand.</param>
-    /// <param name="right">The right operand.</param>
-    /// <exception cref="ArgumentException">Thrown when either operand is null.</exception>
     private static void ValidateOperands(Node left, Node right)
     {
         if (left == null)

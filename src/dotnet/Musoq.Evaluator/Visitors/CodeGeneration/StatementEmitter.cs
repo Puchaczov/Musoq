@@ -183,12 +183,6 @@ public class StatementEmitter
         return SyntaxFactory.ArgumentList(rArgs);
     }
 
-    /// <summary>
-    ///     Creates an assignment statement.
-    /// </summary>
-    /// <param name="target">The assignment target</param>
-    /// <param name="value">The value to assign</param>
-    /// <returns>An expression statement with assignment</returns>
     private static ExpressionStatementSyntax CreateAssignment(
         ExpressionSyntax target,
         ExpressionSyntax value)

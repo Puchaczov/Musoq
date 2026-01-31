@@ -77,9 +77,6 @@ public static class TransformationTableEmitter
         return SyntaxFactory.LocalDeclarationStatement(createObject);
     }
 
-    /// <summary>
-    ///     Creates a column expression for the table.
-    /// </summary>
     private static ObjectCreationExpressionSyntax CreateColumnExpression(
         string fieldName,
         Type type,

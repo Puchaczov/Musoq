@@ -44,9 +44,6 @@ public static class ContainsEmitter
         };
     }
 
-    /// <summary>
-    ///     Extracts expressions from the argument list.
-    /// </summary>
     private static ExpressionSyntax[] ExtractExpressions(ArgumentListSyntax comparisonValues)
     {
         var expressions = new ExpressionSyntax[comparisonValues.Arguments.Count];
@@ -59,9 +56,6 @@ public static class ContainsEmitter
         return expressions;
     }
 
-    /// <summary>
-    ///     Creates the AccessMethodNode for the Contains call.
-    /// </summary>
     private static AccessMethodNode CreateAccessMethodNode(ContainsNode node, MethodInfo containsMethod)
     {
         return new AccessMethodNode(

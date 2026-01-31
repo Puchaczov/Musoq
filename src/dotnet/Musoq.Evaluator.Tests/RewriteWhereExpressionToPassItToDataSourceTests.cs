@@ -233,4 +233,212 @@ select 1 from a firstTable inner join #B.entities() b on firstTable.City = b.Cit
         Assert.AreEqual("1 = 1 and 1 = 1", secondWhereNode.Expression.ToString());
         Assert.AreEqual("1 = 1 and c.Population = 200", thirdWhereNode.Expression.ToString());
     }
+
+    #region OR Predicate Pushdown Tests
+
+    [TestMethod]
+    public void WhenOrExpressionReferencesSameDataSource_ShouldPreserveFullExpression()
+    {
+        var query = "select 1 from #A.entities() a where a.Population > 100d or a.Population < 50d";
+
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
+
+        Assert.HasCount(1, buildItems.UsedWhereNodes);
+
+        var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
+
+        Assert.IsNotNull(firstWhereNodePair);
+        Assert.HasCount(1, firstWhereNodePair);
+
+        var firstWhereNode = firstWhereNodePair.First().Value;
+
+        Assert.AreEqual("a.Population > 100 or a.Population < 50", firstWhereNode.Expression.ToString());
+    }
+
+    [TestMethod]
+    public void WhenOrExpressionReferencesOtherDataSource_ShouldRewriteToOneEqualsOne()
+    {
+        var query =
+            "select 1 from #A.entities() a inner join #B.entities() b on a.City = b.City where a.Population > 100d or b.Population < 50d";
+
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
+
+        Assert.HasCount(2, buildItems.UsedWhereNodes);
+
+        var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
+        var secondWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "b").ToArray();
+
+        Assert.IsNotNull(firstWhereNodePair);
+        Assert.IsNotNull(secondWhereNodePair);
+        Assert.HasCount(1, firstWhereNodePair);
+        Assert.HasCount(1, secondWhereNodePair);
+
+        var firstWhereNode = firstWhereNodePair.First().Value;
+        var secondWhereNode = secondWhereNodePair.First().Value;
+
+
+        Assert.AreEqual("1 = 1", firstWhereNode.Expression.ToString());
+        Assert.AreEqual("1 = 1", secondWhereNode.Expression.ToString());
+    }
+
+    [TestMethod]
+    public void WhenAndContainsOrWithOtherDataSourceReference_ShouldRewriteOrPart()
+    {
+        var query =
+            "select 1 from #A.entities() a inner join #B.entities() b on a.City = b.City where a.City = 'NYC' and (a.Population > 100d or b.Population < 50d)";
+
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
+
+        Assert.HasCount(2, buildItems.UsedWhereNodes);
+
+        var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
+        var secondWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "b").ToArray();
+
+        Assert.IsNotNull(firstWhereNodePair);
+        Assert.IsNotNull(secondWhereNodePair);
+
+        var firstWhereNode = firstWhereNodePair.First().Value;
+        var secondWhereNode = secondWhereNodePair.First().Value;
+
+
+        Assert.AreEqual("a.City = 'NYC' and 1 = 1", firstWhereNode.Expression.ToString());
+
+        Assert.AreEqual("1 = 1 and 1 = 1", secondWhereNode.Expression.ToString());
+    }
+
+    [TestMethod]
+    public void WhenOrHasOnlyCurrentDataSourceReferences_ShouldPreserveOr()
+    {
+        var query =
+            "select 1 from #A.entities() a inner join #B.entities() b on a.City = b.City where (a.Population > 100d or a.City = 'NYC')";
+
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
+
+        Assert.HasCount(2, buildItems.UsedWhereNodes);
+
+        var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
+        var secondWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "b").ToArray();
+
+        Assert.IsNotNull(firstWhereNodePair);
+        Assert.IsNotNull(secondWhereNodePair);
+
+        var firstWhereNode = firstWhereNodePair.First().Value;
+        var secondWhereNode = secondWhereNodePair.First().Value;
+
+
+        Assert.AreEqual("a.Population > 100 or a.City = 'NYC'", firstWhereNode.Expression.ToString());
+
+        Assert.AreEqual("1 = 1", secondWhereNode.Expression.ToString());
+    }
+
+    [TestMethod]
+    public void WhenNestedOrWithMixedReferences_ShouldRewriteToOneEqualsOne()
+    {
+        var query =
+            "select 1 from #A.entities() a inner join #B.entities() b on a.City = b.City where (a.Population > 100d or (a.City = 'NYC' or b.Country = 'USA'))";
+
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
+
+        Assert.HasCount(2, buildItems.UsedWhereNodes);
+
+        var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
+        var secondWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "b").ToArray();
+
+        var firstWhereNode = firstWhereNodePair.First().Value;
+        var secondWhereNode = secondWhereNodePair.First().Value;
+
+
+        Assert.AreEqual("1 = 1", firstWhereNode.Expression.ToString());
+        Assert.AreEqual("1 = 1", secondWhereNode.Expression.ToString());
+    }
+
+    [TestMethod]
+    public void WhenMultipleAndWithOrConditions_ShouldRewriteCorrectly()
+    {
+        var query =
+            "select 1 from #A.entities() a inner join #B.entities() b on a.City = b.City where a.Population > 0 and b.Population > 0 and (a.City = 'NYC' or b.City = 'LA')";
+
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
+
+        Assert.HasCount(2, buildItems.UsedWhereNodes);
+
+        var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
+        var secondWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "b").ToArray();
+
+        var firstWhereNode = firstWhereNodePair.First().Value;
+        var secondWhereNode = secondWhereNodePair.First().Value;
+
+
+        Assert.AreEqual("a.Population > 0 and 1 = 1 and 1 = 1", firstWhereNode.Expression.ToString());
+
+        Assert.AreEqual("1 = 1 and b.Population > 0 and 1 = 1", secondWhereNode.Expression.ToString());
+    }
+
+    [TestMethod]
+    public void WhenOrWithThreeDataSources_ShouldRewriteOrForAll()
+    {
+        var query = @"
+            select 1 from #A.entities() a 
+            inner join #B.entities() b on a.City = b.City 
+            inner join #C.entities() c on b.City = c.City 
+            where a.Population > 100d or b.Population > 200d or c.Population > 300d";
+
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
+
+        Assert.HasCount(3, buildItems.UsedWhereNodes);
+
+        var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
+        var secondWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "b").ToArray();
+        var thirdWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "c").ToArray();
+
+        var firstWhereNode = firstWhereNodePair.First().Value;
+        var secondWhereNode = secondWhereNodePair.First().Value;
+        var thirdWhereNode = thirdWhereNodePair.First().Value;
+
+
+        Assert.AreEqual("1 = 1", firstWhereNode.Expression.ToString());
+        Assert.AreEqual("1 = 1", secondWhereNode.Expression.ToString());
+        Assert.AreEqual("1 = 1", thirdWhereNode.Expression.ToString());
+    }
+
+    [TestMethod]
+    public void WhenOrWithConstantOnOneSide_ShouldHandleCorrectly()
+    {
+        var query = "select 1 from #A.entities() a where a.Population > 100d or 1 = 0";
+
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
+
+        Assert.HasCount(1, buildItems.UsedWhereNodes);
+
+        var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
+        var firstWhereNode = firstWhereNodePair.First().Value;
+
+
+        Assert.AreEqual("a.Population > 100 or 1 = 0", firstWhereNode.Expression.ToString());
+    }
+
+    [TestMethod]
+    public void WhenComplexAndOrCombination_ShouldRewriteCorrectly()
+    {
+        var query = @"
+            select 1 from #A.entities() a 
+            inner join #B.entities() b on a.City = b.City 
+            where (a.Population > 100d and a.City = 'NYC') or (b.Population > 200d and b.City = 'LA')";
+
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
+
+        Assert.HasCount(2, buildItems.UsedWhereNodes);
+
+        var firstWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "a").ToArray();
+        var secondWhereNodePair = buildItems.UsedWhereNodes.Where(f => f.Key.Alias == "b").ToArray();
+
+        var firstWhereNode = firstWhereNodePair.First().Value;
+        var secondWhereNode = secondWhereNodePair.First().Value;
+
+
+        Assert.AreEqual("1 = 1", firstWhereNode.Expression.ToString());
+        Assert.AreEqual("1 = 1", secondWhereNode.Expression.ToString());
+    }
+
+    #endregion
 }

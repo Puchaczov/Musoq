@@ -5,6 +5,11 @@ namespace Musoq.Parser.Nodes;
 public class IntegerNode : ConstantValueNode
 {
     public IntegerNode(string value, string abbreviation)
+        : this(value, abbreviation, default)
+    {
+    }
+
+    public IntegerNode(string value, string abbreviation, TextSpan span)
     {
         ObjValue = abbreviation.ToLowerInvariant() switch
         {
@@ -20,12 +25,21 @@ public class IntegerNode : ConstantValueNode
         };
 
         Id = $"{nameof(IntegerNode)}{value}{ReturnType.Name}";
+        Span = span;
+        FullSpan = span;
     }
 
     public IntegerNode(object objValue)
+        : this(objValue, default)
+    {
+    }
+
+    public IntegerNode(object objValue, TextSpan span)
     {
         ObjValue = objValue;
         Id = $"{nameof(IntegerNode)}{objValue}{ObjValue.GetType().Name}";
+        Span = span;
+        FullSpan = span;
     }
 
     public sealed override object ObjValue { get; }

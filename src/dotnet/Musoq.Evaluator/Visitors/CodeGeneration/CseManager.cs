@@ -119,9 +119,6 @@ public sealed class CseManager
         return [.._declarations];
     }
 
-    /// <summary>
-    ///     Converts a Type to a string representation suitable for code generation.
-    /// </summary>
     private static string GetTypeName(Type type)
     {
         if (type == typeof(int)) return "int";

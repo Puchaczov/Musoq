@@ -765,13 +765,15 @@ public class DateTimeExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetween_ValueInRange_ReturnsTrue()
     {
-        Assert.IsTrue(Library.IsBetween(new DateTime(2024, 6, 15), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31)));
+        Assert.IsTrue(
+            Library.IsBetween(new DateTime(2024, 6, 15), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31)));
     }
 
     [TestMethod]
     public void IsBetween_ValueOutOfRange_ReturnsFalse()
     {
-        Assert.IsFalse(Library.IsBetween(new DateTime(2025, 6, 15), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31)));
+        Assert.IsFalse(Library.IsBetween(new DateTime(2025, 6, 15), new DateTime(2024, 1, 1),
+            new DateTime(2024, 12, 31)));
     }
 
     [TestMethod]
@@ -804,21 +806,22 @@ public class DateTimeExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void IsBetweenExclusive_ValueAtStart_ReturnsFalse()
     {
-        Assert.IsFalse(Library.IsBetweenExclusive(new DateTime(2024, 1, 1), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31)));
+        Assert.IsFalse(Library.IsBetweenExclusive(new DateTime(2024, 1, 1), new DateTime(2024, 1, 1),
+            new DateTime(2024, 12, 31)));
     }
 
     [TestMethod]
     public void IsBetweenExclusive_ValueAtEnd_ReturnsFalse()
     {
         Assert.IsFalse(Library.IsBetweenExclusive(new DateTime(2024, 12, 31), new DateTime(2024, 1, 1),
-                new DateTime(2024, 12, 31)));
+            new DateTime(2024, 12, 31)));
     }
 
     [TestMethod]
     public void IsBetweenExclusive_ValueInRange_ReturnsTrue()
     {
         Assert.IsTrue(Library.IsBetweenExclusive(new DateTime(2024, 6, 15), new DateTime(2024, 1, 1),
-                new DateTime(2024, 12, 31)));
+            new DateTime(2024, 12, 31)));
     }
 
     [TestMethod]

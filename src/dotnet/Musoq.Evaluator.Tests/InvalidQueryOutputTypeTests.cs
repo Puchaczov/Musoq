@@ -10,9 +10,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class InvalidQueryOutputTypeTests : BasicEntityTestBase
 {
-    /// <summary>
-    ///     Creates and runs a virtual machine with primitive type validation enabled.
-    /// </summary>
     private CompiledQuery CreateAndRunVirtualMachineWithValidation<T>(
         string script,
         IDictionary<string, IEnumerable<T>> sources)

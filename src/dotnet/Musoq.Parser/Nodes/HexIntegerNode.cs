@@ -5,6 +5,11 @@ namespace Musoq.Parser.Nodes;
 public class HexIntegerNode : ConstantValueNode
 {
     public HexIntegerNode(string value)
+        : this(value, default)
+    {
+    }
+
+    public HexIntegerNode(string value, TextSpan span)
     {
         var hexValue = value.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
             ? value.Substring(2)
@@ -12,12 +17,21 @@ public class HexIntegerNode : ConstantValueNode
 
         ObjValue = ParseHexValue(hexValue, value);
         Id = $"{nameof(HexIntegerNode)}{value}{ReturnType.Name}";
+        Span = span;
+        FullSpan = span;
     }
 
     public HexIntegerNode(object objValue)
+        : this(objValue, default)
+    {
+    }
+
+    public HexIntegerNode(object objValue, TextSpan span)
     {
         ObjValue = objValue;
         Id = $"{nameof(HexIntegerNode)}{objValue}{ObjValue.GetType().Name}";
+        Span = span;
+        FullSpan = span;
     }
 
     public sealed override object ObjValue { get; }

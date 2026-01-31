@@ -56,7 +56,7 @@ public class DistinctTests : BasicEntityTestBase
         Assert.IsNotNull(queryNode,
             $"Could not find QueryNode in transformed tree. StatementNode type: {statementNode?.GetType().Name ?? "null"}");
         Assert.IsNotNull(queryNode.GroupBy, "DISTINCT should have been converted to GROUP BY");
-        Assert.IsFalse(queryNode.Select.IsDistinct, "IsDistinct flag should be cleared after conversion");
+        Assert.IsTrue(queryNode.Select.IsDistinct, "IsDistinct flag should be preserved for optimization hints");
         Assert.HasCount(1, queryNode.GroupBy.Fields, "GROUP BY should have one field matching SELECT");
     }
 

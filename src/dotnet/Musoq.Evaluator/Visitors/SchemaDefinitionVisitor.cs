@@ -50,12 +50,6 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
         Registry.Register(node.Name, node);
     }
 
-    /// <summary>
-    ///     Validates that any schema type references within a type annotation are valid.
-    /// </summary>
-    /// <param name="typeNode">The type annotation to validate.</param>
-    /// <param name="currentSchemaName">The name of the schema containing this type reference.</param>
-    /// <param name="typeParameters">Type parameters defined by the current schema (valid without being registered).</param>
     private void ValidateTypeReferences(TypeAnnotationNode typeNode, string currentSchemaName,
         HashSet<string> typeParameters)
     {

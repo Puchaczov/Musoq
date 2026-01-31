@@ -10,6 +10,11 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
 {
     private readonly Dictionary<string, List<AccessColumnNode>> _accessColumns = new();
 
+    public AccessColumnNode[] GetAll()
+    {
+        return _accessColumns.SelectMany(a => a.Value).ToArray();
+    }
+
     public AccessColumnNode[] GetForAliases(params string[] aliases)
     {
         return _accessColumns.Where(a => aliases.Contains(a.Key)).SelectMany(a => a.Value).ToArray();

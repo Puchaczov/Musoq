@@ -5,9 +5,16 @@ namespace Musoq.Parser.Nodes;
 public class WordNode : ConstantValueNode
 {
     public WordNode(string value)
+        : this(value, default)
+    {
+    }
+
+    public WordNode(string value, TextSpan span)
     {
         Value = value;
         Id = $"{nameof(WordNode)}{value}{ReturnType.Name}";
+        Span = span;
+        FullSpan = span;
     }
 
     public string Value { get; }

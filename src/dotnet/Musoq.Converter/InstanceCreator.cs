@@ -12,6 +12,7 @@ using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Runtime;
 using Musoq.Schema;
+using Musoq.Schema.Api;
 using SchemaFromNode = Musoq.Evaluator.Parser.SchemaFromNode;
 
 namespace Musoq.Converter;
@@ -221,6 +222,7 @@ public static class InstanceCreator
 
         var usedColumns = items.UsedColumns;
         var usedWhereNodes = items.UsedWhereNodes;
+        var queryHintsPerSchema = items.QueryHintsPerSchema;
 
         if (usedColumns.Count != usedWhereNodes.Count)
             throw new InvalidOperationException(
@@ -231,13 +233,24 @@ public static class InstanceCreator
                 usedWhereNodes,
                 f => f.Key.Id,
                 f => f.Key.Id,
-                (f, s) => (SchemaFromNode: f.Key, UsedColumns: (IReadOnlyCollection<ISchemaColumn>)f.Value,
-                    UsedValues: s.Value)
-            ).ToDictionary(f => f.SchemaFromNode.Id, f => (f.SchemaFromNode, f.UsedColumns, f.UsedValues,
-                f.SchemaFromNode is SchemaFromNode
+                (f, s) => new
                 {
-                    HasExternallyProvidedTypes: true
-                }));
+                    SchemaFromNode = f.Key,
+                    UsedColumns = (IReadOnlyCollection<ISchemaColumn>)f.Value,
+                    WhereNode = s.Value,
+                    HasExternallyProvidedTypes = f.Key is SchemaFromNode { HasExternallyProvidedTypes: true },
+                    QueryHints = queryHintsPerSchema.TryGetValue(f.Key.Id, out var hints)
+                        ? hints
+                        : QueryHints.Empty
+                }
+            ).ToDictionary(
+                f => f.SchemaFromNode.Id,
+                f => new QuerySourceInfo(
+                    f.SchemaFromNode,
+                    f.UsedColumns,
+                    f.WhereNode,
+                    f.HasExternallyProvidedTypes,
+                    f.QueryHints));
 
         return runnable;
     }

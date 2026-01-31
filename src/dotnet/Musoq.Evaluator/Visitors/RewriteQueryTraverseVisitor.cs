@@ -934,10 +934,6 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
     {
     }
 
-    /// <summary>
-    ///     Checks if the method name is one of the interpret functions (Interpret, Parse, InterpretAt, TryInterpret,
-    ///     TryParse).
-    /// </summary>
     private static bool IsInterpretFunctionCall(string methodName)
     {
         return methodName.Equals("Interpret", StringComparison.OrdinalIgnoreCase) ||
@@ -947,9 +943,6 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
                methodName.Equals("TryParse", StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>
-    ///     Creates the appropriate interpret call node based on the method name.
-    /// </summary>
     private static Node CreateInterpretCallNode(AccessMethodNode accessMethod)
     {
         var args = accessMethod.Arguments.Args;
@@ -991,10 +984,6 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
         return new InterpretCallNode(dataArg, schemaArg.Value);
     }
 
-    /// <summary>
-    ///     Creates the appropriate interpret call node (InterpretCallNode, ParseCallNode, or InterpretAtCallNode)
-    ///     from an AliasedFromNode that represents an Interpret/Parse/InterpretAt call.
-    /// </summary>
     private Node CreateInterpretCallNodeFromAliasedFrom(AliasedFromNode node)
     {
         if (node.Args.Args.Length < 2)

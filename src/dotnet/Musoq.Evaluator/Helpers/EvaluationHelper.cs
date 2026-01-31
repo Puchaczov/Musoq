@@ -685,9 +685,10 @@ public static class EvaluationHelper
             var type = entity.GetType();
             _propertyMap = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .ToDictionary(p => p.Name, p => p);
+            Contexts = [entity];
         }
 
-        public object[] Contexts => [_entity];
+        public object[] Contexts { get; }
 
         public object this[string name] => _propertyMap.TryGetValue(name, out var prop) ? prop.GetValue(_entity) : null;
 
@@ -702,17 +703,25 @@ public static class EvaluationHelper
     /// <summary>
     ///     Resolver for dynamic objects (ExpandoObject) that implements IDictionary&lt;string, object&gt;.
     /// </summary>
-    private class DynamicObjectResolver(IDictionary<string, object> dict) : IObjectResolver
+    private class DynamicObjectResolver : IObjectResolver
     {
-        public object[] Contexts => [dict];
+        private readonly IDictionary<string, object> _dict;
 
-        public object this[string name] => dict.TryGetValue(name, out var value) ? value : null;
+        public DynamicObjectResolver(IDictionary<string, object> dict)
+        {
+            _dict = dict;
+            Contexts = [dict];
+        }
+
+        public object[] Contexts { get; }
+
+        public object this[string name] => _dict.TryGetValue(name, out var value) ? value : null;
 
         public object this[int index] => null;
 
         public bool HasColumn(string name)
         {
-            return dict.ContainsKey(name);
+            return _dict.ContainsKey(name);
         }
     }
 
@@ -721,11 +730,19 @@ public static class EvaluationHelper
         public override IEnumerable<IObjectResolver> Rows => list.Select(item => new GroupResolver(item));
     }
 
-    private class GroupResolver(Group item) : IObjectResolver
+    private class GroupResolver : IObjectResolver
     {
-        public object[] Contexts => [];
+        private static readonly object[] EmptyContexts = [];
+        private readonly Group _item;
 
-        public object this[string name] => name == "none" ? item : item.GetValue<object>(name);
+        public GroupResolver(Group item)
+        {
+            _item = item;
+        }
+
+        public object[] Contexts => EmptyContexts;
+
+        public object this[string name] => name == "none" ? _item : _item.GetValue<object>(name);
 
         public object this[int index] => null;
 

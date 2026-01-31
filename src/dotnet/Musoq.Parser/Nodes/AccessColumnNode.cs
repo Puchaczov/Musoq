@@ -2,15 +2,22 @@
 
 namespace Musoq.Parser.Nodes;
 
-public class AccessColumnNode(string column, string alias, Type type, TextSpan span)
-    : IdentifierNode(column)
+public class AccessColumnNode : IdentifierNode
 {
-    private readonly string _column = column;
-    private Type _type = type;
+    private readonly string _column;
+    private Type _type;
 
     public AccessColumnNode(string column, string alias, TextSpan span)
         : this(column, alias, typeof(void), span)
     {
+    }
+
+    public AccessColumnNode(string column, string alias, Type type, TextSpan span)
+        : base(column, null, span)
+    {
+        _column = column;
+        _type = type;
+        Alias = alias;
     }
 
     public AccessColumnNode(string column, string alias, Type type, TextSpan span, string? intendedTypeName)
@@ -19,9 +26,7 @@ public class AccessColumnNode(string column, string alias, Type type, TextSpan s
         IntendedTypeName = intendedTypeName;
     }
 
-    public string Alias { get; } = alias;
-
-    public TextSpan Span { get; } = span;
+    public string Alias { get; }
 
     public override Type ReturnType => _type;
 

@@ -7,11 +7,28 @@ public class FieldNode : Node
     private readonly string _fieldName;
 
     public FieldNode(Node expression, int fieldOrder, string fieldName)
+        : this(expression, fieldOrder, fieldName, default)
+    {
+    }
+
+    public FieldNode(Node expression, int fieldOrder, string fieldName, TextSpan span)
     {
         _fieldName = fieldName;
         Expression = expression;
         FieldOrder = fieldOrder;
         Id = $"{nameof(FieldNode)}{expression.Id}";
+
+        // Inherit span from expression if not provided
+        if (span.IsEmpty && expression?.HasSpan == true)
+        {
+            Span = expression.Span;
+            FullSpan = expression.Span;
+        }
+        else
+        {
+            Span = span;
+            FullSpan = span;
+        }
     }
 
     public Node Expression { get; }

@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
+using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Nodes;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
@@ -36,6 +38,12 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
         queryTree.Accept(metadataTraverser);
         queryTree = metadata.Root;
 
+
+        queryTree = EliminateDeadCtes(queryTree);
+
+
+        if (items.CompilationOptions.UseCteParallelization) items.CteExecutionPlan = ComputeCteExecutionPlan(queryTree);
+
         var rewriter = new RewriteQueryVisitor();
         var rewriteTraverser = new RewriteQueryTraverseVisitor(rewriter, new ScopeWalker(metadataTraverser.Scope));
 
@@ -51,12 +59,29 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
 
         items.UsedColumns = metadata.UsedColumns;
         items.UsedWhereNodes = RewriteWhereNodes(metadata.UsedWhereNodes);
+        items.QueryHintsPerSchema = metadata.QueryHintsPerSchema
+            .ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value);
         items.TransformedQueryTree = queryTree;
         items.Compilation = csharpRewriter.Compilation;
         items.AccessToClassPath = csharpRewriter.AccessToClassPath;
         items.PositionalEnvironmentVariables = metadata.PositionalEnvironmentVariables;
 
         Successor?.Build(items);
+    }
+
+    private static RootNode EliminateDeadCtes(RootNode queryTree)
+    {
+        if (queryTree.Expression is not CteExpressionNode cteExpression)
+            return queryTree;
+
+        var result = DeadCteEliminator.Eliminate(cteExpression);
+
+
+        if (!result.WereCTEsEliminated)
+            return queryTree;
+
+
+        return new RootNode(result.ResultNode);
     }
 
     private static IToCSharpTranslationExpressionVisitor CreateCSharpRewriter(
@@ -70,7 +95,8 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
             items.AssemblyName,
             items.CompilationOptions,
             items.SchemaRegistry,
-            items.InterpreterSourceCode);
+            items.InterpreterSourceCode,
+            items.CteExecutionPlan);
     }
 
     private static IReadOnlyDictionary<SchemaFromNode, WhereNode> RewriteWhereNodes(
@@ -89,5 +115,25 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
         }
 
         return result;
+    }
+
+    private static CteExecutionPlan? ComputeCteExecutionPlan(RootNode queryTree)
+    {
+        CteExpressionNode? cteExpression = null;
+
+        if (queryTree.Expression is CteExpressionNode directCte)
+            cteExpression = directCte;
+        else if (queryTree.Expression is StatementsArrayNode statementsArray)
+            foreach (var statement in statementsArray.Statements)
+                if (statement.Node is CteExpressionNode nestedCte)
+                {
+                    cteExpression = nestedCte;
+                    break;
+                }
+
+        if (cteExpression == null)
+            return null;
+
+        return CteParallelizationAnalyzer.CreatePlan(cteExpression);
     }
 }

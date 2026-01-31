@@ -56,13 +56,6 @@ public static class AccessObjectKeyNodeProcessor
         };
     }
 
-    /// <summary>
-    ///     Validates the input parameters for AccessObjectKeyNode processing.
-    /// </summary>
-    /// <param name="node">The AccessObjectKeyNode to validate</param>
-    /// <param name="nodes">The syntax nodes stack to validate</param>
-    /// <exception cref="System.ArgumentNullException">Thrown when node or nodes is null</exception>
-    /// <exception cref="System.InvalidOperationException">Thrown when nodes stack is empty</exception>
     private static void ValidateInputs(AccessObjectKeyNode node, Stack<SyntaxNode> nodes)
     {
         if (node == null)

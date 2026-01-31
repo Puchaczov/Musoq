@@ -863,22 +863,28 @@ public static class JoinSourcesTableProcessingHelper
             return false;
         }
 
+
+        var firstAliases = GetComponentAliases(node.First);
+        var secondAliases = GetComponentAliases(node.Second);
+        var allAliases = firstAliases.Concat(secondAliases).ToArray();
+
         foreach (var binary in conditions)
         {
             var leftVisitor = new ExtractAccessColumnFromQueryVisitor();
             var leftTraverser = new ExtractAccessColumnFromQueryTraverseVisitor(leftVisitor);
             binary.Left.Accept(leftTraverser);
-            var leftColumns = leftVisitor.GetForAliases(node.First.Alias, node.Second.Alias);
+            var leftColumns = leftVisitor.GetForAliases(allAliases);
 
             var rightVisitor = new ExtractAccessColumnFromQueryVisitor();
             var rightTraverser = new ExtractAccessColumnFromQueryTraverseVisitor(rightVisitor);
             binary.Right.Accept(rightTraverser);
-            var rightColumns = rightVisitor.GetForAliases(node.First.Alias, node.Second.Alias);
+            var rightColumns = rightVisitor.GetForAliases(allAliases);
 
-            var leftHasFirst = leftColumns.Any(c => c.Alias == node.First.Alias);
-            var leftHasSecond = leftColumns.Any(c => c.Alias == node.Second.Alias);
-            var rightHasFirst = rightColumns.Any(c => c.Alias == node.First.Alias);
-            var rightHasSecond = rightColumns.Any(c => c.Alias == node.Second.Alias);
+
+            var leftHasFirst = leftColumns.Any(c => firstAliases.Contains(c.Alias));
+            var leftHasSecond = leftColumns.Any(c => secondAliases.Contains(c.Alias));
+            var rightHasFirst = rightColumns.Any(c => firstAliases.Contains(c.Alias));
+            var rightHasSecond = rightColumns.Any(c => secondAliases.Contains(c.Alias));
 
             var leftIsFirst = leftHasFirst && !leftHasSecond;
             var leftIsSecond = leftHasSecond && !leftHasFirst;
@@ -1941,6 +1947,28 @@ public static class JoinSourcesTableProcessingHelper
             case SyntaxKind.LessThanExpression: return SyntaxKind.GreaterThanExpression;
             case SyntaxKind.LessThanOrEqualExpression: return SyntaxKind.GreaterThanOrEqualExpression;
             default: return kind;
+        }
+    }
+
+    private static HashSet<string> GetComponentAliases(FromNode node)
+    {
+        var aliases = new HashSet<string>();
+        CollectComponentAliases(node, aliases);
+        return aliases;
+    }
+
+    private static void CollectComponentAliases(FromNode node, HashSet<string> aliases)
+    {
+        if (node == null) return;
+
+
+        aliases.Add(node.Alias);
+
+
+        if (node is JoinSourcesTableFromNode joinNode)
+        {
+            CollectComponentAliases(joinNode.First, aliases);
+            CollectComponentAliases(joinNode.Second, aliases);
         }
     }
 

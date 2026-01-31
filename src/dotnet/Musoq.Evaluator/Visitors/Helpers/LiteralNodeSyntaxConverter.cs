@@ -179,12 +179,6 @@ public static class LiteralNodeSyntaxConverter
             SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
     }
 
-    /// <summary>
-    ///     Creates a cast expression for integer types.
-    /// </summary>
-    /// <param name="keyword">The keyword for the target type.</param>
-    /// <param name="value">The value to cast.</param>
-    /// <returns>A cast expression.</returns>
     private static CastExpressionSyntax CreateIntegerCast(SyntaxKind keyword, object value)
     {
         var literal = keyword switch
@@ -212,11 +206,6 @@ public static class LiteralNodeSyntaxConverter
                 SyntaxFactory.Token(SyntaxKind.CloseParenToken));
     }
 
-    /// <summary>
-    ///     Checks if a type is nullable.
-    /// </summary>
-    /// <param name="type">The type to check.</param>
-    /// <returns>True if the type is nullable, false otherwise.</returns>
     private static bool CheckIfNullable(Type type)
     {
         if (type.IsValueType) return Nullable.GetUnderlyingType(type) != null;

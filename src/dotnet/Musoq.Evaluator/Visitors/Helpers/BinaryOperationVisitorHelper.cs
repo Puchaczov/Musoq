@@ -171,12 +171,6 @@ public static class BinaryOperationVisitorHelper
         nodes.Push(new RightShiftNode(left, right));
     }
 
-    /// <summary>
-    ///     Validates that the stack is not null and has at least 2 nodes for binary operations.
-    /// </summary>
-    /// <param name="nodes">The node stack to validate.</param>
-    /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
     private static void ValidateBinaryOperation(Stack<Node> nodes)
     {
         if (nodes == null)
@@ -186,12 +180,6 @@ public static class BinaryOperationVisitorHelper
             throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");
     }
 
-    /// <summary>
-    ///     Validates that both operands are not null.
-    /// </summary>
-    /// <param name="left">The left operand.</param>
-    /// <param name="right">The right operand.</param>
-    /// <exception cref="ArgumentException">Thrown when either operand is null.</exception>
     private static void ValidateOperands(Node left, Node right)
     {
         if (left == null)

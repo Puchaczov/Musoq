@@ -1355,7 +1355,7 @@ public class DescStatementTests : BasicEntityTestBase
         Assert.IsNotNull(childrenRow, "Should have Children row");
         var childrenType = (string)childrenRow[2];
         Assert.Contains("BasicEntity",
-childrenType, $"Children should be BasicEntity type, got: {childrenType}");
+            childrenType, $"Children should be BasicEntity type, got: {childrenType}");
     }
 
     [TestMethod]
@@ -1830,7 +1830,8 @@ childrenType, $"Children should be BasicEntity type, got: {childrenType}");
 
         for (var i = 1; i < categories.Count; i++)
             Assert.IsLessThanOrEqualTo(0,
-string.Compare(categories[i - 1], categories[i], StringComparison.Ordinal), $"Category '{categories[i - 1]}' should come before or equal to '{categories[i]}'");
+                string.Compare(categories[i - 1], categories[i], StringComparison.Ordinal),
+                $"Category '{categories[i - 1]}' should come before or equal to '{categories[i]}'");
     }
 
     [TestMethod]

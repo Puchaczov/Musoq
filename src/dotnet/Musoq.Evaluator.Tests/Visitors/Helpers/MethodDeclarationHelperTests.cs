@@ -184,11 +184,7 @@ public class MethodDeclarationHelperTests
         Assert.AreEqual("QueriesInformation", property.Identifier.ValueText);
         Assert.Contains("IReadOnlyDictionary", property.Type.ToString());
         Assert.Contains("string", property.Type.ToString());
-        Assert.Contains("SchemaFromNode", property.Type.ToString());
-        Assert.Contains("IReadOnlyCollection", property.Type.ToString());
-        Assert.Contains("ISchemaColumn", property.Type.ToString());
-        Assert.Contains("WhereNode", property.Type.ToString());
-        Assert.Contains("bool", property.Type.ToString());
+        Assert.Contains("QuerySourceInfo", property.Type.ToString());
         Assert.AreEqual(1, property.Modifiers.Count);
         Assert.IsTrue(property.Modifiers[0].IsKind(SyntaxKind.PublicKeyword));
         Assert.AreEqual(2, property.AccessorList.Accessors.Count);

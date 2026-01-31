@@ -171,18 +171,6 @@ public partial class LibraryBase
         return decimalResult;
     }
 
-    /// <summary>
-    ///     Generic helper method for numeric-only type conversions that reject strings entirely.
-    /// </summary>
-    /// <typeparam name="T">The target numeric type (int, long, or decimal).</typeparam>
-    /// <param name="value">The value to convert.</param>
-    /// <param name="converter">Function to perform the conversion to type T.</param>
-    /// <param name="precisionCheck">Function to validate that the conversion preserves precision.</param>
-    /// <returns>The converted value if successful and no precision is lost; otherwise, null.</returns>
-    /// <remarks>
-    ///     This conversion mode is used for arithmetic operations on System.Object columns.
-    ///     It only accepts boxed numeric types and rejects strings, booleans, and other non-numeric types.
-    /// </remarks>
     private T? TryConvertToIntegralTypeNumericOnly<T>(object? value, Func<object, T> converter,
         Func<T, T, bool> precisionCheck) where T : struct
     {

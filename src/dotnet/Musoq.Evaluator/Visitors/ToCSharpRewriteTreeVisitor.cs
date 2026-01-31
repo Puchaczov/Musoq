@@ -14,6 +14,7 @@ using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors.CodeGeneration;
 using Musoq.Evaluator.Visitors.Helpers;
+using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
@@ -45,6 +46,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private readonly List<SyntaxNode> _members = [];
     private readonly Stack<string> _methodNames = new();
+    private readonly CteExecutionPlan? _preComputedCteExecutionPlan;
     private readonly QueryClauseEmitter _queryClauseEmitter;
     private readonly QueryEmitter _queryEmitter;
     private readonly SchemaRegistry? _schemaRegistry;
@@ -82,7 +84,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         string assemblyName,
         CompilationOptions compilationOptions,
         SchemaRegistry? schemaRegistry = null,
-        string? interpreterSourceCode = null)
+        string? interpreterSourceCode = null,
+        CteExecutionPlan? preComputedCteExecutionPlan = null)
     {
         ValidateConstructorParameter(nameof(assemblies), assemblies);
         ValidateConstructorParameter(nameof(setOperatorFieldIndexes), setOperatorFieldIndexes);
@@ -92,6 +95,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
         _schemaRegistry = schemaRegistry;
         _interpreterSourceCode = interpreterSourceCode;
+        _preComputedCteExecutionPlan = preComputedCteExecutionPlan;
         _setOperationEmitter = new SetOperationEmitter(new Dictionary<string, int[]>(setOperatorFieldIndexes));
         InferredColumns = inferredColumns;
         Workspace = RoslynSharedFactory.Workspace;
@@ -534,7 +538,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     public override void Visit(JoinInMemoryWithSourceTableFromNode node)
     {
         var result = JoinInMemoryWithSourceTableNodeProcessor.Process(
-            node, Nodes.Pop(), Generator, _scope, _queryAlias, GetRowsSourceOrEmpty, GenerateCancellationExpression);
+            node, Nodes.Pop(), Generator, _scope, _queryAlias, GetRowsSourceOrEmpty, GenerateCancellationExpression,
+            CreateExpressionEvaluator(), _compilationOptions);
         _emptyBlock = result.EmptyBlock;
         _joinOrApplyBlock = result.ComputingBlock;
     }
@@ -799,7 +804,12 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public override void Visit(CteExpressionNode node)
     {
-        var result = CteExpressionNodeProcessor.ProcessCteExpressionNode(node, _methodNames, Nodes);
+        var result = CteExpressionNodeProcessor.ProcessCteExpressionNode(
+            node,
+            _methodNames,
+            Nodes,
+            _compilationOptions,
+            _preComputedCteExecutionPlan);
 
         _members.Add(result.Method);
         _methodNames.Push(result.MethodName);
