@@ -6,29 +6,40 @@ namespace Musoq.Schema.DataSources;
 #if DEBUG
 [DebuggerDisplay("{" + nameof(DebugString) + "()}")]
 #endif
-public class EntityResolver<T>(
-    T entity,
-    IReadOnlyDictionary<string, int> nameToIndexMap,
-    IReadOnlyDictionary<int, Func<T, object>> indexToObjectAccessMap)
-    : IObjectResolver
+public class EntityResolver<T> : IObjectResolver
 {
-    public object[] Contexts => [entity];
+    private readonly T _entity;
+    private readonly IReadOnlyDictionary<int, Func<T, object>> _indexToObjectAccessMap;
+    private readonly IReadOnlyDictionary<string, int> _nameToIndexMap;
+
+    public EntityResolver(
+        T entity,
+        IReadOnlyDictionary<string, int> nameToIndexMap,
+        IReadOnlyDictionary<int, Func<T, object>> indexToObjectAccessMap)
+    {
+        _entity = entity;
+        _nameToIndexMap = nameToIndexMap;
+        _indexToObjectAccessMap = indexToObjectAccessMap;
+        Contexts = [entity];
+    }
+
+    public object[] Contexts { get; }
 
     object IObjectResolver.this[string name]
-        => entity == null ? null : indexToObjectAccessMap[nameToIndexMap[name]](entity);
+        => _entity == null ? null : _indexToObjectAccessMap[_nameToIndexMap[name]](_entity);
 
     object IObjectResolver.this[int index]
-        => entity == null ? null : indexToObjectAccessMap[index](entity);
+        => _entity == null ? null : _indexToObjectAccessMap[index](_entity);
 
     public bool HasColumn(string name)
     {
-        return nameToIndexMap.ContainsKey(name);
+        return _nameToIndexMap.ContainsKey(name);
     }
 
 #if DEBUG
     public string DebugString()
     {
-        return $"{entity?.ToString() ?? "null"}";
+        return $"{_entity?.ToString() ?? "null"}";
     }
 #endif
 }

@@ -200,11 +200,6 @@ public static class SafeArrayAccess
         }
     }
 
-    /// <summary>
-    ///     Get the default value for a type (following SQL NULL semantics)
-    /// </summary>
-    /// <param name="type">The type to get default value for</param>
-    /// <returns>Default value: null for reference types, default(T) for value types</returns>
     private static object GetDefaultValue(Type type)
     {
         if (type == null)

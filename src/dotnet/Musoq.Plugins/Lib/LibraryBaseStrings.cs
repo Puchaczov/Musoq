@@ -500,12 +500,6 @@ public partial class LibraryBase
         return ToUpper(value, CultureInfo.InvariantCulture);
     }
 
-    /// <summary>
-    ///     Makes the string uppercase within specified culture
-    /// </summary>
-    /// <param name="value">The value</param>
-    /// <param name="culture">The culture</param>
-    /// <returns>Uppercased string</returns>
     private string? ToUpper(string? value, CultureInfo? culture)
     {
         if (value == null)
@@ -554,12 +548,6 @@ public partial class LibraryBase
         return ToLower(value, CultureInfo.InvariantCulture);
     }
 
-    /// <summary>
-    ///     Makes the string lowercase within specified culture
-    /// </summary>
-    /// <param name="value">The value</param>
-    /// <param name="culture">The culture</param>
-    /// <returns>Lowercased string</returns>
     private string? ToLower(string? value, CultureInfo? culture)
     {
         if (value == null)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -7,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
 
@@ -31,34 +33,174 @@ public static class CteExpressionNodeProcessor
         Stack<string> methodNames,
         Stack<SyntaxNode> nodes)
     {
+        return ProcessCteExpressionNode(node, methodNames, nodes, null);
+    }
+
+    /// <summary>
+    ///     Processes a CTE expression node and generates the corresponding method declaration with proper parameter lists.
+    ///     Supports parallel CTE execution when CompilationOptions.UseCteParallelization is true.
+    /// </summary>
+    /// <param name="node">The CTE expression node to process</param>
+    /// <param name="methodNames">Stack of method names for processing</param>
+    /// <param name="nodes">Stack of syntax nodes for processing</param>
+    /// <param name="compilationOptions">Optional compilation options to control parallelization</param>
+    /// <param name="preComputedPlan">Optional pre-computed execution plan (computed before AST rewriting)</param>
+    /// <returns>A tuple containing the method declaration and the method name</returns>
+    /// <exception cref="ArgumentNullException">Thrown when any parameter is null</exception>
+    public static (MethodDeclarationSyntax Method, string MethodName) ProcessCteExpressionNode(
+        CteExpressionNode node,
+        Stack<string> methodNames,
+        Stack<SyntaxNode> nodes,
+        CompilationOptions? compilationOptions,
+        CteExecutionPlan? preComputedPlan = null)
+    {
         ValidateParameters(node, methodNames, nodes);
 
-        var statements = new List<StatementSyntax>();
         var resultCteMethodName = methodNames.Pop();
 
 
-        foreach (var _ in node.InnerExpression)
+        var cteNameStatementPairs = new List<(string Name, StatementSyntax Statement)>();
+        var innerExpressions = node.InnerExpression.Reverse().ToArray();
+        foreach (var inner in innerExpressions)
         {
             methodNames.Pop();
-            statements.Add((StatementSyntax)nodes.Pop());
+            var statement = (StatementSyntax)nodes.Pop();
+            cteNameStatementPairs.Add((inner.Name, statement));
         }
 
-        statements.Reverse();
+
+        cteNameStatementPairs.Reverse();
+
+
+        var cteStatements = cteNameStatementPairs.Select(p => p.Statement).ToList();
+        var cteNames = cteNameStatementPairs.Select(p => p.Name).ToList();
+
+
+        var useParallelization = false;
+        if (compilationOptions?.UseCteParallelization == true)
+        {
+            if (preComputedPlan != null)
+                useParallelization = preComputedPlan.CanParallelize;
+            else
+                try
+                {
+                    useParallelization = CteParallelizationAnalyzer.CanBenefitFromParallelization(node);
+                }
+                catch (NotSupportedException)
+                {
+                    useParallelization = false;
+                }
+        }
+
+        List<StatementSyntax> statements;
+        if (useParallelization)
+            statements = GenerateParallelCteStatements(cteStatements, cteNames, preComputedPlan);
+        else
+            statements = cteStatements;
 
         const string methodName = "CteResultQuery";
 
-
         statements.Add(CreateReturnStatement(resultCteMethodName));
-
 
         var method = CreateCteMethodDeclaration(methodName, statements);
 
         return (method, methodName);
     }
 
-    /// <summary>
-    ///     Creates a return statement that invokes the CTE result method with standard parameters.
-    /// </summary>
+    private static List<StatementSyntax> GenerateParallelCteStatements(
+        List<StatementSyntax> cteStatements,
+        List<string> cteNames,
+        CteExecutionPlan? preComputedPlan)
+    {
+        var cteToStatement = new Dictionary<string, StatementSyntax>();
+        for (var i = 0; i < cteNames.Count; i++) cteToStatement[cteNames[i]] = cteStatements[i];
+
+
+        if (preComputedPlan == null || preComputedPlan.IsEmpty || !preComputedPlan.CanParallelize) return cteStatements;
+
+        var result = new List<StatementSyntax>();
+
+
+        foreach (var level in preComputedPlan.Levels)
+            if (level.Count == 1)
+            {
+                var cteName = level.Ctes[0].Name;
+                if (cteToStatement.TryGetValue(cteName, out var statement)) result.Add(statement);
+            }
+            else
+            {
+                var parallelStatement = CreateParallelForEachStatement(level, cteToStatement);
+                result.Add(parallelStatement);
+            }
+
+        return result;
+    }
+
+    private static StatementSyntax CreateParallelForEachStatement(
+        CteExecutionLevel level,
+        Dictionary<string, StatementSyntax> cteToStatement)
+    {
+        var arrayElements = level.Ctes
+            .Select(cte => (ExpressionSyntax)SyntaxFactory.LiteralExpression(
+                SyntaxKind.StringLiteralExpression,
+                SyntaxFactory.Literal(cte.Name)))
+            .ToArray();
+
+        var arrayCreation = SyntaxFactory.ImplicitArrayCreationExpression(
+            SyntaxFactory.InitializerExpression(
+                SyntaxKind.ArrayInitializerExpression,
+                SyntaxFactory.SeparatedList(arrayElements)));
+
+
+        var switchSections = new List<SwitchSectionSyntax>();
+        foreach (var cte in level.Ctes)
+            if (cteToStatement.TryGetValue(cte.Name, out var statement))
+            {
+                var caseLabel = SyntaxFactory.CaseSwitchLabel(
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.StringLiteralExpression,
+                        SyntaxFactory.Literal(cte.Name)));
+
+                var section = SyntaxFactory.SwitchSection(
+                    SyntaxFactory.SingletonList<SwitchLabelSyntax>(caseLabel),
+                    SyntaxFactory.List(new[]
+                    {
+                        statement,
+                        SyntaxFactory.BreakStatement()
+                    }));
+
+                switchSections.Add(section);
+            }
+
+
+        var switchStatement = SyntaxFactory.SwitchStatement(
+            SyntaxFactory.IdentifierName("cteName"),
+            SyntaxFactory.List(switchSections));
+
+
+        var lambda = SyntaxFactory.ParenthesizedLambdaExpression(
+            SyntaxFactory.ParameterList(
+                SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.Parameter(SyntaxFactory.Identifier("cteName")))),
+            SyntaxFactory.Block(switchStatement));
+
+
+        var parallelForEach = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("Parallel"),
+                    SyntaxFactory.IdentifierName("ForEach")))
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SeparatedList(new[]
+                    {
+                        SyntaxFactory.Argument(arrayCreation),
+                        SyntaxFactory.Argument(lambda)
+                    })));
+
+        return SyntaxFactory.ExpressionStatement(parallelForEach);
+    }
+
     private static ReturnStatementSyntax CreateReturnStatement(string resultCteMethodName)
     {
         return SyntaxFactory.ReturnStatement(
@@ -74,9 +216,6 @@ public static class CteExpressionNodeProcessor
                         ]))));
     }
 
-    /// <summary>
-    ///     Creates a complete method declaration for a CTE result query with standard parameters.
-    /// </summary>
     private static MethodDeclarationSyntax CreateCteMethodDeclaration(string methodName,
         List<StatementSyntax> statements)
     {
@@ -94,9 +233,6 @@ public static class CteExpressionNodeProcessor
             null);
     }
 
-    /// <summary>
-    ///     Creates the parameter list for CTE method declarations with all required parameters.
-    /// </summary>
     private static ParameterListSyntax CreateCteParameterList()
     {
         return SyntaxFactory.ParameterList(
@@ -109,9 +245,6 @@ public static class CteExpressionNodeProcessor
             ]));
     }
 
-    /// <summary>
-    ///     Creates the provider parameter for CTE methods.
-    /// </summary>
     private static ParameterSyntax CreateProviderParameter()
     {
         return SyntaxFactory.Parameter(
@@ -123,9 +256,6 @@ public static class CteExpressionNodeProcessor
             null);
     }
 
-    /// <summary>
-    ///     Creates the positional environment variables parameter with complex generic type.
-    /// </summary>
     private static ParameterSyntax CreatePositionalEnvironmentVariablesParameter()
     {
         return SyntaxFactory.Parameter(
@@ -146,9 +276,6 @@ public static class CteExpressionNodeProcessor
             null);
     }
 
-    /// <summary>
-    ///     Creates a generic string-to-string dictionary type syntax.
-    /// </summary>
     private static TypeSyntax CreateStringDictionaryType()
     {
         return SyntaxFactory.GenericName(SyntaxFactory.Identifier("IReadOnlyDictionary"))
@@ -163,18 +290,12 @@ public static class CteExpressionNodeProcessor
                         })));
     }
 
-    /// <summary>
-    ///     Creates the queries information parameter with complex tuple type.
-    /// </summary>
     private static ParameterSyntax CreateQueriesInformationParameter()
     {
         return SyntaxFactory.Parameter(SyntaxFactory.Identifier("queriesInformation"))
             .WithType(CreateQueriesInformationType());
     }
 
-    /// <summary>
-    ///     Creates the complex queries information type with tuple elements.
-    /// </summary>
     private static TypeSyntax CreateQueriesInformationType()
     {
         return SyntaxFactory.GenericName(SyntaxFactory.Identifier("IReadOnlyDictionary"))
@@ -185,49 +306,10 @@ public static class CteExpressionNodeProcessor
                         {
                             SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            CreateQueryInfoTupleType()
+                            SyntaxFactory.IdentifierName("QuerySourceInfo")
                         })));
     }
 
-    /// <summary>
-    ///     Creates the tuple type for query information containing multiple elements.
-    /// </summary>
-    private static TupleTypeSyntax CreateQueryInfoTupleType()
-    {
-        return SyntaxFactory.TupleType(
-            SyntaxFactory.SeparatedList<TupleElementSyntax>(
-                new SyntaxNodeOrToken[]
-                {
-                    SyntaxFactory.TupleElement(SyntaxFactory.IdentifierName("SchemaFromNode"))
-                        .WithIdentifier(SyntaxFactory.Identifier("FromNode")),
-                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                    CreateUsedColumnsTupleElement(),
-                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                    SyntaxFactory.TupleElement(SyntaxFactory.IdentifierName("WhereNode"))
-                        .WithIdentifier(SyntaxFactory.Identifier("WhereNode")),
-                    SyntaxFactory.Token(SyntaxKind.CommaToken),
-                    SyntaxFactory.TupleElement(SyntaxFactory.IdentifierName("bool"))
-                        .WithIdentifier(SyntaxFactory.Identifier("HasExternallyProvidedTypes"))
-                }));
-    }
-
-    /// <summary>
-    ///     Creates the UsedColumns tuple element with IReadOnlyCollection type.
-    /// </summary>
-    private static TupleElementSyntax CreateUsedColumnsTupleElement()
-    {
-        return SyntaxFactory.TupleElement(
-                SyntaxFactory.GenericName(SyntaxFactory.Identifier("IReadOnlyCollection"))
-                    .WithTypeArgumentList(
-                        SyntaxFactory.TypeArgumentList(
-                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                SyntaxFactory.IdentifierName("ISchemaColumn")))))
-            .WithIdentifier(SyntaxFactory.Identifier("UsedColumns"));
-    }
-
-    /// <summary>
-    ///     Creates the logger parameter for CTE methods.
-    /// </summary>
     private static ParameterSyntax CreateLoggerParameter()
     {
         return SyntaxFactory.Parameter(
@@ -239,9 +321,6 @@ public static class CteExpressionNodeProcessor
             null);
     }
 
-    /// <summary>
-    ///     Creates the cancellation token parameter for CTE methods.
-    /// </summary>
     private static ParameterSyntax CreateTokenParameter()
     {
         return SyntaxFactory.Parameter(
@@ -253,9 +332,6 @@ public static class CteExpressionNodeProcessor
             null);
     }
 
-    /// <summary>
-    ///     Validates that all required parameters are not null.
-    /// </summary>
     private static void ValidateParameters(CteExpressionNode node, Stack<string> methodNames, Stack<SyntaxNode> nodes)
     {
         if (node == null)

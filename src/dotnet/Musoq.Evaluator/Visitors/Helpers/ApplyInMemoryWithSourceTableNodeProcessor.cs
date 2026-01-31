@@ -61,9 +61,6 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
         return (emptyBlock, computingBlock);
     }
 
-    /// <summary>
-    ///     Processes a Cross apply operation generating nested foreach statements.
-    /// </summary>
     private static BlockSyntax ProcessCrossApply(
         ApplyInMemoryWithSourceTableFromNode node,
         BlockSyntax emptyBlock,
@@ -89,9 +86,6 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
                 ])));
     }
 
-    /// <summary>
-    ///     Processes an Outer apply operation with complex expression building and table manipulation.
-    /// </summary>
     private static BlockSyntax ProcessOuterApply(
         ApplyInMemoryWithSourceTableFromNode node,
         SyntaxGenerator generator,
@@ -145,9 +139,6 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
                 ])));
     }
 
-    /// <summary>
-    ///     Builds the expressions list for outer apply operations by processing table columns.
-    /// </summary>
     private static List<ExpressionSyntax> BuildOuterApplyExpressions(
         ApplyInMemoryWithSourceTableFromNode node,
         SyntaxGenerator generator,
@@ -182,9 +173,6 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
         return expressions;
     }
 
-    /// <summary>
-    ///     Creates a variable declaration for the rewrite select operation.
-    /// </summary>
     private static VariableDeclarationSyntax CreateRewriteSelectVariable(List<ExpressionSyntax> expressions)
     {
         var arrayType = SyntaxFactory.ArrayType(
@@ -208,9 +196,6 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
                                 SyntaxFactory.SeparatedList(expressions)))))));
     }
 
-    /// <summary>
-    ///     Creates the table add invocation expression for outer apply operations.
-    /// </summary>
     private static InvocationExpressionSyntax CreateTableAddInvocation(
         ApplyInMemoryWithSourceTableFromNode node,
         Scope scope)
@@ -242,9 +227,6 @@ public static class ApplyInMemoryWithSourceTableNodeProcessor
             ]);
     }
 
-    /// <summary>
-    ///     Validates that all required parameters are not null.
-    /// </summary>
     private static void ValidateParameters(
         ApplyInMemoryWithSourceTableFromNode node,
         SyntaxGenerator generator,

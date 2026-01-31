@@ -40,12 +40,6 @@ public partial class LibraryBase
         return DecompressZLib(compressedData, encoding);
     }
 
-    /// <summary>
-    ///     Decompresses a zlib-compressed byte array and returns it as a string using the specified encoding.
-    /// </summary>
-    /// <param name="compressedData">The zlib-compressed data</param>
-    /// <param name="encoding">The encoding to use</param>
-    /// <returns>The decompressed string</returns>
     private static string DecompressZLib(byte[] compressedData, Encoding encoding)
     {
         using var inputStream = new MemoryStream(compressedData);
@@ -194,9 +188,6 @@ public partial class LibraryBase
         return DecompressGZip(compressedData, encoding);
     }
 
-    /// <summary>
-    ///     Decompresses a GZip-compressed byte array and returns it as a string using the specified encoding.
-    /// </summary>
     private static string DecompressGZip(byte[] compressedData, Encoding encoding)
     {
         using var inputStream = new MemoryStream(compressedData);
@@ -344,9 +335,6 @@ public partial class LibraryBase
         return DecompressDeflate(compressedData, encoding);
     }
 
-    /// <summary>
-    ///     Decompresses a Deflate-compressed byte array and returns it as a string using the specified encoding.
-    /// </summary>
     private static string DecompressDeflate(byte[] compressedData, Encoding encoding)
     {
         using var inputStream = new MemoryStream(compressedData);
@@ -498,9 +486,6 @@ public partial class LibraryBase
         return DecompressBrotli(compressedData, encoding);
     }
 
-    /// <summary>
-    ///     Decompresses a Brotli-compressed byte array and returns it as a string using the specified encoding.
-    /// </summary>
     private static string DecompressBrotli(byte[] compressedData, Encoding encoding)
     {
         using var inputStream = new MemoryStream(compressedData);

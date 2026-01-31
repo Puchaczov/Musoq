@@ -61,12 +61,6 @@ public static class GroupByNodeProcessor
         };
     }
 
-    /// <summary>
-    ///     Generates group keys from the provided arguments.
-    /// </summary>
-    /// <param name="args">Array of field expressions</param>
-    /// <param name="syntaxList">Output array for syntax expressions</param>
-    /// <returns>List of ObjectCreationExpressionSyntax for group keys</returns>
     private static List<ObjectCreationExpressionSyntax> GenerateGroupKeys(
         SyntaxNode[] args,
         ExpressionSyntax[] syntaxList)
@@ -92,11 +86,6 @@ public static class GroupByNodeProcessor
         return keysElements;
     }
 
-    /// <summary>
-    ///     Creates the group values variable declaration.
-    /// </summary>
-    /// <param name="syntaxList">Array of expressions for values</param>
-    /// <returns>VariableDeclarationSyntax for group values</returns>
     private static VariableDeclarationSyntax CreateGroupValues(ExpressionSyntax[] syntaxList)
     {
         return SyntaxHelper.CreateAssignment(
@@ -104,11 +93,6 @@ public static class GroupByNodeProcessor
             SyntaxHelper.CreateArrayOf(nameof(Object), syntaxList, 2));
     }
 
-    /// <summary>
-    ///     Creates the group keys variable declaration.
-    /// </summary>
-    /// <param name="keysElements">List of ObjectCreationExpressionSyntax for keys</param>
-    /// <returns>VariableDeclarationSyntax for group keys</returns>
     private static VariableDeclarationSyntax CreateGroupKeys(
         List<ObjectCreationExpressionSyntax> keysElements)
     {
@@ -119,11 +103,6 @@ public static class GroupByNodeProcessor
                 keysElements.Cast<ExpressionSyntax>().ToArray()));
     }
 
-    /// <summary>
-    ///     Creates the group fields statement for field names processing.
-    /// </summary>
-    /// <param name="scope">Current scope for symbol resolution</param>
-    /// <returns>StatementSyntax for group fields declaration</returns>
     private static StatementSyntax CreateGroupFieldsStatement(Scope scope)
     {
         var groupFields = scope.ScopeSymbolTable.GetSymbol<FieldsNamesSymbol>("groupFields");
@@ -149,13 +128,6 @@ public static class GroupByNodeProcessor
         return SyntaxFactory.ParseStatement(fieldNames.ToString());
     }
 
-    /// <summary>
-    ///     Validates the input parameters for ProcessGroupByNode.
-    /// </summary>
-    /// <param name="node">The GroupByNode to validate</param>
-    /// <param name="nodes">The nodes stack to validate</param>
-    /// <param name="scope">The scope to validate</param>
-    /// <exception cref="ArgumentNullException">Thrown when any parameter is null</exception>
     private static void ValidateParameters(GroupByNode node, Stack<SyntaxNode> nodes, Scope scope)
     {
         if (node == null)

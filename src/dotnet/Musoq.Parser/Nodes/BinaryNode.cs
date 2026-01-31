@@ -9,8 +9,25 @@ public abstract class BinaryNode : Node
     private Type _returnType;
 
     protected BinaryNode(Node left, Node right)
+        : this(left, right, default)
+    {
+    }
+
+    protected BinaryNode(Node left, Node right, TextSpan span)
     {
         _nodes = [left, right];
+
+        // If no explicit span provided, compute from children
+        if (span.IsEmpty && left?.HasSpan == true && right?.HasSpan == true)
+        {
+            Span = ComputeSpan(left, right);
+            FullSpan = Span;
+        }
+        else
+        {
+            Span = span;
+            FullSpan = span;
+        }
     }
 
     public Node Left => _nodes[0];

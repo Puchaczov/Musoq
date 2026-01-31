@@ -49,9 +49,6 @@ public static class AccessColumnEmitter
         };
     }
 
-    /// <summary>
-    ///     Gets the variable name based on the method access type.
-    /// </summary>
     private static string GetVariableName(string alias, MethodAccessType methodAccessType)
     {
         return methodAccessType switch
@@ -62,9 +59,6 @@ public static class AccessColumnEmitter
         };
     }
 
-    /// <summary>
-    ///     Creates the element access expression for column lookup.
-    /// </summary>
     private static SyntaxNode CreateElementAccessExpression(
         string variableName,
         string columnName,
@@ -78,9 +72,6 @@ public static class AccessColumnEmitter
                     SyntaxFactory.Literal($"@\"{columnName}\"", columnName))));
     }
 
-    /// <summary>
-    ///     Gets the appropriate type identifier for casting.
-    /// </summary>
     private static IdentifierNameSyntax GetTypeIdentifier(Type returnType)
     {
         if (returnType is NullNode.NullType) return SyntaxFactory.IdentifierName("object");

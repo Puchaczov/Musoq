@@ -202,9 +202,6 @@ public static class JoinProcessingHelper
                             SyntaxFactory.ExpressionStatement(invocation))))));
     }
 
-    /// <summary>
-    ///     Builds expressions for left join operations.
-    /// </summary>
     private static List<ExpressionSyntax> BuildLeftJoinExpressions(
         JoinInMemoryWithSourceTableFromNode node,
         TableSymbol fullTransitionTable,
@@ -237,9 +234,6 @@ public static class JoinProcessingHelper
         return expressions;
     }
 
-    /// <summary>
-    ///     Builds expressions for right join operations.
-    /// </summary>
     private static List<ExpressionSyntax> BuildRightJoinExpressions(
         JoinInMemoryWithSourceTableFromNode node,
         TableSymbol fullTransitionTable,
@@ -272,9 +266,6 @@ public static class JoinProcessingHelper
         return expressions;
     }
 
-    /// <summary>
-    ///     Creates a variable declaration for the select statement.
-    /// </summary>
     private static VariableDeclarationSyntax CreateSelectVariableDeclaration(List<ExpressionSyntax> expressions)
     {
         var arrayType = SyntaxFactory.ArrayType(
@@ -298,9 +289,6 @@ public static class JoinProcessingHelper
                                 SyntaxFactory.SeparatedList(expressions)))))));
     }
 
-    /// <summary>
-    ///     Creates a table add invocation for left join operations.
-    /// </summary>
     private static InvocationExpressionSyntax CreateTableAddInvocation(
         JoinInMemoryWithSourceTableFromNode node,
         Scope scope)
@@ -333,9 +321,6 @@ public static class JoinProcessingHelper
             ]);
     }
 
-    /// <summary>
-    ///     Creates a table add invocation for right join operations.
-    /// </summary>
     private static InvocationExpressionSyntax CreateTableAddInvocationForRightJoin(
         JoinInMemoryWithSourceTableFromNode node,
         Scope scope)
@@ -368,17 +353,11 @@ public static class JoinProcessingHelper
             ]);
     }
 
-    /// <summary>
-    ///     Creates a block from statements, filtering out empty statements.
-    /// </summary>
     private static BlockSyntax Block(params StatementSyntax[] statements)
     {
         return SyntaxFactory.Block(statements.Where(f => f is not EmptyStatementSyntax));
     }
 
-    /// <summary>
-    ///     Validates parameters for basic join operations.
-    /// </summary>
     private static void ValidateJoinParameters(
         JoinInMemoryWithSourceTableFromNode node,
         StatementSyntax ifStatement,
@@ -396,9 +375,6 @@ public static class JoinProcessingHelper
             throw new ArgumentNullException(nameof(generateCancellationExpression));
     }
 
-    /// <summary>
-    ///     Validates parameters for outer join operations.
-    /// </summary>
     private static void ValidateOuterJoinParameters(
         JoinInMemoryWithSourceTableFromNode node,
         StatementSyntax ifStatement,

@@ -7,15 +7,29 @@ namespace Musoq.Parser.Nodes;
 public class NullNode : Node
 {
     public NullNode()
+        : this(default(TextSpan))
+    {
+    }
+
+    public NullNode(TextSpan span)
     {
         Id = nameof(NullNode);
         ReturnType = new NullType();
+        Span = span;
+        FullSpan = span;
     }
 
     public NullNode(Type ofType)
+        : this(ofType, default)
+    {
+    }
+
+    public NullNode(Type ofType, TextSpan span)
     {
         Id = nameof(NullNode);
         ReturnType = ofType;
+        Span = span;
+        FullSpan = span;
     }
 
     public override Type ReturnType { get; }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text.RegularExpressions;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Lexing;
@@ -28,6 +29,21 @@ public interface ILexer
     ///     Gets the original input string.
     /// </summary>
     string Input { get; }
+
+    /// <summary>
+    ///     Gets the source text for the input.
+    /// </summary>
+    SourceText SourceText { get; }
+
+    /// <summary>
+    ///     Gets the diagnostic bag for collecting errors.
+    /// </summary>
+    DiagnosticBag Diagnostics { get; }
+
+    /// <summary>
+    ///     Gets or sets whether to recover from errors instead of throwing.
+    /// </summary>
+    bool RecoverOnError { get; set; }
 
     /// <summary>
     ///     Gets lastly taken token from stream.

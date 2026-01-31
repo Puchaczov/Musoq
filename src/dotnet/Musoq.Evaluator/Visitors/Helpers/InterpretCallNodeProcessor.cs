@@ -321,10 +321,6 @@ public static class InterpretCallNodeProcessor
         return invocation;
     }
 
-    /// <summary>
-    ///     Wraps an expression in a lambda with try-catch that returns null on exception.
-    ///     Generates: (new Func&lt;T?&gt;(() => { try { return expr; } catch { return null; } }))()
-    /// </summary>
     private static ExpressionSyntax WrapInTryCatchReturningNull(ExpressionSyntax expression, Type? returnType)
     {
         var typeName = returnType != null
@@ -333,11 +329,6 @@ public static class InterpretCallNodeProcessor
         return WrapInTryCatchReturningNullByTypeName(expression, typeName);
     }
 
-    /// <summary>
-    ///     Wraps an expression in a lambda with try-catch that returns null on exception.
-    ///     Uses a type name string instead of Type object (for embedded interpreters).
-    ///     Generates: (new Func&lt;T?&gt;(() => { try { return expr; } catch { return null; } }))()
-    /// </summary>
     private static ExpressionSyntax WrapInTryCatchReturningNullByTypeName(ExpressionSyntax expression, string? typeName)
     {
         var tryBlock = SyntaxFactory.Block(
@@ -385,14 +376,6 @@ public static class InterpretCallNodeProcessor
         return invocation;
     }
 
-    /// <summary>
-    ///     Gets or creates an interpreter instance variable for the given schema.
-    ///     If the interpreter has already been instantiated, returns the existing variable name.
-    ///     Otherwise, generates the instantiation statement and returns the new variable name.
-    /// </summary>
-    /// <exception cref="UnknownInterpretationSchemaException">
-    ///     Thrown when a schema registry is provided but the schema is not found.
-    /// </exception>
     private static string GetOrCreateInterpreterInstance(
         string schemaName,
         List<StatementSyntax> statements,

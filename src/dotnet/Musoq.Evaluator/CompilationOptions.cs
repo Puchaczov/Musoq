@@ -17,12 +17,19 @@
 ///     Whether to validate that query expressions only use primitive types. Defaults
 ///     to true.
 /// </param>
+/// <param name="useCteParallelization">
+///     Whether CTE parallelization should be used. When enabled, CTEs that do not depend
+///     on each other will be executed in parallel. Defaults to false.
+///     NOTE: Currently this flag is a no-op - parallel execution infrastructure exists
+///     but is disabled pending further investigation of runtime issues.
+/// </param>
 public class CompilationOptions(
     ParallelizationMode? parallelizationMode = null,
     bool useHashJoin = true,
     bool useSortMergeJoin = true,
     bool useCommonSubexpressionElimination = true,
-    bool usePrimitiveTypeValidation = true)
+    bool usePrimitiveTypeValidation = true,
+    bool useCteParallelization = false)
 {
     /// <summary>
     ///     Gets the parallelization mode for query execution.
@@ -52,4 +59,11 @@ public class CompilationOptions(
     ///     Complex types like classes, structs, arrays, and collections are not allowed.
     /// </summary>
     public bool UsePrimitiveTypeValidation { get; } = usePrimitiveTypeValidation;
+
+    /// <summary>
+    ///     Gets a value indicating whether CTE parallelization should be used.
+    ///     When enabled, CTEs that do not depend on each other will be executed in parallel.
+    ///     This can improve performance for queries with multiple independent CTEs.
+    /// </summary>
+    public bool UseCteParallelization { get; } = useCteParallelization;
 }

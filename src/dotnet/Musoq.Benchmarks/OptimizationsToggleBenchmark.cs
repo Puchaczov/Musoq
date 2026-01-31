@@ -436,9 +436,10 @@ public class OptBenchEntityResolver : IObjectResolver
     public OptBenchEntityResolver(OptBenchEntity entity)
     {
         _entity = entity;
+        Contexts = [entity];
     }
 
-    public object[] Contexts => [_entity];
+    public object[] Contexts { get; }
 
     public object? this[string name] => name switch
     {

@@ -10,6 +10,13 @@ public class AccessMethodNode : Node
     public AccessMethodNode(FunctionToken functionToken, ArgsListNode args, ArgsListNode extraAggregateArguments,
         bool canSkipInjectSource,
         MethodInfo method = null, string alias = "")
+        : this(functionToken, args, extraAggregateArguments, canSkipInjectSource, method, alias, default)
+    {
+    }
+
+    public AccessMethodNode(FunctionToken functionToken, ArgsListNode args, ArgsListNode extraAggregateArguments,
+        bool canSkipInjectSource,
+        MethodInfo method, string alias, TextSpan span)
     {
         FunctionToken = functionToken;
         Arguments = args;
@@ -18,6 +25,20 @@ public class AccessMethodNode : Node
         Method = method;
         Alias = alias;
         Id = $"{nameof(AccessMethodNode)}{alias}{functionToken.Value}{args.Id}";
+
+        // If no explicit span provided, try to compute from function token and args
+        if (span.IsEmpty && functionToken != null)
+        {
+            // The span should ideally cover from function name to closing paren
+            // For now, use the function token span as the base
+            Span = functionToken.Span;
+            FullSpan = functionToken.Span;
+        }
+        else
+        {
+            Span = span;
+            FullSpan = span;
+        }
     }
 
     public FunctionToken FunctionToken { get; }

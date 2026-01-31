@@ -13,6 +13,7 @@ public class DynamicDictionaryResolver : IObjectResolver
     {
         _obj = obj ?? throw new InvalidOperationException();
         _indexToNameMap = indexToNameMap;
+        Contexts = [obj];
     }
 
     public bool HasColumn(string name)
@@ -20,7 +21,7 @@ public class DynamicDictionaryResolver : IObjectResolver
         return _obj.ContainsKey(name);
     }
 
-    public object[] Contexts => [_obj];
+    public object[] Contexts { get; }
 
     public object this[string name] => _obj[name];
 

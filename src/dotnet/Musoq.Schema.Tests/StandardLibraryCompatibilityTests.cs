@@ -218,9 +218,6 @@ public class StandardLibraryCompatibilityTests
             _methodsManager.TryGetMethod("", new Type[0], null, out _));
     }
 
-    /// <summary>
-    ///     Helper method to insert underscores before uppercase letters in PascalCase names
-    /// </summary>
     private static string InsertUnderscores(string methodName)
     {
         if (string.IsNullOrEmpty(methodName)) return methodName;
@@ -235,9 +232,6 @@ public class StandardLibraryCompatibilityTests
         return result;
     }
 
-    /// <summary>
-    ///     Helper method to check if a method has injected parameters that require special handling
-    /// </summary>
     private static bool HasInjectedParameters(MethodInfo method)
     {
         return method.GetParameters()

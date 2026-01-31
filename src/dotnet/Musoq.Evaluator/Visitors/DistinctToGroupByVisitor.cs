@@ -25,7 +25,8 @@ public class DistinctToGroupByVisitor : CloneQueryVisitor
 
             var newSelectFields = new FieldNode[select.Fields.Length];
             for (var i = 0; i < select.Fields.Length; i++) newSelectFields[i] = select.Fields[i];
-            select = new SelectNode(newSelectFields);
+
+            select = new SelectNode(newSelectFields, true);
         }
 
         Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take));

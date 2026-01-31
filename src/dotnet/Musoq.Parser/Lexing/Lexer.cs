@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Helpers;
 using Musoq.Parser.Tokens;
@@ -82,7 +83,8 @@ public sealed class Lexer : ILexer
     /// </summary>
     /// <param name="input">The SQL query to tokenize.</param>
     /// <param name="skipWhiteSpaces">Whether to skip whitespace tokens.</param>
-    public Lexer(string input, bool skipWhiteSpaces)
+    /// <param name="recoverOnError">Whether to recover from errors instead of throwing.</param>
+    public Lexer(string input, bool skipWhiteSpaces, bool recoverOnError = false)
     {
         if (input == null)
             throw ParserValidationException.ForNullInput();
@@ -92,9 +94,12 @@ public sealed class Lexer : ILexer
 
         Input = input.Trim();
         _skipWhiteSpaces = skipWhiteSpaces;
+        RecoverOnError = recoverOnError;
         Position = 0;
         _currentToken = new NoneToken();
         _lastToken = _currentToken;
+        SourceText = new SourceText(Input);
+        Diagnostics = new DiagnosticBag { SourceText = SourceText };
     }
 
     /// <summary>
@@ -106,6 +111,21 @@ public sealed class Lexer : ILexer
     ///     Gets the input string.
     /// </summary>
     public string Input { get; }
+
+    /// <summary>
+    ///     Gets the source text for the input.
+    /// </summary>
+    public SourceText SourceText { get; }
+
+    /// <summary>
+    ///     Gets the diagnostic bag for collecting errors.
+    /// </summary>
+    public DiagnosticBag Diagnostics { get; }
+
+    /// <summary>
+    ///     Gets or sets whether to recover from errors instead of throwing.
+    /// </summary>
+    public bool RecoverOnError { get; set; }
 
     /// <summary>
     ///     Gets the current position.
@@ -560,6 +580,21 @@ public sealed class Lexer : ILexer
             return AssignToken(new StringLiteralToken(string.Empty, new TextSpan(start, 2)));
         }
 
+
+        if (RecoverOnError)
+        {
+            var end = Position + 1;
+            while (end < Input.Length && Input[end] != '\n' && Input[end] != '\r')
+                end++;
+
+            var span = new TextSpan(start, end - start);
+            Diagnostics.AddError(DiagnosticCode.MQ1002_UnterminatedString,
+                "Unterminated string literal", span);
+
+            Position = end;
+            return AssignToken(new ErrorToken(Input[start..end], span));
+        }
+
         throw new UnknownTokenException(Position, '\'', "Unterminated string literal");
     }
 
@@ -811,13 +846,24 @@ public sealed class Lexer : ILexer
     {
         var start = Position;
         var c = Input[start];
+        var span = new TextSpan(start, 1);
         Position++;
-        return AssignToken(new WordToken(FastCharacterClassifier.CharToString(c), new TextSpan(start, 1)));
+
+
+        if (RecoverOnError)
+        {
+            Diagnostics.AddError(DiagnosticCode.MQ1001_UnknownToken, span, c.ToString());
+            return AssignToken(new ErrorToken(c, span));
+        }
+
+        return AssignToken(new WordToken(FastCharacterClassifier.CharToString(c), span));
     }
 
     private bool ShouldSkipToken(Token token)
     {
-        return (_skipWhiteSpaces && token.TokenType == TokenType.WhiteSpace) || token.TokenType == TokenType.Comment;
+        return (_skipWhiteSpaces && token.TokenType == TokenType.WhiteSpace) ||
+               token.TokenType == TokenType.Comment ||
+               (RecoverOnError && token.TokenType == TokenType.Error);
     }
 
     private Token SplitNumericAccessToken(Token numericAccessToken)

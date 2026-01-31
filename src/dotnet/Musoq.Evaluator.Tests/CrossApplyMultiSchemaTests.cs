@@ -5,7 +5,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Generic;
-using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
@@ -14,34 +13,32 @@ using Musoq.Tests.Common;
 namespace Musoq.Evaluator.Tests;
 
 /// <summary>
-/// Tests for cross apply with multiple different schemas.
-/// These tests verify that cross apply works correctly when combining
-/// different schema data sources, especially in CTE contexts.
+///     Tests for cross apply with multiple different schemas.
+///     These tests verify that cross apply works correctly when combining
+///     different schema data sources, especially in CTE contexts.
 /// </summary>
 [TestClass]
 public class CrossApplyMultiSchemaTests
 {
-    public TestContext TestContext { get; set; }
-
-    private ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
-
     static CrossApplyMultiSchemaTests()
     {
         Culture.ApplyWithDefaultCulture();
     }
 
+    public TestContext TestContext { get; set; }
+
+    private ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
+
     /// <summary>
-    /// Test case for issue: CTE with cross apply to a different schema should not throw KeyNotFoundException.
-    /// 
-    /// The query pattern:
-    /// WITH files AS (
+    ///     Test case for issue: CTE with cross apply to a different schema should not throw KeyNotFoundException.
+    ///     The query pattern:
+    ///     WITH files AS (
     ///     SELECT FullPath FROM osSchema.files() f
     ///     WHERE condition
-    /// )
-    /// SELECT * FROM files f CROSS APPLY abcSchema.something(...args) e
-    /// 
-    /// This previously threw: "The given key 'abcSchema' was not present in the dictionary"
-    /// because 'abcSchema' was treated as a table alias instead of a schema name.
+    ///     )
+    ///     SELECT * FROM files f CROSS APPLY abcSchema.something(...args) e
+    ///     This previously threw: "The given key 'abcSchema' was not present in the dictionary"
+    ///     because 'abcSchema' was treated as a table alias instead of a schema name.
     /// </summary>
     [TestMethod]
     public void WhenCteWithCrossApplyToDifferentSchema_ShouldNotThrowKeyNotFound()
@@ -79,14 +76,22 @@ public class CrossApplyMultiSchemaTests
             Money: (decimal)row.Values[2]
         )).ToList();
 
-        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/test/file1.txt" && r.Country == "Country1" && r.Money == 1000m), "Should contain file1 with Country1");
-        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/test/file1.txt" && r.Country == "Country2" && r.Money == 2000m), "Should contain file1 with Country2");
-        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/test/file2.txt" && r.Country == "Country1" && r.Money == 1000m), "Should contain file2 with Country1");
-        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/test/file2.txt" && r.Country == "Country2" && r.Money == 2000m), "Should contain file2 with Country2");
+        Assert.IsTrue(
+            rows.Any(r => r.FullPath == "/path/to/test/file1.txt" && r.Country == "Country1" && r.Money == 1000m),
+            "Should contain file1 with Country1");
+        Assert.IsTrue(
+            rows.Any(r => r.FullPath == "/path/to/test/file1.txt" && r.Country == "Country2" && r.Money == 2000m),
+            "Should contain file1 with Country2");
+        Assert.IsTrue(
+            rows.Any(r => r.FullPath == "/path/to/test/file2.txt" && r.Country == "Country1" && r.Money == 1000m),
+            "Should contain file2 with Country1");
+        Assert.IsTrue(
+            rows.Any(r => r.FullPath == "/path/to/test/file2.txt" && r.Country == "Country2" && r.Money == 2000m),
+            "Should contain file2 with Country2");
     }
 
     /// <summary>
-    /// Test case for cross apply with different schema without CTE - direct usage.
+    ///     Test case for cross apply with different schema without CTE - direct usage.
     /// </summary>
     [TestMethod]
     public void WhenDirectCrossApplyToDifferentSchema_ShouldWork()
@@ -120,12 +125,14 @@ public class CrossApplyMultiSchemaTests
             Money: (decimal)row.Values[2]
         )).ToList();
 
-        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/file1.txt" && r.Country == "Country1" && r.Money == 1000m), "Should contain file1 with Country1");
-        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/file2.txt" && r.Country == "Country1" && r.Money == 1000m), "Should contain file2 with Country1");
+        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/file1.txt" && r.Country == "Country1" && r.Money == 1000m),
+            "Should contain file1 with Country1");
+        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/file2.txt" && r.Country == "Country1" && r.Money == 1000m),
+            "Should contain file2 with Country1");
     }
 
     /// <summary>
-    /// Test case for nested CTEs with cross apply to different schema.
+    ///     Test case for nested CTEs with cross apply to different schema.
     /// </summary>
     [TestMethod]
     public void WhenNestedCteWithCrossApplyToDifferentSchema_ShouldWork()
@@ -163,8 +170,10 @@ public class CrossApplyMultiSchemaTests
             Country: row.Values[1]?.ToString()
         )).ToList();
 
-        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/file1.txt" && r.Country == "Country1"), "Should contain file1 with Country1");
-        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/file1.txt" && r.Country == "Country2"), "Should contain file1 with Country2");
+        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/file1.txt" && r.Country == "Country1"),
+            "Should contain file1 with Country1");
+        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/file1.txt" && r.Country == "Country2"),
+            "Should contain file1 with Country2");
     }
 
     private CompiledQuery CreateVirtualMachineWithTwoSchemas(
@@ -230,25 +239,30 @@ public class CrossApplyMultiSchemaTests
 
     private class TestSchema<TEntity> : SchemaBase
     {
-        private readonly TEntity[] _source;
         private readonly Func<object[], GenericRowsSource<TEntity>, RowSource> _filter;
+        private readonly TEntity[] _source;
 
-        public TestSchema(string name, TEntity[] source, Func<object[], GenericRowsSource<TEntity>, RowSource> filter = null)
+        public TestSchema(string name, TEntity[] source,
+            Func<object[], GenericRowsSource<TEntity>, RowSource> filter = null)
             : base(name, CreateLibrary())
         {
             _source = source;
             _filter = filter;
         }
 
-        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext,
+            params object[] parameters)
         {
             return new GenericEntityTable<TEntity>();
         }
 
         public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
         {
-            var nameToIndex = typeof(TEntity).GetField("NameToIndexMap")?.GetValue(null) as IReadOnlyDictionary<string, int>;
-            var indexToAccess = typeof(TEntity).GetField("IndexToObjectAccessMap")?.GetValue(null) as IReadOnlyDictionary<int, Func<TEntity, object>>;
+            var nameToIndex =
+                typeof(TEntity).GetField("NameToIndexMap")?.GetValue(null) as IReadOnlyDictionary<string, int>;
+            var indexToAccess =
+                typeof(TEntity).GetField("IndexToObjectAccessMap")?.GetValue(null) as
+                    IReadOnlyDictionary<int, Func<TEntity, object>>;
 
             var source = new GenericRowsSource<TEntity>(_source, nameToIndex, indexToAccess);
 

@@ -124,9 +124,6 @@ public abstract class BytesInterpreterBase<TOut> : IBytesInterpreter<TOut>
         return (sbyte)data[_parsePosition++];
     }
 
-    /// <summary>
-    ///     Throws an InsufficientData parse exception. Separated to allow inlining of the fast path.
-    /// </summary>
     private void ThrowInsufficientData(int count, int dataLength)
     {
         throw new ParseException(

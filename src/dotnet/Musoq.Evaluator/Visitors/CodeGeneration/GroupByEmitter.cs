@@ -98,9 +98,6 @@ internal static class GroupByEmitter
         return block;
     }
 
-    /// <summary>
-    ///     Creates the AddGroupStatement which conditionally adds a group to the score table.
-    /// </summary>
     private static StatementSyntax CreateAddGroupStatement(string scoreTable)
     {
         return StatementEmitter.CreateIf(
@@ -133,9 +130,6 @@ internal static class GroupByEmitter
                                     SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group"))))))));
     }
 
-    /// <summary>
-    ///     Creates the for loop that iterates through group keys and builds the group hierarchy.
-    /// </summary>
     private static StatementSyntax CreateGroupForStatement()
     {
         var forBody = StatementEmitter.CreateBlock(

@@ -311,9 +311,6 @@ public abstract class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
             ThrowInsufficientData(count, text.Length);
     }
 
-    /// <summary>
-    ///     Throws an InsufficientData parse exception. Separated to allow inlining of the fast path.
-    /// </summary>
     private void ThrowInsufficientData(int count, int dataLength)
     {
         throw new ParseException(
@@ -324,9 +321,6 @@ public abstract class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
             $"Attempted to read {count} characters at _parsePosition {_parsePosition}, but only {dataLength - _parsePosition} characters available");
     }
 
-    /// <summary>
-    ///     Finds the _parsePosition of a balanced closing delimiter, accounting for nesting.
-    /// </summary>
     private static int FindBalancedClose(ReadOnlySpan<char> text, string open, string close)
     {
         var depth = 1;

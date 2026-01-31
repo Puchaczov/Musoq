@@ -1,4 +1,7 @@
+#nullable enable
 using System;
+using Musoq.Parser;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Exceptions;
 
@@ -7,7 +10,7 @@ namespace Musoq.Evaluator.Exceptions;
 ///     This typically occurs when the Interpret(), Parse(), or InterpretAt() functions
 ///     reference a schema that was not defined in the INTERPRET block.
 /// </summary>
-public class UnknownInterpretationSchemaException : Exception
+public class UnknownInterpretationSchemaException : Exception, IDiagnosticException
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="UnknownInterpretationSchemaException" /> class.
@@ -18,6 +21,7 @@ public class UnknownInterpretationSchemaException : Exception
             $"Interpretation schema '{schemaName}' is not defined. Ensure the schema is declared in an INTERPRET block at the beginning of your query.")
     {
         SchemaName = schemaName;
+        Code = DiagnosticCode.MQ3010_UnknownSchema;
     }
 
     /// <summary>
@@ -29,12 +33,43 @@ public class UnknownInterpretationSchemaException : Exception
         : base(message)
     {
         SchemaName = schemaName;
+        Code = DiagnosticCode.MQ3010_UnknownSchema;
+    }
+
+    /// <summary>
+    ///     Initializes a new instance with diagnostic information.
+    /// </summary>
+    public UnknownInterpretationSchemaException(string schemaName, string message, TextSpan span)
+        : base(message)
+    {
+        SchemaName = schemaName;
+        Code = DiagnosticCode.MQ3010_UnknownSchema;
+        Span = span;
     }
 
     /// <summary>
     ///     Gets the name of the schema that could not be resolved.
     /// </summary>
     public string SchemaName { get; }
+
+    /// <summary>
+    ///     Gets the diagnostic code for this exception.
+    /// </summary>
+    public DiagnosticCode Code { get; }
+
+    /// <summary>
+    ///     Gets the source location span where this error occurred.
+    /// </summary>
+    public TextSpan? Span { get; }
+
+    /// <summary>
+    ///     Converts this exception to a Diagnostic instance.
+    /// </summary>
+    public Diagnostic ToDiagnostic(SourceText? sourceText = null)
+    {
+        var span = Span ?? TextSpan.Empty;
+        return Diagnostic.Error(Code, Message, span);
+    }
 
     /// <summary>
     ///     Creates an exception for when a schema is not found in the registry.

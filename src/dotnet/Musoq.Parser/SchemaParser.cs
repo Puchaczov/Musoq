@@ -105,20 +105,12 @@ public class SchemaParser
         }
     }
 
-    /// <summary>
-    ///     Parses a binary schema definition.
-    ///     Syntax: binary Name [extends Base] { FieldList }
-    /// </summary>
     private BinarySchemaNode ComposeBinarySchema()
     {
         Consume(TokenType.Binary);
         return ComposeBinarySchemaBody();
     }
 
-    /// <summary>
-    ///     Parses the body of a binary schema definition after the 'binary' keyword has been consumed.
-    ///     Syntax: Name[&lt;T, U, ...&gt;] [extends Base] { FieldList }
-    /// </summary>
     private BinarySchemaNode ComposeBinarySchemaBody()
     {
         var name = ComposeIdentifierOrWord();
@@ -132,10 +124,6 @@ public class SchemaParser
         return new BinarySchemaNode(name, fields, extends, typeParameters);
     }
 
-    /// <summary>
-    ///     Parses a comma-separated list of binary field definitions.
-    ///     Supports both parsed fields (FieldDefinitionNode) and computed fields (ComputedFieldNode).
-    /// </summary>
     private SchemaFieldNode[] ComposeBinaryFieldList()
     {
         var fields = new List<SchemaFieldNode>();
@@ -156,11 +144,6 @@ public class SchemaParser
         return fields.ToArray();
     }
 
-    /// <summary>
-    ///     Parses a single binary field definition - either parsed or computed.
-    ///     Parsed field syntax: Name: Type [at Offset] [check(Expression)] [when Condition]
-    ///     Computed field syntax: Name: Expression (where Expression starts with identifier or literal)
-    /// </summary>
     private SchemaFieldNode ComposeBinaryFieldOrComputed()
     {
         var name = ComposeIdentifierOrWord();
@@ -193,10 +176,6 @@ public class SchemaParser
         return new FieldDefinitionNode(name, typeAnnotation, constraint, atOffset, whenCondition);
     }
 
-    /// <summary>
-    ///     Determines if the current token starts a computed field expression.
-    ///     Returns true if the token is NOT a type keyword.
-    /// </summary>
     private bool IsComputedFieldStart()
     {
         if (IsTypeKeyword(Current.TokenType))
@@ -229,9 +208,6 @@ public class SchemaParser
         return false;
     }
 
-    /// <summary>
-    ///     Checks if the token type is a type keyword.
-    /// </summary>
     private static bool IsTypeKeyword(TokenType tokenType)
     {
         return tokenType is TokenType.ByteType or TokenType.SByteType or
@@ -242,10 +218,6 @@ public class SchemaParser
             TokenType.StringType or TokenType.BitsType or TokenType.Align;
     }
 
-    /// <summary>
-    ///     Parses a single binary field definition.
-    ///     Syntax: Name: Type [repeat until Expression] [at Offset] [check(Expression)] [when Condition]
-    /// </summary>
     private FieldDefinitionNode ComposeBinaryField()
     {
         var name = ComposeIdentifierOrWord();
@@ -263,9 +235,6 @@ public class SchemaParser
         return new FieldDefinitionNode(name, typeAnnotation, constraint, atOffset, whenCondition);
     }
 
-    /// <summary>
-    ///     Parses a type annotation (primitive, array, string, etc.).
-    /// </summary>
     private TypeAnnotationNode ComposeTypeAnnotation()
     {
         return Current.TokenType switch
@@ -308,9 +277,6 @@ public class SchemaParser
         };
     }
 
-    /// <summary>
-    ///     Parses an inline anonymous schema: { field: type, ... }
-    /// </summary>
     private InlineSchemaTypeNode ComposeInlineSchema()
     {
         Consume(TokenType.LBracket);
@@ -338,13 +304,6 @@ public class SchemaParser
         return new InlineSchemaTypeNode(fields.ToArray());
     }
 
-    /// <summary>
-    ///     Parses a primitive type with optional endianness.
-    ///     Handles both syntaxes:
-    ///     - int le (single primitive)
-    ///     - int le[5] (array with endianness before size)
-    ///     - int[5] le (array with endianness after size)
-    /// </summary>
     private TypeAnnotationNode ComposePrimitiveType(PrimitiveTypeName typeName, bool canHaveEndianness)
     {
         Consume(Current.TokenType);
@@ -394,9 +353,6 @@ public class SchemaParser
         return primitiveType;
     }
 
-    /// <summary>
-    ///     Parses a byte array type: byte[size]
-    /// </summary>
     private TypeAnnotationNode ComposeByteArrayType()
     {
         Consume(Current.TokenType);
@@ -407,9 +363,6 @@ public class SchemaParser
         return new ByteArrayTypeNode(sizeExpr);
     }
 
-    /// <summary>
-    ///     Parses a string type: string[size] encoding modifiers [as TextSchemaName]
-    /// </summary>
     private TypeAnnotationNode ComposeStringType()
     {
         Consume(TokenType.StringType);
@@ -441,9 +394,6 @@ public class SchemaParser
         return stringType;
     }
 
-    /// <summary>
-    ///     Parses string encoding specifier.
-    /// </summary>
     private StringEncoding ComposeStringEncoding()
     {
         var encoding = Current.TokenType switch
@@ -462,9 +412,6 @@ public class SchemaParser
         return encoding;
     }
 
-    /// <summary>
-    ///     Parses optional string modifiers (trim, rtrim, ltrim, nullterm).
-    /// </summary>
     private StringModifier ComposeStringModifiers()
     {
         var modifiers = StringModifier.None;
@@ -493,9 +440,6 @@ public class SchemaParser
             }
     }
 
-    /// <summary>
-    ///     Parses bits type: bits[count]
-    /// </summary>
     private BitsTypeNode ComposeBitsType()
     {
         Consume(TokenType.BitsType);
@@ -514,9 +458,6 @@ public class SchemaParser
         return new BitsTypeNode(bitCount);
     }
 
-    /// <summary>
-    ///     Parses alignment directive: align[bits]
-    /// </summary>
     private AlignmentNode ComposeAlignmentType()
     {
         Consume(TokenType.Align);
@@ -535,10 +476,6 @@ public class SchemaParser
         return new AlignmentNode(alignmentBits);
     }
 
-    /// <summary>
-    ///     Parses a schema reference or array of schema references.
-    ///     Supports generic instantiation: SchemaName&lt;TypeArg1, TypeArg2&gt;
-    /// </summary>
     private TypeAnnotationNode ComposeSchemaReferenceOrArray()
     {
         var schemaName = ComposeIdentifierOrWord();
@@ -554,10 +491,6 @@ public class SchemaParser
         return schemaRef;
     }
 
-    /// <summary>
-    ///     Parses generic type arguments: &lt;TypeArg1, TypeArg2, ...&gt;
-    /// </summary>
-    /// <returns>Array of type argument names.</returns>
     private string[] ComposeTypeArguments()
     {
         Consume(TokenType.Less);
@@ -579,9 +512,6 @@ public class SchemaParser
         return typeArgs.ToArray();
     }
 
-    /// <summary>
-    ///     Parses array notation: [size]
-    /// </summary>
     private ArrayTypeNode ComposeArrayOfType(TypeAnnotationNode elementType)
     {
         Consume(TokenType.LeftSquareBracket);
@@ -591,11 +521,6 @@ public class SchemaParser
         return new ArrayTypeNode(elementType, sizeExpr);
     }
 
-    /// <summary>
-    ///     Parses repeat until modifier: repeat until Expression
-    /// </summary>
-    /// <param name="elementType">The element type to repeat.</param>
-    /// <param name="fieldName">The field name for condition referencing (FieldName[-1]).</param>
     private RepeatUntilTypeNode ComposeRepeatUntilType(TypeAnnotationNode elementType, string fieldName)
     {
         Consume(TokenType.Repeat);
@@ -606,26 +531,16 @@ public class SchemaParser
         return new RepeatUntilTypeNode(elementType, condition, fieldName);
     }
 
-    /// <summary>
-    ///     Parses a general expression including comparison operators.
-    ///     This is the top-level entry point for expression parsing.
-    /// </summary>
     private Node ComposeExpression()
     {
         return ComposeComparisonExpression();
     }
 
-    /// <summary>
-    ///     Parses a size expression (integer literal, field reference, or arithmetic).
-    /// </summary>
     private Node ComposeSizeExpression()
     {
         return ComposeAdditiveExpression();
     }
 
-    /// <summary>
-    ///     Parses additive expressions (+ -)
-    /// </summary>
     private Node ComposeAdditiveExpression()
     {
         var left = ComposeMultiplicativeExpression();
@@ -644,9 +559,6 @@ public class SchemaParser
         return left;
     }
 
-    /// <summary>
-    ///     Parses multiplicative expressions (* / %)
-    /// </summary>
     private Node ComposeMultiplicativeExpression()
     {
         var left = ComposePrimaryExpression();
@@ -669,9 +581,6 @@ public class SchemaParser
         return left;
     }
 
-    /// <summary>
-    ///     Parses primary expressions (literals, identifiers, function calls, parenthesized).
-    /// </summary>
     private Node ComposePrimaryExpression()
     {
         switch (Current.TokenType)
@@ -715,9 +624,6 @@ public class SchemaParser
         }
     }
 
-    /// <summary>
-    ///     Parses an identifier or a function call.
-    /// </summary>
     private Node ComposeIdentifierOrFunctionCall()
     {
         var token = ConsumeAndGetToken(Current.TokenType);
@@ -748,9 +654,6 @@ public class SchemaParser
         return new IdentifierNode(name);
     }
 
-    /// <summary>
-    ///     Parses optional 'at offset' clause.
-    /// </summary>
     private Node? ComposeOptionalAtOffset()
     {
         if (Current.TokenType != TokenType.At)
@@ -760,10 +663,6 @@ public class SchemaParser
         return ComposeSizeExpression();
     }
 
-    /// <summary>
-    ///     Parses optional check constraint.
-    ///     Syntax: check Expression or check(Expression)
-    /// </summary>
     private FieldConstraintNode? ComposeOptionalConstraint()
     {
         if (Current.TokenType != TokenType.Check)
@@ -784,10 +683,6 @@ public class SchemaParser
         return new FieldConstraintNode(expression);
     }
 
-    /// <summary>
-    ///     Parses optional when condition clause.
-    ///     Syntax: when Condition
-    /// </summary>
     private Node? ComposeOptionalWhenCondition()
     {
         if (Current.TokenType != TokenType.When)
@@ -797,17 +692,11 @@ public class SchemaParser
         return ComposeComparisonExpression();
     }
 
-    /// <summary>
-    ///     Parses a logical OR expression (lowest precedence).
-    /// </summary>
     private Node ComposeComparisonExpression()
     {
         return ComposeLogicalOrExpression();
     }
 
-    /// <summary>
-    ///     Parses OR expressions.
-    /// </summary>
     private Node ComposeLogicalOrExpression()
     {
         var left = ComposeLogicalAndExpression();
@@ -822,9 +711,6 @@ public class SchemaParser
         return left;
     }
 
-    /// <summary>
-    ///     Parses AND expressions.
-    /// </summary>
     private Node ComposeLogicalAndExpression()
     {
         var left = ComposeRelationalExpression();
@@ -839,9 +725,6 @@ public class SchemaParser
         return left;
     }
 
-    /// <summary>
-    ///     Parses relational/comparison expressions.
-    /// </summary>
     private Node ComposeRelationalExpression()
     {
         var left = ComposeBitwiseOrExpression();
@@ -871,9 +754,6 @@ public class SchemaParser
         }
     }
 
-    /// <summary>
-    ///     Parses bitwise OR expressions (|)
-    /// </summary>
     private Node ComposeBitwiseOrExpression()
     {
         var left = ComposeBitwiseXorExpression();
@@ -888,9 +768,6 @@ public class SchemaParser
         return left;
     }
 
-    /// <summary>
-    ///     Parses bitwise XOR expressions (^)
-    /// </summary>
     private Node ComposeBitwiseXorExpression()
     {
         var left = ComposeBitwiseAndExpression();
@@ -905,9 +782,6 @@ public class SchemaParser
         return left;
     }
 
-    /// <summary>
-    ///     Parses bitwise AND expressions (&)
-    /// </summary>
     private Node ComposeBitwiseAndExpression()
     {
         var left = ComposeShiftExpression();
@@ -922,9 +796,6 @@ public class SchemaParser
         return left;
     }
 
-    /// <summary>
-    ///     Parses shift expressions (<< >>)
-    /// </summary>
     private Node ComposeShiftExpression()
     {
         var left = ComposeAdditiveExpression();
@@ -943,19 +814,12 @@ public class SchemaParser
         return left;
     }
 
-    /// <summary>
-    ///     Parses a text schema definition.
-    ///     Syntax: text Name [extends Base] { FieldList }
-    /// </summary>
     private TextSchemaNode ComposeTextSchema()
     {
         Consume(TokenType.Text);
         return ComposeTextSchemaBody();
     }
 
-    /// <summary>
-    ///     Parses the body of a text schema definition after the 'text' keyword has been consumed.
-    /// </summary>
     private TextSchemaNode ComposeTextSchemaBody()
     {
         var name = ComposeIdentifierOrWord();
@@ -968,9 +832,6 @@ public class SchemaParser
         return new TextSchemaNode(name, fields, extends);
     }
 
-    /// <summary>
-    ///     Parses a comma-separated list of text field definitions.
-    /// </summary>
     private TextFieldDefinitionNode[] ComposeTextFieldList()
     {
         var fields = new List<TextFieldDefinitionNode>();
@@ -990,10 +851,6 @@ public class SchemaParser
         return fields.ToArray();
     }
 
-    /// <summary>
-    ///     Parses a single text field definition.
-    ///     Supports optional prefix: FieldName: optional literal '...'
-    /// </summary>
     private TextFieldDefinitionNode ComposeTextField()
     {
         var name = ComposeIdentifierOrWord();
@@ -1034,9 +891,6 @@ public class SchemaParser
         return field;
     }
 
-    /// <summary>
-    ///     Parses pattern field: pattern 'regex' [capture (groups)]
-    /// </summary>
     private TextFieldDefinitionNode ComposePatternField(string name)
     {
         Consume(TokenType.Pattern);
@@ -1048,9 +902,6 @@ public class SchemaParser
             name, TextFieldType.Pattern, pattern, null, modifiers, null, captureGroups);
     }
 
-    /// <summary>
-    ///     Parses literal field: literal 'string'
-    /// </summary>
     private TextFieldDefinitionNode ComposeLiteralField(string name)
     {
         Consume(TokenType.Literal);
@@ -1061,9 +912,6 @@ public class SchemaParser
             name, TextFieldType.Literal, literal, null, modifiers);
     }
 
-    /// <summary>
-    ///     Parses until field: until 'delimiter' [modifiers]
-    /// </summary>
     private TextFieldDefinitionNode ComposeUntilField(string name)
     {
         Consume(TokenType.Until);
@@ -1074,9 +922,6 @@ public class SchemaParser
             name, TextFieldType.Until, delimiter, null, modifiers);
     }
 
-    /// <summary>
-    ///     Parses between field: between 'open' 'close' [modifiers]
-    /// </summary>
     private TextFieldDefinitionNode ComposeBetweenField(string name)
     {
         Consume(TokenType.Between);
@@ -1093,9 +938,6 @@ public class SchemaParser
             name, TextFieldType.Between, openDelimiter, closeDelimiter, modifiers, escapeChar);
     }
 
-    /// <summary>
-    ///     Parses chars field: chars[count] [modifiers]
-    /// </summary>
     private TextFieldDefinitionNode ComposeCharsField(string name)
     {
         Consume(TokenType.Chars);
@@ -1115,9 +957,6 @@ public class SchemaParser
             name, TextFieldType.Chars, countStr, null, modifiers);
     }
 
-    /// <summary>
-    ///     Parses token field: token [modifiers]
-    /// </summary>
     private TextFieldDefinitionNode ComposeTokenField(string name)
     {
         Consume(TokenType.Token);
@@ -1127,9 +966,6 @@ public class SchemaParser
             name, TextFieldType.Token, null, null, modifiers);
     }
 
-    /// <summary>
-    ///     Parses rest field: rest [modifiers]
-    /// </summary>
     private TextFieldDefinitionNode ComposeRestField(string name)
     {
         Consume(TokenType.Rest);
@@ -1139,10 +975,6 @@ public class SchemaParser
             name, TextFieldType.Rest, null, null, modifiers);
     }
 
-    /// <summary>
-    ///     Parses whitespace field: whitespace[+*?]
-    ///     Quantifiers: + = one or more (default), * = zero or more, ? = zero or one
-    /// </summary>
     private TextFieldDefinitionNode ComposeWhitespaceField(string name)
     {
         Consume(TokenType.Whitespace);
@@ -1172,10 +1004,6 @@ public class SchemaParser
             name, TextFieldType.Whitespace, quantifier, null, modifiers);
     }
 
-    /// <summary>
-    ///     Parses repeat field: repeat SchemaName [until 'delimiter' | until end]
-    ///     Results in an array of parsed schema elements.
-    /// </summary>
     private TextFieldDefinitionNode ComposeRepeatField(string name)
     {
         Consume(TokenType.Repeat);
@@ -1200,10 +1028,6 @@ public class SchemaParser
             name, TextFieldType.Repeat, schemaName, untilDelimiter);
     }
 
-    /// <summary>
-    ///     Parses switch field: switch { pattern 'regex' => TypeName, ... [, _ => DefaultType] }
-    ///     Lookahead-based type selection without consuming input.
-    /// </summary>
     private TextFieldDefinitionNode ComposeSwitchField(string name)
     {
         Consume(TokenType.Switch);
@@ -1244,9 +1068,6 @@ public class SchemaParser
         return new TextFieldDefinitionNode(name, cases.ToArray());
     }
 
-    /// <summary>
-    ///     Parses optional capture groups: capture (Group1, Group2, ...)
-    /// </summary>
     private string[] ComposeOptionalCaptureGroups()
     {
         if (Current.TokenType != TokenType.Capture)
@@ -1269,9 +1090,6 @@ public class SchemaParser
         return groups.ToArray();
     }
 
-    /// <summary>
-    ///     Parses optional text field modifiers.
-    /// </summary>
     private TextFieldModifier ComposeTextFieldModifiers()
     {
         var modifiers = TextFieldModifier.None;
@@ -1324,11 +1142,6 @@ public class SchemaParser
             }
     }
 
-    /// <summary>
-    ///     Parses optional generic type parameters.
-    ///     Syntax: &lt;T, U, ...&gt;
-    /// </summary>
-    /// <returns>Array of type parameter names, or null if no type parameters.</returns>
     private string[]? ComposeOptionalTypeParameters()
     {
         if (Current.TokenType != TokenType.Less)
@@ -1353,9 +1166,6 @@ public class SchemaParser
         return typeParams.ToArray();
     }
 
-    /// <summary>
-    ///     Parses optional extends clause.
-    /// </summary>
     private string? ComposeOptionalExtends()
     {
         if (Current.TokenType != TokenType.Extends)
@@ -1365,10 +1175,6 @@ public class SchemaParser
         return ComposeIdentifierOrWord();
     }
 
-    /// <summary>
-    ///     Parses an identifier or word token and returns its value.
-    ///     Also accepts schema-related keywords as valid field names (e.g., Rest, Text, End).
-    /// </summary>
     private string ComposeIdentifierOrWord()
     {
         return Current.TokenType switch
@@ -1400,9 +1206,6 @@ public class SchemaParser
         };
     }
 
-    /// <summary>
-    ///     Parses a string literal and returns its value.
-    /// </summary>
     private string ComposeStringLiteral()
     {
         if (Current.TokenType != TokenType.Word && Current.TokenType != TokenType.StringLiteral)
@@ -1422,9 +1225,6 @@ public class SchemaParser
         return UnescapeString(value);
     }
 
-    /// <summary>
-    ///     Unescapes a string literal.
-    /// </summary>
     private static string UnescapeString(string value)
     {
         return value
@@ -1436,9 +1236,6 @@ public class SchemaParser
             .Replace("\\t", "\t");
     }
 
-    /// <summary>
-    ///     Peeks at the next token's type without consuming the current token.
-    /// </summary>
     private TokenType PeekNextTokenType()
     {
         _savedTokenBeforePeek = _lexer.Current();
@@ -1453,9 +1250,6 @@ public class SchemaParser
         return nextToken.TokenType;
     }
 
-    /// <summary>
-    ///     Consumes the current token if it matches the expected type.
-    /// </summary>
     private void Consume(TokenType tokenType)
     {
         if (!Current.TokenType.Equals(tokenType))
@@ -1480,9 +1274,6 @@ public class SchemaParser
         }
     }
 
-    /// <summary>
-    ///     Consumes the current token and returns it.
-    /// </summary>
     private Token ConsumeAndGetToken(TokenType expected)
     {
         var token = Current;

@@ -346,31 +346,7 @@ public class DescStatementEmitter(SyntaxGenerator generator)
                                 {
                                     SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
                                     SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                    SyntaxFactory.TupleType(
-                                        SyntaxFactory.SeparatedList<TupleElementSyntax>(
-                                            new SyntaxNodeOrToken[]
-                                            {
-                                                SyntaxFactory
-                                                    .TupleElement(SyntaxFactory.IdentifierName("SchemaFromNode"))
-                                                    .WithIdentifier(SyntaxFactory.Identifier("FromNode")),
-                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                SyntaxFactory.TupleElement(
-                                                        SyntaxFactory.GenericName(
-                                                                SyntaxFactory.Identifier("IReadOnlyCollection"))
-                                                            .WithTypeArgumentList(
-                                                                SyntaxFactory.TypeArgumentList(
-                                                                    SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                                                        SyntaxFactory
-                                                                            .IdentifierName("ISchemaColumn")))))
-                                                    .WithIdentifier(SyntaxFactory.Identifier("UsedColumns")),
-                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                SyntaxFactory.TupleElement(SyntaxFactory.IdentifierName("WhereNode"))
-                                                    .WithIdentifier(SyntaxFactory.Identifier("WhereNode")),
-                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                SyntaxFactory.TupleElement(SyntaxFactory.IdentifierName("bool"))
-                                                    .WithIdentifier(
-                                                        SyntaxFactory.Identifier("HasExternallyProvidedTypes"))
-                                            }))
+                                    SyntaxFactory.IdentifierName("QuerySourceInfo")
                                 }))));
     }
 

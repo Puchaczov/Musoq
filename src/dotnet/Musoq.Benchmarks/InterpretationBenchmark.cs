@@ -1098,6 +1098,7 @@ public class BenchmarkEntitySource<T> : RowSource
 /// </summary>
 public class BenchmarkEntityResolver<T> : IObjectResolver
 {
+    private static readonly object[] EmptyContexts = [];
     private readonly T _entity;
     private readonly IReadOnlyDictionary<int, Func<T, object>> _indexToObjectAccessMap;
     private readonly IReadOnlyDictionary<string, int> _nameToIndexMap;
@@ -1112,7 +1113,7 @@ public class BenchmarkEntityResolver<T> : IObjectResolver
         _indexToObjectAccessMap = indexToObjectAccessMap;
     }
 
-    public object[] Contexts => [];
+    public object[] Contexts => EmptyContexts;
 
     public object this[string name]
     {

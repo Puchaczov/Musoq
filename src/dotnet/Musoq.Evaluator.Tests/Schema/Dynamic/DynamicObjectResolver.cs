@@ -14,9 +14,10 @@ public class DynamicObjectResolver : IObjectResolver
     {
         _dynamicObject = dynamicObject;
         _indexToNameMap = indexToNameMap;
+        Contexts = [dynamicObject];
     }
 
-    public object[] Contexts => [_dynamicObject];
+    public object[] Contexts { get; }
 
     public object this[string name]
     {

@@ -5,9 +5,16 @@ namespace Musoq.Parser.Nodes;
 public class BooleanNode : ConstantValueNode
 {
     public BooleanNode(bool value)
+        : this(value, default)
+    {
+    }
+
+    public BooleanNode(bool value, TextSpan span)
     {
         Value = value;
         Id = $"{nameof(BooleanNode)}{value}{ReturnType.Name}";
+        Span = span;
+        FullSpan = span;
     }
 
     public bool Value { get; }

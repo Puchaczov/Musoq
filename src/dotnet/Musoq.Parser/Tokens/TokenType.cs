@@ -173,5 +173,8 @@ public enum TokenType : short
     Underscore, // _
 
     // Question mark for optional quantifier
-    QuestionMark // ?
+    QuestionMark, // ?
+
+    // Error token for recovery mode
+    Error // Invalid/unrecognized token
 }

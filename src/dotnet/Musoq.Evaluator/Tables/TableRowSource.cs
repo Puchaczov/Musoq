@@ -11,6 +11,7 @@ public class TableRowSource : RowSource
     private readonly IDictionary<string, int> _columnToIndexMap;
     private readonly bool _discardedContext;
     private readonly Table _table;
+    private List<IObjectResolver>? _cachedResolvers;
 
     public TableRowSource(Table rowSource, bool discardContext)
     {
@@ -23,14 +24,23 @@ public class TableRowSource : RowSource
             _columnToIndexMap.Add(column.ColumnName, column.ColumnIndex);
     }
 
-    public override IEnumerable<IObjectResolver> Rows =>
-        _discardedContext ? RowsWithDiscardedContexts : RowsWithContexts;
+    public override IEnumerable<IObjectResolver> Rows
+    {
+        get
+        {
+            if (_cachedResolvers != null)
+                return _cachedResolvers;
 
-    private IEnumerable<IObjectResolver> RowsWithContexts =>
-        _table.Select(row => new RowResolver(row, _columnToIndexMap));
+            _cachedResolvers = _discardedContext
+                ? _table.Select(row =>
+                        (IObjectResolver)new RowResolver(new ObjectsRow(row.Values, DiscardedContexts),
+                            _columnToIndexMap))
+                    .ToList()
+                : _table.Select(row => (IObjectResolver)new RowResolver(row, _columnToIndexMap)).ToList();
 
-    private IEnumerable<IObjectResolver> RowsWithDiscardedContexts =>
-        _table.Select(row => new RowResolver(new ObjectsRow(row.Values, DiscardedContexts), _columnToIndexMap));
+            return _cachedResolvers;
+        }
+    }
 
     private class DiscardedRowContext;
 }

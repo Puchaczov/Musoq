@@ -4,6 +4,25 @@ using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors;
 
+/// <summary>
+///     Rewrites WHERE expressions to be safe for pushing to individual data sources.
+///     This visitor handles predicate pushdown by:
+///     1. Keeping predicates that only reference the current data source's alias
+///     2. Replacing predicates that reference other data sources with "1 = 1" (always true)
+///     3. Handling OR conditions specially - if any branch references another data source,
+///     the entire OR must be replaced with "1 = 1" since we can't partially push OR predicates
+///     4. Replacing complex expressions (method calls, property chains) with "1 = 1"
+///     Example: For data source 'a' in query:
+///     SELECT * FROM #A.data() a JOIN #B.data() b ON a.Id = b.Id
+///     WHERE a.Status = 'open' AND b.Type = 'bug' OR a.Priority = 1
+///     Result for 'a': WHERE 1 = 1 (because OR branch references b)
+///     Result for 'b': WHERE 1 = 1 (because OR branch references a)
+///     But for:
+///     SELECT * FROM #A.data() a JOIN #B.data() b ON a.Id = b.Id
+///     WHERE a.Status = 'open' AND b.Type = 'bug'
+///     Result for 'a': WHERE a.Status = 'open' AND 1 = 1
+///     Result for 'b': WHERE 1 = 1 AND b.Type = 'bug'
+/// </summary>
 public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisitor
 {
     private readonly Node _equalityNode;
@@ -16,6 +35,28 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
     }
 
     public WhereNode WhereNode => (WhereNode)Nodes.Peek();
+
+    /// <summary>
+    ///     Handles OR nodes specially. If either branch of an OR contains references
+    ///     to other data sources, the entire OR must be replaced with "1 = 1".
+    ///     This is because: (a.Col = 1 OR b.Col = 2) cannot be partially pushed to
+    ///     either data source - data source 'a' can't know about 'b', and if we only
+    ///     push (a.Col = 1), we'd incorrectly filter out rows where b.Col = 2 is true.
+    /// </summary>
+    public override void Visit(OrNode node)
+    {
+        var right = Nodes.Pop();
+        var left = Nodes.Pop();
+
+
+        var leftHasOtherAlias = ContainsOtherAlias(node.Left);
+        var rightHasOtherAlias = ContainsOtherAlias(node.Right);
+
+        if (leftHasOtherAlias || rightHasOtherAlias)
+            Nodes.Push(_equalityNode);
+        else
+            Nodes.Push(new OrNode(left, right));
+    }
 
     public override void Visit(GreaterNode node)
     {
@@ -94,6 +135,14 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         var clonedNode = Nodes.Pop();
 
         if (!VisitForArgsListNode((ArgsListNode)node.Right)) Nodes.Push(clonedNode);
+    }
+
+    private bool ContainsOtherAlias(Node node)
+    {
+        var visitor = new IsComplexVisitor(_schemaFromNode.Alias);
+        var traverser = new IsComplexTraverseVisitor(visitor);
+        node.Accept(traverser);
+        return visitor.IsComplex;
     }
 
     private bool VisitForBinaryNode(BinaryNode node)

@@ -211,9 +211,6 @@ public class MethodsMetadata
         return GetCachedParameterMetadata(method).Parameters;
     }
 
-    /// <summary>
-    ///     Gets the cached index for a method, avoiding O(N) IndexOf() lookups.
-    /// </summary>
     private int GetCachedMethodIndex(string name, MethodInfo method)
     {
         return _methodIndexCache.TryGetValue((name, method), out var index)
@@ -295,17 +292,6 @@ public class MethodsMetadata
         RegisterMethod(methodInfo.Name, methodInfo);
     }
 
-    /// <summary>
-    ///     Tries to match method as if it weren't annotated. Assume that method specified parameters explicitly.
-    /// </summary>
-    /// <param name="name">Method name</param>
-    /// <param name="methodArgs">Types of method arguments</param>
-    /// <param name="index">Index of method that fits requirements.</param>
-    /// <param name="actualMethodName">
-    ///     The actual method name that was found (may differ from input due to case-insensitive
-    ///     lookup).
-    /// </param>
-    /// <returns>True if some method fits, else false.</returns>
     private bool TryGetRawMethod(string name, Type[] methodArgs, out int index, out string actualMethodName)
     {
         if (TryGetRawMethodByExactName(name, methodArgs, out index))
@@ -328,9 +314,6 @@ public class MethodsMetadata
         return false;
     }
 
-    /// <summary>
-    ///     Internal helper method for exact name-based raw method resolution.
-    /// </summary>
     private bool TryGetRawMethodByExactName(string name, Type[] methodArgs, out int index)
     {
         if (!_methods.TryGetValue(name, out var methods))
@@ -369,18 +352,6 @@ public class MethodsMetadata
         return false;
     }
 
-    /// <summary>
-    ///     Determine if there are registered methods with specific names and types of arguments.
-    /// </summary>
-    /// <param name="name">Method name</param>
-    /// <param name="methodArgs">Types of method arguments</param>
-    /// <param name="entityType">Type of entity.</param>
-    /// <param name="index">Index of method that fits requirements.</param>
-    /// <param name="actualMethodName">
-    ///     The actual method name that was found (may differ from input due to case-insensitive
-    ///     lookup).
-    /// </param>
-    /// <returns>True if some method fits, else false.</returns>
     private bool TryGetAnnotatedMethod(string name, IReadOnlyList<Type> methodArgs, Type entityType, out int index,
         out string actualMethodName)
     {
@@ -403,9 +374,6 @@ public class MethodsMetadata
         return false;
     }
 
-    /// <summary>
-    ///     Internal helper method for exact name-based method resolution.
-    /// </summary>
     private bool TryGetAnnotatedMethodByExactName(string name, IReadOnlyList<Type> methodArgs, Type entityType,
         out int index)
     {
@@ -581,12 +549,6 @@ public class MethodsMetadata
         return methodArgs.Count >= parametersCount - optionalParametersCount && methodArgs.Count <= parametersCount;
     }
 
-    /// <summary>
-    ///     Determine if passed arguments amount is greater than function can contain.
-    /// </summary>
-    /// <param name="methodArgs">Passed arguments.</param>
-    /// <param name="parametersCount">Parameters amount.</param>
-    /// <returns></returns>
     private static bool HasMoreArgumentsThanMethodDefinitionContains(IReadOnlyList<Type> methodArgs,
         int parametersCount)
     {

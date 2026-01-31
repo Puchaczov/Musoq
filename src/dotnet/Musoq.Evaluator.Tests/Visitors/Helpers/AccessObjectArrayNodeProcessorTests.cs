@@ -251,9 +251,6 @@ public class AccessObjectArrayNodeProcessorTests
             new AccessObjectArrayNodeProcessor.AccessObjectArrayProcessingResult(expression, null));
     }
 
-    /// <summary>
-    ///     Helper method to create AccessObjectArrayNode for testing.
-    /// </summary>
     private static AccessObjectArrayNode CreateAccessObjectArrayNode(string objectName, int index, Type columnType,
         bool isColumnAccess)
     {

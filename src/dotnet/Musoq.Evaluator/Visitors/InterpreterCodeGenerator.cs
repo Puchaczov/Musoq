@@ -88,9 +88,6 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Generates C# code for a single binary schema.
-    /// </summary>
     private string GenerateBinaryInterpreterClass(BinarySchemaNode schema)
     {
         var builder = new StringBuilder();
@@ -218,9 +215,6 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Generates a nested class for an inline schema.
-    /// </summary>
     private string GenerateInlineSchemaNestedClass(string className, InlineSchemaTypeNode inlineSchema)
     {
         var builder = new StringBuilder();
@@ -295,9 +289,6 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Gets the CLR type name for a field in an inline schema context.
-    /// </summary>
     private string GetClrTypeNameForFieldInline(SchemaFieldNode field)
     {
         return field switch
@@ -310,10 +301,6 @@ public class InterpreterCodeGenerator
         };
     }
 
-    /// <summary>
-    ///     Gets all fields for a schema, including inherited fields from parent schemas.
-    ///     Parent fields come first, followed by child fields.
-    /// </summary>
     private List<SchemaFieldNode> GetAllFieldsIncludingInherited(BinarySchemaNode schema)
     {
         var allFields = new List<SchemaFieldNode>();
@@ -334,9 +321,6 @@ public class InterpreterCodeGenerator
         return allFields;
     }
 
-    /// <summary>
-    ///     Generates field read code with support for at positioning, when conditions, and check constraints.
-    /// </summary>
     private string GenerateFieldReadCodeWithModifiers(FieldDefinitionNode field)
     {
         var builder = new StringBuilder();
@@ -417,10 +401,6 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Generates the inner field read code (for use inside if blocks for conditional fields).
-    ///     This generates only the assignment, not the variable declaration.
-    /// </summary>
     private string GenerateFieldReadCodeInner(FieldDefinitionNode field)
     {
         var builder = new StringBuilder();
@@ -550,9 +530,6 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Generates C# code for a single text schema.
-    /// </summary>
     private string GenerateTextInterpreterClass(TextSchemaNode schema)
     {
         var builder = new StringBuilder();
@@ -629,9 +606,6 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Generates the code to read a single text field.
-    /// </summary>
     private string GenerateTextFieldReadCode(TextFieldDefinitionNode field, TextFieldDefinitionNode? nextField)
     {
         var builder = new StringBuilder();
@@ -677,9 +651,6 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Generates the inner code to read a text field (without optional wrapping).
-    /// </summary>
     private string GenerateTextFieldReadCodeInner(TextFieldDefinitionNode field, string localVar, bool isDiscard,
         TextFieldDefinitionNode? nextField)
     {
@@ -699,18 +670,12 @@ public class InterpreterCodeGenerator
         };
     }
 
-    /// <summary>
-    ///     Generates code for literal field matching.
-    /// </summary>
     private string GenerateLiteralCode(TextFieldDefinitionNode field)
     {
         var escapedLiteral = EscapeCSharpString(field.PrimaryValue ?? string.Empty);
         return $"ExpectLiteral(data, \"{escapedLiteral}\");";
     }
 
-    /// <summary>
-    ///     Generates code for until-delimiter field capture.
-    /// </summary>
     private string GenerateUntilCode(TextFieldDefinitionNode field, string localVar, bool isDiscard,
         TextFieldDefinitionNode? nextField)
     {
@@ -727,9 +692,6 @@ public class InterpreterCodeGenerator
         return $"var {localVar} = ReadUntil(data, \"{escapedDelimiter}\"{trimArg}{consumeArg});";
     }
 
-    /// <summary>
-    ///     Generates code for between-delimiters field capture.
-    /// </summary>
     private string GenerateBetweenCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
     {
         var escapedOpen = EscapeCSharpString(field.PrimaryValue ?? string.Empty);
@@ -742,9 +704,6 @@ public class InterpreterCodeGenerator
         return $"var {localVar} = ReadBetween(data, \"{escapedOpen}\", \"{escapedClose}\"{nested}{trimArg});";
     }
 
-    /// <summary>
-    ///     Generates code for fixed-width character capture.
-    /// </summary>
     private string GenerateCharsCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
     {
         var count = field.PrimaryValue ?? "0";
@@ -754,9 +713,6 @@ public class InterpreterCodeGenerator
         return $"var {localVar} = ReadChars(data, {count}{modArgs});";
     }
 
-    /// <summary>
-    ///     Generates code for token capture.
-    /// </summary>
     private string GenerateTokenCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
     {
         var hasTrim = (field.Modifiers & TextFieldModifier.Trim) != 0;
@@ -766,9 +722,6 @@ public class InterpreterCodeGenerator
         return $"var {localVar} = ReadToken(data{trimArg});";
     }
 
-    /// <summary>
-    ///     Generates code for rest-of-input capture.
-    /// </summary>
     private string GenerateRestCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
     {
         var modArgs = GenerateModifierArgs(field.Modifiers);
@@ -777,10 +730,6 @@ public class InterpreterCodeGenerator
         return $"var {localVar} = ReadRest(data{modArgs});";
     }
 
-    /// <summary>
-    ///     Generates code for whitespace consumption with quantifier support.
-    ///     Quantifiers: + = one or more (required), * = zero or more, ? = zero or one
-    /// </summary>
     private string GenerateWhitespaceCode(TextFieldDefinitionNode field)
     {
         var quantifier = field.PrimaryValue ?? "+";
@@ -794,9 +743,6 @@ public class InterpreterCodeGenerator
         };
     }
 
-    /// <summary>
-    ///     Generates code for pattern matching.
-    /// </summary>
     private string GeneratePatternCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
     {
         var escapedPattern = EscapeCSharpString(field.PrimaryValue ?? string.Empty);
@@ -805,9 +751,6 @@ public class InterpreterCodeGenerator
         return $"var {localVar} = ReadPattern(data, @\"{field.PrimaryValue ?? string.Empty}\");";
     }
 
-    /// <summary>
-    ///     Generates code for repeat field - parses a schema repeatedly until delimiter or end.
-    /// </summary>
     private string GenerateRepeatCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
     {
         var schemaName = field.PrimaryValue ??
@@ -857,9 +800,6 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Generates code for switch field - uses lookahead pattern matching to determine which schema to parse.
-    /// </summary>
     private string GenerateSwitchCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
     {
         var builder = new StringBuilder();
@@ -927,17 +867,11 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Escapes a string for use in C# verbatim string regex pattern.
-    /// </summary>
     private static string EscapeCSharpRegexString(string value)
     {
         return value.Replace("\"", "\"\"");
     }
 
-    /// <summary>
-    ///     Escapes a string for use in C# string literal.
-    /// </summary>
     private static string EscapeCSharpString(string value)
     {
         return value
@@ -948,9 +882,6 @@ public class InterpreterCodeGenerator
             .Replace("\t", "\\t");
     }
 
-    /// <summary>
-    ///     Generates modifier arguments for text field read methods.
-    /// </summary>
     private static string GenerateModifierArgs(TextFieldModifier modifiers)
     {
         var hasTrim = (modifiers & TextFieldModifier.Trim) != 0;
@@ -971,9 +902,6 @@ public class InterpreterCodeGenerator
         return args.Count > 0 ? ", " + string.Join(", ", args) : "";
     }
 
-    /// <summary>
-    ///     Generates the code to read a single field.
-    /// </summary>
     private string GenerateFieldReadCode(FieldDefinitionNode field)
     {
         var builder = new StringBuilder();
@@ -1032,18 +960,12 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Generates code to read a primitive type.
-    /// </summary>
     private string GeneratePrimitiveReadCode(string localVar, PrimitiveTypeNode primitiveType)
     {
         var readMethod = GetPrimitiveReadMethod(primitiveType);
         return $"var {localVar} = {readMethod}(data);";
     }
 
-    /// <summary>
-    ///     Gets the appropriate read method name for a primitive type.
-    /// </summary>
     private static string GetPrimitiveReadMethod(PrimitiveTypeNode primitiveType)
     {
         return primitiveType.TypeName switch
@@ -1078,18 +1000,12 @@ public class InterpreterCodeGenerator
         };
     }
 
-    /// <summary>
-    ///     Generates code to read a byte array.
-    /// </summary>
     private string GenerateByteArrayReadCode(string localVar, ByteArrayTypeNode byteArrayType)
     {
         var sizeExpr = GenerateSizeExpression(byteArrayType.SizeExpression);
         return $"var {localVar} = ReadBytes(data, {sizeExpr});";
     }
 
-    /// <summary>
-    ///     Generates code to read a string, optionally parsing it with a text schema.
-    /// </summary>
     private string GenerateStringReadCode(string localVar, StringTypeNode stringType)
     {
         var sizeExpr = GenerateSizeExpression(stringType.SizeExpression);
@@ -1128,10 +1044,6 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Gets the .NET Encoding expression for a StringEncoding value.
-    ///     Returns a full expression that can be used in generated code.
-    /// </summary>
     private static string GetEncodingExpression(StringEncoding encoding)
     {
         return encoding switch
@@ -1146,9 +1058,6 @@ public class InterpreterCodeGenerator
         };
     }
 
-    /// <summary>
-    ///     Generates code to read bit fields.
-    /// </summary>
     private string GenerateBitsReadCode(string localVar, BitsTypeNode bitsType)
     {
         var bitCount = bitsType.BitCount;
@@ -1162,10 +1071,6 @@ public class InterpreterCodeGenerator
         return $"var {localVar} = ({clrType})ReadBits(data, {bitCount});";
     }
 
-    /// <summary>
-    ///     Generates code to read a nested schema reference.
-    ///     Handles both regular schema references and generic type parameter references.
-    /// </summary>
     private string GenerateSchemaReferenceReadCode(string localVar, SchemaReferenceTypeNode schemaRef)
     {
         var typeName = schemaRef.FullTypeName;
@@ -1177,9 +1082,6 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Generates code to read an inline schema.
-    /// </summary>
     private string GenerateInlineSchemaReadCode(string localVar, string fieldName, InlineSchemaTypeNode inlineSchema)
     {
         var inlineClassName = GetOrRegisterInlineSchemaClassName(fieldName, inlineSchema, null);
@@ -1191,9 +1093,6 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Generates code to read an array of elements.
-    /// </summary>
     private string GenerateArrayReadCode(string localVar, ArrayTypeNode arrayType)
     {
         var builder = new StringBuilder();
@@ -1232,10 +1131,6 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Generates code to read elements repeatedly until a condition is met.
-    ///     Uses do-while semantics: at least one element is always attempted.
-    /// </summary>
     private string GenerateRepeatUntilReadCode(string localVar, RepeatUntilTypeNode repeatUntilType, string fieldName)
     {
         var builder = new StringBuilder();
@@ -1279,17 +1174,11 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Generates a condition expression for repeat until, handling FieldName[-1] references.
-    /// </summary>
     private string GenerateRepeatUntilCondition(Node condition, string fieldName, string lastElemVar, string listVar)
     {
         return GenerateRepeatUntilConditionInner(condition, fieldName, lastElemVar, listVar);
     }
 
-    /// <summary>
-    ///     Inner recursive method for generating repeat until conditions.
-    /// </summary>
     private string GenerateRepeatUntilConditionInner(Node condition, string fieldName, string lastElemVar,
         string listVar)
     {
@@ -1346,18 +1235,12 @@ public class InterpreterCodeGenerator
         };
     }
 
-    /// <summary>
-    ///     Generates alignment code.
-    /// </summary>
     private string GenerateAlignmentCode(AlignmentNode alignmentNode)
     {
         var bits = alignmentNode.AlignmentBits;
         return $"AlignToBits(data, {bits});";
     }
 
-    /// <summary>
-    ///     Generates a size expression (constant or field reference).
-    /// </summary>
     private string GenerateSizeExpression(Node sizeExpression)
     {
         if (sizeExpression is IntegerNode intNode) return intNode.ObjValue.ToString() ?? "0";
@@ -1414,9 +1297,6 @@ public class InterpreterCodeGenerator
         return sizeExpression.ToString() ?? "0";
     }
 
-    /// <summary>
-    ///     Gets the CLR type name for a type annotation.
-    /// </summary>
     private static string GetClrTypeName(TypeAnnotationNode typeAnnotation)
     {
         return typeAnnotation switch
@@ -1452,9 +1332,6 @@ public class InterpreterCodeGenerator
         };
     }
 
-    /// <summary>
-    ///     Gets the CLR type name for a schema field (parsed or computed).
-    /// </summary>
     private static string GetClrTypeNameForField(SchemaFieldNode field)
     {
         return field switch
@@ -1465,9 +1342,6 @@ public class InterpreterCodeGenerator
         };
     }
 
-    /// <summary>
-    ///     Gets the CLR type name for a FieldDefinitionNode, handling inline schemas.
-    /// </summary>
     private string GetClrTypeNameForFieldDefinition(FieldDefinitionNode field)
     {
         if (field.TypeAnnotation is InlineSchemaTypeNode inlineSchema)
@@ -1475,10 +1349,6 @@ public class InterpreterCodeGenerator
         return GetClrTypeName(field.TypeAnnotation);
     }
 
-    /// <summary>
-    ///     Gets the CLR type name for a schema field with context.
-    ///     For inline schemas, registers the schema for nested class generation.
-    /// </summary>
     private string GetClrTypeNameForFieldWithContext(SchemaFieldNode field, List<SchemaFieldNode> contextFields)
     {
         return field switch
@@ -1491,9 +1361,6 @@ public class InterpreterCodeGenerator
         };
     }
 
-    /// <summary>
-    ///     Gets or registers an inline schema class name, tracking it for nested class generation.
-    /// </summary>
     private string GetOrRegisterInlineSchemaClassName(string fieldName, InlineSchemaTypeNode inlineSchema,
         string? parentPrefix)
     {
@@ -1506,9 +1373,6 @@ public class InterpreterCodeGenerator
         return className;
     }
 
-    /// <summary>
-    ///     Static version of type inference for computed fields (without context).
-    /// </summary>
     private static string InferComputedFieldTypeNameStatic(Node expression)
     {
         if (expression is EqualityNode or DiffNode or GreaterNode or GreaterOrEqualNode
@@ -1539,9 +1403,6 @@ public class InterpreterCodeGenerator
         return "object";
     }
 
-    /// <summary>
-    ///     Infers the CLR type name from a computed field expression.
-    /// </summary>
     private string InferComputedFieldTypeName(Node expression, List<SchemaFieldNode>? contextFields = null)
     {
         if (expression is EqualityNode or DiffNode or GreaterNode or GreaterOrEqualNode
@@ -1590,9 +1451,6 @@ public class InterpreterCodeGenerator
         return "object";
     }
 
-    /// <summary>
-    ///     Infers the type of an expression node.
-    /// </summary>
     private string InferExpressionType(Node node, List<SchemaFieldNode>? contextFields)
     {
         return node switch
@@ -1613,9 +1471,6 @@ public class InterpreterCodeGenerator
         };
     }
 
-    /// <summary>
-    ///     Infers the type of an operand node from field context.
-    /// </summary>
     private string InferOperandType(Node operand, List<SchemaFieldNode> contextFields)
     {
         if (operand is BinaryNode binaryOp) return InferComputedFieldTypeName(binaryOp, contextFields);
@@ -1635,9 +1490,6 @@ public class InterpreterCodeGenerator
         return "object";
     }
 
-    /// <summary>
-    ///     Gets the wider of two arithmetic types for expression result inference.
-    /// </summary>
     private static string GetWiderArithmeticType(string left, string right)
     {
         var typeOrder = new[] { "byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong", "float", "double" };
@@ -1651,9 +1503,6 @@ public class InterpreterCodeGenerator
         return leftIndex > rightIndex ? left : right;
     }
 
-    /// <summary>
-    ///     Maps a CLR Type to its C# type name.
-    /// </summary>
     private static string MapClrTypeName(Type type)
     {
         return type.Name.ToLowerInvariant() switch
@@ -1674,9 +1523,6 @@ public class InterpreterCodeGenerator
         };
     }
 
-    /// <summary>
-    ///     Generates code for a computed field (expression-based, no bytes consumed).
-    /// </summary>
     private string GenerateComputedFieldCode(ComputedFieldNode field, List<SchemaFieldNode>? contextFields = null)
     {
         var builder = new StringBuilder();
@@ -1689,18 +1535,12 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    /// <summary>
-    ///     Gets a local variable name from a field name.
-    /// </summary>
     private static string GetLocalVarName(string fieldName)
     {
         if (fieldName == "_") return "_discard";
         return $"_{char.ToLowerInvariant(fieldName[0])}{fieldName.Substring(1)}";
     }
 
-    /// <summary>
-    ///     Indents a block of code.
-    /// </summary>
     private static string Indent(string code, int levels)
     {
         var indent = new string(' ', levels * 4);
@@ -1714,9 +1554,6 @@ public class InterpreterCodeGenerator
         return result.ToString().TrimEnd();
     }
 
-    /// <summary>
-    ///     Checks if a CLR type name is a reference type (can be null without '?').
-    /// </summary>
     private static bool IsReferenceType(string clrTypeName)
     {
         return clrTypeName switch
@@ -1728,17 +1565,11 @@ public class InterpreterCodeGenerator
         };
     }
 
-    /// <summary>
-    ///     Checks if a type name is a type parameter of the current generic schema.
-    /// </summary>
     private bool IsTypeParameter(string typeName)
     {
         return _currentTypeParameters.Contains(typeName, StringComparer.Ordinal);
     }
 
-    /// <summary>
-    ///     Generates a condition expression from an AST node (for when clause).
-    /// </summary>
     private string GenerateConditionExpression(Node condition)
     {
         return condition switch
@@ -1783,9 +1614,6 @@ public class InterpreterCodeGenerator
         };
     }
 
-    /// <summary>
-    ///     Generates a method call expression (e.g., ToString(field)).
-    /// </summary>
     private string GenerateMethodCallExpression(AccessMethodNode methodNode)
     {
         var methodName = methodNode.Name;
@@ -1801,9 +1629,6 @@ public class InterpreterCodeGenerator
         };
     }
 
-    /// <summary>
-    ///     Escapes a string for use in C# code.
-    /// </summary>
     private static string EscapeString(string value)
     {
         return value
@@ -1814,9 +1639,6 @@ public class InterpreterCodeGenerator
             .Replace("\t", "\\t");
     }
 
-    /// <summary>
-    ///     Extracts a property name from an expression node (typically IdentifierNode from a DotNode).
-    /// </summary>
     private static string GetPropertyNameFromExpression(Node expression)
     {
         return expression switch

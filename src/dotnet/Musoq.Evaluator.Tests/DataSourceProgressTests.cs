@@ -23,7 +23,7 @@ public class DataSourceProgressTests : BasicEntityTestBase
             CancellationToken.None,
             [],
             new Dictionary<string, string>(),
-            (null, [], null, false),
+            QuerySourceInfo.Empty,
             null,
             Callback);
 

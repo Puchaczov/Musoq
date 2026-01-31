@@ -6,11 +6,28 @@ namespace Musoq.Parser.Nodes;
 public class ArgsListNode : Node
 {
     public ArgsListNode(Node[] args)
+        : this(args, default)
+    {
+    }
+
+    public ArgsListNode(Node[] args, TextSpan span)
     {
         Args = args;
 
         var argsId = args.Length == 0 ? string.Empty : string.Concat(args.Select(f => f.Id));
         Id = $"{nameof(ArgsListNode)}{argsId}";
+
+        // If no explicit span provided, compute from first and last args
+        if (span.IsEmpty && args.Length > 0)
+        {
+            Span = ComputeSpan(args);
+            FullSpan = Span;
+        }
+        else
+        {
+            Span = span;
+            FullSpan = span;
+        }
     }
 
     public static ArgsListNode Empty => new([]);

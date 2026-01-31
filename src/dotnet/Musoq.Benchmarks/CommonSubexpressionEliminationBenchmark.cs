@@ -324,9 +324,10 @@ public class CseTestEntityResolver : IObjectResolver
     public CseTestEntityResolver(CseTestEntity entity)
     {
         _entity = entity;
+        Contexts = [entity];
     }
 
-    public object[] Contexts => [_entity];
+    public object[] Contexts { get; }
 
     public bool HasColumn(string name)
     {

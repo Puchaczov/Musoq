@@ -44,9 +44,6 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
         Successor?.Build(items);
     }
 
-    /// <summary>
-    ///     Removes schema definition nodes from the AST, leaving only query nodes.
-    /// </summary>
     private static RootNode RemoveSchemaDefinitions(RootNode queryTree)
     {
         if (queryTree.Expression is StatementsArrayNode statementsArray)
@@ -67,9 +64,6 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
         return queryTree;
     }
 
-    /// <summary>
-    ///     Extracts interpretation schema definitions from the query AST.
-    /// </summary>
     private static SchemaRegistry ExtractSchemaDefinitions(RootNode queryTree)
     {
         var registry = new SchemaRegistry();
@@ -81,11 +75,6 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
         return registry;
     }
 
-    /// <summary>
-    ///     Generates C# source code for all registered schemas.
-    ///     The generated code will be included in the main query assembly.
-    /// </summary>
-    /// <returns>The generated C# source code, or null if no schemas exist.</returns>
     private static string? GenerateInterpreterSourceCode(SchemaRegistry registry)
     {
         const string interpreterNamespace = "Musoq.Generated.Interpreters";
