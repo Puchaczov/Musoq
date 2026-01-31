@@ -13,47 +13,6 @@ using Musoq.Schema;
 namespace Musoq.Evaluator;
 
 /// <summary>
-///     Result of query analysis containing parsed AST and collected diagnostics.
-/// </summary>
-public sealed class QueryAnalysisResult
-{
-    /// <summary>
-    ///     Gets the root node of the parsed query, or null if parsing failed completely.
-    /// </summary>
-    public RootNode? Root { get; init; }
-
-    /// <summary>
-    ///     Gets whether the query was successfully parsed (may still have semantic errors).
-    /// </summary>
-    public bool IsParsed => Root != null;
-
-    /// <summary>
-    ///     Gets all collected diagnostics (errors, warnings, and info).
-    /// </summary>
-    public IReadOnlyList<Diagnostic> Diagnostics { get; init; } = [];
-
-    /// <summary>
-    ///     Gets only the error-level diagnostics.
-    /// </summary>
-    public IEnumerable<Diagnostic> Errors => Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
-
-    /// <summary>
-    ///     Gets only the warning-level diagnostics.
-    /// </summary>
-    public IEnumerable<Diagnostic> Warnings => Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Warning);
-
-    /// <summary>
-    ///     Gets whether there are any errors.
-    /// </summary>
-    public bool HasErrors => Diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error);
-
-    /// <summary>
-    ///     Gets whether the analysis completed successfully (no errors).
-    /// </summary>
-    public bool IsSuccess => IsParsed && !HasErrors;
-}
-
-/// <summary>
 ///     Provides LSP-friendly query analysis that collects diagnostics instead of throwing exceptions.
 ///     This is the main entry point for language server functionality.
 /// </summary>
@@ -134,7 +93,7 @@ public sealed class QueryAnalyzer
             rootNode.Accept(traverseVisitor);
 
 
-            if (metadataVisitor.Root is RootNode typedRoot) rootNode = typedRoot;
+            if (metadataVisitor.Root is { } typedRoot) rootNode = typedRoot;
         }
         catch (Exception ex)
         {
@@ -184,26 +143,5 @@ public sealed class QueryAnalyzer
             Root = rootNode,
             Diagnostics = diagnosticBag.ToSortedList()
         };
-    }
-}
-
-/// <summary>
-///     Null implementation of ILogger for when no logging is configured.
-/// </summary>
-file sealed class NullLogger<T> : ILogger<T>
-{
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
-    {
-        return null;
-    }
-
-    public bool IsEnabled(LogLevel logLevel)
-    {
-        return false;
-    }
-
-    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
-        Func<TState, Exception?, string> formatter)
-    {
     }
 }

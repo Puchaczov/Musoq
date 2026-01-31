@@ -2,10 +2,6 @@ using BenchmarkDotNet.Attributes;
 using Musoq.Benchmarks.Components;
 using Musoq.Converter;
 using Musoq.Evaluator;
-using Musoq.Plugins;
-using Musoq.Schema;
-using Musoq.Schema.DataSources;
-using Musoq.Schema.Managers;
 
 namespace Musoq.Benchmarks;
 
@@ -57,7 +53,7 @@ public class CteDependencyGraphBenchmark
 
     // Parallelization benchmarks - simple CTEs (trivial work - may not show speedup)
     private CompiledQuery _fourIndependentCtes_Sequential = null!;
-    private CompiledQuery _multipleDeadCtes = null!; // 3 dead CTEs eliminated  
+    private CompiledQuery _multipleDeadCtes = null!; // 3 dead CTEs eliminated
     private CompiledQuery _multipleUsedCtes = null!; // Same CTEs but all used (baseline)
     private CompiledQuery _noCtes = null!; // No CTEs at all (cleanest baseline)
 
@@ -212,7 +208,7 @@ public class CteDependencyGraphBenchmark
                 from #test.entities()
             )
             select a.Id, a.Name, a.ValueA, b.ValueB, c.ValueC, d.ValueD
-            from cteA a 
+            from cteA a
             inner join cteB b on a.Id = b.Id + 1
             inner join cteC c on b.Id = c.Id + 1
             inner join cteD d on c.Id = d.Id + 1";
@@ -241,7 +237,7 @@ public class CteDependencyGraphBenchmark
                 select Id, Name, Abs(Value) * 7 + 4 as V4 from #test.entities()
             )
             select a.Id, a.V1, b.V2, c.V3, d.V4
-            from cte1 a 
+            from cte1 a
             inner join cte2 b on a.Id = b.Id
             inner join cte3 c on a.Id = c.Id
             inner join cte4 d on a.Id = d.Id";
@@ -287,7 +283,7 @@ public class CteDependencyGraphBenchmark
                 select Id, Name, Abs(Value) * 19 + 8 as V8 from #test.entities()
             )
             select a.Id, a.V1, b.V2, c.V3, d.V4, e.V5, f.V6, g.V7, h.V8
-            from cte1 a 
+            from cte1 a
             inner join cte2 b on a.Id = b.Id
             inner join cte3 c on a.Id = c.Id
             inner join cte4 d on a.Id = d.Id
@@ -327,7 +323,7 @@ public class CteDependencyGraphBenchmark
                 select Id, Name, Abs(Value) * 7 + 4 as V4 from #test.entities()
             )
             select a.Id, a.V1, b.V2, c.V3, d.V4
-            from cte1 a 
+            from cte1 a
             inner join cte2 b on a.Id = b.Id
             inner join cte3 c on a.Id = c.Id
             inner join cte4 d on a.Id = d.Id";
@@ -482,160 +478,5 @@ public class CteDependencyGraphBenchmark
 }
 
 #region Schema Components
-
-public class CteBenchEntity
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public int Value { get; set; }
-    public string Category { get; set; } = string.Empty;
-}
-
-public class CteBenchSchemaProvider : ISchemaProvider
-{
-    private readonly List<CteBenchEntity> _entities;
-    private readonly int _simulatedWorkIterations;
-
-    public CteBenchSchemaProvider(List<CteBenchEntity> entities, int simulatedWorkIterations = 0)
-    {
-        _entities = entities;
-        _simulatedWorkIterations = simulatedWorkIterations;
-    }
-
-    public ISchema GetSchema(string schema)
-    {
-        return new CteBenchSchema(_entities, _simulatedWorkIterations);
-    }
-}
-
-public class CteBenchSchema : SchemaBase
-{
-    private readonly List<CteBenchEntity> _entities;
-    private readonly int _simulatedWorkIterations;
-
-    public CteBenchSchema(List<CteBenchEntity> entities, int simulatedWorkIterations = 0)
-        : base("test", CreateLibrary())
-    {
-        _entities = entities;
-        _simulatedWorkIterations = simulatedWorkIterations;
-    }
-
-    private static MethodsAggregator CreateLibrary()
-    {
-        var methodsManager = new MethodsManager();
-
-        methodsManager.RegisterLibraries(new LibraryBase());
-        return new MethodsAggregator(methodsManager);
-    }
-
-    public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
-    {
-        return new CteBenchTable();
-    }
-
-    public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
-    {
-        return new CteBenchRowSource(_entities, _simulatedWorkIterations);
-    }
-}
-
-public class CteBenchTable : ISchemaTable
-{
-    public ISchemaColumn[] Columns { get; } =
-    [
-        new SchemaColumn("Id", 0, typeof(int)),
-        new SchemaColumn("Name", 1, typeof(string)),
-        new SchemaColumn("Value", 2, typeof(int)),
-        new SchemaColumn("Category", 3, typeof(string))
-    ];
-
-    public SchemaTableMetadata Metadata { get; } = new(typeof(CteBenchEntity));
-
-    public ISchemaColumn? GetColumnByName(string name)
-    {
-        return Columns.FirstOrDefault(c => c.ColumnName == name);
-    }
-
-    public ISchemaColumn[] GetColumnsByName(string name)
-    {
-        return Columns.Where(c => c.ColumnName == name).ToArray();
-    }
-}
-
-public class CteBenchRowSource : RowSource
-{
-    private static int _cteCounter;
-    private readonly List<CteBenchEntity> _entities;
-    private readonly int _simulatedWorkIterations;
-
-    public CteBenchRowSource(List<CteBenchEntity> entities, int simulatedWorkIterations = 0)
-    {
-        _entities = entities;
-        _simulatedWorkIterations = simulatedWorkIterations;
-    }
-
-    public override IEnumerable<IObjectResolver> Rows
-    {
-        get
-        {
-            // Simulate expensive data loading work (like I/O or complex computation)
-            // This happens at the START of each CTE - the parallelization should make these overlap
-            if (_simulatedWorkIterations > 0)
-            {
-                var cteId = Interlocked.Increment(ref _cteCounter);
-                var startTime = DateTime.UtcNow;
-                SimulateWork(_simulatedWorkIterations);
-                var duration = (DateTime.UtcNow - startTime).TotalMilliseconds;
-                // Benchmark mode: no console output
-            }
-
-            foreach (var entity in _entities) yield return new CteBenchEntityResolver(entity);
-        }
-    }
-
-    private static void SimulateWork(int iterations)
-    {
-        var result = 0.0;
-        for (var i = 0; i < iterations; i++) result += Math.Sin(i) * Math.Cos(i);
-
-        GC.KeepAlive(result);
-    }
-}
-
-public class CteBenchEntityResolver : IObjectResolver
-{
-    private readonly CteBenchEntity _entity;
-
-    public CteBenchEntityResolver(CteBenchEntity entity)
-    {
-        _entity = entity;
-        Contexts = [entity];
-    }
-
-    public object[] Contexts { get; }
-
-    public object this[string name] => name switch
-    {
-        "Id" => _entity.Id,
-        "Name" => _entity.Name,
-        "Value" => _entity.Value,
-        "Category" => _entity.Category,
-        _ => throw new ArgumentException($"Unknown column: {name}")
-    };
-
-    public object this[int index] => index switch
-    {
-        0 => _entity.Id,
-        1 => _entity.Name,
-        2 => _entity.Value,
-        3 => _entity.Category,
-        _ => throw new ArgumentOutOfRangeException(nameof(index))
-    };
-
-    public bool HasColumn(string name)
-    {
-        return name is "Id" or "Name" or "Value" or "Category";
-    }
-}
 
 #endregion

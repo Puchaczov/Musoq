@@ -2,14 +2,6 @@ using System;
 
 namespace Musoq.Schema;
 
-public enum DataSourcePhase
-{
-    Begin,
-    RowsKnown,
-    RowsRead,
-    End
-}
-
 public class DataSourceEventArgs : EventArgs
 {
     public DataSourceEventArgs(string queryId, string dataSourceName, DataSourcePhase phase, long? totalRows = null,
@@ -32,5 +24,3 @@ public class DataSourceEventArgs : EventArgs
 
     public long? RowsProcessed { get; }
 }
-
-public delegate void DataSourceEventHandler(object sender, DataSourceEventArgs e);

@@ -2,11 +2,6 @@ using BenchmarkDotNet.Attributes;
 using Musoq.Benchmarks.Components;
 using Musoq.Converter;
 using Musoq.Evaluator;
-using Musoq.Plugins;
-using Musoq.Plugins.Attributes;
-using Musoq.Schema;
-using Musoq.Schema.DataSources;
-using Musoq.Schema.Managers;
 
 namespace Musoq.Benchmarks;
 
@@ -53,7 +48,7 @@ public class OptimizationsToggleBenchmark
 
         const string simpleQuery = @"
             SELECT ExpensiveCompute(Value), ExpensiveCompute(Value) + 10
-            FROM #test.entities() 
+            FROM #test.entities()
             WHERE ExpensiveCompute(Value) > 100";
 
         _simpleQueryOptimized = InstanceCreator.CompileForExecution(
@@ -72,14 +67,14 @@ public class OptimizationsToggleBenchmark
 
 
         const string complexQuery = @"
-            SELECT 
+            SELECT
                 ExpensiveCompute(Value) as Computed,
                 ExpensiveCompute(Value) * 2 as DoubleVal,
                 ExpensiveCompute(Value) / 2 as HalfVal,
                 StringTransform(Name) as NameTransformed,
                 StringTransform(Name) + '_suffix' as NameWithSuffix
-            FROM #test.entities() 
-            WHERE ExpensiveCompute(Value) > 50 
+            FROM #test.entities()
+            WHERE ExpensiveCompute(Value) > 50
               AND ExpensiveCompute(Value) < 500
               AND StringTransform(Name) IS NOT NULL";
 
@@ -99,9 +94,9 @@ public class OptimizationsToggleBenchmark
 
 
         const string caseWhenQuery = @"
-            SELECT 
+            SELECT
                 ExpensiveCompute(Value) as Computed,
-                CASE 
+                CASE
                     WHEN ExpensiveCompute(Value) > 300 THEN 'High'
                     WHEN ExpensiveCompute(Value) > 100 THEN 'Medium'
                     ELSE 'Low'
@@ -125,7 +120,7 @@ public class OptimizationsToggleBenchmark
 
 
         const string aggregateQuery = @"
-            SELECT 
+            SELECT
                 Category,
                 Sum(ExpensiveCompute(Value)) as TotalComputed,
                 Avg(ExpensiveCompute(Value)) as AvgComputed,
@@ -150,7 +145,7 @@ public class OptimizationsToggleBenchmark
 
 
         const string mixedColumnMethodQuery = @"
-            SELECT 
+            SELECT
                 Value,
                 ExpensiveCompute(Value),
                 Value + ExpensiveCompute(Value),
@@ -158,8 +153,8 @@ public class OptimizationsToggleBenchmark
                 Name,
                 StringTransform(Name),
                 Name + '_' + StringTransform(Name)
-            FROM #test.entities() 
-            WHERE Value > 100 
+            FROM #test.entities()
+            WHERE Value > 100
               AND ExpensiveCompute(Value) > 50
               AND Name IS NOT NULL";
 
@@ -179,7 +174,7 @@ public class OptimizationsToggleBenchmark
 
 
         const string heavyMixedQuery = @"
-            SELECT 
+            SELECT
                 Id,
                 Value,
                 Value * 2,
@@ -190,15 +185,15 @@ public class OptimizationsToggleBenchmark
                 Name,
                 StringTransform(Name),
                 Category,
-                CASE 
+                CASE
                     WHEN Value > 500 AND ExpensiveCompute(Value) > 1000 THEN 'VeryHigh'
                     WHEN Value > 200 AND ExpensiveCompute(Value) > 500 THEN 'High'
                     WHEN Value > 100 THEN 'Medium'
                     ELSE 'Low'
                 END as Classification,
                 Value + ExpensiveCompute(Value) + Value * 2
-            FROM #test.entities() 
-            WHERE Value > 50 
+            FROM #test.entities()
+            WHERE Value > 50
               AND ExpensiveCompute(Value) > 0
               AND Value < 900";
 
@@ -335,166 +330,5 @@ public class OptimizationsToggleBenchmark
 }
 
 #region Schema Implementation for OptimizationsToggleBenchmark
-
-public class OptBenchEntity
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public int Value { get; set; }
-    public string Category { get; set; } = string.Empty;
-}
-
-public class OptBenchSchemaProvider : ISchemaProvider
-{
-    private readonly List<OptBenchEntity> _data;
-
-    public OptBenchSchemaProvider(List<OptBenchEntity> data)
-    {
-        _data = data;
-    }
-
-    public ISchema GetSchema(string schema)
-    {
-        return new OptBenchSchema(_data);
-    }
-}
-
-public class OptBenchSchema : SchemaBase
-{
-    private readonly List<OptBenchEntity> _data;
-
-    public OptBenchSchema(List<OptBenchEntity> data)
-        : base("test", CreateMethods())
-    {
-        _data = data;
-    }
-
-    private static MethodsAggregator CreateMethods()
-    {
-        var manager = new MethodsManager();
-        manager.RegisterLibraries(new LibraryBase());
-        manager.RegisterLibraries(new OptBenchLibrary());
-        return new MethodsAggregator(manager);
-    }
-
-    public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
-    {
-        return new OptBenchTable();
-    }
-
-    public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
-    {
-        return new OptBenchRowSource(_data);
-    }
-}
-
-public class OptBenchTable : ISchemaTable
-{
-    public ISchemaColumn[] Columns => new ISchemaColumn[]
-    {
-        new SchemaColumn(nameof(OptBenchEntity.Id), 0, typeof(int)),
-        new SchemaColumn(nameof(OptBenchEntity.Name), 1, typeof(string)),
-        new SchemaColumn(nameof(OptBenchEntity.Value), 2, typeof(int)),
-        new SchemaColumn(nameof(OptBenchEntity.Category), 3, typeof(string))
-    };
-
-    public SchemaTableMetadata Metadata => new(typeof(OptBenchEntity));
-
-    public ISchemaColumn? GetColumnByName(string name)
-    {
-        return Columns.FirstOrDefault(c => c.ColumnName == name);
-    }
-
-    public ISchemaColumn[] GetColumnsByName(string name)
-    {
-        return Columns.Where(c => c.ColumnName == name).ToArray();
-    }
-}
-
-public class OptBenchRowSource : RowSource
-{
-    private readonly List<OptBenchEntity> _data;
-
-    public OptBenchRowSource(List<OptBenchEntity> data)
-    {
-        _data = data;
-    }
-
-    public override IEnumerable<IObjectResolver> Rows
-    {
-        get
-        {
-            foreach (var entity in _data) yield return new OptBenchEntityResolver(entity);
-        }
-    }
-}
-
-public class OptBenchEntityResolver : IObjectResolver
-{
-    private readonly OptBenchEntity _entity;
-
-    public OptBenchEntityResolver(OptBenchEntity entity)
-    {
-        _entity = entity;
-        Contexts = [entity];
-    }
-
-    public object[] Contexts { get; }
-
-    public object? this[string name] => name switch
-    {
-        nameof(OptBenchEntity.Id) => _entity.Id,
-        nameof(OptBenchEntity.Name) => _entity.Name,
-        nameof(OptBenchEntity.Value) => _entity.Value,
-        nameof(OptBenchEntity.Category) => _entity.Category,
-        _ => null
-    };
-
-    public object? this[int index] => index switch
-    {
-        0 => _entity.Id,
-        1 => _entity.Name,
-        2 => _entity.Value,
-        3 => _entity.Category,
-        _ => null
-    };
-
-    public bool HasColumn(string name)
-    {
-        return name is
-            nameof(OptBenchEntity.Id) or
-            nameof(OptBenchEntity.Name) or
-            nameof(OptBenchEntity.Value) or
-            nameof(OptBenchEntity.Category);
-    }
-}
-
-public class OptBenchLibrary : LibraryBase
-{
-    /// <summary>
-    ///     Simulates an expensive computation (e.g., complex math, parsing, etc.)
-    /// </summary>
-    [BindableMethod]
-    public decimal ExpensiveCompute(int value)
-    {
-        decimal result = value;
-        for (var i = 0; i < 100; i++) result = result * 1.1m + (decimal)Math.Sin(i);
-        return Math.Round(result, 2);
-    }
-
-    /// <summary>
-    ///     Simulates an expensive string transformation
-    /// </summary>
-    [BindableMethod]
-    public string? StringTransform(string? input)
-    {
-        if (input == null) return null;
-
-
-        var result = input;
-        for (var i = 0; i < 50; i++) result = result.ToUpper().ToLower();
-        return result.ToUpperInvariant() + "_transformed";
-    }
-}
 
 #endregion
