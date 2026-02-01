@@ -33,15 +33,15 @@ public class CteParallelizationAnalyzerTests
         var levelNames = CteParallelizationAnalyzer.GetExecutionLevelNames(cteExpression);
 
         // Assert
-        Assert.AreEqual(2, levelNames.Count);
+        Assert.HasCount(2, levelNames);
 
         // Level 0: cteA, cteB (parallel - both have no CTE dependencies)
-        Assert.AreEqual(2, levelNames[0].Count);
+        Assert.HasCount(2, levelNames[0]);
         Assert.IsTrue(levelNames[0].Contains("cteA"));
         Assert.IsTrue(levelNames[0].Contains("cteB"));
 
         // Level 1: cteC (depends on cteA)
-        Assert.AreEqual(1, levelNames[1].Count);
+        Assert.HasCount(1, levelNames[1]);
         Assert.AreEqual("cteC", levelNames[1][0]);
     }
 
@@ -228,8 +228,8 @@ public class CteParallelizationAnalyzerTests
         // Level 1: cteB, cteC (2 CTEs - can parallelize)
         Assert.AreEqual(2, plan.Levels[1].Count);
         var level1Names = plan.Levels[1].Ctes.Select(c => c.Name).ToHashSet();
-        Assert.IsTrue(level1Names.Contains("cteB"));
-        Assert.IsTrue(level1Names.Contains("cteC"));
+        Assert.Contains("cteB", level1Names);
+        Assert.Contains("cteC", level1Names);
 
         // Level 2: cteD (1 CTE)
         Assert.AreEqual(1, plan.Levels[2].Count);
@@ -362,8 +362,8 @@ public class CteParallelizationAnalyzerTests
         var levelNames = CteParallelizationAnalyzer.GetExecutionLevelNames(cteExpression);
 
         // Assert
-        Assert.AreEqual(1, levelNames.Count);
-        Assert.AreEqual(1, levelNames[0].Count);
+        Assert.HasCount(1, levelNames);
+        Assert.HasCount(1, levelNames[0]);
         Assert.AreEqual("cteA", levelNames[0][0]);
     }
 
@@ -380,7 +380,7 @@ public class CteParallelizationAnalyzerTests
         var levelNames = CteParallelizationAnalyzer.GetExecutionLevelNames(cteExpression);
 
         // Assert
-        Assert.AreEqual(0, levelNames.Count);
+        Assert.IsEmpty(levelNames);
     }
 
     [TestMethod]

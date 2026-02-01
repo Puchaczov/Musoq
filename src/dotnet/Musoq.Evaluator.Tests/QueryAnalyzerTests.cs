@@ -126,7 +126,7 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         // Assert
         Assert.IsTrue(result.HasErrors, "Should detect missing FROM clause error");
         var errors = result.Errors.ToList();
-        Assert.IsTrue(errors.Count > 0, "Should have at least one error");
+        Assert.IsNotEmpty(errors, "Should have at least one error");
     }
 
     [TestMethod]
@@ -201,7 +201,7 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         // The error could be about the unknown column, OR about schema resolution
         // Both are valid semantic errors that should be caught
         var errors = result.Errors.ToList();
-        Assert.IsTrue(errors.Count > 0,
+        Assert.IsNotEmpty(errors,
             $"Should report at least one error. Actual errors: {string.Join(", ", errors.Select(e => $"{e.Code}: {e.Message}"))}");
     }
 

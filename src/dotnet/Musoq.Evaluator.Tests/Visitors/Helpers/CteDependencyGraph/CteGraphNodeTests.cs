@@ -41,7 +41,7 @@ public class CteGraphNodeTests
         var node = new CteGraphNode("myCte", null);
 
         // Assert
-        Assert.AreEqual(0, node.Dependencies.Count);
+        Assert.IsEmpty(node.Dependencies);
         Assert.IsFalse(node.HasDependencies);
     }
 
@@ -52,7 +52,7 @@ public class CteGraphNodeTests
         var node = new CteGraphNode("myCte", null);
 
         // Assert
-        Assert.AreEqual(0, node.Dependents.Count);
+        Assert.IsEmpty(node.Dependents);
         Assert.IsFalse(node.HasDependents);
     }
 
@@ -107,8 +107,8 @@ public class CteGraphNodeTests
 
         // Assert
         Assert.IsTrue(node.HasDependencies);
-        Assert.AreEqual(1, node.Dependencies.Count);
-        Assert.IsTrue(node.Dependencies.Contains("otherCte"));
+        Assert.HasCount(1, node.Dependencies);
+        Assert.Contains("otherCte", node.Dependencies);
     }
 
     [TestMethod]
@@ -122,8 +122,8 @@ public class CteGraphNodeTests
 
         // Assert
         Assert.IsTrue(node.HasDependents);
-        Assert.AreEqual(1, node.Dependents.Count);
-        Assert.IsTrue(node.Dependents.Contains("consumerCte"));
+        Assert.HasCount(1, node.Dependents);
+        Assert.Contains("consumerCte", node.Dependents);
     }
 
     [TestMethod]
@@ -165,10 +165,10 @@ public class CteGraphNodeTests
         var result = node.ToString();
 
         // Assert
-        Assert.IsTrue(result.Contains("myCte"));
-        Assert.IsTrue(result.Contains("reachable"));
-        Assert.IsTrue(result.Contains("level 1"));
-        Assert.IsTrue(result.Contains("dep1"));
+        Assert.Contains("myCte", result);
+        Assert.Contains("reachable", result);
+        Assert.Contains("level 1", result);
+        Assert.Contains("dep1", result);
     }
 
     [TestMethod]
@@ -182,7 +182,7 @@ public class CteGraphNodeTests
         var result = node.ToString();
 
         // Assert
-        Assert.IsTrue(result.Contains("dead"));
+        Assert.Contains("dead", result);
     }
 
     [TestMethod]
@@ -196,7 +196,7 @@ public class CteGraphNodeTests
         var result = node.ToString();
 
         // Assert
-        Assert.IsTrue(result.Contains("level unknown"));
+        Assert.Contains("level unknown", result);
     }
 
     #region Multiple Dependencies Tests
@@ -213,11 +213,11 @@ public class CteGraphNodeTests
         node.Dependencies.Add("dep3");
 
         // Assert
-        Assert.AreEqual(3, node.Dependencies.Count);
+        Assert.HasCount(3, node.Dependencies);
         Assert.IsTrue(node.HasDependencies);
-        Assert.IsTrue(node.Dependencies.Contains("dep1"));
-        Assert.IsTrue(node.Dependencies.Contains("dep2"));
-        Assert.IsTrue(node.Dependencies.Contains("dep3"));
+        Assert.Contains("dep1", node.Dependencies);
+        Assert.Contains("dep2", node.Dependencies);
+        Assert.Contains("dep3", node.Dependencies);
     }
 
     [TestMethod]
@@ -232,11 +232,11 @@ public class CteGraphNodeTests
         node.Dependents.Add("consumer3");
 
         // Assert
-        Assert.AreEqual(3, node.Dependents.Count);
+        Assert.HasCount(3, node.Dependents);
         Assert.IsTrue(node.HasDependents);
-        Assert.IsTrue(node.Dependents.Contains("consumer1"));
-        Assert.IsTrue(node.Dependents.Contains("consumer2"));
-        Assert.IsTrue(node.Dependents.Contains("consumer3"));
+        Assert.Contains("consumer1", node.Dependents);
+        Assert.Contains("consumer2", node.Dependents);
+        Assert.Contains("consumer3", node.Dependents);
     }
 
     [TestMethod]
@@ -250,7 +250,7 @@ public class CteGraphNodeTests
         node.Dependencies.Add("dep1"); // Duplicate
 
         // Assert
-        Assert.AreEqual(1, node.Dependencies.Count);
+        Assert.HasCount(1, node.Dependencies);
     }
 
     [TestMethod]
@@ -264,7 +264,7 @@ public class CteGraphNodeTests
         node.Dependents.Add("consumer1"); // Duplicate
 
         // Assert
-        Assert.AreEqual(1, node.Dependents.Count);
+        Assert.HasCount(1, node.Dependents);
     }
 
     #endregion
@@ -341,9 +341,9 @@ public class CteGraphNodeTests
         var result = node.ToString();
 
         // Assert
-        Assert.IsTrue(result.Contains("myCte"));
-        Assert.IsTrue(result.Contains("dep1"));
-        Assert.IsTrue(result.Contains("dep2"));
+        Assert.Contains("myCte", result);
+        Assert.Contains("dep1", result);
+        Assert.Contains("dep2", result);
     }
 
     [TestMethod]
@@ -358,7 +358,7 @@ public class CteGraphNodeTests
         var result = node.ToString();
 
         // Assert
-        Assert.IsTrue(result.Contains("deps=[]"));
+        Assert.Contains("deps=[]", result);
     }
 
     #endregion

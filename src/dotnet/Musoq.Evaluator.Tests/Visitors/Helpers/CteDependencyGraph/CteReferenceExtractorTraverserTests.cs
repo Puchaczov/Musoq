@@ -22,8 +22,8 @@ public class CteReferenceExtractorTraverserTests
         cteRef.Accept(traverser);
 
         // Assert
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteA"));
+        Assert.HasCount(1, extractor.FoundReferences);
+        Assert.Contains("cteA", extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -43,9 +43,9 @@ public class CteReferenceExtractorTraverserTests
         joinNode.Accept(traverser);
 
         // Assert
-        Assert.AreEqual(2, extractor.FoundReferences.Count);
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteA"));
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteB"));
+        Assert.HasCount(2, extractor.FoundReferences);
+        Assert.Contains("cteA", extractor.FoundReferences);
+        Assert.Contains("cteB", extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -69,10 +69,10 @@ public class CteReferenceExtractorTraverserTests
         joinABC.Accept(traverser);
 
         // Assert
-        Assert.AreEqual(3, extractor.FoundReferences.Count);
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteA"));
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteB"));
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteC"));
+        Assert.HasCount(3, extractor.FoundReferences);
+        Assert.Contains("cteA", extractor.FoundReferences);
+        Assert.Contains("cteB", extractor.FoundReferences);
+        Assert.Contains("cteC", extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -89,7 +89,7 @@ public class CteReferenceExtractorTraverserTests
         schemaFrom.Accept(traverser);
 
         // Assert
-        Assert.AreEqual(0, extractor.FoundReferences.Count);
+        Assert.IsEmpty(extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -109,8 +109,8 @@ public class CteReferenceExtractorTraverserTests
         join.Accept(traverser);
 
         // Assert
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteA"));
+        Assert.HasCount(1, extractor.FoundReferences);
+        Assert.Contains("cteA", extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -127,8 +127,8 @@ public class CteReferenceExtractorTraverserTests
         applyNode.Accept(traverser);
 
         // Assert
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteA"));
+        Assert.HasCount(1, extractor.FoundReferences);
+        Assert.Contains("cteA", extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -151,8 +151,8 @@ public class CteReferenceExtractorTraverserTests
         queryNode.Accept(traverser);
 
         // Assert
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteA"));
+        Assert.HasCount(1, extractor.FoundReferences);
+        Assert.Contains("cteA", extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -168,7 +168,7 @@ public class CteReferenceExtractorTraverserTests
         cteRef.Accept(traverser);
 
         // Assert
-        Assert.AreEqual(0, extractor.FoundReferences.Count);
+        Assert.IsEmpty(extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -186,9 +186,9 @@ public class CteReferenceExtractorTraverserTests
         cteRefB.Accept(traverser);
 
         // Assert
-        Assert.AreEqual(2, extractor.FoundReferences.Count);
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteA"));
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteB"));
+        Assert.HasCount(2, extractor.FoundReferences);
+        Assert.Contains("cteA", extractor.FoundReferences);
+        Assert.Contains("cteB", extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -207,6 +207,6 @@ public class CteReferenceExtractorTraverserTests
         join.Accept(traverser);
 
         // Assert - Should have cteA only once despite two references
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
+        Assert.HasCount(1, extractor.FoundReferences);
     }
 }

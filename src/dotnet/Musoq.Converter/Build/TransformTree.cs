@@ -59,8 +59,7 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
 
         items.UsedColumns = metadata.UsedColumns;
         items.UsedWhereNodes = RewriteWhereNodes(metadata.UsedWhereNodes);
-        items.QueryHintsPerSchema = metadata.QueryHintsPerSchema
-            .ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value);
+        items.QueryHintsPerSchema = metadata.QueryHintsPerSchema;
         items.TransformedQueryTree = queryTree;
         items.Compilation = csharpRewriter.Compilation;
         items.AccessToClassPath = csharpRewriter.AccessToClassPath;

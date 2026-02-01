@@ -130,8 +130,8 @@ public class ApiDataSourceQueryHintsIntegrationTests
         Assert.AreEqual(2, table.Count);
         // Verify both items are present (order may vary)
         var ids = new HashSet<int> { (int)table[0][0], (int)table[1][0] };
-        Assert.IsTrue(ids.Contains(1), "Should contain Id=1");
-        Assert.IsTrue(ids.Contains(2), "Should contain Id=2");
+        Assert.Contains(1, ids, "Should contain Id=1");
+        Assert.Contains(2, ids, "Should contain Id=2");
     }
 
     [TestMethod]
@@ -294,9 +294,9 @@ public class ApiDataSourceQueryHintsIntegrationTests
         // Verify distinct results
         Assert.AreEqual(3, table.Count);
         var names = new HashSet<string> { (string)table[0][0], (string)table[1][0], (string)table[2][0] };
-        Assert.IsTrue(names.Contains("Apple"));
-        Assert.IsTrue(names.Contains("Banana"));
-        Assert.IsTrue(names.Contains("Cherry"));
+        Assert.Contains("Apple", names);
+        Assert.Contains("Banana", names);
+        Assert.Contains("Cherry", names);
     }
 
     #endregion
@@ -367,8 +367,8 @@ public class ApiDataSourceQueryHintsIntegrationTests
         // Verify filtered results (order not guaranteed without ORDER BY)
         Assert.AreEqual(2, table.Count);
         var ids = new HashSet<int> { (int)table[0][0], (int)table[1][0] };
-        Assert.IsTrue(ids.Contains(1), "Expected Id=1 in results");
-        Assert.IsTrue(ids.Contains(2), "Expected Id=2 in results");
+        Assert.Contains(1, ids, "Expected Id=1 in results");
+        Assert.Contains(2, ids, "Expected Id=2 in results");
     }
 
     [TestMethod]
@@ -399,8 +399,8 @@ public class ApiDataSourceQueryHintsIntegrationTests
         // Verify filtered results
         Assert.AreEqual(2, table.Count);
         var ids = new HashSet<int> { (int)table[0][0], (int)table[1][0] };
-        Assert.IsTrue(ids.Contains(1));
-        Assert.IsTrue(ids.Contains(3));
+        Assert.Contains(1, ids);
+        Assert.Contains(3, ids);
     }
 
     #endregion

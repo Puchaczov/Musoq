@@ -40,7 +40,7 @@ public class DeadCteEliminatorTests
 
         var prunedCte = result.ResultNode as CteExpressionNode;
         Assert.IsNotNull(prunedCte);
-        Assert.AreEqual(2, prunedCte.InnerExpression.Length);
+        Assert.HasCount(2, prunedCte.InnerExpression);
         Assert.AreEqual("cteA", prunedCte.InnerExpression[0].Name); // First
         Assert.AreEqual("cteC", prunedCte.InnerExpression[1].Name); // Second (order preserved)
     }
@@ -155,7 +155,7 @@ public class DeadCteEliminatorTests
         // Result should be a CTE expression with only cteA
         var prunedCte = result.ResultNode as CteExpressionNode;
         Assert.IsNotNull(prunedCte);
-        Assert.AreEqual(1, prunedCte.InnerExpression.Length);
+        Assert.HasCount(1, prunedCte.InnerExpression);
         Assert.AreEqual("cteA", prunedCte.InnerExpression[0].Name);
     }
 
@@ -226,7 +226,7 @@ public class DeadCteEliminatorTests
 
         // Assert
         Assert.IsTrue(graph.HasDeadCtes);
-        Assert.AreEqual(1, graph.DeadCtes.Count);
+        Assert.HasCount(1, graph.DeadCtes);
         Assert.AreEqual("cteB", graph.DeadCtes[0].Name);
     }
 
@@ -244,7 +244,7 @@ public class DeadCteEliminatorTests
 
         // Assert
         Assert.IsFalse(graph.HasDeadCtes);
-        Assert.AreEqual(0, graph.DeadCtes.Count);
+        Assert.IsEmpty(graph.DeadCtes);
     }
 
     [TestMethod]
@@ -263,7 +263,7 @@ public class DeadCteEliminatorTests
 
         // Assert
         Assert.IsTrue(graph.HasDeadCtes);
-        Assert.AreEqual(2, graph.DeadCtes.Count);
+        Assert.HasCount(2, graph.DeadCtes);
     }
 
     #endregion
@@ -295,7 +295,7 @@ public class DeadCteEliminatorTests
 
         var prunedCte = result.ResultNode as CteExpressionNode;
         Assert.IsNotNull(prunedCte);
-        Assert.AreEqual(1, prunedCte.InnerExpression.Length);
+        Assert.HasCount(1, prunedCte.InnerExpression);
         Assert.AreEqual("cteA", prunedCte.InnerExpression[0].Name);
     }
 
@@ -327,7 +327,7 @@ public class DeadCteEliminatorTests
 
         var prunedCte = result.ResultNode as CteExpressionNode;
         Assert.IsNotNull(prunedCte);
-        Assert.AreEqual(1, prunedCte.InnerExpression.Length);
+        Assert.HasCount(1, prunedCte.InnerExpression);
         Assert.AreEqual("cteD", prunedCte.InnerExpression[0].Name);
     }
 
@@ -358,12 +358,12 @@ public class DeadCteEliminatorTests
 
         var prunedCte = result.ResultNode as CteExpressionNode;
         Assert.IsNotNull(prunedCte);
-        Assert.AreEqual(2, prunedCte.InnerExpression.Length);
+        Assert.HasCount(2, prunedCte.InnerExpression);
 
         var names = prunedCte.InnerExpression.Select(c => c.Name).ToHashSet();
-        Assert.IsTrue(names.Contains("cteA"));
-        Assert.IsTrue(names.Contains("cteB"));
-        Assert.IsFalse(names.Contains("cteC"));
+        Assert.Contains("cteA", names);
+        Assert.Contains("cteB", names);
+        Assert.DoesNotContain("cteC", names);
     }
 
     #endregion

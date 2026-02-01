@@ -33,7 +33,7 @@ public class CteExecutionLevelTests
         var level = new CteExecutionLevel(0, ctes);
 
         // Assert
-        Assert.AreEqual(2, level.Ctes.Count);
+        Assert.HasCount(2, level.Ctes);
         Assert.AreEqual("cteA", level.Ctes[0].Name);
         Assert.AreEqual("cteB", level.Ctes[1].Name);
     }
@@ -96,10 +96,10 @@ public class CteExecutionLevelTests
         var result = level.ToString();
 
         // Assert
-        Assert.IsTrue(result.Contains("Level 1"));
-        Assert.IsTrue(result.Contains("cteA"));
-        Assert.IsTrue(result.Contains("cteB"));
-        Assert.IsTrue(result.Contains("parallel=True"));
+        Assert.Contains("Level 1", result);
+        Assert.Contains("cteA", result);
+        Assert.Contains("cteB", result);
+        Assert.Contains("parallel=True", result);
     }
 
     #region Edge Cases
@@ -158,7 +158,7 @@ public class CteExecutionLevelTests
         var result = level.ToString();
 
         // Assert
-        Assert.IsTrue(result.Contains("parallel=False"));
+        Assert.Contains("parallel=False", result);
     }
 
     [TestMethod]
@@ -195,8 +195,8 @@ public class CteExecutionLevelTests
         var result = level.ToString();
 
         // Assert
-        Assert.IsTrue(result.Contains("Level 0"));
-        Assert.IsTrue(result.Contains("[]"));
+        Assert.Contains("Level 0", result);
+        Assert.Contains("[]", result);
     }
 
     #endregion

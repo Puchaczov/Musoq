@@ -209,10 +209,10 @@ public class CteExecutionPlanTests
         var result = plan.ToString();
 
         // Assert
-        Assert.IsTrue(result.Contains("CteExecutionPlan"));
-        Assert.IsTrue(result.Contains("2 CTEs"));
-        Assert.IsTrue(result.Contains("1 levels"));
-        Assert.IsTrue(result.Contains("CanParallelize=True"));
+        Assert.Contains("CteExecutionPlan", result);
+        Assert.Contains("2 CTEs", result);
+        Assert.Contains("1 levels", result);
+        Assert.Contains("CanParallelize=True", result);
     }
 
     #region Edge Cases
@@ -278,9 +278,9 @@ public class CteExecutionPlanTests
         var result = plan.ToString();
 
         // Assert
-        Assert.IsTrue(result.Contains("CteExecutionPlan"));
-        Assert.IsTrue(result.Contains("0 CTEs"));
-        Assert.IsTrue(result.Contains("0 levels"));
+        Assert.Contains("CteExecutionPlan", result);
+        Assert.Contains("0 CTEs", result);
+        Assert.Contains("0 levels", result);
     }
 
     [TestMethod]
@@ -302,10 +302,10 @@ public class CteExecutionPlanTests
         var result = plan.ToString();
 
         // Assert
-        Assert.IsTrue(result.Contains("Level 0"));
-        Assert.IsTrue(result.Contains("Level 1"));
-        Assert.IsTrue(result.Contains("cteA"));
-        Assert.IsTrue(result.Contains("cteB"));
+        Assert.Contains("Level 0", result);
+        Assert.Contains("Level 1", result);
+        Assert.Contains("cteA", result);
+        Assert.Contains("cteB", result);
     }
 
     [TestMethod]

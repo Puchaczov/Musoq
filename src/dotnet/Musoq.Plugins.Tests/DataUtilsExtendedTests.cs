@@ -305,7 +305,7 @@ public class DataUtilsExtendedTests : LibraryBaseBaseTests
     {
         var result = Library.CalculateEntropy("abcdefghij");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Value > 3.0);
+        Assert.IsGreaterThan(3.0, result.Value);
     }
 
     #endregion

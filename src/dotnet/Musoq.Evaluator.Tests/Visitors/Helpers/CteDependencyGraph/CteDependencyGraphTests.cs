@@ -89,7 +89,7 @@ public class CteDependencyGraphTests
         var graph = BuildGraph(cteExpression);
 
         // Assert
-        Assert.AreEqual(2, graph.Nodes.Count);
+        Assert.HasCount(2, graph.Nodes);
         Assert.IsTrue(graph.Nodes.ContainsKey("cteA"));
         Assert.IsTrue(graph.Nodes.ContainsKey("cteB"));
     }
@@ -214,7 +214,7 @@ public class CteDependencyGraphTests
         var graph = BuildGraph(cteExpression);
 
         // Assert
-        Assert.AreEqual(0, graph.DeadCtes.Count);
+        Assert.IsEmpty(graph.DeadCtes);
         Assert.IsFalse(graph.HasDeadCtes);
     }
 
@@ -234,7 +234,7 @@ public class CteDependencyGraphTests
         var graph = BuildGraph(cteExpression);
 
         // Assert
-        Assert.AreEqual(1, graph.DeadCtes.Count);
+        Assert.HasCount(1, graph.DeadCtes);
         Assert.AreEqual("cteB", graph.DeadCtes[0].Name);
         Assert.IsTrue(graph.HasDeadCtes);
     }
@@ -255,7 +255,7 @@ public class CteDependencyGraphTests
         var graph = BuildGraph(cteExpression);
 
         // Assert
-        Assert.AreEqual(1, graph.ReachableCtes.Count);
+        Assert.HasCount(1, graph.ReachableCtes);
         Assert.AreEqual("cteA", graph.ReachableCtes[0].Name);
     }
 
@@ -276,8 +276,8 @@ public class CteDependencyGraphTests
         var graph = BuildGraph(cteExpression);
 
         // Assert
-        Assert.AreEqual(1, graph.ExecutionLevels.Count);
-        Assert.AreEqual(1, graph.ExecutionLevels[0].Count);
+        Assert.HasCount(1, graph.ExecutionLevels);
+        Assert.HasCount(1, graph.ExecutionLevels[0]);
     }
 
     [TestMethod]
@@ -295,7 +295,7 @@ public class CteDependencyGraphTests
         var graph = BuildGraph(cteExpression);
 
         // Assert
-        Assert.AreEqual(2, graph.ExecutionLevels.Count);
+        Assert.HasCount(2, graph.ExecutionLevels);
         Assert.AreEqual("cteA", graph.ExecutionLevels[0][0].Name);
         Assert.AreEqual("cteB", graph.ExecutionLevels[1][0].Name);
     }
@@ -359,9 +359,9 @@ public class CteDependencyGraphTests
         var result = graph.ToString();
 
         // Assert
-        Assert.IsTrue(result.Contains("CteDependencyGraph"));
-        Assert.IsTrue(result.Contains("1 CTEs"));
-        Assert.IsTrue(result.Contains("0 dead"));
+        Assert.Contains("CteDependencyGraph", result);
+        Assert.Contains("1 CTEs", result);
+        Assert.Contains("0 dead", result);
     }
 
     [TestMethod]
@@ -381,7 +381,7 @@ public class CteDependencyGraphTests
         var result = graph.ToString();
 
         // Assert
-        Assert.IsTrue(result.Contains("1 dead"));
+        Assert.Contains("1 dead", result);
     }
 
     [TestMethod]
@@ -405,7 +405,7 @@ public class CteDependencyGraphTests
         var result = graph.ToString();
 
         // Assert
-        Assert.IsTrue(result.Contains("CanParallelize=True"));
+        Assert.Contains("CanParallelize=True", result);
     }
 
     #endregion
@@ -446,9 +446,9 @@ public class CteDependencyGraphTests
 
         // Assert
         Assert.AreEqual(5, graph.CteCount);
-        Assert.AreEqual(1, graph.DeadCtes.Count);
+        Assert.HasCount(1, graph.DeadCtes);
         Assert.AreEqual("cteE", graph.DeadCtes[0].Name);
-        Assert.AreEqual(4, graph.ReachableCtes.Count);
+        Assert.HasCount(4, graph.ReachableCtes);
         Assert.IsTrue(graph.CanParallelize); // cteB and cteC can run in parallel
     }
 
@@ -468,8 +468,8 @@ public class CteDependencyGraphTests
         var graph = BuildGraph(cteExpression);
 
         // Assert
-        Assert.AreEqual(2, graph.DeadCtes.Count);
-        Assert.AreEqual(0, graph.ReachableCtes.Count);
+        Assert.HasCount(2, graph.DeadCtes);
+        Assert.IsEmpty(graph.ReachableCtes);
         Assert.IsTrue(graph.HasDeadCtes);
         Assert.IsFalse(graph.CanParallelize); // No reachable CTEs to parallelize
     }
@@ -500,7 +500,7 @@ public class CteDependencyGraphTests
         Assert.IsTrue(graph.GetCte("cteA").IsReachable); // Reachable via cteB
         Assert.IsTrue(graph.GetCte("cteB").IsReachable); // Directly referenced
         Assert.IsFalse(graph.GetCte("cteC").IsReachable); // Not reachable (depends on B but not referenced)
-        Assert.AreEqual(1, graph.DeadCtes.Count);
+        Assert.HasCount(1, graph.DeadCtes);
         Assert.AreEqual("cteC", graph.DeadCtes[0].Name);
     }
 
@@ -531,7 +531,7 @@ public class CteDependencyGraphTests
         Assert.IsTrue(graph.GetCte("cteB").IsReachable);
         Assert.IsFalse(graph.GetCte("cteC").IsReachable);
         Assert.IsFalse(graph.GetCte("cteD").IsReachable);
-        Assert.AreEqual(2, graph.DeadCtes.Count);
+        Assert.HasCount(2, graph.DeadCtes);
     }
 
     #endregion
@@ -552,7 +552,7 @@ public class CteDependencyGraphTests
         var graph = BuildGraph(cteExpression);
 
         // Assert
-        Assert.AreEqual(0, graph.ExecutionLevels.Count);
+        Assert.IsEmpty(graph.ExecutionLevels);
     }
 
     [TestMethod]
@@ -583,8 +583,8 @@ public class CteDependencyGraphTests
         var graph = BuildGraph(cteExpression);
 
         // Assert
-        Assert.AreEqual(1, graph.ExecutionLevels.Count);
-        Assert.AreEqual(3, graph.ExecutionLevels[0].Count);
+        Assert.HasCount(1, graph.ExecutionLevels);
+        Assert.HasCount(3, graph.ExecutionLevels[0]);
         Assert.IsTrue(graph.CanParallelize);
     }
 

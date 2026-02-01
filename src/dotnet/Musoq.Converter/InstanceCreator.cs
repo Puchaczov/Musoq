@@ -239,7 +239,7 @@ public static class InstanceCreator
                     UsedColumns = (IReadOnlyCollection<ISchemaColumn>)f.Value,
                     WhereNode = s.Value,
                     HasExternallyProvidedTypes = f.Key is SchemaFromNode { HasExternallyProvidedTypes: true },
-                    QueryHints = queryHintsPerSchema.TryGetValue(f.Key.Id, out var hints)
+                    QueryHints = queryHintsPerSchema.TryGetValue(f.Key, out var hints)
                         ? hints
                         : QueryHints.Empty
                 }

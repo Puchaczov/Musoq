@@ -181,7 +181,7 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Count);
         var cities = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(cities.Contains("Warsaw"), "Should contain Warsaw");
+        Assert.Contains("Warsaw", cities, "Should contain Warsaw");
     }
 
     #endregion
@@ -220,9 +220,9 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(3, table.Count, "CTE with DISTINCT should produce 3 unique countries");
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("France"), "Should contain France");
-        Assert.IsTrue(countries.Contains("Germany"), "Should contain Germany");
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("France", countries, "Should contain France");
+        Assert.Contains("Germany", countries, "Should contain Germany");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     /// <summary>
@@ -289,7 +289,7 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Count, "CTE with DISTINCT should produce 1 unique country");
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     #endregion
@@ -325,8 +325,8 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count, "DISTINCT in outer query should deduplicate CTE results");
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("Germany"), "Should contain Germany");
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("Germany", countries, "Should contain Germany");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     /// <summary>
@@ -358,8 +358,8 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count, "Double DISTINCT should still produce 2 unique countries");
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("Germany"), "Should contain Germany");
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("Germany", countries, "Should contain Germany");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     #endregion
@@ -399,8 +399,8 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count, "First CTE with DISTINCT should affect subsequent CTEs");
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("Germany"), "Should contain Germany");
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("Germany", countries, "Should contain Germany");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     /// <summary>
@@ -436,8 +436,8 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count, "Second CTE with DISTINCT should deduplicate first CTE");
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("Germany"), "Should contain Germany");
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("Germany", countries, "Should contain Germany");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     /// <summary>
@@ -475,8 +475,8 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count, "DISTINCT in both CTEs should produce 2 unique countries");
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("Germany"), "Should contain Germany");
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("Germany", countries, "Should contain Germany");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     /// <summary>
@@ -651,7 +651,7 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Count, "EXCEPT should remove Germany from result");
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     /// <summary>
@@ -692,7 +692,7 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Count, "INTERSECT should return only common countries");
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("Germany"), "Should contain Germany");
+        Assert.Contains("Germany", countries, "Should contain Germany");
     }
 
     #endregion
@@ -734,8 +734,8 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count, "DISTINCT should deduplicate join results");
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("Germany"), "Should contain Germany");
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("Germany", countries, "Should contain Germany");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     /// <summary>
@@ -777,8 +777,8 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count);
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("Germany"), "Should contain Germany");
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("Germany", countries, "Should contain Germany");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     #endregion
@@ -816,9 +816,9 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(3, table.Count, "NULL should be treated as a distinct value");
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains(null), "Should contain null");
-        Assert.IsTrue(countries.Contains("Germany"), "Should contain Germany");
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains((string)null, countries, "Should contain null");
+        Assert.Contains("Germany", countries, "Should contain Germany");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     /// <summary>
@@ -859,9 +859,9 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(3, table.Count, "Nested CTEs should preserve distinct behavior");
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("France"), "Should contain France");
-        Assert.IsTrue(countries.Contains("Germany"), "Should contain Germany");
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("France", countries, "Should contain France");
+        Assert.Contains("Germany", countries, "Should contain Germany");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     /// <summary>
@@ -894,7 +894,7 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Count, "Multiple DISTINCT at different levels should not create duplicates");
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     /// <summary>
@@ -927,8 +927,8 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count);
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("GERMANY"), "Should contain GERMANY");
-        Assert.IsTrue(countries.Contains("POLAND"), "Should contain POLAND");
+        Assert.Contains("GERMANY", countries, "Should contain GERMANY");
+        Assert.Contains("POLAND", countries, "Should contain POLAND");
     }
 
     /// <summary>
@@ -1000,8 +1000,8 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count);
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("Germany"), "Should contain Germany");
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("Germany", countries, "Should contain Germany");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     /// <summary>
@@ -1033,8 +1033,8 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count);
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("Germany"), "Should contain Germany");
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("Germany", countries, "Should contain Germany");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     /// <summary>
@@ -1066,8 +1066,8 @@ public class DistinctComprehensiveTests : BasicEntityTestBase
         Assert.AreEqual(2, table.Count);
 
         var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.IsTrue(countries.Contains("Germany"), "Should contain Germany");
-        Assert.IsTrue(countries.Contains("Poland"), "Should contain Poland");
+        Assert.Contains("Germany", countries, "Should contain Germany");
+        Assert.Contains("Poland", countries, "Should contain Poland");
     }
 
     #endregion

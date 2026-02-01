@@ -46,8 +46,8 @@ public class DiagnosticTests
         var loc2 = new SourceLocation(20, 3, 1);
         var loc3 = new SourceLocation(10, 2, 5);
 
-        Assert.IsTrue(loc1.CompareTo(loc2) < 0);
-        Assert.IsTrue(loc2.CompareTo(loc1) > 0);
+        Assert.IsLessThan(0, loc1.CompareTo(loc2));
+        Assert.IsGreaterThan(0, loc2.CompareTo(loc1));
         Assert.AreEqual(0, loc1.CompareTo(loc3));
         Assert.AreEqual(loc1, loc3);
     }
@@ -133,7 +133,7 @@ public class DiagnosticTests
 
         Assert.IsTrue(bag.HasTooManyErrors);
 
-        Assert.IsTrue(bag.ErrorCount >= bag.MaxErrors);
+        Assert.IsGreaterThanOrEqualTo(bag.MaxErrors, bag.ErrorCount);
     }
 
     [TestMethod]
@@ -153,7 +153,7 @@ public class DiagnosticTests
         var suggestion = ErrorCatalog.GetDidYouMeanSuggestion("Nme", candidates);
 
         Assert.IsNotNull(suggestion);
-        Assert.IsTrue(suggestion!.Contains("Name"));
+        Assert.Contains("Name", suggestion);
     }
 
     [TestMethod]
@@ -217,8 +217,8 @@ public class DiagnosticTests
         var output = formatter.Format(diagnostic);
 
         Assert.IsNotNull(output);
-        Assert.IsTrue(output.Contains("MQ2005"));
-        Assert.IsTrue(output.Contains("Missing column list"));
+        Assert.Contains("MQ2005", output);
+        Assert.Contains("Missing column list", output);
     }
 
     [TestMethod]
@@ -231,10 +231,10 @@ public class DiagnosticTests
         var json = formatter.FormatAsJson(diagnostic);
 
         Assert.IsNotNull(json);
-        Assert.IsTrue(json.Contains("\"range\""));
-        Assert.IsTrue(json.Contains("\"severity\""));
-        Assert.IsTrue(json.Contains("\"code\""));
-        Assert.IsTrue(json.Contains("\"message\""));
+        Assert.Contains("\"range\"", json);
+        Assert.Contains("\"severity\"", json);
+        Assert.Contains("\"code\"", json);
+        Assert.Contains("\"message\"", json);
     }
 
     #endregion
@@ -262,7 +262,7 @@ public class DiagnosticTests
 
         Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
         Assert.AreEqual(DiagnosticCode.MQ2002_MissingToken, diagnostic.Code);
-        Assert.IsTrue(diagnostic.Message.Contains("FROM"));
+        Assert.Contains("FROM", diagnostic.Message);
     }
 
     [TestMethod]
@@ -281,7 +281,7 @@ public class DiagnosticTests
         var exception = SyntaxException.UnclosedBracket("(", "SELECT (a + b", span);
 
         Assert.AreEqual(DiagnosticCode.MQ2010_MissingClosingParenthesis, exception.Code);
-        Assert.IsTrue(exception.Message.Contains("("));
+        Assert.Contains("(", exception.Message);
     }
 
     [TestMethod]
@@ -314,7 +314,7 @@ public class DiagnosticTests
         var diagnostic = regularException.ToDiagnosticOrGeneric();
 
         Assert.AreEqual(DiagnosticCode.MQ9999_Unknown, diagnostic.Code);
-        Assert.IsTrue(diagnostic.Message.Contains("Test error"));
+        Assert.Contains("Test error", diagnostic.Message);
     }
 
     [TestMethod]
@@ -325,10 +325,10 @@ public class DiagnosticTests
         var diagnostic = exception.ToDiagnosticOrGeneric();
 
         Assert.AreEqual(DiagnosticCode.MQ9999_Unknown, diagnostic.Code);
-        Assert.IsTrue(diagnostic.Message.Contains("testAlias123"), "Should mention the key");
-        Assert.IsTrue(diagnostic.Message.Contains("could not be resolved"), "Should explain the issue");
-        Assert.IsFalse(diagnostic.Message.Contains("was not present in the dictionary"),
-            "Should not show raw .NET message");
+        Assert.Contains("testAlias123", diagnostic.Message, "Should mention the key");
+        Assert.Contains("could not be resolved", diagnostic.Message, "Should explain the issue");
+        Assert.DoesNotContain("was not present in the dictionary",
+diagnostic.Message, "Should not show raw .NET message");
     }
 
     [TestMethod]
@@ -339,8 +339,8 @@ public class DiagnosticTests
         var diagnostic = exception.ToDiagnosticOrGeneric();
 
         Assert.AreEqual(DiagnosticCode.MQ9999_Unknown, diagnostic.Code);
-        Assert.IsTrue(diagnostic.Message.Contains("null reference"), "Should explain the issue");
-        Assert.IsTrue(diagnostic.Message.Contains("query"), "Should provide context");
+        Assert.Contains("null reference", diagnostic.Message, "Should explain the issue");
+        Assert.Contains("query", diagnostic.Message, "Should provide context");
     }
 
     [TestMethod]
@@ -351,7 +351,7 @@ public class DiagnosticTests
         var diagnostic = exception.ToDiagnosticOrGeneric();
 
         Assert.AreEqual(DiagnosticCode.MQ9999_Unknown, diagnostic.Code);
-        Assert.IsTrue(diagnostic.Message.Contains("queryText"), "Should mention the parameter name");
+        Assert.Contains("queryText", diagnostic.Message, "Should mention the parameter name");
     }
 
     [TestMethod]
@@ -362,8 +362,8 @@ public class DiagnosticTests
         var diagnostic = exception.ToDiagnosticOrGeneric();
 
         Assert.AreEqual(DiagnosticCode.MQ9999_Unknown, diagnostic.Code);
-        Assert.IsTrue(diagnostic.Message.Contains("index"), "Should mention index issue");
-        Assert.IsTrue(diagnostic.Message.Contains("range"), "Should mention range issue");
+        Assert.Contains("index", diagnostic.Message, "Should mention index issue");
+        Assert.Contains("range", diagnostic.Message, "Should mention range issue");
     }
 
     #endregion
@@ -392,7 +392,7 @@ public class DiagnosticTests
         bag.Clear();
 
         Assert.IsFalse(bag.HasErrors);
-        Assert.AreEqual(0, bag.ToSortedList().Count);
+        Assert.IsEmpty(bag.ToSortedList());
     }
 
     [TestMethod]
@@ -427,7 +427,7 @@ public class DiagnosticTests
             location,
             suggestedFixes: new[] { action });
 
-        Assert.AreEqual(1, diagnostic.SuggestedFixes.Count);
+        Assert.HasCount(1, diagnostic.SuggestedFixes);
         Assert.AreEqual("Replace with correct syntax", diagnostic.SuggestedFixes[0].Title);
     }
 

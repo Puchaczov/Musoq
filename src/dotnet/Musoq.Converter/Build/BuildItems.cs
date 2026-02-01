@@ -102,6 +102,12 @@ public class BuildItems : Dictionary<string, object>
         set => this["USED_WHERE_NODES"] = value;
     }
 
+    public IReadOnlyDictionary<SchemaFromNode, QueryHints> QueryHintsPerSchema
+    {
+        get => (IReadOnlyDictionary<SchemaFromNode, QueryHints>)this["QUERY_HINTS_PER_SCHEMA"];
+        set => this["QUERY_HINTS_PER_SCHEMA"] = value;
+    }
+
     public Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions,
             BuildMetadataAndInferTypesVisitor>
         CreateBuildMetadataAndInferTypesVisitor
@@ -130,38 +136,12 @@ public class BuildItems : Dictionary<string, object>
         get => ContainsKey("SCHEMA_REGISTRY") ? (SchemaRegistry)this["SCHEMA_REGISTRY"] : null;
         set => this["SCHEMA_REGISTRY"] = value;
     }
-
-    /// <summary>
-    ///     Gets or sets the generated C# source code for interpreter classes.
-    ///     This code will be included in the main query assembly compilation.
-    /// </summary>
     public string? InterpreterSourceCode
     {
         get => ContainsKey("INTERPRETER_SOURCE_CODE") ? (string)this["INTERPRETER_SOURCE_CODE"] : null;
         set => this["INTERPRETER_SOURCE_CODE"] = value;
     }
-
-    /// <summary>
-    ///     Gets or sets the query hints for each schema, containing SKIP/TAKE values
-    ///     that data sources can use for optimization (e.g., server-side pagination).
-    /// </summary>
-    /// <remarks>
-    ///     The key is the SchemaFromNode Id, matching the keys in QueriesInformation.
-    ///     Data sources can use these hints to limit API calls or implement pagination.
-    /// </remarks>
-    public IReadOnlyDictionary<string, QueryHints> QueryHintsPerSchema
-    {
-        get => ContainsKey("QUERY_HINTS_PER_SCHEMA")
-            ? (IReadOnlyDictionary<string, QueryHints>)this["QUERY_HINTS_PER_SCHEMA"]
-            : new Dictionary<string, QueryHints>();
-        set => this["QUERY_HINTS_PER_SCHEMA"] = value;
-    }
-
-    /// <summary>
-    ///     Gets or sets the CTE execution plan computed before query rewriting.
-    ///     The plan organizes CTEs into execution levels for parallelization.
-    ///     Must be computed BEFORE rewriting to avoid unsupported node types.
-    /// </summary>
+    
     public CteExecutionPlan? CteExecutionPlan
     {
         get => ContainsKey("CTE_EXECUTION_PLAN") ? (CteExecutionPlan)this["CTE_EXECUTION_PLAN"] : null;

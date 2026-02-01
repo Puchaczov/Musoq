@@ -15,7 +15,7 @@ public class CteReferenceExtractorTests
         var extractor = new CteReferenceExtractor(["cteA", "cteB"]);
 
         // Assert
-        Assert.AreEqual(0, extractor.FoundReferences.Count);
+        Assert.IsEmpty(extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -29,8 +29,8 @@ public class CteReferenceExtractorTests
         extractor.Visit(node);
 
         // Assert
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteA"));
+        Assert.HasCount(1, extractor.FoundReferences);
+        Assert.Contains("cteA", extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -44,7 +44,7 @@ public class CteReferenceExtractorTests
         extractor.Visit(node);
 
         // Assert
-        Assert.AreEqual(0, extractor.FoundReferences.Count);
+        Assert.IsEmpty(extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -60,8 +60,8 @@ public class CteReferenceExtractorTests
         extractor.Visit(node);
 
         // Assert
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteA"));
+        Assert.HasCount(1, extractor.FoundReferences);
+        Assert.Contains("cteA", extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -76,8 +76,8 @@ public class CteReferenceExtractorTests
         extractor.Visit(node);
 
         // Assert
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteB"));
+        Assert.HasCount(1, extractor.FoundReferences);
+        Assert.Contains("cteB", extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -93,9 +93,9 @@ public class CteReferenceExtractorTests
         extractor.Visit(node2);
 
         // Assert
-        Assert.AreEqual(2, extractor.FoundReferences.Count);
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteA"));
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteB"));
+        Assert.HasCount(2, extractor.FoundReferences);
+        Assert.Contains("cteA", extractor.FoundReferences);
+        Assert.Contains("cteB", extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -111,7 +111,7 @@ public class CteReferenceExtractorTests
         extractor.Visit(node2);
 
         // Assert
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
+        Assert.HasCount(1, extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -121,13 +121,13 @@ public class CteReferenceExtractorTests
         var extractor = new CteReferenceExtractor(["cteA"]);
         var node = new InMemoryTableFromNode("cteA", "alias", typeof(object));
         extractor.Visit(node);
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
+        Assert.HasCount(1, extractor.FoundReferences);
 
         // Act
         extractor.Clear();
 
         // Assert
-        Assert.AreEqual(0, extractor.FoundReferences.Count);
+        Assert.IsEmpty(extractor.FoundReferences);
     }
 
     #region Edge Case Tests
@@ -139,7 +139,7 @@ public class CteReferenceExtractorTests
         var extractor = new CteReferenceExtractor([]);
 
         // Assert
-        Assert.AreEqual(0, extractor.FoundReferences.Count);
+        Assert.IsEmpty(extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -153,7 +153,7 @@ public class CteReferenceExtractorTests
         extractor.Visit(node);
 
         // Assert - Should not add empty string
-        Assert.AreEqual(0, extractor.FoundReferences.Count);
+        Assert.IsEmpty(extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -170,7 +170,7 @@ public class CteReferenceExtractorTests
         extractor.Visit(node);
 
         // Assert
-        Assert.AreEqual(0, extractor.FoundReferences.Count);
+        Assert.IsEmpty(extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -185,7 +185,7 @@ public class CteReferenceExtractorTests
         extractor.Visit(node);
 
         // Assert
-        Assert.AreEqual(0, extractor.FoundReferences.Count);
+        Assert.IsEmpty(extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -210,10 +210,10 @@ public class CteReferenceExtractorTests
         extractor.Visit(applyNode);
 
         // Assert
-        Assert.AreEqual(3, extractor.FoundReferences.Count);
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteA"));
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteB"));
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteC"));
+        Assert.HasCount(3, extractor.FoundReferences);
+        Assert.Contains("cteA", extractor.FoundReferences);
+        Assert.Contains("cteB", extractor.FoundReferences);
+        Assert.Contains("cteC", extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -225,16 +225,16 @@ public class CteReferenceExtractorTests
         var node2 = new InMemoryTableFromNode("cteB", "b", typeof(object));
 
         extractor.Visit(node1);
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
+        Assert.HasCount(1, extractor.FoundReferences);
 
         // Act
         extractor.Clear();
         extractor.Visit(node2);
 
         // Assert
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteB"));
-        Assert.IsFalse(extractor.FoundReferences.Contains("cteA"));
+        Assert.HasCount(1, extractor.FoundReferences);
+        Assert.Contains("cteB", extractor.FoundReferences);
+        Assert.DoesNotContain("cteA", extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -248,7 +248,7 @@ public class CteReferenceExtractorTests
         extractor.Visit(node);
 
         // Assert - Should not match because case differs
-        Assert.AreEqual(0, extractor.FoundReferences.Count);
+        Assert.IsEmpty(extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -263,8 +263,8 @@ public class CteReferenceExtractorTests
         extractor.Visit(node);
 
         // Assert
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
-        Assert.IsTrue(extractor.FoundReferences.Contains("cteA"));
+        Assert.HasCount(1, extractor.FoundReferences);
+        Assert.Contains("cteA", extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -281,7 +281,7 @@ public class CteReferenceExtractorTests
         extractor.Visit(node);
 
         // Assert
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
+        Assert.HasCount(1, extractor.FoundReferences);
     }
 
     [TestMethod]
@@ -298,7 +298,7 @@ public class CteReferenceExtractorTests
         extractor.Visit(node);
 
         // Assert
-        Assert.AreEqual(1, extractor.FoundReferences.Count);
+        Assert.HasCount(1, extractor.FoundReferences);
     }
 
     #endregion

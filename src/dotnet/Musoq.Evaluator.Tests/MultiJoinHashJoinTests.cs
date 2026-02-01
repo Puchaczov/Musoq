@@ -100,7 +100,7 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
 
 
         Assert.AreEqual(1, table.Count, "Should have 1 row with count");
-        Assert.IsTrue((int)table[0][0] > 0, "Should have some matching rows");
+        Assert.IsGreaterThan(0, (int)table[0][0], "Should have some matching rows");
     }
 
     #endregion
@@ -824,10 +824,10 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
             "Both the A-B join and the AB-C join should use hash join.");
 
 
-        Assert.IsTrue(generatedCode.Contains("bHashed = new System.Collections.Generic.Dictionary<"),
-            "First join should create bHashed dictionary");
-        Assert.IsTrue(generatedCode.Contains("abHashed = new System.Collections.Generic.Dictionary<"),
-            "Second join should create abHashed dictionary for the intermediate result");
+        Assert.Contains("bHashed = new System.Collections.Generic.Dictionary<",
+generatedCode, "First join should create bHashed dictionary");
+        Assert.Contains("abHashed = new System.Collections.Generic.Dictionary<",
+generatedCode, "Second join should create abHashed dictionary for the intermediate result");
     }
 
     /// <summary>
