@@ -1554,6 +1554,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         _usedSchemasQuantity += 1;
         _schemaFromInfo.Add(_queryAlias, (_schemaFromKey, _positionalEnvironmentVariablesKey));
         _positionalEnvironmentVariablesKey += 1;
+        _aliasToSchemaFromNodeMap.Add(_queryAlias, aliasedSchemaFromNode);
 
         Nodes.Push(aliasedSchemaFromNode);
     }
