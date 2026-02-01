@@ -141,7 +141,7 @@ public class BuildItems : Dictionary<string, object>
         get => ContainsKey("INTERPRETER_SOURCE_CODE") ? (string)this["INTERPRETER_SOURCE_CODE"] : null;
         set => this["INTERPRETER_SOURCE_CODE"] = value;
     }
-    
+
     public CteExecutionPlan? CteExecutionPlan
     {
         get => ContainsKey("CTE_EXECUTION_PLAN") ? (CteExecutionPlan)this["CTE_EXECUTION_PLAN"] : null;

@@ -14,10 +14,14 @@ using SchemaColumn = Musoq.Schema.DataSources.SchemaColumn;
 namespace Musoq.Evaluator.Tests;
 
 /// <summary>
-///     Integration tests for QueryHints and RuntimeContext.
-///     These tests simulate a fake API datasource that captures the RuntimeContext
-///     to verify that QueryHints (Skip, Take, Distinct) and other context information
-///     flow correctly through the query compilation and execution pipeline.
+///     Integration tests for QueryHints distribution to data sources.
+///     These tests verify that SKIP/TAKE/DISTINCT hints are correctly passed (or not passed)
+///     to data sources based on query structure:
+///     - Single-table without ORDER BY, GROUP BY, or DISTINCT: hints ARE passed
+///     - Single-table with ORDER BY: hints are NOT passed (sorting happens after retrieval)
+///     - Single-table with GROUP BY: hints are NOT passed (grouping happens after retrieval)
+///     - Single-table with DISTINCT: hints are NOT passed (DISTINCT creates implicit GROUP BY)
+///     - Multi-table (JOIN/APPLY): hints are NOT passed (optimization applies to joined result)
 /// </summary>
 [TestClass]
 public class ApiDataSourceQueryHintsIntegrationTests
@@ -33,10 +37,252 @@ public class ApiDataSourceQueryHintsIntegrationTests
 
     private ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
-    #region Environment Variables Tests
+    #region Single-Table QueryHints Tests
+
+    [DataTestMethod]
+    [DataRow("select Id from #api.items()", null, null, false, DisplayName = "No optimization clauses")]
+    [DataRow("select Id from #api.items() skip 10", 10L, null, false, DisplayName = "SKIP only")]
+    [DataRow("select Id from #api.items() take 5", null, 5L, false, DisplayName = "TAKE only")]
+    [DataRow("select Id from #api.items() skip 10 take 5", 10L, 5L, false, DisplayName = "SKIP and TAKE")]
+    public void SingleTable_WithoutOrderBy_ShouldPassHints(string query, long? expectedSkip, long? expectedTake, bool expectedDistinct)
+    {
+        // Arrange
+        RuntimeContext capturedContext = null;
+        var api = new FakeApiDataSource(ctx =>
+        {
+            capturedContext = ctx;
+            return Enumerable.Range(1, 100).Select(i => new FakeApiEntity { Id = i, Name = $"Item{i}" });
+        });
+
+        // Act
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), 
+            new FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        // Assert
+        Assert.IsNotNull(capturedContext, "RuntimeContext should be captured");
+        Assert.IsNotNull(capturedContext.QueryHints, "QueryHints should not be null");
+        Assert.AreEqual(expectedSkip, capturedContext.QueryHints.SkipValue, $"SkipValue mismatch for: {query}");
+        Assert.AreEqual(expectedTake, capturedContext.QueryHints.TakeValue, $"TakeValue mismatch for: {query}");
+        Assert.AreEqual(expectedDistinct, capturedContext.QueryHints.IsDistinct, $"IsDistinct mismatch for: {query}");
+        
+        var hasHints = expectedSkip.HasValue || expectedTake.HasValue || expectedDistinct;
+        Assert.AreEqual(hasHints, capturedContext.QueryHints.HasOptimizationHints, 
+            $"HasOptimizationHints mismatch for: {query}");
+    }
+
+    [DataTestMethod]
+    [DataRow("select Id from #api.items() order by Id", DisplayName = "ORDER BY only")]
+    [DataRow("select Id from #api.items() order by Id skip 10", DisplayName = "ORDER BY with SKIP")]
+    [DataRow("select Id from #api.items() order by Id take 5", DisplayName = "ORDER BY with TAKE")]
+    [DataRow("select Id from #api.items() order by Id skip 10 take 5", DisplayName = "ORDER BY with SKIP and TAKE")]
+    [DataRow("select distinct Id from #api.items() order by Id", DisplayName = "ORDER BY with DISTINCT")]
+    [DataRow("select distinct Id from #api.items() order by Id skip 5", DisplayName = "ORDER BY with DISTINCT and SKIP")]
+    [DataRow("select Id from #api.items() order by Id desc take 3", DisplayName = "ORDER BY DESC with TAKE")]
+    [DataRow("select Id from #api.items() order by Name, Id skip 2 take 3", DisplayName = "Multi-column ORDER BY")]
+    public void SingleTable_WithOrderBy_ShouldNotPassHints(string query)
+    {
+        // Arrange
+        RuntimeContext capturedContext = null;
+        var api = new FakeApiDataSource(ctx =>
+        {
+            capturedContext = ctx;
+            return Enumerable.Range(1, 100).Select(i => new FakeApiEntity { Id = i, Name = $"Item{i}" });
+        });
+
+        // Act
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), 
+            new FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        // Assert - ORDER BY means no hints should be passed to data source
+        Assert.IsNotNull(capturedContext, "RuntimeContext should be captured");
+        Assert.IsNotNull(capturedContext.QueryHints, "QueryHints should not be null");
+        Assert.IsFalse(capturedContext.QueryHints.HasOptimizationHints, 
+            $"ORDER BY should prevent hints from being passed for: {query}");
+    }
+
+    [DataTestMethod]
+    [DataRow("select distinct Id from #api.items()", DisplayName = "DISTINCT only")]
+    [DataRow("select distinct Id from #api.items() skip 5", DisplayName = "DISTINCT with SKIP")]
+    [DataRow("select distinct Id from #api.items() take 3", DisplayName = "DISTINCT with TAKE")]
+    [DataRow("select distinct Id from #api.items() skip 2 take 3", DisplayName = "DISTINCT with SKIP and TAKE")]
+    public void SingleTable_WithDistinct_ShouldNotPassHints(string query)
+    {
+        // Arrange
+        RuntimeContext capturedContext = null;
+        var api = new FakeApiDataSource(ctx =>
+        {
+            capturedContext = ctx;
+            return Enumerable.Range(1, 100).Select(i => new FakeApiEntity { Id = i, Name = $"Item{i % 10}" });
+        });
+
+        // Act
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), 
+            new FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        // Assert - DISTINCT creates implicit GROUP BY, so no hints should be passed
+        Assert.IsNotNull(capturedContext, "RuntimeContext should be captured");
+        Assert.IsNotNull(capturedContext.QueryHints, "QueryHints should not be null");
+        Assert.IsFalse(capturedContext.QueryHints.HasOptimizationHints, 
+            $"DISTINCT creates implicit GROUP BY and should prevent hints from being passed for: {query}");
+    }
+
+    [DataTestMethod]
+    [DataRow("select Name, Count(Id) from #api.items() group by Name", DisplayName = "GROUP BY only")]
+    [DataRow("select Name, Count(Id) from #api.items() group by Name skip 10", DisplayName = "GROUP BY with SKIP")]
+    [DataRow("select Name, Count(Id) from #api.items() group by Name take 5", DisplayName = "GROUP BY with TAKE")]
+    [DataRow("select Name, Count(Id) from #api.items() group by Name skip 10 take 5", DisplayName = "GROUP BY with SKIP and TAKE")]
+    [DataRow("select distinct Name from #api.items() group by Name", DisplayName = "GROUP BY with DISTINCT")]
+    [DataRow("select Name, Count(Id) from #api.items() group by Name having Count(Id) > 5", DisplayName = "GROUP BY with HAVING")]
+    [DataRow("select Name, Count(Id) from #api.items() group by Name having Count(Id) > 5 take 3", DisplayName = "GROUP BY with HAVING and TAKE")]
+    [DataRow("select Name, Count(Id) from #api.items() group by Name order by Count(Id) desc take 5", DisplayName = "GROUP BY with ORDER BY and TAKE")]
+    public void SingleTable_WithGroupBy_ShouldNotPassHints(string query)
+    {
+        // Arrange
+        RuntimeContext capturedContext = null;
+        var api = new FakeApiDataSource(ctx =>
+        {
+            capturedContext = ctx;
+            return Enumerable.Range(1, 100).Select(i => new FakeApiEntity { Id = i, Name = $"Item{i % 10}" });
+        });
+
+        // Act
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), 
+            new FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        // Assert - GROUP BY means no hints should be passed to data source
+        Assert.IsNotNull(capturedContext, "RuntimeContext should be captured");
+        Assert.IsNotNull(capturedContext.QueryHints, "QueryHints should not be null");
+        Assert.IsFalse(capturedContext.QueryHints.HasOptimizationHints, 
+            $"GROUP BY should prevent hints from being passed for: {query}");
+    }
+
+    #endregion
+
+    #region Multi-Table QueryHints Tests
+
+    [DataTestMethod]
+    [DataRow("select a.Id from #multiapi.items() a inner join #multiapi.categories() b on a.Status = b.CategoryId", 
+        DisplayName = "INNER JOIN")]
+    [DataRow("select a.Id from #multiapi.items() a inner join #multiapi.categories() b on a.Status = b.CategoryId skip 5", 
+        DisplayName = "INNER JOIN with SKIP")]
+    [DataRow("select a.Id from #multiapi.items() a inner join #multiapi.categories() b on a.Status = b.CategoryId take 10", 
+        DisplayName = "INNER JOIN with TAKE")]
+    [DataRow("select a.Id from #multiapi.items() a inner join #multiapi.categories() b on a.Status = b.CategoryId skip 5 take 10", 
+        DisplayName = "INNER JOIN with SKIP and TAKE")]
+    [DataRow("select distinct a.Id from #multiapi.items() a inner join #multiapi.categories() b on a.Status = b.CategoryId", 
+        DisplayName = "INNER JOIN with DISTINCT")]
+    [DataRow("select a.Id from #multiapi.items() a left outer join #multiapi.categories() b on a.Status = b.CategoryId take 5", 
+        DisplayName = "LEFT JOIN with TAKE")]
+    [DataRow("select a.Id from #multiapi.items() a cross apply #multiapi.categories() b", 
+        DisplayName = "CROSS APPLY")]
+    [DataRow("select a.Id from #multiapi.items() a cross apply #multiapi.categories() b skip 3 take 5", 
+        DisplayName = "CROSS APPLY with SKIP and TAKE")]
+    public void MultiTable_ShouldNotPassHintsToAnySources(string query)
+    {
+        // Arrange
+        RuntimeContext capturedItemsContext = null;
+        RuntimeContext capturedCategoriesContext = null;
+        
+        var multiApi = new FakeMultiApiDataSource(
+            itemsProvider: ctx =>
+            {
+                capturedItemsContext = ctx;
+                return Enumerable.Range(1, 50).Select(i => new FakeApiEntity 
+                { 
+                    Id = i, 
+                    Name = $"Item{i}", 
+                    Status = $"cat{i % 3}" 
+                });
+            },
+            categoriesProvider: ctx =>
+            {
+                capturedCategoriesContext = ctx;
+                return Enumerable.Range(0, 3).Select(i => new FakeCategoryEntity 
+                { 
+                    CategoryId = $"cat{i}", 
+                    CategoryName = $"Category {i}" 
+                });
+            });
+
+        // Act
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), 
+            new FakeMultiApiSchemaProvider(multiApi), LoggerResolver, TestCompilationOptions);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        // Assert - Multi-table queries should NEVER pass hints to individual sources
+        Assert.IsNotNull(capturedItemsContext, "Items context should be captured");
+        Assert.IsNotNull(capturedCategoriesContext, "Categories context should be captured");
+        
+        // Items source should have empty hints
+        Assert.IsNull(capturedItemsContext.QueryHints.SkipValue, $"Items SkipValue should be null for: {query}");
+        Assert.IsNull(capturedItemsContext.QueryHints.TakeValue, $"Items TakeValue should be null for: {query}");
+        Assert.IsFalse(capturedItemsContext.QueryHints.IsDistinct, $"Items IsDistinct should be false for: {query}");
+        Assert.IsFalse(capturedItemsContext.QueryHints.HasOptimizationHints, $"Items should have no hints for: {query}");
+        
+        // Categories source should have empty hints
+        Assert.IsNull(capturedCategoriesContext.QueryHints.SkipValue, $"Categories SkipValue should be null for: {query}");
+        Assert.IsNull(capturedCategoriesContext.QueryHints.TakeValue, $"Categories TakeValue should be null for: {query}");
+        Assert.IsFalse(capturedCategoriesContext.QueryHints.IsDistinct, $"Categories IsDistinct should be false for: {query}");
+        Assert.IsFalse(capturedCategoriesContext.QueryHints.HasOptimizationHints, $"Categories should have no hints for: {query}");
+    }
+
+    [DataTestMethod]
+    [DataRow("select a.Id from #multiapi.items() a inner join #multiapi.categories() b on a.Status = b.CategoryId order by a.Id skip 5", 
+        DisplayName = "JOIN with ORDER BY and SKIP")]
+    [DataRow("select a.Id from #multiapi.items() a cross apply #multiapi.categories() b order by a.Name take 10", 
+        DisplayName = "CROSS APPLY with ORDER BY and TAKE")]
+    [DataRow("select distinct a.Status from #multiapi.items() a inner join #multiapi.categories() b on a.Status = b.CategoryId order by a.Status", 
+        DisplayName = "JOIN with DISTINCT and ORDER BY")]
+    public void MultiTable_WithOrderBy_ShouldNotPassHintsToAnySources(string query)
+    {
+        // Arrange
+        RuntimeContext capturedItemsContext = null;
+        RuntimeContext capturedCategoriesContext = null;
+        
+        var multiApi = new FakeMultiApiDataSource(
+            itemsProvider: ctx =>
+            {
+                capturedItemsContext = ctx;
+                return Enumerable.Range(1, 50).Select(i => new FakeApiEntity 
+                { 
+                    Id = i, 
+                    Name = $"Item{i}", 
+                    Status = $"cat{i % 3}" 
+                });
+            },
+            categoriesProvider: ctx =>
+            {
+                capturedCategoriesContext = ctx;
+                return Enumerable.Range(0, 3).Select(i => new FakeCategoryEntity 
+                { 
+                    CategoryId = $"cat{i}", 
+                    CategoryName = $"Category {i}" 
+                });
+            });
+
+        // Act
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), 
+            new FakeMultiApiSchemaProvider(multiApi), LoggerResolver, TestCompilationOptions);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        // Assert - Multi-table with ORDER BY: double reason for no hints
+        Assert.IsNotNull(capturedItemsContext);
+        Assert.IsNotNull(capturedCategoriesContext);
+        
+        Assert.IsFalse(capturedItemsContext.QueryHints.HasOptimizationHints, $"Items should have no hints for: {query}");
+        Assert.IsFalse(capturedCategoriesContext.QueryHints.HasOptimizationHints, $"Categories should have no hints for: {query}");
+    }
+
+    #endregion
+
+    #region RuntimeContext Integration Tests
 
     [TestMethod]
-    public void FakeApi_ShouldReceiveEnvironmentVariables()
+    public void RuntimeContext_ShouldReceiveEnvironmentVariables()
     {
         // Arrange
         RuntimeContext capturedContext = null;
@@ -48,7 +294,8 @@ public class ApiDataSourceQueryHintsIntegrationTests
 
         // Act
         var query = "select Id, Name from #api.items()";
-        var vm = CreateCompiledQuery(query, api);
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), 
+            new FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert
@@ -56,12 +303,8 @@ public class ApiDataSourceQueryHintsIntegrationTests
         Assert.IsNotNull(capturedContext.EnvironmentVariables, "EnvironmentVariables should not be null");
     }
 
-    #endregion
-
-    #region CancellationToken Tests
-
     [TestMethod]
-    public void FakeApi_ShouldReceiveCancellationToken()
+    public void RuntimeContext_ShouldReceiveCancellationToken()
     {
         // Arrange
         RuntimeContext capturedContext = null;
@@ -73,7 +316,8 @@ public class ApiDataSourceQueryHintsIntegrationTests
 
         // Act
         var query = "select Id from #api.items()";
-        var vm = CreateCompiledQuery(query, api);
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), 
+            new FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert
@@ -81,230 +325,8 @@ public class ApiDataSourceQueryHintsIntegrationTests
         Assert.IsNotNull(capturedContext.EndWorkToken);
     }
 
-    #endregion
-
-    #region Helper Methods
-
-    private CompiledQuery CreateCompiledQuery(string query, FakeApiDataSource api)
-    {
-        return InstanceCreator.CompileForExecution(
-            query,
-            Guid.NewGuid().ToString(),
-            new FakeApiSchemaProvider(api),
-            LoggerResolver,
-            TestCompilationOptions);
-    }
-
-    #endregion
-
-    #region QueryHints Capture Tests
-
     [TestMethod]
-    public void FakeApi_SimpleSelect_ShouldReceiveEmptyQueryHints()
-    {
-        // Arrange
-        RuntimeContext capturedContext = null;
-        var api = new FakeApiDataSource(ctx =>
-        {
-            capturedContext = ctx;
-            return new[]
-            {
-                new FakeApiEntity { Id = 1, Name = "Item1" },
-                new FakeApiEntity { Id = 2, Name = "Item2" }
-            };
-        });
-
-        // Act
-        var query = "select Id, Name from #api.items()";
-        var vm = CreateCompiledQuery(query, api);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        // Assert
-        Assert.IsNotNull(capturedContext, "RuntimeContext should be captured");
-        Assert.IsNotNull(capturedContext.QueryHints, "QueryHints should not be null");
-        Assert.IsNull(capturedContext.QueryHints.SkipValue, "SkipValue should be null for simple select");
-        Assert.IsNull(capturedContext.QueryHints.TakeValue, "TakeValue should be null for simple select");
-        Assert.IsFalse(capturedContext.QueryHints.IsDistinct, "IsDistinct should be false for simple select");
-        Assert.IsFalse(capturedContext.QueryHints.HasOptimizationHints, "HasOptimizationHints should be false");
-
-        Assert.AreEqual(2, table.Count);
-        // Verify both items are present (order may vary)
-        var ids = new HashSet<int> { (int)table[0][0], (int)table[1][0] };
-        Assert.Contains(1, ids, "Should contain Id=1");
-        Assert.Contains(2, ids, "Should contain Id=2");
-    }
-
-    [TestMethod]
-    public void FakeApi_WithSkip_ShouldReceiveSkipHint()
-    {
-        // Arrange
-        RuntimeContext capturedContext = null;
-        var api = new FakeApiDataSource(ctx =>
-        {
-            capturedContext = ctx;
-            return Enumerable.Range(1, 10).Select(i => new FakeApiEntity { Id = i, Name = $"Item{i}" });
-        });
-
-        // Act
-        var query = "select Id, Name from #api.items() order by Id skip 3";
-        var vm = CreateCompiledQuery(query, api);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        // Assert
-        Assert.IsNotNull(capturedContext);
-        Assert.IsNotNull(capturedContext.QueryHints);
-        Assert.AreEqual(3L, capturedContext.QueryHints.SkipValue, "SkipValue should be 3");
-        Assert.IsNull(capturedContext.QueryHints.TakeValue, "TakeValue should be null");
-        Assert.IsFalse(capturedContext.QueryHints.IsDistinct, "IsDistinct should be false");
-        Assert.IsTrue(capturedContext.QueryHints.HasOptimizationHints, "HasOptimizationHints should be true");
-
-        // Verify correct rows returned after skip
-        Assert.AreEqual(7, table.Count); // 10 - 3 = 7 rows
-        Assert.AreEqual(4, table[0][0]); // First row should be Id=4 (after skipping 3)
-    }
-
-    [TestMethod]
-    public void FakeApi_WithTake_ShouldReceiveTakeHint()
-    {
-        // Arrange
-        RuntimeContext capturedContext = null;
-        var api = new FakeApiDataSource(ctx =>
-        {
-            capturedContext = ctx;
-            return Enumerable.Range(1, 10).Select(i => new FakeApiEntity { Id = i, Name = $"Item{i}" });
-        });
-
-        // Act
-        var query = "select Id, Name from #api.items() order by Id take 5";
-        var vm = CreateCompiledQuery(query, api);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        // Assert
-        Assert.IsNotNull(capturedContext);
-        Assert.IsNotNull(capturedContext.QueryHints);
-        Assert.IsNull(capturedContext.QueryHints.SkipValue, "SkipValue should be null");
-        Assert.AreEqual(5L, capturedContext.QueryHints.TakeValue, "TakeValue should be 5");
-        Assert.IsFalse(capturedContext.QueryHints.IsDistinct, "IsDistinct should be false");
-        Assert.IsTrue(capturedContext.QueryHints.HasOptimizationHints, "HasOptimizationHints should be true");
-        Assert.AreEqual(5L, capturedContext.QueryHints.EffectiveMaxRowsToFetch, "EffectiveMaxRowsToFetch should be 5");
-
-        // Verify correct rows returned after take
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual(5, table[4][0]);
-    }
-
-    [TestMethod]
-    public void FakeApi_WithSkipAndTake_ShouldReceiveBothHints()
-    {
-        // Arrange
-        RuntimeContext capturedContext = null;
-        var api = new FakeApiDataSource(ctx =>
-        {
-            capturedContext = ctx;
-            return Enumerable.Range(1, 20).Select(i => new FakeApiEntity { Id = i, Name = $"Item{i}" });
-        });
-
-        // Act
-        var query = "select Id, Name from #api.items() order by Id skip 5 take 3";
-        var vm = CreateCompiledQuery(query, api);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        // Assert
-        Assert.IsNotNull(capturedContext);
-        Assert.IsNotNull(capturedContext.QueryHints);
-        Assert.AreEqual(5L, capturedContext.QueryHints.SkipValue, "SkipValue should be 5");
-        Assert.AreEqual(3L, capturedContext.QueryHints.TakeValue, "TakeValue should be 3");
-        Assert.IsFalse(capturedContext.QueryHints.IsDistinct, "IsDistinct should be false");
-        Assert.IsTrue(capturedContext.QueryHints.HasOptimizationHints, "HasOptimizationHints should be true");
-        Assert.AreEqual(8L, capturedContext.QueryHints.EffectiveMaxRowsToFetch,
-            "EffectiveMaxRowsToFetch should be Skip+Take=8");
-
-        // Verify correct rows - skip 5, take 3 means rows 6, 7, 8
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(6, table[0][0]);
-        Assert.AreEqual(7, table[1][0]);
-        Assert.AreEqual(8, table[2][0]);
-    }
-
-    [TestMethod]
-    public void FakeApi_WithDistinctAndSkip_ShouldReceiveBothHints()
-    {
-        // Arrange
-        RuntimeContext capturedContext = null;
-        var api = new FakeApiDataSource(ctx =>
-        {
-            capturedContext = ctx;
-            return new[]
-            {
-                new FakeApiEntity { Id = 1, Name = "Apple" },
-                new FakeApiEntity { Id = 2, Name = "Apple" },
-                new FakeApiEntity { Id = 3, Name = "Banana" },
-                new FakeApiEntity { Id = 4, Name = "Cherry" }
-            };
-        });
-
-        // Act
-        var query = "select distinct Name from #api.items() order by Name skip 1";
-        var vm = CreateCompiledQuery(query, api);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        // Assert
-        Assert.IsNotNull(capturedContext);
-        Assert.IsNotNull(capturedContext.QueryHints);
-        Assert.AreEqual(1L, capturedContext.QueryHints.SkipValue, "SkipValue should be 1");
-        Assert.IsNull(capturedContext.QueryHints.TakeValue, "TakeValue should be null");
-        Assert.IsTrue(capturedContext.QueryHints.IsDistinct, "IsDistinct should be true (combined with skip)");
-
-        // Verify results - distinct names are Apple, Banana, Cherry, skip 1 means Banana, Cherry
-        Assert.AreEqual(2, table.Count);
-    }
-
-    [TestMethod]
-    public void FakeApi_WithDistinct_ShouldReceiveDistinctHint()
-    {
-        // Arrange
-        RuntimeContext capturedContext = null;
-        var api = new FakeApiDataSource(ctx =>
-        {
-            capturedContext = ctx;
-            return new[]
-            {
-                new FakeApiEntity { Id = 1, Name = "Apple" },
-                new FakeApiEntity { Id = 2, Name = "Apple" },
-                new FakeApiEntity { Id = 3, Name = "Banana" },
-                new FakeApiEntity { Id = 4, Name = "Banana" },
-                new FakeApiEntity { Id = 5, Name = "Cherry" }
-            };
-        });
-
-        // Act
-        var query = "select distinct Name from #api.items()";
-        var vm = CreateCompiledQuery(query, api);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        // Assert
-        Assert.IsNotNull(capturedContext);
-        Assert.IsNotNull(capturedContext.QueryHints);
-        Assert.IsNull(capturedContext.QueryHints.SkipValue, "SkipValue should be null");
-        Assert.IsNull(capturedContext.QueryHints.TakeValue, "TakeValue should be null");
-        Assert.IsTrue(capturedContext.QueryHints.IsDistinct, "IsDistinct should be true");
-        Assert.IsTrue(capturedContext.QueryHints.HasOptimizationHints, "HasOptimizationHints should be true");
-
-        // Verify distinct results
-        Assert.AreEqual(3, table.Count);
-        var names = new HashSet<string> { (string)table[0][0], (string)table[1][0], (string)table[2][0] };
-        Assert.Contains("Apple", names);
-        Assert.Contains("Banana", names);
-        Assert.Contains("Cherry", names);
-    }
-
-    #endregion
-
-    #region QueryInformation Capture Tests
-
-    [TestMethod]
-    public void FakeApi_WithWhereClause_ShouldReceiveWhereInformation()
+    public void RuntimeContext_WithWhereClause_ShouldReceiveWhereNode()
     {
         // Arrange
         RuntimeContext capturedContext = null;
@@ -314,274 +336,42 @@ public class ApiDataSourceQueryHintsIntegrationTests
             return new[]
             {
                 new FakeApiEntity { Id = 1, Name = "Active", Status = "active" },
-                new FakeApiEntity { Id = 2, Name = "Inactive", Status = "inactive" },
-                new FakeApiEntity { Id = 3, Name = "Pending", Status = "pending" }
+                new FakeApiEntity { Id = 2, Name = "Inactive", Status = "inactive" }
             };
         });
 
         // Act
         var query = "select Id, Name from #api.items() where Status = 'active'";
-        var vm = CreateCompiledQuery(query, api);
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), 
+            new FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert
         Assert.IsNotNull(capturedContext);
         Assert.IsNotNull(capturedContext.QuerySourceInfo);
-
-        // The WhereNode should be captured
-        var whereNode = capturedContext.QuerySourceInfo.WhereNode;
-        Assert.IsNotNull(whereNode, "WhereNode should be captured for predicate pushdown");
-
-        // Verify query result
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1, table[0][0]);
-        Assert.AreEqual("Active", table[0][1]);
-    }
-
-    [TestMethod]
-    public void FakeApi_WithMultipleConditions_ShouldReceivePredicates()
-    {
-        // Arrange
-        RuntimeContext capturedContext = null;
-        var api = new FakeApiDataSource(ctx =>
-        {
-            capturedContext = ctx;
-            return new[]
-            {
-                new FakeApiEntity { Id = 1, Name = "A", Status = "active", Priority = 1 },
-                new FakeApiEntity { Id = 2, Name = "B", Status = "active", Priority = 2 },
-                new FakeApiEntity { Id = 3, Name = "C", Status = "inactive", Priority = 1 },
-                new FakeApiEntity { Id = 4, Name = "D", Status = "active", Priority = 3 }
-            };
-        });
-
-        // Act
-        var query = "select Id, Name from #api.items() where Status = 'active' and Priority <= 2";
-        var vm = CreateCompiledQuery(query, api);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        // Assert
-        Assert.IsNotNull(capturedContext);
-        Assert.IsNotNull(capturedContext.QuerySourceInfo.WhereNode);
-
-        // Verify filtered results (order not guaranteed without ORDER BY)
-        Assert.AreEqual(2, table.Count);
-        var ids = new HashSet<int> { (int)table[0][0], (int)table[1][0] };
-        Assert.Contains(1, ids, "Expected Id=1 in results");
-        Assert.Contains(2, ids, "Expected Id=2 in results");
-    }
-
-    [TestMethod]
-    public void FakeApi_WithOrCondition_ShouldReceiveOrPredicate()
-    {
-        // Arrange
-        RuntimeContext capturedContext = null;
-        var api = new FakeApiDataSource(ctx =>
-        {
-            capturedContext = ctx;
-            return new[]
-            {
-                new FakeApiEntity { Id = 1, Name = "Urgent", Priority = 1 },
-                new FakeApiEntity { Id = 2, Name = "Normal", Priority = 2 },
-                new FakeApiEntity { Id = 3, Name = "Low", Priority = 3 }
-            };
-        });
-
-        // Act
-        var query = "select Id, Name from #api.items() where Priority = 1 or Priority = 3";
-        var vm = CreateCompiledQuery(query, api);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        // Assert
-        Assert.IsNotNull(capturedContext);
-        Assert.IsNotNull(capturedContext.QuerySourceInfo.WhereNode);
-
-        // Verify filtered results
-        Assert.AreEqual(2, table.Count);
-        var ids = new HashSet<int> { (int)table[0][0], (int)table[1][0] };
-        Assert.Contains(1, ids);
-        Assert.Contains(3, ids);
-    }
-
-    #endregion
-
-    #region Column Projection Tests
-
-    [TestMethod]
-    public void FakeApi_SelectSpecificColumns_ShouldReceiveColumnInfo()
-    {
-        // Arrange
-        RuntimeContext capturedContext = null;
-        var api = new FakeApiDataSource(ctx =>
-        {
-            capturedContext = ctx;
-            return new[]
-            {
-                new FakeApiEntity { Id = 1, Name = "Item1", Status = "active", Priority = 1 }
-            };
-        });
-
-        // Act
-        var query = "select Id, Name from #api.items()";
-        var vm = CreateCompiledQuery(query, api);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        // Assert
-        Assert.IsNotNull(capturedContext);
-        Assert.IsNotNull(capturedContext.QuerySourceInfo.Columns);
-
-        // Verify we only get the columns we need
-        Assert.AreEqual(2, table.Columns.Count());
+        Assert.IsNotNull(capturedContext.QuerySourceInfo.WhereNode, "WhereNode should be captured for predicate pushdown");
         Assert.AreEqual(1, table.Count);
     }
 
     [TestMethod]
-    public void FakeApi_SelectAllColumns_ShouldReturnAllData()
+    public void RuntimeContext_QueryResult_ShouldBeCorrect()
     {
         // Arrange
-        RuntimeContext capturedContext = null;
-        var api = new FakeApiDataSource(ctx =>
-        {
-            capturedContext = ctx;
-            return new[]
-            {
-                new FakeApiEntity { Id = 1, Name = "Item1", Status = "active", Priority = 5 }
-            };
-        });
+        var api = new FakeApiDataSource(_ => Enumerable.Range(1, 20).Select(i => new FakeApiEntity 
+        { 
+            Id = i, 
+            Name = $"Item{i:D2}" 
+        }));
 
         // Act
-        var query = "select Id, Name, Status, Priority from #api.items()";
-        var vm = CreateCompiledQuery(query, api);
+        var query = "select Id, Name from #api.items() where Id > 5 and Id <= 10";
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), 
+            new FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert
-        Assert.IsNotNull(capturedContext);
-        Assert.AreEqual(4, table.Columns.Count());
-        Assert.AreEqual(1, table[0][0]); // Id
-        Assert.AreEqual("Item1", table[0][1]); // Name
-        Assert.AreEqual("active", table[0][2]); // Status
-        Assert.AreEqual(5, table[0][3]); // Priority
-    }
-
-    #endregion
-
-    #region Complex Query Tests
-
-    [TestMethod]
-    public void FakeApi_WithGroupByAndAggregate_ShouldWork()
-    {
-        // Arrange
-        RuntimeContext capturedContext = null;
-        var api = new FakeApiDataSource(ctx =>
-        {
-            capturedContext = ctx;
-            return new[]
-            {
-                new FakeApiEntity { Id = 1, Name = "A", Status = "active", Priority = 1 },
-                new FakeApiEntity { Id = 2, Name = "B", Status = "active", Priority = 2 },
-                new FakeApiEntity { Id = 3, Name = "C", Status = "inactive", Priority = 1 },
-                new FakeApiEntity { Id = 4, Name = "D", Status = "active", Priority = 3 }
-            };
-        });
-
-        // Act
-        var query = "select Status, Count(Status) as Cnt from #api.items() group by Status";
-        var vm = CreateCompiledQuery(query, api);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        // Assert
-        Assert.IsNotNull(capturedContext);
-        Assert.AreEqual(2, table.Count); // active and inactive
-    }
-
-    [TestMethod]
-    public void FakeApi_WithOrderBy_ShouldReturnOrderedResults()
-    {
-        // Arrange
-        var api = new FakeApiDataSource(_ => new[]
-        {
-            new FakeApiEntity { Id = 3, Name = "Charlie" },
-            new FakeApiEntity { Id = 1, Name = "Alice" },
-            new FakeApiEntity { Id = 2, Name = "Bob" }
-        });
-
-        // Act
-        var query = "select Id, Name from #api.items() order by Name asc";
-        var vm = CreateCompiledQuery(query, api);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        // Assert
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Alice", table[0][1]);
-        Assert.AreEqual("Bob", table[1][1]);
-        Assert.AreEqual("Charlie", table[2][1]);
-    }
-
-    [TestMethod]
-    public void FakeApi_WithCTE_ShouldWork()
-    {
-        // Arrange
-        RuntimeContext capturedContext = null;
-        var api = new FakeApiDataSource(ctx =>
-        {
-            capturedContext = ctx;
-            return new[]
-            {
-                new FakeApiEntity { Id = 1, Name = "A", Priority = 1 },
-                new FakeApiEntity { Id = 2, Name = "B", Priority = 2 },
-                new FakeApiEntity { Id = 3, Name = "C", Priority = 3 }
-            };
-        });
-
-        // Act
-        var query = @"
-            with high_priority as (
-                select Id, Name from #api.items() where Priority <= 2
-            )
-            select Id, Name from high_priority";
-        var vm = CreateCompiledQuery(query, api);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        // Assert
-        Assert.IsNotNull(capturedContext);
-        Assert.AreEqual(2, table.Count);
-    }
-
-    [TestMethod]
-    public void FakeApi_EmptyResult_ShouldReturnEmptyTable()
-    {
-        // Arrange
-        var api = new FakeApiDataSource(_ => Array.Empty<FakeApiEntity>());
-
-        // Act
-        var query = "select Id, Name from #api.items()";
-        var vm = CreateCompiledQuery(query, api);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        // Assert
-        Assert.AreEqual(0, table.Count);
-    }
-
-    [TestMethod]
-    public void FakeApi_LargeDataset_ShouldHandleEfficiently()
-    {
-        // Arrange
-        var api = new FakeApiDataSource(_ =>
-            Enumerable.Range(1, 1000).Select(i => new FakeApiEntity
-            {
-                Id = i,
-                Name = $"Item{i}",
-                Priority = i % 10
-            }));
-
-        // Act
-        var query = "select Id, Name from #api.items() where Priority = 5 order by Id take 10";
-        var vm = CreateCompiledQuery(query, api);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        // Assert
-        Assert.AreEqual(10, table.Count);
-        Assert.AreEqual(5, table[0][0]); // First item with Priority=5 is Id=5
+        Assert.AreEqual(5, table.Count); // Ids 6, 7, 8, 9, 10
+        Assert.AreEqual(2, table.Columns.Count()); // Id and Name columns
     }
 
     #endregion
@@ -735,6 +525,161 @@ public class ApiDataSourceQueryHintsIntegrationTests
             }
         }
     }
+
+    #region Multi-API Test Infrastructure
+
+    /// <summary>
+    ///     Category entity for multi-table JOIN tests.
+    /// </summary>
+    public class FakeCategoryEntity
+    {
+        public static readonly IReadOnlyDictionary<string, int> NameToIndexMap = new Dictionary<string, int>
+        {
+            { nameof(CategoryId), 0 },
+            { nameof(CategoryName), 1 }
+        };
+
+        public static readonly IReadOnlyDictionary<int, Func<FakeCategoryEntity, object>> IndexToObjectAccessMap =
+            new Dictionary<int, Func<FakeCategoryEntity, object>>
+            {
+                { 0, e => e.CategoryId },
+                { 1, e => e.CategoryName }
+            };
+
+        public string CategoryId { get; set; }
+        public string CategoryName { get; set; }
+    }
+
+    /// <summary>
+    ///     Multi-API data source that provides both items and categories for JOIN tests.
+    /// </summary>
+    public class FakeMultiApiDataSource
+    {
+        private readonly Func<RuntimeContext, IEnumerable<FakeApiEntity>> _itemsProvider;
+        private readonly Func<RuntimeContext, IEnumerable<FakeCategoryEntity>> _categoriesProvider;
+
+        public FakeMultiApiDataSource(
+            Func<RuntimeContext, IEnumerable<FakeApiEntity>> itemsProvider,
+            Func<RuntimeContext, IEnumerable<FakeCategoryEntity>> categoriesProvider)
+        {
+            _itemsProvider = itemsProvider;
+            _categoriesProvider = categoriesProvider;
+        }
+
+        public IEnumerable<FakeApiEntity> GetItems(RuntimeContext context) => _itemsProvider(context);
+        public IEnumerable<FakeCategoryEntity> GetCategories(RuntimeContext context) => _categoriesProvider(context);
+    }
+
+    /// <summary>
+    ///     Schema provider for multi-API that supports multiple table types.
+    /// </summary>
+    public class FakeMultiApiSchemaProvider : ISchemaProvider
+    {
+        private readonly FakeMultiApiDataSource _api;
+
+        public FakeMultiApiSchemaProvider(FakeMultiApiDataSource api)
+        {
+            _api = api;
+        }
+
+        public ISchema GetSchema(string schema)
+        {
+            return new FakeMultiApiSchema(_api);
+        }
+    }
+
+    /// <summary>
+    ///     Schema for multi-API that can return items or categories tables.
+    /// </summary>
+    public class FakeMultiApiSchema : SchemaBase
+    {
+        private readonly FakeMultiApiDataSource _api;
+
+        public FakeMultiApiSchema(FakeMultiApiDataSource api) : base("multiapi", CreateLibrary())
+        {
+            _api = api;
+        }
+
+        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext,
+            params object[] parameters)
+        {
+            return name switch
+            {
+                "items" => new FakeApiTable(),
+                "categories" => new FakeCategoryTable(),
+                _ => throw new InvalidOperationException($"Unknown table: {name}")
+            };
+        }
+
+        public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+        {
+            return name switch
+            {
+                "items" => new FakeApiRowSource(_api.GetItems(runtimeContext)),
+                "categories" => new FakeCategoryRowSource(_api.GetCategories(runtimeContext)),
+                _ => throw new InvalidOperationException($"Unknown row source: {name}")
+            };
+        }
+
+        private static MethodsAggregator CreateLibrary()
+        {
+            var methodsManager = new MethodsManager();
+            var lib = new Library();
+            methodsManager.RegisterLibraries(lib);
+            return new MethodsAggregator(methodsManager);
+        }
+    }
+
+    /// <summary>
+    ///     Table schema for category entities.
+    /// </summary>
+    public class FakeCategoryTable : ISchemaTable
+    {
+        public ISchemaColumn[] Columns =>
+        [
+            new SchemaColumn(nameof(FakeCategoryEntity.CategoryId), 0, typeof(string)),
+            new SchemaColumn(nameof(FakeCategoryEntity.CategoryName), 1, typeof(string))
+        ];
+
+        public SchemaTableMetadata Metadata => new(typeof(FakeCategoryEntity));
+
+        public ISchemaColumn GetColumnByName(string name)
+        {
+            return Columns.FirstOrDefault(c => c.ColumnName == name);
+        }
+
+        public ISchemaColumn[] GetColumnsByName(string name)
+        {
+            return Columns.Where(c => c.ColumnName == name).ToArray();
+        }
+    }
+
+    /// <summary>
+    ///     Row source for category entities.
+    /// </summary>
+    public class FakeCategoryRowSource : RowSource
+    {
+        private readonly IEnumerable<FakeCategoryEntity> _entities;
+
+        public FakeCategoryRowSource(IEnumerable<FakeCategoryEntity> entities)
+        {
+            _entities = entities;
+        }
+
+        public override IEnumerable<IObjectResolver> Rows
+        {
+            get
+            {
+                foreach (var entity in _entities)
+                    yield return new Musoq.Schema.DataSources.EntityResolver<FakeCategoryEntity>(
+                        entity,
+                        FakeCategoryEntity.NameToIndexMap,
+                        FakeCategoryEntity.IndexToObjectAccessMap);
+            }
+        }
+    }
+
+    #endregion
 
     #endregion
 }

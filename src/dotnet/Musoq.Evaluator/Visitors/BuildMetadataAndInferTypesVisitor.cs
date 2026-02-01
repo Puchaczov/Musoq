@@ -1796,12 +1796,23 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         long? takeValue = take?.Expression is IntegerNode takeInt ? Convert.ToInt64(takeInt.ObjValue) : null;
         var isDistinct = select?.IsDistinct ?? false;
 
-        if (skipValue.HasValue || takeValue.HasValue || isDistinct)
-        {
-            var hints = QueryHints.Create(skipValue, takeValue, isDistinct);
-            foreach (var schemaFromNode in _aliasToSchemaFromNodeMap.Values)
-                _queryHintsPerSchema[schemaFromNode] = hints;
-        }
+        // Determine if we can safely pass optimization hints to the data source.
+        // Hints can ONLY be passed when ALL of these conditions are met:
+        // 1. Single-table query (no JOINs/APPLYs) - multi-table queries need all data for joining
+        // 2. No ORDER BY clause - sorting happens after data retrieval, so Skip/Take must operate on sorted results
+        // 3. No GROUP BY clause (explicit or implicit) - grouping happens after data retrieval, Skip/Take must operate on grouped results
+        //    Note: DISTINCT creates an implicit GROUP BY
+        var isSingleTableQuery = _aliasToSchemaFromNodeMap.Count == 1;
+        var hasOrderBy = orderBy != null;
+        var hasGroupBy = groupBy != null;
+        var canPassHints = isSingleTableQuery && !hasOrderBy && !hasGroupBy;
+
+        var hints = canPassHints
+            ? QueryHints.Create(skipValue, takeValue, isDistinct)
+            : QueryHints.Empty;
+
+        foreach (var schemaFromNode in _aliasToSchemaFromNodeMap.Values)
+            _queryHintsPerSchema[schemaFromNode] = hints;
 
         Nodes.Push(queryNode);
 
