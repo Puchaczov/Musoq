@@ -19,22 +19,34 @@ public partial class LibraryBase
     }
 
     /// <summary>
-    ///     Converts given value to DateTime
+    ///     Converts given value to DateTime using exact format
     /// </summary>
     /// <param name="value">The value</param>
-    /// <param name="culture">The culture</param>
+    /// <param name="format">The exact format to use for parsing</param>
     /// <returns>Converted to DateTime value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public DateTime? ToDateTime(string value, string culture)
+    public DateTime? ToDateTime(string value, string format)
     {
         if (string.IsNullOrEmpty(value))
             return null;
 
-        if (!DateTime.TryParse(value, CultureInfo.GetCultureInfo(culture), DateTimeStyles.None, out var result))
-            return null;
+        // Try parsing with exact format first
+        if (DateTime.TryParseExact(value, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
+            return result;
 
-        return result;
+        // Fallback to culture-based parsing for backward compatibility
+        try
+        {
+            if (DateTime.TryParse(value, CultureInfo.GetCultureInfo(format), DateTimeStyles.None, out result))
+                return result;
+        }
+        catch
+        {
+            // format parameter wasn't a valid culture, ignore
+        }
+
+        return null;
     }
 
     /// <summary>
