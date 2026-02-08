@@ -36,14 +36,15 @@ public partial class LibraryBase
             return result;
 
         // Fallback to culture-based parsing for backward compatibility
+        // This allows the method to work with both format strings and culture names
         try
         {
             if (DateTime.TryParse(value, CultureInfo.GetCultureInfo(format), DateTimeStyles.None, out result))
                 return result;
         }
-        catch
+        catch (CultureNotFoundException)
         {
-            // format parameter wasn't a valid culture, ignore
+            // format parameter wasn't a valid culture name, which is expected when using format strings
         }
 
         return null;
