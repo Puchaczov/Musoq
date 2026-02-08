@@ -511,4 +511,230 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     }
 
     #endregion
+
+    #region Padding Tests
+
+    [TestMethod]
+    public void FromBytesToInt32_WithPadding_SingleByte_ShouldPadAndConvert()
+    {
+        // Arrange - single byte [5] should become [5, 0, 0, 0] in little-endian
+        var bytes = new byte[] { 5 };
+
+        // Act
+        var result = Library.FromBytesToInt32(bytes, true);
+
+        // Assert
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(5, result.Value); // 0x00000005
+    }
+
+    [TestMethod]
+    public void FromBytesToInt32_WithPadding_TwoBytes_ShouldPadAndConvert()
+    {
+        // Arrange - [1, 2] should become [1, 2, 0, 0] in little-endian
+        var bytes = new byte[] { 1, 2 };
+
+        // Act
+        var result = Library.FromBytesToInt32(bytes, true);
+
+        // Assert
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(513, result.Value); // 0x00000201 = 513
+    }
+
+    [TestMethod]
+    public void FromBytesToInt32_WithoutPadding_InsufficientBytes_ShouldReturnNull()
+    {
+        // Arrange
+        var bytes = new byte[] { 1, 2 };
+
+        // Act
+        var result = Library.FromBytesToInt32(bytes, false);
+
+        // Assert
+        Assert.IsFalse(result.HasValue);
+    }
+
+    [TestMethod]
+    public void FromBytesToInt16_WithPadding_SingleByte_ShouldPadAndConvert()
+    {
+        // Arrange - [10] should become [10, 0]
+        var bytes = new byte[] { 10 };
+
+        // Act
+        var result = Library.FromBytesToInt16(bytes, true);
+
+        // Assert
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual<short>(10, result.Value);
+    }
+
+    [TestMethod]
+    public void FromBytesToUInt32_WithPadding_ThreeBytes_ShouldPadAndConvert()
+    {
+        // Arrange - [0xFF, 0xFF, 0xFF] should become [0xFF, 0xFF, 0xFF, 0x00]
+        var bytes = new byte[] { 0xFF, 0xFF, 0xFF };
+
+        // Act
+        var result = Library.FromBytesToUInt32(bytes, true);
+
+        // Assert
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(16777215U, result.Value); // 0x00FFFFFF
+    }
+
+    [TestMethod]
+    public void FromBytesToInt64_WithPadding_FourBytes_ShouldPadAndConvert()
+    {
+        // Arrange - [1, 2, 3, 4] should become [1, 2, 3, 4, 0, 0, 0, 0]
+        var bytes = new byte[] { 1, 2, 3, 4 };
+
+        // Act
+        var result = Library.FromBytesToInt64(bytes, true);
+
+        // Assert
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(67305985L, result.Value); // 0x0000000004030201
+    }
+
+    [TestMethod]
+    public void FromBytesToBool_WithPadding_EmptyArray_ShouldReturnFalse()
+    {
+        // Arrange - empty array should become [0]
+        var bytes = new byte[] { };
+
+        // Act
+        var result = Library.FromBytesToBool(bytes, true);
+
+        // Assert
+        Assert.IsTrue(result.HasValue);
+        Assert.IsFalse(result.Value);
+    }
+
+    [TestMethod]
+    public void FromBytesToChar_WithPadding_SingleByte_ShouldPadAndConvert()
+    {
+        // Arrange - [65] should become [65, 0] which is 'A' in UTF-16
+        var bytes = new byte[] { 65 };
+
+        // Act
+        var result = Library.FromBytesToChar(bytes, true);
+
+        // Assert
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual('A', result.Value);
+    }
+
+    [TestMethod]
+    public void FromBytesToFloat_WithPadding_TwoBytes_ShouldPadAndConvert()
+    {
+        // Arrange - [0, 0] should become [0, 0, 0, 0] which is 0.0f
+        var bytes = new byte[] { 0, 0 };
+
+        // Act
+        var result = Library.FromBytesToFloat(bytes, true);
+
+        // Assert
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(0.0f, result.Value, 0.001f);
+    }
+
+    [TestMethod]
+    public void FromBytesToDouble_WithPadding_FourBytes_ShouldPadAndConvert()
+    {
+        // Arrange - [0, 0, 0, 0] should become [0, 0, 0, 0, 0, 0, 0, 0] which is 0.0
+        var bytes = new byte[] { 0, 0, 0, 0 };
+
+        // Act
+        var result = Library.FromBytesToDouble(bytes, true);
+
+        // Assert
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(0.0, result.Value, 0.000001);
+    }
+
+    [TestMethod]
+    public void FromBytesToHalf_WithPadding_SingleByte_ShouldPadAndConvert()
+    {
+        // Arrange - [0] should become [0, 0] which is 0.0 as Half
+        var bytes = new byte[] { 0 };
+
+        // Act
+        var result = Library.FromBytesToHalf(bytes, true);
+
+        // Assert
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual((Half)0.0, result.Value);
+    }
+
+    [TestMethod]
+    public void FromBytesToUInt16_WithPadding_SingleByte_ShouldPadAndConvert()
+    {
+        // Arrange - [255] should become [255, 0]
+        var bytes = new byte[] { 255 };
+
+        // Act
+        var result = Library.FromBytesToUInt16(bytes, true);
+
+        // Assert
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual<ushort>(255, result.Value);
+    }
+
+    [TestMethod]
+    public void FromBytesToUInt64_WithPadding_SingleByte_ShouldPadAndConvert()
+    {
+        // Arrange - [42] should become [42, 0, 0, 0, 0, 0, 0, 0]
+        var bytes = new byte[] { 42 };
+
+        // Act
+        var result = Library.FromBytesToUInt64(bytes, true);
+
+        // Assert
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(42UL, result.Value);
+    }
+
+    [TestMethod]
+    public void FromBytesToInt32_WithPadding_NullArray_ShouldReturnNull()
+    {
+        // Arrange
+        byte[] bytes = null;
+
+        // Act
+        var result = Library.FromBytesToInt32(bytes, true);
+
+        // Assert
+        Assert.IsFalse(result.HasValue);
+    }
+
+    [TestMethod]
+    public void FromBytesToInt32_WithPadding_ExactSize_ShouldNotPad()
+    {
+        // Arrange - exact size should work without padding
+        var bytes = BitConverter.GetBytes(12345);
+
+        // Act
+        var result = Library.FromBytesToInt32(bytes, true);
+
+        // Assert
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(12345, result.Value);
+    }
+
+    [TestMethod]
+    public void FromBytesToInt32_WithPadding_MoreThanNeeded_ShouldUseOriginal()
+    {
+        // Arrange - more bytes than needed should use first 4 bytes
+        var bytes = new byte[] { 1, 0, 0, 0, 99, 99 };
+
+        // Act
+        var result = Library.FromBytesToInt32(bytes, true);
+
+        // Assert
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(1, result.Value); // Only uses first 4 bytes
+    }
+
+    #endregion
 }
