@@ -17,7 +17,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(18446744073709551615UL);
         var result = Library.FromBytesToUInt64(bytes);
-        Assert.AreEqual(18446744073709551615UL, result);
+        Assert.AreEqual<ulong?>(18446744073709551615UL, result);
     }
 
     #endregion
@@ -29,7 +29,8 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(true);
         var result = Library.FromBytesToBool(bytes);
-        Assert.IsTrue(result);
+        Assert.IsTrue(result.HasValue);
+        Assert.IsTrue(result.Value);
     }
 
     [TestMethod]
@@ -37,7 +38,8 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(false);
         var result = Library.FromBytesToBool(bytes);
-        Assert.IsFalse(result);
+        Assert.IsTrue(result.HasValue);
+        Assert.IsFalse(result.Value);
     }
 
     #endregion
@@ -49,7 +51,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes((short)1234);
         var result = Library.FromBytesToInt16(bytes);
-        Assert.AreEqual((short)1234, result);
+        Assert.AreEqual<short?>(1234, result);
     }
 
     [TestMethod]
@@ -57,7 +59,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes((short)-1234);
         var result = Library.FromBytesToInt16(bytes);
-        Assert.AreEqual((short)-1234, result);
+        Assert.AreEqual<short?>(-1234, result);
     }
 
     [TestMethod]
@@ -65,7 +67,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(short.MaxValue);
         var result = Library.FromBytesToInt16(bytes);
-        Assert.AreEqual(short.MaxValue, result);
+        Assert.AreEqual<short?>(short.MaxValue, result);
     }
 
     [TestMethod]
@@ -73,7 +75,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(short.MinValue);
         var result = Library.FromBytesToInt16(bytes);
-        Assert.AreEqual(short.MinValue, result);
+        Assert.AreEqual<short?>(short.MinValue, result);
     }
 
     #endregion
@@ -85,7 +87,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes((ushort)54321);
         var result = Library.FromBytesToUInt16(bytes);
-        Assert.AreEqual((ushort)54321, result);
+        Assert.AreEqual<ushort?>(54321, result);
     }
 
     [TestMethod]
@@ -93,7 +95,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(ushort.MaxValue);
         var result = Library.FromBytesToUInt16(bytes);
-        Assert.AreEqual(ushort.MaxValue, result);
+        Assert.AreEqual<ushort?>(ushort.MaxValue, result);
     }
 
     #endregion
@@ -105,7 +107,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(12345678);
         var result = Library.FromBytesToInt32(bytes);
-        Assert.AreEqual(12345678, result);
+        Assert.AreEqual<int?>(12345678, result);
     }
 
     [TestMethod]
@@ -113,7 +115,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(-12345678);
         var result = Library.FromBytesToInt32(bytes);
-        Assert.AreEqual(-12345678, result);
+        Assert.AreEqual<int?>(-12345678, result);
     }
 
     [TestMethod]
@@ -121,7 +123,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(0);
         var result = Library.FromBytesToInt32(bytes);
-        Assert.AreEqual(0, result);
+        Assert.AreEqual<int?>(0, result);
     }
 
     #endregion
@@ -133,7 +135,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(3000000000u);
         var result = Library.FromBytesToUInt32(bytes);
-        Assert.AreEqual(3000000000u, result);
+        Assert.AreEqual<uint?>(3000000000u, result);
     }
 
     [TestMethod]
@@ -141,7 +143,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(uint.MaxValue);
         var result = Library.FromBytesToUInt32(bytes);
-        Assert.AreEqual(uint.MaxValue, result);
+        Assert.AreEqual<uint?>(uint.MaxValue, result);
     }
 
     #endregion
@@ -153,7 +155,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(9223372036854775807L);
         var result = Library.FromBytesToInt64(bytes);
-        Assert.AreEqual(9223372036854775807L, result);
+        Assert.AreEqual<long?>(9223372036854775807L, result);
     }
 
     [TestMethod]
@@ -161,7 +163,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(-9223372036854775807L);
         var result = Library.FromBytesToInt64(bytes);
-        Assert.AreEqual(-9223372036854775807L, result);
+        Assert.AreEqual<long?>(-9223372036854775807L, result);
     }
 
     #endregion
@@ -173,7 +175,8 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(3.14f);
         var result = Library.FromBytesToFloat(bytes);
-        Assert.AreEqual(3.14f, result, 0.001f);
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(3.14f, result.Value, 0.001f);
     }
 
     [TestMethod]
@@ -181,7 +184,8 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(-3.14f);
         var result = Library.FromBytesToFloat(bytes);
-        Assert.AreEqual(-3.14f, result, 0.001f);
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(-3.14f, result.Value, 0.001f);
     }
 
     [TestMethod]
@@ -189,7 +193,8 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(0f);
         var result = Library.FromBytesToFloat(bytes);
-        Assert.AreEqual(0f, result);
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(0f, result.Value);
     }
 
     #endregion
@@ -201,7 +206,8 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(3.14159265358979);
         var result = Library.FromBytesToDouble(bytes);
-        Assert.AreEqual(3.14159265358979, result, 0.0000001);
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(3.14159265358979, result.Value, 0.0000001);
     }
 
     [TestMethod]
@@ -209,7 +215,8 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(-3.14159265358979);
         var result = Library.FromBytesToDouble(bytes);
-        Assert.AreEqual(-3.14159265358979, result, 0.0000001);
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(-3.14159265358979, result.Value, 0.0000001);
     }
 
     #endregion
