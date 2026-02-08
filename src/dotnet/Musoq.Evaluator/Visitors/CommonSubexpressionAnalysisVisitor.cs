@@ -106,6 +106,11 @@ public class CommonSubexpressionAnalysisVisitor : IExpressionVisitor
         TrackExpression(node);
     }
 
+    public void Visit(ArrayIndexNode node)
+    {
+        TrackExpression(node);
+    }
+
     public void Visit(AndNode node)
     {
         TrackExpression(node);

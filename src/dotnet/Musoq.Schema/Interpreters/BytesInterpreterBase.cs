@@ -329,6 +329,7 @@ public abstract class BytesInterpreterBase<TOut> : IBytesInterpreter<TOut>
     /// <summary>
     ///     Reads a byte array of the specified length.
     /// </summary>
+    /// <exception cref="ParseException">Thrown when length is negative.</exception>
     protected byte[] ReadBytes(ReadOnlySpan<byte> data, int length)
     {
         if (length < 0)
@@ -344,6 +345,7 @@ public abstract class BytesInterpreterBase<TOut> : IBytesInterpreter<TOut>
     /// <summary>
     ///     Reads a string of the specified byte length using the given encoding.
     /// </summary>
+    /// <exception cref="ParseException">Thrown when byteLength is negative.</exception>
     protected string ReadString(ReadOnlySpan<byte> data, int byteLength, Encoding encoding)
     {
         if (byteLength < 0)
@@ -360,6 +362,7 @@ public abstract class BytesInterpreterBase<TOut> : IBytesInterpreter<TOut>
     /// <summary>
     ///     Reads a null-terminated string using the given encoding, consuming up to maxBytes.
     /// </summary>
+    /// <exception cref="ParseException">Thrown when maxBytes is negative.</exception>
     protected string ReadNullTerminatedString(ReadOnlySpan<byte> data, int maxBytes, Encoding encoding)
     {
         if (maxBytes < 0)
@@ -369,9 +372,26 @@ public abstract class BytesInterpreterBase<TOut> : IBytesInterpreter<TOut>
         EnsureBytes(data, maxBytes);
         var bytes = data.Slice(_parsePosition, maxBytes);
 
+        int actualLength;
 
-        var nullIndex = bytes.IndexOf((byte)0);
-        var actualLength = nullIndex >= 0 ? nullIndex : maxBytes;
+        
+        if (encoding == Encoding.Unicode || encoding == Encoding.BigEndianUnicode)
+        {
+            actualLength = maxBytes;
+            for (var i = 0; i <= maxBytes - 2; i += 2)
+            {
+                if (bytes[i] == 0 && bytes[i + 1] == 0)
+                {
+                    actualLength = i;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            var nullIndex = bytes.IndexOf((byte)0);
+            actualLength = nullIndex >= 0 ? nullIndex : maxBytes;
+        }
 
         _parsePosition += maxBytes;
 

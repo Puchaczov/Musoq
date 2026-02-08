@@ -1,13 +1,22 @@
 # Musoq: SQL Query Engine Development Guide
 
-Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
+Musoq is a SQL query engine that compiles SQL queries into executable .NET code at runtime, enabling SQL queries over diverse data sources (files, git, APIs, etc.) with nearly 1000 built-in methods.
+
+**Always reference these instructions first** and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
+
+## What is Musoq?
+
+**Core Concept**: Musoq transforms SQL queries into compiled C# code that executes against arbitrary data sources. It's designed for developers who want SQL's declarative power for everyday scripting tasks (file processing, git analysis, data transformation) instead of writing throwaway scripts.
+
+**Key Architecture**: SQL text → AST → Generated C# code → Compiled .NET assembly → Execution
 
 ## Working Effectively
 
 ### Prerequisites and Environment Setup
-- **Required**: .NET 8.0 SDK (specified in global.json)
+- **Required**: .NET 8.0 SDK (specified in [global.json](global.json))
 - **Recommended**: Visual Studio or VS Code with C# extension
 - **OS**: Works on Windows, Linux, and macOS
+- **Package Management**: All projects generate NuGet packages on build (version 7.0.0)
 
 ### Core Development Workflow
 Bootstrap, build, and test the repository:
@@ -30,17 +39,24 @@ dotnet pack src/dotnet/Musoq.sln --configuration Release --no-build
 
 ### Project Structure and Key Components
 Musoq is organized into these modules, all located in `src/dotnet/`:
-- **Musoq.Parser**: SQL syntax parsing and AST generation
-- **Musoq.Evaluator**: Query execution engine and runtime
-- **Musoq.Converter**: Code generation and compilation
-- **Musoq.Schema**: Type system and data source abstraction
-- **Musoq.Plugins**: Built-in functions and operations
-- **Musoq.Playground**: Interactive testing project
-- **Musoq.*.Tests**: Test projects for each module
-- **Musoq.Tests.Common**: Shared test utilities
-- **Musoq.Benchmarks**: Performance benchmarks
+- **Musoq.Parser**: SQL syntax parsing and AST generation using recursive descent parser
+- **Musoq.Evaluator**: Query execution engine and runtime - compiles and executes generated code
+- **Musoq.Converter**: Code generation and compilation (contains `InstanceCreator`, the main API entry point)
+- **Musoq.Schema**: Type system and data source abstraction via `ISchema` and `ISchemaProvider`
+- **Musoq.Plugins**: Built-in SQL functions library (~1000 methods for string, math, aggregation, etc.)
+- **Musoq.Playground**: Interactive testing project for experimenting with queries
+- **Musoq.*.Tests**: Test projects for each module (1467 tests total)
+- **Musoq.Tests.Common**: Shared test utilities and base classes (e.g., `BasicEntityTestBase`)
+- **Musoq.Benchmarks**: Performance benchmarks using BenchmarkDotNet
 
-The solution file `Musoq.sln` is located in `src/dotnet/` with all projects as siblings.
+The solution file [Musoq.sln](src/dotnet/Musoq.sln) is located in `src/dotnet/` with all projects as siblings.
+
+**Important Files**:
+- **API Entry**: [InstanceCreator.cs](src/dotnet/Musoq.Converter/InstanceCreator.cs) - Main compilation interface
+- **Core Interfaces**: [ISchema.cs](src/dotnet/Musoq.Schema/ISchema.cs), [ISchemaProvider.cs](src/dotnet/Musoq.Schema/ISchemaProvider.cs)
+- **Query Result**: [CompiledQuery.cs](src/dotnet/Musoq.Evaluator/CompiledQuery.cs) with `Run()` method
+- **Architecture Docs**: [docs/architecture.md](docs/architecture.md) - Detailed architecture guide
+- **Specifications**: [specs/](specs/) - Language specifications and proposals
 
 ## Multi-Session Communication
 
@@ -242,11 +258,12 @@ dotnet test --filter TestCategory=Performance
 ```
 
 ### Documentation and Examples
-- **Architecture documentation**: See `docs/architecture.md`
-- **API usage examples**: Reference project documentation in `docs/`
-- **Practical examples**: See project README.md for real-world query examples
-- **Plugin development**: Examine existing plugins in `src/dotnet/Musoq.Plugins` directory
-- **Specifications**: See `docs/specs/` for detailed specifications
+- **Architecture documentation**: See [docs/architecture.md](docs/architecture.md) for deep dive into query processing pipeline
+- **API usage examples**: Reference project documentation in [docs/](docs/) directory
+- **Practical examples**: See [README.md](README.md) for real-world query examples (git analysis, file processing, etc.)
+- **Plugin development**: Examine existing plugins in [src/dotnet/Musoq.Plugins](src/dotnet/Musoq.Plugins) directory
+- **Specifications**: See [specs/](specs/) for detailed specifications (especially [musoq-interpretation-schemas-spec-v3.md](specs/musoq-interpretation-schemas-spec-v3.md))
+- **Test examples**: [ArithmeticTests.cs](src/dotnet/Musoq.Evaluator.Tests/ArithmeticTests.cs) demonstrates test patterns using `BasicEntityTestBase`
 
 ## Critical Timing Expectations
 
@@ -274,6 +291,175 @@ dotnet test --filter TestCategory=Performance
 2. **Convert**: AST → Generated C# code  
 3. **Compile**: C# code → Executable assembly
 4. **Execute**: Assembly runs against data sources via schema providers
+
+### Compilation Pipeline Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                              MUSOQ COMPILATION PIPELINE                              │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+
+                              ┌──────────────────┐
+                              │   SQL Query      │
+                              │   (string)       │
+                              └────────┬─────────┘
+                                       │
+                    ╔══════════════════▼══════════════════╗
+                    ║        1. LEXING & PARSING          ║
+                    ║        (Musoq.Parser)               ║
+                    ╚══════════════════╤══════════════════╝
+                                       │
+        ┌──────────────────────────────┼──────────────────────────────┐
+        │                              │                              │
+        ▼                              ▼                              ▼
+┌───────────────┐           ┌──────────────────┐           ┌──────────────────┐
+│    Lexer      │─────────▶│     Parser       │─────────▶│    RootNode      │
+│ (Tokenizer)   │  tokens   │ (Recursive       │   AST     │    (AST Root)    │
+│               │           │  Descent)        │           │                  │
+└───────────────┘           └──────────────────┘           └────────┬─────────┘
+                                                                    │
+                    ╔══════════════════▼══════════════════╗
+                    ║     2. AST TRANSFORMATION           ║
+                    ║     (Visitor Pipeline)              ║
+                    ╚══════════════════╤══════════════════╝
+                                       │
+    ┌──────────────────────────────────┼──────────────────────────────────┐
+    │                                  │                                  │
+    ▼                                  ▼                                  ▼
+┌────────────────────┐    ┌────────────────────────┐    ┌─────────────────────────┐
+│DistinctToGroupBy   │    │ExtractRawColumns       │    │BuildMetadataAndInferTypes│
+│Visitor             │    │Visitor                 │    │Visitor                   │
+│(Query Rewriting)   │    │(Column Discovery)      │    │(Type Inference + Schema) │
+└─────────┬──────────┘    └──────────┬─────────────┘    └───────────┬─────────────┘
+          │                          │                              │
+          └──────────────────────────┼──────────────────────────────┘
+                                     │
+                                     ▼
+                    ┌────────────────────────────────┐
+                    │     RewriteQueryVisitor        │
+                    │   (Semantic Transformations)   │
+                    └───────────────┬────────────────┘
+                                    │
+                    ╔═══════════════▼═══════════════╗
+                    ║      3. CODE GENERATION       ║
+                    ║   (ToCSharpRewriteTreeVisitor)║
+                    ╚═══════════════╤═══════════════╝
+                                    │
+    ┌───────────────────────────────┼───────────────────────────────┐
+    │                               │                               │
+    ▼                               ▼                               ▼
+┌──────────────┐         ┌──────────────────┐         ┌──────────────────────┐
+│ QueryEmitter │         │ ClassEmitter     │         │ SetOperationEmitter  │
+│ (SELECT,     │         │ (Row classes,    │         │ (UNION, EXCEPT,      │
+│  WHERE, etc) │         │  result types)   │         │  INTERSECT)          │
+└──────┬───────┘         └────────┬─────────┘         └──────────┬───────────┘
+       │                          │                              │
+       └──────────────────────────┼──────────────────────────────┘
+                                  │
+                                  ▼
+                    ┌─────────────────────────────┐
+                    │   Roslyn SyntaxTree         │
+                    │   (Generated C# Code)       │
+                    └────────────┬────────────────┘
+                                 │
+                    ╔════════════▼════════════════╗
+                    ║     4. COMPILATION          ║
+                    ║  (TurnQueryIntoRunnableCode)║
+                    ╚════════════╤════════════════╝
+                                 │
+                                 ▼
+                    ┌─────────────────────────────┐
+                    │   Compiled Assembly         │
+                    │   (DLL + PDB in memory)     │
+                    └────────────┬────────────────┘
+                                 │
+                    ╔════════════▼════════════════╗
+                    ║      5. EXECUTION           ║
+                    ║    (CompiledQuery.Run())    ║
+                    ╚════════════╤════════════════╝
+                                 │
+                                 ▼
+                    ┌─────────────────────────────┐
+                    │        Table Result         │
+                    │   (IEnumerable<Row>)        │
+                    └─────────────────────────────┘
+```
+
+### Build Chain Pattern
+The compilation uses a **Chain of Responsibility** pattern in `Musoq.Converter.Build`:
+
+```
+CreateTree → CompileInterpretationSchemas → TransformTree → TurnQueryIntoRunnableCode
+```
+
+- **CreateTree**: Lexer + Parser → RootNode AST
+- **CompileInterpretationSchemas**: Handles `DEFINE SCHEMA` statements (binary/text parsing schemas)
+- **TransformTree**: Runs all visitor transformations
+- **TurnQueryIntoRunnableCode**: Roslyn compilation → DLL bytes
+
+### Visitor System Overview
+
+All visitors implement `IExpressionVisitor` from [Musoq.Parser](src/dotnet/Musoq.Parser/IExpressionVisitor.cs). Key patterns:
+
+| Visitor Type | Purpose | Pattern |
+|--------------|---------|---------|
+| **Traverse Visitor** | Controls AST traversal order | Calls `node.Accept(innerVisitor)` for children |
+| **Clone Visitor** | Creates modified AST copy | Pops children from stack, creates new nodes |
+| **Rewrite Visitor** | In-place semantic changes | Modifies node properties or replaces nodes |
+
+#### Phase 1: Pre-Processing Visitors
+| Visitor | Location | Purpose |
+|---------|----------|---------|
+| `DistinctToGroupByVisitor` | [Visitors/](src/dotnet/Musoq.Evaluator/Visitors/DistinctToGroupByVisitor.cs) | Rewrites `SELECT DISTINCT` as `GROUP BY` for unified handling |
+| `ExtractRawColumnsVisitor` | [Visitors/](src/dotnet/Musoq.Evaluator/Visitors/ExtractRawColumnsVisitor.cs) | Collects all column references before type inference |
+
+#### Phase 2: Metadata & Type Inference
+| Visitor | Location | Purpose |
+|---------|----------|---------|
+| `BuildMetadataAndInferTypesVisitor` | [Visitors/](src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.cs) | **Core semantic analysis**: resolves schemas, infers types, validates methods, builds symbol tables |
+| `SchemaDefinitionVisitor` | [Visitors/](src/dotnet/Musoq.Evaluator/Visitors/SchemaDefinitionVisitor.cs) | Extracts `DEFINE SCHEMA` definitions for interpretation schemas |
+
+#### Phase 3: Query Rewriting
+| Visitor | Location | Purpose |
+|---------|----------|---------|
+| `RewriteQueryVisitor` | [Visitors/](src/dotnet/Musoq.Evaluator/Visitors/RewriteQueryVisitor.cs) | **Main AST transformer**: normalizes query structure, resolves aliases, prepares for code gen |
+| `RewriteWhereExpressionToPassItToDataSourceVisitor` | [Visitors/](src/dotnet/Musoq.Evaluator/Visitors/RewriteWhereExpressionToPassItToDataSourceVisitor.cs) | Predicate pushdown - extracts WHERE conditions safe for data source filtering |
+| `RewritePartsWithProperNullHandlingVisitor` | [Visitors/](src/dotnet/Musoq.Evaluator/Visitors/RewritePartsWithProperNullHandlingVisitor.cs) | Adds proper null type information to NullNode |
+| `RewritePartsToUseJoinTransitionTable` | [Visitors/](src/dotnet/Musoq.Evaluator/Visitors/RewritePartsToUseJoinTransitionTable.cs) | Rewrites JOINs to use intermediate transition tables |
+| `CloneQueryVisitor` | [Visitors/](src/dotnet/Musoq.Evaluator/Visitors/CloneQueryVisitor.cs) | Base class for creating modified AST copies |
+
+#### Phase 4: Code Generation
+| Visitor | Location | Purpose |
+|---------|----------|---------|
+| `ToCSharpRewriteTreeVisitor` | [Visitors/](src/dotnet/Musoq.Evaluator/Visitors/ToCSharpRewriteTreeVisitor.cs) | **Main code emitter**: transforms AST to Roslyn SyntaxTree (C# code) |
+| `CommonSubexpressionAnalysisVisitor` | [Visitors/](src/dotnet/Musoq.Evaluator/Visitors/CommonSubexpressionAnalysisVisitor.cs) | CSE optimization - identifies repeated expressions for caching |
+| `GetSelectFieldsVisitor` | [Visitors/](src/dotnet/Musoq.Evaluator/Visitors/GetSelectFieldsVisitor.cs) | Extracts output column definitions for result schema |
+| `InterpreterCodeGenerator` | [Visitors/](src/dotnet/Musoq.Evaluator/Visitors/InterpreterCodeGenerator.cs) | Generates C# parser classes from `DEFINE SCHEMA` (binary/text) |
+
+#### Code Generation Emitters (in `Visitors/CodeGeneration/`)
+| Emitter | Purpose |
+|---------|---------|
+| `QueryEmitter` | SELECT, WHERE, GROUP BY, ORDER BY, SKIP, TAKE |
+| `ClassEmitter` | Row classes and result types |
+| `SetOperationEmitter` | UNION, EXCEPT, INTERSECT |
+| `JoinEmitter` | JOIN and APPLY operations |
+| `GroupByEmitter` | Grouping and aggregation |
+| `CteEmitter` | Common Table Expressions |
+| `WhereEmitter` | WHERE clause filtering |
+| `DescStatementEmitter` | DESC schema/table commands |
+
+### Traverse vs Inner Visitor Pattern
+Most visitors come in pairs:
+- **TraverseVisitor** (e.g., `RewriteQueryTraverseVisitor`): Controls **when** and **in what order** child nodes are visited
+- **InnerVisitor** (e.g., `RewriteQueryVisitor`): Performs the actual **transformation logic**
+
+```csharp
+// Example: TransformTree.cs orchestration
+var rewriter = new RewriteQueryVisitor();
+var rewriteTraverser = new RewriteQueryTraverseVisitor(rewriter, scopeWalker);
+queryTree.Accept(rewriteTraverser);  // Traverse drives, Rewriter transforms
+queryTree = rewriter.RootScript;     // Get transformed tree
+```
 
 ### Plugin System
 - **Schema providers**: Define how to access different data sources

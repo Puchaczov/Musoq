@@ -660,7 +660,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         AddNamespace(node.ReturnType);
 
         var propertiesChain = node.PropertiesChain
-            .Select(p => (p.PropertyName, p.PropertyType))
+            .Select(p => (p.PropertyName, p.PropertyType, p.IntendedTypeName))
             .ToArray();
 
         _getRowsSourceStatement.Add(

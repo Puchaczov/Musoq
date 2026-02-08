@@ -289,7 +289,7 @@ public class ApiDataSourceQueryHintsIntegrationTests
         var api = new FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return new[] { new FakeApiEntity { Id = 1, Name = "Test" } };
+            return [new FakeApiEntity { Id = 1, Name = "Test" }];
         });
 
         // Act
@@ -311,7 +311,7 @@ public class ApiDataSourceQueryHintsIntegrationTests
         var api = new FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return new[] { new FakeApiEntity { Id = 1, Name = "Test" } };
+            return [new FakeApiEntity { Id = 1, Name = "Test" }];
         });
 
         // Act
@@ -333,11 +333,11 @@ public class ApiDataSourceQueryHintsIntegrationTests
         var api = new FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return new[]
-            {
+            return
+            [
                 new FakeApiEntity { Id = 1, Name = "Active", Status = "active" },
                 new FakeApiEntity { Id = 2, Name = "Inactive", Status = "inactive" }
-            };
+            ];
         });
 
         // Act

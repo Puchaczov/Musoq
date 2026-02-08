@@ -37,10 +37,10 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity { Name = "A1", Population = 100 } } },
-            { "#B", new[] { new BasicEntity { Name = "B1", Population = 100 } } },
-            { "#C", new[] { new BasicEntity { Name = "C1", Population = 100 } } },
-            { "#D", new[] { new BasicEntity { Name = "D1", Population = 100 } } }
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
+            { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] },
+            { "#D", [new BasicEntity { Name = "D1", Population = 100 }] }
         };
 
         var vm = CreateAndRunVirtualMachine(
@@ -123,26 +123,23 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Population = 100 },
                     new BasicEntity { Name = "A2", Population = 200 },
                     new BasicEntity { Name = "A3", Population = 300 }
-                }
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity { Name = "B1", Population = 100 },
                     new BasicEntity { Name = "B2", Population = 200 }
-                }
+                ]
             },
             {
-                "#C", new[]
-                {
+                "#C", [
                     new BasicEntity { Name = "C1", Population = 100 },
                     new BasicEntity { Name = "C2", Population = 400 }
-                }
+                ]
             }
         };
 
@@ -176,24 +173,21 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Population = 100, City = "NYC" },
                     new BasicEntity { Name = "A2", Population = 200, City = "LA" }
-                }
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity { Name = "B1", Population = 100, City = "Chicago" }
-                }
+                ]
             },
             {
-                "#C", new[]
-                {
+                "#C", [
                     new BasicEntity { Name = "C1", Population = 500, City = "NYC" },
                     new BasicEntity { Name = "C2", Population = 600, City = "Boston" }
-                }
+                ]
             }
         };
 
@@ -227,22 +221,19 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Population = 100, City = "NYC" }
-                }
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity { Name = "B1", Population = 100, City = "LA" }
-                }
+                ]
             },
             {
-                "#C", new[]
-                {
+                "#C", [
                     new BasicEntity { Name = "C1", Population = 500, City = "LA" }
-                }
+                ]
             }
         };
 
@@ -279,24 +270,21 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Population = 100 },
                     new BasicEntity { Name = "A2", Population = 200 }
-                }
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity { Name = "B1", Population = 100 },
                     new BasicEntity { Name = "B2", Population = 200 }
-                }
+                ]
             },
             {
-                "#C", new[]
-                {
+                "#C", [
                     new BasicEntity { Name = "C1", Population = 100 }
-                }
+                ]
             }
         };
 
@@ -336,24 +324,21 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Population = 100 },
                     new BasicEntity { Name = "A2", Population = 200 }
-                }
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity { Name = "B1", Population = 100 }
-                }
+                ]
             },
             {
-                "#C", new[]
-                {
+                "#C", [
                     new BasicEntity { Name = "C1", Population = 100 },
                     new BasicEntity { Name = "C2", Population = 200 }
-                }
+                ]
             }
         };
 
@@ -393,25 +378,22 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Population = 100 },
                     new BasicEntity { Name = "A2", Population = 200 },
                     new BasicEntity { Name = "A3", Population = 300 }
-                }
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity { Name = "B1", Population = 100 }
-                }
+                ]
             },
             {
-                "#C", new[]
-                {
+                "#C", [
                     new BasicEntity { Name = "C1", Population = 100 },
                     new BasicEntity { Name = "C2", Population = 200 }
-                }
+                ]
             }
         };
 
@@ -457,15 +439,14 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Population = 100 },
                     new BasicEntity { Name = "A2", Population = 200 }
-                }
+                ]
             },
-            { "#B", new[] { new BasicEntity { Name = "B1", Population = 100 } } },
-            { "#C", new[] { new BasicEntity { Name = "C1", Population = 100 } } },
-            { "#D", new[] { new BasicEntity { Name = "D1", Population = 100 } } }
+            { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] },
+            { "#D", [new BasicEntity { Name = "D1", Population = 100 }] }
         };
 
         var vm = CreateAndRunVirtualMachine(
@@ -506,25 +487,22 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Population = 100 }
-                }
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity { Name = "B1", Population = 100 },
                     new BasicEntity { Name = "B2", Population = 200 }
-                }
+                ]
             },
             {
-                "#C", new[]
-                {
+                "#C", [
                     new BasicEntity { Name = "C1", Population = 100 },
                     new BasicEntity { Name = "C2", Population = 200 },
                     new BasicEntity { Name = "C3", Population = 300 }
-                }
+                ]
             }
         };
 
@@ -571,9 +549,9 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity { Name = "A1", Population = 100 } } },
-            { "#B", Array.Empty<BasicEntity>() },
-            { "#C", new[] { new BasicEntity { Name = "C1", Population = 100 } } }
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
+            { "#B", [] },
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] }
         };
 
         var vm = CreateAndRunVirtualMachine(
@@ -602,14 +580,13 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Population = 100 },
                     new BasicEntity { Name = "A2", Population = 200 }
-                }
+                ]
             },
-            { "#B", Array.Empty<BasicEntity>() },
-            { "#C", new[] { new BasicEntity { Name = "C1", Population = 100 } } }
+            { "#B", [] },
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] }
         };
 
         var vm = CreateAndRunVirtualMachine(
@@ -646,24 +623,21 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Population = 100 },
                     new BasicEntity { Name = "A2", Population = 100 }
-                }
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity { Name = "B1", Population = 100 },
                     new BasicEntity { Name = "B2", Population = 100 }
-                }
+                ]
             },
             {
-                "#C", new[]
-                {
+                "#C", [
                     new BasicEntity { Name = "C1", Population = 100 }
-                }
+                ]
             }
         };
 
@@ -700,9 +674,9 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity { Name = "A1", Population = 100 } } },
-            { "#B", new[] { new BasicEntity { Name = "B1", Population = 100 } } },
-            { "#C", new[] { new BasicEntity { Name = "C1", Population = 100 } } }
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
+            { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] }
         };
 
         var vm = CreateAndRunVirtualMachine(
@@ -741,20 +715,18 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
         {
             {
                 "#A",
-                new[]
-                {
+                [
                     new BasicEntity { Name = "A1", Population = 100 }, new BasicEntity { Name = "A2", Population = 200 }
-                }
+                ]
             },
             {
                 "#B",
-                new[]
-                {
+                [
                     new BasicEntity { Name = "B1", Population = 100 }, new BasicEntity { Name = "B2", Population = 200 }
-                }
+                ]
             },
-            { "#C", new[] { new BasicEntity { Name = "C1", Population = 100 } } },
-            { "#D", new[] { new BasicEntity { Name = "D1", Population = 100 } } }
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] },
+            { "#D", [new BasicEntity { Name = "D1", Population = 100 }] }
         };
 
         var vm = CreateAndRunVirtualMachine(
@@ -802,9 +774,9 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity { Name = "A1", Population = 100 } } },
-            { "#B", new[] { new BasicEntity { Name = "B1", Population = 100 } } },
-            { "#C", new[] { new BasicEntity { Name = "C1", Population = 100 } } }
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
+            { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] }
         };
 
         var generatedCode = CompileAndGetGeneratedCode(query, sources,
@@ -845,10 +817,10 @@ generatedCode, "Second join should create abHashed dictionary for the intermedia
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity { Name = "A1", Population = 100 } } },
-            { "#B", new[] { new BasicEntity { Name = "B1", Population = 100 } } },
-            { "#C", new[] { new BasicEntity { Name = "C1", Population = 100 } } },
-            { "#D", new[] { new BasicEntity { Name = "D1", Population = 100 } } }
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
+            { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] },
+            { "#D", [new BasicEntity { Name = "D1", Population = 100 }] }
         };
 
         var generatedCode = CompileAndGetGeneratedCode(query, sources,
@@ -882,9 +854,9 @@ generatedCode, "Second join should create abHashed dictionary for the intermedia
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity { Name = "A1", Population = 100 } } },
-            { "#B", new[] { new BasicEntity { Name = "B1", Population = 100 } } },
-            { "#C", new[] { new BasicEntity { Name = "C1", Population = 100 } } }
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
+            { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] }
         };
 
         var generatedCode = CompileAndGetGeneratedCode(query, sources,
@@ -916,9 +888,9 @@ generatedCode, "Second join should create abHashed dictionary for the intermedia
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity { Name = "A1", Population = 100 } } },
-            { "#B", new[] { new BasicEntity { Name = "B1", Population = 100 } } },
-            { "#C", new[] { new BasicEntity { Name = "C1", Population = 100 } } }
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
+            { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] }
         };
 
         var generatedCode = CompileAndGetGeneratedCode(query, sources,
@@ -950,9 +922,9 @@ generatedCode, "Second join should create abHashed dictionary for the intermedia
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity { Name = "A1", Population = 100 } } },
-            { "#B", new[] { new BasicEntity { Name = "B1", Population = 100 } } },
-            { "#C", new[] { new BasicEntity { Name = "C1", Population = 100 } } }
+            { "#A", [new BasicEntity { Name = "A1", Population = 100 }] },
+            { "#B", [new BasicEntity { Name = "B1", Population = 100 }] },
+            { "#C", [new BasicEntity { Name = "C1", Population = 100 }] }
         };
 
         var generatedCode = CompileAndGetGeneratedCode(query, sources,

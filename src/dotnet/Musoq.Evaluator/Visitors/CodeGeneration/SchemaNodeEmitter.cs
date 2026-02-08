@@ -227,11 +227,18 @@ internal static class SchemaNodeEmitter
         string alias,
         string sourceAlias,
         Type returnType,
-        (string PropertyName, Type PropertyType)[] propertiesChain)
+        (string PropertyName, Type PropertyType, string? IntendedTypeName)[] propertiesChain)
     {
+        
+        
+        
+        var firstPropertyCastType = !string.IsNullOrEmpty(propertiesChain[0].IntendedTypeName)
+            ? propertiesChain[0].IntendedTypeName
+            : EvaluationHelper.GetCastableType(propertiesChain[0].PropertyType);
+
         ExpressionSyntax propertyAccess = SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.CastExpression(
-                SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(propertiesChain[0].PropertyType)),
+                SyntaxFactory.ParseTypeName(firstPropertyCastType),
                 SyntaxFactory.ElementAccessExpression(
                     SyntaxFactory.IdentifierName($"{sourceAlias}Row"),
                     SyntaxFactory.BracketedArgumentList(

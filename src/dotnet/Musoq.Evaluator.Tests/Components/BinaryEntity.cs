@@ -23,7 +23,7 @@ public class BinaryEntity
         };
 
     public string Name { get; set; } = string.Empty;
-    public byte[] Content { get; set; } = Array.Empty<byte>();
+    public byte[] Content { get; set; } = [];
 
     public byte[] Data
     {

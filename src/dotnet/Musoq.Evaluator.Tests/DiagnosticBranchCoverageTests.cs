@@ -24,7 +24,7 @@ public class DiagnosticBranchCoverageTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", Array.Empty<BasicEntity>() }
+            { "#A", [] }
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
@@ -234,7 +234,7 @@ public class DiagnosticBranchCoverageTests : BasicEntityTestBase
         // Arrange - Throwing mode (traditional path)
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", Array.Empty<BasicEntity>() }
+            { "#A", [] }
         };
 
         // Act & Assert - Traditional path should throw
@@ -527,7 +527,7 @@ public class DiagnosticBranchCoverageTests : BasicEntityTestBase
         // Arrange
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity("city", "country", 0) } }
+            { "#A", [new BasicEntity("city", "country", 0)] }
         };
 
         // Query that should work - self join with qualified names
@@ -554,7 +554,7 @@ public class DiagnosticBranchCoverageTests : BasicEntityTestBase
         // Arrange
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity("city", "country", 0) } }
+            { "#A", [new BasicEntity("city", "country", 0)] }
         };
 
         // Act & Assert - Union requires matching keys, and we test that exception is thrown

@@ -68,7 +68,11 @@ public static class RuntimeLibraries
                         "System.Threading.Tasks.dll",
                         "System.Threading.Tasks.Parallel.dll",
                         "System.Linq.Expressions.dll",
-                        "Microsoft.CSharp.dll"
+                        "Microsoft.CSharp.dll",
+                        "System.Text.RegularExpressions.dll",
+                        "System.ObjectModel.dll",
+                        "System.Dynamic.Runtime.dll",
+                        "System.ComponentModel.Primitives.dll"
                     };
 
                     var files = essentialAssemblies

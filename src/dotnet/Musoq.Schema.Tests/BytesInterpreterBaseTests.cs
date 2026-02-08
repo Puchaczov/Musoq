@@ -131,17 +131,17 @@ public class BytesInterpreterBaseTests
             return ReadDoubleBE(data);
         }
 
-        public byte[] TestReadBytes(ReadOnlySpan<byte> data, int length)
+        public byte[]? TestReadBytes(ReadOnlySpan<byte> data, int length)
         {
             return ReadBytes(data, length);
         }
 
-        public string TestReadString(ReadOnlySpan<byte> data, int byteLength, Encoding encoding)
+        public string? TestReadString(ReadOnlySpan<byte> data, int byteLength, Encoding encoding)
         {
             return ReadString(data, byteLength, encoding);
         }
 
-        public string TestReadNullTerminatedString(ReadOnlySpan<byte> data, int maxBytes, Encoding encoding)
+        public string? TestReadNullTerminatedString(ReadOnlySpan<byte> data, int maxBytes, Encoding encoding)
         {
             return ReadNullTerminatedString(data, maxBytes, encoding);
         }

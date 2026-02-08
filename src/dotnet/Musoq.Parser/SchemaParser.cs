@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
@@ -15,6 +16,45 @@ namespace Musoq.Parser;
 /// </summary>
 public class SchemaParser
 {
+    /// <summary>
+    ///     Token types that are allowed as field/schema names in schema context.
+    ///     This includes SQL keywords and schema-specific keywords that should
+    ///     be treated as identifiers when used as field names.
+    /// </summary>
+    private static readonly HashSet<TokenType> AllowedKeywordTokenTypes =
+    [
+        // Text schema keywords
+        TokenType.Rest, TokenType.Text, TokenType.End, TokenType.Binary,
+        TokenType.Pattern, TokenType.Literal, TokenType.Until, TokenType.Between,
+        TokenType.Chars, TokenType.Token, TokenType.Whitespace, TokenType.Switch,
+        TokenType.Repeat, TokenType.Optional,
+
+        // SQL keywords
+        TokenType.And, TokenType.Or, TokenType.Not, TokenType.Where,
+        TokenType.Select, TokenType.From, TokenType.Like, TokenType.NotLike,
+        TokenType.RLike, TokenType.NotRLike, TokenType.As, TokenType.Is,
+        TokenType.Null, TokenType.Union, TokenType.UnionAll, TokenType.Except,
+        TokenType.Intersect, TokenType.GroupBy, TokenType.Having, TokenType.Contains,
+        TokenType.Skip, TokenType.Take, TokenType.With, TokenType.InnerJoin,
+        TokenType.OuterJoin, TokenType.CrossApply, TokenType.OuterApply, TokenType.On,
+        TokenType.OrderBy, TokenType.Asc, TokenType.Desc, TokenType.Functions,
+        TokenType.True, TokenType.False, TokenType.In, TokenType.NotIn,
+        TokenType.Table, TokenType.Couple, TokenType.Case, TokenType.When,
+        TokenType.Then, TokenType.Else, TokenType.Distinct, TokenType.ColumnKeyword,
+
+        // Schema-specific keywords
+        TokenType.LittleEndian, TokenType.BigEndian, TokenType.ByteType,
+        TokenType.SByteType, TokenType.ShortType, TokenType.UShortType,
+        TokenType.IntType, TokenType.UIntType, TokenType.LongType, TokenType.ULongType,
+        TokenType.FloatType, TokenType.DoubleType, TokenType.BitsType, TokenType.Align,
+        TokenType.StringType, TokenType.Utf8, TokenType.Utf16Le, TokenType.Utf16Be,
+        TokenType.Ascii, TokenType.Latin1, TokenType.Ebcdic, TokenType.Trim,
+        TokenType.RTrim, TokenType.LTrim, TokenType.NullTerm, TokenType.Check,
+        TokenType.At, TokenType.Nested, TokenType.Escaped, TokenType.Greedy,
+        TokenType.Lazy, TokenType.Lower, TokenType.Upper, TokenType.Capture,
+        TokenType.Extends
+    ];
+
     private readonly ILexer _lexer;
     private bool _hasReplacedToken;
     private Token? _peekedToken; // Token peeked ahead but not yet consumed
@@ -360,6 +400,13 @@ public class SchemaParser
         var sizeExpr = ComposeSizeExpression();
         Consume(TokenType.RightSquareBracket);
 
+        if (IsNegativeConstantSizeExpression(sizeExpr, out var negativeValue))
+            throw new SyntaxException(
+                $"byte[] size must be non-negative, but got {negativeValue}.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ4001_InvalidBinarySchemaField,
+                sizeExpr.Span);
+
         return new ByteArrayTypeNode(sizeExpr);
     }
 
@@ -617,6 +664,11 @@ public class SchemaParser
                 Consume(TokenType.RightParenthesis);
                 return expr;
 
+            case TokenType.Hyphen:
+                Consume(TokenType.Hyphen);
+                var operand = ComposePrimaryExpression();
+                return new HyphenNode(new IntegerNode("0", "i"), operand);
+
             default:
                 throw new SyntaxException(
                     $"Expected integer, identifier, or expression but found '{Current.TokenType}'",
@@ -648,12 +700,57 @@ public class SchemaParser
 
             Consume(TokenType.RightParenthesis);
             var funcToken = new FunctionToken(name, token.Span);
-            return new AccessMethodNode(funcToken, new ArgsListNode([..args]), null, false);
+            return ComposePostfixAccess(new AccessMethodNode(funcToken, new ArgsListNode([..args]), null, false));
         }
 
-        return new IdentifierNode(name);
+        Node result = new IdentifierNode(name);
+        return ComposePostfixAccess(result);
     }
 
+        private Node ComposePostfixAccess(Node node)
+    {
+        while (true)
+        {
+            if (Current.TokenType == TokenType.Dot)
+            {
+                Consume(TokenType.Dot);
+                
+                
+                
+                if (Current.TokenType is TokenType.LeftParenthesis or TokenType.RightParenthesis
+                    or TokenType.LeftSquareBracket or TokenType.RightSquareBracket
+                    or TokenType.LBracket or TokenType.RBracket
+                    or TokenType.Comma or TokenType.Semicolon
+                    or TokenType.Plus or TokenType.Hyphen or TokenType.Star or TokenType.FSlash
+                    or TokenType.Mod or TokenType.Equality or TokenType.GreaterEqual
+                    or TokenType.LessEqual or TokenType.Greater or TokenType.Less
+                    or TokenType.Diff or TokenType.Dot or TokenType.EndOfFile
+                    or TokenType.Integer or TokenType.Decimal or TokenType.Function)
+                {
+                    throw new SyntaxException(
+                        $"Expected identifier after '.' but found '{Current.TokenType}' ({Current.Value})",
+                        _lexer.AlreadyResolvedQueryPart);
+                }
+                
+                var memberToken = ConsumeAndGetToken(Current.TokenType);
+                var memberNode = new IdentifierNode(memberToken.Value);
+                node = new DotNode(node, memberNode, memberToken.Value);
+            }
+            else if (Current.TokenType == TokenType.LeftSquareBracket)
+            {
+                Consume(TokenType.LeftSquareBracket);
+                var indexExpr = ComposeExpression();
+                Consume(TokenType.RightSquareBracket);
+                node = new ArrayIndexNode(node, indexExpr);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return node;
+    }
     private Node? ComposeOptionalAtOffset()
     {
         if (Current.TokenType != TokenType.At)
@@ -948,7 +1045,16 @@ public class SchemaParser
                 "chars[] requires an integer count",
                 _lexer.AlreadyResolvedQueryPart);
 
-        var countStr = ConsumeAndGetToken(TokenType.Integer).Value;
+        var countToken = ConsumeAndGetToken(TokenType.Integer);
+        var countStr = countToken.Value;
+
+        if (int.TryParse(countStr, out var count) && count < 0)
+            throw new SyntaxException(
+                $"chars[] size must be non-negative, but got {countStr}.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ4002_InvalidTextSchemaField,
+                countToken.Span);
+
         Consume(TokenType.RightSquareBracket);
 
         var modifiers = ComposeTextFieldModifiers();
@@ -1177,33 +1283,24 @@ public class SchemaParser
 
     private string ComposeIdentifierOrWord()
     {
-        return Current.TokenType switch
-        {
-            TokenType.Identifier => ConsumeAndGetToken(TokenType.Identifier).Value,
-            TokenType.Word => ConsumeAndGetToken(TokenType.Word).Value,
+        
+        if (Current.TokenType == TokenType.Identifier)
+            return ConsumeAndGetToken(TokenType.Identifier).Value;
 
-            TokenType.Property when Current.Value == "_" => ConsumeAndGetToken(TokenType.Property).Value,
+        if (Current.TokenType == TokenType.Word)
+            return ConsumeAndGetToken(TokenType.Word).Value;
 
+        
+        if (Current.TokenType == TokenType.Property && Current.Value == "_")
+            return ConsumeAndGetToken(TokenType.Property).Value;
 
-            TokenType.Rest => ConsumeAndGetToken(TokenType.Rest).Value,
-            TokenType.Text => ConsumeAndGetToken(TokenType.Text).Value,
-            TokenType.End => ConsumeAndGetToken(TokenType.End).Value,
-            TokenType.Binary => ConsumeAndGetToken(TokenType.Binary).Value,
-            TokenType.Pattern => ConsumeAndGetToken(TokenType.Pattern).Value,
-            TokenType.Literal => ConsumeAndGetToken(TokenType.Literal).Value,
-            TokenType.Until => ConsumeAndGetToken(TokenType.Until).Value,
-            TokenType.Between => ConsumeAndGetToken(TokenType.Between).Value,
-            TokenType.Chars => ConsumeAndGetToken(TokenType.Chars).Value,
-            TokenType.Token => ConsumeAndGetToken(TokenType.Token).Value,
-            TokenType.Whitespace => ConsumeAndGetToken(TokenType.Whitespace).Value,
-            TokenType.Switch => ConsumeAndGetToken(TokenType.Switch).Value,
-            TokenType.Repeat => ConsumeAndGetToken(TokenType.Repeat).Value,
-            TokenType.Optional => ConsumeAndGetToken(TokenType.Optional).Value,
+        
+        if (AllowedKeywordTokenTypes.Contains(Current.TokenType))
+            return ConsumeAndGetToken(Current.TokenType).Value;
 
-            _ => throw new SyntaxException(
-                $"Expected identifier but found '{Current.TokenType}' ({Current.Value})",
-                _lexer.AlreadyResolvedQueryPart)
-        };
+        throw new SyntaxException(
+            $"Expected identifier but found '{Current.TokenType}' ({Current.Value})",
+            _lexer.AlreadyResolvedQueryPart);
     }
 
     private string ComposeStringLiteral()
@@ -1279,5 +1376,32 @@ public class SchemaParser
         var token = Current;
         Consume(expected);
         return token;
+    }
+
+        private static bool IsNegativeConstantSizeExpression(Node sizeExpr, out string valueStr)
+    {
+        if (sizeExpr is IntegerNode intNode)
+        {
+            var value = Convert.ToInt64(intNode.ObjValue);
+            if (value < 0)
+            {
+                valueStr = intNode.ObjValue.ToString() ?? value.ToString();
+                return true;
+            }
+        }
+        else if (sizeExpr is HyphenNode { Left: IntegerNode leftInt, Right: IntegerNode rightInt })
+        {
+            
+            var leftVal = Convert.ToInt64(leftInt.ObjValue);
+            var rightVal = Convert.ToInt64(rightInt.ObjValue);
+            if (leftVal == 0 && rightVal > 0)
+            {
+                valueStr = $"-{rightVal}";
+                return true;
+            }
+        }
+
+        valueStr = string.Empty;
+        return false;
     }
 }

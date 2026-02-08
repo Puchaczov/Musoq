@@ -93,6 +93,18 @@ public class TableSymbol : Symbol
         return _tables[alias].Item2.Columns;
     }
 
+    public bool TryGetColumns(string alias, out ISchemaColumn[] columns)
+    {
+        if (_tables.TryGetValue(alias, out var table))
+        {
+            columns = table.Item2.Columns;
+            return true;
+        }
+
+        columns = null;
+        return false;
+    }
+
     public ISchemaColumn[] GetColumns()
     {
         var columns = new List<ISchemaColumn>();

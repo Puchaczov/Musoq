@@ -22,7 +22,7 @@ public class QueryAnalyzerTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", Array.Empty<BasicEntity>() }
+            { "#A", [] }
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }

@@ -26,9 +26,9 @@ public class InterpretCallNodeProcessorTests
         var workspace = new AdhocWorkspace();
         _generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
         _nodes = new Stack<SyntaxNode>();
-        _statements = new List<StatementSyntax>();
+        _statements = [];
         _interpreterInstances = new Dictionary<string, string>();
-        _addedNamespaces = new List<string>();
+        _addedNamespaces = [];
     }
 
     [TestMethod]

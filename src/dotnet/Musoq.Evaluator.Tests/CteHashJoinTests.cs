@@ -32,19 +32,17 @@ public class CteHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 },
                     new BasicEntity { Name = "A2", Country = "CountryA", Population = 200 },
                     new BasicEntity { Name = "A3", Country = "CountryA", Population = 300 }
-                }
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 },
                     new BasicEntity { Name = "B2", Country = "CountryB", Population = 400 }
-                }
+                ]
             }
         };
 
@@ -78,17 +76,15 @@ public class CteHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 },
                     new BasicEntity { Name = "A2", Country = "CountryA", Population = 200 }
-                }
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 }
-                }
+                ]
             }
         };
 
@@ -124,17 +120,15 @@ public class CteHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 }
-                }
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 },
                     new BasicEntity { Name = "B2", Country = "CountryB", Population = 200 }
-                }
+                ]
             }
         };
 
@@ -168,18 +162,16 @@ public class CteHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 },
                     new BasicEntity { Name = "A2", Country = "CountryA", Population = 200 }
-                }
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 },
                     new BasicEntity { Name = "B2", Country = "CountryB", Population = 300 }
-                }
+                ]
             }
         };
 
@@ -213,9 +205,9 @@ public class CteHashJoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 } } },
-            { "#B", new[] { new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 } } },
-            { "#C", new[] { new BasicEntity { Name = "C1", Country = "CountryC", Population = 100 } } }
+        { "#A", [new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 }] },
+        { "#B", [new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 }] },
+        { "#C", [new BasicEntity { Name = "C1", Country = "CountryC", Population = 100 }] }
         };
 
         var vm = CreateAndRunVirtualMachine(
@@ -248,18 +240,16 @@ public class CteHashJoinTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 },
                     new BasicEntity { Name = "A2", Country = "CountryA", Population = 200 }
-                }
+                ]
             },
             {
-                "#B", new[]
-                {
+                "#B", [
                     new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 },
                     new BasicEntity { Name = "B2", Country = "CountryB", Population = 300 }
-                }
+                ]
             }
         };
 

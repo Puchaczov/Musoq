@@ -73,8 +73,8 @@ public class BinaryConditionalFeatureTests
 
         var entities = new[]
         {
-            new BinaryEntity { Name = "with.bin", Content = new byte[] { 0x01, 0x2A, 0x00, 0x00, 0x00 } },
-            new BinaryEntity { Name = "without.bin", Content = new byte[] { 0x00 } }
+            new BinaryEntity { Name = "with.bin", Content = [0x01, 0x2A, 0x00, 0x00, 0x00] },
+            new BinaryEntity { Name = "without.bin", Content = [0x00] }
         };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });

@@ -673,7 +673,7 @@ public sealed class Lexer : ILexer
                 if (next == '=')
                 {
                     Position += 2;
-                    return AssignToken(new DiffToken(new TextSpan(start, 2)));
+                    return AssignToken(new DiffToken("!=", new TextSpan(start, 2)));
                 }
 
                 Position++;

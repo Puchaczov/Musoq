@@ -662,8 +662,8 @@ public class AdditionalTableAndHelpersTests
     public void Row_Equals_DifferentCount_ReturnsFalse()
     {
         // Arrange
-        var row1 = new ObjectsRow(new object[] { 1, 2 });
-        var row2 = new ObjectsRow(new object[] { 1, 2, 3 });
+        var row1 = new ObjectsRow([1, 2]);
+        var row2 = new ObjectsRow([1, 2, 3]);
 
         // Act
         var result = row1.Equals(row2);
@@ -676,7 +676,7 @@ public class AdditionalTableAndHelpersTests
     public void Row_Equals_Null_ReturnsFalse()
     {
         // Arrange
-        var row = new ObjectsRow(new object[] { 1 });
+        var row = new ObjectsRow([1]);
 
         // Act
         var result = row.Equals(null);
@@ -689,8 +689,8 @@ public class AdditionalTableAndHelpersTests
     public void Row_Equals_SameValues_ReturnsTrue()
     {
         // Arrange
-        var row1 = new ObjectsRow(new object[] { 1, "test" });
-        var row2 = new ObjectsRow(new object[] { 1, "test" });
+        var row1 = new ObjectsRow([1, "test"]);
+        var row2 = new ObjectsRow([1, "test"]);
 
         // Act
         var result = row1.Equals(row2);
@@ -703,8 +703,8 @@ public class AdditionalTableAndHelpersTests
     public void Row_Equals_DifferentValues_ReturnsFalse()
     {
         // Arrange
-        var row1 = new ObjectsRow(new object[] { 1, "test" });
-        var row2 = new ObjectsRow(new object[] { 1, "other" });
+        var row1 = new ObjectsRow([1, "test"]);
+        var row2 = new ObjectsRow([1, "other"]);
 
         // Act
         var result = row1.Equals(row2);
@@ -717,8 +717,8 @@ public class AdditionalTableAndHelpersTests
     public void Row_Equals_Object_SameType_ReturnsTrue()
     {
         // Arrange
-        var row1 = new ObjectsRow(new object[] { 1 });
-        object row2 = new ObjectsRow(new object[] { 1 });
+        var row1 = new ObjectsRow([1]);
+        object row2 = new ObjectsRow([1]);
 
         // Act
         var result = row1.Equals(row2);
@@ -731,8 +731,8 @@ public class AdditionalTableAndHelpersTests
     public void Row_GetHashCode_SameValues_ShouldBeSame()
     {
         // Arrange
-        var row1 = new ObjectsRow(new object[] { 1, 2, 3 });
-        var row2 = new ObjectsRow(new object[] { 1, 2, 3 });
+        var row1 = new ObjectsRow([1, 2, 3]);
+        var row2 = new ObjectsRow([1, 2, 3]);
 
         // Act & Assert
         Assert.AreEqual(row1.GetHashCode(), row2.GetHashCode());
@@ -746,13 +746,12 @@ public class AdditionalTableAndHelpersTests
     public void TableHelper_OrderBy_ShouldOrderRowsAscending()
     {
         // Arrange
-        var table = new Table("test", new[]
-        {
+        var table = new Table("test", [
             new Column("Value", typeof(int), 0)
-        });
-        table.Add(new ObjectsRow(new object[] { 3 }));
-        table.Add(new ObjectsRow(new object[] { 1 }));
-        table.Add(new ObjectsRow(new object[] { 2 }));
+        ]);
+        table.Add(new ObjectsRow([3]));
+        table.Add(new ObjectsRow([1]));
+        table.Add(new ObjectsRow([2]));
 
         // Act
         var ordered = table.OrderBy(rows => rows.OrderBy(r => (int)r[0]).ToList());
@@ -768,13 +767,12 @@ public class AdditionalTableAndHelpersTests
     public void TableHelper_OrderBy_ShouldOrderRowsDescending()
     {
         // Arrange
-        var table = new Table("test", new[]
-        {
+        var table = new Table("test", [
             new Column("Value", typeof(int), 0)
-        });
-        table.Add(new ObjectsRow(new object[] { 1 }));
-        table.Add(new ObjectsRow(new object[] { 3 }));
-        table.Add(new ObjectsRow(new object[] { 2 }));
+        ]);
+        table.Add(new ObjectsRow([1]));
+        table.Add(new ObjectsRow([3]));
+        table.Add(new ObjectsRow([2]));
 
         // Act
         var ordered = table.OrderBy(rows => rows.OrderByDescending(r => (int)r[0]).ToList());
@@ -790,10 +788,9 @@ public class AdditionalTableAndHelpersTests
     public void TableHelper_OrderBy_EmptyTable_ReturnsEmpty()
     {
         // Arrange
-        var table = new Table("test", new[]
-        {
+        var table = new Table("test", [
             new Column("Value", typeof(int), 0)
-        });
+        ]);
 
         // Act
         var ordered = table.OrderBy(rows => rows.ToList());
@@ -806,11 +803,10 @@ public class AdditionalTableAndHelpersTests
     public void TableHelper_OrderBy_PreservesTableName()
     {
         // Arrange
-        var table = new Table("MyTable", new[]
-        {
+        var table = new Table("MyTable", [
             new Column("Value", typeof(int), 0)
-        });
-        table.Add(new ObjectsRow(new object[] { 1 }));
+        ]);
+        table.Add(new ObjectsRow([1]));
 
         // Act
         var ordered = table.OrderBy(rows => rows.ToList());
@@ -823,12 +819,11 @@ public class AdditionalTableAndHelpersTests
     public void TableHelper_OrderBy_PreservesColumns()
     {
         // Arrange
-        var table = new Table("test", new[]
-        {
+        var table = new Table("test", [
             new Column("Col1", typeof(int), 0),
             new Column("Col2", typeof(string), 1)
-        });
-        table.Add(new ObjectsRow(new object[] { 1, "a" }));
+        ]);
+        table.Add(new ObjectsRow([1, "a"]));
 
         // Act
         var ordered = table.OrderBy(rows => rows.ToList());
@@ -844,14 +839,13 @@ public class AdditionalTableAndHelpersTests
     public void TableHelper_OrderBy_WithMultipleColumns_OrdersByFirstThenSecond()
     {
         // Arrange
-        var table = new Table("test", new[]
-        {
+        var table = new Table("test", [
             new Column("Group", typeof(string), 0),
             new Column("Value", typeof(int), 1)
-        });
-        table.Add(new ObjectsRow(new object[] { "B", 2 }));
-        table.Add(new ObjectsRow(new object[] { "A", 3 }));
-        table.Add(new ObjectsRow(new object[] { "A", 1 }));
+        ]);
+        table.Add(new ObjectsRow(["B", 2]));
+        table.Add(new ObjectsRow(["A", 3]));
+        table.Add(new ObjectsRow(["A", 1]));
 
         // Act
         var ordered = table.OrderBy(rows => rows
@@ -877,14 +871,13 @@ public class AdditionalTableAndHelpersTests
     public void Table_ContainsWithComparer_MatchingValue_ReturnsTrue()
     {
         // Arrange
-        var table = new Table("test", new[]
-        {
+        var table = new Table("test", [
             new Column("Value", typeof(int), 0)
-        });
-        table.Add(new ObjectsRow(new object[] { 1 }));
-        table.Add(new ObjectsRow(new object[] { 2 }));
+        ]);
+        table.Add(new ObjectsRow([1]));
+        table.Add(new ObjectsRow([2]));
 
-        var searchRow = new ObjectsRow(new object[] { 1 });
+        var searchRow = new ObjectsRow([1]);
 
         // Act
         var result = table.Contains(searchRow, (r1, r2) => (int)r1[0] == (int)r2[0]);
@@ -897,13 +890,12 @@ public class AdditionalTableAndHelpersTests
     public void Table_ContainsWithComparer_NoMatch_ReturnsFalse()
     {
         // Arrange
-        var table = new Table("test", new[]
-        {
+        var table = new Table("test", [
             new Column("Value", typeof(int), 0)
-        });
-        table.Add(new ObjectsRow(new object[] { 1 }));
+        ]);
+        table.Add(new ObjectsRow([1]));
 
-        var searchRow = new ObjectsRow(new object[] { 99 });
+        var searchRow = new ObjectsRow([99]);
 
         // Act
         var result = table.Contains(searchRow, (r1, r2) => (int)r1[0] == (int)r2[0]);
@@ -916,13 +908,12 @@ public class AdditionalTableAndHelpersTests
     public void Table_ContainsWithKey_EmptyTable_ReturnsFalse()
     {
         // Arrange
-        var table = new Table("test", new[]
-        {
+        var table = new Table("test", [
             new Column("Value", typeof(int), 0)
-        });
+        ]);
 
-        var row = new ObjectsRow(new object[] { 1 });
-        var key = new Key(new object[] { "key" }, new[] { 0 });
+        var row = new ObjectsRow([1]);
+        var key = new Key(["key"], [0]);
 
         // Act
         var result = table.Contains(key, row);
@@ -935,13 +926,12 @@ public class AdditionalTableAndHelpersTests
     public void Table_ContainsKey_NotPresent_ReturnsFalse()
     {
         // Arrange
-        var table = new Table("test", new[]
-        {
+        var table = new Table("test", [
             new Column("Value", typeof(int), 0)
-        });
-        table.Add(new ObjectsRow(new object[] { 1 }));
+        ]);
+        table.Add(new ObjectsRow([1]));
 
-        var key = new Key(new object[] { "nonexistent" }, new[] { 0 });
+        var key = new Key(["nonexistent"], [0]);
 
         // Act
         var result = table.ContainsKey(key);
@@ -954,13 +944,12 @@ public class AdditionalTableAndHelpersTests
     public void Table_TryGetIndexedValues_KeyNotFound_ReturnsFalseWithEmptyList()
     {
         // Arrange
-        var table = new Table("test", new[]
-        {
+        var table = new Table("test", [
             new Column("Value", typeof(int), 0)
-        });
-        table.Add(new ObjectsRow(new object[] { 1 }));
+        ]);
+        table.Add(new ObjectsRow([1]));
 
-        var key = new Key(new object[] { "missing" }, new[] { 0 });
+        var key = new Key(["missing"], [0]);
 
         // Act
         var result = table.TryGetIndexedValues(key, out var values);

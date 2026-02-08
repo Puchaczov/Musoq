@@ -88,8 +88,8 @@ public class ErrorStagesCoverageTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m } } },
-            { "#B", new[] { new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m } } }
+            { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
+            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
@@ -849,11 +849,11 @@ public class ErrorStagesCoverageTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Musoq allows this (different semantics than standard SQL)
-        // The query succeeds - documenting actual behavior
-        DocumentParserBehavior(result,
-            "Non-GROUP BY column in SELECT: Musoq allows this (returns per-group values)",
-            false);
+        // Assert - Musoq now enforces standard SQL GROUP BY rules.
+        // Name is not in GROUP BY and not inside an aggregate → MQ3012 error.
+        AssertHasOneOfErrorCodes(result, "Name not in GROUP BY should produce MQ3012",
+            DiagnosticCode.MQ3012_NonAggregateInSelect,
+            DiagnosticCode.MQ9999_Unknown);
     }
 
     [TestMethod]

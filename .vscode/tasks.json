@@ -1,0 +1,22 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build Musoq solution (Release)",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"src/dotnet/Musoq.sln",
+				"--configuration",
+				"Release",
+				"--no-restore"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		}
+	]
+}

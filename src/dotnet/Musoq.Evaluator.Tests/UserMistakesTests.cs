@@ -22,8 +22,8 @@ public class UserMistakesTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity("Warsaw", "Poland", 100) } },
-            { "#B", new[] { new BasicEntity("Berlin", "Germany", 200) } }
+            { "#A", [new BasicEntity("Warsaw", "Poland", 100)] },
+            { "#B", [new BasicEntity("Berlin", "Germany", 200)] }
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
@@ -624,8 +624,10 @@ public class UserMistakesTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - this should error or warn about non-aggregated column
-        Assert.IsNotNull(result);
+        // Assert - City is not in GROUP BY and not inside an aggregate → MQ3012
+        AssertHasOneOfErrorCodes(result, "City not in GROUP BY",
+            DiagnosticCode.MQ3012_NonAggregateInSelect,
+            DiagnosticCode.MQ9999_Unknown);
     }
 
     [TestMethod]

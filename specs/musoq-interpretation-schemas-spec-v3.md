@@ -334,8 +334,8 @@ SizeExpression ::= IntegerLiteral | FieldReference | Expression
 
 **Size Expression Evaluation:**
 - Evaluated at parse time using values of previously parsed fields
-- MUST evaluate to a non-negative integer
-- Negative values cause a parse error (ISE007)
+- MUST evaluate to a non-negative integer for meaningful data
+- Negative values result in the field being set to null/default (graceful handling)
 
 Examples:
 
@@ -2147,7 +2147,7 @@ upper, ushort, utf16be, utf16le, utf8, WHEN, whitespace
 | `double le/be` | `double` | 8 |
 | `byte[n]` | `byte[]` | n |
 | `string[n] enc` | `string` | n |
-| `bits[n]` | `ulong` | ⌈n/8⌉ |
+| `bits[n]` | `byte` (1-8), `ushort` (9-16), `uint` (17-32), `ulong` (33-64) | ⌈n/8⌉ |
 | Schema reference | Generated class | Variable |
 | Array `T[n]` | `T[]` | n × sizeof(T) |
 
@@ -2163,7 +2163,7 @@ upper, ushort, utf16be, utf16le, utf8, WHEN, whitespace
 | ISE004 | Literal | Literal string not found |
 | ISE005 | Delimiter | Delimiter not found |
 | ISE006 | Encoding | Invalid character encoding |
-| ISE007 | Expression | Size expression evaluated to negative |
+| ISE007 | Expression | Size expression evaluated to negative (field set to null/default) |
 | ISE008 | Schema | Circular schema reference |
 | ISE009 | Schema | Unknown schema reference |
 | ISE010 | Expression | Condition expression error |

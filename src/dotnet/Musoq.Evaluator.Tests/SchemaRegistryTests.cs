@@ -260,24 +260,22 @@ public class SchemaRegistryTests
     {
         return new BinarySchemaNode(
             name,
-            new[]
-            {
+            [
                 new FieldDefinitionNode(
                     "TestField",
                     new PrimitiveTypeNode(PrimitiveTypeName.Int, Endianness.LittleEndian))
-            });
+            ]);
     }
 
     private static TextSchemaNode CreateTestTextSchemaNode(string name)
     {
         return new TextSchemaNode(
             name,
-            new[]
-            {
+            [
                 new TextFieldDefinitionNode(
                     "TestField",
                     TextFieldType.Rest)
-            });
+            ]);
     }
 
     #endregion

@@ -77,6 +77,10 @@ public class GetSelectFieldsVisitor : IQueryPartAwareExpressionVisitor
     {
     }
 
+    public void Visit(ArrayIndexNode node)
+    {
+    }
+
     public void Visit(AndNode node)
     {
     }

@@ -34,9 +34,9 @@ public class TextInterpreterBaseTests
         }
 
         public string TestReadBetween(ReadOnlySpan<char> text, string open, string close, bool nested = false,
-            bool trim = false)
+            bool trim = false, bool escaped = false)
         {
-            return ReadBetween(text, open, close, nested, trim);
+            return ReadBetween(text, open, close, nested, trim, escaped);
         }
 
         public string TestReadChars(ReadOnlySpan<char> text, int count, bool trim = false, bool ltrim = false,
@@ -283,6 +283,64 @@ public class TextInterpreterBaseTests
         var interpreter = new TestTextInterpreter();
         var result = interpreter.TestReadBetween("<<content>>".AsSpan(), "<<", ">>");
         Assert.AreEqual("content", result);
+    }
+
+    [TestMethod]
+    public void ReadBetween_Escaped_IgnoresEscapedCloseDelimiter()
+    {
+        var interpreter = new TestTextInterpreter();
+        var result = interpreter.TestReadBetween("[content\\]more]".AsSpan(), "[", "]", escaped: true);
+        Assert.AreEqual("content\\]more", result);
+    }
+
+    [TestMethod]
+    public void ReadBetween_Escaped_SingleBackslashBeforeClose_IsEscaped()
+    {
+        var interpreter = new TestTextInterpreter();
+        var result = interpreter.TestReadBetween("[test\\]]".AsSpan(), "[", "]", escaped: true);
+        Assert.AreEqual("test\\]", result);
+    }
+
+    [TestMethod]
+    public void ReadBetween_Escaped_EvenBackslashesBeforeClose_NotEscaped()
+    {
+        var interpreter = new TestTextInterpreter();
+        
+        var result = interpreter.TestReadBetween("[test\\\\]".AsSpan(), "[", "]", escaped: true);
+        Assert.AreEqual("test\\\\", result);
+    }
+
+    [TestMethod]
+    public void ReadBetween_Escaped_OddBackslashesBeforeClose_IsEscaped()
+    {
+        var interpreter = new TestTextInterpreter();
+        
+        var result = interpreter.TestReadBetween("[test\\\\\\]end]".AsSpan(), "[", "]", escaped: true);
+        Assert.AreEqual("test\\\\\\]end", result);
+    }
+
+    [TestMethod]
+    public void ReadBetween_Escaped_MultiCharCloseDelimiter_Works()
+    {
+        var interpreter = new TestTextInterpreter();
+        var result = interpreter.TestReadBetween("<<content\\>>more>>".AsSpan(), "<<", ">>", escaped: true);
+        Assert.AreEqual("content\\>>more", result);
+    }
+
+    [TestMethod]
+    public void ReadBetween_Escaped_NoEscapes_ReadsNormally()
+    {
+        var interpreter = new TestTextInterpreter();
+        var result = interpreter.TestReadBetween("[simple]".AsSpan(), "[", "]", escaped: true);
+        Assert.AreEqual("simple", result);
+    }
+
+    [TestMethod]
+    public void ReadBetween_Escaped_MissingClose_ThrowsParseException()
+    {
+        var interpreter = new TestTextInterpreter();
+        Assert.Throws<ParseException>(() =>
+            interpreter.TestReadBetween("[content\\]".AsSpan(), "[", "]", escaped: true));
     }
 
     #endregion

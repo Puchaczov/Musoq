@@ -903,7 +903,7 @@ public class BranchCoverageIntegrationTests : BasicEntityTestBase
         var query = "select Name from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", Array.Empty<BasicEntity>() }
+            { "#A", [] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

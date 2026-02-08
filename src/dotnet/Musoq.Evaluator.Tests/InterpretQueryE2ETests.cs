@@ -180,9 +180,9 @@ public class InterpretQueryE2ETests
 
         var entities = new[]
         {
-            new BinaryEntity { Name = "enabled.bin", Content = new byte[] { 0x01 } },
-            new BinaryEntity { Name = "disabled.bin", Content = new byte[] { 0x00 } },
-            new BinaryEntity { Name = "also_enabled.bin", Content = new byte[] { 0x01 } }
+            new BinaryEntity { Name = "enabled.bin", Content = [0x01] },
+            new BinaryEntity { Name = "disabled.bin", Content = [0x00] },
+            new BinaryEntity { Name = "also_enabled.bin", Content = [0x01] }
         };
 
         var schemaProvider = new BinarySchemaProvider(
@@ -680,13 +680,13 @@ public class InterpretQueryE2ETests
         var entities = new[]
         {
             // Active=1, Ready=0, Error=0 -> 0b00000001 = 0x01
-            new BinaryEntity { Name = "good1.bin", Content = new byte[] { 0x01 } },
+            new BinaryEntity { Name = "good1.bin", Content = [0x01] },
             // Active=1, Ready=1, Error=1 -> 0b00000111 = 0x07
-            new BinaryEntity { Name = "bad.bin", Content = new byte[] { 0x07 } },
+            new BinaryEntity { Name = "bad.bin", Content = [0x07] },
             // Active=1, Ready=1, Error=0 -> 0b00000011 = 0x03
-            new BinaryEntity { Name = "good2.bin", Content = new byte[] { 0x03 } },
+            new BinaryEntity { Name = "good2.bin", Content = [0x03] },
             // Active=0, Ready=0, Error=0 -> 0x00
-            new BinaryEntity { Name = "inactive.bin", Content = new byte[] { 0x00 } }
+            new BinaryEntity { Name = "inactive.bin", Content = [0x00] }
         };
 
         var schemaProvider = new BinarySchemaProvider(
@@ -1164,8 +1164,8 @@ public class InterpretQueryE2ETests
 
         var entities = new[]
         {
-            new BinaryEntity { Name = "a.bin", Content = new byte[] { 0x01 } },
-            new BinaryEntity { Name = "b.bin", Content = new byte[] { 0x02, 0x03 } }
+            new BinaryEntity { Name = "a.bin", Content = [0x01] },
+            new BinaryEntity { Name = "b.bin", Content = [0x02, 0x03] }
         };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -1194,9 +1194,9 @@ public class InterpretQueryE2ETests
 
         var entities = new[]
         {
-            new BinaryEntity { Name = "valid1.bin", Content = new byte[] { 0x01, 0x00 } },
-            new BinaryEntity { Name = "valid2.bin", Content = new byte[] { 0x02, 0x00 } },
-            new BinaryEntity { Name = "invalid.bin", Content = new byte[] { 0x01 } }
+            new BinaryEntity { Name = "valid1.bin", Content = [0x01, 0x00] },
+            new BinaryEntity { Name = "valid2.bin", Content = [0x02, 0x00] },
+            new BinaryEntity { Name = "invalid.bin", Content = [0x01] }
         };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -1654,10 +1654,10 @@ public class InterpretQueryE2ETests
         var entities = new[]
         {
             // Type=0, Data only (5 bytes)
-            new BinaryEntity { Name = "simple.bin", Content = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x00 } },
+            new BinaryEntity { Name = "simple.bin", Content = [0x00, 0x01, 0x00, 0x00, 0x00] },
             // Type=1, ExtendedInfo=0x1234, Data (7 bytes)
             new BinaryEntity
-                { Name = "extended.bin", Content = new byte[] { 0x01, 0x34, 0x12, 0x02, 0x00, 0x00, 0x00 } }
+                { Name = "extended.bin", Content = [0x01, 0x34, 0x12, 0x02, 0x00, 0x00, 0x00] }
         };
 
         var schemaProvider = new BinarySchemaProvider(
@@ -5217,7 +5217,7 @@ public class InterpretQueryE2ETests
             };
 
         public string Name { get; set; } = string.Empty;
-        public byte[] Content { get; set; } = Array.Empty<byte>();
+        public byte[] Content { get; set; } = [];
     }
 
     /// <summary>

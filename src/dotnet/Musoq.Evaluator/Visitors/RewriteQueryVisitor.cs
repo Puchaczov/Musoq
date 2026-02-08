@@ -99,6 +99,13 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         BinaryOperationVisitorHelper.ProcessRightShiftOperation(Nodes);
     }
 
+    public void Visit(ArrayIndexNode node)
+    {
+        var index = Nodes.Pop();
+        var array = Nodes.Pop();
+        Nodes.Push(new ArrayIndexNode(array, index));
+    }
+
     public void Visit(AndNode node)
     {
         LogicalOperationVisitorHelper.ProcessAndOperation(Nodes, QueryRewriteUtilities.RewriteNullableBoolExpressions);
