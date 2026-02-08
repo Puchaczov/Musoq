@@ -16,7 +16,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: main
         fetch-depth: 0
     
     - name: Setup .NET
@@ -132,7 +131,7 @@ jobs:
           git commit -m "Update test results badge [skip ci]
 
           Tests: $PASSED/$TOTAL (failures: $FAILURES, skipped: $SKIPPED)"
-          git push origin main
+          git push
           echo "Badge updated successfully"
         else
           echo "No changes to commit"
