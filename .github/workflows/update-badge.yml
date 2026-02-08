@@ -131,7 +131,7 @@ jobs:
         if ! git diff --cached --quiet; then
           git commit -m "Update test results badge [skip ci]
 
-        Tests: $PASSED/$TOTAL (failures: $FAILURES, skipped: $SKIPPED)"
+          Tests: $PASSED/$TOTAL (failures: $FAILURES, skipped: $SKIPPED)"
           git push origin main
           echo "Badge updated successfully"
         else
