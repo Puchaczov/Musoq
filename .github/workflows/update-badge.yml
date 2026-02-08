@@ -83,10 +83,11 @@ jobs:
     - name: Create badge
       shell: bash
       run: |
+        # Use environment variables set from test results
         PASSED=${PASSED:-0}
         FAILURES=${FAILURES:-0}
         SKIPPED=${SKIPPED:-0}
-        TOTAL=$((PASSED + FAILURES + SKIPPED))
+        TOTAL=${TOTAL:-0}
 
         if [ "$FAILURES" -gt 0 ]; then
           COLOR="red"
@@ -130,7 +131,7 @@ jobs:
         if ! git diff --cached --quiet; then
           git commit -m "Update test results badge [skip ci]
 
-          Tests: $PASSED/$TOTAL (failures: $FAILURES, skipped: $SKIPPED)"
+          Tests: ${PASSED}/${TOTAL} (failures: ${FAILURES}, skipped: ${SKIPPED})"
           git push
           echo "Badge updated successfully"
         else
