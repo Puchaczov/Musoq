@@ -49,5 +49,5 @@ public class PropertyFromNode : FromNode
         return string.Join(".", propertiesChain.Select(f => f.PropertyName));
     }
 
-    public record PropertyNameAndTypePair(string PropertyName, Type PropertyType);
+    public record PropertyNameAndTypePair(string PropertyName, Type PropertyType, string IntendedTypeName = null);
 }

@@ -439,10 +439,10 @@ public class TextInterpretationTests
 
     private object InvokeParse(object interpreter, string data)
     {
-        var parseMethod = interpreter.GetType().GetMethod("Parse", new[] { typeof(string) });
+        var parseMethod = interpreter.GetType().GetMethod("Parse", [typeof(string)]);
         if (parseMethod == null) throw new InvalidOperationException("Parse(string) method not found on interpreter");
 
-        return parseMethod.Invoke(interpreter, new object[] { data })!;
+        return parseMethod.Invoke(interpreter, [data])!;
     }
 
     private T GetPropertyValue<T>(object obj, string propertyName)

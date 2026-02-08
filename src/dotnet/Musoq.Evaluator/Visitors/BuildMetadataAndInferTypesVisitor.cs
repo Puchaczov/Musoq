@@ -658,8 +658,22 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
 
             if (column == null)
+            {
+                
+                
+                if (tableSymbol.IsCompoundTable &&
+                    tableSymbol.TryGetColumns(node.Name, out var aliasColumns) &&
+                    aliasColumns is { Length: 1 })
+                {
+                    var singleCol = aliasColumns[0];
+                    Visit(new AccessColumnNode(singleCol.ColumnName, node.Name, singleCol.ColumnType,
+                        TextSpan.Empty, singleCol.IntendedTypeName));
+                    return;
+                }
+
                 if (TryReportOrThrowUnknownColumn(node.Name, tableSymbol.GetColumns(), node))
                     return;
+            }
 
             Visit(new AccessColumnNode(node.Name, string.Empty, column?.ColumnType, TextSpan.Empty,
                 column?.IntendedTypeName));
@@ -1142,10 +1156,27 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                         refSchema?.Node is BinarySchemaNode binaryNode)
                     {
                         var allFields = GetAllBinarySchemaFields(binaryNode);
-                        var field = allFields.FirstOrDefault(f => f.Name == identNode.Name);
+                        var field = allFields.FirstOrDefault(f => string.Equals(f.Name, identNode.Name, StringComparison.OrdinalIgnoreCase));
                         if (field is FieldDefinitionNode fieldDef)
                             (propertyType, childIntendedTypeName) =
                                 ResolveTypeAnnotationClrTypeWithIntendedName(fieldDef.TypeAnnotation);
+                    }
+                    else if (schemaName.StartsWith("Inline_"))
+                    {
+                        
+                        var inlineFieldName = schemaName.Substring("Inline_".Length);
+                        var inlineFields = FindInlineSchemaFields(inlineFieldName);
+                        if (inlineFields != null)
+                        {
+                            var field = inlineFields.FirstOrDefault(f => string.Equals(f.Name, identNode.Name, StringComparison.OrdinalIgnoreCase));
+                            if (field is FieldDefinitionNode fieldDef)
+                            {
+                                (propertyType, childIntendedTypeName) =
+                                    ResolveTypeAnnotationClrTypeWithIntendedName(fieldDef.TypeAnnotation);
+                                if (fieldDef.TypeAnnotation is InlineSchemaTypeNode)
+                                    childIntendedTypeName = $"Musoq.Generated.Interpreters.Inline_{fieldDef.Name}";
+                            }
+                        }
                     }
                 }
 
@@ -1154,12 +1185,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             }
 
 
-            newNode = new DotNode(root, expressionNode, node.IsTheMostInner, string.Empty, expressionNode.ReturnType);
-
-
-            if (!string.IsNullOrEmpty(childIntendedTypeName))
-            {
-            }
+            newNode = new DotNode(root, expressionNode, node.IsTheMostInner, string.Empty, expressionNode.ReturnType, childIntendedTypeName);
         }
 
         else if (root.ReturnType == typeof(object))
@@ -1388,6 +1414,57 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return;
 
         AddAssembly(targetColumn.ColumnType.Assembly);
+
+        
+        
+        
+        if (node.PropertiesChain.Length > 1
+            && targetColumn.ColumnType == typeof(object)
+            && !string.IsNullOrEmpty(targetColumn.IntendedTypeName)
+            && _schemaRegistry != null)
+        {
+            var resolved = ResolveSchemaPropertyChain(
+                targetColumn.IntendedTypeName,
+                node.PropertiesChain.Skip(1).ToArray());
+
+            if (resolved != null)
+            {
+                var resolvedNestedTable = TurnTypeIntoTableWithIntendedTypeName(
+                    resolved.Value.ClrType,
+                    resolved.Value.IntendedTypeName,
+                    node);
+                if (resolvedNestedTable == null)
+                    return;
+                table = resolvedNestedTable;
+
+                UpdateQueryAliasAndSymbolTable(node, schema, table);
+
+                
+                
+                
+                
+                var resolvedChain = new PropertyFromNode.PropertyNameAndTypePair[node.PropertiesChain.Length];
+                resolvedChain[0] = new PropertyFromNode.PropertyNameAndTypePair(
+                    targetColumn.ColumnName, targetColumn.ColumnType, targetColumn.IntendedTypeName);
+                for (var i = 1; i < node.PropertiesChain.Length; i++)
+                {
+                    var propType = i == node.PropertiesChain.Length - 1
+                        ? resolved.Value.ClrType
+                        : typeof(object);
+                    resolvedChain[i] = new PropertyFromNode.PropertyNameAndTypePair(
+                        node.PropertiesChain[i].PropertyName, propType);
+                }
+
+                Nodes.Push(
+                    new Parser.PropertyFromNode(
+                        node.Alias,
+                        node.SourceAlias,
+                        resolvedChain
+                    )
+                );
+                return;
+            }
+        }
 
         var followedType = FollowPropertiesWithDiagnostics(targetColumn.ColumnType, node.PropertiesChain, node);
         if (followedType == null)
@@ -1792,16 +1869,19 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         if (take != null)
             ValidateExpressionIsPrimitive(take.Expression, "TAKE");
 
+        
+        if (groupBy != null && select != null)
+            ValidateGroupBySemantics(select, groupBy);
 
         long? skipValue = skip?.Expression is IntegerNode skipInt ? Convert.ToInt64(skipInt.ObjValue) : null;
         long? takeValue = take?.Expression is IntegerNode takeInt ? Convert.ToInt64(takeInt.ObjValue) : null;
         var isDistinct = select?.IsDistinct ?? false;
 
-        // Determine if we can safely pass optimization hints to the data source.
-        // Hints can ONLY be passed when ALL of these conditions are met:
-        // 1. Single-table query (no JOINs/APPLYs) - multi-table queries need all data for joining
-        // 2. No ORDER BY clause - sorting happens after data retrieval, so Skip/Take must operate on sorted results
-        // 3. No GROUP BY clause (explicit or implicit) - grouping happens after data retrieval, Skip/Take must operate on grouped results
+        
+        
+        
+        
+        
         //    Note: DISTINCT creates an implicit GROUP BY
         var isSingleTableQuery = _aliasToSchemaFromNodeMap.Count == 1;
         var hasOrderBy = orderBy != null;
@@ -2589,6 +2669,205 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return new SetOperatorMustHaveKeyColumnsException(setOperator);
     }
 
+    private void ValidateGroupBySemantics(SelectNode select, GroupByNode groupBy)
+    {
+        var groupByExpressionStrings = new HashSet<string>(
+            groupBy.Fields.Select(f => f.Expression.ToString()),
+            StringComparer.OrdinalIgnoreCase);
+
+        var groupByColumnNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var field in groupBy.Fields)
+        {
+            CollectColumnNames(field.Expression, groupByColumnNames);
+        }
+
+        foreach (var field in select.Fields)
+        {
+            if (IsConstantExpression(field.Expression))
+                continue;
+
+            if (groupByExpressionStrings.Contains(field.Expression.ToString()))
+                continue;
+
+            if (ContainsAggregateFunction(field.Expression))
+                continue;
+
+            var nonGroupedColumns = new List<string>();
+            FindNonGroupedColumns(field.Expression, groupByExpressionStrings, groupByColumnNames, nonGroupedColumns);
+
+            if (nonGroupedColumns.Count <= 0)
+                continue;
+
+            var columnName = nonGroupedColumns[0];
+            var groupByNames = groupBy.Fields
+                .Select(f => f.Expression.ToString())
+                .ToArray();
+
+            if (TryReportNonAggregatedColumnInSelect(columnName, groupByNames, field.Expression))
+                continue;
+
+            throw new NonAggregatedColumnInSelectException(columnName, groupByNames,
+                field.Expression.HasSpan ? field.Expression.Span : TextSpan.Empty);
+        }
+    }
+
+    private static bool IsConstantExpression(Node expression)
+    {
+        return expression is IntegerNode
+            or DecimalNode
+            or WordNode
+            or StringNode
+            or NullNode;
+    }
+
+    private static bool ContainsAggregateFunction(Node expression)
+    {
+        var stack = new Stack<Node>();
+        stack.Push(expression);
+
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+
+            if (current is AccessMethodNode methodNode && methodNode.IsAggregateMethod())
+                return true;
+
+            switch (current)
+            {
+                case AccessMethodNode method:
+                    foreach (var arg in method.Arguments.Args)
+                        stack.Push(arg);
+                    if (method.ExtraAggregateArguments != null)
+                        foreach (var arg in method.ExtraAggregateArguments.Args)
+                            stack.Push(arg);
+                    break;
+                case BinaryNode binary:
+                    stack.Push(binary.Left);
+                    stack.Push(binary.Right);
+                    break;
+                case UnaryNode unary:
+                    stack.Push(unary.Expression);
+                    break;
+                case FieldNode field:
+                    stack.Push(field.Expression);
+                    break;
+                case CaseNode caseNode:
+                    foreach (var whenThen in caseNode.WhenThenPairs)
+                    {
+                        stack.Push(whenThen.When);
+                        stack.Push(whenThen.Then);
+                    }
+                    if (caseNode.Else != null)
+                        stack.Push(caseNode.Else);
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    private static void CollectColumnNames(Node expression, HashSet<string> columnNames)
+    {
+        var stack = new Stack<Node>();
+        stack.Push(expression);
+
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+
+            switch (current)
+            {
+                case AccessColumnNode columnNode:
+                    columnNames.Add(columnNode.Name);
+                    break;
+                case BinaryNode binary:
+                    stack.Push(binary.Left);
+                    stack.Push(binary.Right);
+                    break;
+                case UnaryNode unary:
+                    stack.Push(unary.Expression);
+                    break;
+                case FieldNode field:
+                    stack.Push(field.Expression);
+                    break;
+                case AccessMethodNode method:
+                    foreach (var arg in method.Arguments.Args)
+                        stack.Push(arg);
+                    break;
+            }
+        }
+    }
+
+    private static void FindNonGroupedColumns(
+        Node expression,
+        HashSet<string> groupByExpressions,
+        HashSet<string> groupByColumnNames,
+        List<string> nonGroupedColumns)
+    {
+        var stack = new Stack<Node>();
+        stack.Push(expression);
+
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+
+            if (groupByExpressions.Contains(current.ToString()))
+                continue;
+
+            if (current is AccessMethodNode methodNode && methodNode.IsAggregateMethod())
+                continue;
+
+            switch (current)
+            {
+                case AccessColumnNode columnNode:
+                    if (!groupByColumnNames.Contains(columnNode.Name))
+                        nonGroupedColumns.Add(columnNode.Name);
+                    break;
+                case AccessMethodNode method:
+                    foreach (var arg in method.Arguments.Args)
+                        stack.Push(arg);
+                    break;
+                case BinaryNode binary:
+                    stack.Push(binary.Left);
+                    stack.Push(binary.Right);
+                    break;
+                case UnaryNode unary:
+                    stack.Push(unary.Expression);
+                    break;
+                case FieldNode field:
+                    stack.Push(field.Expression);
+                    break;
+                case CaseNode caseNode:
+                    foreach (var whenThen in caseNode.WhenThenPairs)
+                    {
+                        stack.Push(whenThen.When);
+                        stack.Push(whenThen.Then);
+                    }
+                    if (caseNode.Else != null)
+                        stack.Push(caseNode.Else);
+                    break;
+            }
+        }
+    }
+
+    private bool TryReportNonAggregatedColumnInSelect(string columnName, string[] groupByColumns, Node? node)
+    {
+        if (DiagnosticContext != null)
+        {
+            var groupByList = groupByColumns.Length > 0
+                ? string.Join(", ", groupByColumns)
+                : "(none)";
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3012_NonAggregateInSelect,
+                $"Column '{columnName}' must appear in the GROUP BY clause or be used in an aggregate function. " +
+                $"Current GROUP BY columns: {groupByList}.",
+                node);
+            return true;
+        }
+
+        return false;
+    }
+
     private void ValidateSelectFieldsArePrimitive(FieldNode[] fields, string context)
     {
         if (!_compilationOptions.UsePrimitiveTypeValidation) return;
@@ -2819,6 +3098,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                     (columnType, intendedTypeName) =
                         ResolveTypeAnnotationClrTypeWithIntendedName(parsedField.TypeAnnotation);
                     isConditional = parsedField.IsConditional;
+
+                    
+                    if (parsedField.TypeAnnotation is InlineSchemaTypeNode)
+                        intendedTypeName = $"Musoq.Generated.Interpreters.Inline_{parsedField.Name}";
                 }
                 else if (field is ComputedFieldNode computedField)
                 {
@@ -2849,6 +3132,30 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 if (field.Name.StartsWith('_'))
                     continue;
 
+                if (field.FieldType == TextFieldType.Pattern && field.CaptureGroups.Length > 0)
+                {
+                    
+                    columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(object),
+                        $"Musoq.Generated.Interpreters.{schema.Name}.CaptureResult_{field.Name}"));
+                    continue;
+                }
+
+                if (field.FieldType == TextFieldType.Repeat)
+                {
+                    
+                    var elementSchemaName = field.PrimaryValue ?? "object";
+                    columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(object[]),
+                        $"Musoq.Generated.Interpreters.{elementSchemaName}[]"));
+                    continue;
+                }
+
+                if (field.FieldType == TextFieldType.Switch)
+                {
+                    
+                    
+                    columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(ExpandoObject)));
+                    continue;
+                }
 
                 columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(string)));
             }
@@ -2863,8 +3170,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     private List<SchemaFieldNode> GetAllBinarySchemaFields(
         BinarySchemaNode binaryNode)
     {
-        var allFields = new List<SchemaFieldNode>();
+        if (string.IsNullOrEmpty(binaryNode.Extends))
+            return binaryNode.Fields.ToList();
 
+        var allFields = new List<SchemaFieldNode>();
 
         if (!string.IsNullOrEmpty(binaryNode.Extends))
         {
@@ -2873,12 +3182,53 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 allFields.AddRange(GetAllBinarySchemaFields(parentBinaryNode));
         }
 
+        
+        var overriddenParentNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var childField in binaryNode.Fields)
+        {
+            for (var i = 0; i < allFields.Count; i++)
+            {
+                if (string.Equals(allFields[i].Name, childField.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    allFields[i] = childField;
+                    overriddenParentNames.Add(childField.Name);
+                    break;
+                }
+            }
+        }
 
-        allFields.AddRange(binaryNode.Fields);
+        
+        foreach (var childField in binaryNode.Fields)
+        {
+            if (!overriddenParentNames.Contains(childField.Name))
+                allFields.Add(childField);
+        }
 
         return allFields;
     }
 
+        private SchemaFieldNode[]? FindInlineSchemaFields(string fieldName)
+    {
+        if (_schemaRegistry == null) return null;
+
+        foreach (var registration in _schemaRegistry.Schemas)
+        {
+            if (registration.Node is BinarySchemaNode binaryNode)
+            {
+                var allFields = GetAllBinarySchemaFields(binaryNode);
+                foreach (var field in allFields)
+                {
+                    if (field is FieldDefinitionNode { TypeAnnotation: InlineSchemaTypeNode inlineSchema }
+                        && string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return inlineSchema.Fields;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
     private Type ResolveTypeAnnotationClrType(TypeAnnotationNode typeAnnotation)
     {
         var (type, _) = ResolveTypeAnnotationClrTypeWithIntendedName(typeAnnotation);
@@ -2896,7 +3246,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                     return (refSchema.GeneratedType, null);
 
 
-                return (typeof(object), refSchema?.GeneratedTypeName);
+                var typeName = refSchema?.GeneratedTypeName;
+                if (typeName != null && schemaRef.IsGenericInstantiation)
+                    typeName = $"{typeName}<{string.Join(",", schemaRef.TypeArguments)}>";
+
+                return (typeof(object), typeName);
             }
 
             return (typeof(object), null);
@@ -2928,8 +3282,101 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return (arrayClrType, arrayIntendedTypeName);
         }
 
+        if (typeAnnotation is InlineSchemaTypeNode)
+        {
+            
+            
+            
+            
+            return (typeof(object), null);
+        }
+
+        if (typeAnnotation is RepeatUntilTypeNode repeatUntilType)
+        {
+            var (elementType, elementIntendedTypeName) =
+                ResolveTypeAnnotationClrTypeWithIntendedName(repeatUntilType.ElementType);
+            var arrayClrType = elementType.MakeArrayType();
+            var arrayIntendedTypeName = elementIntendedTypeName != null ? $"{elementIntendedTypeName}[]" : null;
+            return (arrayClrType, arrayIntendedTypeName);
+        }
 
         return (typeAnnotation.ClrType, null);
+    }
+
+        private (Type ClrType, string? IntendedTypeName)? ResolveSchemaPropertyChain(
+        string intendedTypeName,
+        PropertyFromNode.PropertyNameAndTypePair[] remainingProperties)
+    {
+        if (_schemaRegistry == null || remainingProperties.Length == 0)
+            return null;
+
+        
+        var lastDot = intendedTypeName.LastIndexOf('.');
+        var simpleName = lastDot >= 0 ? intendedTypeName.Substring(lastDot + 1) : intendedTypeName;
+
+        string baseSchemaName;
+        string[] typeArgs;
+
+        var angleBracket = simpleName.IndexOf('<');
+        if (angleBracket >= 0)
+        {
+            baseSchemaName = simpleName.Substring(0, angleBracket);
+            var argsStr = simpleName.Substring(angleBracket + 1, simpleName.Length - angleBracket - 2);
+            typeArgs = argsStr.Split(',').Select(a => a.Trim()).ToArray();
+        }
+        else
+        {
+            baseSchemaName = simpleName;
+            typeArgs = Array.Empty<string>();
+        }
+
+        if (!_schemaRegistry.TryGetSchema(baseSchemaName, out var schemaRegistration))
+            return null;
+
+        if (schemaRegistration?.Node is not BinarySchemaNode binaryNode)
+            return null;
+
+        
+        var typeParamMap = new Dictionary<string, string>();
+        if (binaryNode.TypeParameters != null)
+        {
+            for (var i = 0; i < binaryNode.TypeParameters.Length && i < typeArgs.Length; i++)
+                typeParamMap[binaryNode.TypeParameters[i]] = typeArgs[i];
+        }
+
+        
+        var propertyName = remainingProperties[0].PropertyName;
+        var allFields = GetAllBinarySchemaFields(binaryNode);
+        var field = allFields.OfType<FieldDefinitionNode>().FirstOrDefault(f => f.Name == propertyName);
+        if (field == null) return null;
+
+        return ResolveTypeAnnotationWithSubstitution(field.TypeAnnotation, typeParamMap);
+    }
+
+        private (Type ClrType, string? IntendedTypeName) ResolveTypeAnnotationWithSubstitution(
+        TypeAnnotationNode typeAnnotation, Dictionary<string, string> typeParamMap)
+    {
+        if (typeAnnotation is SchemaReferenceTypeNode schemaRef)
+        {
+            
+            var resolvedName = typeParamMap.TryGetValue(schemaRef.SchemaName, out var substitutedName)
+                ? substitutedName
+                : schemaRef.SchemaName;
+
+            if (_schemaRegistry != null && _schemaRegistry.TryGetSchema(resolvedName, out var refSchema))
+                return (typeof(object), refSchema?.GeneratedTypeName);
+
+            return (typeof(object), null);
+        }
+
+        if (typeAnnotation is ArrayTypeNode arrayType)
+        {
+            var (elemType, elemIntended) = ResolveTypeAnnotationWithSubstitution(arrayType.ElementType, typeParamMap);
+            return (elemType.MakeArrayType(), elemIntended != null ? $"{elemIntended}[]" : null);
+        }
+
+        
+        return ResolveTypeAnnotationClrTypeWithIntendedName(typeAnnotation);
     }
 
     private static ISchemaTable CreateEmptyTable()
@@ -3219,27 +3666,43 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 : intendedTypeName;
             var schemaName = elementIntendedTypeName.Split('.').Last();
 
-            if (_schemaRegistry.TryGetSchema(schemaName, out var schemaRegistration) &&
-                schemaRegistration?.Node is BinarySchemaNode binaryNode)
+            if (_schemaRegistry.TryGetSchema(schemaName, out var schemaRegistration))
             {
-                var columns = new List<ISchemaColumn>();
-                var allFields = GetAllBinarySchemaFields(binaryNode);
-                var columnIndex = 0;
+                if (schemaRegistration?.Node is BinarySchemaNode binaryNode)
+                {
+                    var columns = new List<ISchemaColumn>();
+                    var allFields = GetAllBinarySchemaFields(binaryNode);
+                    var columnIndex = 0;
 
-                foreach (var field in allFields)
-                    if (field is FieldDefinitionNode fieldDef)
+                    foreach (var field in allFields)
+                        if (field is FieldDefinitionNode fieldDef)
+                        {
+                            var (columnType, childIntendedTypeName) =
+                                ResolveTypeAnnotationClrTypeWithIntendedName(fieldDef.TypeAnnotation);
+                            columns.Add(new SchemaColumn(field.Name, columnIndex++, columnType, childIntendedTypeName));
+                        }
+                        else if (field is ComputedFieldNode computedField)
+                        {
+                            var columnType = InferComputedFieldType(computedField.Expression, columns);
+                            columns.Add(new SchemaColumn(field.Name, columnIndex++, columnType));
+                        }
+
+                    return new DynamicTable(columns.ToArray());
+                }
+
+                if (schemaRegistration?.Node is TextSchemaNode textNode)
+                {
+                    var columns = new List<ISchemaColumn>();
+                    var columnIndex = 0;
+
+                    foreach (var field in textNode.Fields)
                     {
-                        var (columnType, childIntendedTypeName) =
-                            ResolveTypeAnnotationClrTypeWithIntendedName(fieldDef.TypeAnnotation);
-                        columns.Add(new SchemaColumn(field.Name, columnIndex++, columnType, childIntendedTypeName));
-                    }
-                    else if (field is ComputedFieldNode computedField)
-                    {
-                        var columnType = InferComputedFieldType(computedField.Expression, columns);
-                        columns.Add(new SchemaColumn(field.Name, columnIndex++, columnType));
+                        if (field.Name.StartsWith('_')) continue;
+                        columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(string)));
                     }
 
-                return new DynamicTable(columns.ToArray());
+                    return new DynamicTable(columns.ToArray());
+                }
             }
         }
 

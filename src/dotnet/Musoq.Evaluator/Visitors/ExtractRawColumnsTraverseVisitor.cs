@@ -461,6 +461,13 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
+    public void Visit(ArrayIndexNode node)
+    {
+        node.Array.Accept(this);
+        node.Index.Accept(this);
+        node.Accept(_visitor);
+    }
+
     public void Visit(AndNode node)
     {
         node.Left.Accept(this);

@@ -152,16 +152,24 @@ public class InterpreterCompilationUnit
         references.Add(MetadataReference.CreateFromFile(schemaAssembly.Location));
 
 
-        var memoryAssemblyPath = Path.Combine(
-            Path.GetDirectoryName(typeof(object).Assembly.Location)!,
-            "System.Memory.dll");
-        if (File.Exists(memoryAssemblyPath)) references.Add(MetadataReference.CreateFromFile(memoryAssemblyPath));
+        var runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
+        var additionalAssemblies = new[]
+        {
+            "System.Memory.dll",
+            "System.Buffers.dll",
+            "System.Text.RegularExpressions.dll",
+            "System.Dynamic.Runtime.dll",
+            "System.Linq.Expressions.dll",
+            "System.ObjectModel.dll",
+            "System.Collections.dll"
+        };
 
-
-        var buffersAssemblyPath = Path.Combine(
-            Path.GetDirectoryName(typeof(object).Assembly.Location)!,
-            "System.Buffers.dll");
-        if (File.Exists(buffersAssemblyPath)) references.Add(MetadataReference.CreateFromFile(buffersAssemblyPath));
+        foreach (var assemblyName in additionalAssemblies)
+        {
+            var assemblyPath = Path.Combine(runtimeDir, assemblyName);
+            if (File.Exists(assemblyPath))
+                references.Add(MetadataReference.CreateFromFile(assemblyPath));
+        }
 
         return references;
     }

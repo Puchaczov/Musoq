@@ -131,8 +131,8 @@ public class TablesTests
     public void Key_Equals_SameKey_ShouldReturnTrue()
     {
         // Arrange
-        var key1 = new Key(new object[] { "A", 1 }, new[] { 0, 1 });
-        var key2 = new Key(new object[] { "A", 1 }, new[] { 0, 1 });
+        var key1 = new Key(["A", 1], [0, 1]);
+        var key2 = new Key(["A", 1], [0, 1]);
 
         // Act & Assert
         Assert.IsTrue(key1.Equals(key2));
@@ -142,8 +142,8 @@ public class TablesTests
     public void Key_Equals_DifferentValues_ShouldReturnFalse()
     {
         // Arrange
-        var key1 = new Key(new object[] { "A", 1 }, new[] { 0, 1 });
-        var key2 = new Key(new object[] { "B", 1 }, new[] { 0, 1 });
+        var key1 = new Key(["A", 1], [0, 1]);
+        var key2 = new Key(["B", 1], [0, 1]);
 
         // Act & Assert
         Assert.IsFalse(key1.Equals(key2));
@@ -153,8 +153,8 @@ public class TablesTests
     public void Key_Equals_DifferentColumns_ShouldReturnFalse()
     {
         // Arrange
-        var key1 = new Key(new object[] { "A", 1 }, new[] { 0, 1 });
-        var key2 = new Key(new object[] { "A", 1 }, new[] { 0, 2 });
+        var key1 = new Key(["A", 1], [0, 1]);
+        var key2 = new Key(["A", 1], [0, 2]);
 
         // Act & Assert
         Assert.IsFalse(key1.Equals(key2));
@@ -164,7 +164,7 @@ public class TablesTests
     public void Key_Equals_Null_ShouldReturnFalse()
     {
         // Arrange
-        var key1 = new Key(new object[] { "A" }, new[] { 0 });
+        var key1 = new Key(["A"], [0]);
 
         // Act & Assert
         Assert.IsFalse(key1.Equals(null));
@@ -174,7 +174,7 @@ public class TablesTests
     public void Key_Equals_SameReference_ShouldReturnTrue()
     {
         // Arrange
-        var key = new Key(new object[] { "A" }, new[] { 0 });
+        var key = new Key(["A"], [0]);
 
         // Act & Assert
         Assert.IsTrue(key.Equals(key));
@@ -184,8 +184,8 @@ public class TablesTests
     public void Key_Equals_Object_ShouldWork()
     {
         // Arrange
-        var key1 = new Key(new object[] { "A" }, new[] { 0 });
-        object key2 = new Key(new object[] { "A" }, new[] { 0 });
+        var key1 = new Key(["A"], [0]);
+        object key2 = new Key(["A"], [0]);
 
         // Act & Assert
         Assert.IsTrue(key1.Equals(key2));
@@ -195,7 +195,7 @@ public class TablesTests
     public void Key_Equals_DifferentType_ShouldReturnFalse()
     {
         // Arrange
-        var key = new Key(new object[] { "A" }, new[] { 0 });
+        var key = new Key(["A"], [0]);
 
         // Act & Assert
         Assert.IsFalse(key.Equals("key"));
@@ -205,7 +205,7 @@ public class TablesTests
     public void Key_ToString_ShouldReturnFormattedString()
     {
         // Arrange
-        var key = new Key(new object[] { "A", 1 }, new[] { 0, 1 });
+        var key = new Key(["A", 1], [0, 1]);
 
         // Act
         var result = key.ToString();
@@ -220,8 +220,8 @@ public class TablesTests
     public void Key_GetHashCode_SameKey_ShouldBeSame()
     {
         // Arrange
-        var key1 = new Key(new object[] { "A", 1 }, new[] { 0, 1 });
-        var key2 = new Key(new object[] { "A", 1 }, new[] { 0, 1 });
+        var key1 = new Key(["A", 1], [0, 1]);
+        var key2 = new Key(["A", 1], [0, 1]);
 
         // Act & Assert
         Assert.AreEqual(key1.GetHashCode(), key2.GetHashCode());
@@ -231,8 +231,8 @@ public class TablesTests
     public void Key_DoesRowMatchKey_ShouldDelegateToRow()
     {
         // Arrange
-        var key = new Key(new object[] { "A" }, new[] { 0 });
-        var row = new ObjectsRow(new object[] { "A", 1 });
+        var key = new Key(["A"], [0]);
+        var row = new ObjectsRow(["A", 1]);
 
         // Act
         var result = key.DoesRowMatchKey(row);
@@ -245,8 +245,8 @@ public class TablesTests
     public void Key_DoesRowMatchKey_NoMatch_ShouldReturnFalse()
     {
         // Arrange
-        var key = new Key(new object[] { "B" }, new[] { 0 });
-        var row = new ObjectsRow(new object[] { "A", 1 });
+        var key = new Key(["B"], [0]);
+        var row = new ObjectsRow(["A", 1]);
 
         // Act
         var result = key.DoesRowMatchKey(row);
@@ -365,8 +365,8 @@ public class TablesTests
     public void ObjectsRow_Equals_SameValues_ShouldReturnTrue()
     {
         // Arrange
-        var row1 = new ObjectsRow(new object[] { "A", 1 });
-        var row2 = new ObjectsRow(new object[] { "A", 1 });
+        var row1 = new ObjectsRow(["A", 1]);
+        var row2 = new ObjectsRow(["A", 1]);
 
         // Act & Assert
         Assert.IsTrue(row1.Equals(row2));
@@ -376,8 +376,8 @@ public class TablesTests
     public void ObjectsRow_Equals_DifferentValues_ShouldReturnFalse()
     {
         // Arrange
-        var row1 = new ObjectsRow(new object[] { "A", 1 });
-        var row2 = new ObjectsRow(new object[] { "B", 1 });
+        var row1 = new ObjectsRow(["A", 1]);
+        var row2 = new ObjectsRow(["B", 1]);
 
         // Act & Assert
         Assert.IsFalse(row1.Equals(row2));
@@ -387,8 +387,8 @@ public class TablesTests
     public void ObjectsRow_Equals_DifferentCount_ShouldReturnFalse()
     {
         // Arrange
-        var row1 = new ObjectsRow(new object[] { "A", 1 });
-        var row2 = new ObjectsRow(new object[] { "A" });
+        var row1 = new ObjectsRow(["A", 1]);
+        var row2 = new ObjectsRow(["A"]);
 
         // Act & Assert
         Assert.IsFalse(row1.Equals(row2));
@@ -398,7 +398,7 @@ public class TablesTests
     public void ObjectsRow_Equals_Null_ShouldReturnFalse()
     {
         // Arrange
-        var row1 = new ObjectsRow(new object[] { "A" });
+        var row1 = new ObjectsRow(["A"]);
 
         // Act & Assert
         Assert.IsFalse(row1.Equals(null));
@@ -408,8 +408,8 @@ public class TablesTests
     public void ObjectsRow_Equals_Object_ShouldWork()
     {
         // Arrange
-        var row1 = new ObjectsRow(new object[] { "A" });
-        object row2 = new ObjectsRow(new object[] { "A" });
+        var row1 = new ObjectsRow(["A"]);
+        object row2 = new ObjectsRow(["A"]);
 
         // Act & Assert
         Assert.IsTrue(row1.Equals(row2));
@@ -419,8 +419,8 @@ public class TablesTests
     public void ObjectsRow_GetHashCode_SameValues_ShouldBeSame()
     {
         // Arrange
-        var row1 = new ObjectsRow(new object[] { "A", 1 });
-        var row2 = new ObjectsRow(new object[] { "A", 1 });
+        var row1 = new ObjectsRow(["A", 1]);
+        var row2 = new ObjectsRow(["A", 1]);
 
         // Act & Assert
         Assert.AreEqual(row1.GetHashCode(), row2.GetHashCode());
@@ -430,8 +430,8 @@ public class TablesTests
     public void ObjectsRow_FitsTheIndex_ShouldCheckKey()
     {
         // Arrange
-        var row = new ObjectsRow(new object[] { "A", 1 });
-        var key = new Key(new object[] { "A" }, new[] { 0 });
+        var row = new ObjectsRow(["A", 1]);
+        var key = new Key(["A"], [0]);
 
         // Act
         var result = row.FitsTheIndex(key);
@@ -444,8 +444,8 @@ public class TablesTests
     public void ObjectsRow_CheckWithKey_ShouldMatchKey()
     {
         // Arrange
-        var row = new ObjectsRow(new object[] { "A", 1, true });
-        var key = new Key(new object[] { 1 }, new[] { 1 });
+        var row = new ObjectsRow(["A", 1, true]);
+        var key = new Key([1], [1]);
 
         // Act
         var result = row.CheckWithKey(key);
@@ -458,8 +458,8 @@ public class TablesTests
     public void ObjectsRow_CheckWithKey_NoMatch_ShouldReturnFalse()
     {
         // Arrange
-        var row = new ObjectsRow(new object[] { "A", 1 });
-        var key = new Key(new object[] { 2 }, new[] { 1 });
+        var row = new ObjectsRow(["A", 1]);
+        var key = new Key([2], [1]);
 
         // Act
         var result = row.CheckWithKey(key);
@@ -648,7 +648,7 @@ public class TablesTests
     public void GroupRow_Count_ShouldReturnColumnCount()
     {
         // Arrange
-        var group = new Group(null, new[] { "col1" }, new object[] { "value1" });
+        var group = new Group(null, ["col1"], ["value1"]);
 
         var columnMapping = new Dictionary<int, string>
         {
@@ -665,7 +665,7 @@ public class TablesTests
     public void GroupRow_Indexer_ShouldReturnValueFromGroup()
     {
         // Arrange
-        var group = new Group(null, new[] { "col1" }, new object[] { "testValue" });
+        var group = new Group(null, ["col1"], ["testValue"]);
 
         var columnMapping = new Dictionary<int, string>
         {
@@ -685,7 +685,7 @@ public class TablesTests
     public void GroupRow_Values_ShouldReturnAllValues()
     {
         // Arrange
-        var group = new Group(null, new[] { "col1", "col2" }, new object[] { "value1", 42 });
+        var group = new Group(null, ["col1", "col2"], ["value1", 42]);
 
         var columnMapping = new Dictionary<int, string>
         {
@@ -741,7 +741,7 @@ public class TablesTests
     {
         // Arrange
         var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
-        var row = new ObjectsRow(new object[] { "value1" });
+        var row = new ObjectsRow(["value1"]);
 
         // Act
         table.Add(row);
@@ -755,7 +755,7 @@ public class TablesTests
     {
         // Arrange
         var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
-        var row = new ObjectsRow(new object[] { "value1" });
+        var row = new ObjectsRow(["value1"]);
         table.Add(row);
 
         // Act
@@ -770,7 +770,7 @@ public class TablesTests
     {
         // Arrange
         var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
-        var row = new ObjectsRow(new object[] { "value1" });
+        var row = new ObjectsRow(["value1"]);
         table.Add(row);
 
         // Act
@@ -785,8 +785,8 @@ public class TablesTests
     {
         // Arrange
         var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
-        var row1 = new ObjectsRow(new object[] { "value1" });
-        var row2 = new ObjectsRow(new object[] { "value2" });
+        var row1 = new ObjectsRow(["value1"]);
+        var row2 = new ObjectsRow(["value2"]);
         table.Add(row1);
 
         // Act
@@ -801,8 +801,8 @@ public class TablesTests
     {
         // Arrange
         var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
-        table.Add(new ObjectsRow(new object[] { "value1" }));
-        table.Add(new ObjectsRow(new object[] { "value2" }));
+        table.Add(new ObjectsRow(["value1"]));
+        table.Add(new ObjectsRow(["value2"]));
 
         // Act
         var count = 0;

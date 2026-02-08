@@ -160,7 +160,7 @@ public class TemporarySchemasTests
 
     private class TestTable : ISchemaTable
     {
-        public ISchemaColumn[] Columns => Array.Empty<ISchemaColumn>();
+        public ISchemaColumn[] Columns => [];
 
         public ISchemaColumn GetColumnByName(string name)
         {
@@ -169,7 +169,7 @@ public class TemporarySchemasTests
 
         public ISchemaColumn[] GetColumnsByName(string name)
         {
-            return Array.Empty<ISchemaColumn>();
+            return [];
         }
 
         public SchemaTableMetadata Metadata => new(typeof(object));

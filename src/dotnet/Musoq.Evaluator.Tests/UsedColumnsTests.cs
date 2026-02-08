@@ -128,7 +128,7 @@ with q1 as (
     public void WhenColumnsUsedAsSourceOfMethodAndUsedInWhereAndUsedInSelectAndUsedInGroupBy_ShouldPass()
     {
         var query =
-            "select a.City, DoNothing(a.Population) from #A.entities() a where DoNothing(a.Population) = 400d group by a.Month";
+            "select a.City, DoNothing(a.Population) from #A.entities() a where DoNothing(a.Population) = 400d group by a.Month, a.City, a.Population";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
 
@@ -148,7 +148,7 @@ with q1 as (
     [TestMethod]
     public void WhenColumnsUsedAsSourceOfMethodAndUsedInWhereAndUsedInSelectAndUsedInGroupByWithHaving_ShouldPass()
     {
-        var query = "select a.City from #A.entities() a group by a.Month having a.Population > 100d";
+        var query = "select a.City from #A.entities() a group by a.Month, a.City having a.Population > 100d";
 
         var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
 

@@ -27,6 +27,7 @@ public class InterpreterCodeGenerator
 
     private readonly SchemaRegistry _registry;
     private string[] _currentTypeParameters = Array.Empty<string>();
+    private int _discardCounter;
 
     /// <summary>
     ///     Creates a new interpreter code generator.
@@ -62,6 +63,8 @@ public class InterpreterCodeGenerator
         builder.AppendLine();
         builder.AppendLine("using System;");
         builder.AppendLine("using System.Buffers.Binary;");
+        builder.AppendLine("using System.Collections.Generic;");
+        builder.AppendLine("using System.Dynamic;");
         builder.AppendLine("using Musoq.Schema.Interpreters;");
         builder.AppendLine();
         builder.AppendLine($"namespace {namespaceName}");
@@ -70,10 +73,19 @@ public class InterpreterCodeGenerator
         foreach (var registration in _registry.Schemas)
             if (registration.Node is BinarySchemaNode binarySchema)
             {
+                _inlineSchemas.Clear();
                 var classCode = GenerateBinaryInterpreterClass(binarySchema);
                 _generatedCode[registration.Name] = classCode;
                 builder.AppendLine(Indent(classCode, 1));
                 builder.AppendLine();
+
+                
+                foreach (var (inlineClassName, inlineSchema, _) in _inlineSchemas)
+                {
+                    var inlineClassCode = GenerateInlineSchemaNestedClass(inlineClassName, inlineSchema);
+                    builder.AppendLine(Indent(inlineClassCode, 1));
+                    builder.AppendLine();
+                }
             }
             else if (registration.Node is TextSchemaNode textSchema)
             {
@@ -95,6 +107,7 @@ public class InterpreterCodeGenerator
 
 
         _inlineSchemas.Clear();
+        _discardCounter = 0;
 
 
         _currentTypeParameters = schema.TypeParameters ?? Array.Empty<string>();
@@ -147,8 +160,9 @@ public class InterpreterCodeGenerator
                 ? $"{clrTypeName}?"
                 : clrTypeName;
 
+            var escapedFieldName = EscapeCSharpIdentifier(field.Name);
             builder.AppendLine($"    /// <summary>Gets the {field.Name} field value.</summary>");
-            builder.AppendLine($"    public {propertyTypeName} {field.Name} {{ get; init; }}");
+            builder.AppendLine($"    public {propertyTypeName} {escapedFieldName} {{ get; init; }}");
             builder.AppendLine();
         }
 
@@ -176,7 +190,7 @@ public class InterpreterCodeGenerator
                     builder.Append(Indent(readCode, 2));
 
                     if (parsedField.Name != "_" && parsedField.TypeAnnotation is not AlignmentNode)
-                        fieldInitializers.Add($"{parsedField.Name} = {GetLocalVarName(parsedField.Name)}");
+                        fieldInitializers.Add($"{EscapeCSharpIdentifier(parsedField.Name)} = {GetLocalVarName(parsedField.Name)}");
                     break;
                 }
                 case ComputedFieldNode computedField:
@@ -185,7 +199,7 @@ public class InterpreterCodeGenerator
                     builder.Append(Indent(computeCode, 2));
 
                     if (computedField.Name != "_")
-                        fieldInitializers.Add($"{computedField.Name} = {GetLocalVarName(computedField.Name)}");
+                        fieldInitializers.Add($"{EscapeCSharpIdentifier(computedField.Name)} = {GetLocalVarName(computedField.Name)}");
                     break;
                 }
             }
@@ -202,14 +216,6 @@ public class InterpreterCodeGenerator
         builder.AppendLine("        };");
         builder.AppendLine("    }");
 
-
-        foreach (var (inlineClassName, inlineSchema, _) in _inlineSchemas)
-        {
-            builder.AppendLine();
-            var nestedClassCode = GenerateInlineSchemaNestedClass(inlineClassName, inlineSchema);
-            builder.Append(Indent(nestedClassCode, 1));
-        }
-
         builder.AppendLine("}");
 
         return builder.ToString();
@@ -218,6 +224,7 @@ public class InterpreterCodeGenerator
     private string GenerateInlineSchemaNestedClass(string className, InlineSchemaTypeNode inlineSchema)
     {
         var builder = new StringBuilder();
+        var outerRefs = CollectOuterFieldReferences(inlineSchema);
 
         builder.AppendLine("/// <summary>");
         builder.AppendLine($"/// Generated nested interpreter for inline schema '{className}'.");
@@ -242,10 +249,17 @@ public class InterpreterCodeGenerator
                 : clrTypeName;
 
             builder.AppendLine($"    /// <summary>Gets the {field.Name} field value.</summary>");
-            builder.AppendLine($"    public {propertyTypeName} {field.Name} {{ get; init; }}");
+            builder.AppendLine($"    public {propertyTypeName} {EscapeCSharpIdentifier(field.Name)} {{ get; init; }}");
             builder.AppendLine();
         }
 
+        
+        foreach (var outerRef in outerRefs)
+        {
+            builder.AppendLine($"    /// <summary>Outer scope reference for '{outerRef}'.</summary>");
+            builder.AppendLine($"    internal int Outer{EscapeCSharpIdentifier(outerRef)} {{ get; set; }}");
+            builder.AppendLine();
+        }
 
         builder.AppendLine("    /// <inheritdoc />");
         builder.AppendLine($"    public override string SchemaName => \"{className}\";");
@@ -259,6 +273,15 @@ public class InterpreterCodeGenerator
         builder.AppendLine("        BitOffset = 0;");
         builder.AppendLine();
 
+        
+        foreach (var outerRef in outerRefs)
+        {
+            var localVar = GetLocalVarName(outerRef);
+            builder.AppendLine($"        var {localVar} = Outer{EscapeCSharpIdentifier(outerRef)};");
+        }
+
+        if (outerRefs.Count > 0)
+            builder.AppendLine();
 
         var fieldInitializers = new List<string>();
         foreach (var field in fields)
@@ -269,7 +292,7 @@ public class InterpreterCodeGenerator
             builder.Append(Indent(readCode, 2));
 
             if (parsedField.Name != "_" && parsedField.TypeAnnotation is not AlignmentNode)
-                fieldInitializers.Add($"{parsedField.Name} = {GetLocalVarName(parsedField.Name)}");
+                fieldInitializers.Add($"{EscapeCSharpIdentifier(parsedField.Name)} = {GetLocalVarName(parsedField.Name)}");
         }
 
 
@@ -303,8 +326,10 @@ public class InterpreterCodeGenerator
 
     private List<SchemaFieldNode> GetAllFieldsIncludingInherited(BinarySchemaNode schema)
     {
-        var allFields = new List<SchemaFieldNode>();
+        if (string.IsNullOrEmpty(schema.Extends))
+            return schema.Fields.ToList();
 
+        var allFields = new List<SchemaFieldNode>();
 
         if (!string.IsNullOrEmpty(schema.Extends))
         {
@@ -315,8 +340,27 @@ public class InterpreterCodeGenerator
                 allFields.AddRange(GetAllFieldsIncludingInherited(parentBinarySchema));
         }
 
+        
+        var overriddenParentNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var childField in schema.Fields)
+        {
+            for (var i = 0; i < allFields.Count; i++)
+            {
+                if (string.Equals(allFields[i].Name, childField.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    allFields[i] = childField;
+                    overriddenParentNames.Add(childField.Name);
+                    break;
+                }
+            }
+        }
 
-        allFields.AddRange(schema.Fields);
+        
+        foreach (var childField in schema.Fields)
+        {
+            if (!overriddenParentNames.Contains(childField.Name))
+                allFields.Add(childField);
+        }
 
         return allFields;
     }
@@ -367,7 +411,7 @@ public class InterpreterCodeGenerator
             }
 
 
-            var innerReadCode = GenerateFieldReadCodeInner(field);
+            var innerReadCode = GenerateFieldReadCodeInner(field, localVar);
             builder.Append(Indent(innerReadCode, 1));
 
 
@@ -401,10 +445,10 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    private string GenerateFieldReadCodeInner(FieldDefinitionNode field)
+    private string GenerateFieldReadCodeInner(FieldDefinitionNode field, string? overrideLocalVar = null)
     {
         var builder = new StringBuilder();
-        var localVar = GetLocalVarName(field.Name);
+        var localVar = overrideLocalVar ?? GetLocalVarName(field.Name);
         var typeAnnotation = field.TypeAnnotation;
 
         switch (typeAnnotation)
@@ -466,14 +510,8 @@ public class InterpreterCodeGenerator
 
             case BitsTypeNode bitsType:
                 var innerBitCount = bitsType.BitCount;
-                var innerBitClrType = innerBitCount switch
-                {
-                    <= 8 => "byte",
-                    <= 16 => "ushort",
-                    <= 32 => "uint",
-                    _ => "ulong"
-                };
-                builder.AppendLine($"{localVar} = ({innerBitClrType})ReadBits(data, {innerBitCount});");
+                var bitsCastType = GetBitsClrTypeName(bitsType);
+                builder.AppendLine($"{localVar} = ({bitsCastType})ReadBits(data, {innerBitCount});");
                 break;
 
             case SchemaReferenceTypeNode schemaRef:
@@ -485,20 +523,22 @@ public class InterpreterCodeGenerator
             case ArrayTypeNode arrayType:
                 var arraySizeExpr = GenerateSizeExpression(arrayType.SizeExpression);
                 var elementTypeName = GetClrTypeName(arrayType.ElementType);
+                var loopVarInner = $"_{localVar}_i";
                 builder.AppendLine($"{localVar} = new {elementTypeName}[{arraySizeExpr}];");
-                builder.AppendLine($"for (int i = 0; i < {arraySizeExpr}; i++)");
+                builder.AppendLine($"for (int {loopVarInner} = 0; {loopVarInner} < {arraySizeExpr}; {loopVarInner}++)");
                 builder.AppendLine("{");
 
                 if (arrayType.ElementType is PrimitiveTypeNode elemPrimitive)
                 {
-                    builder.AppendLine($"    {localVar}[i] = {GetPrimitiveReadMethod(elemPrimitive)}(data);");
+                    builder.AppendLine($"    {localVar}[{loopVarInner}] = {GetPrimitiveReadMethod(elemPrimitive)}(data);");
                 }
                 else if (arrayType.ElementType is SchemaReferenceTypeNode elemSchemaRef)
                 {
                     var elemSchemaName = elemSchemaRef.SchemaName;
-                    builder.AppendLine($"    var _elem_interpreter = new {elemSchemaName}();");
-                    builder.AppendLine($"    {localVar}[i] = _elem_interpreter.InterpretAt(data, _parsePosition);");
-                    builder.AppendLine("    _parsePosition = _elem_interpreter.BytesConsumed;");
+                    var elemInterpreterVar = $"_{localVar}_elem_interpreter";
+                    builder.AppendLine($"    var {elemInterpreterVar} = new {elemSchemaName}();");
+                    builder.AppendLine($"    {localVar}[{loopVarInner}] = {elemInterpreterVar}.InterpretAt(data, _parsePosition);");
+                    builder.AppendLine($"    _parsePosition = {elemInterpreterVar}.BytesConsumed;");
                 }
                 else
                 {
@@ -517,6 +557,7 @@ public class InterpreterCodeGenerator
 
                 var inlineClassName = GetOrRegisterInlineSchemaClassName(field.Name, inlineSchema, null);
                 builder.AppendLine($"var {localVar}_interpreter = new {inlineClassName}();");
+                builder.Append(GenerateOuterRefAssignments($"{localVar}_interpreter", inlineSchema));
                 builder.AppendLine($"{localVar} = {localVar}_interpreter.InterpretAt(data, _parsePosition);");
                 builder.AppendLine($"_parsePosition = {localVar}_interpreter.BytesConsumed;");
                 break;
@@ -534,6 +575,7 @@ public class InterpreterCodeGenerator
     {
         var builder = new StringBuilder();
         var className = schema.Name;
+        _discardCounter = 0;
 
         builder.AppendLine("/// <summary>");
         builder.AppendLine($"/// Generated interpreter for text schema '{className}'.");
@@ -545,22 +587,32 @@ public class InterpreterCodeGenerator
         foreach (var field in schema.Fields)
         {
             if (field.IsDiscard) continue;
+
+            
+            if (field.FieldType == TextFieldType.Pattern && field.CaptureGroups.Length > 0)
+            {
+                builder.AppendLine($"    /// <summary>Gets the {field.Name} capture result.</summary>");
+                builder.AppendLine($"    public CaptureResult_{field.Name}? {EscapeCSharpIdentifier(field.Name)} {{ get; init; }}");
+                builder.AppendLine();
+                continue;
+            }
+
             builder.AppendLine($"    /// <summary>Gets the {field.Name} field value.</summary>");
 
 
             if (field.FieldType == TextFieldType.Repeat)
             {
                 var schemaName = field.PrimaryValue ?? "object";
-                builder.AppendLine($"    public {schemaName}[]? {field.Name} {{ get; init; }}");
+                builder.AppendLine($"    public {schemaName}[]? {EscapeCSharpIdentifier(field.Name)} {{ get; init; }}");
             }
 
             else if (field.FieldType == TextFieldType.Switch)
             {
-                builder.AppendLine($"    public object? {field.Name} {{ get; init; }}");
+                builder.AppendLine($"    public object? {EscapeCSharpIdentifier(field.Name)} {{ get; init; }}");
             }
             else
             {
-                builder.AppendLine($"    public string? {field.Name} {{ get; init; }}");
+                builder.AppendLine($"    public string? {EscapeCSharpIdentifier(field.Name)} {{ get; init; }}");
             }
 
             builder.AppendLine();
@@ -586,7 +638,8 @@ public class InterpreterCodeGenerator
             var readCode = GenerateTextFieldReadCode(field, nextField);
             builder.Append(Indent(readCode, 2));
 
-            if (!field.IsDiscard) fieldInitializers.Add($"{field.Name} = {GetLocalVarName(field.Name)}");
+            if (!field.IsDiscard)
+                fieldInitializers.Add($"{EscapeCSharpIdentifier(field.Name)} = {GetLocalVarName(field.Name)}");
         }
 
 
@@ -601,6 +654,22 @@ public class InterpreterCodeGenerator
         builder.AppendLine("        };");
         builder.AppendLine("    }");
 
+        
+        foreach (var field in schema.Fields)
+        {
+            if (field.IsDiscard) continue;
+            if (field.FieldType != TextFieldType.Pattern || field.CaptureGroups.Length == 0) continue;
+
+            builder.AppendLine();
+            builder.AppendLine($"    public sealed class CaptureResult_{field.Name}");
+            builder.AppendLine("    {");
+            foreach (var group in field.CaptureGroups)
+            {
+                builder.AppendLine($"        public string? {group} {{ get; init; }}");
+            }
+            builder.AppendLine("    }");
+        }
+
         builder.AppendLine("}");
 
         return builder.ToString();
@@ -612,6 +681,8 @@ public class InterpreterCodeGenerator
         var localVar = GetLocalVarName(field.Name);
         var isDiscard = field.IsDiscard;
         var isOptional = (field.Modifiers & TextFieldModifier.Optional) != 0;
+        var hasLower = (field.Modifiers & TextFieldModifier.Lower) != 0;
+        var hasUpper = (field.Modifiers & TextFieldModifier.Upper) != 0;
 
 
         if (isOptional && !isDiscard)
@@ -646,6 +717,15 @@ public class InterpreterCodeGenerator
         else
         {
             builder.AppendLine(GenerateTextFieldReadCodeInner(field, localVar, isDiscard, nextField));
+        }
+
+        
+        if (!isDiscard && (hasLower || hasUpper) && field.FieldType != TextFieldType.Repeat && field.FieldType != TextFieldType.Switch)
+        {
+            if (hasLower)
+                builder.AppendLine($"{localVar} = {localVar}?.ToLowerInvariant();");
+            else if (hasUpper)
+                builder.AppendLine($"{localVar} = {localVar}?.ToUpperInvariant();");
         }
 
         return builder.ToString();
@@ -699,9 +779,11 @@ public class InterpreterCodeGenerator
         var nested = (field.Modifiers & TextFieldModifier.Nested) != 0 ? ", nested: true" : "";
         var hasTrim = (field.Modifiers & TextFieldModifier.Trim) != 0;
         var trimArg = hasTrim ? ", trim: true" : "";
+        var hasEscaped = (field.Modifiers & TextFieldModifier.Escaped) != 0;
+        var escapedArg = hasEscaped ? ", escaped: true" : "";
 
-        if (isDiscard) return $"_ = ReadBetween(data, \"{escapedOpen}\", \"{escapedClose}\"{nested}{trimArg});";
-        return $"var {localVar} = ReadBetween(data, \"{escapedOpen}\", \"{escapedClose}\"{nested}{trimArg});";
+        if (isDiscard) return $"_ = ReadBetween(data, \"{escapedOpen}\", \"{escapedClose}\"{nested}{trimArg}{escapedArg});";
+        return $"var {localVar} = ReadBetween(data, \"{escapedOpen}\", \"{escapedClose}\"{nested}{trimArg}{escapedArg});";
     }
 
     private string GenerateCharsCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
@@ -745,10 +827,26 @@ public class InterpreterCodeGenerator
 
     private string GeneratePatternCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
     {
-        var escapedPattern = EscapeCSharpString(field.PrimaryValue ?? string.Empty);
+        var escapedPattern = EscapeCSharpRegexString(field.PrimaryValue ?? string.Empty);
 
-        if (isDiscard) return $"_ = ReadPattern(data, @\"{field.PrimaryValue ?? string.Empty}\");";
-        return $"var {localVar} = ReadPattern(data, @\"{field.PrimaryValue ?? string.Empty}\");";
+        if (field.CaptureGroups.Length > 0 && !isDiscard)
+        {
+            
+            var builder = new StringBuilder();
+            var matchVar = $"_match_{localVar}";
+            var captureClassName = $"CaptureResult_{field.Name}";
+            builder.AppendLine($"var {matchVar} = ReadPatternMatch(data, @\"{escapedPattern}\");");
+            builder.Append($"var {localVar} = {matchVar}.Success ? new {captureClassName} {{ ");
+            var groupInits = new List<string>();
+            foreach (var group in field.CaptureGroups)
+                groupInits.Add($"{group} = {matchVar}.Groups[\"{group}\"].Value");
+            builder.Append(string.Join(", ", groupInits));
+            builder.AppendLine($" }} : null;");
+            return builder.ToString();
+        }
+
+        if (isDiscard) return $"_ = ReadPattern(data, @\"{escapedPattern}\");";
+        return $"var {localVar} = ReadPattern(data, @\"{escapedPattern}\");";
     }
 
     private string GenerateRepeatCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
@@ -807,8 +905,31 @@ public class InterpreterCodeGenerator
         if (field.SwitchCases.Length == 0)
             throw new InvalidOperationException("Switch field must have at least one case");
 
+        
+        var allProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var switchCase in field.SwitchCases)
+        {
+            var schemaName = switchCase.TypeName;
+            var schema = _registry.Schemas.FirstOrDefault(s =>
+                string.Equals(s.Name, schemaName, StringComparison.OrdinalIgnoreCase));
+            if (schema?.Node is TextSchemaNode textNode)
+            {
+                foreach (var f in textNode.Fields)
+                {
+                    if (!f.IsDiscard) allProperties.Add(f.Name);
+                }
+            }
+        }
 
-        builder.AppendLine($"object? {localVar} = null;");
+        
+        var expandoVar = $"_{localVar}_expando";
+        var dictVar = $"_{localVar}_dict";
+        builder.AppendLine($"var {expandoVar} = new System.Dynamic.ExpandoObject();");
+        builder.AppendLine($"var {dictVar} = (System.Collections.Generic.IDictionary<string, object?>){expandoVar};");
+        foreach (var prop in allProperties)
+        {
+            builder.AppendLine($"{dictVar}[\"{prop}\"] = null;");
+        }
 
         var isFirstCase = true;
         TextSwitchCaseNode? defaultCase = null;
@@ -836,11 +957,21 @@ public class InterpreterCodeGenerator
 
             builder.AppendLine("{");
             builder.AppendLine($"    var _interp_{schemaName} = new {schemaName}();");
-            builder.AppendLine($"    {localVar} = _interp_{schemaName}.ParseAt(data, _parsePosition);");
+            builder.AppendLine($"    var _result_{schemaName} = _interp_{schemaName}.ParseAt(data, _parsePosition);");
             builder.AppendLine($"    _parsePosition = _interp_{schemaName}.Position;");
+            
+            var matchedSchema = _registry.Schemas.FirstOrDefault(s =>
+                string.Equals(s.Name, schemaName, StringComparison.OrdinalIgnoreCase));
+            if (matchedSchema?.Node is TextSchemaNode matchedTextNode)
+            {
+                foreach (var f in matchedTextNode.Fields)
+                {
+                    if (!f.IsDiscard)
+                        builder.AppendLine($"    {dictVar}[\"{f.Name}\"] = _result_{schemaName}.{EscapeCSharpIdentifier(f.Name)};");
+                }
+            }
             builder.AppendLine("}");
         }
-
 
         if (defaultCase != null)
         {
@@ -848,8 +979,18 @@ public class InterpreterCodeGenerator
             if (!isFirstCase) builder.AppendLine("else");
             builder.AppendLine("{");
             builder.AppendLine($"    var _interp_{schemaName} = new {schemaName}();");
-            builder.AppendLine($"    {localVar} = _interp_{schemaName}.ParseAt(data, _parsePosition);");
+            builder.AppendLine($"    var _result_{schemaName} = _interp_{schemaName}.ParseAt(data, _parsePosition);");
             builder.AppendLine($"    _parsePosition = _interp_{schemaName}.Position;");
+            var matchedSchema = _registry.Schemas.FirstOrDefault(s =>
+                string.Equals(s.Name, schemaName, StringComparison.OrdinalIgnoreCase));
+            if (matchedSchema?.Node is TextSchemaNode matchedTextNode)
+            {
+                foreach (var f in matchedTextNode.Fields)
+                {
+                    if (!f.IsDiscard)
+                        builder.AppendLine($"    {dictVar}[\"{f.Name}\"] = _result_{schemaName}.{EscapeCSharpIdentifier(f.Name)};");
+                }
+            }
             builder.AppendLine("}");
         }
         else if (!isFirstCase)
@@ -861,7 +1002,7 @@ public class InterpreterCodeGenerator
             builder.AppendLine("}");
         }
 
-
+        builder.AppendLine($"var {localVar} = {expandoVar};");
         if (isDiscard) builder.AppendLine($"_ = {localVar};");
 
         return builder.ToString();
@@ -1044,6 +1185,16 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
+    private static string FormatHexLiteral(HexIntegerNode hexNode)
+    {
+        var value = Convert.ToInt64(hexNode.ObjValue ?? 0L);
+        
+        
+        
+        if (value > int.MaxValue && value <= uint.MaxValue)
+            return $"unchecked((int){value}L)";
+        return value.ToString();
+    }
     private static string GetEncodingExpression(StringEncoding encoding)
     {
         return encoding switch
@@ -1061,14 +1212,19 @@ public class InterpreterCodeGenerator
     private string GenerateBitsReadCode(string localVar, BitsTypeNode bitsType)
     {
         var bitCount = bitsType.BitCount;
-        var clrType = bitCount switch
+        var castType = GetBitsClrTypeName(bitsType);
+        return $"var {localVar} = ({castType})ReadBits(data, {bitCount});";
+    }
+
+    private static string GetBitsClrTypeName(BitsTypeNode bitsType)
+    {
+        return bitsType.BitCount switch
         {
             <= 8 => "byte",
             <= 16 => "ushort",
             <= 32 => "uint",
             _ => "ulong"
         };
-        return $"var {localVar} = ({clrType})ReadBits(data, {bitCount});";
     }
 
     private string GenerateSchemaReferenceReadCode(string localVar, SchemaReferenceTypeNode schemaRef)
@@ -1088,6 +1244,7 @@ public class InterpreterCodeGenerator
         var tempInterpreter = $"_{localVar}_interpreter";
         var builder = new StringBuilder();
         builder.AppendLine($"var {tempInterpreter} = new {inlineClassName}();");
+        builder.Append(GenerateOuterRefAssignments(tempInterpreter, inlineSchema));
         builder.AppendLine($"var {localVar} = {tempInterpreter}.InterpretAt(data, _parsePosition);");
         builder.Append($"_parsePosition = {tempInterpreter}.BytesConsumed;");
         return builder.ToString();
@@ -1110,6 +1267,27 @@ public class InterpreterCodeGenerator
         {
             var readMethod = GetPrimitiveReadMethod(primitiveElement);
             builder.AppendLine($"    {tempVar}.Add({readMethod}(data));");
+        }
+        else if (arrayType.ElementType is StringTypeNode stringElement)
+        {
+            var sizeExpr = GenerateSizeExpression(stringElement.SizeExpression);
+            var encodingExpr = GetEncodingExpression(stringElement.Encoding);
+            var elemVar = $"_{localVar}_elem";
+
+            if (stringElement.Modifiers.HasFlag(StringModifier.NullTerm))
+                builder.Append($"    var {elemVar} = ReadNullTerminatedString(data, {sizeExpr}, {encodingExpr})");
+            else
+                builder.Append($"    var {elemVar} = ReadString(data, {sizeExpr}, {encodingExpr})");
+
+            if (stringElement.Modifiers.HasFlag(StringModifier.Trim))
+                builder.Append(".Trim()");
+            else if (stringElement.Modifiers.HasFlag(StringModifier.LTrim))
+                builder.Append(".TrimStart()");
+            else if (stringElement.Modifiers.HasFlag(StringModifier.RTrim))
+                builder.Append(".TrimEnd()");
+
+            builder.AppendLine(";");
+            builder.AppendLine($"    {tempVar}.Add({elemVar});");
         }
         else if (arrayType.ElementType is SchemaReferenceTypeNode schemaRefElement)
         {
@@ -1201,7 +1379,7 @@ public class InterpreterCodeGenerator
             OrNode orNode =>
                 $"({GenerateRepeatUntilConditionInner(orNode.Left, fieldName, lastElemVar, listVar)} || {GenerateRepeatUntilConditionInner(orNode.Right, fieldName, lastElemVar, listVar)})",
             IntegerNode intNode => intNode.ObjValue?.ToString() ?? "0",
-            HexIntegerNode hexNode => hexNode.ObjValue?.ToString() ?? "0",
+            HexIntegerNode hexNode => FormatHexLiteral(hexNode),
             DecimalNode decNode => decNode.ObjValue?.ToString() ?? "0",
 
             AccessColumnNode acNode when string.Equals(acNode.Name, fieldName, StringComparison.OrdinalIgnoreCase) =>
@@ -1220,6 +1398,13 @@ public class InterpreterCodeGenerator
 
             DotNode dotNode =>
                 $"{GenerateRepeatUntilConditionInner(dotNode.Root, fieldName, lastElemVar, listVar)}.{GetPropertyNameFromExpression(dotNode.Expression)}",
+
+            ArrayIndexNode arrayIndex when arrayIndex.Array is IdentifierNode arrId &&
+                                           string.Equals(arrId.Name, fieldName, StringComparison.OrdinalIgnoreCase) =>
+                GenerateArrayIndexExpression(listVar, arrayIndex.Index, fieldName, lastElemVar),
+
+            ArrayIndexNode arrayIndex =>
+                $"{GenerateRepeatUntilConditionInner(arrayIndex.Array, fieldName, lastElemVar, listVar)}[{GenerateRepeatUntilConditionInner(arrayIndex.Index, fieldName, lastElemVar, listVar)}]",
 
             AddNode add =>
                 $"({GenerateRepeatUntilConditionInner(add.Left, fieldName, lastElemVar, listVar)} + {GenerateRepeatUntilConditionInner(add.Right, fieldName, lastElemVar, listVar)})",
@@ -1317,13 +1502,7 @@ public class InterpreterCodeGenerator
             },
             ByteArrayTypeNode => "byte[]",
             StringTypeNode s => s.AsTextSchemaName ?? "string",
-            BitsTypeNode b => b.BitCount switch
-            {
-                <= 8 => "byte",
-                <= 16 => "ushort",
-                <= 32 => "uint",
-                _ => "ulong"
-            },
+            BitsTypeNode b => GetBitsClrTypeName(b),
             SchemaReferenceTypeNode s => s.FullTypeName,
             ArrayTypeNode a => $"{GetClrTypeName(a.ElementType)}[]",
             RepeatUntilTypeNode r => $"{GetClrTypeName(r.ElementType)}[]",
@@ -1535,12 +1714,29 @@ public class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    private static string GetLocalVarName(string fieldName)
+    private string GetLocalVarName(string fieldName)
     {
-        if (fieldName == "_") return "_discard";
+        if (fieldName == "_") return $"_discard{_discardCounter++}";
         return $"_{char.ToLowerInvariant(fieldName[0])}{fieldName.Substring(1)}";
     }
 
+        private static string EscapeCSharpIdentifier(string name)
+    {
+        return CSharpKeywords.Contains(name) ? $"@{name}" : name;
+    }
+
+    private static readonly HashSet<string> CSharpKeywords = new(StringComparer.Ordinal)
+    {
+        "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
+        "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else",
+        "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for",
+        "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock",
+        "long", "namespace", "new", "null", "object", "operator", "out", "override", "params",
+        "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short",
+        "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true",
+        "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using", "virtual",
+        "void", "volatile", "while"
+    };
     private static string Indent(string code, int levels)
     {
         var indent = new string(' ', levels * 4);
@@ -1589,6 +1785,8 @@ public class InterpreterCodeGenerator
             IntegerNode intNode => intNode.ObjValue?.ToString() ?? "0",
             DecimalNode decNode => decNode.ObjValue?.ToString() ?? "0",
             WordNode wordNode => $"\"{EscapeString(wordNode.Value)}\"",
+            DotNode dotNode => GenerateDotExpression(dotNode),
+            ArrayIndexNode arrayIndex => $"{GenerateConditionExpression(arrayIndex.Array)}[{GenerateConditionExpression(arrayIndex.Index)}]",
             AccessColumnNode acNode => GetLocalVarName(acNode.Name),
             IdentifierNode idNode => GetLocalVarName(idNode.Name),
             AccessMethodNode methodNode => GenerateMethodCallExpression(methodNode),
@@ -1598,7 +1796,7 @@ public class InterpreterCodeGenerator
             FSlashNode slash =>
                 $"({GenerateConditionExpression(slash.Left)} / {GenerateConditionExpression(slash.Right)})",
             ModuloNode mod => $"({GenerateConditionExpression(mod.Left)} % {GenerateConditionExpression(mod.Right)})",
-            HexIntegerNode hexNode => hexNode.ObjValue?.ToString() ?? "0",
+            HexIntegerNode hexNode => FormatHexLiteral(hexNode),
 
             BitwiseAndNode bitwiseAnd =>
                 $"({GenerateConditionExpression(bitwiseAnd.Left)} & {GenerateConditionExpression(bitwiseAnd.Right)})",
@@ -1629,6 +1827,33 @@ public class InterpreterCodeGenerator
         };
     }
 
+    private string GenerateDotExpression(DotNode dotNode)
+    {
+        var root = GenerateConditionExpression(dotNode.Root);
+        var property = GetPropertyNameFromExpression(dotNode.Expression);
+        return $"{root}.{property}";
+    }
+
+    private string GenerateArrayIndexExpression(string listVar, Node indexExpr, string fieldName, string lastElemVar)
+    {
+        
+        if (indexExpr is HyphenNode { Left: IntegerNode { ObjValue: int leftVal }, Right: IntegerNode { ObjValue: int rightVal } } && leftVal == 0 && rightVal > 0)
+        {
+            
+            return $"{listVar}[{listVar}.Count - {rightVal}]";
+        }
+
+        if (indexExpr is IntegerNode intIdx)
+        {
+            var idx = Convert.ToInt32(intIdx.ObjValue);
+            if (idx < 0) return $"{listVar}[{listVar}.Count - {-idx}]";
+            return $"{listVar}[{idx}]";
+        }
+
+        
+        var indexCode = GenerateSizeExpression(indexExpr);
+        return $"{listVar}[{indexCode}]";
+    }
     private static string EscapeString(string value)
     {
         return value
@@ -1647,5 +1872,75 @@ public class InterpreterCodeGenerator
             IdentifierNode idNode => idNode.Name,
             _ => expression.ToString() ?? "Unknown"
         };
+    }
+
+        private static HashSet<string> CollectOuterFieldReferences(InlineSchemaTypeNode inlineSchema)
+    {
+        var inlineFieldNames = new HashSet<string>(
+            inlineSchema.Fields.Select(f => f.Name),
+            StringComparer.OrdinalIgnoreCase);
+
+        var outerRefs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var field in inlineSchema.Fields)
+        {
+            if (field is not FieldDefinitionNode parsedField) continue;
+            CollectFieldRefsFromTypeAnnotation(parsedField.TypeAnnotation, inlineFieldNames, outerRefs);
+
+            if (parsedField.WhenCondition != null)
+                CollectFieldRefsFromExpression(parsedField.WhenCondition, inlineFieldNames, outerRefs);
+        }
+
+        return outerRefs;
+    }
+
+    private static void CollectFieldRefsFromTypeAnnotation(TypeAnnotationNode type, HashSet<string> localNames, HashSet<string> outerRefs)
+    {
+        switch (type)
+        {
+            case StringTypeNode stringType:
+                CollectFieldRefsFromExpression(stringType.SizeExpression, localNames, outerRefs);
+                break;
+            case ByteArrayTypeNode byteArrayType:
+                CollectFieldRefsFromExpression(byteArrayType.SizeExpression, localNames, outerRefs);
+                break;
+            case ArrayTypeNode arrayType:
+                CollectFieldRefsFromExpression(arrayType.SizeExpression, localNames, outerRefs);
+                break;
+        }
+    }
+
+    private static void CollectFieldRefsFromExpression(Node expr, HashSet<string> localNames, HashSet<string> outerRefs)
+    {
+        switch (expr)
+        {
+            case AccessColumnNode access:
+                if (!localNames.Contains(access.Name))
+                    outerRefs.Add(access.Name);
+                break;
+            case IdentifierNode ident:
+                if (!localNames.Contains(ident.Name))
+                    outerRefs.Add(ident.Name);
+                break;
+            case BinaryNode binary:
+                CollectFieldRefsFromExpression(binary.Left, localNames, outerRefs);
+                CollectFieldRefsFromExpression(binary.Right, localNames, outerRefs);
+                break;
+        }
+    }
+
+        private string GenerateOuterRefAssignments(string interpreterVar, InlineSchemaTypeNode inlineSchema)
+    {
+        var outerRefs = CollectOuterFieldReferences(inlineSchema);
+        if (outerRefs.Count == 0)
+            return string.Empty;
+
+        var builder = new StringBuilder();
+        foreach (var outerRef in outerRefs)
+        {
+            var localVar = GetLocalVarName(outerRef);
+            builder.AppendLine($"{interpreterVar}.Outer{EscapeCSharpIdentifier(outerRef)} = Convert.ToInt32({localVar});");
+        }
+        return builder.ToString();
     }
 }

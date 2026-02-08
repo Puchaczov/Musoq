@@ -135,8 +135,15 @@ public abstract class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
     ///     Reads characters between opening and closing delimiters.
     ///     Both delimiters are consumed but not included in the result.
     /// </summary>
+    /// <param name="text">The text to parse.</param>
+    /// <param name="open">The opening delimiter.</param>
+    /// <param name="close">The closing delimiter.</param>
+    /// <param name="nested">If true, handle nested open/close pairs (e.g., matching braces). Mutually exclusive with <paramref name="escaped"/>.</param>
+    /// <param name="trim">If true, trim whitespace from the result.</param>
+    /// <param name="escaped">If true, ignore close delimiters preceded by backslash. Mutually exclusive with <paramref name="nested"/>.</param>
+    /// <returns>The text between the delimiters.</returns>
     protected string ReadBetween(ReadOnlySpan<char> text, string open, string close, bool nested = false,
-        bool trim = false)
+        bool trim = false, bool escaped = false)
     {
         var remaining = text.Slice(_parsePosition);
 
@@ -153,7 +160,9 @@ public abstract class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
         remaining = text.Slice(_parsePosition);
 
         int endIndex;
-        if (nested)
+        if (escaped)
+            endIndex = FindUnescapedClose(remaining, close);
+        else if (nested)
             endIndex = FindBalancedClose(remaining, open, close);
         else
             endIndex = remaining.IndexOf(close.AsSpan());
@@ -226,9 +235,25 @@ public abstract class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
     /// <exception cref="ParseException">Thrown if the pattern does not match at the current _parsePosition.</exception>
     protected string ReadPattern(ReadOnlySpan<char> text, string pattern, bool trim = false)
     {
+        var match = ExecutePatternMatch(text, pattern);
+        var result = match.Value;
+        _parsePosition += result.Length;
+        return trim ? result.Trim() : result;
+    }
+
+    /// <summary>
+    ///     Reads text matching a regex pattern and returns the Match object for capture group access.
+    /// </summary>
+    protected System.Text.RegularExpressions.Match ReadPatternMatch(ReadOnlySpan<char> text, string pattern)
+    {
+        var match = ExecutePatternMatch(text, pattern);
+        _parsePosition += match.Value.Length;
+        return match;
+    }
+
+    private System.Text.RegularExpressions.Match ExecutePatternMatch(ReadOnlySpan<char> text, string pattern)
+    {
         var remaining = text.Slice(_parsePosition).ToString();
-
-
         var anchoredPattern = pattern.StartsWith(@"\G") ? pattern : @"\G" + pattern;
         var regex = RegexCache.GetOrAdd(anchoredPattern, p => new Regex(p, RegexOptions.Compiled));
         var match = regex.Match(remaining);
@@ -241,10 +266,7 @@ public abstract class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
                 _parsePosition,
                 $"Pattern '{pattern}' did not match at _parsePosition {_parsePosition}");
 
-        var result = match.Value;
-        _parsePosition += result.Length;
-
-        return trim ? result.Trim() : result;
+        return match;
     }
 
     /// <summary>
@@ -346,6 +368,43 @@ public abstract class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
             {
                 pos++;
             }
+        }
+
+        return -1;
+    }
+
+        private static int FindUnescapedClose(ReadOnlySpan<char> text, string close)
+    {
+        var pos = 0;
+
+        while (pos < text.Length)
+        {
+            var remaining = text.Slice(pos);
+            var idx = remaining.IndexOf(close.AsSpan());
+            if (idx < 0) return -1;
+
+            
+            var absPos = pos + idx;
+            if (absPos > 0 && text[absPos - 1] == '\\')
+            {
+                
+                var backslashCount = 0;
+                var check = absPos - 1;
+                while (check >= 0 && text[check] == '\\')
+                {
+                    backslashCount++;
+                    check--;
+                }
+
+                
+                if (backslashCount % 2 != 0)
+                {
+                    pos = absPos + close.Length;
+                    continue;
+                }
+            }
+
+            return absPos;
         }
 
         return -1;

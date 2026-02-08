@@ -105,23 +105,18 @@ public interface IExpressionVisitor
     void Visit(ThenNode node);
     void Visit(ElseNode node);
     void Visit(FieldLinkNode node);
-
-    // Bitwise operator nodes
     void Visit(BitwiseAndNode node);
     void Visit(BitwiseOrNode node);
     void Visit(BitwiseXorNode node);
     void Visit(LeftShiftNode node);
     void Visit(RightShiftNode node);
-
-    // Interpret/Parse call nodes
+    void Visit(ArrayIndexNode node);
     void Visit(InterpretCallNode node);
     void Visit(ParseCallNode node);
     void Visit(InterpretAtCallNode node);
     void Visit(TryInterpretCallNode node);
     void Visit(TryParseCallNode node);
     void Visit(PartialInterpretCallNode node);
-
-    // Interpretation Schema nodes
     void Visit(BinarySchemaNode node);
     void Visit(TextSchemaNode node);
     void Visit(FieldDefinitionNode node);

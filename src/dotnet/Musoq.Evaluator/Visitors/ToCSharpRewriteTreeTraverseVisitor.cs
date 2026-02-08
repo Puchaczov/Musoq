@@ -638,6 +638,13 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         node.Accept(_visitor);
     }
 
+    public void Visit(ArrayIndexNode node)
+    {
+        node.Array.Accept(this);
+        node.Index.Accept(this);
+        node.Accept(_visitor);
+    }
+
     public void Visit(InternalQueryNode node)
     {
         _walker = _walker.NextChild();

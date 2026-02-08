@@ -67,6 +67,10 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
+    public void Visit(ArrayIndexNode node)
+    {
+    }
+
     public void Visit(AndNode node)
     {
     }

@@ -44,8 +44,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_Equals_ReturnsTrueForEqualRows()
     {
-        var row1 = new ObjectsRow(new object[] { 1, "test" });
-        var row2 = new ObjectsRow(new object[] { 1, "test" });
+        var row1 = new ObjectsRow([1, "test"]);
+        var row2 = new ObjectsRow([1, "test"]);
 
         Assert.IsTrue(row1.Equals(row2));
     }
@@ -53,8 +53,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_Equals_ReturnsFalseForDifferentCounts()
     {
-        var row1 = new ObjectsRow(new object[] { 1, "test" });
-        var row2 = new ObjectsRow(new object[] { 1 });
+        var row1 = new ObjectsRow([1, "test"]);
+        var row2 = new ObjectsRow([1]);
 
         Assert.IsFalse(row1.Equals(row2));
     }
@@ -62,8 +62,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_Equals_ReturnsFalseForDifferentValues()
     {
-        var row1 = new ObjectsRow(new object[] { 1, "test" });
-        var row2 = new ObjectsRow(new object[] { 2, "test" });
+        var row1 = new ObjectsRow([1, "test"]);
+        var row2 = new ObjectsRow([2, "test"]);
 
         Assert.IsFalse(row1.Equals(row2));
     }
@@ -71,7 +71,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_Equals_ReturnsFalseForNull()
     {
-        var row = new ObjectsRow(new object[] { 1 });
+        var row = new ObjectsRow([1]);
 
         Assert.IsFalse(row.Equals(null));
     }
@@ -79,8 +79,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_EqualsObject_ReturnsTrueForEqualRows()
     {
-        var row1 = new ObjectsRow(new object[] { 1, "test" });
-        object row2 = new ObjectsRow(new object[] { 1, "test" });
+        var row1 = new ObjectsRow([1, "test"]);
+        object row2 = new ObjectsRow([1, "test"]);
 
         Assert.IsTrue(row1.Equals(row2));
     }
@@ -88,7 +88,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_EqualsObject_ReturnsFalseForNull()
     {
-        var row = new ObjectsRow(new object[] { 1 });
+        var row = new ObjectsRow([1]);
 
         Assert.IsFalse(row.Equals((object)null));
     }
@@ -96,7 +96,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_EqualsObject_ReturnsFalseForDifferentType()
     {
-        var row = new ObjectsRow(new object[] { 1 });
+        var row = new ObjectsRow([1]);
 
         Assert.IsFalse(row.Equals("not a row"));
     }
@@ -104,8 +104,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_GetHashCode_ReturnsSameForEqualRows()
     {
-        var row1 = new ObjectsRow(new object[] { 1, "test" });
-        var row2 = new ObjectsRow(new object[] { 1, "test" });
+        var row1 = new ObjectsRow([1, "test"]);
+        var row2 = new ObjectsRow([1, "test"]);
 
         Assert.AreEqual(row1.GetHashCode(), row2.GetHashCode());
     }
@@ -113,8 +113,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_FitsTheIndex_ReturnsTrueForMatchingKey()
     {
-        var row = new ObjectsRow(new object[] { 1, "test", 3 });
-        var key = new Key(new object[] { 1 }, new[] { 0 });
+        var row = new ObjectsRow([1, "test", 3]);
+        var key = new Key([1], [0]);
 
         Assert.IsTrue(row.FitsTheIndex(key));
     }
@@ -122,8 +122,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_CheckWithKey_ReturnsTrueForMatchingKey()
     {
-        var row = new ObjectsRow(new object[] { 1, "test", 3 });
-        var key = new Key(new object[] { 1, "test" }, new[] { 0, 1 });
+        var row = new ObjectsRow([1, "test", 3]);
+        var key = new Key([1, "test"], [0, 1]);
 
         Assert.IsTrue(row.CheckWithKey(key));
     }
@@ -131,8 +131,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_CheckWithKey_ReturnsFalseForNonMatchingKey()
     {
-        var row = new ObjectsRow(new object[] { 1, "test", 3 });
-        var key = new Key(new object[] { 2, "test" }, new[] { 0, 1 });
+        var row = new ObjectsRow([1, "test", 3]);
+        var key = new Key([2, "test"], [0, 1]);
 
         Assert.IsFalse(row.CheckWithKey(key));
     }
@@ -140,8 +140,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_CheckWithKey_BothNullValues_ReturnsTrue()
     {
-        var row = new ObjectsRow(new object[] { null, "test" });
-        var key = new Key(new object[] { null }, new[] { 0 });
+        var row = new ObjectsRow([null, "test"]);
+        var key = new Key([null], [0]);
 
         Assert.IsTrue(row.CheckWithKey(key));
     }
@@ -149,8 +149,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_CheckWithKey_RowNullKeyNotNull_ReturnsFalse()
     {
-        var row = new ObjectsRow(new object[] { null, "test" });
-        var key = new Key(new object[] { 1 }, new[] { 0 });
+        var row = new ObjectsRow([null, "test"]);
+        var key = new Key([1], [0]);
 
         Assert.IsFalse(row.CheckWithKey(key));
     }
@@ -158,8 +158,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_CheckWithKey_RowNotNullKeyNull_ReturnsFalse()
     {
-        var row = new ObjectsRow(new object[] { 1, "test" });
-        var key = new Key(new object[] { null }, new[] { 0 });
+        var row = new ObjectsRow([1, "test"]);
+        var key = new Key([null], [0]);
 
         Assert.IsFalse(row.CheckWithKey(key));
     }
@@ -167,8 +167,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_Equals_BothWithNullValues_ReturnsTrue()
     {
-        var row1 = new ObjectsRow(new object[] { null, "test" });
-        var row2 = new ObjectsRow(new object[] { null, "test" });
+        var row1 = new ObjectsRow([null, "test"]);
+        var row2 = new ObjectsRow([null, "test"]);
 
         Assert.IsTrue(row1.Equals(row2));
     }
@@ -176,8 +176,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_Equals_OneNullOneNotNull_ReturnsFalse()
     {
-        var row1 = new ObjectsRow(new object[] { null, "test" });
-        var row2 = new ObjectsRow(new object[] { 1, "test" });
+        var row1 = new ObjectsRow([null, "test"]);
+        var row2 = new ObjectsRow([1, "test"]);
 
         Assert.IsFalse(row1.Equals(row2));
     }
@@ -185,8 +185,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_Equals_OtherValueNull_ReturnsFalse()
     {
-        var row1 = new ObjectsRow(new object[] { 1, "test" });
-        var row2 = new ObjectsRow(new object[] { null, "test" });
+        var row1 = new ObjectsRow([1, "test"]);
+        var row2 = new ObjectsRow([null, "test"]);
 
         Assert.IsFalse(row1.Equals(row2));
     }
@@ -209,8 +209,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_Equals_DifferentColumnLengths_ReturnsFalse()
     {
-        var key1 = new Key(new object[] { 1 }, new[] { 0 });
-        var key2 = new Key(new object[] { 1, 2 }, new[] { 0, 1 });
+        var key1 = new Key([1], [0]);
+        var key2 = new Key([1, 2], [0, 1]);
 
         Assert.IsFalse(key1.Equals(key2));
     }
@@ -218,8 +218,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_Equals_BothNullValues_ReturnsTrue()
     {
-        var key1 = new Key(new object[] { null }, new[] { 0 });
-        var key2 = new Key(new object[] { null }, new[] { 0 });
+        var key1 = new Key([null], [0]);
+        var key2 = new Key([null], [0]);
 
         Assert.IsTrue(key1.Equals(key2));
     }
@@ -227,8 +227,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_Equals_ThisNullOtherNotNull_ReturnsFalse()
     {
-        var key1 = new Key(new object[] { null }, new[] { 0 });
-        var key2 = new Key(new object[] { 1 }, new[] { 0 });
+        var key1 = new Key([null], [0]);
+        var key2 = new Key([1], [0]);
 
         Assert.IsFalse(key1.Equals(key2));
     }
@@ -236,8 +236,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_Equals_ThisNotNullOtherNull_ReturnsFalse()
     {
-        var key1 = new Key(new object[] { 1 }, new[] { 0 });
-        var key2 = new Key(new object[] { null }, new[] { 0 });
+        var key1 = new Key([1], [0]);
+        var key2 = new Key([null], [0]);
 
         Assert.IsFalse(key1.Equals(key2));
     }
@@ -245,7 +245,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_Equals_ObjectNull_ReturnsFalse()
     {
-        var key1 = new Key(new object[] { 1 }, new[] { 0 });
+        var key1 = new Key([1], [0]);
 
         Assert.IsFalse(key1.Equals((object)null));
     }
@@ -253,7 +253,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_Equals_ObjectSameReference_ReturnsTrue()
     {
-        var key1 = new Key(new object[] { 1 }, new[] { 0 });
+        var key1 = new Key([1], [0]);
 
         Assert.IsTrue(key1.Equals((object)key1));
     }
@@ -261,7 +261,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_Equals_ObjectDifferentType_ReturnsFalse()
     {
-        var key1 = new Key(new object[] { 1 }, new[] { 0 });
+        var key1 = new Key([1], [0]);
 
         Assert.IsFalse(key1.Equals("not a key"));
     }
@@ -269,8 +269,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_Equals_ObjectSameValue_ReturnsTrue()
     {
-        var key1 = new Key(new object[] { 1 }, new[] { 0 });
-        object key2 = new Key(new object[] { 1 }, new[] { 0 });
+        var key1 = new Key([1], [0]);
+        object key2 = new Key([1], [0]);
 
         Assert.IsTrue(key1.Equals(key2));
     }
@@ -278,7 +278,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_ToString_SingleColumn()
     {
-        var key = new Key(new object[] { 42 }, new[] { 0 });
+        var key = new Key([42], [0]);
 
         var result = key.ToString();
 
@@ -288,7 +288,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_ToString_MultipleColumns()
     {
-        var key = new Key(new object[] { 1, "test" }, new[] { 0, 1 });
+        var key = new Key([1, "test"], [0, 1]);
 
         var result = key.ToString();
 
@@ -299,8 +299,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_DoesRowMatchKey_ReturnsTrue()
     {
-        var key = new Key(new object[] { 1 }, new[] { 0 });
-        var row = new ObjectsRow(new object[] { 1, "test" });
+        var key = new Key([1], [0]);
+        var row = new ObjectsRow([1, "test"]);
 
         Assert.IsTrue(key.DoesRowMatchKey(row));
     }
@@ -308,8 +308,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_DoesRowMatchKey_ReturnsFalse()
     {
-        var key = new Key(new object[] { 2 }, new[] { 0 });
-        var row = new ObjectsRow(new object[] { 1, "test" });
+        var key = new Key([2], [0]);
+        var row = new ObjectsRow([1, "test"]);
 
         Assert.IsFalse(key.DoesRowMatchKey(row));
     }
@@ -317,7 +317,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_GetHashCode_HandlesNullValues()
     {
-        var key = new Key(new object[] { null, 2 }, new[] { 0, 1 });
+        var key = new Key([null, 2], [0, 1]);
 
         var hash = key.GetHashCode();
 
@@ -327,8 +327,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_DifferentColumns_NotEqual()
     {
-        var key1 = new Key(new object[] { 1 }, new[] { 0 });
-        var key2 = new Key(new object[] { 1 }, new[] { 1 });
+        var key1 = new Key([1], [0]);
+        var key2 = new Key([1], [1]);
 
         Assert.IsFalse(key1.Equals(key2));
     }
@@ -340,8 +340,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_Contains_ReturnsTrueForExistingRow()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
-        var row = new ObjectsRow(new object[] { 42 });
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
+        var row = new ObjectsRow([42]);
         table.Add(row);
 
         var result = table.Contains(row);
@@ -352,10 +352,10 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_Contains_ReturnsFalseForNonExistingRow()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
-        table.Add(new ObjectsRow(new object[] { 42 }));
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
+        table.Add(new ObjectsRow([42]));
 
-        var searchRow = new ObjectsRow(new object[] { 100 });
+        var searchRow = new ObjectsRow([100]);
         var result = table.Contains(searchRow);
 
         Assert.IsFalse(result);
@@ -364,8 +364,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_Contains_WithComparer_ReturnsTrueWhenFound()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
-        var row = new ObjectsRow(new object[] { 42 });
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
+        var row = new ObjectsRow([42]);
         table.Add(row);
 
         var result = table.Contains(row, (a, b) => (int)a.Values[0] == (int)b.Values[0]);
@@ -376,10 +376,10 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_Contains_WithComparer_ReturnsFalseWhenNotFound()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
-        table.Add(new ObjectsRow(new object[] { 42 }));
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
+        table.Add(new ObjectsRow([42]));
 
-        var searchRow = new ObjectsRow(new object[] { 100 });
+        var searchRow = new ObjectsRow([100]);
         var result = table.Contains(searchRow, (a, b) => (int)a.Values[0] == (int)b.Values[0]);
 
         Assert.IsFalse(result);
@@ -388,8 +388,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_TryGetIndexedValues_ReturnsFalseForMissingKey()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
-        var key = new Key(new object[] { "missing" }, new[] { 0 });
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
+        var key = new Key(["missing"], [0]);
 
         var result = table.TryGetIndexedValues(key, out var values);
 
@@ -400,12 +400,12 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_AddRange_AddsMultipleRows()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
         var rows = new[]
         {
-            new ObjectsRow(new object[] { 1 }),
-            new ObjectsRow(new object[] { 2 }),
-            new ObjectsRow(new object[] { 3 })
+            new ObjectsRow([1]),
+            new ObjectsRow([2]),
+            new ObjectsRow([3])
         };
 
         table.AddRange(rows);
@@ -431,7 +431,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_Name_ReturnsCorrectName()
     {
-        var table = new Table("TestTable", new[] { new Column("Col1", typeof(int), 0) });
+        var table = new Table("TestTable", [new Column("Col1", typeof(int), 0)]);
 
         Assert.AreEqual("TestTable", table.Name);
     }
@@ -439,8 +439,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_IndexerByKey_ReturnsMatchingRows()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
-        var row = new ObjectsRow(new object[] { 42 });
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
+        var row = new ObjectsRow([42]);
         table.Add(row);
 
 
@@ -450,8 +450,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_ContainsKey_ReturnsFalseForNonExistingKey()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
-        var key = new Key(new object[] { "missing" }, new[] { 0 });
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
+        var key = new Key(["missing"], [0]);
 
         var result = table.ContainsKey(key);
 
@@ -461,9 +461,9 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_GetEnumerator_IteratesRows()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
-        table.Add(new ObjectsRow(new object[] { 1 }));
-        table.Add(new ObjectsRow(new object[] { 2 }));
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
+        table.Add(new ObjectsRow([1]));
+        table.Add(new ObjectsRow([2]));
 
         var count = 0;
         foreach (var row in table) count++;
@@ -474,8 +474,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_Add_WithNullValues_Succeeds()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(object), 0) });
-        var row = new ObjectsRow(new object[] { null });
+        var table = new Table("Test", [new Column("Col1", typeof(object), 0)]);
+        var row = new ObjectsRow([null]);
 
         table.Add(row);
 
@@ -485,8 +485,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_Add_TypeMismatch_Throws()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
-        var row = new ObjectsRow(new object[] { "not an int" });
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
+        var row = new ObjectsRow(["not an int"]);
 
         Assert.Throws<NotSupportedException>(() => table.Add(row));
     }
@@ -494,8 +494,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_Add_WrongColumnCount_Throws()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
-        var row = new ObjectsRow(new object[] { 1, 2 });
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
+        var row = new ObjectsRow([1, 2]);
 
         Assert.Throws<NotSupportedException>(() => table.Add(row));
     }
@@ -507,7 +507,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void GroupRow_Indexer_ReturnsValue()
     {
-        var group = new Group(null, new[] { "col1" }, new object[] { 1 });
+        var group = new Group(null, ["col1"], [1]);
         var columnMap = new Dictionary<int, string> { { 0, "val1" } };
         group.GetOrCreateValue("val1", () => 42);
 
@@ -519,7 +519,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void GroupRow_Count_ReturnsColumnCount()
     {
-        var group = new Group(null, new[] { "col1" }, new object[] { 1 });
+        var group = new Group(null, ["col1"], [1]);
         var columnMap = new Dictionary<int, string>
         {
             { 0, "val1" },
@@ -536,7 +536,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void GroupRow_Values_ReturnsAllValues()
     {
-        var group = new Group(null, new[] { "col1" }, new object[] { 1 });
+        var group = new Group(null, ["col1"], [1]);
         var columnMap = new Dictionary<int, string>
         {
             { 0, "val1" }
@@ -554,7 +554,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void GroupRow_Values_CachesResult()
     {
-        var group = new Group(null, new[] { "col1" }, new object[] { 1 });
+        var group = new Group(null, ["col1"], [1]);
         var columnMap = new Dictionary<int, string> { { 0, "val1" } };
         group.GetOrCreateValue("val1", () => 42);
 
@@ -574,8 +574,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_GetHashCode_SameForEqualKeys()
     {
-        var key1 = new Key(new object[] { 1, "test" }, new[] { 0, 1 });
-        var key2 = new Key(new object[] { 1, "test" }, new[] { 0, 1 });
+        var key1 = new Key([1, "test"], [0, 1]);
+        var key2 = new Key([1, "test"], [0, 1]);
 
         Assert.AreEqual(key1.GetHashCode(), key2.GetHashCode());
     }
@@ -583,8 +583,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_Equals_WithObject_ReturnsTrueForEqual()
     {
-        var key1 = new Key(new object[] { 1, "test" }, new[] { 0, 1 });
-        object key2 = new Key(new object[] { 1, "test" }, new[] { 0, 1 });
+        var key1 = new Key([1, "test"], [0, 1]);
+        object key2 = new Key([1, "test"], [0, 1]);
 
         Assert.IsTrue(key1.Equals(key2));
     }
@@ -592,7 +592,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_Equals_WithObject_ReturnsFalseForNull()
     {
-        var key = new Key(new object[] { 1 }, new[] { 0 });
+        var key = new Key([1], [0]);
 
         Assert.IsFalse(key.Equals((object)null));
     }
@@ -600,7 +600,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_Equals_WithObject_ReturnsFalseForDifferentType()
     {
-        var key = new Key(new object[] { 1 }, new[] { 0 });
+        var key = new Key([1], [0]);
 
         Assert.IsFalse(key.Equals("not a key"));
     }
@@ -608,8 +608,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_DoesRowMatchKey_ReturnsTrueForMatch()
     {
-        var key = new Key(new object[] { 1 }, new[] { 0 });
-        var row = new ObjectsRow(new object[] { 1, "test" });
+        var key = new Key([1], [0]);
+        var row = new ObjectsRow([1, "test"]);
 
         Assert.IsTrue(key.DoesRowMatchKey(row));
     }
@@ -617,8 +617,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_DoesRowMatchKey_ReturnsFalseForNoMatch()
     {
-        var key = new Key(new object[] { 2 }, new[] { 0 });
-        var row = new ObjectsRow(new object[] { 1, "test" });
+        var key = new Key([2], [0]);
+        var row = new ObjectsRow([1, "test"]);
 
         Assert.IsFalse(key.DoesRowMatchKey(row));
     }
@@ -726,11 +726,11 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_ContainsWithKey_ReturnsFalseForNonExistingKey()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
-        var row = new ObjectsRow(new object[] { 42 });
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
+        var row = new ObjectsRow([42]);
         table.Add(row);
 
-        var key = new Key(new object[] { 999 }, new[] { 0 });
+        var key = new Key([999], [0]);
         var result = table.Contains(key, row);
 
         Assert.IsFalse(result);
@@ -739,12 +739,12 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_ContainsWithKey_ReturnsFalseForNonMatchingValue()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
-        var row = new ObjectsRow(new object[] { 42 });
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
+        var row = new ObjectsRow([42]);
         table.Add(row);
 
-        var key = new Key(new object[] { 42 }, new[] { 0 });
-        var searchRow = new ObjectsRow(new object[] { 100 });
+        var key = new Key([42], [0]);
+        var searchRow = new ObjectsRow([100]);
         var result = table.Contains(key, searchRow);
 
         Assert.IsFalse(result);
@@ -753,8 +753,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_Equals_WithNullValue_HandlesCorrectly()
     {
-        var row1 = new ObjectsRow(new object[] { null, "test" });
-        var row2 = new ObjectsRow(new object[] { null, "test" });
+        var row1 = new ObjectsRow([null, "test"]);
+        var row2 = new ObjectsRow([null, "test"]);
 
         Assert.IsTrue(row1.Equals(row2));
     }
@@ -762,8 +762,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_Equals_NullVsNonNull_ReturnsFalse()
     {
-        var row1 = new ObjectsRow(new object[] { null });
-        var row2 = new ObjectsRow(new object[] { "test" });
+        var row1 = new ObjectsRow([null]);
+        var row2 = new ObjectsRow(["test"]);
 
         Assert.IsFalse(row1.Equals(row2));
     }
@@ -771,8 +771,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_Equals_NonNullVsNull_ReturnsFalse()
     {
-        var row1 = new ObjectsRow(new object[] { "test" });
-        var row2 = new ObjectsRow(new object[] { null });
+        var row1 = new ObjectsRow(["test"]);
+        var row2 = new ObjectsRow([null]);
 
         Assert.IsFalse(row1.Equals(row2));
     }
@@ -780,7 +780,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Row_GetHashCode_HandlesNullValues()
     {
-        var row = new ObjectsRow(new object[] { null, "test" });
+        var row = new ObjectsRow([null, "test"]);
 
 
         var hash = row.GetHashCode();
@@ -790,8 +790,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_Equals_DifferentLengths_ReturnsFalse()
     {
-        var key1 = new Key(new object[] { 1 }, new[] { 0 });
-        var key2 = new Key(new object[] { 1, 2 }, new[] { 0, 1 });
+        var key1 = new Key([1], [0]);
+        var key2 = new Key([1, 2], [0, 1]);
 
         Assert.IsFalse(key1.Equals(key2));
     }
@@ -799,8 +799,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_Equals_NullValues_HandleCorrectly()
     {
-        var key1 = new Key(new object[] { null }, new[] { 0 });
-        var key2 = new Key(new object[] { null }, new[] { 0 });
+        var key1 = new Key([null], [0]);
+        var key2 = new Key([null], [0]);
 
         Assert.IsTrue(key1.Equals(key2));
     }
@@ -808,8 +808,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Key_Equals_NullVsNonNull_ReturnsFalse()
     {
-        var key1 = new Key(new object[] { null }, new[] { 0 });
-        var key2 = new Key(new object[] { "test" }, new[] { 0 });
+        var key1 = new Key([null], [0]);
+        var key2 = new Key(["test"], [0]);
 
         Assert.IsFalse(key1.Equals(key2));
     }
@@ -817,7 +817,7 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void ObjectsRow_Count_ReturnsCorrectCount()
     {
-        var row = new ObjectsRow(new object[] { 1, 2, 3 });
+        var row = new ObjectsRow([1, 2, 3]);
 
         Assert.AreEqual(3, row.Count);
     }
@@ -839,11 +839,11 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_Add_MultipleSameValues_Works()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
 
-        table.Add(new ObjectsRow(new object[] { 1 }));
-        table.Add(new ObjectsRow(new object[] { 1 }));
-        table.Add(new ObjectsRow(new object[] { 2 }));
+        table.Add(new ObjectsRow([1]));
+        table.Add(new ObjectsRow([1]));
+        table.Add(new ObjectsRow([2]));
 
         Assert.AreEqual(3, table.Count);
     }
@@ -851,8 +851,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_GetEnumerator_Explicit_Works()
     {
-        var table = new Table("Test", new[] { new Column("Col1", typeof(int), 0) });
-        table.Add(new ObjectsRow(new object[] { 1 }));
+        var table = new Table("Test", [new Column("Col1", typeof(int), 0)]);
+        table.Add(new ObjectsRow([1]));
 
         var enumerable = (IEnumerable)table;
         var count = 0;
@@ -882,7 +882,7 @@ public class LowCoverageAreasTests
         var table = new Table("Test", columns);
 
         var ex = Assert.Throws<NotSupportedException>(() =>
-            table.Add(new ObjectsRow(new object[] { 1, 2 })));
+            table.Add(new ObjectsRow([1, 2])));
 
         Assert.Contains("2 values", ex.Message);
     }
@@ -894,7 +894,7 @@ public class LowCoverageAreasTests
         var table = new Table("Test", columns);
 
         var ex = Assert.Throws<NotSupportedException>(() =>
-            table.Add(new ObjectsRow(new object[] { "string" })));
+            table.Add(new ObjectsRow(["string"])));
 
         Assert.Contains("Mismatched", ex.Message);
     }
@@ -906,7 +906,7 @@ public class LowCoverageAreasTests
         var table = new Table("Test", columns);
 
 
-        table.Add(new ObjectsRow(new object[] { null }));
+        table.Add(new ObjectsRow([null]));
 
         Assert.AreEqual(1, table.Count);
     }
@@ -916,9 +916,9 @@ public class LowCoverageAreasTests
     {
         var columns = new[] { new Column("Col1", typeof(int), 0) };
         var table = new Table("Test", columns);
-        table.Add(new ObjectsRow(new object[] { 1 }));
+        table.Add(new ObjectsRow([1]));
 
-        var key = new Key(new object[] { 999 }, new[] { 0 });
+        var key = new Key([999], [0]);
 
 
         Assert.IsFalse(table.ContainsKey(key));
@@ -929,9 +929,9 @@ public class LowCoverageAreasTests
     {
         var columns = new[] { new Column("Col1", typeof(int), 0) };
         var table = new Table("Test", columns);
-        table.Add(new ObjectsRow(new object[] { 42 }));
+        table.Add(new ObjectsRow([42]));
 
-        var key = new Key(new object[] { 42 }, new[] { 0 });
+        var key = new Key([42], [0]);
 
 
         var result = table.TryGetIndexedValues(key, out var values);
@@ -943,8 +943,8 @@ public class LowCoverageAreasTests
     [TestMethod]
     public void Table_IndexerByIndex_ReturnsCorrectRow()
     {
-        var table = new Table("Test", new[] { new Column("Col", typeof(int), 0) });
-        table.Add(new ObjectsRow(new object[] { 100 }));
+        var table = new Table("Test", [new Column("Col", typeof(int), 0)]);
+        table.Add(new ObjectsRow([100]));
 
         var row = table[0];
 

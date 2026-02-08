@@ -6,13 +6,7 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
-    /// <summary>
-    ///     Pads a byte array to the specified size with zeros at the end (little-endian padding).
-    /// </summary>
-    /// <param name="value">The byte array to pad.</param>
-    /// <param name="requiredSize">The required size in bytes.</param>
-    /// <returns>A new byte array padded to the required size, or null if value is null.</returns>
-    private static byte[]? PadBytes(byte[] value, int requiredSize)
+        private static byte[]? PadBytes(byte[] value, int requiredSize)
     {
         if (value == null)
             return null;
@@ -22,7 +16,7 @@ public partial class LibraryBase
 
         var padded = new byte[requiredSize];
         Array.Copy(value, 0, padded, 0, value.Length);
-        // Remaining bytes are already zero-initialized
+        
         return padded;
     }
 
@@ -352,7 +346,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Conversion)]
     public Half? FromBytesToHalf(byte[] value, bool padIfNeeded)
     {
-        const int halfSize = 2; // Half is 2 bytes (16-bit)
+        const int halfSize = 2; 
         if (value == null)
             return null;
 

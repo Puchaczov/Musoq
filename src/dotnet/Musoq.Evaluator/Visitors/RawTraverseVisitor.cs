@@ -518,6 +518,13 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
         node.Accept(Visitor);
     }
 
+    public virtual void Visit(ArrayIndexNode node)
+    {
+        node.Array.Accept(this);
+        node.Index.Accept(this);
+        node.Accept(Visitor);
+    }
+
     public virtual void Visit(InternalQueryNode node)
     {
     }

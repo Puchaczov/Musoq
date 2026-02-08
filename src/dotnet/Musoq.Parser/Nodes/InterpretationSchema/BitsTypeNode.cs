@@ -28,11 +28,7 @@ public class BitsTypeNode : TypeAnnotationNode
 
     /// <inheritdoc />
     /// <remarks>
-    ///     CLR type depends on bit count:
-    ///     1-8 bits: byte
-    ///     9-16 bits: ushort
-    ///     17-32 bits: uint
-    ///     33-64 bits: ulong
+    ///     Type depends on bit count: 1-8 → byte, 9-16 → ushort, 17-32 → uint, 33-64 → ulong.
     /// </remarks>
     public override Type ClrType => BitCount switch
     {

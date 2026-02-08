@@ -587,6 +587,13 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
+    public virtual void Visit(ArrayIndexNode node)
+    {
+        node.Array.Accept(this);
+        node.Index.Accept(this);
+        node.Accept(_visitor);
+    }
+
     public virtual void Visit(AndNode node)
     {
         node.Left.Accept(this);

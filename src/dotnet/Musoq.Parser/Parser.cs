@@ -757,7 +757,15 @@ public class Parser
         if (Current.TokenType == TokenType.Take)
         {
             Consume(TokenType.Take);
-            return new TakeNode(ComposeInteger());
+            var valueSpan = Current.Span;
+            var intNode = ComposeInteger();
+
+            if (IsNegativeInteger(intNode))
+                RecordError(DiagnosticCode.MQ2030_UnsupportedSyntax,
+                    "TAKE value must be non-negative.",
+                    valueSpan);
+
+            return new TakeNode(intNode);
         }
 
         return null;
@@ -768,10 +776,30 @@ public class Parser
         if (Current.TokenType == TokenType.Skip)
         {
             Consume(TokenType.Skip);
-            return new SkipNode(ComposeInteger());
+            var valueSpan = Current.Span;
+            var intNode = ComposeInteger();
+
+            if (IsNegativeInteger(intNode))
+                RecordError(DiagnosticCode.MQ2030_UnsupportedSyntax,
+                    "SKIP value must be non-negative.",
+                    valueSpan);
+
+            return new SkipNode(intNode);
         }
 
         return null;
+    }
+
+    private static bool IsNegativeInteger(IntegerNode intNode)
+    {
+        return intNode.ObjValue switch
+        {
+            int i => i < 0,
+            long l => l < 0,
+            short s => s < 0,
+            sbyte sb => sb < 0,
+            _ => false
+        };
     }
 
     private GroupByNode ComposeGroupByNode()
@@ -817,6 +845,13 @@ public class Parser
             throw new SyntaxException("Unnecessary comma found after SELECT keyword.", _lexer.AlreadyResolvedQueryPart);
 
         var fields = ComposeFields();
+
+        if (fields.Length == 0)
+            throw new SyntaxException(
+                "SELECT list cannot be empty.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2005_InvalidSelectList,
+                Current.Span);
 
         if (Previous.TokenType == TokenType.Comma && Current.TokenType == TokenType.From)
             throw new SyntaxException("Unnecessary comma found at the end of SELECT clause.",
@@ -958,6 +993,11 @@ public class Parser
             var op = _precedenceDictionary[Current.TokenType];
             var nextMinPrecedence = op.Associativity == Associativity.Left ? op.Precendence + 1 : op.Precendence;
             Consume(Current.TokenType);
+
+            
+            if (curr.TokenType == TokenType.Dot && IsSqlKeywordToken(Current.TokenType))
+                ReplaceCurrentToken(new ColumnToken(Current.Value, Current.Span));
+
             var right = ComposeArithmeticExpression(nextMinPrecedence);
 
             left = curr.TokenType switch
@@ -1008,6 +1048,12 @@ public class Parser
                     node = new EqualityNode(node, ComposeEqualityOperators());
                     break;
                 case TokenType.Diff:
+                    if (Current.Value == "!=")
+                        throw new SyntaxException(
+                            "Invalid operator '!='. Use '<>' instead.",
+                            _lexer.AlreadyResolvedQueryPart,
+                            DiagnosticCode.MQ2019_InvalidOperator,
+                            Current.Span);
                     Consume(TokenType.Diff);
                     node = new DiffNode(node, ComposeEqualityOperators());
                     break;
@@ -1508,6 +1554,27 @@ public class Parser
             TokenType.Capture => true,
             TokenType.Extends => true,
             TokenType.End => true,
+            _ => false
+        };
+    }
+
+    private static bool IsSqlKeywordToken(TokenType tokenType)
+    {
+        return tokenType switch
+        {
+            TokenType.And or TokenType.Or or TokenType.Not or
+            TokenType.Where or TokenType.Select or TokenType.From or
+            TokenType.Like or TokenType.NotLike or TokenType.RLike or TokenType.NotRLike or
+            TokenType.As or TokenType.Is or TokenType.Null or
+            TokenType.Union or TokenType.UnionAll or TokenType.Except or TokenType.Intersect or
+            TokenType.GroupBy or TokenType.Having or TokenType.Contains or
+            TokenType.Skip or TokenType.Take or TokenType.With or
+            TokenType.InnerJoin or TokenType.OuterJoin or TokenType.CrossApply or TokenType.OuterApply or
+            TokenType.On or TokenType.OrderBy or TokenType.Asc or TokenType.Desc or
+            TokenType.Functions or TokenType.True or TokenType.False or
+            TokenType.In or TokenType.NotIn or TokenType.Table or TokenType.Couple or
+            TokenType.Case or TokenType.When or TokenType.Then or TokenType.Else or
+            TokenType.Distinct or TokenType.ColumnKeyword => true,
             _ => false
         };
     }

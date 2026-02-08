@@ -24,8 +24,8 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m } } },
-            { "#B", new[] { new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m } } }
+            { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
+            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }

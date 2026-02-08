@@ -427,6 +427,10 @@ public abstract class NoOpExpressionVisitor : IExpressionVisitor
     {
     }
 
+    public virtual void Visit(ArrayIndexNode node)
+    {
+    }
+
 
     public virtual void Visit(InterpretCallNode node)
     {
