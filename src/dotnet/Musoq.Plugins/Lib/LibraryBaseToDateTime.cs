@@ -19,6 +19,25 @@ public partial class LibraryBase
     }
 
     /// <summary>
+    ///     Converts given value to DateTime
+    /// </summary>
+    /// <param name="value">The value</param>
+    /// <param name="culture">The culture</param>
+    /// <returns>Converted to DateTime value</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
+    public DateTime? ToDateTime(string value, string culture)
+    {
+        if (string.IsNullOrEmpty(value))
+            return null;
+
+        if (!DateTime.TryParse(value, CultureInfo.GetCultureInfo(culture), DateTimeStyles.None, out var result))
+            return null;
+
+        return result;
+    }
+
+    /// <summary>
     ///     Converts given value to DateTime using exact format
     /// </summary>
     /// <param name="value">The value</param>
@@ -26,28 +45,15 @@ public partial class LibraryBase
     /// <returns>Converted to DateTime value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public DateTime? ToDateTime(string value, string format)
+    public DateTime? ToDateTimeWithFormat(string value, string format)
     {
         if (string.IsNullOrEmpty(value))
             return null;
 
-        // Try parsing with exact format first
-        if (DateTime.TryParseExact(value, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
-            return result;
+        if (!DateTime.TryParseExact(value, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
+            return null;
 
-        // Fallback to culture-based parsing for backward compatibility
-        // This allows the method to work with both format strings and culture names
-        try
-        {
-            if (DateTime.TryParse(value, CultureInfo.GetCultureInfo(format), DateTimeStyles.None, out result))
-                return result;
-        }
-        catch (CultureNotFoundException)
-        {
-            // format parameter wasn't a valid culture name, which is expected when using format strings
-        }
-
-        return null;
+        return result;
     }
 
     /// <summary>

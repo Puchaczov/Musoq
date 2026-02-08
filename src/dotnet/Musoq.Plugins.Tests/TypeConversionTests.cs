@@ -224,15 +224,19 @@ public class TypeConversionTests : LibraryBaseBaseTests
         Assert.IsNull(result); // Should fail to parse 25 as month
     }
 
+    #endregion
+
+    #region ToDateTimeWithFormat Tests
+
     [TestMethod]
-    public void ToDateTime_WithExactFormat_ShouldParseCorrectly()
+    public void ToDateTimeWithFormat_WithExactFormat_ShouldParseCorrectly()
     {
         // Arrange
         var input = "25-12-2023";
         var format = "dd-MM-yyyy";
 
         // Act
-        var result = Library.ToDateTime(input, format);
+        var result = Library.ToDateTimeWithFormat(input, format);
 
         // Assert
         Assert.IsNotNull(result);
@@ -240,14 +244,14 @@ public class TypeConversionTests : LibraryBaseBaseTests
     }
 
     [TestMethod]
-    public void ToDateTime_WithExactFormat_TimeIncluded_ShouldParseCorrectly()
+    public void ToDateTimeWithFormat_WithExactFormat_TimeIncluded_ShouldParseCorrectly()
     {
         // Arrange
         var input = "2023-12-25 14:30:45";
         var format = "yyyy-MM-dd HH:mm:ss";
 
         // Act
-        var result = Library.ToDateTime(input, format);
+        var result = Library.ToDateTimeWithFormat(input, format);
 
         // Assert
         Assert.IsNotNull(result);
@@ -255,14 +259,14 @@ public class TypeConversionTests : LibraryBaseBaseTests
     }
 
     [TestMethod]
-    public void ToDateTime_WithExactFormat_CustomFormat_ShouldParseCorrectly()
+    public void ToDateTimeWithFormat_WithExactFormat_CustomFormat_ShouldParseCorrectly()
     {
         // Arrange
         var input = "Dec 25, 2023";
         var format = "MMM dd, yyyy";
 
         // Act
-        var result = Library.ToDateTime(input, format);
+        var result = Library.ToDateTimeWithFormat(input, format);
 
         // Assert
         Assert.IsNotNull(result);
@@ -270,70 +274,70 @@ public class TypeConversionTests : LibraryBaseBaseTests
     }
 
     [TestMethod]
-    public void ToDateTime_WithExactFormat_InvalidValue_ShouldReturnNull()
+    public void ToDateTimeWithFormat_WithExactFormat_InvalidValue_ShouldReturnNull()
     {
         // Arrange
         var input = "invalid date";
         var format = "dd-MM-yyyy";
 
         // Act
-        var result = Library.ToDateTime(input, format);
+        var result = Library.ToDateTimeWithFormat(input, format);
 
         // Assert
         Assert.IsNull(result);
     }
 
     [TestMethod]
-    public void ToDateTime_WithExactFormat_MismatchedFormat_ShouldReturnNull()
+    public void ToDateTimeWithFormat_WithExactFormat_MismatchedFormat_ShouldReturnNull()
     {
         // Arrange
         var input = "25-12-2023"; // Format: dd-MM-yyyy
         var format = "MM-dd-yyyy"; // Wrong format
 
         // Act
-        var result = Library.ToDateTime(input, format);
+        var result = Library.ToDateTimeWithFormat(input, format);
 
         // Assert
         Assert.IsNull(result);
     }
 
     [TestMethod]
-    public void ToDateTime_WithExactFormat_EmptyValue_ShouldReturnNull()
+    public void ToDateTimeWithFormat_WithExactFormat_EmptyValue_ShouldReturnNull()
     {
         // Arrange
         var input = "";
         var format = "dd-MM-yyyy";
 
         // Act
-        var result = Library.ToDateTime(input, format);
+        var result = Library.ToDateTimeWithFormat(input, format);
 
         // Assert
         Assert.IsNull(result);
     }
 
     [TestMethod]
-    public void ToDateTime_WithExactFormat_NullValue_ShouldReturnNull()
+    public void ToDateTimeWithFormat_WithExactFormat_NullValue_ShouldReturnNull()
     {
         // Arrange
         string? input = null;
         var format = "dd-MM-yyyy";
 
         // Act
-        var result = Library.ToDateTime(input, format);
+        var result = Library.ToDateTimeWithFormat(input, format);
 
         // Assert
         Assert.IsNull(result);
     }
 
     [TestMethod]
-    public void ToDateTime_WithExactFormat_ComplexFormat_ShouldParseCorrectly()
+    public void ToDateTimeWithFormat_WithExactFormat_ComplexFormat_ShouldParseCorrectly()
     {
         // Arrange
         var input = "Monday, December 25, 2023 2:30:45 PM";
         var format = "dddd, MMMM dd, yyyy h:mm:ss tt";
 
         // Act
-        var result = Library.ToDateTime(input, format);
+        var result = Library.ToDateTimeWithFormat(input, format);
 
         // Assert
         Assert.IsNotNull(result);
