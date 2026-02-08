@@ -429,4 +429,86 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
         var result = Library.FromBytesToDouble(new byte[7]);
         Assert.IsFalse(result.HasValue);
     }
+
+    #region FromBytesToChar Tests
+
+    [TestMethod]
+    public void FromBytesToChar_ShouldReturnChar()
+    {
+        var bytes = BitConverter.GetBytes('A');
+        var result = Library.FromBytesToChar(bytes);
+        Assert.AreEqual<char?>('A', result);
+    }
+
+    [TestMethod]
+    public void FromBytesToChar_WithUnicodeChar_ShouldReturnCorrectChar()
+    {
+        var bytes = BitConverter.GetBytes('世');
+        var result = Library.FromBytesToChar(bytes);
+        Assert.AreEqual<char?>('世', result);
+    }
+
+    [TestMethod]
+    public void FromBytesToChar_WithNull_ShouldReturnNull()
+    {
+        var result = Library.FromBytesToChar(null);
+        Assert.IsFalse(result.HasValue);
+    }
+
+    [TestMethod]
+    public void FromBytesToChar_WithInsufficientBytes_ShouldReturnNull()
+    {
+        var result = Library.FromBytesToChar(new byte[1]);
+        Assert.IsFalse(result.HasValue);
+    }
+
+    #endregion
+
+    #region FromBytesToHalf Tests
+
+    [TestMethod]
+    public void FromBytesToHalf_ShouldReturnHalf()
+    {
+        var value = (Half)123.5;
+        var bytes = BitConverter.GetBytes(value);
+        var result = Library.FromBytesToHalf(bytes);
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(value, result.Value);
+    }
+
+    [TestMethod]
+    public void FromBytesToHalf_WithNegativeValue_ShouldReturnNegativeHalf()
+    {
+        var value = (Half)(-456.75);
+        var bytes = BitConverter.GetBytes(value);
+        var result = Library.FromBytesToHalf(bytes);
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(value, result.Value);
+    }
+
+    [TestMethod]
+    public void FromBytesToHalf_WithZero_ShouldReturnZero()
+    {
+        var value = (Half)0.0;
+        var bytes = BitConverter.GetBytes(value);
+        var result = Library.FromBytesToHalf(bytes);
+        Assert.IsTrue(result.HasValue);
+        Assert.AreEqual(value, result.Value);
+    }
+
+    [TestMethod]
+    public void FromBytesToHalf_WithNull_ShouldReturnNull()
+    {
+        var result = Library.FromBytesToHalf(null);
+        Assert.IsFalse(result.HasValue);
+    }
+
+    [TestMethod]
+    public void FromBytesToHalf_WithInsufficientBytes_ShouldReturnNull()
+    {
+        var result = Library.FromBytesToHalf(new byte[1]);
+        Assert.IsFalse(result.HasValue);
+    }
+
+    #endregion
 }
