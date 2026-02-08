@@ -135,7 +135,8 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Conversion)]
     public Half? FromBytesToHalf(byte[] value)
     {
-        if (value == null || value.Length < 2) // Half is 2 bytes
+        const int halfSize = 2; // Half is 2 bytes (16-bit)
+        if (value == null || value.Length < halfSize)
             return null;
 
         return BitConverter.ToHalf(value, 0);
