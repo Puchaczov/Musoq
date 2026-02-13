@@ -1,3 +1,5 @@
+#nullable enable annotations
+
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -181,7 +183,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
 
-    public SchemaRegistry SchemaRegistry => _schemaRegistry;
+    public SchemaRegistry? SchemaRegistry => _schemaRegistry;
 
     public IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns
     {

@@ -320,8 +320,7 @@ public class LowCoverageAreasTests
         var key = new Key([null, 2], [0, 1]);
 
         var hash = key.GetHashCode();
-
-        Assert.IsNotNull(hash);
+        Assert.AreEqual(hash, key.GetHashCode());
     }
 
     [TestMethod]
@@ -784,7 +783,7 @@ public class LowCoverageAreasTests
 
 
         var hash = row.GetHashCode();
-        Assert.IsNotNull(hash);
+        Assert.AreEqual(hash, row.GetHashCode());
     }
 
     [TestMethod]
@@ -1073,8 +1072,7 @@ public class LowCoverageAreasTests
         var key1 = new GroupKey(null, "test");
 
         var hash = key1.GetHashCode();
-
-        Assert.IsNotNull(hash);
+        Assert.AreEqual(hash, key1.GetHashCode());
     }
 
     [TestMethod]

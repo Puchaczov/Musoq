@@ -18,7 +18,7 @@ public class CompilationPipelineBenchmark : BenchmarkBase
     private const string ComplexQuery =
         "select City, Country, Population, City + ' (' + Country + ')' as CityCountry from #A.Entities() where Population > 500000 group by City, Country, Population having Count(City) > 0 order by Population desc";
 
-    private IDictionary<string, IEnumerable<CountryEntity>> _sources;
+    private IDictionary<string, IEnumerable<CountryEntity>> _sources = null!;
 
     [GlobalSetup]
     public void Setup()

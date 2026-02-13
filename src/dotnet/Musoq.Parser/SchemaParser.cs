@@ -350,13 +350,11 @@ public class SchemaParser
 
 
         Node? arraySizeExpr = null;
-        var arraySizeBeforeEndianness = false;
         if (Current.TokenType == TokenType.LeftSquareBracket)
         {
             Consume(TokenType.LeftSquareBracket);
             arraySizeExpr = ComposeSizeExpression();
             Consume(TokenType.RightSquareBracket);
-            arraySizeBeforeEndianness = true;
         }
 
 

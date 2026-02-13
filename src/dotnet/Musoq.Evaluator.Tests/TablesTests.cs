@@ -637,7 +637,7 @@ public class TablesTests
 
         // Act & Assert
         var hash = key.GetHashCode(); // Should not throw
-        Assert.IsNotNull(hash);
+        Assert.AreEqual(hash, key.GetHashCode());
     }
 
     #endregion

@@ -30,9 +30,12 @@ namespace Musoq.Evaluator.Visitors;
 
 public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTranslationExpressionVisitor
 {
-    private static readonly MethodInfo LikeMethod = typeof(Operators).GetMethod(nameof(Operators.Like));
-    private static readonly MethodInfo RLikeMethod = typeof(Operators).GetMethod(nameof(Operators.RLike));
-    private static readonly MethodInfo ContainsMethod = typeof(Operators).GetMethod(nameof(Operators.Contains));
+    private static readonly MethodInfo LikeMethod =
+        typeof(Operators).GetMethod(nameof(Operators.Like)) ?? throw new InvalidOperationException();
+    private static readonly MethodInfo RLikeMethod =
+        typeof(Operators).GetMethod(nameof(Operators.RLike)) ?? throw new InvalidOperationException();
+    private static readonly MethodInfo ContainsMethod =
+        typeof(Operators).GetMethod(nameof(Operators.Contains)) ?? throw new InvalidOperationException();
     private readonly CompilationContextManager _compilationContext;
     private readonly CompilationOptions _compilationOptions;
     private readonly CseManager _cseManager;
@@ -55,11 +58,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private readonly Dictionary<string, Type> _typesToInstantiate = new();
     private int _caseWhenMethodIndex;
-    private BlockSyntax _emptyBlock;
-    private SyntaxNode _groupHaving;
+    private BlockSyntax _emptyBlock = StatementEmitter.CreateEmptyBlock();
+    private SyntaxNode _groupHaving = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
-    private VariableDeclarationSyntax _groupKeys;
-    private VariableDeclarationSyntax _groupValues;
+    private VariableDeclarationSyntax _groupKeys = null!;
+    private VariableDeclarationSyntax _groupValues = null!;
 
     private int _inMemoryTableIndex;
 
@@ -69,11 +72,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     private BlockSyntax _joinOrApplyBlock;
     private MethodAccessType _oldType;
-    private string _queryAlias;
+    private string _queryAlias = string.Empty;
     private int _rowClassCounter;
     private int _schemaFromIndex;
-    private Scope _scope;
-    private BlockSyntax _selectBlock;
+    private Scope _scope = null!;
+    private BlockSyntax _selectBlock = StatementEmitter.CreateEmptyBlock();
     private int _setOperatorMethodIdentifier;
     private MethodAccessType _type;
 
@@ -112,6 +115,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         _compilationContext = new CompilationContextManager(RoslynSharedFactory.CreateCompilation(assemblyName));
         _compilationContext.InitializeDefaults();
         _compilationContext.InitializeCoreReferences(assemblies);
+        _joinOrApplyBlock = StatementEmitter.CreateEmptyBlock();
 
         // Track interpreter namespace if we have interpreter source code
         if (!string.IsNullOrEmpty(interpreterSourceCode))
@@ -649,23 +653,25 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public override void Visit(AccessMethodFromNode node)
     {
-        AddNamespace(node.ReturnType);
+        Type returnType = node.ReturnType ?? typeof(object);
+        AddNamespace(returnType);
         var sourceExpression = (ExpressionSyntax)Nodes.Pop();
         _getRowsSourceStatement.Add(node.Alias,
-            SchemaNodeEmitter.CreateEnumerableRowsSource(node.Alias, node.ReturnType, sourceExpression));
+            SchemaNodeEmitter.CreateEnumerableRowsSource(node.Alias, returnType!, sourceExpression));
     }
 
     public override void Visit(PropertyFromNode node)
     {
-        AddNamespace(node.ReturnType);
+        Type returnType = node.ReturnType ?? typeof(object);
+        AddNamespace(returnType);
 
         var propertiesChain = node.PropertiesChain
-            .Select(p => (p.PropertyName, p.PropertyType, p.IntendedTypeName))
+            .Select(p => (p.PropertyName, p.PropertyType, (string?)p.IntendedTypeName))
             .ToArray();
 
         _getRowsSourceStatement.Add(
             node.Alias,
-            SchemaNodeEmitter.CreatePropertyRowsSource(node.Alias, node.SourceAlias, node.ReturnType, propertiesChain));
+            SchemaNodeEmitter.CreatePropertyRowsSource(node.Alias, node.SourceAlias, returnType!, propertiesChain));
     }
 
     public override void Visit(CreateTransformationTableNode node)
@@ -709,7 +715,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
                 Nodes,
                 block,
                 cseDeclarations,
-                where,
+                where ?? SyntaxFactory.EmptyStatement(),
                 _groupKeys,
                 _groupValues,
                 _groupHaving,
@@ -808,7 +814,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             _methodNames,
             Nodes,
             _compilationOptions,
-            _preComputedCteExecutionPlan);
+            _preComputedCteExecutionPlan!);
 
         _members.Add(result.Method);
         _methodNames.Push(result.MethodName);
@@ -932,8 +938,11 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         _members.Add(result.Method);
     }
 
-    private void AddNamespace(string columnTypeNamespace)
+    private void AddNamespace(string? columnTypeNamespace)
     {
+        if (string.IsNullOrWhiteSpace(columnTypeNamespace))
+            return;
+
         _compilationContext.TrackNamespace(columnTypeNamespace);
     }
 

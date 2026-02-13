@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable annotations
+
+using System;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 

@@ -72,7 +72,7 @@ public class Parser
         _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
         _enableRecovery = enableRecovery;
 
-        if (enableRecovery && _lexer.SourceText != null)
+        if (enableRecovery)
             _recoveryManager = new ErrorRecoveryManager(diagnostics, _lexer.SourceText);
     }
 
@@ -538,7 +538,7 @@ public class Parser
             {
                 Consume(TokenType.Comma);
 
-                col = ComposeBaseTypes() as IdentifierNode;
+                col = ComposeBaseTypes() as IdentifierNode ?? throw new InvalidOperationException(nameof(IdentifierNode));
 
                 if (col is null)
                     throw new SyntaxException(
@@ -1000,7 +1000,7 @@ public class Parser
             var nextMinPrecedence = op.Associativity == Associativity.Left ? op.Precendence + 1 : op.Precendence;
             Consume(Current.TokenType);
 
-            
+
             if (curr.TokenType == TokenType.Dot && IsSqlKeywordToken(Current.TokenType))
                 ReplaceCurrentToken(new ColumnToken(Current.Value, Current.Span));
 
@@ -1627,7 +1627,7 @@ public class Parser
     {
         ArgsListNode args;
         bool isDistinct;
-        
+
         if (Current is FunctionToken func)
         {
             Consume(TokenType.Function);
