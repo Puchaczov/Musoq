@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +35,16 @@ public static class CteExpressionNodeProcessor
         Stack<string> methodNames,
         Stack<SyntaxNode> nodes)
     {
-        return ProcessCteExpressionNode(node, methodNames, nodes, null);
+        return ProcessCteExpressionNode(node, methodNames, nodes, null!, null!);
+    }
+
+    public static (MethodDeclarationSyntax Method, string MethodName) ProcessCteExpressionNode(
+        CteExpressionNode node,
+        Stack<string> methodNames,
+        Stack<SyntaxNode> nodes,
+        CompilationOptions compilationOptions)
+    {
+        return ProcessCteExpressionNode(node, methodNames, nodes, compilationOptions, null!);
     }
 
     /// <summary>
@@ -51,8 +62,8 @@ public static class CteExpressionNodeProcessor
         CteExpressionNode node,
         Stack<string> methodNames,
         Stack<SyntaxNode> nodes,
-        CompilationOptions? compilationOptions,
-        CteExecutionPlan? preComputedPlan = null)
+        CompilationOptions compilationOptions,
+        CteExecutionPlan preComputedPlan)
     {
         ValidateParameters(node, methodNames, nodes);
 
@@ -94,7 +105,7 @@ public static class CteExpressionNodeProcessor
 
         List<StatementSyntax> statements;
         if (useParallelization)
-            statements = GenerateParallelCteStatements(cteStatements, cteNames, preComputedPlan);
+            statements = GenerateParallelCteStatements(cteStatements, cteNames, preComputedPlan!);
         else
             statements = cteStatements;
 
@@ -110,7 +121,7 @@ public static class CteExpressionNodeProcessor
     private static List<StatementSyntax> GenerateParallelCteStatements(
         List<StatementSyntax> cteStatements,
         List<string> cteNames,
-        CteExecutionPlan? preComputedPlan)
+        CteExecutionPlan preComputedPlan)
     {
         var cteToStatement = new Dictionary<string, StatementSyntax>();
         for (var i = 0; i < cteNames.Count; i++) cteToStatement[cteNames[i]] = cteStatements[i];

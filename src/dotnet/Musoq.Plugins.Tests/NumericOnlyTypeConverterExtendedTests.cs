@@ -10,7 +10,7 @@ namespace Musoq.Plugins.Tests;
 [TestClass]
 public class NumericOnlyTypeConverterExtendedTests
 {
-    private dynamic _converter;
+    private dynamic _converter = null!;
 
     [TestInitialize]
     public void Setup()
@@ -18,7 +18,7 @@ public class NumericOnlyTypeConverterExtendedTests
         var converterType =
             typeof(LibraryBase).Assembly.GetType("Musoq.Plugins.Lib.TypeConversion.NumericOnlyTypeConverter");
         Assert.IsNotNull(converterType, "NumericOnlyTypeConverter type should exist");
-        _converter = Activator.CreateInstance(converterType);
+        _converter = Activator.CreateInstance(converterType)!;
     }
 
     #region TryConvertToInt32 Tests

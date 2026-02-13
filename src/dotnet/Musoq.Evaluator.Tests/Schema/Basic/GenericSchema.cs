@@ -7,9 +7,11 @@ namespace Musoq.Evaluator.Tests.Schema.Basic;
 
 public class GenericSchema<T, TTable> : SchemaBase
 {
+    private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
+
     public GenericSchema(IEnumerable<T> sources, IDictionary<string, int> testNameToIndexMap,
         IDictionary<int, Func<T, object>> testIndexToObjectAccessMap)
-        : base("test", CreateLibrary())
+        : base("test", CachedLibrary.Value)
     {
         AddSource<EntitySource<T>>("entities", sources, testNameToIndexMap, testIndexToObjectAccessMap);
         AddTable<TTable>("entities");

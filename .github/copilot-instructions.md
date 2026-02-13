@@ -500,3 +500,7 @@ dotnet test src/dotnet/Musoq.Schema.Tests --configuration Release --verbosity no
 ### Avoid it all costs
 
 - Don't create garbage assertions within tests. You must ensure that all assertions are meaningful and validate actual expected behavior. No shortcuts.
+
+### As a last resort
+
+- You must overview your changes and ask yourself, is there anything that looks similarly we could extract? We must not duplicate code. No shortcuts.

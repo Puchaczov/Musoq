@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -8,6 +9,8 @@ namespace Musoq.Schema.Helpers;
 
 public static class CSharpTypeNameHelper
 {
+    private static readonly ConcurrentDictionary<MethodInfo, string> MethodSignatureCache = new();
+
     public static string GetCSharpTypeName(Type type)
     {
         if (type == null)
@@ -29,21 +32,20 @@ public static class CSharpTypeNameHelper
             return GetCSharpTypeName(elementType) + brackets;
         }
 
-        if (type.IsGenericType)
-        {
-            var genericTypeDefinition = type.GetGenericTypeDefinition();
-            var genericTypeName = genericTypeDefinition.Name;
+        if (!type.IsGenericType)
+            return GetCSharpTypeAlias(type);
 
-            var tickIndex = genericTypeName.IndexOf('`');
-            if (tickIndex > 0) genericTypeName = genericTypeName.Substring(0, tickIndex);
+        var genericTypeDefinition = type.GetGenericTypeDefinition();
+        var genericTypeName = genericTypeDefinition.Name;
 
-            var genericArgs = type.GetGenericArguments();
-            var argNames = genericArgs.Select(GetCSharpTypeName);
+        var tickIndex = genericTypeName.IndexOf('`');
+        if (tickIndex > 0) genericTypeName = genericTypeName.Substring(0, tickIndex);
 
-            return $"{genericTypeName}<{string.Join(", ", argNames)}>";
-        }
+        var genericArgs = type.GetGenericArguments();
+        var argNames = genericArgs.Select(GetCSharpTypeName);
 
-        return GetCSharpTypeAlias(type);
+        return $"{genericTypeName}<{string.Join(", ", argNames)}>";
+
     }
 
     public static string GetCSharpTypeAlias(Type type)
@@ -71,11 +73,16 @@ public static class CSharpTypeNameHelper
         return type.Name;
     }
 
-    public static string FormatMethodSignature(MethodInfo methodInfo, bool includeNamespace = false)
+    public static string FormatMethodSignature(MethodInfo methodInfo)
     {
         if (methodInfo == null)
             throw new ArgumentNullException(nameof(methodInfo));
 
+        return MethodSignatureCache.GetOrAdd(methodInfo, static mi => FormatMethodSignatureCore(mi));
+    }
+
+    private static string FormatMethodSignatureCore(MethodInfo methodInfo)
+    {
         var returnTypeName = GetCSharpTypeName(methodInfo.ReturnType);
         var parameters = methodInfo.GetParameters();
         var methodName = methodInfo.Name;
@@ -101,19 +108,20 @@ public static class CSharpTypeNameHelper
         }
 
         var paramIndex = 0;
-        for (var i = 0; i < parameters.Length; i++)
+
+        foreach (var parameter in parameters)
         {
-            if (parameters[i].GetCustomAttribute<InjectTypeAttribute>() != null)
+            if (parameter.GetCustomAttribute<InjectTypeAttribute>() != null)
                 continue;
 
             if (paramIndex > 0)
                 signature.Append(", ");
 
-            signature.Append($"{GetCSharpTypeName(parameters[i].ParameterType)} {parameters[i].Name}");
+            signature.Append($"{GetCSharpTypeName(parameter.ParameterType)} {parameter.Name}");
             paramIndex++;
         }
 
-        signature.Append(")");
+        signature.Append(')');
 
         return signature.ToString();
     }

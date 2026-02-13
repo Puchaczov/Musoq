@@ -256,7 +256,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToText_NullBytes_ReturnsEmptyString()
     {
-        var result = Library.ToText(null, "utf-8");
+        var result = Library.ToText(null!, "utf-8");
         Assert.AreEqual(string.Empty, result);
     }
 
@@ -362,7 +362,7 @@ public class FromBytesExtendedTests : LibraryBaseBaseTests
     {
         var original = "Hello";
         var bytes = Encoding.UTF8.GetBytes(original);
-        var result = Library.ToText(bytes, null);
+        var result = Library.ToText(bytes, null!);
         Assert.AreEqual(original, result);
     }
 

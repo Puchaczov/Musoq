@@ -40,7 +40,7 @@ public class EnvironmentVariablesTestBase
                 return chain;
             }, items =>
             {
-                items.CreateBuildMetadataAndInferTypesVisitor = (provider, columns, compilationOptions) =>
+                items.CreateBuildMetadataAndInferTypesVisitor = (provider, columns, compilationOptions, schemaRegistry) =>
                     new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources,
                         LoggerResolver.ResolveLogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>(),
                         compilationOptions);
@@ -70,7 +70,7 @@ public class EnvironmentVariablesTestBase
             ),
             items =>
             {
-                items.CreateBuildMetadataAndInferTypesVisitor = (provider, columns, compilationOptions) =>
+                items.CreateBuildMetadataAndInferTypesVisitor = (provider, columns, compilationOptions, schemaRegistry) =>
                     new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources,
                         LoggerResolver.ResolveLogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>(),
                         compilationOptions);

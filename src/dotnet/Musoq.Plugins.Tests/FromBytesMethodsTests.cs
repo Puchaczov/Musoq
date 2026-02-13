@@ -307,7 +307,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromBytesToBool_WithNull_ShouldReturnNull()
     {
-        var result = Library.FromBytesToBool(null);
+        var result = Library.FromBytesToBool(null!);
         Assert.IsFalse(result.HasValue);
     }
 
@@ -321,7 +321,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromBytesToInt16_WithNull_ShouldReturnNull()
     {
-        var result = Library.FromBytesToInt16(null);
+        var result = Library.FromBytesToInt16(null!);
         Assert.IsFalse(result.HasValue);
     }
 
@@ -335,7 +335,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromBytesToUInt16_WithNull_ShouldReturnNull()
     {
-        var result = Library.FromBytesToUInt16(null);
+        var result = Library.FromBytesToUInt16(null!);
         Assert.IsFalse(result.HasValue);
     }
 
@@ -349,7 +349,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromBytesToInt32_WithNull_ShouldReturnNull()
     {
-        var result = Library.FromBytesToInt32(null);
+        var result = Library.FromBytesToInt32(null!);
         Assert.IsFalse(result.HasValue);
     }
 
@@ -363,7 +363,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromBytesToUInt32_WithNull_ShouldReturnNull()
     {
-        var result = Library.FromBytesToUInt32(null);
+        var result = Library.FromBytesToUInt32(null!);
         Assert.IsFalse(result.HasValue);
     }
 
@@ -377,7 +377,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromBytesToInt64_WithNull_ShouldReturnNull()
     {
-        var result = Library.FromBytesToInt64(null);
+        var result = Library.FromBytesToInt64(null!);
         Assert.IsFalse(result.HasValue);
     }
 
@@ -391,7 +391,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromBytesToUInt64_WithNull_ShouldReturnNull()
     {
-        var result = Library.FromBytesToUInt64(null);
+        var result = Library.FromBytesToUInt64(null!);
         Assert.IsFalse(result.HasValue);
     }
 
@@ -405,7 +405,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromBytesToFloat_WithNull_ShouldReturnNull()
     {
-        var result = Library.FromBytesToFloat(null);
+        var result = Library.FromBytesToFloat(null!);
         Assert.IsFalse(result.HasValue);
     }
 
@@ -419,7 +419,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromBytesToDouble_WithNull_ShouldReturnNull()
     {
-        var result = Library.FromBytesToDouble(null);
+        var result = Library.FromBytesToDouble(null!);
         Assert.IsFalse(result.HasValue);
     }
 
@@ -451,7 +451,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromBytesToChar_WithNull_ShouldReturnNull()
     {
-        var result = Library.FromBytesToChar(null);
+        var result = Library.FromBytesToChar(null!);
         Assert.IsFalse(result.HasValue);
     }
 
@@ -499,7 +499,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     [TestMethod]
     public void FromBytesToHalf_WithNull_ShouldReturnNull()
     {
-        var result = Library.FromBytesToHalf(null);
+        var result = Library.FromBytesToHalf(null!);
         Assert.IsFalse(result.HasValue);
     }
 
@@ -699,10 +699,8 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     public void FromBytesToInt32_WithPadding_NullArray_ShouldReturnNull()
     {
         // Arrange
-        byte[] bytes = null;
-
         // Act
-        var result = Library.FromBytesToInt32(bytes, true);
+        var result = Library.FromBytesToInt32(null!, true);
 
         // Assert
         Assert.IsFalse(result.HasValue);

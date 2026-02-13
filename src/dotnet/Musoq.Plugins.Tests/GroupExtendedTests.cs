@@ -195,7 +195,8 @@ public class GroupExtendedTests
         var group = new Group(null, Array.Empty<string>(), Array.Empty<object>());
 
         // Act
-        var result = group.GetOrCreateValueWithConverter<int, double>("key", 42, val => (double)(int)val * 2);
+        var result = group.GetOrCreateValueWithConverter<int, double>("key", 42,
+            val => Convert.ToDouble(val ?? 0) * 2);
 
         // Assert
         Assert.AreEqual(84.0, result);
@@ -206,10 +207,12 @@ public class GroupExtendedTests
     {
         // Arrange
         var group = new Group(null, Array.Empty<string>(), Array.Empty<object>());
-        group.GetOrCreateValueWithConverter<int, double>("key", 42, val => (double)(int)val * 2);
+        group.GetOrCreateValueWithConverter<int, double>("key", 42,
+            val => Convert.ToDouble(val ?? 0) * 2);
 
         // Act - call again with same key
-        var result = group.GetOrCreateValueWithConverter<int, double>("key", 100, val => (double)(int)val * 2);
+        var result = group.GetOrCreateValueWithConverter<int, double>("key", 100,
+            val => Convert.ToDouble(val ?? 0) * 2);
 
         // Assert - should use original value (42) not the new one (100)
         Assert.AreEqual(84.0, result);

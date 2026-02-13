@@ -25,10 +25,10 @@ public class StringifyTests : BasicEntityTestBase
     [DataRow(
         "select c.ContainerName, c2.ImageName, c.ContainerId from #stdin.text('Ollama', 'llama3.1') c inner join #stdin.text('Ollama', 'llama3.1') c2 on c.ContainerId = c2.ContainerId")]
     [DataRow("table Example {};")]
-    [DataRow("table Example { Id 'System.Int32' };")]
-    [DataRow("table Example { Id 'System.Int32', Name 'System.String' };")]
+    [DataRow("table Example { Id int };")]
+    [DataRow("table Example { Id int, Name string };")]
     [DataRow(
-        "table Example { Id 'System.Int32', Name 'System.String' };\ncouple #a.b with table Example as SourceOfExamples;\nselect 1 from SourceOfExamples('a', 'b')")]
+        "table Example { Id int, Name string };\ncouple #a.b with table Example as SourceOfExamples;\nselect 1 from SourceOfExamples('a', 'b')")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s where s.Column1 = 4")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s group by s.Column2")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s order by s.Column1 desc")]

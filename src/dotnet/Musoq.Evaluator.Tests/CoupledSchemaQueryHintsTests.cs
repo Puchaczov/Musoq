@@ -44,7 +44,7 @@ public class CoupledSchemaQueryHintsTests
         });
 
         var query = @"
-            table Person { Name 'System.String', Status 'System.String', Priority 'System.Int32' };
+            table Person { Name string, Status string, Priority int };
             couple #api.items with table Person as People;
             select p.Name, p.Priority from People() p skip 10";
 
@@ -74,7 +74,7 @@ public class CoupledSchemaQueryHintsTests
         });
 
         var query = @"
-            table Person { Name 'System.String', Status 'System.String', Priority 'System.Int32' };
+            table Person { Name string, Status string, Priority int };
             couple #api.items with table Person as People;
             select p.Name, p.Priority from People() p take 5";
 
@@ -104,7 +104,7 @@ public class CoupledSchemaQueryHintsTests
         });
 
         var query = @"
-            table Person { Name 'System.String', Status 'System.String', Priority 'System.Int32' };
+            table Person { Name string, Status string, Priority int };
             couple #api.items with table Person as People;
             select p.Name, p.Priority from People() p skip 10 take 5";
 
@@ -134,7 +134,7 @@ public class CoupledSchemaQueryHintsTests
         });
 
         var query = @"
-            table Person { Name 'System.String', Status 'System.String', Priority 'System.Int32' };
+            table Person { Name string, Status string, Priority int };
             couple #api.items with table Person as People;
             select distinct p.Name from People() p skip 2 take 3";
 
@@ -162,7 +162,7 @@ public class CoupledSchemaQueryHintsTests
         });
 
         var query = @"
-            table Person { Name 'System.String', Status 'System.String', Priority 'System.Int32' };
+            table Person { Name string, Status string, Priority int };
             couple #api.items with table Person as People;
             select p.Name, p.Priority from People() p order by p.Name skip 10 take 5";
 
@@ -190,7 +190,7 @@ public class CoupledSchemaQueryHintsTests
         });
 
         var query = @"
-            table Person { Name 'System.String', Status 'System.String', Priority 'System.Int32' };
+            table Person { Name string, Status string, Priority int };
             couple #api.items with table Person as People;
             select p.Name, Count(p.Priority) from People() p group by p.Name take 3";
 
@@ -235,8 +235,8 @@ public class CoupledSchemaQueryHintsTests
             });
 
         var query = @"
-            table Item { Id 'System.Int32', Name 'System.String', Status 'System.String' };
-            table Category { CategoryId 'System.String', CategoryName 'System.String' };
+            table Item { Id int, Name string, Status string };
+            table Category { CategoryId string, CategoryName string };
             couple #multiapi.items with table Item as Items;
             couple #multiapi.categories with table Category as Categories;
             select i.Name, c.CategoryName 
@@ -271,7 +271,7 @@ public class CoupledSchemaQueryHintsTests
         });
 
         var query = @"
-            table Person { Name 'System.String', Status 'System.String', Priority 'System.Int32' };
+            table Person { Name string, Status string, Priority int };
             couple #api.items with table Person as People;
             select p.Name, p.Priority from People() p";
 

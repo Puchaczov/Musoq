@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -24,6 +25,13 @@ public static class RoslynSharedFactory
         new(() => SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp), false);
 
     /// <summary>
+    ///     Pre-built template compilation with all core references and options.
+    ///     Creating CSharpCompilation + AddReferences + WithOptions is expensive;
+    ///     by caching the template, per-query cost is just a cheap WithAssemblyName() call.
+    /// </summary>
+    private static readonly Lazy<CSharpCompilation> TemplateCompilation = new(CreateTemplateCompilation);
+
+    /// <summary>
     ///     Gets a workspace for the current thread. This workspace is reused across multiple compilations.
     /// </summary>
     public static AdhocWorkspace Workspace => ThreadLocalWorkspace.Value;
@@ -35,25 +43,27 @@ public static class RoslynSharedFactory
 
     /// <summary>
     ///     Creates a new CSharpCompilation with all common references already added.
+    ///     Uses a pre-built template — the only per-query cost is WithAssemblyName().
     /// </summary>
     /// <param name="assemblyName">The name for the assembly.</param>
     /// <returns>A pre-configured CSharpCompilation.</returns>
     public static CSharpCompilation CreateCompilation(string assemblyName)
     {
-        var compilation = CSharpCompilation.Create(assemblyName);
+        return TemplateCompilation.Value.WithAssemblyName(assemblyName);
+    }
+
+    private static CSharpCompilation CreateTemplateCompilation()
+    {
+        var compilation = CSharpCompilation.Create("__template__");
         compilation = compilation.AddReferences(RuntimeLibraries.References);
 
         return compilation.WithOptions(
             new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
-#if DEBUG
                     optimizationLevel: OptimizationLevel.Debug,
-#else
-                    optimizationLevel: OptimizationLevel.Release,
-#endif
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
-                    deterministic: true)
-                .WithConcurrentBuild(true)
+                    deterministic: false)
+                .WithConcurrentBuild(false)
                 .WithMetadataImportOptions(MetadataImportOptions.Public)
                 .WithPlatform(Platform.AnyCpu));
     }

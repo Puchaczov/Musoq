@@ -2,8 +2,7 @@
 
 **Version:** 0.3.0-draft  
 **Status:** Proposal  
-**Author:** Jakub Puchała / Claude Collaboration  
-**Date:** December 2024
+**Author:** Jakub Puchała
 
 ---
 

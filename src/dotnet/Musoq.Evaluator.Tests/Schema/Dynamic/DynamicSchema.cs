@@ -12,9 +12,10 @@ public class DynamicSchema(
     IEnumerable<dynamic> values,
     Func<RuntimeContext, SchemaMethodInfo[]> getRawConstructors = null,
     Func<string, RuntimeContext, SchemaMethodInfo[]> getRawConstructorsByName = null)
-    : SchemaBase(SchemaName, CreateLibrary())
+    : SchemaBase(SchemaName, CachedLibrary.Value)
 {
     private const string SchemaName = "Dynamic";
+    private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
 
     public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
     {

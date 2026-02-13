@@ -75,6 +75,7 @@ public static class TokenFactory
             { TokenType.False, (pos, text, _) => new FalseToken(new TextSpan(pos, text.Length)) },
             { TokenType.In, (pos, text, _) => new InToken(new TextSpan(pos, text.Length)) },
             { TokenType.NotIn, (pos, text, _) => new NotInToken(new TextSpan(pos, text.Length)) },
+            { TokenType.Between, (pos, text, _) => new BetweenToken(new TextSpan(pos, text.Length)) },
             { TokenType.Colon, (pos, text, _) => new ColonToken(new TextSpan(pos, text.Length)) },
             { TokenType.Table, (pos, text, _) => new TableToken(new TextSpan(pos, text.Length)) },
             { TokenType.LBracket, (pos, text, _) => new LBracketToken(new TextSpan(pos, text.Length)) },
@@ -100,7 +101,8 @@ public static class TokenFactory
             { TokenType.Caret, (pos, text, _) => new CaretToken(new TextSpan(pos, text.Length)) },
             { TokenType.LeftShift, (pos, text, _) => new LeftShiftToken(new TextSpan(pos, text.Length)) },
             { TokenType.RightShift, (pos, text, _) => new RightShiftToken(new TextSpan(pos, text.Length)) },
-            { TokenType.FatArrow, (pos, text, _) => new FatArrowToken(new TextSpan(pos, text.Length)) }
+            { TokenType.FatArrow, (pos, text, _) => new FatArrowToken(new TextSpan(pos, text.Length)) },
+            { TokenType.QuestionMark, (pos, text, _) => new QuestionMarkToken(new TextSpan(pos, text.Length)) }
         };
 
         // Complex tokens that need additional processing

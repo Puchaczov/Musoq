@@ -19,7 +19,7 @@ public partial class Operators
         {
             var escaped = EscapePattern.Replace(pattern, match => @"\" + match.Value);
             var sqlPattern = escaped.Replace("_", ".").Replace("%", ".*");
-            return new Regex(@"\A" + sqlPattern + @"\z", RegexOptions.Singleline | RegexOptions.Compiled);
+            return new Regex(@"\A" + sqlPattern + @"\z", RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
         });
 
         return regex.IsMatch(content);

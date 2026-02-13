@@ -29,7 +29,7 @@ internal static class GroupByEmitter
         return StatementEmitter.CreateBlock(
             StatementEmitter.CreateForeach(variableName,
                 SyntaxFactory.IdentifierName(tableVariable),
-                foreachInstructions).NormalizeWhitespace());
+                foreachInstructions));
     }
 
     /// <summary>

@@ -96,6 +96,7 @@ public static class ClassEmitter
 
     /// <summary>
     ///     Formats the compilation unit with standard C# formatting options.
+    ///     Used only for debug/diagnostic output — not needed for Roslyn compilation.
     /// </summary>
     public static SyntaxNode FormatCompilationUnit(CompilationUnitSyntax compilationUnit, Workspace workspace)
     {
@@ -110,7 +111,7 @@ public static class ClassEmitter
     }
 
     /// <summary>
-    ///     Creates a syntax tree from the formatted code.
+    ///     Creates a syntax tree from the formatted code by re-parsing — expensive, for diagnostics only.
     /// </summary>
     public static SyntaxTree CreateSyntaxTree(SyntaxNode formattedCode)
     {
@@ -119,6 +120,19 @@ public static class ClassEmitter
             new CSharpParseOptions(LanguageVersion.CSharp11),
             null,
             Encoding.ASCII);
+    }
+
+    /// <summary>
+    ///     Creates a syntax tree directly from the compilation unit without the expensive Formatter.Format() step.
+    ///     Uses NormalizeWhitespace() instead, which is an O(n) pass that adds standard whitespace trivia —
+    ///     much faster than the full Roslyn Formatter which requires a Workspace and formatting options.
+    ///     The tree is then re-parsed to ensure proper structure for Roslyn compilation.
+    /// </summary>
+    public static SyntaxTree CreateSyntaxTreeDirect(CompilationUnitSyntax compilationUnit)
+    {
+        return SyntaxFactory.ParseSyntaxTree(
+            compilationUnit.NormalizeWhitespace().ToFullString(),
+            new CSharpParseOptions(LanguageVersion.CSharp11));
     }
 
     /// <summary>

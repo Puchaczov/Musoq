@@ -14,8 +14,8 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
     public void WhenUsingCaseWhenWithStringColumnInCondition_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select case when Size > 1000 then 'Large' else 'Small' end as Category from Items()";
@@ -41,8 +41,8 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
     public void WhenUsingMultipleCaseWhenWithStringColumns_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select case " +
@@ -78,8 +78,8 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
     public void WhenUsingCaseWhenWithBetweenSimulation_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select case " +
@@ -108,9 +108,9 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
     public void WhenUsingCaseWhenWithMultipleStringColumnsInConditions_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Price 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Price string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select case " +
@@ -148,8 +148,8 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
     public void WhenUsingCaseWhenInWhereClause_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() " +
@@ -174,8 +174,8 @@ public class AutomaticNumericTypeInferenceCaseWhenTests : UnknownQueryTestsBase
     public void WhenUsingNestedCaseWhenWithStringColumn_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select case " +
