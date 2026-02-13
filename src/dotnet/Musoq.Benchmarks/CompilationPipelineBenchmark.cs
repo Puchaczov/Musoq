@@ -3,14 +3,12 @@ using Musoq.Benchmarks.Components;
 using Musoq.Benchmarks.Schema.Country;
 using Musoq.Benchmarks.Helpers;
 using Musoq.Converter;
-using Musoq.Converter.Cache;
 using Musoq.Evaluator;
 
 namespace Musoq.Benchmarks;
 
 /// <summary>
 ///     Benchmarks the full query compilation pipeline (parse → transform → code gen → Roslyn emit).
-///     Measures compilation latency with and without the emit cache.
 /// </summary>
 public class CompilationPipelineBenchmark : BenchmarkBase
 {
@@ -36,46 +34,29 @@ public class CompilationPipelineBenchmark : BenchmarkBase
         CreateForCountryWithOptions(SimpleQuery, _sources, new CompilationOptions());
     }
 
-    [IterationSetup]
-    public void IterationSetup()
-    {
-        // Clear the cache before each iteration so cold-path benchmarks measure actual compilation
-        CompiledQueryCache.Clear();
-    }
-
-    [Benchmark(Description = "Simple query — cold (no cache)")]
+    [Benchmark(Description = "Simple query compile")]
     public CompiledQuery CompileSimpleQuery_Cold()
     {
         return CreateForCountryWithOptions(SimpleQuery, _sources, new CompilationOptions());
     }
 
-    [Benchmark(Description = "Simple query — warm (cache hit)")]
+    [Benchmark(Description = "Simple query compile (repeat)")]
     public CompiledQuery CompileSimpleQuery_Warm()
     {
-        // First call populates the cache
         CreateForCountryWithOptions(SimpleQuery, _sources, new CompilationOptions());
-        // Second call should hit the cache
         return CreateForCountryWithOptions(SimpleQuery, _sources, new CompilationOptions());
     }
 
-    [Benchmark(Description = "Complex query — cold (no cache)")]
+    [Benchmark(Description = "Complex query compile")]
     public CompiledQuery CompileComplexQuery_Cold()
     {
         return CreateForCountryWithOptions(ComplexQuery, _sources, new CompilationOptions());
     }
 
-    [Benchmark(Description = "Complex query — warm (cache hit)")]
+    [Benchmark(Description = "Complex query compile (repeat)")]
     public CompiledQuery CompileComplexQuery_Warm()
     {
-        // First call populates the cache
         CreateForCountryWithOptions(ComplexQuery, _sources, new CompilationOptions());
-        // Second call should hit the cache
         return CreateForCountryWithOptions(ComplexQuery, _sources, new CompilationOptions());
-    }
-
-    [GlobalCleanup]
-    public void Cleanup()
-    {
-        CompiledQueryCache.Clear();
     }
 }
