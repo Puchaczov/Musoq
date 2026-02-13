@@ -108,12 +108,12 @@ public class BuildItems : Dictionary<string, object>
         set => this["QUERY_HINTS_PER_SCHEMA"] = value;
     }
 
-    public Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions,
+    public Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions, SchemaRegistry,
             BuildMetadataAndInferTypesVisitor>
         CreateBuildMetadataAndInferTypesVisitor
     {
         get =>
-            (Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions,
+            (Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions, SchemaRegistry,
                 BuildMetadataAndInferTypesVisitor>)this[
                 "CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR"];
         set => this["CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR"] = value;

@@ -65,8 +65,8 @@ public class CompiledQueryCacheTests
 
         var countAfter = CompiledQueryCache.Count;
 
-        Assert.IsTrue(countAfter - countBefore >= 2,
-            "Two different queries should produce at least two distinct cache entries");
+        Assert.IsGreaterThanOrEqualTo(2,
+countAfter - countBefore, "Two different queries should produce at least two distinct cache entries");
     }
 
     [TestMethod]
@@ -100,7 +100,7 @@ public class CompiledQueryCacheTests
             query, Guid.NewGuid().ToString(),
             new SystemSchemaProvider(), new TestsLoggerResolver());
 
-        Assert.IsTrue(CompiledQueryCache.Count > 0, "Cache should have entries after compilation");
+        Assert.IsGreaterThan(0, CompiledQueryCache.Count, "Cache should have entries after compilation");
 
         CompiledQueryCache.Clear();
 

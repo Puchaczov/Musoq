@@ -605,14 +605,14 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
         var text = "Hello World";
 
         // All should find "hello" (lowercase) in "Hello World"
-        Assert.IsTrue(Library.Contains(text, "hello") == true, "Contains should be case-insensitive");
+        Assert.AreEqual(true, Library.Contains(text, "hello"), "Contains should be case-insensitive");
         Assert.AreEqual(0, Library.IndexOf(text, "hello"), "IndexOf should be case-insensitive");
-        Assert.IsTrue(Library.StartsWith(text, "hello") == true, "StartsWith should be case-insensitive");
+        Assert.AreEqual(true, Library.StartsWith(text, "hello"), "StartsWith should be case-insensitive");
 
         // All should find "WORLD" (uppercase) in "Hello World"
-        Assert.IsTrue(Library.Contains(text, "WORLD") == true, "Contains should find WORLD");
+        Assert.AreEqual(true, Library.Contains(text, "WORLD"), "Contains should find WORLD");
         Assert.AreEqual(6, Library.IndexOf(text, "WORLD"), "IndexOf should find WORLD");
-        Assert.IsTrue(Library.EndsWith(text, "WORLD") == true, "EndsWith should be case-insensitive");
+        Assert.AreEqual(true, Library.EndsWith(text, "WORLD"), "EndsWith should be case-insensitive");
     }
 
     [TestMethod]
@@ -649,7 +649,7 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
         var text = "Hello World";
 
         // If Contains finds it, Replace should replace it
-        Assert.IsTrue(Library.Contains(text, "world") == true);
+        Assert.AreEqual(true, Library.Contains(text, "world"));
         var replaced = Library.Replace(text, "world", "Earth");
         Assert.AreEqual("Hello Earth", replaced);
     }
@@ -660,7 +660,7 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
         var text = "HelloWorld";
 
         // If StartsWith matches, RemovePrefix should remove it
-        Assert.IsTrue(Library.StartsWith(text, "HELLO") == true);
+        Assert.AreEqual(true, Library.StartsWith(text, "HELLO"));
         var result = Library.RemovePrefix(text, "HELLO");
         Assert.AreEqual("World", result);
     }
@@ -671,7 +671,7 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
         var text = "HelloWorld";
 
         // If EndsWith matches, RemoveSuffix should remove it
-        Assert.IsTrue(Library.EndsWith(text, "WORLD") == true);
+        Assert.AreEqual(true, Library.EndsWith(text, "WORLD"));
         var result = Library.RemoveSuffix(text, "WORLD");
         Assert.AreEqual("Hello", result);
     }
@@ -683,7 +683,7 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     [TestMethod]
     public void Contains_Unicode_Polish_ShouldWork()
     {
-        Assert.IsTrue(Library.Contains("Zażółć gęślą jaźń", "gęślą") == true);
+        Assert.AreEqual(true, Library.Contains("Zażółć gęślą jaźń", "gęślą"));
     }
 
     [TestMethod]
@@ -717,13 +717,13 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     [TestMethod]
     public void StartsWith_Unicode_Arabic_ShouldWork()
     {
-        Assert.IsTrue(Library.StartsWith("مرحبا بالعالم", "مرحبا") == true);
+        Assert.AreEqual(true, Library.StartsWith("مرحبا بالعالم", "مرحبا"));
     }
 
     [TestMethod]
     public void EndsWith_Unicode_Thai_ShouldWork()
     {
-        Assert.IsTrue(Library.EndsWith("สวัสดีครับ", "ครับ") == true);
+        Assert.AreEqual(true, Library.EndsWith("สวัสดีครับ", "ครับ"));
     }
 
     [TestMethod]
@@ -757,7 +757,7 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     [TestMethod]
     public void Contains_Emoji_ShouldWork()
     {
-        Assert.IsTrue(Library.Contains("Hello 🌍 World", "🌍") == true);
+        Assert.AreEqual(true, Library.Contains("Hello 🌍 World", "🌍"));
     }
 
     [TestMethod]
@@ -772,7 +772,7 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     {
         var result = Library.IndexOf("abc 🎉 def", "🎉");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result >= 0);
+        Assert.IsGreaterThanOrEqualTo(0, result);
     }
 
     #endregion

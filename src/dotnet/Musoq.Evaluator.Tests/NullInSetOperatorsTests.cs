@@ -55,7 +55,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(table.Count >= 1);
+        Assert.IsGreaterThanOrEqualTo(1, table.Count);
     }
 
     [TestMethod]
@@ -218,7 +218,7 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(table.Count >= 1);
+        Assert.IsGreaterThanOrEqualTo(1, table.Count);
     }
 
     #endregion
