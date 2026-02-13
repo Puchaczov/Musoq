@@ -743,9 +743,8 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
         var ns = ClassEmitter.CreateNamespaceDeclaration(Namespace, _compilationContext.GetNamespaces(),
             (ClassDeclarationSyntax)classDeclaration);
         var compilationUnit = ClassEmitter.CreateCompilationUnit(ns);
-        var formatted = ClassEmitter.FormatCompilationUnit(compilationUnit, Workspace);
 
-        _compilationContext.AddSyntaxTree(ClassEmitter.CreateSyntaxTree(formatted));
+        _compilationContext.AddSyntaxTree(ClassEmitter.CreateSyntaxTreeDirect(compilationUnit));
 
 
         if (!string.IsNullOrEmpty(_interpreterSourceCode))

@@ -176,6 +176,23 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         LogicalOperationVisitorHelper.ProcessInOperation(Nodes);
     }
 
+    /// <summary>
+    ///     Desugars BETWEEN into: expression >= min AND expression <= max
+    /// </summary>
+    public void Visit(BetweenNode node)
+    {
+        var max = Nodes.Pop();
+        var min = Nodes.Pop();
+        var expression = Nodes.Pop();
+
+        // Create: expression >= min AND expression <= max
+        var greaterOrEqual = new GreaterOrEqualNode(expression, min);
+        var lessOrEqual = new LessOrEqualNode(expression, max);
+        var andNode = new AndNode(greaterOrEqual, lessOrEqual);
+
+        Nodes.Push(andNode);
+    }
+
     public void Visit(FieldNode node)
     {
         Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder,
@@ -864,7 +881,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
                     var newArgs = new ArgsListNode(newNodes.ToArray());
                     newRefreshMethods.Add(new AccessMethodNode(method.FunctionToken, newArgs,
-                        method.ExtraAggregateArguments, method.CanSkipInjectSource, method.Method));
+                        method.ExtraAggregateArguments, method.CanSkipInjectSource, method.Method, string.Empty, default, method.IsDistinct));
                 }
 
                 refreshMethods = new RefreshNode(newRefreshMethods.ToArray());
@@ -1271,7 +1288,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         }
 
         Nodes.Push(new AccessMethodNode(node.FunctionToken, args, null, node.CanSkipInjectSource, node.Method,
-            node.Alias));
+            node.Alias, default, node.IsDistinct));
     }
 
     private static bool IsInterpretFunctionCall(string functionName, ArgsListNode? args, out string schemaName,

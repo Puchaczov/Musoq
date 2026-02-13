@@ -544,6 +544,14 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
+    public void Visit(BetweenNode node)
+    {
+        node.Expression.Accept(this);
+        node.Min.Accept(this);
+        node.Max.Accept(this);
+        node.Accept(_visitor);
+    }
+
     public void Visit(FieldNode node)
     {
         node.Expression.Accept(this);

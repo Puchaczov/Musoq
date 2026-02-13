@@ -1083,7 +1083,7 @@ public class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
     public void HashOptional_CoupleStatement_ShouldWork()
     {
         const string query = "table DummyTable {" +
-                             "   Name 'System.String'" +
+                             "   Name string" +
                              "};" +
                              "couple A.Entities with table DummyTable as SourceOfDummyRows;" +
                              "select Name from SourceOfDummyRows();";
@@ -1114,8 +1114,8 @@ public class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
     public void HashOptional_CoupleStatementWithMultipleColumns_ShouldWork()
     {
         const string query = "table DataTable {" +
-                             "   Country 'System.String'," +
-                             "   Population 'System.Decimal'" +
+                             "   Country string," +
+                             "   Population decimal" +
                              "};" +
                              "couple A.Entities with table DataTable as SourceOfData;" +
                              "select Country, Population from SourceOfData();";
@@ -1141,7 +1141,7 @@ public class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
     public void HashOptional_CoupleStatementMixedWithHashSyntax_ShouldWork()
     {
         const string query = "table DummyTable {" +
-                             "   Name 'System.String'" +
+                             "   Name string" +
                              "};" +
                              "couple A.Entities with table DummyTable as SourceOfDummyRows;" +
                              "select Name from SourceOfDummyRows();";

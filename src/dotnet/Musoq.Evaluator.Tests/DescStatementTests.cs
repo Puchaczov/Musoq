@@ -937,6 +937,63 @@ public class DescStatementTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void DescFunctionsSchemaMethod_ShouldReturnSameResultAsDescFunctionsSchema()
+    {
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vmFunctionsOnly = CreateAndRunVirtualMachine("desc functions #A", sources);
+        var tableFunctionsOnly = vmFunctionsOnly.Run(TestContext.CancellationToken);
+
+        var vmFunctionsWithMethod = CreateAndRunVirtualMachine("desc functions #A.entities()", sources);
+        var tableFunctionsWithMethod = vmFunctionsWithMethod.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(tableFunctionsOnly.Columns.Count(), tableFunctionsWithMethod.Columns.Count(),
+            "desc functions #A.entities() should have same column count as desc functions #A");
+        Assert.AreEqual(tableFunctionsOnly.Count, tableFunctionsWithMethod.Count,
+            "desc functions #A.entities() should have same row count as desc functions #A");
+
+        for (var i = 0; i < tableFunctionsOnly.Count; i++)
+        {
+            for (var j = 0; j < tableFunctionsOnly.Columns.Count(); j++)
+            {
+                Assert.AreEqual(tableFunctionsOnly[i][j], tableFunctionsWithMethod[i][j],
+                    $"Row {i}, Col {j}: desc functions #A.entities() should produce identical output to desc functions #A");
+            }
+        }
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchemaMethodWithArgs_ShouldReturnSameResultAsDescFunctionsSchema()
+    {
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("test")
+                ]
+            }
+        };
+
+        var vmFunctionsOnly = CreateAndRunVirtualMachine("desc functions #A", sources);
+        var tableFunctionsOnly = vmFunctionsOnly.Run(TestContext.CancellationToken);
+
+        var vmFunctionsWithMethod = CreateAndRunVirtualMachine("desc functions #A.entities('filter')", sources);
+        var tableFunctionsWithMethod = vmFunctionsWithMethod.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(tableFunctionsOnly.Columns.Count(), tableFunctionsWithMethod.Columns.Count(),
+            "desc functions #A.entities('filter') should have same column count as desc functions #A");
+        Assert.AreEqual(tableFunctionsOnly.Count, tableFunctionsWithMethod.Count,
+            "desc functions #A.entities('filter') should have same row count as desc functions #A");
+    }
+
+    [TestMethod]
     public void DescFunctionsSchema_ShouldFormatNullableTypesCorrectly()
     {
         var query = "desc functions #A";

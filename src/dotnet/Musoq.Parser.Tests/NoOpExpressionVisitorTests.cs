@@ -249,6 +249,18 @@ public class NoOpExpressionVisitorTests
     }
 
     [TestMethod]
+    public void NoOpExpressionVisitor_VisitBetweenNode_DoesNotThrow()
+    {
+        var visitor = new TestableNoOpVisitor();
+        var expression = new IntegerNode("5");
+        var min = new IntegerNode("1");
+        var max = new IntegerNode("10");
+        var node = new BetweenNode(expression, min, max);
+
+        visitor.Visit(node);
+    }
+
+    [TestMethod]
     public void NoOpExpressionVisitor_VisitFieldNode_DoesNotThrow()
     {
         var visitor = new TestableNoOpVisitor();

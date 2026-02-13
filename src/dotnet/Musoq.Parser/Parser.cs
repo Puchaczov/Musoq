@@ -326,10 +326,10 @@ public class Parser
             {
                 var sourceAlias = Current.Value;
                 var schemaName = EnsureHashPrefix(sourceAlias);
-                var accessMethod = ComposeAccessMethod(sourceAlias);
+                ComposeAccessMethod(sourceAlias);
 
                 return new DescNode(
-                    new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, string.Empty, 1),
+                    new SchemaFromNode(schemaName, string.Empty, ArgsListNode.Empty, string.Empty, 1),
                     DescForType.FunctionsForSchema);
             }
 
@@ -342,9 +342,9 @@ public class Parser
 
                 if (Current is FunctionToken)
                 {
-                    var accessMethod = ComposeAccessMethod(string.Empty);
+                    ComposeAccessMethod(string.Empty);
                     return new DescNode(
-                        new SchemaFromNode(schemaNameForFunctions, accessMethod.Name, accessMethod.Arguments,
+                        new SchemaFromNode(schemaNameForFunctions, string.Empty, ArgsListNode.Empty,
                             string.Empty, 1), DescForType.FunctionsForSchema);
                 }
 
@@ -494,7 +494,13 @@ public class Parser
             var fieldName = Current.Value;
             Consume(TokenType.Identifier);
             var typeName = Current.Value;
-            ConsumeWordOrStringLiteral();
+            Consume(TokenType.Identifier);
+
+            if (Current.TokenType == TokenType.QuestionMark)
+            {
+                typeName += "?";
+                Consume(TokenType.QuestionMark);
+            }
 
             if (Current.TokenType == TokenType.Comma)
                 Consume(TokenType.Comma);
@@ -1095,12 +1101,27 @@ public class Parser
                     Consume(TokenType.NotIn);
                     node = new NotNode(new InNode(node, ComposeArgs()));
                     break;
+                case TokenType.Between:
+                    node = ComposeBetween(node);
+                    break;
                 default:
                     throw new NotSupportedException(
                         $"Unrecognized token for ComposeEqualityOperators(), the token was {Current.TokenType}");
             }
 
         return node;
+    }
+
+    /// <summary>
+    ///     Parses a BETWEEN expression: expression BETWEEN min AND max
+    /// </summary>
+    private Node ComposeBetween(Node expression)
+    {
+        Consume(TokenType.Between);
+        var min = ComposeArithmeticExpression(0);
+        Consume(TokenType.And);
+        var max = ComposeArithmeticExpression(0);
+        return new BetweenNode(expression, min, max);
     }
 
     private SchemaMethodFromNode ComposeSchemaMethod()
@@ -1306,16 +1327,6 @@ public class Parser
         _lexer.Next();
     }
 
-    private void ConsumeWordOrStringLiteral()
-    {
-        if (Current.TokenType != TokenType.Word && Current.TokenType != TokenType.StringLiteral)
-            throw new SyntaxException($"Expected token is Word or StringLiteral but received {Current.TokenType}.",
-                _lexer.AlreadyResolvedQueryPart);
-
-        Previous = Current;
-        _hasReplacedToken = false;
-        _lexer.Next();
-    }
 
     private void ConsumeAsColumn(TokenType tokenType)
     {
@@ -1346,6 +1357,39 @@ public class Parser
         Consume(TokenType.RightParenthesis);
 
         return new ArgsListNode(args.ToArray());
+    }
+
+    /// <summary>
+    /// Composes function arguments, detecting if DISTINCT keyword is present.
+    /// Used for aggregate functions like COUNT(DISTINCT column).
+    /// </summary>
+    /// <returns>A tuple containing the arguments list and whether DISTINCT was specified.</returns>
+    private (ArgsListNode Args, bool IsDistinct) ComposeArgsWithDistinct()
+    {
+        var args = new List<Node>();
+        var isDistinct = false;
+
+        Consume(TokenType.LeftParenthesis);
+
+        // Check for DISTINCT keyword after opening parenthesis
+        if (Current.TokenType == TokenType.Distinct)
+        {
+            Consume(TokenType.Distinct);
+            isDistinct = true;
+        }
+
+        if (Current.TokenType != TokenType.RightParenthesis)
+            do
+            {
+                if (Current.TokenType == TokenType.Comma)
+                    Consume(Current.TokenType);
+
+                args.Add(ComposeEqualityOperators());
+            } while (Current.TokenType == TokenType.Comma);
+
+        Consume(TokenType.RightParenthesis);
+
+        return (new ArgsListNode(args.ToArray()), isDistinct);
     }
 
     private Node ComposeBaseTypes(int minPrecedence = 0)
@@ -1574,7 +1618,7 @@ public class Parser
             TokenType.Functions or TokenType.True or TokenType.False or
             TokenType.In or TokenType.NotIn or TokenType.Table or TokenType.Couple or
             TokenType.Case or TokenType.When or TokenType.Then or TokenType.Else or
-            TokenType.Distinct or TokenType.ColumnKeyword => true,
+            TokenType.Distinct or TokenType.ColumnKeyword or TokenType.Between => true,
             _ => false
         };
     }
@@ -1582,11 +1626,13 @@ public class Parser
     private AccessMethodNode ComposeAccessMethod(string alias)
     {
         ArgsListNode args;
+        bool isDistinct;
+        
         if (Current is FunctionToken func)
         {
             Consume(TokenType.Function);
-            args = ComposeArgs();
-            return new AccessMethodNode(func, args, null, false, null, alias);
+            (args, isDistinct) = ComposeArgsWithDistinct();
+            return new AccessMethodNode(func, args, null, false, null, alias, isDistinct);
         }
 
         if (Current is MethodAccessToken)
@@ -1594,10 +1640,10 @@ public class Parser
             Consume(TokenType.MethodAccess);
             Consume(TokenType.Dot);
             var token = (FunctionToken)ConsumeAndGetToken(TokenType.Function);
-            args = ComposeArgs();
+            (args, isDistinct) = ComposeArgsWithDistinct();
 
             return new AccessMethodNode(token, args, null, false,
-                null, alias);
+                null, alias, default, isDistinct);
         }
 
         throw new NotSupportedException(
@@ -1659,7 +1705,7 @@ public class Parser
         return currentToken.TokenType is TokenType.Greater or TokenType.GreaterEqual or TokenType.Less
             or TokenType.LessEqual or TokenType.Equality or TokenType.Not or TokenType.Diff or TokenType.Like
             or TokenType.NotLike or TokenType.Contains or TokenType.Is or TokenType.In or TokenType.NotIn
-            or TokenType.RLike or TokenType.NotRLike;
+            or TokenType.RLike or TokenType.NotRLike or TokenType.Between;
     }
 
     private static bool IsQueryOperator(Token currentToken)

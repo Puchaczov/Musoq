@@ -199,7 +199,9 @@ public static class InstanceCreator
 
     private static IRunnable CreateRunnable(BuildItems items)
     {
-        return CreateRunnable(items, () => Assembly.Load(items.DllFile, items.PdbFile));
+        return CreateRunnable(items, () => items.PdbFile is { Length: > 0 }
+            ? Assembly.Load(items.DllFile, items.PdbFile)
+            : Assembly.Load(items.DllFile));
     }
 
     private static IRunnable CreateRunnable(BuildItems items, Func<Assembly> createAssembly)

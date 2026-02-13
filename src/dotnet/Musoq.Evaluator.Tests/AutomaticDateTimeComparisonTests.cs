@@ -38,7 +38,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     [
         new()
         {
-            TypeName = "System.DateTime",
+            TypeName = "datetime",
             EarlierValue = new DateTime(2023, 1, 1),
             LaterValue = new DateTime(2023, 6, 15),
             EqualValue = new DateTime(2023, 3, 15),
@@ -48,7 +48,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         },
         new()
         {
-            TypeName = "System.Nullable`1[System.DateTime]",
+            TypeName = "datetime?",
             EarlierValue = new DateTime(2023, 1, 1),
             LaterValue = new DateTime(2023, 6, 15),
             EqualValue = new DateTime(2023, 3, 15),
@@ -58,7 +58,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         },
         new()
         {
-            TypeName = "System.DateTimeOffset",
+            TypeName = "datetimeoffset",
             EarlierValue = new DateTimeOffset(2023, 1, 1, 12, 0, 0, TimeSpan.Zero),
             LaterValue = new DateTimeOffset(2023, 6, 15, 12, 0, 0, TimeSpan.Zero),
             EqualValue = new DateTimeOffset(2023, 3, 15, 12, 0, 0, TimeSpan.Zero),
@@ -68,7 +68,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         },
         new()
         {
-            TypeName = "System.Nullable`1[System.DateTimeOffset]",
+            TypeName = "datetimeoffset?",
             EarlierValue = new DateTimeOffset(2023, 1, 1, 12, 0, 0, TimeSpan.Zero),
             LaterValue = new DateTimeOffset(2023, 6, 15, 12, 0, 0, TimeSpan.Zero),
             EqualValue = new DateTimeOffset(2023, 3, 15, 12, 0, 0, TimeSpan.Zero),
@@ -78,7 +78,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         },
         new()
         {
-            TypeName = "System.TimeSpan",
+            TypeName = "timespan",
             EarlierValue = new TimeSpan(1, 0, 0),
             LaterValue = new TimeSpan(3, 0, 0),
             EqualValue = new TimeSpan(2, 0, 0),
@@ -88,7 +88,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         },
         new()
         {
-            TypeName = "System.Nullable`1[System.TimeSpan]",
+            TypeName = "timespan?",
             EarlierValue = new TimeSpan(1, 0, 0),
             LaterValue = new TimeSpan(3, 0, 0),
             EqualValue = new TimeSpan(2, 0, 0),
@@ -169,7 +169,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         foreach (var dateTimeType in DateTimeTypes)
         {
-            var fieldName = dateTimeType.TypeName.Contains("TimeSpan") ? "Duration" : "EventDate";
+            var fieldName = dateTimeType.TypeName.Contains("timespan") ? "Duration" : "EventDate";
             TestReversedComparison(dateTimeType, fieldName);
         }
     }
@@ -183,8 +183,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         var testData = DateTimeTypes[0];
         const string query = "table Events {" +
-                             "  EventDate 'System.DateTime'," +
-                             "  Name 'System.String'" +
+                             "  EventDate datetime," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name from Events() where EventDate = '2023-03-15'";
@@ -198,8 +198,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         var testData = DateTimeTypes[0];
         const string query = "table Events {" +
-                             "  EventDate 'System.DateTime'," +
-                             "  Name 'System.String'" +
+                             "  EventDate datetime," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name from Events() where EventDate <> '2023-01-01'";
@@ -218,8 +218,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         var testData = DateTimeTypes[0];
         const string query = "table Events {" +
-                             "  EventDate 'System.DateTime'," +
-                             "  Name 'System.String'" +
+                             "  EventDate datetime," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name from Events() where EventDate > '2023-01-01'";
@@ -238,8 +238,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         var testData = DateTimeTypes[0];
         const string query = "table Events {" +
-                             "  EventDate 'System.DateTime'," +
-                             "  Name 'System.String'" +
+                             "  EventDate datetime," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name from Events() where EventDate < '2023-06-15'";
@@ -258,8 +258,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         var testData = DateTimeTypes[0];
         const string query = "table Events {" +
-                             "  EventDate 'System.DateTime'," +
-                             "  Name 'System.String'" +
+                             "  EventDate datetime," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name from Events() where EventDate >= '2023-03-15'";
@@ -278,8 +278,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         var testData = DateTimeTypes[0];
         const string query = "table Events {" +
-                             "  EventDate 'System.DateTime'," +
-                             "  Name 'System.String'" +
+                             "  EventDate datetime," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name from Events() where EventDate <= '2023-03-15'";
@@ -302,8 +302,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         var testData = DateTimeTypes[2];
         const string query = "table Events {" +
-                             "  EventDate 'System.DateTimeOffset'," +
-                             "  Name 'System.String'" +
+                             "  EventDate datetimeoffset," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name from Events() where EventDate = '2023-03-15T12:00:00+00:00'";
@@ -317,8 +317,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         var testData = DateTimeTypes[4];
         const string query = "table Events {" +
-                             "  Duration 'System.TimeSpan'," +
-                             "  Name 'System.String'" +
+                             "  Duration timespan," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name from Events() where Duration >= '02:00:00'";
@@ -340,8 +340,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     public void WhenComparingDateTimeColumnWithStringLiteral_ShouldAutomaticallyConvert()
     {
         const string query = "table Events {" +
-                             "  EventDate 'System.DateTime'," +
-                             "  Name 'System.String'" +
+                             "  EventDate datetime," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name from Events() where EventDate > '2023-01-01'";
@@ -373,8 +373,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     public void WhenComparingWithVariousDateFormats_ShouldAutomaticallyConvert()
     {
         const string query = "table Events {" +
-                             "  EventDate 'System.DateTime'," +
-                             "  Name 'System.String'" +
+                             "  EventDate datetime," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name from Events() where EventDate <= '2023-12-31'";
@@ -411,8 +411,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         var testData = DateTimeTypes[0];
         const string query = "table Events {" +
-                             "  EventDate 'System.DateTime'," +
-                             "  Name 'System.String'" +
+                             "  EventDate datetime," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name, " +
@@ -444,8 +444,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         var testData = DateTimeTypes[2];
         const string query = "table Events {" +
-                             "  EventDate 'System.DateTimeOffset'," +
-                             "  Name 'System.String'" +
+                             "  EventDate datetimeoffset," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name, " +
@@ -470,8 +470,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         var testData = DateTimeTypes[4];
         const string query = "table Events {" +
-                             "  Duration 'System.TimeSpan'," +
-                             "  Name 'System.String'" +
+                             "  Duration timespan," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name, " +
@@ -503,8 +503,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         var testData = DateTimeTypes[1];
         const string query = "table Events {" +
-                             "  EventDate 'System.Nullable`1[System.DateTime]'," +
-                             "  Name 'System.String'" +
+                             "  EventDate datetime?," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name, " +
@@ -532,7 +532,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
         foreach (var op in operators)
         {
-            var query = $"table Events {{ EventDate '{testData.TypeName}', Name 'System.String' }};" +
+            var query = $"table Events {{ EventDate {testData.TypeName}, Name string }};" +
                         $"couple #test.whatever with table Events as Events; " +
                         $"select Name, " +
                         $"case when EventDate {op} '{testData.StringEqual}' then 'Match' " +
@@ -566,8 +566,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         var testData = DateTimeTypes[0];
         const string query = "table Events {" +
-                             "  EventDate 'System.DateTime'," +
-                             "  Name 'System.String'" +
+                             "  EventDate datetime," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name, " +
@@ -599,8 +599,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         foreach (var dateTimeType in DateTimeTypes)
         {
-            var fieldName = dateTimeType.TypeName.Contains("TimeSpan") ? "Duration" : "EventDate";
-            var query = $"table Events {{ {fieldName} '{dateTimeType.TypeName}', Name 'System.String' }};" +
+            var fieldName = dateTimeType.TypeName.Contains("timespan") ? "Duration" : "EventDate";
+            var query = $"table Events {{ {fieldName} {dateTimeType.TypeName}, Name string }};" +
                         $"couple #test.whatever with table Events as Events; " +
                         $"select Name, " +
                         $"case when {fieldName} > '{dateTimeType.StringEarlier}' then 'NotEarliest' " +
@@ -634,8 +634,8 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
     {
         var testData = DateTimeTypes[0];
         const string query = "table Events {" +
-                             "  EventDate 'System.DateTime'," +
-                             "  Name 'System.String'" +
+                             "  EventDate datetime," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Events as Events; " +
                              "select Name, " +
@@ -668,7 +668,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
     private void TestBasicOperatorFunctionality(DateTimeTypeTestData testData, string op, string fieldName)
     {
-        var query = $"table Events {{ {fieldName} '{testData.TypeName}', Name 'System.String' }};" +
+        var query = $"table Events {{ {fieldName} {testData.TypeName}, Name string }};" +
                     $"couple #test.whatever with table Events as Events; " +
                     $"select Name from Events() where {fieldName} {op} '{testData.StringEqual}'";
 
@@ -694,7 +694,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         foreach (var op in operators)
         {
             var reversedOp = GetReversedOperator(op);
-            var query = $"table Events {{ {fieldName} '{testData.TypeName}', Name 'System.String' }};" +
+            var query = $"table Events {{ {fieldName} {testData.TypeName}, Name string }};" +
                         $"couple #test.whatever with table Events as Events; " +
                         $"select Name from Events() where '{testData.StringEqual}' {reversedOp} {fieldName}";
 
@@ -717,7 +717,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
     private void TestDateTimeComparison(DateTimeTypeTestData testData, OperatorTestData opData, bool isReversed)
     {
-        var fieldName = testData.TypeName.Contains("TimeSpan") ? "Duration" : "EventDate";
+        var fieldName = testData.TypeName.Contains("timespan") ? "Duration" : "EventDate";
         var fieldValue = GetPropertyValue(testData, opData.FieldValue);
         var stringValue = GetPropertyValue(testData, opData.StringValue);
 
@@ -725,13 +725,13 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         if (isReversed)
         {
             var reversedOp = GetReversedOperator(opData.Operator);
-            query = $"table Events {{ {fieldName} '{testData.TypeName}', Name 'System.String' }};" +
+            query = $"table Events {{ {fieldName} {testData.TypeName}, Name string }};" +
                     $"couple #test.whatever with table Events as Events; " +
                     $"select Name from Events() where '{stringValue}' {reversedOp} {fieldName}";
         }
         else
         {
-            query = $"table Events {{ {fieldName} '{testData.TypeName}', Name 'System.String' }};" +
+            query = $"table Events {{ {fieldName} {testData.TypeName}, Name string }};" +
                     $"couple #test.whatever with table Events as Events; " +
                     $"select Name from Events() where {fieldName} {opData.Operator} '{stringValue}'";
         }
@@ -755,7 +755,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
         foreach (var op in operators)
         {
-            var query = $"table Events {{ {fieldName} '{testData.TypeName}', Name 'System.String' }};" +
+            var query = $"table Events {{ {fieldName} {testData.TypeName}, Name string }};" +
                         $"couple #test.whatever with table Events as Events; " +
                         $"select Name from Events() where {fieldName} {op} '{testData.StringEqual}'";
 
@@ -776,13 +776,13 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
     private void TestReversedOperators(DateTimeTypeTestData testData)
     {
-        var fieldName = testData.TypeName.Contains("TimeSpan") ? "Duration" : "EventDate";
+        var fieldName = testData.TypeName.Contains("timespan") ? "Duration" : "EventDate";
         var operators = new[] { "=", ">", "<", ">=", "<=", "<>" };
 
         foreach (var op in operators)
         {
             var reversedOp = GetReversedOperator(op);
-            var query = $"table Events {{ {fieldName} '{testData.TypeName}', Name 'System.String' }};" +
+            var query = $"table Events {{ {fieldName} {testData.TypeName}, Name string }};" +
                         $"couple #test.whatever with table Events as Events; " +
                         $"select Name from Events() where '{testData.StringEqual}' {reversedOp} {fieldName}";
 
@@ -833,7 +833,7 @@ public class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 
     private List<dynamic> CreateTestData(DateTimeTypeTestData testData, string fieldName = null)
     {
-        fieldName ??= testData.TypeName.Contains("TimeSpan") ? "Duration" : "EventDate";
+        fieldName ??= testData.TypeName.Contains("timespan") ? "Duration" : "EventDate";
 
         dynamic earlier = new ExpandoObject();
         ((IDictionary<string, object>)earlier)[fieldName] = testData.EarlierValue;

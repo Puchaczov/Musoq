@@ -137,6 +137,14 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         if (!VisitForArgsListNode((ArgsListNode)node.Right)) Nodes.Push(clonedNode);
     }
 
+    public override void Visit(BetweenNode node)
+    {
+        // BETWEEN is desugared to AND(>=, <=) by RewriteQueryVisitor before this runs,
+        // but we add handling here in case it's used in isolation
+        var clonedNode = Nodes.Pop();
+        Nodes.Push(clonedNode);
+    }
+
     private bool ContainsOtherAlias(Node node)
     {
         var visitor = new IsComplexVisitor(_schemaFromNode.Alias);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -120,7 +121,7 @@ public class MethodsMetadata
     private readonly Dictionary<string, List<MethodInfo>> _methods;
     private readonly Dictionary<string, string> _normalizedToOriginalMethodNames;
 
-    private readonly Dictionary<MethodInfo, ParameterMetadataInfo> _parameterMetadataCache = new();
+    private readonly ConcurrentDictionary<MethodInfo, ParameterMetadataInfo> _parameterMetadataCache = new();
 
     /// <summary>
     ///     Initialize object.
@@ -133,13 +134,11 @@ public class MethodsMetadata
 
     private ParameterMetadataInfo GetCachedParameterMetadata(MethodInfo method)
     {
-        if (_parameterMetadataCache.TryGetValue(method, out var cached))
-            return cached;
-
-        var parameters = method.GetParameters();
-        var metadata = new ParameterMetadataInfo(parameters);
-        _parameterMetadataCache[method] = metadata;
-        return metadata;
+        return _parameterMetadataCache.GetOrAdd(method, static m =>
+        {
+            var parameters = m.GetParameters();
+            return new ParameterMetadataInfo(parameters);
+        });
     }
 
     private ParameterInfo[] GetCachedParameters(MethodInfo method)

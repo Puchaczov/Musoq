@@ -13,8 +13,8 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
     public void WhenUsingHavingWithStringColumnComparison_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Category 'System.String'," +
-                             "  Size 'System.String'" +
+                             "  Category string," +
+                             "  Size string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Category, Count(Category) from Items() group by Category having Count(Category) > 1";
@@ -42,8 +42,8 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
     public void WhenFilteringBeforeGroupByWithStringColumn_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Category 'System.String'," +
-                             "  Size 'System.String'" +
+                             "  Category string," +
+                             "  Size string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Category, Sum(ToInt32(Size)) from Items() where Size > 100 group by Category";
@@ -70,9 +70,9 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
     public void WhenComparingStringColumnInWhereBeforeAggregate_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Category 'System.String'," +
-                             "  Size 'System.String'," +
-                             "  Price 'System.String'" +
+                             "  Category string," +
+                             "  Size string," +
+                             "  Price string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Category from Items() where Size >= 1000 and Price <= 100 group by Category";
@@ -103,8 +103,8 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
     public void WhenUsingCountWithStringColumnFilter_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Count(Name) from Items() where Size > 1000";
@@ -132,10 +132,10 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
     public void WhenCombiningMultipleStringColumnFiltersWithGroupBy_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Category 'System.String'," +
-                             "  Size 'System.String'," +
-                             "  Price 'System.String'," +
-                             "  Quantity 'System.String'" +
+                             "  Category string," +
+                             "  Size string," +
+                             "  Price string," +
+                             "  Quantity string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Category from Items() " +

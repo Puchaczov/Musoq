@@ -9,10 +9,11 @@ namespace Musoq.Evaluator.Tests.Schema.NegativeTests;
 
 public class NegativeTestSchema : SchemaBase
 {
+    private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
     private readonly IReadOnlyDictionary<string, (ISchemaTable Table, RowSource Source)> _tables;
 
     public NegativeTestSchema(IReadOnlyDictionary<string, (ISchemaTable Table, RowSource Source)> tables)
-        : base("test", CreateLibrary())
+        : base("test", CachedLibrary.Value)
     {
         _tables = tables;
     }

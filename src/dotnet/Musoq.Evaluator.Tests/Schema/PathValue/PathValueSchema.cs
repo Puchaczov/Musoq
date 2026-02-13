@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -8,10 +9,11 @@ namespace Musoq.Evaluator.Tests.Schema.PathValue;
 public class PathValueSchema : SchemaBase
 {
     private const string SchemaName = "pathvalue";
+    private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
     private readonly IEnumerable<PathValueEntity> _entities;
 
     public PathValueSchema(IEnumerable<PathValueEntity> entities)
-        : base(SchemaName, CreateLibrary())
+        : base(SchemaName, CachedLibrary.Value)
     {
         _entities = entities;
     }

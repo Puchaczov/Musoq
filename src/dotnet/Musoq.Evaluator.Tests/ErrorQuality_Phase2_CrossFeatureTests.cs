@@ -229,7 +229,7 @@ FROM #A.Entities()";
     {
         // Arrange — TABLE/COUPLE definition + CTE
         var analyzer = CreateAnalyzer();
-        var query = @"table TypedRow { Id 'System.Int32', Name 'System.String' };
+        var query = @"table TypedRow { Id int, Name string };
 couple #A.Entities() with table TypedRow as TypedSource;
 WITH MyData AS (
     SELECT Id, Name FROM TypedSource()

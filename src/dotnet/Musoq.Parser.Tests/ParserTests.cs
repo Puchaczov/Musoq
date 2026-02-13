@@ -1316,4 +1316,244 @@ public class ParserTests
 
         Assert.IsNotNull(result);
     }
+
+    [TestMethod]
+    public void Between_WithIntegers_ShouldParse()
+    {
+        var query = "select 1 from #some.a() where value between 1 and 10";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void Between_WithColumnsAsMinMax_ShouldParse()
+    {
+        var query = "select 1 from #some.a() where age between min_age and max_age";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void Between_Uppercase_ShouldParse()
+    {
+        var query = "SELECT 1 FROM #some.a() WHERE VALUE BETWEEN 1 AND 10";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void Between_WithDecimalValues_ShouldParse()
+    {
+        var query = "select 1 from #some.a() where price between 10.5 and 99.99";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void Between_WithStrings_ShouldParse()
+    {
+        var query = "select 1 from #some.a() where name between 'A' and 'Z'";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void Between_InSelectClause_ShouldParse()
+    {
+        var query = "select value between 1 and 10 as IsInRange from #some.a()";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void Between_CombinedWithAnd_ShouldParse()
+    {
+        var query = "select 1 from #some.a() where value between 1 and 10 and name = 'test'";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void Between_CombinedWithOr_ShouldParse()
+    {
+        var query = "select 1 from #some.a() where value between 1 and 10 or value = 0";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void Between_MultipleBetweensWithAnd_ShouldParse()
+    {
+        var query = "select 1 from #some.a() where a between 1 and 10 and b between 20 and 30";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void Between_WithParentheses_ShouldParse()
+    {
+        var query = "select 1 from #some.a() where (value between 1 and 10) and active = true";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void Between_InCrossApply_ShouldParse()
+    {
+        var query = @"
+            select c.col1 
+            from #some.a() a 
+            cross apply #some.b(c.x) c 
+            where c.col1 between 1 and 100";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void CountDistinct_ShouldParseSuccessfully()
+    {
+        var query = "select Count(distinct Name) from #some.a()";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+        
+        var statementsArray = result.Expression as StatementsArrayNode;
+        Assert.IsNotNull(statementsArray);
+        
+        var singleSet = statementsArray.Statements[0].Node as SingleSetNode;
+        Assert.IsNotNull(singleSet);
+        
+        var select = singleSet.Query.Select;
+        var field = select.Fields[0];
+        var accessMethod = field.Expression as AccessMethodNode;
+        
+        Assert.IsNotNull(accessMethod);
+        Assert.AreEqual("Count", accessMethod.Name);
+        Assert.IsTrue(accessMethod.IsDistinct);
+    }
+
+    [TestMethod]
+    public void CountDistinct_WithGroupBy_ShouldParse()
+    {
+        var query = "select Category, Count(distinct Name) from #some.a() group by Category";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void CountDistinct_WithCrossApply_ShouldParse()
+    {
+        var query = @"
+            select Count(distinct t.Value) as UniqueTagCount
+            from #some.a() p
+            cross apply p.Tags t";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void CountDistinct_CaseInsensitive_ShouldParse()
+    {
+        var query = "select COUNT(DISTINCT Name) from #some.a()";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+        
+        var statementsArray = result.Expression as StatementsArrayNode;
+        Assert.IsNotNull(statementsArray);
+        
+        var singleSet = statementsArray.Statements[0].Node as SingleSetNode;
+        Assert.IsNotNull(singleSet);
+        
+        var select = singleSet.Query.Select;
+        var field = select.Fields[0];
+        var accessMethod = field.Expression as AccessMethodNode;
+        
+        Assert.IsNotNull(accessMethod);
+        Assert.IsTrue(accessMethod.IsDistinct);
+    }
+
+    [TestMethod]
+    public void RegularCount_ShouldNotBeDistinct()
+    {
+        var query = "select Count(Name) from #some.a()";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+        
+        var statementsArray = result.Expression as StatementsArrayNode;
+        Assert.IsNotNull(statementsArray);
+        
+        var singleSet = statementsArray.Statements[0].Node as SingleSetNode;
+        Assert.IsNotNull(singleSet);
+        
+        var select = singleSet.Query.Select;
+        var field = select.Fields[0];
+        var accessMethod = field.Expression as AccessMethodNode;
+        
+        Assert.IsNotNull(accessMethod);
+        Assert.AreEqual("Count", accessMethod.Name);
+        Assert.IsFalse(accessMethod.IsDistinct);
+    }
 }

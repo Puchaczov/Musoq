@@ -13,8 +13,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenSelectingObjectValueMultipliedBy2_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Value * 2 from Items()";
@@ -39,8 +39,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenFilteringObjectValueGreaterThan5_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path from Items() where Value > 5";
@@ -67,8 +67,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenCombiningArithmeticAndComparison_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Value * 2 from Items() where Value > 5";
@@ -92,8 +92,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenObjectValueIsString_ShouldNotAutoConvertForArithmetic()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path from Items() where Value * 2 > 100";
@@ -121,8 +121,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenObjectValueIsNull_ShouldHandleGracefully()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path from Items() where Value > 5";
@@ -146,8 +146,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenComparingObjectValuesWithDifferentNumericTypes_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path from Items() where Value >= 5 and Value <= 10";
@@ -178,8 +178,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenDividingObjectValues_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Value / 2 from Items()";
@@ -204,8 +204,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenAddingObjectValues_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Value + 100 from Items()";
@@ -228,8 +228,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenSubtractingFromObjectValues_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Value - 5 from Items() where Value > 10";
@@ -253,8 +253,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenObjectValueIsInvalidString_ShouldExcludeRow()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path from Items() where Value > 5";
@@ -279,8 +279,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenComparingObjectValueWithLessThan_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path from Items() where Value < 10";
@@ -307,8 +307,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenComparingObjectValueWithEquality_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path from Items() where Value = 42";
@@ -335,8 +335,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenUsingComplexExpression_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select (Value * 2) + 10 from Items() where Value >= 5 and Value <= 15";
@@ -363,8 +363,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenObjectValueOverflowsInt32_ShouldExcludeRow()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path from Items() where Value = 100";
@@ -387,8 +387,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenMixingPathAndValueInSelect_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path, Value * 2 from Items() where Value > 5";
@@ -418,8 +418,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenObjectValueIsString_ShouldSupportStringConcatenation()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Value + ' - suffix' from Items()";
@@ -444,8 +444,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenObjectValueIsStringOrNumeric_AddOperatorShouldWork()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path, Value from Items() where Path = 'numeric' or Path = 'string'";
@@ -475,8 +475,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenAddingObjectValueWithLiteral_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Value + 5 from Items()";
@@ -501,8 +501,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenMultiplyingObjectValueWithLiteral_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Value * 5 from Items()";
@@ -527,8 +527,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenUsingModuloWithObjectValue_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Value % 3 from Items()";
@@ -553,8 +553,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenUsingModuloWithObjectValueAsString_ShouldReject()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path from Items() where Value % 3 = 1";
@@ -580,8 +580,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenUsingUnaryNegationOnObjectValue_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select 0 - Value from Items()";
@@ -606,8 +606,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenOrderingByObjectValue_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path, Value from Items() order by Value";
@@ -632,8 +632,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenOrderingByObjectValueDescending_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path from Items() order by Value desc";
@@ -658,8 +658,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenUsingComplexExpressionWithParentheses_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select (Value + 10) * 2 from Items()";
@@ -684,8 +684,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenUsingComplexExpressionWithMultipleOperators_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Value * 2 + Value / 2 from Items()";
@@ -710,8 +710,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenConcatenatingMultipleStringsWithObject_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select 'Result: ' + Value + ' items' from Items()";
@@ -736,8 +736,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenMultiplyingObjectWithDouble_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Value * 2.5 from Items()";
@@ -762,8 +762,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenAddingObjectWithFloat_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Value + 1.5 from Items()";
@@ -788,8 +788,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenDividingObjectWithDecimal_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Value / 2.0 from Items()";
@@ -814,8 +814,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenSubtractingFloatFromObject_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Value - 2.5 from Items()";
@@ -840,8 +840,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenComparingObjectWithDouble_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path from Items() where Value > 5.5";
@@ -866,8 +866,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenMixingIntLongDoubleInArithmetic_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path, Value * 2 from Items()";
@@ -897,8 +897,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenOrderingByObjectWithDoubleValues_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path from Items() order by Value";
@@ -925,8 +925,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenObjectValueIsDoubleString_ShouldRejectForArithmetic()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path from Items() where Value * 2 > 10";
@@ -952,8 +952,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenCaseWhenReturnsMixedIntLiteralAndObjectValue_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path, CASE WHEN Path = 'age' THEN 35 ELSE Value END as Value from Items()";
@@ -983,8 +983,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenCaseWhenReturnsMixedLongLiteralAndObjectValue_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path, CASE WHEN Path = 'large' THEN 9223372036854775807l ELSE Value END as Value from Items()";
@@ -1014,8 +1014,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenCaseWhenReturnsMixedDecimalLiteralAndObjectValue_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path, CASE WHEN Path = 'price' THEN 99.99 ELSE Value END as Value from Items()";
@@ -1045,8 +1045,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenCaseWhenReturnsMixedStringLiteralAndObjectValue_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path, CASE WHEN Path = 'status' THEN 'Active' ELSE Value END as Value from Items()";
@@ -1076,8 +1076,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenCaseWhenReturnsMultipleBranchesMixedWithObject_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path, CASE " +
@@ -1114,8 +1114,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenCaseWhenReturnsIntAndLong_ShouldPromoteToLong()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path, CASE WHEN Path = 'big' THEN 9223372036854775807l ELSE 42 END as Value from Items()";
@@ -1141,8 +1141,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenCaseWhenReturnsIntAndDecimal_ShouldPromoteToDecimal()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path, CASE WHEN Path = 'precise' THEN 99.99 ELSE 42 END as Value from Items()";
@@ -1168,8 +1168,8 @@ public class AutomaticNumericTypeInference_PathValueTests : PathValueQueryTestBa
     public void WhenCaseWhenReturnsStringAndInt_ShouldPromoteToObject()
     {
         const string query = "table Items {" +
-                             "  Path 'System.String'," +
-                             "  Value 'System.Object'" +
+                             "  Path string," +
+                             "  Value object" +
                              "};" +
                              "couple #pathvalue.data with table Items as Items; " +
                              "select Path, CASE WHEN Path = 'text' THEN 'Hello' ELSE 42 END as Value from Items()";

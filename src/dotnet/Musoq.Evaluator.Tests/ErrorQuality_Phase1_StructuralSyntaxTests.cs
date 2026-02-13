@@ -620,7 +620,7 @@ SELECT * FROM MyData md";
     {
         // Arrange — TABLE with invalid type names
         var analyzer = CreateAnalyzer();
-        var query = @"table MyType { Name 'banana', Value 'potato' };
+        var query = @"table MyType { Name banana, Value potato };
 couple #A.Entities() with table MyType as Source;
 select Name, Value from Source()";
 
@@ -661,7 +661,7 @@ select * from Source()";
     {
         // Arrange — TABLE with duplicate column names
         var analyzer = CreateAnalyzer();
-        var query = @"table Dupes { Name 'System.String', Name 'System.Int32' };
+        var query = @"table Dupes { Name string, Name int };
 couple #A.Entities() with table Dupes as Source;
 select Name from Source()";
 
@@ -682,7 +682,7 @@ select Name from Source()";
     {
         // Arrange — TABLE column without type
         var analyzer = CreateAnalyzer();
-        var query = @"table MyType { Name, Value 'System.Int32' };
+        var query = @"table MyType { Name, Value int };
 couple #A.Entities() with table MyType as Source;
 select Name from Source()";
 
@@ -700,9 +700,9 @@ select Name from Source()";
     [TestMethod]
     public void P_TC_09_TableColumnWithEmptyType()
     {
-        // Arrange — TABLE column with empty string type
+        // Arrange — TABLE column with missing type (second column has no type)
         var analyzer = CreateAnalyzer();
-        var query = @"table MyType { Name '', Value 'System.Int32' };
+        var query = @"table MyType { Name string, Value };
 couple #A.Entities() with table MyType as Source;
 select Name from Source()";
 

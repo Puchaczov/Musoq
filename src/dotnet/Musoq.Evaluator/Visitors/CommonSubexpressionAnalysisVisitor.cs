@@ -179,6 +179,11 @@ public class CommonSubexpressionAnalysisVisitor : IExpressionVisitor
         TrackExpression(node);
     }
 
+    public void Visit(BetweenNode node)
+    {
+        TrackExpression(node);
+    }
+
     public void Visit(FieldNode node)
     {
     }

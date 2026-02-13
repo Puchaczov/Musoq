@@ -33,14 +33,14 @@ public class CreateTableNode : Node
             return $"table {Name} {{}};";
 
         if (TableTypePairs.Length == 1)
-            return $"table {Name} {{ {TableTypePairs[0].ColumnName} '{TableTypePairs[0].TypeName}' }};";
+            return $"table {Name} {{ {TableTypePairs[0].ColumnName} {TableTypePairs[0].TypeName} }};";
 
-        cols.Append($"{TableTypePairs[0].ColumnName} '{TableTypePairs[0].TypeName}', ");
+        cols.Append($"{TableTypePairs[0].ColumnName} {TableTypePairs[0].TypeName}, ");
 
         for (var i = 1; i < TableTypePairs.Length - 1; ++i)
-            cols.Append($"{TableTypePairs[i].ColumnName} '{TableTypePairs[i].TypeName}', ");
+            cols.Append($"{TableTypePairs[i].ColumnName} {TableTypePairs[i].TypeName}, ");
 
-        cols.Append($"{TableTypePairs[^1].ColumnName} '{TableTypePairs[^1].TypeName}'");
+        cols.Append($"{TableTypePairs[^1].ColumnName} {TableTypePairs[^1].TypeName}");
 
         return $"table {Name} {{ {cols} }};";
     }

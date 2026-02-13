@@ -122,7 +122,7 @@ public class EvaluatorExceptionsTests
         var exception = new FromNodeIsNull();
 
         // Assert
-        Assert.Contains("From node is null", exception.Message);
+        Assert.Contains("FROM clause is missing", exception.Message);
     }
 
     #endregion

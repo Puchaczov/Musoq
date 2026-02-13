@@ -15,8 +15,8 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
     public void WhenStringValueOverflowsInt32_ShouldExcludeRow()
     {
         const string query = "table Items {" +
-                             "  Age 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Age string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Age = 100";
@@ -44,8 +44,8 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
     public void WhenStringValueOverflowsInt64_ShouldExcludeRow()
     {
         const string query = "table Items {" +
-                             "  Count 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Count string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Count = 9223372036854775807";
@@ -73,8 +73,8 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
     public void WhenStringValueHasDecimalPart_AndComparingToInt_ShouldExcludeRow()
     {
         const string query = "table Items {" +
-                             "  Amount 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Amount string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Amount = 100";
@@ -102,8 +102,8 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
     public void WhenComparingStringToDecimalLiteral_OverflowDecimalRange_ShouldExcludeRow()
     {
         const string query = "table Items {" +
-                             "  Price 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Price string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Price = 100.50";
@@ -131,8 +131,8 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
     public void WhenMultipleRowsWithMixedValidAndOverflow_OnlyValidRowsMatch()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size > 1000";
@@ -182,8 +182,8 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
     public void WhenObjectTypeOverflowsDuringConversion_ShouldExcludeRow()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value = 100";
@@ -211,8 +211,8 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
     public void WhenStringValueAtBoundary_ShouldMatchCorrectly()
     {
         const string query = "table Items {" +
-                             "  Value 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Value string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value = 2147483647";
@@ -232,8 +232,8 @@ public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
         Assert.AreEqual("MaxValue", table[0].Values[0]);
 
         const string query2 = "table Items {" +
-                              "  Value 'System.String'," +
-                              "  Name 'System.String'" +
+                              "  Value string," +
+                              "  Name string" +
                               "};" +
                               "couple #test.whatever with table Items as Items; " +
                               "select Name from Items() where Value = -2147483648";

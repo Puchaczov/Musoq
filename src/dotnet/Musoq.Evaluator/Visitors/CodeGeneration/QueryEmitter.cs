@@ -68,18 +68,15 @@ public class QueryEmitter(SyntaxGenerator generator)
     {
         yield return SyntaxFactory
             .ParseStatement("var rootGroup = new Group(null, new string[0], new string[0]);")
-            .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn))
-            .NormalizeWhitespace();
+            .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn));
 
         yield return SyntaxFactory
             .ParseStatement("var usedGroups = new HashSet<Group>();")
-            .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn))
-            .NormalizeWhitespace();
+            .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn));
 
         yield return SyntaxFactory
             .ParseStatement("var groups = new Dictionary<GroupKey, Group>();")
-            .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn))
-            .NormalizeWhitespace();
+            .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn));
     }
 
     /// <summary>
@@ -89,8 +86,7 @@ public class QueryEmitter(SyntaxGenerator generator)
     {
         return SyntaxFactory
             .ParseStatement("var parent = rootGroup;")
-            .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn))
-            .NormalizeWhitespace();
+            .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn));
     }
 
     /// <summary>
@@ -100,8 +96,7 @@ public class QueryEmitter(SyntaxGenerator generator)
     {
         return SyntaxFactory
             .ParseStatement("Group group = null;")
-            .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn))
-            .NormalizeWhitespace();
+            .WithTrailingTrivia(SyntaxTriviaList.Create(SyntaxFactory.CarriageReturn));
     }
 
     /// <summary>
