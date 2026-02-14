@@ -592,6 +592,10 @@ public static class EvaluationHelper
     {
         switch (typeName)
         {
+            case "System.Byte":
+                return typeof(byte?);
+            case "System.SByte":
+                return typeof(sbyte?);
             case "System.Int16":
                 return typeof(short?);
             case "System.Int32":
@@ -616,6 +620,14 @@ public static class EvaluationHelper
                 return typeof(double?);
             case "System.Decimal":
                 return typeof(decimal?);
+            case "System.Object":
+                return typeof(object);
+            case "System.DateTime":
+                return typeof(DateTime?);
+            case "System.DateTimeOffset":
+                return typeof(DateTimeOffset?);
+            case "System.TimeSpan":
+                return typeof(TimeSpan?);
             case "System.Guid":
                 return typeof(Guid?);
         }

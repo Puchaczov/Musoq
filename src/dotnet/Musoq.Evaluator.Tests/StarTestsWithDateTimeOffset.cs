@@ -55,7 +55,7 @@ public class StarTestsWithDateTimeOffset : UnknownQueryTestsBase
 
         Assert.AreEqual(typeof(int?), idColumn.ColumnType);
         Assert.AreEqual(typeof(string), nameColumn.ColumnType);
-        Assert.AreEqual(typeof(DateTimeOffset), createdAtColumn.ColumnType);
+        Assert.AreEqual(typeof(DateTimeOffset?), createdAtColumn.ColumnType);
         Assert.AreEqual(typeof(DateTimeOffset?), updatedAtColumn.ColumnType);
 
         var idIndex = table.Columns.ToList().IndexOf(idColumn);

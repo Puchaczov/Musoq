@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -40,6 +41,9 @@ public class EvaluationHelperTests
     [TestMethod]
     public void RemapPrimitiveTypesTest()
     {
+        Assert.AreEqual("System.Byte", EvaluationHelper.RemapPrimitiveTypes("byte"));
+        Assert.AreEqual("System.SByte", EvaluationHelper.RemapPrimitiveTypes("sbyte"));
+
         Assert.AreEqual("System.Int16", EvaluationHelper.RemapPrimitiveTypes("short"));
         Assert.AreEqual("System.Int32", EvaluationHelper.RemapPrimitiveTypes("int"));
         Assert.AreEqual("System.Int64", EvaluationHelper.RemapPrimitiveTypes("long"));
@@ -62,9 +66,39 @@ public class EvaluationHelperTests
         Assert.AreEqual("System.Decimal", EvaluationHelper.RemapPrimitiveTypes("decimal"));
         Assert.AreEqual("System.Decimal", EvaluationHelper.RemapPrimitiveTypes("money"));
 
+        Assert.AreEqual("System.Object", EvaluationHelper.RemapPrimitiveTypes("object"));
+
+        Assert.AreEqual("System.DateTime", EvaluationHelper.RemapPrimitiveTypes("datetime"));
+        Assert.AreEqual("System.DateTimeOffset", EvaluationHelper.RemapPrimitiveTypes("datetimeoffset"));
+        Assert.AreEqual("System.TimeSpan", EvaluationHelper.RemapPrimitiveTypes("timespan"));
+
         Assert.AreEqual("System.Guid", EvaluationHelper.RemapPrimitiveTypes("guid"));
 
         Assert.AreEqual("System.SomeType", EvaluationHelper.RemapPrimitiveTypes("System.SomeType"));
+    }
+
+    [TestMethod]
+    public void RemapPrimitiveTypeAsNullableTest()
+    {
+        Assert.AreEqual(typeof(byte?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Byte"));
+        Assert.AreEqual(typeof(sbyte?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.SByte"));
+        Assert.AreEqual(typeof(short?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Int16"));
+        Assert.AreEqual(typeof(int?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Int32"));
+        Assert.AreEqual(typeof(long?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Int64"));
+        Assert.AreEqual(typeof(ushort?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.UInt16"));
+        Assert.AreEqual(typeof(uint?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.UInt32"));
+        Assert.AreEqual(typeof(ulong?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.UInt64"));
+        Assert.AreEqual(typeof(string), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.String"));
+        Assert.AreEqual(typeof(char?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Char"));
+        Assert.AreEqual(typeof(bool?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Boolean"));
+        Assert.AreEqual(typeof(float?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Single"));
+        Assert.AreEqual(typeof(double?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Double"));
+        Assert.AreEqual(typeof(decimal?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Decimal"));
+        Assert.AreEqual(typeof(object), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Object"));
+        Assert.AreEqual(typeof(DateTime?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.DateTime"));
+        Assert.AreEqual(typeof(DateTimeOffset?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.DateTimeOffset"));
+        Assert.AreEqual(typeof(TimeSpan?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.TimeSpan"));
+        Assert.AreEqual(typeof(Guid?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Guid"));
     }
 
     [TestMethod]

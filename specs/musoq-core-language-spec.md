@@ -56,7 +56,7 @@ This specification does **not** cover:
 - Specific data source schemas (e.g., git, file system, Docker) — each data source defines its own tables and columns
 - Internal compilation or code generation details
 - Performance characteristics or optimization strategies
-- The interpretation schema extension (binary/text parsing) — see the separate `musoq-binary-text-specification.md`
+- The interpretation schema extension (binary/text parsing) — see the separate `musoq-binary-text-spec.md`
 
 ### 1.3 Relationship to Standard SQL
 
@@ -1424,11 +1424,28 @@ Supported type keywords:
 
 | Type Keyword | Maps To |
 |-------------|---------|
+| `byte` | `byte?` |
+| `sbyte` | `sbyte?` |
+| `short` | `short?` |
+| `int` | `int?` |
+| `long` | `long?` |
+| `ushort` | `ushort?` |
+| `uint` | `uint?` |
+| `ulong` | `ulong?` |
+| `float` | `float?` |
+| `double` | `double?` |
+| `decimal` | `decimal?` |
+| `money` | `decimal?` |
+| `bool` | `bool?` |
+| `boolean` | `bool?` |
+| `bit` | `bool?` |
+| `char` | `char?` |
 | `string` | `string` |
-| `decimal` | `decimal` |
-| `bool` | `bool` |
-| `datetimeoffset` | `DateTimeOffset` |
-| `timespan` | `TimeSpan` |
+| `datetime` | `DateTime?` |
+| `datetimeoffset` | `DateTimeOffset?` |
+| `timespan` | `TimeSpan?` |
+| `guid` | `Guid?` |
+| `object` | `object` |
 
 **Example:**
 
@@ -2412,9 +2429,16 @@ type_suffix    ::= 'b' | 'ub' | 's' | 'us' | 'i' | 'ui' | 'l' | 'ul' | 'd' | 'D'
 ### 23.8 Utility Statement Grammar
 
 ```ebnf
-table_definition ::= TABLE identifier '{' column_def {',' column_def} '}'
+table_definition ::= TABLE identifier '{' column_def_list '}'
+
+column_def_list ::= column_def { ',' column_def } [',']
 
 column_def     ::= identifier type_name ['?']
+
+type_name      ::= identifier
+                  | qualified_type_name
+
+qualified_type_name ::= identifier { '.' identifier }
 
 couple_statement ::= COUPLE schema_source WITH TABLE identifier AS identifier
 

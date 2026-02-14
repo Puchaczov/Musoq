@@ -41,7 +41,7 @@ This specification covers:
 ### 1.3 Relationship to Other Specifications
 
 - **Core Language Specification**: TABLE and COUPLE are part of the utility statements defined in `musoq-core-language-spec.md`
-- **Interpretation Schemas**: Similar in concept but distinct from `binary` and `text` schemas defined in `musoq-binary-text-specification.md`
+- **Interpretation Schemas**: Similar in concept but distinct from `binary` and `text` schemas defined in `musoq-binary-text-spec.md`
 
 ### 1.4 Terminology
 
@@ -97,7 +97,7 @@ This provides:
 ### 3.1 Syntax
 
 ```ebnf
-table_statement ::= TABLE table_name '{' column_def_list '}'
+table_definition ::= TABLE table_name '{' column_def_list '}'
 
 table_name ::= identifier
 
