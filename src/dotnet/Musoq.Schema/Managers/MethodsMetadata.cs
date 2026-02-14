@@ -386,7 +386,7 @@ public class MethodsMetadata
                     : FindCommonBaseType(methodArgs, paramsStartIndex);
                 var arrayType = commonType.MakeArrayType();
                 var paramType = parameters[^1].ParameterType;
-                hasMatchedArgTypes = paramType.GetUnderlyingNullable() == arrayType ||
+                hasMatchedArgTypes = paramType.GetUnderlyingNullable() == arrayType.GetUnderlyingNullable() ||
                                      CanBeAssignedFromGeneric(paramType, arrayType);
             }
 
