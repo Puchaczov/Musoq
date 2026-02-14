@@ -133,8 +133,7 @@ public static class MethodDeclarationHelper
                             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
                         SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
                             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                    ])))
-            .NormalizeWhitespace();
+                    ])));
     }
 
     /// <summary>

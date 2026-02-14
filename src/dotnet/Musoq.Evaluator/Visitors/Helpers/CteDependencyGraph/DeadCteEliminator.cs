@@ -1,3 +1,5 @@
+#nullable enable annotations
+
 using System.Linq;
 using Musoq.Parser.Nodes;
 

@@ -369,7 +369,8 @@ public class CteGraphNodeTests
     public void CteGraphNode_OuterQueryNodeName_ShouldBeExpectedValue()
     {
         // Assert
-        Assert.AreEqual("__OUTER__", CteGraphNode.OuterQueryNodeName);
+        var outerName = CteGraphNode.OuterQueryNodeName;
+        Assert.AreEqual("__OUTER__", outerName);
     }
 
     [TestMethod]

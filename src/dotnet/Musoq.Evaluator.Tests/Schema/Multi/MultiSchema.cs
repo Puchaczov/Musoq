@@ -7,8 +7,10 @@ using Musoq.Schema.Managers;
 namespace Musoq.Evaluator.Tests.Schema.Multi;
 
 public class MultiSchema(IReadOnlyDictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)> tables)
-    : SchemaBase("test", CreateLibrary())
+    : SchemaBase("test", CachedLibrary.Value)
 {
+    private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
+    
     public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
     {
         return name switch

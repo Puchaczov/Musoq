@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Schema;
@@ -8,11 +9,12 @@ namespace Musoq.Evaluator.Tests.Schema.DataSourceProgress;
 
 public class ReportingSchema<T> : SchemaBase where T : BasicEntity
 {
+    private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
     private readonly string _schemaName;
     private readonly IEnumerable<T> _sources;
 
     public ReportingSchema(string schemaName, IEnumerable<T> sources)
-        : base(schemaName, CreateLibrary())
+        : base(schemaName, CachedLibrary.Value)
     {
         _schemaName = schemaName;
         _sources = sources;

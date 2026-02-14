@@ -32,7 +32,7 @@ internal sealed partial class Soundex
 
 
         word = PunctuationRegex().Replace(
-            word == null ? string.Empty : word.ToUpper(),
+            word == null ? string.Empty : word.ToUpperInvariant(),
             string.Empty);
 
         if (string.IsNullOrEmpty(word))

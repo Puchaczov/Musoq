@@ -161,9 +161,9 @@ public class ErrorQuality_Phase2_TypeAndColumnTests : BasicEntityTestBase
     {
         // Arrange — JOIN condition comparing int column with string column
         var analyzer = CreateAnalyzer();
-        var query = @"table LeftType { Id 'System.Int32', Name 'System.String' };
+        var query = @"table LeftType { Id int, Name string };
 couple #A.Entities() with table LeftType as LeftSource;
-table RightType { Id 'System.String', Value 'System.Decimal' };
+table RightType { Id string, Value decimal };
 couple #B.Entities() with table RightType as RightSource;
 SELECT l.Name, r.Value
 FROM LeftSource() l
@@ -202,7 +202,7 @@ INNER JOIN RightSource() r ON l.Id = r.Id";
     {
         // Arrange — Avg on string column
         var analyzer = CreateAnalyzer();
-        var query = @"table Strings { Name 'System.String' };
+        var query = @"table Strings { Name string };
 couple #A.Entities() with table Strings as StringSource;
 SELECT Avg(Name) FROM StringSource()";
 

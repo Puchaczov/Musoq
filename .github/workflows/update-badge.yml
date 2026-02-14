@@ -109,30 +109,31 @@ jobs:
         git config --global user.name "github-actions"
         git config --global user.email "github-actions@github.com"
         
-        mkdir -p docs/assets
+        # Save the new badge to a temporary location
+        mv tests-badge-new.svg /tmp/tests-badge-new.svg
         
-        # Check if badge content changed
-        if [ -f "docs/assets/tests-badge.svg" ]; then
-          # Compare old and new badge (ignore minor SVG differences, compare by checking test counts in URL)
-          OLD_SIZE=$(wc -c < docs/assets/tests-badge.svg)
-          NEW_SIZE=$(wc -c < tests-badge-new.svg)
-          
-          # Simple comparison - if files differ, update
-          if cmp -s docs/assets/tests-badge.svg tests-badge-new.svg; then
-            echo "Badge unchanged, skipping commit"
-            exit 0
-          fi
+        # Check if badges branch exists on remote
+        if git ls-remote --exit-code --heads origin badges; then
+          echo "Branch badges exists, checking out..."
+          git fetch origin badges
+          git checkout badges
+        else
+          echo "Branch badges does not exist, creating orphan..."
+          git checkout --orphan badges
+          git rm -rf .
         fi
         
-        echo "Badge changed or new, committing..."
-        mv tests-badge-new.svg docs/assets/tests-badge.svg
+        mkdir -p docs/assets
+        
+        # Move the new badge to the correct location
+        mv /tmp/tests-badge-new.svg docs/assets/tests-badge.svg
         git add docs/assets/tests-badge.svg
         
         if ! git diff --cached --quiet; then
           git commit -m "Update test results badge [skip ci]
 
           Tests: ${PASSED}/${TOTAL} (failures: ${FAILURES}, skipped: ${SKIPPED})"
-          git push
+          git push origin badges
           echo "Badge updated successfully"
         else
           echo "No changes to commit"

@@ -6,12 +6,28 @@ using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Lexing;
+using Musoq.Evaluator;
 
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
 public class BuildMetadataAndInferTypesVisitorTests
 {
+    [TestMethod]
+    public void Constructor_ShouldAcceptSchemaRegistry_AndExposeItViaProperty()
+    {
+        var logger = new Mock<ILogger<BuildMetadataAndInferTypesVisitor>>();
+        var registry = new SchemaRegistry();
+
+        var visitor = new BuildMetadataAndInferTypesVisitor(
+            new EnvironmentVariablesSchemaProvider(),
+            new Dictionary<string, string[]>(),
+            logger.Object,
+            schemaRegistry: registry);
+
+        Assert.AreSame(registry, visitor.SchemaRegistry);
+    }
+
     [TestMethod]
     public void WhenPassedToSchemaMethodArgumentMustHaveKnownType_ShouldHave()
     {

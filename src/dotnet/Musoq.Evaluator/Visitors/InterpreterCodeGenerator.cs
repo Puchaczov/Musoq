@@ -111,10 +111,11 @@ public class InterpreterCodeGenerator
 
 
         _currentTypeParameters = schema.TypeParameters ?? Array.Empty<string>();
+        var typeParameters = _currentTypeParameters;
 
 
         var typeParamsDecl = schema.IsGeneric
-            ? $"<{string.Join(", ", schema.TypeParameters)}>"
+            ? $"<{string.Join(", ", typeParameters)}>"
             : string.Empty;
         var fullClassName = $"{className}{typeParamsDecl}";
 
@@ -122,7 +123,7 @@ public class InterpreterCodeGenerator
         var genericConstraints = string.Empty;
         if (schema.IsGeneric)
         {
-            var constraints = schema.TypeParameters
+            var constraints = typeParameters
                 .Select(t => $"where {t} : IBytesInterpreter<{t}>, new()")
                 .ToArray();
             genericConstraints = " " + string.Join(" ", constraints);
@@ -136,7 +137,7 @@ public class InterpreterCodeGenerator
         builder.AppendLine($"/// Generated interpreter for binary schema '{className}'.");
         if (schema.IsGeneric)
             builder.AppendLine(
-                $"/// This is a generic schema with type parameters: {string.Join(", ", schema.TypeParameters)}.");
+                $"/// This is a generic schema with type parameters: {string.Join(", ", typeParameters)}.");
         if (!string.IsNullOrEmpty(schema.Extends)) builder.AppendLine($"/// Extends schema '{schema.Extends}'.");
         builder.AppendLine("/// </summary>");
         builder.AppendLine(

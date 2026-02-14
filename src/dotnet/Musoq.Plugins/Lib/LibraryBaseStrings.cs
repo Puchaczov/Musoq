@@ -303,7 +303,7 @@ public partial class LibraryBase
 
         do
         {
-            position = value.IndexOf(searchText, position + 1, StringComparison.Ordinal);
+            position = value.IndexOf(searchText, position + 1, StringComparison.OrdinalIgnoreCase);
 
             if (position == -1)
                 return null;
@@ -328,7 +328,7 @@ public partial class LibraryBase
         if (value == null || text == null || text.Length == 0)
             return null;
 
-        var position = value.LastIndexOf(text, StringComparison.Ordinal);
+        var position = value.LastIndexOf(text, StringComparison.OrdinalIgnoreCase);
         return position == -1 ? null : position;
     }
 
@@ -472,7 +472,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.String)]
     public string? ToUpper(string value)
     {
-        return ToUpper(value, CultureInfo.CurrentCulture);
+        return ToUpper(value, CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -520,7 +520,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.String)]
     public string? ToLower(string value)
     {
-        return ToLower(value, CultureInfo.CurrentCulture);
+        return ToLower(value, CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -826,7 +826,7 @@ public partial class LibraryBase
         if (changeTo == null)
             return text;
 
-        return text.Replace(lookFor, changeTo);
+        return text.Replace(lookFor, changeTo, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -841,7 +841,7 @@ public partial class LibraryBase
         if (value == null)
             return null;
 
-        return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value);
+        return CultureInfo.InvariantCulture.TextInfo.ToTitleCase(value);
     }
 
     /// <summary>
@@ -1624,7 +1624,7 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(prefix))
             return value;
 
-        return value.StartsWith(prefix, StringComparison.Ordinal)
+        return value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
             ? value.Substring(prefix.Length)
             : value;
     }
@@ -1645,7 +1645,7 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(suffix))
             return value;
 
-        return value.EndsWith(suffix, StringComparison.Ordinal)
+        return value.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)
             ? value.Substring(0, value.Length - suffix.Length)
             : value;
     }

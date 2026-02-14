@@ -153,7 +153,7 @@ public class VisitorException : Exception, IDiagnosticException
     /// <param name="suggestion">Suggested resolution.</param>
     /// <returns>A configured VisitorException instance.</returns>
     public static VisitorException CreateForProcessingFailure(string visitorName, string operation, string context,
-        string suggestion = null)
+        string? suggestion = null)
     {
         var message = $"Processing failed: {context}";
         if (!string.IsNullOrEmpty(suggestion)) message += $" {suggestion}";

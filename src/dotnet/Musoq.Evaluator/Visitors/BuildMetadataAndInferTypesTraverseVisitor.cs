@@ -670,6 +670,14 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         node.Accept(_visitor);
     }
 
+    public virtual void Visit(BetweenNode node)
+    {
+        node.Expression.Accept(this);
+        node.Min.Accept(this);
+        node.Max.Accept(this);
+        node.Accept(_visitor);
+    }
+
     public virtual void Visit(FieldNode node)
     {
         node.Expression.Accept(this);

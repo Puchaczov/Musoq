@@ -23,6 +23,8 @@ namespace Musoq.Evaluator.Helpers;
 public static class EvaluationHelper
 {
     private static readonly ConcurrentDictionary<Type, string> CastableTypeCache = new();
+    private static readonly ConcurrentDictionary<string, XmlDocument> XmlDocCache = new();
+    private static readonly Regex WhitespaceNormalizerRegex = new(@"\s+", RegexOptions.Compiled);
 
     public static RowSource ConvertEnumerableToSource<T>(IEnumerable<T> enumerable)
     {
@@ -271,11 +273,19 @@ public static class EvaluationHelper
                 return string.Empty;
 
             var xmlPath = Path.ChangeExtension(assemblyPath, ".xml");
-            if (!File.Exists(xmlPath))
-                return string.Empty;
+            
+            var xmlDoc = XmlDocCache.GetOrAdd(xmlPath, static path =>
+            {
+                if (!File.Exists(path))
+                    return null;
 
-            var xmlDoc = new XmlDocument();
-            xmlDoc.Load(xmlPath);
+                var doc = new XmlDocument();
+                doc.Load(path);
+                return doc;
+            });
+
+            if (xmlDoc == null)
+                return string.Empty;
 
             var memberName = GetMemberName(methodInfo);
             var node = xmlDoc.SelectSingleNode($"//member[@name='{memberName}']/summary");
@@ -284,7 +294,7 @@ public static class EvaluationHelper
                 return string.Empty;
 
             var text = node.InnerText.Trim();
-            text = Regex.Replace(text, @"\s+", " ");
+            text = WhitespaceNormalizerRegex.Replace(text, " ");
 
             return text;
         }
@@ -524,8 +534,18 @@ public static class EvaluationHelper
 
     public static string RemapPrimitiveTypes(string typeName)
     {
+        if (typeName.EndsWith("?"))
+        {
+            var baseType = RemapPrimitiveTypes(typeName[..^1]);
+            return $"System.Nullable`1[{baseType}]";
+        }
+
         switch (typeName.ToLowerInvariant())
         {
+            case "byte":
+                return "System.Byte";
+            case "sbyte":
+                return "System.SByte";
             case "short":
                 return "System.Int16";
             case "int":
@@ -553,6 +573,14 @@ public static class EvaluationHelper
             case "decimal":
             case "money":
                 return "System.Decimal";
+            case "object":
+                return "System.Object";
+            case "datetime":
+                return "System.DateTime";
+            case "datetimeoffset":
+                return "System.DateTimeOffset";
+            case "timespan":
+                return "System.TimeSpan";
             case "guid":
                 return "System.Guid";
         }
@@ -564,6 +592,10 @@ public static class EvaluationHelper
     {
         switch (typeName)
         {
+            case "System.Byte":
+                return typeof(byte?);
+            case "System.SByte":
+                return typeof(sbyte?);
             case "System.Int16":
                 return typeof(short?);
             case "System.Int32":
@@ -588,6 +620,14 @@ public static class EvaluationHelper
                 return typeof(double?);
             case "System.Decimal":
                 return typeof(decimal?);
+            case "System.Object":
+                return typeof(object);
+            case "System.DateTime":
+                return typeof(DateTime?);
+            case "System.DateTimeOffset":
+                return typeof(DateTimeOffset?);
+            case "System.TimeSpan":
+                return typeof(TimeSpan?);
             case "System.Guid":
                 return typeof(Guid?);
         }

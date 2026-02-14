@@ -236,7 +236,7 @@ public class TypeConversionTests : LibraryBaseBaseTests
         var format = "dd-MM-yyyy";
 
         // Act
-        var result = Library.ToDateTimeWithFormat(input, format);
+        var result = Library.ToDateTimeWithFormat(input!, format);
 
         // Assert
         Assert.IsNotNull(result);
@@ -323,7 +323,7 @@ public class TypeConversionTests : LibraryBaseBaseTests
         var format = "dd-MM-yyyy";
 
         // Act
-        var result = Library.ToDateTimeWithFormat(input, format);
+        var result = Library.ToDateTimeWithFormat(input!, format);
 
         // Assert
         Assert.IsNull(result);

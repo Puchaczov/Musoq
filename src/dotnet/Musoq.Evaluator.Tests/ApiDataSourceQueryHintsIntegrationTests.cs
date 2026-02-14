@@ -39,7 +39,7 @@ public class ApiDataSourceQueryHintsIntegrationTests
 
     #region Single-Table QueryHints Tests
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("select Id from #api.items()", null, null, false, DisplayName = "No optimization clauses")]
     [DataRow("select Id from #api.items() skip 10", 10L, null, false, DisplayName = "SKIP only")]
     [DataRow("select Id from #api.items() take 5", null, 5L, false, DisplayName = "TAKE only")]
@@ -71,7 +71,7 @@ public class ApiDataSourceQueryHintsIntegrationTests
             $"HasOptimizationHints mismatch for: {query}");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("select Id from #api.items() order by Id", DisplayName = "ORDER BY only")]
     [DataRow("select Id from #api.items() order by Id skip 10", DisplayName = "ORDER BY with SKIP")]
     [DataRow("select Id from #api.items() order by Id take 5", DisplayName = "ORDER BY with TAKE")]
@@ -102,7 +102,7 @@ public class ApiDataSourceQueryHintsIntegrationTests
             $"ORDER BY should prevent hints from being passed for: {query}");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("select distinct Id from #api.items()", DisplayName = "DISTINCT only")]
     [DataRow("select distinct Id from #api.items() skip 5", DisplayName = "DISTINCT with SKIP")]
     [DataRow("select distinct Id from #api.items() take 3", DisplayName = "DISTINCT with TAKE")]
@@ -129,7 +129,7 @@ public class ApiDataSourceQueryHintsIntegrationTests
             $"DISTINCT creates implicit GROUP BY and should prevent hints from being passed for: {query}");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("select Name, Count(Id) from #api.items() group by Name", DisplayName = "GROUP BY only")]
     [DataRow("select Name, Count(Id) from #api.items() group by Name skip 10", DisplayName = "GROUP BY with SKIP")]
     [DataRow("select Name, Count(Id) from #api.items() group by Name take 5", DisplayName = "GROUP BY with TAKE")]
@@ -164,7 +164,7 @@ public class ApiDataSourceQueryHintsIntegrationTests
 
     #region Multi-Table QueryHints Tests
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("select a.Id from #multiapi.items() a inner join #multiapi.categories() b on a.Status = b.CategoryId", 
         DisplayName = "INNER JOIN")]
     [DataRow("select a.Id from #multiapi.items() a inner join #multiapi.categories() b on a.Status = b.CategoryId skip 5", 
@@ -230,7 +230,7 @@ public class ApiDataSourceQueryHintsIntegrationTests
         Assert.IsFalse(capturedCategoriesContext.QueryHints.HasOptimizationHints, $"Categories should have no hints for: {query}");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("select a.Id from #multiapi.items() a inner join #multiapi.categories() b on a.Status = b.CategoryId order by a.Id skip 5", 
         DisplayName = "JOIN with ORDER BY and SKIP")]
     [DataRow("select a.Id from #multiapi.items() a cross apply #multiapi.categories() b order by a.Name take 10", 
@@ -322,7 +322,7 @@ public class ApiDataSourceQueryHintsIntegrationTests
 
         // Assert
         Assert.IsNotNull(capturedContext);
-        Assert.IsNotNull(capturedContext.EndWorkToken);
+        Assert.AreEqual(TestContext.CancellationToken, capturedContext.EndWorkToken);
     }
 
     [TestMethod]

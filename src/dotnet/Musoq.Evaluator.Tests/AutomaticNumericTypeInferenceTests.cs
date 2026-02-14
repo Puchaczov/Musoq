@@ -15,8 +15,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingStringWithLongLiteral_ShouldPromoteToLong()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size = 9223372036854775807l";
@@ -95,8 +95,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingStringColumnWithIntLiteral_UsingGreaterThan_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size > 1000";
@@ -114,8 +114,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingStringColumnWithIntLiteral_UsingLessThan_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size < 1000";
@@ -131,8 +131,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingStringColumnWithIntLiteral_UsingEquals_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size = 1500";
@@ -148,8 +148,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingStringColumnWithIntLiteral_UsingNotEquals_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size <> 1500";
@@ -167,8 +167,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingStringColumnWithIntLiteral_UsingGreaterOrEqual_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size >= 1500";
@@ -186,8 +186,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingStringColumnWithIntLiteral_UsingLessOrEqual_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size <= 1500";
@@ -209,8 +209,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingObjectColumnWithIntLiteral_UsingGreaterThan_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value > 1000";
@@ -228,8 +228,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingObjectColumnWithIntLiteral_UsingEquals_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value = 1500";
@@ -245,8 +245,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingObjectColumnWithZero_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Count 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Count object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Count = 0";
@@ -274,8 +274,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingObjectColumnWithDecimalLiteral_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Price 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Price object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Price < 19.99";
@@ -291,8 +291,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingObjectColumnWithDecimalLiteral_UsingEquals_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Price 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Price object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Price = 30.00";
@@ -312,8 +312,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingObjectFloatWithIntLiteral_WithPrecisionLoss_ShouldNotMatch()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value = 100";
@@ -338,8 +338,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingObjectFloatWithDecimalLiteral_ShouldAllowConversion()
     {
         const string query = "table Items {" +
-                             "  Price 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Price object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Price >= 19.99";
@@ -359,8 +359,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingIntLiteralWithStringColumn_Reversed_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where 1000 < Size";
@@ -378,8 +378,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingIntLiteralWithObjectColumn_Reversed_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where 1500 = Value";
@@ -399,8 +399,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenUsingStringColumnComparisonInCaseWhen_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name, " +
@@ -431,8 +431,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenUsingObjectColumnComparisonInCaseWhen_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name, " +
@@ -461,8 +461,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenStringColumnContainsInvalidNumber_ShouldHandleGracefully()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size > 1000";
@@ -487,8 +487,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenObjectColumnIsNull_ShouldHandleGracefully()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value > 1000";
@@ -513,8 +513,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingWithHexLiteral_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size = 0xFF";
@@ -538,8 +538,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingWithBinaryLiteral_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size > 0b1111";
@@ -568,8 +568,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingStringColumnWithInvalidNumericString_ShouldNotMatch()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size > 1000";
@@ -593,8 +593,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingObjectColumnWithNaN_ShouldNotMatch()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value = 1000";
@@ -618,8 +618,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingObjectColumnWithPositiveInfinity_ShouldNotMatch()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value < 2000";
@@ -643,8 +643,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingStringColumnWithNull_ShouldNotMatch()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size = 1000";
@@ -668,8 +668,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingObjectDoubleWithIntLiteral_WithVerySmallFraction_ShouldNotMatch()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value = 1000";
@@ -693,8 +693,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingObjectFloatWithIntLiteral_WithNegativeFraction_ShouldNotMatch()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value = -100";
@@ -718,8 +718,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingStringColumnWithBoundaryMinInt32_ShouldMatch()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size = -2147483648";
@@ -739,8 +739,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingStringColumnWithBoundaryMaxInt32_ShouldMatch()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size = 2147483647";
@@ -760,8 +760,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingStringColumnWithZeroAndNegativeZero_ShouldMatchBoth()
     {
         const string query = "table Items {" +
-                             "  Size 'System.String'," +
-                             "  Name 'System.String'" +
+                             "  Size string," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size = 0";
@@ -784,8 +784,8 @@ public class AutomaticNumericTypeInferenceTests : UnknownQueryTestsBase
     public void WhenComparingObjectColumnWithBoundaryMaxInt32_StrictMode_ShouldMatchExactly()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value = 2147483647";

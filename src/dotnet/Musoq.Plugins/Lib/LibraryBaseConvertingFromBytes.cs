@@ -6,11 +6,8 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
-        private static byte[]? PadBytes(byte[] value, int requiredSize)
+    private static byte[] PadBytes(byte[] value, int requiredSize)
     {
-        if (value == null)
-            return null;
-
         if (value.Length >= requiredSize)
             return value;
 
