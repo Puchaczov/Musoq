@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Musoq.Plugins;
 
@@ -30,10 +31,10 @@ public sealed class Group
     private string Name { get; }
 #endif
 
-    private IDictionary<string, object?> Values { get; } = new Dictionary<string, object?>();
+    // Concrete Dictionary (not IDictionary) so the JIT can devirtualize TryGetValue/Add/indexer calls.
+    private Dictionary<string, object?> Values { get; } = new();
 
-    private IDictionary<string, Func<object?, object?>> Converters { get; } =
-        new Dictionary<string, Func<object?, object?>>();
+    private Dictionary<string, Func<object?, object?>> Converters { get; } = new();
 
     /// <summary>
     ///     Gets the parent group.
@@ -68,7 +69,7 @@ public sealed class Group
         if (Converters.TryGetValue(name, out var converter))
             return (T?)converter(value);
 
-        return (T?)Values[name];
+        return (T?)value;
     }
 
     /// <summary>
@@ -95,10 +96,13 @@ public sealed class Group
     /// <returns></returns>
     public T? GetOrCreateValue<T>(string name, T? defValue = default)
     {
-        if (!Values.ContainsKey(name))
+        if (!Values.TryGetValue(name, out var value))
+        {
             Values.Add(name, defValue);
+            return defValue;
+        }
 
-        return (T?)Values[name];
+        return (T?)value;
     }
 
     /// <summary>
@@ -110,10 +114,14 @@ public sealed class Group
     /// <returns></returns>
     public T? GetOrCreateValue<T>(string name, Func<T> createDefault)
     {
-        if (!Values.ContainsKey(name))
-            Values.Add(name, createDefault());
+        if (!Values.TryGetValue(name, out var value))
+        {
+            var newValue = createDefault();
+            Values.Add(name, newValue);
+            return newValue;
+        }
 
-        return (T?)Values[name];
+        return (T?)value;
     }
 
     /// <summary>
@@ -138,11 +146,77 @@ public sealed class Group
     /// <returns></returns>
     public TR? GetOrCreateValueWithConverter<T, TR>(string name, T value, Func<object?, object?> converter)
     {
-        if (!Values.ContainsKey(name))
+        if (!Values.TryGetValue(name, out var existingValue))
+        {
+            existingValue = value;
             Values.Add(name, value);
+        }
 
-        Converters.TryAdd(name, converter);
+        if (!Converters.TryGetValue(name, out var existingConverter))
+        {
+            existingConverter = converter;
+            Converters.TryAdd(name, converter);
+        }
 
-        return (TR?)Converters[name](Values[name]);
+        return (TR?)existingConverter(existingValue);
+    }
+
+    /// <summary>
+    ///     Adds <paramref name="delta"/> to the decimal stored under <paramref name="name"/>,
+    ///     initialising it to <paramref name="delta"/> if the slot does not yet exist.
+    ///     Uses a single dictionary lookup (via <see cref="CollectionsMarshal"/>) instead of
+    ///     the two lookups required by <see cref="GetOrCreateValue{T}"/> + <see cref="SetValue{T}"/>.
+    /// </summary>
+    public void AddDecimalValue(string name, decimal delta)
+    {
+        ref var slot = ref CollectionsMarshal.GetValueRefOrAddDefault(Values, name, out var exists);
+        slot = exists ? (object?)((decimal)slot! + delta) : (object?)delta;
+    }
+
+    /// <summary>
+    ///     Increments the integer stored under <paramref name="name"/> by one,
+    ///     initialising it to 1 if the slot does not yet exist.
+    ///     Uses a single dictionary lookup instead of two.
+    /// </summary>
+    public void IncrementIntValue(string name)
+    {
+        ref var slot = ref CollectionsMarshal.GetValueRefOrAddDefault(Values, name, out var exists);
+        slot = exists ? (object?)((int)slot! + 1) : (object?)1;
+    }
+
+    /// <summary>
+    ///     Stores <paramref name="candidate"/> under <paramref name="name"/> if it is greater
+    ///     than the currently stored value, using <paramref name="defaultIfMissing"/> as the
+    ///     initial value when the slot does not yet exist.
+    ///     Uses a single dictionary lookup instead of two.
+    /// </summary>
+    public void UpdateDecimalIfGreater(string name, decimal candidate, decimal defaultIfMissing)
+    {
+        ref var slot = ref CollectionsMarshal.GetValueRefOrAddDefault(Values, name, out var exists);
+        if (!exists)
+        {
+            slot = (object?)defaultIfMissing;
+        }
+
+        if ((decimal)slot! < candidate)
+            slot = (object?)candidate;
+    }
+
+    /// <summary>
+    ///     Stores <paramref name="candidate"/> under <paramref name="name"/> if it is less than
+    ///     the currently stored value, using <paramref name="defaultIfMissing"/> as the initial
+    ///     value when the slot does not yet exist.
+    ///     Uses a single dictionary lookup instead of two.
+    /// </summary>
+    public void UpdateDecimalIfLess(string name, decimal candidate, decimal defaultIfMissing)
+    {
+        ref var slot = ref CollectionsMarshal.GetValueRefOrAddDefault(Values, name, out var exists);
+        if (!exists)
+        {
+            slot = (object?)defaultIfMissing;
+        }
+
+        if ((decimal)slot! > candidate)
+            slot = (object?)candidate;
     }
 }

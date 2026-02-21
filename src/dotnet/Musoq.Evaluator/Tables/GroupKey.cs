@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
+using System;
 using System.Diagnostics;
 using System.Text;
 
 namespace Musoq.Evaluator.Tables;
 
 [DebuggerDisplay("{ToString()}")]
-public class GroupKey(params object[] values)
+public class GroupKey(params object[] values) : IEquatable<GroupKey>
 {
     public readonly object[] Values = values;
 
-    public bool Equals(GroupKey other)
+    public bool Equals(GroupKey? other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
@@ -52,63 +52,26 @@ public class GroupKey(params object[] values)
         return key.ToString();
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (ReferenceEquals(null, obj)) return false;
         if (ReferenceEquals(this, obj)) return true;
         if (obj.GetType() != GetType()) return false;
-        return Equals(Values, ((GroupKey)obj).Values);
+        return Equals((GroupKey)obj);
     }
 
     public override int GetHashCode()
     {
         unchecked
         {
-            var hash = 0;
+            var hash = 17;
             for (var i = 0; i < Values.Length; ++i)
             {
                 var val = Values[i];
-
-                if (val == null)
-                    continue;
-
-                hash += val.GetHashCode();
+                hash = hash * 31 + (val != null ? val.GetHashCode() : 0);
             }
 
             return hash;
         }
-    }
-
-    private static bool Equals<T>(IReadOnlyList<T> first, IReadOnlyList<T> second)
-    {
-        if (first.Count != second.Count)
-            return false;
-
-        var areEqual = true;
-
-        for (var i = 0; i < first.Count && areEqual; i++)
-        {
-            var f = first[i];
-            var s = second[i];
-
-            if (f == null && s == null)
-                continue;
-
-            if (f != null && s == null)
-            {
-                areEqual = false;
-                continue;
-            }
-
-            if (f == null)
-            {
-                areEqual = false;
-                continue;
-            }
-
-            areEqual &= f.Equals(s);
-        }
-
-        return areEqual;
     }
 }

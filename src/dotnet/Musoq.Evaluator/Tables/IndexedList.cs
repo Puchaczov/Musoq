@@ -77,10 +77,7 @@ public abstract class IndexedList<TKey, TValue>
 
     protected bool HasIndex(TKey key)
     {
-        foreach (var indexesKey in Indexes.Keys)
-            if (Equals(indexesKey, key))
-                return true;
-        return false;
+        return Indexes.ContainsKey(key);
     }
 
     protected bool HasMatchKey(TKey indexKey, TValue value)

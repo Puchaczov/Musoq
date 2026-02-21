@@ -177,9 +177,6 @@ public partial class LibraryBase
             return;
         }
 
-        var storedValue = parentGroup.GetOrCreateValue(name, decimal.MaxValue);
-
-        if (storedValue > value)
-            parentGroup.SetValue(name, value);
+        parentGroup.UpdateDecimalIfLess(name, value.Value, decimal.MaxValue);
     }
 }

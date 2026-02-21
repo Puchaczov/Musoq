@@ -49,8 +49,7 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 
     /// <summary>
@@ -71,8 +70,7 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 
     /// <summary>
@@ -92,8 +90,7 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 
     /// <summary>
@@ -113,8 +110,7 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 
     /// <summary>
@@ -134,8 +130,7 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 
     /// <summary>
@@ -155,8 +150,7 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 
     /// <summary>
@@ -176,8 +170,7 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 
     /// <summary>
@@ -197,8 +190,7 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 
     /// <summary>
@@ -218,8 +210,7 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 
     /// <summary>
@@ -239,8 +230,7 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 
     /// <summary>
@@ -260,8 +250,7 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 
     /// <summary>
@@ -281,8 +270,7 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 
     /// <summary>
@@ -302,8 +290,7 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 
     /// <summary>
@@ -323,8 +310,7 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 
     /// <summary>
@@ -344,7 +330,6 @@ public partial class LibraryBase
             return;
         }
 
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        parentGroup.IncrementIntValue(name);
     }
 }

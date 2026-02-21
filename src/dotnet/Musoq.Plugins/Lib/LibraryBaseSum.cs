@@ -256,7 +256,6 @@ public partial class LibraryBase
             return;
         }
 
-        var value = parentGroup.GetOrCreateValue<decimal>(name);
-        parentGroup.SetValue(name, value + number);
+        parentGroup.AddDecimalValue(name, number.Value);
     }
 }
