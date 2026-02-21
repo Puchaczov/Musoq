@@ -1,8 +1,6 @@
 # Query Evaluator Performance Benchmark Results
 
-This document captures the benchmark results that validate the performance
-optimisations made in commit `68799f7` and the follow-up fix in the current
-commit.
+This document captures benchmark results from two rounds of optimisations.
 
 ## Environment
 
@@ -15,7 +13,7 @@ Job: ShortRun  (WarmupCount=3, IterationCount=3, LaunchCount=1)
 
 ---
 
-## 1 — Group dictionary-access hot paths (`GroupOperationsBenchmark`)
+## Round 1 — Group dictionary-access hot paths (`GroupOperationsBenchmark`)
 
 Each benchmark performs **10 000 iterations** of the named `Group` method.
 "Before" re-implements the original pattern inline; "after" exercises the new code.
@@ -29,19 +27,11 @@ Each benchmark performs **10 000 iterations** of the named `Group` method.
 
 **Root cause of the improvement:** the original code always performed a final
 `Values[name]` or `Converters[name]` dictionary indexer lookup even after the
-value had already been retrieved by a preceding `TryGetValue` call. Replacing
-the 2–3-operation `ContainsKey → Add → indexer` pattern with a single
-`TryGetValue → conditional Add → return local` eliminates that redundant lookup
-entirely.
+value had already been retrieved by a preceding `TryGetValue` call.
 
 ---
 
-## 2 — `GroupKey` hash quality and dictionary throughput (`GroupKeyHashBenchmark`)
-
-10 000 keys with 2-field payloads (simulating `GROUP BY gender, bucket`).
-"Before" uses an `OldGroupKey` class with the original additive hash; "after"
-uses the production `GroupKey` with the new polynomial hash and the
-`IEquatable<GroupKey>` fix.
+## Round 1 — `GroupKey` hash quality and dictionary throughput (`GroupKeyHashBenchmark`)
 
 | Scenario | Before | After | Δ |
 |---|---|---|---|
@@ -49,29 +39,67 @@ uses the production `GroupKey` with the new polynomial hash and the
 | Dictionary GROUP BY — normal keys | 648 µs | 680 µs | ~neutral (within noise) |
 | Dictionary GROUP BY — permutation keys | 1 576 µs | 1 448 µs | **−8 %** |
 
-### Hash-collision analysis
-
-| Algorithm | Distinct hash buckets (10 000 keys, 100 logical groups) | Permutation pairs that share a bucket |
-|---|---|---|
-| Additive (before) | 50 | 5 out of 10 pairs |
-| Polynomial (after) | 50 | **0** out of 10 pairs |
-
-Key observations:
-- **Normal keys**: performance is at parity. The polynomial hash costs the same
-  compute as the additive hash; the IEquatable fix (which makes Dictionary use
-  the typed Equals path with direct array access instead of an IReadOnlyList
-  interface-dispatched helper) brings throughput back to baseline.
-- **Permutation keys** (`GROUP BY a, b` where some rows have transposed
-  values): **8 % faster** because the polynomial hash distributes swapped-field
-  keys into separate buckets, eliminating false-positive equality comparisons.
-- **Worst-case correctness**: the additive hash guarantees hash collisions for
-  every permutation of the same multi-field key. With 5-field group keys this
-  creates a 120× fan-out of wasted equality checks for a single logical group.
-  The polynomial hash has no such structural guarantee of collision.
+**Permutation-pair hash collisions:** 5 / 10 (additive) → **0 / 10** (polynomial).
 
 ---
 
-## 3 — End-to-end GROUP BY / DISTINCT (`DistinctBenchmark`, 9 453 profile rows)
+## Round 2 — Aggregation set methods (`AggregationSetBenchmark`)
+
+Each benchmark performs **10 000 iterations**. "Before" uses the two-step
+`GetOrCreateValue + SetValue` pattern (two dictionary lookups). "After" uses
+the new single-lookup `CollectionsMarshal.GetValueRefOrAddDefault` methods.
+
+| Method | Mean (before) | Mean (after) | Δ |
+|---|---|---|---|
+| `SetSum` (decimal accumulation) | 320.8 µs | 221.9 µs | **−31 %** |
+| `SetCount` (int increment) | 269.2 µs | 161.7 µs | **−40 %** |
+| `SetMax` (decimal conditional max) | 313.0 µs | 220.1 µs | **−30 %** |
+| `SetMin` (decimal conditional min) | 311.8 µs | 220.1 µs | **−29 %** |
+
+**Root cause:** every aggregation row previously required two separate
+dictionary lookups — `GetOrCreateValue` (TryGetValue + optional Add) and then
+`SetValue` (indexer = second hash lookup + write).  `CollectionsMarshal.GetValueRefOrAddDefault`
+gives a `ref` to the exact slot, so a single lookup both reads the old value
+and allows writing the new one through the reference.  This also required
+changing `Group.Values` / `Group.Converters` from `IDictionary<>` to concrete
+`Dictionary<>` (a prerequisite for `CollectionsMarshal`), which additionally
+enables JIT devirtualization of all dictionary operations.
+
+---
+
+## Round 2 — SQL `LIKE` operator (`LikeBenchmark`)
+
+Benchmarks perform **10 000 calls** per measurement. "Regex baseline"
+re-implements the original compiled-Regex path inline.
+
+### Operator micro-benchmarks
+
+| Pattern | Regex baseline | Fast path (string method) | Δ |
+|---|---|---|---|
+| `%suffix` (`EndsWith`) | 464.0 µs | 171.2 µs | **−63 %** |
+| `prefix%` (`StartsWith`) | 435.2 µs | 177.6 µs | **−59 %** |
+| `%middle%` (`Contains`) | 484.3 µs | 220.0 µs | **−55 %** |
+| `exact` (no wildcards, `Equals`) | 434.0 µs | 121.5 µs | **−72 %** |
+
+### End-to-end query benchmarks (9 453 profile rows)
+
+| Query | Mean |
+|---|---|
+| `WHERE Email LIKE '%.com'` | 1 618 µs |
+| `WHERE Email LIKE 'a%'` | 1 080 µs |
+| `WHERE Email LIKE '%john%'` | 1 013 µs |
+
+**Root cause:** compiled `Regex` objects carry significant per-call overhead
+even after compilation.  For the four most common SQL LIKE shapes
+(`%suffix`, `prefix%`, `%middle%`, exact match) the optimised code detects
+the shape at first use and caches a `Func<string, bool>` that calls
+`string.EndsWith` / `StartsWith` / `Contains` / `Equals` with
+`OrdinalIgnoreCase`.  Patterns with non-ASCII characters or `_` wildcards
+fall through to the original compiled-Regex path unchanged.
+
+---
+
+## Round 1+2 combined — End-to-end GROUP BY / DISTINCT (`DistinctBenchmark`, 9 453 rows)
 
 | Method | Mean | Allocated |
 |---|---|---|
@@ -86,31 +114,34 @@ Key observations:
 | `DistinctLowCardinality` | 2.30 ms | 2.24 MB |
 | `GroupByLowCardinality` | 2.29 ms | 2.24 MB |
 
-*No dedicated before/after split here — these are absolute numbers with the
-optimised code. For aggregation-heavy workloads the micro-benchmark savings
-(38–48 % on individual Group method calls) directly translate into query
-throughput improvements because every row in a GROUP BY query calls
-`GetOrCreateValue` once per aggregation column.*
-
 ---
 
-## Changes validated by these benchmarks
+## Summary of all changes validated by these benchmarks
 
 | File | Change | Measured benefit |
 |---|---|---|
-| `Musoq.Plugins/Group.cs` | `GetValue`: eliminated redundant final `Values[name]` indexer | −48 % per call |
-| `Musoq.Plugins/Group.cs` | `GetOrCreateValue(T)`: `TryGetValue + Add + return local` instead of `ContainsKey + Add + indexer` | −39 % per call |
+| `Musoq.Plugins/Group.cs` | `IDictionary<>` → `Dictionary<>` for `Values`/`Converters` | Devirtualizes all dictionary calls; prerequisite for `CollectionsMarshal` |
+| `Musoq.Plugins/Group.cs` | `GetValue`: eliminated redundant final indexer lookup | −48 % per call |
+| `Musoq.Plugins/Group.cs` | `GetOrCreateValue(T)`: `TryGetValue+Add+return` instead of `ContainsKey+Add+indexer` | −39 % per call |
 | `Musoq.Plugins/Group.cs` | `GetOrCreateValue(Func<T>)`: same TryGetValue pattern | −42 % per call |
-| `Musoq.Plugins/Group.cs` | `GetOrCreateValueWithConverter`: `TryGetValue` for both dicts, return captured locals | −42 % per call |
-| `Musoq.Evaluator/Tables/GroupKey.cs` | Polynomial hash replaces additive hash | Eliminates permutation-based collisions; dictionary GROUP BY on permutation-heavy data is 8 % faster |
-| `Musoq.Evaluator/Tables/GroupKey.cs` | Implement `IEquatable<GroupKey>`; `override Equals(object)` delegates to typed `Equals(GroupKey)` with direct array access | Restores dictionary throughput to parity with the additive-hash baseline for non-permutation data |
-| `Musoq.Evaluator/Tables/IndexedList.cs` | `HasIndex`: O(n) `foreach` over keys replaced by O(1) `ContainsKey` | Eliminates linear scan on every call |
+| `Musoq.Plugins/Group.cs` | `GetOrCreateValueWithConverter`: `TryGetValue` for both dicts | −42 % per call |
+| `Musoq.Plugins/Group.cs` | New `AddDecimalValue` via `CollectionsMarshal` | −31 % vs SetSum's GetOrCreate+SetValue |
+| `Musoq.Plugins/Group.cs` | New `IncrementIntValue` via `CollectionsMarshal` | −40 % vs SetCount's GetOrCreate+SetValue |
+| `Musoq.Plugins/Group.cs` | New `UpdateDecimalIfGreater/Less` via `CollectionsMarshal` | −29–30 % vs SetMax/Min's GetOrCreate+SetValue |
+| `Musoq.Plugins/LibraryBaseSum.cs` | `SetSum(decimal)` → `AddDecimalValue` | 1 dict lookup saved per row per SUM column |
+| `Musoq.Plugins/LibraryBaseMax.cs` | `SetMax(decimal)` → `UpdateDecimalIfGreater` | 1 dict lookup saved per row per MAX column |
+| `Musoq.Plugins/LibraryBaseMin.cs` | `SetMin(decimal)` → `UpdateDecimalIfLess` | 1 dict lookup saved per row per MIN column |
+| `Musoq.Plugins/LibraryBaseCount.cs` | All `SetCount` overloads → `IncrementIntValue` | 1 dict lookup saved per row per COUNT column |
+| `Musoq.Evaluator/Tables/GroupKey.cs` | Polynomial hash + `IEquatable<GroupKey>` | Eliminates permutation collisions; −8 % on permutation-heavy GROUP BY |
+| `Musoq.Evaluator/Tables/GroupKey.cs` | `override Equals(object)` → delegates to typed `Equals(GroupKey)` | Restores dictionary throughput to parity |
+| `Musoq.Evaluator/Tables/IndexedList.cs` | `HasIndex`: O(n) scan → O(1) `ContainsKey` | Eliminates linear scan |
+| `Musoq.Evaluator/Operators.cs` | `Like`: fast string methods for `%suffix`, `prefix%`, `%middle%`, exact patterns | −55 to −72 % per LIKE call for ASCII patterns |
 
 ---
 
-*Benchmarks can be reproduced with:*
+*Reproduce with:*
 ```bash
 dotnet run --project src/dotnet/Musoq.Benchmarks --configuration Release \
-  -- --filter "*GroupOperationsBenchmark*|*GroupKeyHashBenchmark*|*DistinctBenchmark*" \
+  -- --filter "*GroupOperationsBenchmark*|*GroupKeyHashBenchmark*|*AggregationSetBenchmark*|*LikeBenchmark*|*DistinctBenchmark*" \
   --job short --memory
 ```
