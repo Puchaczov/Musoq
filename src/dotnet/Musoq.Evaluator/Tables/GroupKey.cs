@@ -64,15 +64,11 @@ public class GroupKey(params object[] values)
     {
         unchecked
         {
-            var hash = 0;
+            var hash = 17;
             for (var i = 0; i < Values.Length; ++i)
             {
                 var val = Values[i];
-
-                if (val == null)
-                    continue;
-
-                hash += val.GetHashCode();
+                hash = hash * 31 + (val != null ? val.GetHashCode() : 0);
             }
 
             return hash;
