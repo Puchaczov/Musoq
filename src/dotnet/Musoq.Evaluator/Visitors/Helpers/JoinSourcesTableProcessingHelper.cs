@@ -112,6 +112,8 @@ public static class JoinSourcesTableProcessingHelper
         return computingBlock.AddStatements(
             getRowsSourceOrEmpty(node.First.Alias),
             getRowsSourceOrEmpty(node.Second.Alias),
+            SyntaxFactory.ParseStatement(
+                $"var {node.Second.Alias}RowsCached = {node.Second.Alias}Rows.Rows as Musoq.Schema.DataSources.IObjectResolver[] ?? System.Linq.Enumerable.ToArray({node.Second.Alias}Rows.Rows);"),
             SyntaxFactory.ForEachStatement(
                 SyntaxFactory.IdentifierName("var"),
                 SyntaxFactory.Identifier($"{node.First.Alias}Row"),
@@ -120,7 +122,7 @@ public static class JoinSourcesTableProcessingHelper
                     SyntaxFactory.ForEachStatement(
                         SyntaxFactory.IdentifierName("var"),
                         SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
-                        SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
+                        SyntaxFactory.IdentifierName($"{node.Second.Alias}RowsCached"),
                         SyntaxFactory.Block(
                             generateCancellationExpression(),
                             (StatementSyntax)ifStatement,
@@ -166,6 +168,8 @@ public static class JoinSourcesTableProcessingHelper
         return computingBlock.AddStatements(
             getRowsSourceOrEmpty(node.First.Alias),
             getRowsSourceOrEmpty(node.Second.Alias),
+            SyntaxFactory.ParseStatement(
+                $"var {node.Second.Alias}RowsCached = {node.Second.Alias}Rows.Rows as Musoq.Schema.DataSources.IObjectResolver[] ?? System.Linq.Enumerable.ToArray({node.Second.Alias}Rows.Rows);"),
             SyntaxFactory.ForEachStatement(
                 SyntaxFactory.IdentifierName("var"),
                 SyntaxFactory.Identifier($"{node.First.Alias}Row"),
@@ -177,7 +181,7 @@ public static class JoinSourcesTableProcessingHelper
                     SyntaxFactory.ForEachStatement(
                         SyntaxFactory.IdentifierName("var"),
                         SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
-                        SyntaxFactory.IdentifierName($"{node.Second.Alias}Rows.Rows"),
+                        SyntaxFactory.IdentifierName($"{node.Second.Alias}RowsCached"),
                         SyntaxFactory.Block(
                             generateCancellationExpression(),
                             (StatementSyntax)ifStatement,
@@ -238,6 +242,8 @@ public static class JoinSourcesTableProcessingHelper
         return computingBlock.AddStatements(
             getRowsSourceOrEmpty(node.Second.Alias),
             getRowsSourceOrEmpty(node.First.Alias),
+            SyntaxFactory.ParseStatement(
+                $"var {node.First.Alias}RowsCached = {node.First.Alias}Rows.Rows as Musoq.Schema.DataSources.IObjectResolver[] ?? System.Linq.Enumerable.ToArray({node.First.Alias}Rows.Rows);"),
             SyntaxFactory.ForEachStatement(
                 SyntaxFactory.IdentifierName("var"),
                 SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
@@ -249,7 +255,7 @@ public static class JoinSourcesTableProcessingHelper
                     SyntaxFactory.ForEachStatement(
                         SyntaxFactory.IdentifierName("var"),
                         SyntaxFactory.Identifier($"{node.First.Alias}Row"),
-                        SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
+                        SyntaxFactory.IdentifierName($"{node.First.Alias}RowsCached"),
                         SyntaxFactory.Block(
                             generateCancellationExpression(),
                             (StatementSyntax)ifStatement,
