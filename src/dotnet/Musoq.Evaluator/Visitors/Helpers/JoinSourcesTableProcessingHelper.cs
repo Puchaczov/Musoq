@@ -111,12 +111,12 @@ public static class JoinSourcesTableProcessingHelper
 
         return computingBlock.AddStatements(
             getRowsSourceOrEmpty(node.First.Alias),
+            getRowsSourceOrEmpty(node.Second.Alias),
             SyntaxFactory.ForEachStatement(
                 SyntaxFactory.IdentifierName("var"),
                 SyntaxFactory.Identifier($"{node.First.Alias}Row"),
                 SyntaxFactory.IdentifierName($"{node.First.Alias}Rows.Rows"),
                 block([
-                    getRowsSourceOrEmpty(node.Second.Alias),
                     SyntaxFactory.ForEachStatement(
                         SyntaxFactory.IdentifierName("var"),
                         SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
@@ -165,6 +165,7 @@ public static class JoinSourcesTableProcessingHelper
 
         return computingBlock.AddStatements(
             getRowsSourceOrEmpty(node.First.Alias),
+            getRowsSourceOrEmpty(node.Second.Alias),
             SyntaxFactory.ForEachStatement(
                 SyntaxFactory.IdentifierName("var"),
                 SyntaxFactory.Identifier($"{node.First.Alias}Row"),
@@ -173,7 +174,6 @@ public static class JoinSourcesTableProcessingHelper
                     SyntaxFactory.LocalDeclarationStatement(
                         SyntaxHelper.CreateAssignment("hasAnyRowMatched",
                             (LiteralExpressionSyntax)generator.FalseLiteralExpression())),
-                    getRowsSourceOrEmpty(node.Second.Alias),
                     SyntaxFactory.ForEachStatement(
                         SyntaxFactory.IdentifierName("var"),
                         SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
@@ -237,6 +237,7 @@ public static class JoinSourcesTableProcessingHelper
 
         return computingBlock.AddStatements(
             getRowsSourceOrEmpty(node.Second.Alias),
+            getRowsSourceOrEmpty(node.First.Alias),
             SyntaxFactory.ForEachStatement(
                 SyntaxFactory.IdentifierName("var"),
                 SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
@@ -245,7 +246,6 @@ public static class JoinSourcesTableProcessingHelper
                     SyntaxFactory.LocalDeclarationStatement(
                         SyntaxHelper.CreateAssignment("hasAnyRowMatched",
                             (LiteralExpressionSyntax)generator.FalseLiteralExpression())),
-                    getRowsSourceOrEmpty(node.First.Alias),
                     SyntaxFactory.ForEachStatement(
                         SyntaxFactory.IdentifierName("var"),
                         SyntaxFactory.Identifier($"{node.First.Alias}Row"),

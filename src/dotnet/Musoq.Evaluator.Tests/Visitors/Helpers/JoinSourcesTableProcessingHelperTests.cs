@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -148,6 +149,37 @@ public class JoinSourcesTableProcessingHelperTests
         Assert.IsNotNull(result);
         Assert.IsInstanceOfType(result, typeof(BlockSyntax));
         Assert.IsGreaterThan(0, result.Statements.Count);
+    }
+
+    [TestMethod]
+    public void ProcessJoinSourcesTable_WithInnerJoin_LoadsSecondRowsOutsideOuterLoop()
+    {
+        var workspace = new AdhocWorkspace();
+        var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
+        var node = CreateMockJoinNode(JoinType.Inner);
+        var scope = new Scope(null, 0, "test");
+        var ifStatement = SyntaxFactory.IfStatement(SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression),
+            SyntaxFactory.Block());
+        var emptyBlock = SyntaxFactory.Block();
+
+        var result = JoinSourcesTableProcessingHelper.ProcessJoinSourcesTable(
+            node,
+            generator,
+            scope,
+            "alias",
+            ifStatement,
+            emptyBlock,
+            alias => SyntaxFactory.ParseStatement($"{alias}Loaded();"),
+            statements => SyntaxFactory.Block(statements),
+            () => SyntaxFactory.EmptyStatement(),
+            _ => SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+
+        Assert.AreEqual("FirstAliasLoaded();", result.Statements[0].ToString());
+        Assert.AreEqual("SecondAliasLoaded();", result.Statements[1].ToString());
+
+        var outerLoop = result.Statements.OfType<ForEachStatementSyntax>().Single();
+        Assert.IsFalse(outerLoop.Statement.DescendantNodes().OfType<ExpressionStatementSyntax>()
+            .Any(statement => statement.ToString() == "SecondAliasLoaded();"));
     }
 
     private static JoinSourcesTableFromNode CreateMockJoinNode(JoinType joinType)
