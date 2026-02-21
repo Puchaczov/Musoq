@@ -176,9 +176,10 @@ public class JoinSourcesTableProcessingHelperTests
 
         Assert.AreEqual("FirstAliasLoaded();", result.Statements[0].ToString());
         Assert.AreEqual("SecondAliasLoaded();", result.Statements[1].ToString());
+        Assert.AreEqual("var SecondAliasRowsEnumerable = SecondAliasRows.Rows;", result.Statements[2].ToString());
         Assert.AreEqual(
-            "var SecondAliasRowsCached = SecondAliasRows.Rows as Musoq.Schema.DataSources.IObjectResolver[] ?? System.Linq.Enumerable.ToArray(SecondAliasRows.Rows);",
-            result.Statements[2].ToString());
+            "var SecondAliasRowsCached = SecondAliasRowsEnumerable as Musoq.Schema.DataSources.IObjectResolver[] ?? System.Linq.Enumerable.ToArray(SecondAliasRowsEnumerable);",
+            result.Statements[3].ToString());
 
         var outerLoop = result.Statements.OfType<ForEachStatementSyntax>().Single();
         Assert.IsFalse(outerLoop.Statement.DescendantNodes().OfType<ExpressionStatementSyntax>()

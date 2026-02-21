@@ -108,12 +108,13 @@ public static class JoinSourcesTableProcessingHelper
         Func<StatementSyntax> generateCancellationExpression)
     {
         var computingBlock = SyntaxFactory.Block();
+        var secondRowsCacheStatements = CreateRowsCacheStatements(node.Second.Alias);
 
         return computingBlock.AddStatements(
             getRowsSourceOrEmpty(node.First.Alias),
             getRowsSourceOrEmpty(node.Second.Alias),
-            SyntaxFactory.ParseStatement(
-                $"var {node.Second.Alias}RowsCached = {node.Second.Alias}Rows.Rows as Musoq.Schema.DataSources.IObjectResolver[] ?? System.Linq.Enumerable.ToArray({node.Second.Alias}Rows.Rows);"),
+            secondRowsCacheStatements[0],
+            secondRowsCacheStatements[1],
             SyntaxFactory.ForEachStatement(
                 SyntaxFactory.IdentifierName("var"),
                 SyntaxFactory.Identifier($"{node.First.Alias}Row"),
@@ -142,6 +143,7 @@ public static class JoinSourcesTableProcessingHelper
         Func<StatementSyntax> generateCancellationExpression)
     {
         var computingBlock = SyntaxFactory.Block();
+        var secondRowsCacheStatements = CreateRowsCacheStatements(node.Second.Alias);
         var fullTransitionTable = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(queryAlias);
         var expressions = new List<ExpressionSyntax>();
 
@@ -168,8 +170,8 @@ public static class JoinSourcesTableProcessingHelper
         return computingBlock.AddStatements(
             getRowsSourceOrEmpty(node.First.Alias),
             getRowsSourceOrEmpty(node.Second.Alias),
-            SyntaxFactory.ParseStatement(
-                $"var {node.Second.Alias}RowsCached = {node.Second.Alias}Rows.Rows as Musoq.Schema.DataSources.IObjectResolver[] ?? System.Linq.Enumerable.ToArray({node.Second.Alias}Rows.Rows);"),
+            secondRowsCacheStatements[0],
+            secondRowsCacheStatements[1],
             SyntaxFactory.ForEachStatement(
                 SyntaxFactory.IdentifierName("var"),
                 SyntaxFactory.Identifier($"{node.First.Alias}Row"),
@@ -216,6 +218,7 @@ public static class JoinSourcesTableProcessingHelper
         Func<StatementSyntax> generateCancellationExpression)
     {
         var computingBlock = SyntaxFactory.Block();
+        var firstRowsCacheStatements = CreateRowsCacheStatements(node.First.Alias);
         var fullTransitionTable = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(queryAlias);
         var expressions = new List<ExpressionSyntax>();
 
@@ -242,8 +245,8 @@ public static class JoinSourcesTableProcessingHelper
         return computingBlock.AddStatements(
             getRowsSourceOrEmpty(node.Second.Alias),
             getRowsSourceOrEmpty(node.First.Alias),
-            SyntaxFactory.ParseStatement(
-                $"var {node.First.Alias}RowsCached = {node.First.Alias}Rows.Rows as Musoq.Schema.DataSources.IObjectResolver[] ?? System.Linq.Enumerable.ToArray({node.First.Alias}Rows.Rows);"),
+            firstRowsCacheStatements[0],
+            firstRowsCacheStatements[1],
             SyntaxFactory.ForEachStatement(
                 SyntaxFactory.IdentifierName("var"),
                 SyntaxFactory.Identifier($"{node.Second.Alias}Row"),
@@ -276,6 +279,16 @@ public static class JoinSourcesTableProcessingHelper
                             SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
                             SyntaxFactory.ExpressionStatement(invocation)))
                 ])));
+    }
+
+    private static StatementSyntax[] CreateRowsCacheStatements(string alias)
+    {
+        return
+        [
+            SyntaxFactory.ParseStatement($"var {alias}RowsEnumerable = {alias}Rows.Rows;"),
+            SyntaxFactory.ParseStatement(
+                $"var {alias}RowsCached = {alias}RowsEnumerable as Musoq.Schema.DataSources.IObjectResolver[] ?? System.Linq.Enumerable.ToArray({alias}RowsEnumerable);")
+        ];
     }
 
     public static BlockSyntax ProcessHashJoin(
