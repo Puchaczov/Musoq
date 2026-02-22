@@ -305,7 +305,7 @@ public class TextInterpreterBaseTests
     public void ReadBetween_Escaped_EvenBackslashesBeforeClose_NotEscaped()
     {
         var interpreter = new TestTextInterpreter();
-        
+
         var result = interpreter.TestReadBetween("[test\\\\]".AsSpan(), "[", "]", escaped: true);
         Assert.AreEqual("test\\\\", result);
     }
@@ -314,7 +314,7 @@ public class TextInterpreterBaseTests
     public void ReadBetween_Escaped_OddBackslashesBeforeClose_IsEscaped()
     {
         var interpreter = new TestTextInterpreter();
-        
+
         var result = interpreter.TestReadBetween("[test\\\\\\]end]".AsSpan(), "[", "]", escaped: true);
         Assert.AreEqual("test\\\\\\]end", result);
     }

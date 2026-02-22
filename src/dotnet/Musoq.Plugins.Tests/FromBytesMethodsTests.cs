@@ -58,7 +58,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(2147483647);
         var result = Library.FromBytesToInt32(bytes);
-        Assert.AreEqual<int?>(2147483647, result);
+        Assert.AreEqual(2147483647, result);
     }
 
     [TestMethod]
@@ -66,7 +66,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(-2147483648);
         var result = Library.FromBytesToInt32(bytes);
-        Assert.AreEqual<int?>(-2147483648, result);
+        Assert.AreEqual(-2147483648, result);
     }
 
     [TestMethod]
@@ -74,7 +74,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(0);
         var result = Library.FromBytesToInt32(bytes);
-        Assert.AreEqual<int?>(0, result);
+        Assert.AreEqual(0, result);
     }
 
     [TestMethod]
@@ -82,7 +82,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(4294967295U);
         var result = Library.FromBytesToUInt32(bytes);
-        Assert.AreEqual<uint?>(4294967295U, result);
+        Assert.AreEqual(4294967295U, result);
     }
 
     [TestMethod]
@@ -90,7 +90,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(12345U);
         var result = Library.FromBytesToUInt32(bytes);
-        Assert.AreEqual<uint?>(12345U, result);
+        Assert.AreEqual(12345U, result);
     }
 
     [TestMethod]
@@ -98,7 +98,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(9223372036854775807L);
         var result = Library.FromBytesToInt64(bytes);
-        Assert.AreEqual<long?>(9223372036854775807L, result);
+        Assert.AreEqual(9223372036854775807L, result);
     }
 
     [TestMethod]
@@ -106,7 +106,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(-9223372036854775808L);
         var result = Library.FromBytesToInt64(bytes);
-        Assert.AreEqual<long?>(-9223372036854775808L, result);
+        Assert.AreEqual(-9223372036854775808L, result);
     }
 
     [TestMethod]
@@ -114,7 +114,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(123456789L);
         var result = Library.FromBytesToInt64(bytes);
-        Assert.AreEqual<long?>(123456789L, result);
+        Assert.AreEqual(123456789L, result);
     }
 
     [TestMethod]
@@ -122,7 +122,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(18446744073709551615UL);
         var result = Library.FromBytesToUInt64(bytes);
-        Assert.AreEqual<ulong?>(18446744073709551615UL, result);
+        Assert.AreEqual(18446744073709551615UL, result);
     }
 
     [TestMethod]
@@ -130,7 +130,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes(987654321UL);
         var result = Library.FromBytesToUInt64(bytes);
-        Assert.AreEqual<ulong?>(987654321UL, result);
+        Assert.AreEqual(987654321UL, result);
     }
 
     [TestMethod]
@@ -282,7 +282,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
         var original = true;
         var bytes = BitConverter.GetBytes(original);
         var result = Library.FromBytesToBool(bytes);
-        Assert.AreEqual<bool?>(original, result);
+        Assert.AreEqual(original, result);
     }
 
     [TestMethod]
@@ -291,7 +291,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
         var original = 123456789;
         var bytes = BitConverter.GetBytes(original);
         var result = Library.FromBytesToInt32(bytes);
-        Assert.AreEqual<int?>(original, result);
+        Assert.AreEqual(original, result);
     }
 
     [TestMethod]
@@ -437,7 +437,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes('A');
         var result = Library.FromBytesToChar(bytes);
-        Assert.AreEqual<char?>('A', result);
+        Assert.AreEqual('A', result);
     }
 
     [TestMethod]
@@ -445,7 +445,7 @@ public class FromBytesMethodsTests : LibraryBaseBaseTests
     {
         var bytes = BitConverter.GetBytes('世');
         var result = Library.FromBytesToChar(bytes);
-        Assert.AreEqual<char?>('世', result);
+        Assert.AreEqual('世', result);
     }
 
     [TestMethod]

@@ -40,7 +40,7 @@ public class BugProbe_ComputedBitwiseTests
         var entities = new[]
         {
             new BinaryEntity { Name = "a.bin", Data = [0x83] }, // bits 0,1,7
-            new BinaryEntity { Name = "b.bin", Data = [0x02] }  // bit 1 only
+            new BinaryEntity { Name = "b.bin", Data = [0x02] } // bit 1 only
         };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -52,14 +52,14 @@ public class BugProbe_ComputedBitwiseTests
         Assert.AreEqual(2, table.Count);
         // 0x02 = bit 1 only
         Assert.AreEqual((byte)0x02, table[0][0]);
-        Assert.IsFalse((bool?)table[0][1]);  // HasBit0 = false
-        Assert.IsTrue((bool?)table[0][2]);    // HasBit1 = true
-        Assert.IsFalse((bool?)table[0][3]);  // HasBit7 = false
+        Assert.IsFalse((bool?)table[0][1]); // HasBit0 = false
+        Assert.IsTrue((bool?)table[0][2]); // HasBit1 = true
+        Assert.IsFalse((bool?)table[0][3]); // HasBit7 = false
         // 0x83 = bits 0,1,7
         Assert.AreEqual((byte)0x83, table[1][0]);
-        Assert.IsTrue((bool?)table[1][1]);    // HasBit0 = true
-        Assert.IsTrue((bool?)table[1][2]);    // HasBit1 = true
-        Assert.IsTrue((bool?)table[1][3]);    // HasBit7 = true
+        Assert.IsTrue((bool?)table[1][1]); // HasBit0 = true
+        Assert.IsTrue((bool?)table[1][2]); // HasBit1 = true
+        Assert.IsTrue((bool?)table[1][3]); // HasBit7 = true
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public class BugProbe_ComputedBitwiseTests
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual((byte)0xA3, table[0][0]);
         Assert.AreEqual(10, table[0][1]); // high nibble
-        Assert.AreEqual(3, table[0][2]);  // low nibble
+        Assert.AreEqual(3, table[0][2]); // low nibble
     }
 
     /// <summary>

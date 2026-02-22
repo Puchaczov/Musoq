@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -1102,7 +1101,6 @@ public class MultilingualTextTests : BasicEntityTestBase
 
         Assert.AreEqual(4, table.Count);
 
-        // Use order-independent assertions to avoid parallelism fragility
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "İ"),
             "Row with 'İ' (Turkish dotted I) not found");
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "ı"),
@@ -1419,7 +1417,7 @@ public class MultilingualTextTests : BasicEntityTestBase
 
         Assert.AreEqual(5, table.Count);
 
-        // Verify that all expected values are present after ordering
+
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Kraków"),
             "Row with 'Kraków' not found");
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "東京"),

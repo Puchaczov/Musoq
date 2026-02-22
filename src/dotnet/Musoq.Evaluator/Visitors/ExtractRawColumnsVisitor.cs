@@ -13,10 +13,10 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
 {
     private readonly Dictionary<string, List<string>> _columns = new();
     private readonly List<string> _generatedAliases = [];
-    private string _queryAlias;
-    private int _schemaFromKey;
     private IReadOnlyDictionary<string, string[]> _cachedColumns;
     private bool _columnsCacheValid;
+    private string _queryAlias;
+    private int _schemaFromKey;
 
     public IReadOnlyDictionary<string, string[]> Columns
     {

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
@@ -14,24 +16,24 @@ public class BugProbe_InterpretationSchemasTests
     private static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
 
     /// <summary>
-    /// Exact reproduction of the user-reported failing schema:
-    /// binary Structure {
+    ///     Exact reproduction of the user-reported failing schema:
+    ///     binary Structure {
     ///     D: int le,
     ///     C: ushort le,
     ///     A: byte,
     ///     B: string[A] ascii
-    /// }
+    ///     }
     /// </summary>
     [TestMethod]
     public void Binary_ExactUserSchema_ShouldWork()
     {
         // Build binary: D=42, C=256, A=5, B="Hello"
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
-        bw.Write((int)42);                                           // D (int LE)
-        bw.Write((ushort)256);                                       // C (ushort LE)
-        bw.Write((byte)5);                                           // A
-        bw.Write(System.Text.Encoding.ASCII.GetBytes("Hello"));     // B (5 bytes)
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
+        bw.Write(42); // D (int LE)
+        bw.Write((ushort)256); // C (ushort LE)
+        bw.Write((byte)5); // A
+        bw.Write(Encoding.ASCII.GetBytes("Hello")); // B (5 bytes)
         bw.Flush();
 
         var query = @"
@@ -62,15 +64,15 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// Minimal: just byte + string[Length] ascii
+    ///     Minimal: just byte + string[Length] ascii
     /// </summary>
     [TestMethod]
     public void Binary_ByteThenStringVarLength_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write((byte)3);
-        bw.Write(System.Text.Encoding.ASCII.GetBytes("ABC"));
+        bw.Write(Encoding.ASCII.GetBytes("ABC"));
         bw.Flush();
 
         var query = @"
@@ -97,7 +99,7 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// Minimal: byte + ushort le
+    ///     Minimal: byte + ushort le
     /// </summary>
     [TestMethod]
     public void Binary_ByteThenUshort_ShouldWork()
@@ -126,15 +128,15 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// Minimal: string[VarRef] ascii + ushort le
+    ///     Minimal: string[VarRef] ascii + ushort le
     /// </summary>
     [TestMethod]
     public void Binary_StringVarRefThenUshort_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write((byte)2);
-        bw.Write(System.Text.Encoding.ASCII.GetBytes("Hi"));
+        bw.Write(Encoding.ASCII.GetBytes("Hi"));
         bw.Write((ushort)999);
         bw.Flush();
 
@@ -164,16 +166,16 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// Minimal: string[VarRef] ascii + int le
+    ///     Minimal: string[VarRef] ascii + int le
     /// </summary>
     [TestMethod]
     public void Binary_StringVarRefThenInt_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write((byte)4);
-        bw.Write(System.Text.Encoding.ASCII.GetBytes("Test"));
-        bw.Write((int)12345);
+        bw.Write(Encoding.ASCII.GetBytes("Test"));
+        bw.Write(12345);
         bw.Flush();
 
         var query = @"
@@ -202,13 +204,13 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// All unsigned types: ushort, uint, ulong
+    ///     All unsigned types: ushort, uint, ulong
     /// </summary>
     [TestMethod]
     public void Binary_AllUnsignedTypes_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write((ushort)1000);
         bw.Write((uint)100000);
         bw.Write((ulong)10000000000);
@@ -240,13 +242,13 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// sbyte type
+    ///     sbyte type
     /// </summary>
     [TestMethod]
     public void Binary_SbyteType_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write((sbyte)-42);
         bw.Write((byte)100);
         bw.Flush();
@@ -270,18 +272,18 @@ public class BugProbe_InterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((sbyte)(-42), table[0][0]);
+        Assert.AreEqual((sbyte)-42, table[0][0]);
         Assert.AreEqual((byte)100, table[0][1]);
     }
 
     /// <summary>
-    /// Float and double types
+    ///     Float and double types
     /// </summary>
     [TestMethod]
     public void Binary_FloatDouble_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write(3.14f);
         bw.Write(2.71828);
         bw.Flush();
@@ -310,17 +312,17 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// Big endian variants
+    ///     Big endian variants
     /// </summary>
     [TestMethod]
     public void Binary_BigEndianTypes_ShouldWork()
     {
         var testData = new byte[]
         {
-            0x00, 0x0A,             // short be = 10
-            0x00, 0x14,             // ushort be = 20
+            0x00, 0x0A, // short be = 10
+            0x00, 0x14, // ushort be = 20
             0x00, 0x00, 0x00, 0x1E, // int be = 30
-            0x00, 0x00, 0x00, 0x28  // uint be = 40
+            0x00, 0x00, 0x00, 0x28 // uint be = 40
         };
 
         var query = @"
@@ -350,14 +352,14 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// String with ascii encoding (ebcdic removed - needs CodePages provider)
+    ///     String with ascii encoding (ebcdic removed - needs CodePages provider)
     /// </summary>
     [TestMethod]
     public void Binary_AsciiEncoding_ShouldWork()
     {
-        var asciiBytes = System.Text.Encoding.ASCII.GetBytes("Abc");
+        var asciiBytes = Encoding.ASCII.GetBytes("Abc");
 
-        using var ms = new System.IO.MemoryStream();
+        using var ms = new MemoryStream();
         ms.Write(asciiBytes, 0, asciiBytes.Length);
 
         var query = @"
@@ -382,14 +384,14 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// String with UTF-8 encoding
+    ///     String with UTF-8 encoding
     /// </summary>
     [TestMethod]
     public void Binary_Utf8Encoding_ShouldWork()
     {
-        var utf8Bytes = System.Text.Encoding.UTF8.GetBytes("Hello");
+        var utf8Bytes = Encoding.UTF8.GetBytes("Hello");
 
-        using var ms = new System.IO.MemoryStream();
+        using var ms = new MemoryStream();
         ms.Write(utf8Bytes, 0, utf8Bytes.Length);
 
         var query = @"
@@ -414,14 +416,14 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// String with UTF-16 Little Endian encoding
+    ///     String with UTF-16 Little Endian encoding
     /// </summary>
     [TestMethod]
     public void Binary_Utf16LeEncoding_ShouldWork()
     {
-        var utf16LeBytes = System.Text.Encoding.Unicode.GetBytes("Test");
+        var utf16LeBytes = Encoding.Unicode.GetBytes("Test");
 
-        using var ms = new System.IO.MemoryStream();
+        using var ms = new MemoryStream();
         ms.Write(utf16LeBytes, 0, utf16LeBytes.Length);
 
         var query = @"
@@ -446,14 +448,14 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// String with UTF-16 Big Endian encoding
+    ///     String with UTF-16 Big Endian encoding
     /// </summary>
     [TestMethod]
     public void Binary_Utf16BeEncoding_ShouldWork()
     {
-        var utf16BeBytes = System.Text.Encoding.BigEndianUnicode.GetBytes("Data");
+        var utf16BeBytes = Encoding.BigEndianUnicode.GetBytes("Data");
 
-        using var ms = new System.IO.MemoryStream();
+        using var ms = new MemoryStream();
         ms.Write(utf16BeBytes, 0, utf16BeBytes.Length);
 
         var query = @"
@@ -478,14 +480,14 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// String with Latin1 (ISO-8859-1) encoding
+    ///     String with Latin1 (ISO-8859-1) encoding
     /// </summary>
     [TestMethod]
     public void Binary_Latin1Encoding_ShouldWork()
     {
-        var latin1Bytes = System.Text.Encoding.GetEncoding("ISO-8859-1").GetBytes("Café");
+        var latin1Bytes = Encoding.GetEncoding("ISO-8859-1").GetBytes("Café");
 
-        using var ms = new System.IO.MemoryStream();
+        using var ms = new MemoryStream();
         ms.Write(latin1Bytes, 0, latin1Bytes.Length);
 
         var query = @"
@@ -510,14 +512,14 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// String with trim modifier
+    ///     String with trim modifier
     /// </summary>
     [TestMethod]
     public void Binary_StringTrimModifier_ShouldWork()
     {
-        var paddedBytes = System.Text.Encoding.ASCII.GetBytes("  Test  ");
+        var paddedBytes = Encoding.ASCII.GetBytes("  Test  ");
 
-        using var ms = new System.IO.MemoryStream();
+        using var ms = new MemoryStream();
         ms.Write(paddedBytes, 0, paddedBytes.Length);
 
         var query = @"
@@ -542,14 +544,14 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// String with rtrim modifier
+    ///     String with rtrim modifier
     /// </summary>
     [TestMethod]
     public void Binary_StringRtrimModifier_ShouldWork()
     {
-        var paddedBytes = System.Text.Encoding.ASCII.GetBytes("Data   ");
+        var paddedBytes = Encoding.ASCII.GetBytes("Data   ");
 
-        using var ms = new System.IO.MemoryStream();
+        using var ms = new MemoryStream();
         ms.Write(paddedBytes, 0, paddedBytes.Length);
 
         var query = @"
@@ -574,14 +576,14 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// String with ltrim modifier
+    ///     String with ltrim modifier
     /// </summary>
     [TestMethod]
     public void Binary_StringLtrimModifier_ShouldWork()
     {
-        var paddedBytes = System.Text.Encoding.ASCII.GetBytes("   Code");
+        var paddedBytes = Encoding.ASCII.GetBytes("   Code");
 
-        using var ms = new System.IO.MemoryStream();
+        using var ms = new MemoryStream();
         ms.Write(paddedBytes, 0, paddedBytes.Length);
 
         var query = @"
@@ -606,17 +608,17 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// String with nullterm modifier
+    ///     String with nullterm modifier
     /// </summary>
     [TestMethod]
     public void Binary_StringNulltermModifier_ShouldWork()
     {
         var nullTermBytes = new byte[10];
-        var text = System.Text.Encoding.ASCII.GetBytes("Hi");
-        System.Array.Copy(text, nullTermBytes, text.Length);
+        var text = Encoding.ASCII.GetBytes("Hi");
+        Array.Copy(text, nullTermBytes, text.Length);
         // Rest is zeros (null terminators)
 
-        using var ms = new System.IO.MemoryStream();
+        using var ms = new MemoryStream();
         ms.Write(nullTermBytes, 0, nullTermBytes.Length);
 
         var query = @"
@@ -641,18 +643,18 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// Multiple fields of same type in sequence (5 ints)
+    ///     Multiple fields of same type in sequence (5 ints)
     /// </summary>
     [TestMethod]
     public void Binary_MultipleIntsInSequence_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
-        bw.Write((int)1);
-        bw.Write((int)2);
-        bw.Write((int)3);
-        bw.Write((int)4);
-        bw.Write((int)5);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
+        bw.Write(1);
+        bw.Write(2);
+        bw.Write(3);
+        bw.Write(4);
+        bw.Write(5);
         bw.Flush();
 
         var query = @"
@@ -685,21 +687,21 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// Mix of ALL 10 primitive types in one schema
+    ///     Mix of ALL 10 primitive types in one schema
     /// </summary>
     [TestMethod]
     public void Binary_AllPrimitiveTypes_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write((byte)0x01);
         bw.Write((sbyte)-1);
         bw.Write((short)1000);
         bw.Write((ushort)2000);
-        bw.Write((int)30000);
-        bw.Write((uint)40000u);
-        bw.Write((long)50000L);
-        bw.Write((ulong)60000UL);
+        bw.Write(30000);
+        bw.Write(40000u);
+        bw.Write(50000L);
+        bw.Write(60000UL);
         bw.Write(1.5f);
         bw.Write(2.5);
         bw.Flush();
@@ -732,7 +734,7 @@ public class BugProbe_InterpretationSchemasTests
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual((byte)0x01, table[0][0]);
-        Assert.AreEqual((sbyte)(-1), table[0][1]);
+        Assert.AreEqual((sbyte)-1, table[0][1]);
         Assert.AreEqual((short)1000, table[0][2]);
         Assert.AreEqual((ushort)2000, table[0][3]);
         Assert.AreEqual(30000, table[0][4]);
@@ -744,16 +746,16 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// CTE Test: Interpret in FIRST CTE
+    ///     CTE Test: Interpret in FIRST CTE
     /// </summary>
     [TestMethod]
     public void Binary_InterpretInFirstCTE_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write((ushort)256);
         bw.Write((byte)5);
-        bw.Write(System.Text.Encoding.ASCII.GetBytes("Hello"));
+        bw.Write(Encoding.ASCII.GetBytes("Hello"));
         bw.Flush();
 
         var query = @"
@@ -786,16 +788,16 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// CTE Test: Interpret in SECOND CTE (first CTE fetches files, second CTE interprets)
+    ///     CTE Test: Interpret in SECOND CTE (first CTE fetches files, second CTE interprets)
     /// </summary>
     [TestMethod]
     public void Binary_InterpretInSecondCTE_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write((byte)3);
-        bw.Write(System.Text.Encoding.ASCII.GetBytes("XYZ"));
-        bw.Write((int)42);
+        bw.Write(Encoding.ASCII.GetBytes("XYZ"));
+        bw.Write(42);
         bw.Flush();
 
         var query = @"
@@ -832,17 +834,17 @@ public class BugProbe_InterpretationSchemasTests
     }
 
     /// <summary>
-    /// CTE Test: Interpret in FIRST CTE with complex user schema (all field types)
+    ///     CTE Test: Interpret in FIRST CTE with complex user schema (all field types)
     /// </summary>
     [TestMethod]
     public void Binary_InterpretInFirstCTE_ComplexSchema_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
-        bw.Write((int)42);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
+        bw.Write(42);
         bw.Write((ushort)256);
         bw.Write((byte)5);
-        bw.Write(System.Text.Encoding.ASCII.GetBytes("Hello"));
+        bw.Write(Encoding.ASCII.GetBytes("Hello"));
         bw.Flush();
 
         var query = @"

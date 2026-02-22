@@ -96,7 +96,8 @@ public class EvaluationHelperTests
         Assert.AreEqual(typeof(decimal?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Decimal"));
         Assert.AreEqual(typeof(object), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Object"));
         Assert.AreEqual(typeof(DateTime?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.DateTime"));
-        Assert.AreEqual(typeof(DateTimeOffset?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.DateTimeOffset"));
+        Assert.AreEqual(typeof(DateTimeOffset?),
+            EvaluationHelper.RemapPrimitiveTypeAsNullable("System.DateTimeOffset"));
         Assert.AreEqual(typeof(TimeSpan?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.TimeSpan"));
         Assert.AreEqual(typeof(Guid?), EvaluationHelper.RemapPrimitiveTypeAsNullable("System.Guid"));
     }

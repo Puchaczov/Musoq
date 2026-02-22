@@ -1,21 +1,117 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
 /// <summary>
-/// Tests verifying that NULL in set operator queries is handled correctly:
-/// 1. NULL values in key columns do not cause NullReferenceException in the generated comparer.
-/// 2. NULL on one side with a concrete type on the other side does not throw a type mismatch error —
-///    the NULL is inferred as null-of-the-concrete-type.
-/// 3. Multi-way set operations propagate the concrete type through cached fields.
+///     Tests verifying that NULL in set operator queries is handled correctly:
+///     1. NULL values in key columns do not cause NullReferenceException in the generated comparer.
+///     2. NULL on one side with a concrete type on the other side does not throw a type mismatch error —
+///     the NULL is inferred as null-of-the-concrete-type.
+///     3. Multi-way set operations propagate the concrete type through cached fields.
 /// </summary>
 [TestClass]
 public class NullInSetOperatorsTests : BasicEntityTestBase
 {
     public TestContext TestContext { get; set; }
+
+    #region UNION ALL with null columns (should work — no comparison)
+
+    [TestMethod]
+    public void UnionAll_NullColumn_ShouldWorkWithoutComparison()
+    {
+        var query = @"
+            select null as Col1, Name from #A.Entities() 
+            union all (Name) 
+            select null as Col1, Name from #B.Entities()";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [new BasicEntity("001")] },
+            { "#B", [new BasicEntity("002")] }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(2, table.Count);
+        Assert.IsNull(table[0].Values[0]);
+        Assert.AreEqual("001", table[0].Values[1]);
+        Assert.IsNull(table[1].Values[0]);
+        Assert.AreEqual("002", table[1].Values[1]);
+    }
+
+    #endregion
+
+    #region Multi-way set operations with null key columns
+
+    [TestMethod]
+    public void ThreeWayUnion_NullKeyColumn_ShouldNotThrowNullReference()
+    {
+        var query = @"
+            select null as Col1, Name from #A.Entities() 
+            union (Col1) 
+            select null as Col1, Name from #B.Entities()
+            union (Col1) 
+            select null as Col1, Name from #C.Entities()";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [new BasicEntity("001")] },
+            { "#B", [new BasicEntity("002")] },
+            { "#C", [new BasicEntity("003")] }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.IsGreaterThanOrEqualTo(1, table.Count);
+    }
+
+    #endregion
+
+    #region INTERSECT — null on one side, concrete type on the other
+
+    [TestMethod]
+    public void Intersect_NullOnLeftStringOnRight_ShouldInferTypeFromRight()
+    {
+        var query = @"
+            select Name, null as Extra from #A.Entities() 
+            intersect (Name) 
+            select Name, City as Extra from #B.Entities()";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [new BasicEntity("001")] },
+            { "#B", [new BasicEntity("001") { City = "Warsaw" }] }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("001", table[0].Values[0]);
+    }
+
+    #endregion
+
+    #region Mismatched concrete types should still fail
+
+    [TestMethod]
+    public void Union_DifferentConcreteTypes_ShouldStillThrowTypeMismatch()
+    {
+        var query = @"
+            select Name from #A.Entities() 
+            union (Name) 
+            select 1 as Name from #A.Entities()";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [new BasicEntity("001")] }
+        };
+
+        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+    }
+
+    #endregion
 
     #region UNION with null key column values
 
@@ -166,59 +262,6 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("001", table[0].Values[0]);
-    }
-
-    #endregion
-
-    #region UNION ALL with null columns (should work — no comparison)
-
-    [TestMethod]
-    public void UnionAll_NullColumn_ShouldWorkWithoutComparison()
-    {
-        var query = @"
-            select null as Col1, Name from #A.Entities() 
-            union all (Name) 
-            select null as Col1, Name from #B.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002")] }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.AreEqual(2, table.Count);
-        Assert.IsNull(table[0].Values[0]);
-        Assert.AreEqual("001", table[0].Values[1]);
-        Assert.IsNull(table[1].Values[0]);
-        Assert.AreEqual("002", table[1].Values[1]);
-    }
-
-    #endregion
-
-    #region Multi-way set operations with null key columns
-
-    [TestMethod]
-    public void ThreeWayUnion_NullKeyColumn_ShouldNotThrowNullReference()
-    {
-        var query = @"
-            select null as Col1, Name from #A.Entities() 
-            union (Col1) 
-            select null as Col1, Name from #B.Entities()
-            union (Col1) 
-            select null as Col1, Name from #C.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("002")] },
-            { "#C", [new BasicEntity("003")] }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.IsGreaterThanOrEqualTo(1, table.Count);
     }
 
     #endregion
@@ -444,37 +487,11 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
 
     #endregion
 
-    #region INTERSECT — null on one side, concrete type on the other
-
-    [TestMethod]
-    public void Intersect_NullOnLeftStringOnRight_ShouldInferTypeFromRight()
-    {
-        var query = @"
-            select Name, null as Extra from #A.Entities() 
-            intersect (Name) 
-            select Name, City as Extra from #B.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001")] },
-            { "#B", [new BasicEntity("001") { City = "Warsaw" }] }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-    }
-
-    #endregion
-
     #region Multi-way set operations — null type propagation through cached fields
 
     [TestMethod]
     public void ThreeWayUnionAll_NullFirstThenConcreteTypeThenNull_ShouldInferType()
     {
-        // Q1: null, Q2: string, Q3: null
-        // The concrete type from Q2 should propagate via cache to validate Q3
         var query = @"
             select Name, null as Extra from #A.Entities() 
             union all (Name) 
@@ -500,7 +517,6 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void ThreeWayUnionAll_ConcreteTypeThenNullThenNull_ShouldInferType()
     {
-        // Q1: string, Q2: null, Q3: null
         var query = @"
             select Name, City as Extra from #A.Entities() 
             union all (Name) 
@@ -526,7 +542,6 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
     [TestMethod]
     public void ThreeWayUnion_NullThenConcreteTypeThenNull_ShouldInferType()
     {
-        // Same but with UNION (which uses comparison) — tests both fixes together
         var query = @"
             select Name, null as Extra from #A.Entities() 
             union (Name) 
@@ -544,27 +559,6 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-    }
-
-    #endregion
-
-    #region Mismatched concrete types should still fail
-
-    [TestMethod]
-    public void Union_DifferentConcreteTypes_ShouldStillThrowTypeMismatch()
-    {
-        // string vs int — neither is null, should still fail
-        var query = @"
-            select Name from #A.Entities() 
-            union (Name) 
-            select 1 as Name from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001")] }
-        };
-
-        Assert.Throws<Musoq.Evaluator.Exceptions.SetOperatorMustHaveSameTypesOfColumnsException>(
-            () => CreateAndRunVirtualMachine(query, sources));
     }
 
     #endregion

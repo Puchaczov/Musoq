@@ -1,5 +1,6 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 
 namespace Musoq.Parser.Tests;
@@ -19,6 +20,7 @@ public class LexerExceptionTests
 
         Assert.AreEqual("Test error", ex.Message);
         Assert.AreEqual(42, ex.Position);
+        Assert.AreEqual(DiagnosticCode.MQ1001_UnknownToken, ex.Code);
         Assert.IsNull(ex.InnerException);
     }
 
@@ -30,6 +32,7 @@ public class LexerExceptionTests
 
         Assert.AreEqual("Outer error", ex.Message);
         Assert.AreEqual(100, ex.Position);
+        Assert.AreEqual(DiagnosticCode.MQ1001_UnknownToken, ex.Code);
         Assert.AreSame(inner, ex.InnerException);
     }
 

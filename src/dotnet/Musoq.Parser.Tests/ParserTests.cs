@@ -1463,17 +1463,17 @@ public class ParserTests
         var result = parser.ComposeAll();
 
         Assert.IsNotNull(result);
-        
+
         var statementsArray = result.Expression as StatementsArrayNode;
         Assert.IsNotNull(statementsArray);
-        
+
         var singleSet = statementsArray.Statements[0].Node as SingleSetNode;
         Assert.IsNotNull(singleSet);
-        
+
         var select = singleSet.Query.Select;
         var field = select.Fields[0];
         var accessMethod = field.Expression as AccessMethodNode;
-        
+
         Assert.IsNotNull(accessMethod);
         Assert.AreEqual("Count", accessMethod.Name);
         Assert.IsTrue(accessMethod.IsDistinct);
@@ -1516,17 +1516,17 @@ public class ParserTests
         var result = parser.ComposeAll();
 
         Assert.IsNotNull(result);
-        
+
         var statementsArray = result.Expression as StatementsArrayNode;
         Assert.IsNotNull(statementsArray);
-        
+
         var singleSet = statementsArray.Statements[0].Node as SingleSetNode;
         Assert.IsNotNull(singleSet);
-        
+
         var select = singleSet.Query.Select;
         var field = select.Fields[0];
         var accessMethod = field.Expression as AccessMethodNode;
-        
+
         Assert.IsNotNull(accessMethod);
         Assert.IsTrue(accessMethod.IsDistinct);
     }
@@ -1541,17 +1541,17 @@ public class ParserTests
         var result = parser.ComposeAll();
 
         Assert.IsNotNull(result);
-        
+
         var statementsArray = result.Expression as StatementsArrayNode;
         Assert.IsNotNull(statementsArray);
-        
+
         var singleSet = statementsArray.Statements[0].Node as SingleSetNode;
         Assert.IsNotNull(singleSet);
-        
+
         var select = singleSet.Query.Select;
         var field = select.Fields[0];
         var accessMethod = field.Expression as AccessMethodNode;
-        
+
         Assert.IsNotNull(accessMethod);
         Assert.AreEqual("Count", accessMethod.Name);
         Assert.IsFalse(accessMethod.IsDistinct);

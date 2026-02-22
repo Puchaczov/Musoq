@@ -36,18 +36,18 @@ public class PersonEntity
     }
 
     public int Id { get; set; }
-    
+
     public string Name { get; set; }
-    
+
     public int Age { get; set; }
-    
+
     public string City { get; set; }
-    
+
     public decimal Salary { get; set; }
-    
+
     public DateTime BirthDate { get; set; }
-    
+
     public int? ManagerId { get; set; }
-    
+
     public string Email { get; set; }
 }

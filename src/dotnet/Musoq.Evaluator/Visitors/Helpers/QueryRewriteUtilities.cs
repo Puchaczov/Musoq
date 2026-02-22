@@ -16,7 +16,7 @@ namespace Musoq.Evaluator.Visitors.Helpers;
 public static class QueryRewriteUtilities
 {
     private static readonly Regex UnescapedQuotePattern = new(@"(?<!\\)'", RegexOptions.Compiled);
-    
+
     /// <summary>
     ///     Rewrites nullable boolean expressions to handle proper null semantics.
     /// </summary>

@@ -86,7 +86,7 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
         : SchemaBase("test", CachedLibrary.Value)
     {
         private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
-        
+
         public override RowSource GetRowSource(string name, RuntimeContext communicator, params object[] parameters)
         {
             if (whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) onGetTableOrRowSource(parameters);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Musoq.Parser.Exceptions;
 
 namespace Musoq.Parser.Helpers;
 
@@ -149,7 +150,13 @@ public static class NodeHelpers
 
     public static Type GetReturnTypeMap(Type left, Type right)
     {
-        return BinaryTypes[(left.GetUnderlyingNullable(), right.GetUnderlyingNullable())];
+        var normalizedLeft = left.GetUnderlyingNullable();
+        var normalizedRight = right.GetUnderlyingNullable();
+
+        if (BinaryTypes.TryGetValue((normalizedLeft, normalizedRight), out var returnType))
+            return returnType;
+
+        throw new InvalidOperandTypesException(normalizedLeft, normalizedRight);
     }
 
     private static Type GetUnderlyingNullable(this Type type)

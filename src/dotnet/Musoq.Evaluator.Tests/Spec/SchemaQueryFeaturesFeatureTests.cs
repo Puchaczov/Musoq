@@ -215,77 +215,6 @@ public class SchemaQueryFeaturesFeatureTests
 
     #endregion
 
-    #region Compound WHERE with AND/OR
-
-    /// <summary>
-    ///     Tests multiple WHERE conditions combined with AND on interpreted data.
-    /// </summary>
-    [TestMethod]
-    public void Binary_CompoundWhereAnd_ShouldFilterBothConditions()
-    {
-        var query = @"
-            binary Record { Type: byte, Value: short le };
-            select d.Type, d.Value from #test.bytes() b
-            cross apply Interpret(b.Content, 'Record') d
-            where d.Type = 1 and d.Value > 10
-            order by d.Value asc";
-
-        var entities = new[]
-        {
-            new BinaryEntity { Name = "1.bin", Data = [0x01, 0x05, 0x00] },
-            new BinaryEntity { Name = "2.bin", Data = [0x02, 0x14, 0x00] },
-            new BinaryEntity { Name = "3.bin", Data = [0x01, 0x1E, 0x00] },
-            new BinaryEntity { Name = "4.bin", Data = [0x01, 0x0F, 0x00] }
-        };
-        var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
-
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
-        var table = vm.Run(CancellationToken.None);
-
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((short)15, table[0][1]);
-        Assert.AreEqual((byte)1, table[1][0]);
-        Assert.AreEqual((short)30, table[1][1]);
-    }
-
-    /// <summary>
-    ///     Tests WHERE with OR to match multiple conditions.
-    /// </summary>
-    [TestMethod]
-    public void Binary_CompoundWhereOr_ShouldMatchEitherCondition()
-    {
-        var query = @"
-            binary Record { Type: byte, Value: short le };
-            select d.Type, d.Value from #test.bytes() b
-            cross apply Interpret(b.Content, 'Record') d
-            where d.Type = 1 or d.Value = 100
-            order by d.Value asc";
-
-        var entities = new[]
-        {
-            new BinaryEntity { Name = "1.bin", Data = [0x01, 0x0A, 0x00] },
-            new BinaryEntity { Name = "2.bin", Data = [0x02, 0x64, 0x00] },
-            new BinaryEntity { Name = "3.bin", Data = [0x03, 0x32, 0x00] }
-        };
-        var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
-
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
-        var table = vm.Run(CancellationToken.None);
-
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((short)10, table[0][1]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual((short)100, table[1][1]);
-    }
-
-    #endregion
-
     #region Arithmetic in SELECT on Schema Fields
 
     /// <summary>
@@ -396,6 +325,77 @@ public class SchemaQueryFeaturesFeatureTests
         Assert.AreEqual("ERROR", table[0][0]);
         Assert.AreEqual("INFO", table[1][0]);
         Assert.AreEqual("WARN", table[2][0]);
+    }
+
+    #endregion
+
+    #region Compound WHERE with AND/OR
+
+    /// <summary>
+    ///     Tests multiple WHERE conditions combined with AND on interpreted data.
+    /// </summary>
+    [TestMethod]
+    public void Binary_CompoundWhereAnd_ShouldFilterBothConditions()
+    {
+        var query = @"
+            binary Record { Type: byte, Value: short le };
+            select d.Type, d.Value from #test.bytes() b
+            cross apply Interpret(b.Content, 'Record') d
+            where d.Type = 1 and d.Value > 10
+            order by d.Value asc";
+
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "1.bin", Data = [0x01, 0x05, 0x00] },
+            new BinaryEntity { Name = "2.bin", Data = [0x02, 0x14, 0x00] },
+            new BinaryEntity { Name = "3.bin", Data = [0x01, 0x1E, 0x00] },
+            new BinaryEntity { Name = "4.bin", Data = [0x01, 0x0F, 0x00] }
+        };
+        var schemaProvider = new BinarySchemaProvider(
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
+            TestCompilationOptions);
+        var table = vm.Run(CancellationToken.None);
+
+        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual((byte)1, table[0][0]);
+        Assert.AreEqual((short)15, table[0][1]);
+        Assert.AreEqual((byte)1, table[1][0]);
+        Assert.AreEqual((short)30, table[1][1]);
+    }
+
+    /// <summary>
+    ///     Tests WHERE with OR to match multiple conditions.
+    /// </summary>
+    [TestMethod]
+    public void Binary_CompoundWhereOr_ShouldMatchEitherCondition()
+    {
+        var query = @"
+            binary Record { Type: byte, Value: short le };
+            select d.Type, d.Value from #test.bytes() b
+            cross apply Interpret(b.Content, 'Record') d
+            where d.Type = 1 or d.Value = 100
+            order by d.Value asc";
+
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "1.bin", Data = [0x01, 0x0A, 0x00] },
+            new BinaryEntity { Name = "2.bin", Data = [0x02, 0x64, 0x00] },
+            new BinaryEntity { Name = "3.bin", Data = [0x03, 0x32, 0x00] }
+        };
+        var schemaProvider = new BinarySchemaProvider(
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
+            TestCompilationOptions);
+        var table = vm.Run(CancellationToken.None);
+
+        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual((byte)1, table[0][0]);
+        Assert.AreEqual((short)10, table[0][1]);
+        Assert.AreEqual((byte)2, table[1][0]);
+        Assert.AreEqual((short)100, table[1][1]);
     }
 
     #endregion

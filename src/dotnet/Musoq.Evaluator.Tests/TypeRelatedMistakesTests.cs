@@ -85,25 +85,6 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
             }
     }
 
-    private static void DocumentBehavior(QueryAnalysisResult result, string explanation, bool shouldHaveErrors)
-    {
-        Assert.IsNotNull(result, $"Analyzer should not crash: {explanation}");
-
-        if (shouldHaveErrors)
-        {
-            Assert.IsTrue(result.HasErrors || !result.IsParsed,
-                $"{explanation} - expected errors but none found");
-        }
-        else
-        {
-            if (result.HasErrors)
-            {
-                var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-                Debug.WriteLine($"{explanation} - note: got errors:\n{errorDetails}");
-            }
-        }
-    }
-
     private static void AssertNoErrors(QueryAnalysisResult result)
     {
         if (result.HasErrors)
@@ -127,9 +108,8 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - MQ9999_Unknown wrapping dictionary key not found for (String, Int32)
+        // Assert - invalid operand types for (String, Int32)
         DocumentTypeHandling(result, "string + number",
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
@@ -145,7 +125,6 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - MQ9999 for no operator defined for (String, String) subtraction
         DocumentTypeHandling(result, "string - string",
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
@@ -161,7 +140,6 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - MQ9999 for no multiply operator for (String, Int32)
         DocumentTypeHandling(result, "string * number",
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
@@ -177,7 +155,6 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - MQ9999 for no divide operator for (String, Int32)
         DocumentTypeHandling(result, "string / number",
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
@@ -193,7 +170,6 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - MQ9999 for no add operator for (Boolean, Decimal)
         DocumentTypeHandling(result, "boolean + number",
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
@@ -209,7 +185,6 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - MQ9999 for no modulo operator for (String, Int32)
         DocumentTypeHandling(result, "string % number",
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
@@ -229,8 +204,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - SQL often allows implicit conversion, may succeed
         DocumentTypeHandling(result, "string = number comparison",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -245,8 +219,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - Type coercion may or may not be allowed
         DocumentTypeHandling(result, "number = boolean comparison",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -261,8 +234,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - May succeed or fail depending on coercion rules
         DocumentTypeHandling(result, "string > number comparison",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -277,8 +249,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - Mixed types in IN list may be coerced or rejected
         DocumentTypeHandling(result, "mixed types in IN clause",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -293,8 +264,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - BETWEEN type mismatch
         DocumentTypeHandling(result, "string BETWEEN numbers",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -309,8 +279,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - LIKE expects string operand
         DocumentTypeHandling(result, "number LIKE pattern",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     #endregion
@@ -329,8 +298,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - WHERE requires boolean condition
         DocumentTypeHandling(result, "string in WHERE (non-boolean)",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -345,8 +313,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - WHERE requires boolean condition
         DocumentTypeHandling(result, "number in WHERE (non-boolean)",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -361,8 +328,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - AND requires boolean operands
         DocumentTypeHandling(result, "string AND string (non-boolean)",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -377,8 +343,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - OR requires boolean operands
         DocumentTypeHandling(result, "boolean OR number (non-boolean)",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -393,8 +358,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - NOT requires boolean operand
         DocumentTypeHandling(result, "NOT on string (non-boolean)",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     #endregion
@@ -413,8 +377,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - SUM expects numeric argument
         DocumentTypeHandling(result, "SUM on string",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     [TestMethod]
@@ -429,8 +392,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - AVG expects numeric argument
         DocumentTypeHandling(result, "AVG on string",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     [TestMethod]
@@ -445,7 +407,6 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - String + decimal type mismatch affects MIN
         DocumentTypeHandling(result, "MIN on string + number expression",
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
@@ -461,8 +422,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - SUM on boolean may or may not be supported
         DocumentTypeHandling(result, "SUM on boolean",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     [TestMethod]
@@ -503,7 +463,6 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - CASE branches should have compatible types
         DocumentTypeHandling(result, "CASE with mismatched THEN types",
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ3005_TypeMismatch);
     }
 
@@ -524,7 +483,6 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - WHEN requires boolean condition
         DocumentTypeHandling(result, "CASE WHEN with non-boolean",
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ3005_TypeMismatch);
     }
 
@@ -546,7 +504,6 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - CASE comparisons should have compatible types
         DocumentTypeHandling(result, "simple CASE with type mismatch",
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ3005_TypeMismatch);
     }
 
@@ -566,8 +523,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - COALESCE should have compatible types
         DocumentTypeHandling(result, "COALESCE with mixed types",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     [TestMethod]
@@ -582,8 +538,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - COALESCE string and number
         DocumentTypeHandling(result, "COALESCE string and number",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     #endregion
@@ -718,8 +673,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - Cast function may or may not exist, or type conversion may fail
         DocumentTypeHandling(result, "Cast string to int",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     [TestMethod]
@@ -734,8 +688,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - Cast with unknown target type
         DocumentTypeHandling(result, "Cast to unknown type",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     [TestMethod]
@@ -750,8 +703,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - Convert function may not exist or conversion may fail
         DocumentTypeHandling(result, "Convert int to datetime",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     #endregion
@@ -773,8 +725,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - Should detect type mismatch or structural issues
         DocumentTypeHandling(result, "UNION with mismatched column types",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -792,8 +743,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - EXCEPT with type mismatch in columns
         DocumentTypeHandling(result, "EXCEPT with mismatched column types",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -811,8 +761,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - INTERSECT with type mismatch
         DocumentTypeHandling(result, "INTERSECT with mismatched column types",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -867,8 +816,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - ORDER BY with mixed-type expression
         DocumentTypeHandling(result, "ORDER BY with string + int expression",
-            DiagnosticCode.MQ3007_InvalidOperandTypes,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -883,8 +831,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - Ordering by boolean expression may or may not be supported
         DocumentTypeHandling(result, "ORDER BY boolean expression",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     #endregion
@@ -903,8 +850,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - City is not in GROUP BY and not aggregated
         DocumentTypeHandling(result, "Non-aggregated column in GROUP BY",
-            DiagnosticCode.MQ3012_NonAggregateInSelect,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3012_NonAggregateInSelect);
     }
 
     [TestMethod]
@@ -919,8 +865,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - GROUP BY with mixed-type expression
         DocumentTypeHandling(result, "GROUP BY with string + int expression",
-            DiagnosticCode.MQ3007_InvalidOperandTypes,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -935,8 +880,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - HAVING requires boolean condition
         DocumentTypeHandling(result, "HAVING with non-boolean condition",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     #endregion
@@ -955,8 +899,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - Arithmetic with NULL literal
         DocumentTypeHandling(result, "Arithmetic with NULL literal",
-            DiagnosticCode.MQ3007_InvalidOperandTypes,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -971,8 +914,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - Comparison with NULL literal (semantically wrong but may parse)
         DocumentTypeHandling(result, "Direct comparison with NULL",
-            DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -986,7 +928,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert - IS NULL on literal is valid but semantically useless
-        DocumentBehavior(result, "IS NULL on literal is valid syntax", false);
+        AssertNoErrors(result);
     }
 
     #endregion
@@ -1005,8 +947,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - Accessing Length on int type
         DocumentTypeHandling(result, "Property access on primitive type",
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3001_UnknownColumn);
     }
 
     [TestMethod]
@@ -1021,8 +962,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - Chained property access on string
         DocumentTypeHandling(result, "Chained property access on wrong type",
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3001_UnknownColumn);
     }
 
     [TestMethod]
@@ -1037,8 +977,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - Index access on non-indexable type
         DocumentTypeHandling(result, "Index access on primitive",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2001_UnexpectedToken);
     }
 
     [TestMethod]
@@ -1053,8 +992,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - String indexing syntax
         DocumentTypeHandling(result, "String index access",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2001_UnexpectedToken);
     }
 
     #endregion
@@ -1073,8 +1011,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - ToString with NULL may have ambiguous overloads
         DocumentTypeHandling(result, "ToString with NULL argument",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     [TestMethod]
@@ -1105,8 +1042,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
 
         // Assert - RowNumber may not exist or may have resolution issues
         DocumentTypeHandling(result, "RowNumber function resolution",
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     #endregion
@@ -1124,7 +1060,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert - Decimal + int should coerce properly
-        DocumentBehavior(result, "Decimal + int coercion is valid", false);
+        AssertNoErrors(result);
     }
 
     [TestMethod]
@@ -1138,7 +1074,7 @@ public class TypeRelatedMistakesTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert - Integer division is valid
-        DocumentBehavior(result, "Integer division is valid", false);
+        AssertNoErrors(result);
     }
 
     #endregion

@@ -13,7 +13,6 @@ public class ErrorMessageQualityTests : NegativeTestsBase
     [TestMethod]
     public void EQ001_CountStarShouldMentionCountOne()
     {
-        
         try
         {
             CompileQuery("SELECT Count(*) FROM #test.people()");
@@ -21,7 +20,6 @@ public class ErrorMessageQualityTests : NegativeTestsBase
         }
         catch (Exception ex)
         {
-            
             Assert.IsTrue(
                 ex.Message.Contains("Count") || ex.Message.Contains("*") || ex.Message.Contains("star"),
                 $"Error message should be helpful for Count(*): {ex.Message}");
@@ -31,9 +29,6 @@ public class ErrorMessageQualityTests : NegativeTestsBase
     [TestMethod]
     public void EQ002_LimitInsteadOfTake_ShouldProduceError()
     {
-        
-        
-        
         try
         {
             CompileQuery("SELECT * FROM #test.people() LIMIT 10");
@@ -41,7 +36,6 @@ public class ErrorMessageQualityTests : NegativeTestsBase
         }
         catch (AstValidationException ex)
         {
-            
             Assert.IsInstanceOfType<SyntaxException>(ex.InnerException,
                 $"Inner exception should be SyntaxException but was: {ex.InnerException?.GetType().Name}");
             Assert.IsTrue(
@@ -53,8 +47,6 @@ public class ErrorMessageQualityTests : NegativeTestsBase
     [TestMethod]
     public void EQ003_OffsetInsteadOfSkip_ShouldProduceError()
     {
-        
-        
         try
         {
             CompileQuery("SELECT * FROM #test.people() ORDER BY Name OFFSET 5");
@@ -62,11 +54,11 @@ public class ErrorMessageQualityTests : NegativeTestsBase
         }
         catch (AstValidationException ex)
         {
-            
             Assert.IsInstanceOfType<SyntaxException>(ex.InnerException,
                 $"Inner exception should be SyntaxException but was: {ex.InnerException?.GetType().Name}");
             Assert.IsTrue(
-                ex.Message.Contains("Unrecognized") || ex.Message.Contains("Identifier") || ex.Message.Contains("parse"),
+                ex.Message.Contains("Unrecognized") || ex.Message.Contains("Identifier") ||
+                ex.Message.Contains("parse"),
                 $"Error message should indicate OFFSET is not recognized: {ex.Message}");
         }
     }
@@ -74,7 +66,6 @@ public class ErrorMessageQualityTests : NegativeTestsBase
     [TestMethod]
     public void EQ004_StandardUnionWithoutColumnList_ShouldProduceError()
     {
-        
         try
         {
             CompileQuery("SELECT Name FROM #test.people() UNION SELECT Name FROM #test.people()");
@@ -86,7 +77,6 @@ public class ErrorMessageQualityTests : NegativeTestsBase
         }
         catch (Exception ex)
         {
-            
             Assert.IsTrue(
                 ex.Message.Contains("UNION") || ex.Message.Contains("column") || ex.Message.Contains("syntax"),
                 $"Error should mention UNION syntax: {ex.Message}");
@@ -96,7 +86,6 @@ public class ErrorMessageQualityTests : NegativeTestsBase
     [TestMethod]
     public void EQ005_NotEqualOperator_IsNotSupported()
     {
-        
         try
         {
             CompileQuery("SELECT * FROM #test.people() WHERE Age != 25");
@@ -115,8 +104,6 @@ public class ErrorMessageQualityTests : NegativeTestsBase
     [TestMethod]
     public void EQ006_SubqueryInWhere_ShouldProduceError()
     {
-        
-        
         try
         {
             CompileQuery("SELECT * FROM #test.people() WHERE Id IN (SELECT PersonId FROM #test.orders())");
@@ -124,7 +111,6 @@ public class ErrorMessageQualityTests : NegativeTestsBase
         }
         catch (AstValidationException ex)
         {
-            
             Assert.IsInstanceOfType<SyntaxException>(ex.InnerException,
                 $"Inner exception should be SyntaxException but was: {ex.InnerException?.GetType().Name}");
             Assert.IsTrue(
@@ -136,8 +122,6 @@ public class ErrorMessageQualityTests : NegativeTestsBase
     [TestMethod]
     public void EQ009_ColumnCaseSensitivityMistake_ShouldProduceError()
     {
-        
-        
         try
         {
             CompileQuery("SELECT name FROM #test.people()");
@@ -149,7 +133,6 @@ public class ErrorMessageQualityTests : NegativeTestsBase
         }
         catch (Exception ex)
         {
-            
             Assert.IsTrue(
                 ex.Message.Contains("name") || ex.Message.Contains("column") || ex.Message.Contains("unknown"),
                 $"Error should mention the column name issue: {ex.Message}");
@@ -159,7 +142,6 @@ public class ErrorMessageQualityTests : NegativeTestsBase
     [TestMethod]
     public void EQ010_GroupByAlias_ShouldProduceError()
     {
-        
         try
         {
             CompileQuery("SELECT ToUpper(City) AS UpperCity, Count(1) FROM #test.people() GROUP BY UpperCity");
@@ -171,9 +153,9 @@ public class ErrorMessageQualityTests : NegativeTestsBase
         }
         catch (Exception ex)
         {
-            
             Assert.IsTrue(
-                ex.Message.Contains("UpperCity") || ex.Message.Contains("alias") || ex.Message.Contains("column") || ex.Message.Contains("unknown"),
+                ex.Message.Contains("UpperCity") || ex.Message.Contains("alias") || ex.Message.Contains("column") ||
+                ex.Message.Contains("unknown"),
                 $"Error should mention the alias issue: {ex.Message}");
         }
     }
@@ -181,12 +163,6 @@ public class ErrorMessageQualityTests : NegativeTestsBase
     [TestMethod]
     public void EQ011_RecursiveCte_ShouldProduceError()
     {
-        
-        
-        
-        
-        
-        
         try
         {
             var query = @"
@@ -202,9 +178,9 @@ public class ErrorMessageQualityTests : NegativeTestsBase
         }
         catch (Exception ex)
         {
-            
             Assert.IsTrue(
-                ex.Message.Contains("R") || ex.Message.Contains("recursive") || ex.Message.Contains("not defined") || ex.Message.Contains("not found") || ex.Message.Contains("unknown"),
+                ex.Message.Contains("R") || ex.Message.Contains("recursive") || ex.Message.Contains("not defined") ||
+                ex.Message.Contains("not found") || ex.Message.Contains("unknown"),
                 $"Error should indicate recursive CTE issue: {ex.Message}");
         }
     }

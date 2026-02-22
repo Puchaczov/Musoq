@@ -541,7 +541,8 @@ public class LexerTests
 
 
         Assert.HasCount(1, tokens, $"Expected 1 token but got {tokens.Count}: {tokenStr}");
-        Assert.AreEqual(TokenType.QuestionMark, tokens[0].TokenType, $"Token 0: Expected QuestionMark but got {tokenStr}");
+        Assert.AreEqual(TokenType.QuestionMark, tokens[0].TokenType,
+            $"Token 0: Expected QuestionMark but got {tokenStr}");
         Assert.AreEqual("?", tokens[0].Value, $"Token 0: Expected value '?' but got '{tokens[0].Value}'");
     }
 
@@ -564,7 +565,8 @@ public class LexerTests
 
         Assert.HasCount(2, tokens, $"Expected 2 tokens but got {tokens.Count}: {tokenStr}");
         Assert.AreEqual(TokenType.Whitespace, tokens[0].TokenType, $"Token 0: Expected Whitespace but got {tokenStr}");
-        Assert.AreEqual(TokenType.QuestionMark, tokens[1].TokenType, $"Token 1: Expected QuestionMark but got {tokenStr}");
+        Assert.AreEqual(TokenType.QuestionMark, tokens[1].TokenType,
+            $"Token 1: Expected QuestionMark but got {tokenStr}");
         Assert.AreEqual("?", tokens[1].Value, $"Token 1: Expected value '?' but got '{tokens[1].Value}'");
     }
 
