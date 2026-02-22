@@ -45,17 +45,19 @@ public static class JoinProcessingHelper
         var computingBlock = SyntaxFactory.Block();
 
         return computingBlock.AddStatements(
+            getRowsSourceOrEmpty(node.SourceTable.Alias),
+            SyntaxFactory.ParseStatement(
+                $"var {node.SourceTable.Alias}RowsCached = {node.SourceTable.Alias}Rows.Rows as Musoq.Schema.DataSources.IObjectResolver[] ?? System.Linq.Enumerable.ToArray({node.SourceTable.Alias}Rows.Rows);"),
             SyntaxFactory.ForEachStatement(
                 SyntaxFactory.IdentifierName("var"),
                 SyntaxFactory.Identifier($"{node.InMemoryTableAlias}Row"),
                 SyntaxFactory.IdentifierName(
                     $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({node.InMemoryTableAlias}TransitionTable, false).{nameof(RowSource.Rows)}"),
                 Block(
-                    getRowsSourceOrEmpty(node.SourceTable.Alias),
                     SyntaxFactory.ForEachStatement(
                         SyntaxFactory.IdentifierName("var"),
                         SyntaxFactory.Identifier($"{node.SourceTable.Alias}Row"),
-                        SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}Rows.Rows"),
+                        SyntaxFactory.IdentifierName($"{node.SourceTable.Alias}RowsCached"),
                         SyntaxFactory.Block(
                             generateCancellationExpression(),
                             ifStatement,
