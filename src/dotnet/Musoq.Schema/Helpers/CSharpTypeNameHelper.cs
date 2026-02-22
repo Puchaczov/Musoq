@@ -45,7 +45,6 @@ public static class CSharpTypeNameHelper
         var argNames = genericArgs.Select(GetCSharpTypeName);
 
         return $"{genericTypeName}<{string.Join(", ", argNames)}>";
-
     }
 
     public static string GetCSharpTypeAlias(Type type)

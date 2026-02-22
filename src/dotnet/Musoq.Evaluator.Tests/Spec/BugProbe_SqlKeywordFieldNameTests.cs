@@ -13,7 +13,6 @@ namespace Musoq.Evaluator.Tests.Spec;
 ///     TokenType.Case/Select/As/In/etc. ComposeIdentifierOrWord() only
 ///     handles Identifier, Word, and certain schema token types — NOT SQL
 ///     keyword token types. Result: SyntaxException on parse.
-///
 ///     Root cause: KeywordLookup.TryGetKeyword wins over schema context
 ///     in Lexer.ScanIdentifierOrKeyword() (line ~324).
 /// </summary>

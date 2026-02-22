@@ -22,6 +22,34 @@ public class StringComparisonConsistencyTests : BasicEntityTestBase
 {
     public TestContext TestContext { get; set; }
 
+    #region NOT LIKE - Case Insensitivity
+
+    [TestMethod]
+    public void NotLike_CaseInsensitive_ExcludesAllCases()
+    {
+        var query = "select Name from #A.entities() where Name not like '%hello%'";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A",
+                [
+                    new BasicEntity("HELLO WORLD"),
+                    new BasicEntity("Hello There"),
+                    new BasicEntity("hello everyone"),
+                    new BasicEntity("goodbye")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count, "NOT LIKE should exclude all case variations");
+        Assert.AreEqual("goodbye", table[0].Values[0]);
+    }
+
+    #endregion
+
     #region LIKE - Case Insensitivity
 
     [TestMethod]
@@ -265,34 +293,6 @@ public class StringComparisonConsistencyTests : BasicEntityTestBase
 
     #endregion
 
-    #region NOT LIKE - Case Insensitivity
-
-    [TestMethod]
-    public void NotLike_CaseInsensitive_ExcludesAllCases()
-    {
-        var query = "select Name from #A.entities() where Name not like '%hello%'";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity("HELLO WORLD"),
-                    new BasicEntity("Hello There"),
-                    new BasicEntity("hello everyone"),
-                    new BasicEntity("goodbye")
-                ]
-            }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.AreEqual(1, table.Count, "NOT LIKE should exclude all case variations");
-        Assert.AreEqual("goodbye", table[0].Values[0]);
-    }
-
-    #endregion
-
     #region ORDER BY - Deterministic Ordinal Sorting
 
     [TestMethod]
@@ -317,7 +317,7 @@ public class StringComparisonConsistencyTests : BasicEntityTestBase
 
         Assert.AreEqual(4, table.Count);
 
-        // Ordinal sort: uppercase letters (A=65) come before lowercase (a=97)
+
         Assert.AreEqual("Apple", table[0].Values[0]);
         Assert.AreEqual("Banana", table[1].Values[0]);
         Assert.AreEqual("banana", table[2].Values[0]);
@@ -346,7 +346,7 @@ public class StringComparisonConsistencyTests : BasicEntityTestBase
 
         Assert.AreEqual(4, table.Count);
 
-        // Ordinal descending: lowercase letters come before uppercase
+
         Assert.AreEqual("cherry", table[0].Values[0]);
         Assert.AreEqual("banana", table[1].Values[0]);
         Assert.AreEqual("Banana", table[2].Values[0]);
@@ -375,7 +375,7 @@ public class StringComparisonConsistencyTests : BasicEntityTestBase
 
         Assert.AreEqual(4, table.Count);
 
-        // Ordinal sort: 'A' (65) < 'a' (97) < 'z' (122) < 'Ą' (260)
+
         Assert.AreEqual("Abc", table[0].Values[0]);
         Assert.AreEqual("abc", table[1].Values[0]);
         Assert.AreEqual("zzz", table[2].Values[0]);
@@ -602,7 +602,7 @@ public class StringComparisonConsistencyTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // GROUP BY uses ordinal equality, so "hello", "Hello", "HELLO" are different groups
+
         Assert.AreEqual(3, table.Count, "GROUP BY should treat different cases as different groups");
 
         Assert.IsTrue(table.Any(row => (string)row.Values[0] == "hello" && (int)row.Values[1] == 2));
@@ -711,7 +711,7 @@ public class StringComparisonConsistencyTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "LIKE should match all case variants");
 
-        // Ordinal sort: 'T' (84) < 't' (116)
+
         Assert.AreEqual("TEST_A", table[0].Values[0]);
         Assert.AreEqual("Test_B", table[1].Values[0]);
         Assert.AreEqual("test_c", table[2].Values[0]);
@@ -749,7 +749,6 @@ public class StringComparisonConsistencyTests : BasicEntityTestBase
     [TestMethod]
     public void Select_ContainsAndLike_Consistent()
     {
-        // Contains and LIKE should agree on case-insensitive matching
         var query = @"
             select Name, 
                    Contains(Name, 'test') as ContainsResult
@@ -773,7 +772,7 @@ public class StringComparisonConsistencyTests : BasicEntityTestBase
 
         Assert.AreEqual(3, table.Count, "LIKE and query should match 3 rows");
 
-        // Contains should also return true for all matched rows
+
         Assert.IsTrue(table.All(row => (bool?)row.Values[1] == true),
             "Contains should agree with LIKE on case-insensitive matching");
     }

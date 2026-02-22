@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -13,7 +14,7 @@ public class PersonTable : ISchemaTable
         new SchemaColumn(nameof(PersonEntity.Age), 2, typeof(int)),
         new SchemaColumn(nameof(PersonEntity.City), 3, typeof(string)),
         new SchemaColumn(nameof(PersonEntity.Salary), 4, typeof(decimal)),
-        new SchemaColumn(nameof(PersonEntity.BirthDate), 5, typeof(System.DateTime)),
+        new SchemaColumn(nameof(PersonEntity.BirthDate), 5, typeof(DateTime)),
         new SchemaColumn(nameof(PersonEntity.ManagerId), 6, typeof(int?)),
         new SchemaColumn(nameof(PersonEntity.Email), 7, typeof(string))
     ];

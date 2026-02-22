@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.NegativeTests;
+using Musoq.Parser.Exceptions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -15,7 +15,6 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE001_ComparingStringToInteger_DoesNotThrow()
     {
-        
         var vm = CompileQuery("SELECT * FROM #test.people() WHERE Name = 42");
         Assert.IsNotNull(vm, "String-to-int comparison compiles without error in Musoq.");
     }
@@ -23,7 +22,6 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE003_ComparingIntToBool_ShouldThrowCompilationError()
     {
-        
         Assert.Throws<CompilationException>(() =>
             CompileQuery("SELECT * FROM #test.types() WHERE IntCol = true"));
     }
@@ -31,7 +29,6 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE004_ComparingDecimalToGuid_ShouldThrowCompilationError()
     {
-        
         Assert.Throws<CompilationException>(() =>
             CompileQuery("SELECT * FROM #test.types() WHERE DecimalCol = GuidCol"));
     }
@@ -41,38 +38,36 @@ public class TypeErrorTests : NegativeTestsBase
     #region 3.2 Arithmetic Type Mismatches
 
     [TestMethod]
-    public void TE010_AddingStringToInt_ShouldThrowKeyNotFoundException()
+    public void TE010_AddingStringToInt_ShouldThrowInvalidOperandTypesException()
     {
-        
-        Assert.Throws<KeyNotFoundException>(() =>
+        Assert.Throws<InvalidOperandTypesException>(() =>
             CompileQuery("SELECT Name + Age FROM #test.people()"));
     }
 
     [TestMethod]
-    public void TE011_MultiplyingStringByInt_ShouldThrowKeyNotFoundException()
+    public void TE011_MultiplyingStringByInt_ShouldThrowInvalidOperandTypesException()
     {
-        Assert.Throws<KeyNotFoundException>(() =>
+        Assert.Throws<InvalidOperandTypesException>(() =>
             CompileQuery("SELECT Name * 3 FROM #test.people()"));
     }
 
     [TestMethod]
-    public void TE012_DividingByString_ShouldThrowKeyNotFoundException()
+    public void TE012_DividingByString_ShouldThrowInvalidOperandTypesException()
     {
-        Assert.Throws<KeyNotFoundException>(() =>
+        Assert.Throws<InvalidOperandTypesException>(() =>
             CompileQuery("SELECT Age / 'two' FROM #test.people()"));
     }
 
     [TestMethod]
-    public void TE013_ModuloWithString_ShouldThrowKeyNotFoundException()
+    public void TE013_ModuloWithString_ShouldThrowInvalidOperandTypesException()
     {
-        Assert.Throws<KeyNotFoundException>(() =>
+        Assert.Throws<InvalidOperandTypesException>(() =>
             CompileQuery("SELECT Age % 'three' FROM #test.people()"));
     }
 
     [TestMethod]
     public void TE014_ArithmeticOnDateTimeDirectly_ShouldThrowError()
     {
-        
         Assert.Throws<Exception>(() =>
             CompileQuery("SELECT BirthDate + BirthDate FROM #test.people()"));
     }
@@ -80,7 +75,6 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE015_ArithmeticOnBool_ShouldThrowCompilationError()
     {
-        
         Assert.Throws<CompilationException>(() =>
             CompileQuery("SELECT BoolCol + BoolCol FROM #test.types()"));
     }
@@ -88,7 +82,6 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE016_ArithmeticOnGuid_ShouldThrowError()
     {
-        
         Assert.Throws<Exception>(() =>
             CompileQuery("SELECT GuidCol + 1 FROM #test.types()"));
     }
@@ -100,7 +93,6 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE020_AndWithNonBooleanOperands_ShouldThrowCompilationError()
     {
-        
         Assert.Throws<CompilationException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE Name AND Age"));
     }
@@ -108,7 +100,6 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE021_OrWithNonBooleanOperands_ShouldThrowCompilationError()
     {
-        
         Assert.Throws<CompilationException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE 'hello' OR 42"));
     }
@@ -141,7 +132,6 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE034_TooManyArgumentsToFunction_DoesNotThrow()
     {
-        
         var vm = CompileQuery("SELECT ToUpper(Name, 'extra') FROM #test.people()");
         Assert.IsNotNull(vm, "ToUpper with extra args compiles without error.");
     }
@@ -188,15 +178,14 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE042_UnionWithWrongNumberOfColumnsInList_DoesNotThrow()
     {
-        
-        var vm = CompileQuery("SELECT Name, Age FROM #test.people() UNION ALL (Name) SELECT Name, Age FROM #test.people()");
+        var vm = CompileQuery(
+            "SELECT Name, Age FROM #test.people() UNION ALL (Name) SELECT Name, Age FROM #test.people()");
         Assert.IsNotNull(vm, "UNION ALL with fewer key columns than selected columns compiles without error.");
     }
 
     [TestMethod]
     public void TE043_UnionColumnListReferencesNonexistentColumn_DoesNotThrow()
     {
-        
         var vm = CompileQuery("SELECT Name FROM #test.people() UNION ALL (FakeColumn) SELECT Name FROM #test.people()");
         Assert.IsNotNull(vm, "UNION ALL with fake column in key list compiles without error.");
     }

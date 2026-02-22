@@ -176,7 +176,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value);
     }
@@ -193,7 +193,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value.Value);
     }
@@ -210,7 +210,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value.Value);
     }
@@ -227,7 +227,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value.Value);
     }
@@ -244,7 +244,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value.Value);
     }
@@ -261,7 +261,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value.Value);
     }
@@ -278,7 +278,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value.Value);
     }
@@ -295,7 +295,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value.Value);
     }
@@ -312,7 +312,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value.Value);
     }
@@ -329,7 +329,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value.Value);
     }
@@ -346,7 +346,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value.Value);
     }
@@ -363,7 +363,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value.Value);
     }
@@ -380,7 +380,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value.Value);
     }
@@ -397,7 +397,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value.Value);
     }
@@ -414,7 +414,7 @@ public partial class LibraryBase
     {
         var parentGroup = GetParentGroup(group, parent);
         var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-        
+
         if (value != null)
             hashSet!.Add(value.Value);
     }

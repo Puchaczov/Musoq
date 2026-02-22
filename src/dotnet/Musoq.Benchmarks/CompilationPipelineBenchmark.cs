@@ -1,8 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using Musoq.Benchmarks.Components;
-using Musoq.Benchmarks.Schema.Country;
 using Musoq.Benchmarks.Helpers;
-using Musoq.Converter;
+using Musoq.Benchmarks.Schema.Country;
 using Musoq.Evaluator;
 
 namespace Musoq.Benchmarks;
@@ -30,7 +29,7 @@ public class CompilationPipelineBenchmark : BenchmarkBase
             { "#A", data }
         };
 
-        // Warm up RuntimeLibraries so first-call overhead doesn't skew results
+
         CreateForCountryWithOptions(SimpleQuery, _sources, new CompilationOptions());
     }
 

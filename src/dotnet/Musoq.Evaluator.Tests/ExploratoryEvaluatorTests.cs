@@ -2772,7 +2772,7 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);
-        // 3 distinct tags: a, b, c
+
         Assert.AreEqual(3, table[0].Values[0]);
     }
 

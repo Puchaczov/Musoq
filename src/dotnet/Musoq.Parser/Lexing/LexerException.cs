@@ -17,7 +17,7 @@ public class LexerException : Exception
     public LexerException(string message, int position) : base(message)
     {
         Position = position;
-        Code = DiagnosticCode.MQ9999_Unknown;
+        Code = DiagnosticCode.MQ1001_UnknownToken;
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ public class LexerException : Exception
         : base(message, innerException)
     {
         Position = position;
-        Code = DiagnosticCode.MQ9999_Unknown;
+        Code = DiagnosticCode.MQ1001_UnknownToken;
     }
 
     /// <summary>

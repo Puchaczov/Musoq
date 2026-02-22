@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -12,7 +13,7 @@ public class OrderTable : ISchemaTable
         new SchemaColumn(nameof(OrderEntity.PersonId), 1, typeof(int)),
         new SchemaColumn(nameof(OrderEntity.Amount), 2, typeof(decimal)),
         new SchemaColumn(nameof(OrderEntity.Status), 3, typeof(string)),
-        new SchemaColumn(nameof(OrderEntity.OrderDate), 4, typeof(System.DateTime)),
+        new SchemaColumn(nameof(OrderEntity.OrderDate), 4, typeof(DateTime)),
         new SchemaColumn(nameof(OrderEntity.Notes), 5, typeof(string))
     ];
 

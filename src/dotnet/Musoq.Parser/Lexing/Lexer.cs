@@ -319,8 +319,7 @@ public sealed class Lexer : ILexer
         var text = Input[start..Position];
         var span = new TextSpan(start, Position - start);
 
-        // In schema context, check for schema-specific keywords first
-        // This allows 'between' to be both a SQL keyword and a schema keyword
+
         if (IsSchemaContext && KeywordLookup.IsSchemaKeyword(text))
         {
             if (_currentToken?.TokenType == TokenType.Dot)

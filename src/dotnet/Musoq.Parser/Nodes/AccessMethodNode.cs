@@ -57,8 +57,8 @@ public class AccessMethodNode : Node
     public ArgsListNode ExtraAggregateArguments { get; }
 
     /// <summary>
-    /// Indicates whether this aggregate function should operate on distinct values only.
-    /// Used with aggregate functions like COUNT(DISTINCT column).
+    ///     Indicates whether this aggregate function should operate on distinct values only.
+    ///     Used with aggregate functions like COUNT(DISTINCT column).
     /// </summary>
     public bool IsDistinct { get; }
 

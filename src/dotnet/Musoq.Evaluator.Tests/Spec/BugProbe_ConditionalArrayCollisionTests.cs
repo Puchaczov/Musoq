@@ -75,9 +75,9 @@ public class BugProbe_ConditionalArrayCollisionTests
         var testData = new byte[]
         {
             0x03, // Count=3
-            0x03, 0x00, 0x00, 0x00,  // 3
-            0x01, 0x00, 0x00, 0x00,  // 1
-            0x02, 0x00, 0x00, 0x00   // 2
+            0x03, 0x00, 0x00, 0x00, // 3
+            0x01, 0x00, 0x00, 0x00, // 1
+            0x02, 0x00, 0x00, 0x00 // 2
         };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
@@ -115,7 +115,7 @@ public class BugProbe_ConditionalArrayCollisionTests
         {
             0x02, // Count=2
             0x48, 0x69, 0x21, // "Hi!"
-            0x42, 0x79, 0x65  // "Bye"
+            0x42, 0x79, 0x65 // "Bye"
         };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(

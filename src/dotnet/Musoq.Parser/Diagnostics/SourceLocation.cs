@@ -1,5 +1,3 @@
-#nullable enable
-
 using System;
 
 namespace Musoq.Parser.Diagnostics;

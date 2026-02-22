@@ -151,7 +151,7 @@ public sealed class DiagnosticContext
     {
         var diagnostic = exception.ToDiagnosticOrGeneric(SourceText);
         var actualSpan = span ?? diagnostic.Span;
-        _diagnostics.AddError(diagnostic.Code, exception.Message, actualSpan);
+        _diagnostics.AddError(diagnostic.Code, diagnostic.Message, actualSpan);
     }
 
     /// <summary>

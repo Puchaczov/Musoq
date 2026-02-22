@@ -372,28 +372,32 @@ public class PluginsAttributesTests
     [TestMethod]
     public void MethodCategories_DateTime_IsCorrectValue()
     {
-        var value = typeof(MethodCategories).GetField(nameof(MethodCategories.DateTime))?.GetRawConstantValue() as string;
+        var value =
+            typeof(MethodCategories).GetField(nameof(MethodCategories.DateTime))?.GetRawConstantValue() as string;
         Assert.AreEqual("DateTime", value);
     }
 
     [TestMethod]
     public void MethodCategories_Conversion_IsCorrectValue()
     {
-        var value = typeof(MethodCategories).GetField(nameof(MethodCategories.Conversion))?.GetRawConstantValue() as string;
+        var value =
+            typeof(MethodCategories).GetField(nameof(MethodCategories.Conversion))?.GetRawConstantValue() as string;
         Assert.AreEqual("Conversion", value);
     }
 
     [TestMethod]
     public void MethodCategories_Aggregate_IsCorrectValue()
     {
-        var value = typeof(MethodCategories).GetField(nameof(MethodCategories.Aggregate))?.GetRawConstantValue() as string;
+        var value =
+            typeof(MethodCategories).GetField(nameof(MethodCategories.Aggregate))?.GetRawConstantValue() as string;
         Assert.AreEqual("Aggregate", value);
     }
 
     [TestMethod]
     public void MethodCategories_Cryptography_IsCorrectValue()
     {
-        var value = typeof(MethodCategories).GetField(nameof(MethodCategories.Cryptography))?.GetRawConstantValue() as string;
+        var value =
+            typeof(MethodCategories).GetField(nameof(MethodCategories.Cryptography))?.GetRawConstantValue() as string;
         Assert.AreEqual("Cryptography", value);
     }
 
@@ -407,7 +411,8 @@ public class PluginsAttributesTests
     [TestMethod]
     public void MethodCategories_Network_IsCorrectValue()
     {
-        var value = typeof(MethodCategories).GetField(nameof(MethodCategories.Network))?.GetRawConstantValue() as string;
+        var value = typeof(MethodCategories).GetField(nameof(MethodCategories.Network))
+            ?.GetRawConstantValue() as string;
         Assert.AreEqual("Network", value);
     }
 

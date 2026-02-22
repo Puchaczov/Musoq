@@ -82,7 +82,6 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     [TestMethod]
     public void NthIndexOf_CaseInsensitive_FindsUppercaseOccurrence()
     {
-        // "hello HELLO Hello" - searching for "hello" should find all three
         var input = "hello HELLO Hello";
         Assert.AreEqual(0, Library.NthIndexOf(input, "hello", 0));
     }
@@ -146,7 +145,6 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     [TestMethod]
     public void LastIndexOf_CaseInsensitive_FindsLastOccurrenceRegardlessOfCase()
     {
-        // Should find the last "hello" (at position 12), even though it's "Hello"
         var result = Library.LastIndexOf("hello HELLO Hello", "hello");
         Assert.AreEqual(12, result);
     }
@@ -418,8 +416,6 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToUpper_TurkishI_UsesInvariantCulture()
     {
-        // In Turkish culture, 'i'.ToUpper() yields İ (U+0130), not 'I'.
-        // With InvariantCulture, 'i'.ToUpper() always yields 'I'.
         var result = Library.ToUpper("file");
         Assert.AreEqual("FILE", result);
     }
@@ -427,7 +423,6 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToUpper_WithSpecificCulture_UsesThatCulture()
     {
-        // The overload with culture name should use that specific culture
         var result = Library.ToUpper("hello", "en-US");
         Assert.AreEqual("HELLO", result);
     }
@@ -447,7 +442,6 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToUpper_GermanCharacters_ReturnsUppercase()
     {
-        // ß uppercases to SS in InvariantCulture
         var result = Library.ToUpper("straße");
         Assert.IsTrue(result == "STRASSE" || result == "STRAßE",
             $"Expected STRASSE or STRAßE but got {result}");
@@ -484,8 +478,6 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToLower_TurkishI_UsesInvariantCulture()
     {
-        // In Turkish culture, 'I'.ToLower() yields ı (dotless i, U+0131), not 'i'.
-        // With InvariantCulture, 'I'.ToLower() always yields 'i'.
         var result = Library.ToLower("FILE");
         Assert.AreEqual("file", result);
     }
@@ -534,8 +526,6 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     [TestMethod]
     public void ToTitleCase_AllUppercase_ReturnsTitleCase()
     {
-        // ToTitleCase only capitalizes the first letter of words that are all lowercase
-        // All-uppercase words are left as-is (per .NET behavior)
         var result = Library.ToTitleCase("hello world");
         Assert.AreEqual("Hello World", result);
     }
@@ -565,7 +555,6 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     [TestMethod]
     public void Soundex_SameSound_ReturnsSameCode()
     {
-        // Robert and Rupert should have the same soundex
         Assert.AreEqual(Library.Soundex("Robert"), Library.Soundex("Rupert"));
     }
 
@@ -584,7 +573,6 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     [TestMethod]
     public void Soundex_LowercaseInput_WorksCorrectly()
     {
-        // Should work regardless of input case since ToUpperInvariant is used internally
         Assert.AreEqual(Library.Soundex("Robert"), Library.Soundex("robert"));
     }
 
@@ -601,15 +589,14 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     [TestMethod]
     public void AllSearchFunctions_CaseInsensitive_Consistent()
     {
-        // Verify that Contains, IndexOf, StartsWith, EndsWith all agree on case-insensitivity
         var text = "Hello World";
 
-        // All should find "hello" (lowercase) in "Hello World"
+
         Assert.IsTrue(Library.Contains(text, "hello"), "Contains should be case-insensitive");
         Assert.AreEqual(0, Library.IndexOf(text, "hello"), "IndexOf should be case-insensitive");
         Assert.IsTrue(Library.StartsWith(text, "hello"), "StartsWith should be case-insensitive");
 
-        // All should find "WORLD" (uppercase) in "Hello World"
+
         Assert.IsTrue(Library.Contains(text, "WORLD"), "Contains should find WORLD");
         Assert.AreEqual(6, Library.IndexOf(text, "WORLD"), "IndexOf should find WORLD");
         Assert.IsTrue(Library.EndsWith(text, "WORLD"), "EndsWith should be case-insensitive");
@@ -620,10 +607,10 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     {
         var text = "Hello World Hello";
 
-        // IndexOf finds first occurrence
+
         var indexOfResult = Library.IndexOf(text, "hello");
 
-        // NthIndexOf with index 0 should return the same
+
         var nthResult = Library.NthIndexOf(text, "hello", 0);
 
         Assert.AreEqual(indexOfResult, nthResult,
@@ -635,7 +622,7 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     {
         var text = "test";
 
-        // For single occurrence, IndexOf and LastIndexOf should agree
+
         var indexOfResult = Library.IndexOf(text, "TEST");
         var lastIndexOfResult = Library.LastIndexOf(text, "TEST");
 
@@ -648,7 +635,7 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     {
         var text = "Hello World";
 
-        // If Contains finds it, Replace should replace it
+
         Assert.IsTrue(Library.Contains(text, "world"));
         var replaced = Library.Replace(text, "world", "Earth");
         Assert.AreEqual("Hello Earth", replaced);
@@ -659,7 +646,7 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     {
         var text = "HelloWorld";
 
-        // If StartsWith matches, RemovePrefix should remove it
+
         Assert.IsTrue(Library.StartsWith(text, "HELLO"));
         var result = Library.RemovePrefix(text, "HELLO");
         Assert.AreEqual("World", result);
@@ -670,7 +657,7 @@ public class StringCultureConsistencyTests : LibraryBaseBaseTests
     {
         var text = "HelloWorld";
 
-        // If EndsWith matches, RemoveSuffix should remove it
+
         Assert.IsTrue(Library.EndsWith(text, "WORLD"));
         var result = Library.RemoveSuffix(text, "WORLD");
         Assert.AreEqual("Hello", result);

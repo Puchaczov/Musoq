@@ -846,7 +846,3 @@ public class InterpretationBenchmark : BenchmarkBase
 
     #endregion
 }
-
-#region Benchmark Infrastructure
-
-#endregion

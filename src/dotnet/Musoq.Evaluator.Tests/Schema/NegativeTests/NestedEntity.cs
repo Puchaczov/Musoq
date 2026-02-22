@@ -24,6 +24,6 @@ public class NestedEntity
     }
 
     public int Id { get; set; }
-    
+
     public ComplexInfo Info { get; set; }
 }

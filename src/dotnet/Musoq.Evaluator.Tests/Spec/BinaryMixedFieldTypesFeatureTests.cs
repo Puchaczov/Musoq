@@ -203,7 +203,7 @@ public class BinaryMixedFieldTypesFeatureTests
 
         var first = Encoding.UTF8.GetBytes("John");
         var last = Encoding.UTF8.GetBytes("Doe");
-        var testData = new byte[] { (byte)first.Length }
+        var testData = new[] { (byte)first.Length }
             .Concat(first)
             .Concat([(byte)last.Length])
             .Concat(last)

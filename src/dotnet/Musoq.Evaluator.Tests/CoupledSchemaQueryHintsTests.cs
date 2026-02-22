@@ -1,15 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Components;
-using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
-using Musoq.Schema.Managers;
 using Musoq.Tests.Common;
-using SchemaColumn = Musoq.Schema.DataSources.SchemaColumn;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -40,7 +35,8 @@ public class CoupledSchemaQueryHintsTests
         var api = new ApiDataSourceQueryHintsIntegrationTests.FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity { Id = i, Name = $"Item{i}" });
+            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
+                { Id = i, Name = $"Item{i}" });
         });
 
         var query = @"
@@ -50,7 +46,8 @@ public class CoupledSchemaQueryHintsTests
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert
@@ -70,7 +67,8 @@ public class CoupledSchemaQueryHintsTests
         var api = new ApiDataSourceQueryHintsIntegrationTests.FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity { Id = i, Name = $"Item{i}" });
+            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
+                { Id = i, Name = $"Item{i}" });
         });
 
         var query = @"
@@ -80,7 +78,8 @@ public class CoupledSchemaQueryHintsTests
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert
@@ -100,7 +99,8 @@ public class CoupledSchemaQueryHintsTests
         var api = new ApiDataSourceQueryHintsIntegrationTests.FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity { Id = i, Name = $"Item{i}" });
+            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
+                { Id = i, Name = $"Item{i}" });
         });
 
         var query = @"
@@ -110,7 +110,8 @@ public class CoupledSchemaQueryHintsTests
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert
@@ -130,7 +131,8 @@ public class CoupledSchemaQueryHintsTests
         var api = new ApiDataSourceQueryHintsIntegrationTests.FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity { Id = i % 10, Name = $"Item{i % 10}" });
+            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
+                { Id = i % 10, Name = $"Item{i % 10}" });
         });
 
         var query = @"
@@ -140,7 +142,8 @@ public class CoupledSchemaQueryHintsTests
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert - DISTINCT creates implicit GROUP BY
@@ -158,7 +161,8 @@ public class CoupledSchemaQueryHintsTests
         var api = new ApiDataSourceQueryHintsIntegrationTests.FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity { Id = i, Name = $"Item{i}" });
+            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
+                { Id = i, Name = $"Item{i}" });
         });
 
         var query = @"
@@ -168,7 +172,8 @@ public class CoupledSchemaQueryHintsTests
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert - ORDER BY means no hints
@@ -186,7 +191,8 @@ public class CoupledSchemaQueryHintsTests
         var api = new ApiDataSourceQueryHintsIntegrationTests.FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity { Id = i, Name = $"Category{i % 5}" });
+            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
+                { Id = i, Name = $"Category{i % 5}" });
         });
 
         var query = @"
@@ -196,7 +202,8 @@ public class CoupledSchemaQueryHintsTests
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert - GROUP BY means no hints
@@ -214,7 +221,7 @@ public class CoupledSchemaQueryHintsTests
         RuntimeContext capturedCategoriesContext = null;
 
         var multiApi = new ApiDataSourceQueryHintsIntegrationTests.FakeMultiApiDataSource(
-            itemsProvider: ctx =>
+            ctx =>
             {
                 capturedItemsContext = ctx;
                 return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
@@ -224,7 +231,7 @@ public class CoupledSchemaQueryHintsTests
                     Status = $"cat{i % 3}"
                 });
             },
-            categoriesProvider: ctx =>
+            ctx =>
             {
                 capturedCategoriesContext = ctx;
                 return Enumerable.Range(0, 3).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeCategoryEntity
@@ -246,7 +253,8 @@ public class CoupledSchemaQueryHintsTests
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeMultiApiSchemaProvider(multiApi), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeMultiApiSchemaProvider(multiApi), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert - Multi-table means no hints for any source
@@ -267,7 +275,8 @@ public class CoupledSchemaQueryHintsTests
         var api = new ApiDataSourceQueryHintsIntegrationTests.FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity { Id = i, Name = $"Item{i}" });
+            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
+                { Id = i, Name = $"Item{i}" });
         });
 
         var query = @"
@@ -277,7 +286,8 @@ public class CoupledSchemaQueryHintsTests
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert - No optimization clauses means QueryHints.Empty
@@ -287,4 +297,3 @@ public class CoupledSchemaQueryHintsTests
             "No optimization clauses should result in no hints");
     }
 }
-
