@@ -797,9 +797,9 @@ public class MultiJoinHashJoinTests : BasicEntityTestBase
 
 
         Assert.Contains("bHashed = new System.Collections.Generic.Dictionary<",
-generatedCode, "First join should create bHashed dictionary");
+            generatedCode, "First join should create bHashed dictionary");
         Assert.Contains("abHashed = new System.Collections.Generic.Dictionary<",
-generatedCode, "Second join should create abHashed dictionary for the intermediate result");
+            generatedCode, "Second join should create abHashed dictionary for the intermediate result");
     }
 
     /// <summary>

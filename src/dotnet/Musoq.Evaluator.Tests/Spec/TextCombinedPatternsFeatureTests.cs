@@ -97,7 +97,8 @@ public class TextCombinedPatternsFeatureTests
             select d.Level, d.Timestamp, d.Message from #test.lines() l
             cross apply Parse(l.Line, 'LogEntry') d";
 
-        var entities = new[] { new TextEntity { Name = "test.txt", Text = "INFO 2024-01-15 Application started successfully" } };
+        var entities = new[]
+            { new TextEntity { Name = "test.txt", Text = "INFO 2024-01-15 Application started successfully" } };
         var schemaProvider = new TextSchemaProvider(
             new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
 

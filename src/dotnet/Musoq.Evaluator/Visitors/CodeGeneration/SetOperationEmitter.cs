@@ -139,8 +139,6 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
 
     private static InvocationExpressionSyntax CreateFieldEquality(string first, string second, int fieldIndex)
     {
-        // Use static object.Equals(first[i], second[i]) instead of first[i].Equals(second[i])
-        // to avoid NullReferenceException when key column values are null.
         return SyntaxFactory
             .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(

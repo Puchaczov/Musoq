@@ -1,4 +1,4 @@
-﻿#nullable enable annotations
+#nullable enable annotations
 
 using System;
 using System.Collections.Generic;
@@ -187,7 +187,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
         var min = Nodes.Pop();
         var expression = Nodes.Pop();
 
-        // Create: expression >= min AND expression <= max
+
         var greaterOrEqual = new GreaterOrEqualNode(expression, min);
         var lessOrEqual = new LessOrEqualNode(expression, max);
         var andNode = new AndNode(greaterOrEqual, lessOrEqual);
@@ -883,7 +883,8 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
                     var newArgs = new ArgsListNode(newNodes.ToArray());
                     newRefreshMethods.Add(new AccessMethodNode(method.FunctionToken, newArgs,
-                        method.ExtraAggregateArguments, method.CanSkipInjectSource, method.Method, string.Empty, default, method.IsDistinct));
+                        method.ExtraAggregateArguments, method.CanSkipInjectSource, method.Method, string.Empty,
+                        default, method.IsDistinct));
                 }
 
                 refreshMethods = new RefreshNode(newRefreshMethods.ToArray());

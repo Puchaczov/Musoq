@@ -139,8 +139,6 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
     public override void Visit(BetweenNode node)
     {
-        // BETWEEN is desugared to AND(>=, <=) by RewriteQueryVisitor before this runs,
-        // but we add handling here in case it's used in isolation
         var clonedNode = Nodes.Pop();
         Nodes.Push(clonedNode);
     }

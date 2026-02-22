@@ -32,10 +32,13 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 {
     private static readonly MethodInfo LikeMethod =
         typeof(Operators).GetMethod(nameof(Operators.Like)) ?? throw new InvalidOperationException();
+
     private static readonly MethodInfo RLikeMethod =
         typeof(Operators).GetMethod(nameof(Operators.RLike)) ?? throw new InvalidOperationException();
+
     private static readonly MethodInfo ContainsMethod =
         typeof(Operators).GetMethod(nameof(Operators.Contains)) ?? throw new InvalidOperationException();
+
     private readonly CompilationContextManager _compilationContext;
     private readonly CompilationOptions _compilationOptions;
     private readonly CseManager _cseManager;
@@ -653,7 +656,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public override void Visit(AccessMethodFromNode node)
     {
-        Type returnType = node.ReturnType ?? typeof(object);
+        var returnType = node.ReturnType ?? typeof(object);
         AddNamespace(returnType);
         var sourceExpression = (ExpressionSyntax)Nodes.Pop();
         _getRowsSourceStatement.Add(node.Alias,
@@ -662,7 +665,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public override void Visit(PropertyFromNode node)
     {
-        Type returnType = node.ReturnType ?? typeof(object);
+        var returnType = node.ReturnType ?? typeof(object);
         AddNamespace(returnType);
 
         var propertiesChain = node.PropertiesChain

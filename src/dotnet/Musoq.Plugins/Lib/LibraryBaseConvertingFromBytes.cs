@@ -13,7 +13,7 @@ public partial class LibraryBase
 
         var padded = new byte[requiredSize];
         Array.Copy(value, 0, padded, 0, value.Length);
-        
+
         return padded;
     }
 
@@ -343,7 +343,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Conversion)]
     public Half? FromBytesToHalf(byte[] value, bool padIfNeeded)
     {
-        const int halfSize = 2; 
+        const int halfSize = 2;
         if (value == null)
             return null;
 

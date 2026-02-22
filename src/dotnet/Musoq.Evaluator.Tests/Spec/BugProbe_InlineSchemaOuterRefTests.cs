@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
@@ -13,7 +15,6 @@ namespace Musoq.Evaluator.Tests.Spec;
 ///     InterpretAt method. If a field inside the inline schema references an outer field
 ///     in a size expression (e.g., string[Length] where Length is in the parent), the
 ///     generated code emits (int)_length, but _length doesn't exist in the nested class.
-///
 ///     Root cause: InterpreterCodeGenerator.cs line ~218-289
 ///     GenerateInlineSchemaNestedClass doesn't pass outer scope variables.
 /// </summary>
@@ -41,10 +42,10 @@ public class BugProbe_InlineSchemaOuterRefTests
             select o.Inner.Data from #test.files() b
             cross apply Interpret(b.Content, 'Outer') o";
 
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write((byte)5);
-        bw.Write(System.Text.Encoding.ASCII.GetBytes("Hello"));
+        bw.Write(Encoding.ASCII.GetBytes("Hello"));
         bw.Flush();
 
         var testData = ms.ToArray();

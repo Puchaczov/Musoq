@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Components;
+using Musoq.Schema.Interpreters;
 
 namespace Musoq.Evaluator.Tests.Spec;
 
@@ -12,10 +15,8 @@ namespace Musoq.Evaluator.Tests.Spec;
 ///     GenerateSizeExpression always casts to (int), which truncates uint values
 ///     above int.MaxValue (2,147,483,647) to negative numbers.
 ///     ReadString/ReadBytes will then throw with "Negative string size".
-///
 ///     Root cause: InterpreterCodeGenerator.cs GenerateSizeExpression() line ~1279:
 ///     return $"(int){localVar}";  // narrowing cast for uint/ulong
-///
 ///     Also tests: expressions in size references (e.g. string[Len * 2]).
 /// </summary>
 [TestClass]
@@ -30,10 +31,10 @@ public class BugProbe_SizeExpressionEdgeCaseTests
     [TestMethod]
     public void Binary_UintSizeRefSmallValue_ShouldWorkForStringField()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write((uint)3);
-        bw.Write(System.Text.Encoding.ASCII.GetBytes("ABC"));
+        bw.Write(Encoding.ASCII.GetBytes("ABC"));
         bw.Flush();
 
         var query = @"
@@ -65,8 +66,8 @@ public class BugProbe_SizeExpressionEdgeCaseTests
     [TestMethod]
     public void Binary_UshortSizeRefForByteArray_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write((ushort)4);
         ms.Write([0xDE, 0xAD, 0xBE, 0xEF], 0, 4);
 
@@ -98,8 +99,8 @@ public class BugProbe_SizeExpressionEdgeCaseTests
     [TestMethod]
     public void Binary_ShortSizeRefNegativeValue_ShouldThrowParseException()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write((short)-1);
         bw.Write(new byte[16]); // padding
         bw.Flush();
@@ -121,9 +122,10 @@ public class BugProbe_SizeExpressionEdgeCaseTests
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider,
             LoggerResolver, TestCompilationOptions);
 
-        var ex = Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() =>
+        var ex = Assert.Throws<ParseException>(() =>
             vm.Run(CancellationToken.None));
-        Assert.Contains("Negative string size", ex.Message, $"Expected 'Negative string size' in message but got: {ex.Message}");
+        Assert.Contains("Negative string size", ex.Message,
+            $"Expected 'Negative string size' in message but got: {ex.Message}");
     }
 
     /// <summary>
@@ -132,10 +134,10 @@ public class BugProbe_SizeExpressionEdgeCaseTests
     [TestMethod]
     public void Binary_IntSizeRefForString_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write(6);
-        bw.Write(System.Text.Encoding.UTF8.GetBytes("Musoq!"));
+        bw.Write(Encoding.UTF8.GetBytes("Musoq!"));
         bw.Flush();
 
         var query = @"
@@ -167,11 +169,11 @@ public class BugProbe_SizeExpressionEdgeCaseTests
     [TestMethod]
     public void Binary_ExpressionSizeMinusOne_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         // Total length including a null terminator = 6, so string data = 5 chars
         bw.Write((byte)6);
-        bw.Write(System.Text.Encoding.ASCII.GetBytes("Hello"));
+        bw.Write(Encoding.ASCII.GetBytes("Hello"));
         bw.Write((byte)0x00); // null terminator (part of the 6 bytes total)
         bw.Flush();
 
@@ -204,10 +206,10 @@ public class BugProbe_SizeExpressionEdgeCaseTests
     [TestMethod]
     public void Binary_ExpressionSizeMultiply_ShouldWork()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
-        bw.Write((byte)3);  // half-length
-        bw.Write(System.Text.Encoding.ASCII.GetBytes("ABCDEF")); // 3*2 = 6 chars
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
+        bw.Write((byte)3); // half-length
+        bw.Write(Encoding.ASCII.GetBytes("ABCDEF")); // 3*2 = 6 chars
         bw.Flush();
 
         var query = @"
@@ -239,8 +241,8 @@ public class BugProbe_SizeExpressionEdgeCaseTests
     [TestMethod]
     public void Binary_LongSizeRefSmallValue_ShouldWorkForByteArray()
     {
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
         bw.Write(2L);
         ms.Write([0xAB, 0xCD], 0, 2);
 

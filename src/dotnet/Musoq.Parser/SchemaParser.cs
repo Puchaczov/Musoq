@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using Musoq.Parser.Diagnostics;
@@ -210,8 +209,8 @@ public class SchemaParser
         if (Current.TokenType == TokenType.Repeat) typeAnnotation = ComposeRepeatUntilType(typeAnnotation, name);
 
         var atOffset = ComposeOptionalAtOffset();
-        var constraint = ComposeOptionalConstraint();
         var whenCondition = ComposeOptionalWhenCondition();
+        var constraint = ComposeOptionalConstraint();
 
         return new FieldDefinitionNode(name, typeAnnotation, constraint, atOffset, whenCondition);
     }
@@ -245,6 +244,17 @@ public class SchemaParser
             or TokenType.Hyphen or TokenType.True or TokenType.False)
             return true;
 
+        if (AllowedKeywordTokenTypes.Contains(Current.TokenType))
+        {
+            var nextType = PeekNextTokenType();
+            if (nextType is TokenType.LittleEndian or TokenType.BigEndian or TokenType.LeftSquareBracket
+                or TokenType.Less or TokenType.At or TokenType.Check or TokenType.When or TokenType.Repeat
+                or TokenType.Comma or TokenType.RBracket)
+                return false;
+
+            return true;
+        }
+
         return false;
     }
 
@@ -269,8 +279,8 @@ public class SchemaParser
         if (Current.TokenType == TokenType.Repeat) typeAnnotation = ComposeRepeatUntilType(typeAnnotation, name);
 
         var atOffset = ComposeOptionalAtOffset();
-        var constraint = ComposeOptionalConstraint();
         var whenCondition = ComposeOptionalWhenCondition();
+        var constraint = ComposeOptionalConstraint();
 
         return new FieldDefinitionNode(name, typeAnnotation, constraint, atOffset, whenCondition);
     }
@@ -668,6 +678,9 @@ public class SchemaParser
                 return new HyphenNode(new IntegerNode("0", "i"), operand);
 
             default:
+                if (AllowedKeywordTokenTypes.Contains(Current.TokenType))
+                    return ComposeIdentifierOrFunctionCall();
+
                 throw new SyntaxException(
                     $"Expected integer, identifier, or expression but found '{Current.TokenType}'",
                     _lexer.AlreadyResolvedQueryPart);
@@ -705,16 +718,14 @@ public class SchemaParser
         return ComposePostfixAccess(result);
     }
 
-        private Node ComposePostfixAccess(Node node)
+    private Node ComposePostfixAccess(Node node)
     {
         while (true)
-        {
             if (Current.TokenType == TokenType.Dot)
             {
                 Consume(TokenType.Dot);
-                
-                
-                
+
+
                 if (Current.TokenType is TokenType.LeftParenthesis or TokenType.RightParenthesis
                     or TokenType.LeftSquareBracket or TokenType.RightSquareBracket
                     or TokenType.LBracket or TokenType.RBracket
@@ -724,12 +735,10 @@ public class SchemaParser
                     or TokenType.LessEqual or TokenType.Greater or TokenType.Less
                     or TokenType.Diff or TokenType.Dot or TokenType.EndOfFile
                     or TokenType.Integer or TokenType.Decimal or TokenType.Function)
-                {
                     throw new SyntaxException(
                         $"Expected identifier after '.' but found '{Current.TokenType}' ({Current.Value})",
                         _lexer.AlreadyResolvedQueryPart);
-                }
-                
+
                 var memberToken = ConsumeAndGetToken(Current.TokenType);
                 var memberNode = new IdentifierNode(memberToken.Value);
                 node = new DotNode(node, memberNode, memberToken.Value);
@@ -745,10 +754,10 @@ public class SchemaParser
             {
                 break;
             }
-        }
 
         return node;
     }
+
     private Node? ComposeOptionalAtOffset()
     {
         if (Current.TokenType != TokenType.At)
@@ -1281,18 +1290,17 @@ public class SchemaParser
 
     private string ComposeIdentifierOrWord()
     {
-        
         if (Current.TokenType == TokenType.Identifier)
             return ConsumeAndGetToken(TokenType.Identifier).Value;
 
         if (Current.TokenType == TokenType.Word)
             return ConsumeAndGetToken(TokenType.Word).Value;
 
-        
+
         if (Current.TokenType == TokenType.Property && Current.Value == "_")
             return ConsumeAndGetToken(TokenType.Property).Value;
 
-        
+
         if (AllowedKeywordTokenTypes.Contains(Current.TokenType))
             return ConsumeAndGetToken(Current.TokenType).Value;
 
@@ -1376,7 +1384,7 @@ public class SchemaParser
         return token;
     }
 
-        private static bool IsNegativeConstantSizeExpression(Node sizeExpr, out string valueStr)
+    private static bool IsNegativeConstantSizeExpression(Node sizeExpr, out string valueStr)
     {
         if (sizeExpr is IntegerNode intNode)
         {
@@ -1389,7 +1397,6 @@ public class SchemaParser
         }
         else if (sizeExpr is HyphenNode { Left: IntegerNode leftInt, Right: IntegerNode rightInt })
         {
-            
             var leftVal = Convert.ToInt64(leftInt.ObjValue);
             var rightVal = Convert.ToInt64(rightInt.ObjValue);
             if (leftVal == 0 && rightVal > 0)

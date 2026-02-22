@@ -66,8 +66,7 @@ public sealed class CompilationContextManager
         var abstractionDll = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
             "Microsoft.Extensions.Logging.Abstractions.dll");
 
-        // Batch all core type references into a single AddReferences call
-        // instead of calling AddAssemblyReference individually per type
+
         var coreTypes = new[]
         {
             typeof(object),
@@ -83,11 +82,11 @@ public sealed class CompilationContextManager
 
         var newReferences = new List<MetadataReference>(coreTypes.Length + 2);
 
-        // Add the abstractions DLL
+
         if (!string.IsNullOrEmpty(abstractionDll) && _loadedAssemblies.Add(abstractionDll))
             newReferences.Add(MetadataReferenceCache.GetOrCreate(abstractionDll));
 
-        // Track namespaces and collect assembly references for all core types
+
         foreach (var type in coreTypes)
         {
             TrackNamespace(type);

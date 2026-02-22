@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
-using Musoq.Evaluator.Tests.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
@@ -25,7 +24,7 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             }
         };
 
-        Assert.Throws<SchemaNotFoundException>(() => CreateAndRunVirtualMachine(query, sources));
+        Assert.Throws<UnknownInterpretationSchemaException>(() => CreateAndRunVirtualMachine(query, sources));
     }
 
     [TestMethod]

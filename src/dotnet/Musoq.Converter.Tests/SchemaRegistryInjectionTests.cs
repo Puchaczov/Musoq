@@ -30,17 +30,18 @@ public class SchemaRegistryInjectionTests
             items =>
             {
                 items.SchemaRegistry = expectedRegistry;
-                items.CreateBuildMetadataAndInferTypesVisitor = (provider, columns, compilationOptions, schemaRegistry) =>
-                {
-                    capturedVisitor = new BuildMetadataAndInferTypesVisitor(
-                        provider,
-                        columns,
-                        loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(),
-                        compilationOptions,
-                        schemaRegistry);
+                items.CreateBuildMetadataAndInferTypesVisitor =
+                    (provider, columns, compilationOptions, schemaRegistry) =>
+                    {
+                        capturedVisitor = new BuildMetadataAndInferTypesVisitor(
+                            provider,
+                            columns,
+                            loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(),
+                            compilationOptions,
+                            schemaRegistry);
 
-                    return capturedVisitor;
-                };
+                        return capturedVisitor;
+                    };
             });
 
         var result = compiled.Run();

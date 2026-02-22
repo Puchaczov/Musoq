@@ -18,7 +18,7 @@ public static class DiagnosticExceptionExtensions
     /// <returns>True if the exception was converted to a diagnostic; otherwise false.</returns>
     public static bool TryToDiagnostic(this Exception exception, SourceText? sourceText, out Diagnostic? diagnostic)
     {
-        if (exception is IDiagnosticException diagnosticException)
+        if (TryGetDiagnosticException(exception, out var diagnosticException))
         {
             diagnostic = diagnosticException.ToDiagnostic(sourceText);
             return true;
@@ -37,15 +37,77 @@ public static class DiagnosticExceptionExtensions
     /// <returns>A diagnostic representing the exception.</returns>
     public static Diagnostic ToDiagnosticOrGeneric(this Exception exception, SourceText? sourceText = null)
     {
-        if (exception is IDiagnosticException diagnosticException) return diagnosticException.ToDiagnostic(sourceText);
+        if (TryGetDiagnosticException(exception, out var diagnosticException))
+            return diagnosticException.ToDiagnostic(sourceText);
 
 
         var message = MakeUserFriendlyMessage(exception);
+        var code = GetFallbackDiagnosticCode(exception);
 
         return Diagnostic.Error(
-            DiagnosticCode.MQ9999_Unknown,
+            code,
             message,
             TextSpan.Empty);
+    }
+
+    private static DiagnosticCode GetFallbackDiagnosticCode(Exception exception)
+    {
+        if (exception.Message.Contains("Unterminated string literal", StringComparison.OrdinalIgnoreCase))
+            return DiagnosticCode.MQ1002_UnterminatedString;
+
+        if (exception is NullReferenceException or ArgumentNullException or IndexOutOfRangeException)
+            return DiagnosticCode.MQ2030_UnsupportedSyntax;
+
+        if (exception is NotSupportedException)
+            return DiagnosticCode.MQ2030_UnsupportedSyntax;
+
+        if (exception is KeyNotFoundException)
+            return DiagnosticCode.MQ3003_UnknownTable;
+
+        if (exception is ArgumentException argumentException &&
+            argumentException.Message.Contains("same key has already been added", StringComparison.OrdinalIgnoreCase))
+            return DiagnosticCode.MQ3021_DuplicateAlias;
+
+        if (exception is ArgumentException methodArgumentException &&
+            string.Equals(methodArgumentException.ParamName, "methodName", StringComparison.Ordinal) &&
+            methodArgumentException.Message.Contains("is not recognized", StringComparison.OrdinalIgnoreCase))
+            return DiagnosticCode.MQ3003_UnknownTable;
+
+        if (exception.Message.Contains("schemaName=", StringComparison.OrdinalIgnoreCase) &&
+            exception.Message.Contains("registry=null", StringComparison.OrdinalIgnoreCase))
+            return DiagnosticCode.MQ3010_UnknownSchema;
+
+        if (exception is InvalidOperationException invalidOperationException &&
+            invalidOperationException.Message.Contains("Stack empty", StringComparison.OrdinalIgnoreCase))
+            return DiagnosticCode.MQ2030_UnsupportedSyntax;
+
+        if (exception is InvalidOperationException)
+            return DiagnosticCode.MQ2030_UnsupportedSyntax;
+
+        return DiagnosticCode.MQ9999_Unknown;
+    }
+
+    private static bool TryGetDiagnosticException(Exception exception, out IDiagnosticException diagnosticException)
+    {
+        if (exception is null)
+            throw new ArgumentNullException(nameof(exception));
+
+        var current = exception;
+        var visited = new HashSet<Exception>();
+
+        while (current != null && visited.Add(current))
+        {
+            if (current is IDiagnosticException directDiagnosticException)
+            {
+                diagnosticException = directDiagnosticException;
+                return true;
+            }
+
+            current = current.InnerException;
+        }
+
+        diagnosticException = default!;
+        return false;
     }
 
     private static string MakeUserFriendlyMessage(Exception exception)

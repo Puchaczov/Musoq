@@ -46,28 +46,28 @@ public class TypesEntity
     }
 
     public int IntCol { get; set; }
-    
+
     public long LongCol { get; set; }
-    
+
     public short ShortCol { get; set; }
-    
+
     public byte ByteCol { get; set; }
-    
+
     public decimal DecimalCol { get; set; }
-    
+
     public double DoubleCol { get; set; }
-    
+
     public float FloatCol { get; set; }
-    
+
     public bool BoolCol { get; set; }
-    
+
     public string StringCol { get; set; }
-    
+
     public DateTime DateTimeCol { get; set; }
-    
+
     public DateTimeOffset DateTimeOffsetCol { get; set; }
-    
+
     public Guid GuidCol { get; set; }
-    
+
     public int? NullableIntCol { get; set; }
 }

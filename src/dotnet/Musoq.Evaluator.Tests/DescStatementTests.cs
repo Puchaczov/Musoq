@@ -960,13 +960,9 @@ public class DescStatementTests : BasicEntityTestBase
             "desc functions #A.entities() should have same row count as desc functions #A");
 
         for (var i = 0; i < tableFunctionsOnly.Count; i++)
-        {
-            for (var j = 0; j < tableFunctionsOnly.Columns.Count(); j++)
-            {
-                Assert.AreEqual(tableFunctionsOnly[i][j], tableFunctionsWithMethod[i][j],
-                    $"Row {i}, Col {j}: desc functions #A.entities() should produce identical output to desc functions #A");
-            }
-        }
+        for (var j = 0; j < tableFunctionsOnly.Columns.Count(); j++)
+            Assert.AreEqual(tableFunctionsOnly[i][j], tableFunctionsWithMethod[i][j],
+                $"Row {i}, Col {j}: desc functions #A.entities() should produce identical output to desc functions #A");
     }
 
     [TestMethod]

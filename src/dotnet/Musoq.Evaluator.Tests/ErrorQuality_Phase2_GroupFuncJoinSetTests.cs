@@ -73,13 +73,6 @@ public class ErrorQuality_Phase2_GroupFuncJoinSetTests : BasicEntityTestBase
         }
     }
 
-    private static void DocumentBehavior(QueryAnalysisResult result, string expectedBehavior, bool shouldHaveErrors)
-    {
-        if (shouldHaveErrors)
-            Assert.IsTrue(result.HasErrors || !result.IsParsed,
-                $"Behavior documentation: {expectedBehavior} - but query succeeded");
-    }
-
     #endregion
 
     // ============================================================================
@@ -120,8 +113,7 @@ HAVING NonExistent > 5";
         // Assert — Should report unknown column in HAVING
         AssertHasOneOfErrorCodes(result, "non-existent column in HAVING",
             DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3012_NonAggregateInSelect,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3012_NonAggregateInSelect);
     }
 
     [TestMethod]
@@ -205,8 +197,7 @@ ORDER BY NonExistent";
         // Assert — Should report unknown column in ORDER BY
         AssertHasOneOfErrorCodes(result, "ORDER BY non-existent column with GROUP BY",
             DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3012_NonAggregateInSelect,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3012_NonAggregateInSelect);
     }
 
     #endregion
@@ -231,8 +222,7 @@ ORDER BY NonExistent";
         AssertHasOneOfErrorCodes(result, "non-existent function BananaFunction",
             DiagnosticCode.MQ3004_UnknownFunction,
             DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     [TestMethod]
@@ -249,8 +239,7 @@ ORDER BY NonExistent";
         AssertHasOneOfErrorCodes(result, "Substring with too few arguments",
             DiagnosticCode.MQ3006_InvalidArgumentCount,
             DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     [TestMethod]
@@ -267,8 +256,7 @@ ORDER BY NonExistent";
         AssertHasOneOfErrorCodes(result, "Substring with too many arguments",
             DiagnosticCode.MQ3006_InvalidArgumentCount,
             DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     [TestMethod]
@@ -302,8 +290,7 @@ ORDER BY NonExistent";
         AssertHasOneOfErrorCodes(result, "Replace with integer arguments",
             DiagnosticCode.MQ3005_TypeMismatch,
             DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     [TestMethod]
@@ -320,8 +307,7 @@ ORDER BY NonExistent";
         AssertHasOneOfErrorCodes(result, "non-existent entity method",
             DiagnosticCode.MQ3004_UnknownFunction,
             DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     #endregion
@@ -367,8 +353,7 @@ INNER JOIN #B.Entities() b ON c.Name = b.Name";
         AssertHasOneOfErrorCodes(result, "ON condition with unknown alias c",
             DiagnosticCode.MQ3001_UnknownColumn,
             DiagnosticCode.MQ3003_UnknownTable,
-            DiagnosticCode.MQ3015_UnknownAlias,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3015_UnknownAlias);
     }
 
     [TestMethod]
@@ -386,8 +371,7 @@ INNER JOIN #B.Entities() a ON a.Name = a.Name";
         // Assert — Should report duplicate alias
         AssertHasOneOfErrorCodes(result, "duplicate alias 'a' in JOIN",
             DiagnosticCode.MQ2008_DuplicateAlias,
-            DiagnosticCode.MQ3021_DuplicateAlias,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3021_DuplicateAlias);
     }
 
     [TestMethod]
@@ -406,8 +390,7 @@ INNER JOIN #A.Entities() a ON b.Name = a.Name";
         // Assert — Should report duplicate alias
         AssertHasOneOfErrorCodes(result, "conflicting alias 'a' in multiple JOINs",
             DiagnosticCode.MQ2008_DuplicateAlias,
-            DiagnosticCode.MQ3021_DuplicateAlias,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3021_DuplicateAlias);
     }
 
     #endregion
@@ -453,8 +436,7 @@ SELECT Name FROM #B.Entities()";
         AssertHasOneOfErrorCodes(result, "empty column list in UNION ALL",
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ3031_SetOperatorMissingKeys,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion

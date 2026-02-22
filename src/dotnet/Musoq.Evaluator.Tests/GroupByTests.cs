@@ -1360,10 +1360,10 @@ group by a.Country";
             {
                 "#A", [
                     new BasicEntity { City = "NYC", Name = "John" },
-                    new BasicEntity { City = "NYC", Name = "John" },  // duplicate
+                    new BasicEntity { City = "NYC", Name = "John" },
                     new BasicEntity { City = "NYC", Name = "Jane" },
                     new BasicEntity { City = "LA", Name = "Bob" },
-                    new BasicEntity { City = "LA", Name = "Bob" },    // duplicate
+                    new BasicEntity { City = "LA", Name = "Bob" },
                     new BasicEntity { City = "LA", Name = "Alice" },
                     new BasicEntity { City = "LA", Name = "Carol" }
                 ]
@@ -1512,10 +1512,10 @@ group by a.Country";
             {
                 "#A", [
                     new BasicEntity { Population = 100m },
-                    new BasicEntity { Population = 100m }, // duplicate
+                    new BasicEntity { Population = 100m },
                     new BasicEntity { Population = 200m },
                     new BasicEntity { Population = 300m },
-                    new BasicEntity { Population = 200m }  // duplicate
+                    new BasicEntity { Population = 200m }
                 ]
             }
         };
@@ -1536,10 +1536,10 @@ group by a.Country";
             {
                 "#A", [
                     new BasicEntity { Name = "A", Population = 100m },
-                    new BasicEntity { Name = "A", Population = 100m }, // duplicate
+                    new BasicEntity { Name = "A", Population = 100m },
                     new BasicEntity { Name = "A", Population = 200m },
                     new BasicEntity { Name = "B", Population = 50m },
-                    new BasicEntity { Name = "B", Population = 50m }   // duplicate
+                    new BasicEntity { Name = "B", Population = 50m }
                 ]
             }
         };
@@ -1548,10 +1548,10 @@ group by a.Country";
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "Table should have 2 rows");
-        
+
         var rowA = table.FirstOrDefault(r => r.Values[0] as string == "A");
         var rowB = table.FirstOrDefault(r => r.Values[0] as string == "B");
-        
+
         Assert.IsNotNull(rowA);
         Assert.IsNotNull(rowB);
         Assert.AreEqual(300m, rowA.Values[1], "Sum of distinct for A should be 100 + 200 = 300");
@@ -1567,7 +1567,7 @@ group by a.Country";
             {
                 "#A", [
                     new BasicEntity { Population = 100m },
-                    new BasicEntity { Population = 100m }, // duplicate
+                    new BasicEntity { Population = 100m },
                     new BasicEntity { Population = 200m },
                     new BasicEntity { Population = 300m }
                 ]
@@ -1590,7 +1590,7 @@ group by a.Country";
             {
                 "#A", [
                     new BasicEntity { Population = 500m },
-                    new BasicEntity { Population = 500m }, // duplicate
+                    new BasicEntity { Population = 500m },
                     new BasicEntity { Population = 100m },
                     new BasicEntity { Population = 300m }
                 ]
@@ -1613,7 +1613,7 @@ group by a.Country";
             {
                 "#A", [
                     new BasicEntity { Population = 100m },
-                    new BasicEntity { Population = 100m }, // duplicate
+                    new BasicEntity { Population = 100m },
                     new BasicEntity { Population = 500m },
                     new BasicEntity { Population = 300m }
                 ]

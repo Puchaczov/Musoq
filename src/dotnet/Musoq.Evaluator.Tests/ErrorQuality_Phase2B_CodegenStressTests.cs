@@ -17,73 +17,6 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class ErrorQuality_Phase2B_CodegenStressTests : BasicEntityTestBase
 {
-    #region Test Setup
-
-    private static ISchemaProvider CreateSchemaProvider()
-    {
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
-            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
-        };
-        return new BasicSchemaProvider<BasicEntity>(sources);
-    }
-
-    private static QueryAnalyzer CreateAnalyzer()
-    {
-        return new QueryAnalyzer(CreateSchemaProvider());
-    }
-
-    private static void AssertHasErrorCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
-    {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected error code {expectedCode} ({context}) but query succeeded. IsParsed: {result.IsParsed}");
-
-        if (result.HasErrors)
-        {
-            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.IsTrue(
-                result.Errors.Any(e => e.Code == expectedCode),
-                $"Expected error code {expectedCode} ({context}) but got:\n{errorDetails}");
-        }
-    }
-
-    private static void AssertHasOneOfErrorCodes(QueryAnalysisResult result, string context,
-        params DiagnosticCode[] expectedCodes)
-    {
-        Assert.IsTrue(result.HasErrors || !result.IsParsed,
-            $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but query succeeded");
-
-        if (result.HasErrors)
-        {
-            var hasExpected = result.Errors.Any(e => expectedCodes.Contains(e.Code));
-            if (!hasExpected)
-            {
-                var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-                Assert.Fail(
-                    $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but got:\n{errorDetails}");
-            }
-        }
-    }
-
-    private static void AssertNoErrors(QueryAnalysisResult result)
-    {
-        if (result.HasErrors)
-        {
-            var errorMessages = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.Fail($"Expected no errors but got:\n{errorMessages}");
-        }
-    }
-
-    private static void DocumentBehavior(QueryAnalysisResult result, string expectedBehavior, bool shouldHaveErrors)
-    {
-        if (shouldHaveErrors)
-            Assert.IsTrue(result.HasErrors || !result.IsParsed,
-                $"Behavior documentation: {expectedBehavior} - but query succeeded");
-    }
-
-    #endregion
-
     // ============================================================================
     // E-BINGEN: Binary Schema Code Generation Stress Tests
     // ============================================================================
@@ -668,6 +601,66 @@ select City, Count(1) as Cnt from #A.Entities() group by City having Count(1) > 
 
         // Assert — schema + HAVING should work
         // Assert  text schema with GROUP BY and HAVING`n        AssertNoErrors(result);
+    }
+
+    #endregion
+
+    #region Test Setup
+
+    private static ISchemaProvider CreateSchemaProvider()
+    {
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
+            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
+        };
+        return new BasicSchemaProvider<BasicEntity>(sources);
+    }
+
+    private static QueryAnalyzer CreateAnalyzer()
+    {
+        return new QueryAnalyzer(CreateSchemaProvider());
+    }
+
+    private static void AssertHasErrorCode(QueryAnalysisResult result, DiagnosticCode expectedCode, string context)
+    {
+        Assert.IsTrue(result.HasErrors || !result.IsParsed,
+            $"Expected error code {expectedCode} ({context}) but query succeeded. IsParsed: {result.IsParsed}");
+
+        if (result.HasErrors)
+        {
+            var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
+            Assert.IsTrue(
+                result.Errors.Any(e => e.Code == expectedCode),
+                $"Expected error code {expectedCode} ({context}) but got:\n{errorDetails}");
+        }
+    }
+
+    private static void AssertHasOneOfErrorCodes(QueryAnalysisResult result, string context,
+        params DiagnosticCode[] expectedCodes)
+    {
+        Assert.IsTrue(result.HasErrors || !result.IsParsed,
+            $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but query succeeded");
+
+        if (result.HasErrors)
+        {
+            var hasExpected = result.Errors.Any(e => expectedCodes.Contains(e.Code));
+            if (!hasExpected)
+            {
+                var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
+                Assert.Fail(
+                    $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but got:\n{errorDetails}");
+            }
+        }
+    }
+
+    private static void AssertNoErrors(QueryAnalysisResult result)
+    {
+        if (result.HasErrors)
+        {
+            var errorMessages = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
+            Assert.Fail($"Expected no errors but got:\n{errorMessages}");
+        }
     }
 
     #endregion

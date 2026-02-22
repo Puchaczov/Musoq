@@ -6,7 +6,6 @@ using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Lexing;
-using Musoq.Evaluator;
 
 namespace Musoq.Evaluator.Tests;
 
