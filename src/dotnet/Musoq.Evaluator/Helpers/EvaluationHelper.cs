@@ -273,7 +273,7 @@ public static class EvaluationHelper
                 return string.Empty;
 
             var xmlPath = Path.ChangeExtension(assemblyPath, ".xml");
-            
+
             var xmlDoc = XmlDocCache.GetOrAdd(xmlPath, static path =>
             {
                 if (!File.Exists(path))

@@ -2,8 +2,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.NegativeTests;
-using Musoq.Parser.Exceptions;
-using System;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -121,7 +119,6 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE033_DoubleOperator_ShouldThrowError()
     {
-        
         Assert.Throws<CompilationException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE Age >> 10"));
     }
@@ -129,7 +126,6 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE035_EmptyInList_ShouldCompileWithoutError()
     {
-        
         var vm = CompileQuery("SELECT * FROM #test.people() WHERE City IN ()");
         Assert.IsNotNull(vm, "Empty IN () compiles successfully in Musoq.");
     }
@@ -265,7 +261,6 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE080_UnionWithoutColumnList_ShouldThrowError()
     {
-        
         Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() =>
             CompileQuery("SELECT Name FROM #test.people() UNION SELECT Name FROM #test.people()"));
     }

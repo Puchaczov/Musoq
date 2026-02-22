@@ -67,13 +67,13 @@ Musoq implements a subset of SQL with several extensions:
 | Data sources | Tables in a database | Schema providers (`#schema.method()`) |
 | Pagination | `OFFSET` / `LIMIT` | `SKIP` / `TAKE` |
 | Set operation keys | Implicit (all columns) | Explicit key columns required: `UNION (col1)` |
-| Not-equal operator | Both `<>` and `!=` | Both `<>` and `!=` are supported and equivalent |
+| Not-equal operator | Both `<>` and `!=` | Only `<>` is supported — `!=` is rejected with a helpful error suggesting `<>` |
 | CASE WHEN | ELSE is optional | ELSE is **mandatory** |
 | FROM-first syntax | Not standard | Supported: `FROM ... WHERE ... SELECT ...` |
 | CROSS APPLY / OUTER APPLY | T-SQL extension | Fully supported with method and property expansion |
 | Recursive CTEs | Supported in many dialects | **Not supported** |
 | Subqueries in FROM | Supported | **Not supported** — use CTEs instead |
-| `BETWEEN` operator | Supported | **Not supported** — use `>=` and `<=` or `IsBetween()` function |
+| `BETWEEN` operator | Supported | Supported — `x BETWEEN a AND b` is equivalent to `x >= a AND x <= b` |
 | `ORDER BY` position | `ORDER BY 1` | **Not supported** — use column names or expressions |
 
 ### 1.4 Terminology
@@ -357,7 +357,7 @@ select 1 + (-2) from #system.dual()             -- -1
 | `<` | Less than |
 | `<=` | Less than or equal |
 
-> **Note**: Both `<>` and `!=` are supported and produce identical behavior. They are tokenized as the same operator internally.
+> **Note**: Only `<>` is supported for not-equal comparison. The `!=` operator is **not** supported and will produce a clear error directing the user to use `<>` instead.
 
 #### Logical Operators
 
@@ -2521,12 +2521,12 @@ From **lowest** to **highest** precedence:
 |---------|-------------|-------|
 | Data sources | `FROM table_name` | `FROM #schema.method()` |
 | Pagination | `OFFSET n LIMIT m` | `SKIP n TAKE m` |
-| Not-equal | `<>` and `!=` | Both `<>` and `!=` supported |
+| Not-equal | `<>` and `!=` | Only `<>` supported — `!=` is rejected with a suggestion to use `<>` |
 | CASE WHEN ELSE | ELSE optional | ELSE **mandatory** |
 | Set operations | `UNION` (implicit key) | `UNION (key_columns)` (explicit keys) |
 | Recursive CTEs | Supported | Not supported |
 | Subqueries in FROM | Supported | Not supported (use CTEs) |
-| `BETWEEN` | `x BETWEEN a AND b` | Use `x >= a AND x <= b` or `IsBetween(x, a, b)` |
+| `BETWEEN` | `x BETWEEN a AND b` | Supported — `x BETWEEN a AND b` is equivalent to `x >= a AND x <= b` |
 | Window functions | `ROW_NUMBER() OVER (...)` | `RowNumber()` (no OVER clause, sequential) |
 | String comparison | Implementation-defined | LIKE is case-insensitive; `=` is ordinal |
 | `#` prefix | Not applicable | Optional schema identifier prefix |

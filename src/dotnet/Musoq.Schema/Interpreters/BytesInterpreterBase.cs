@@ -374,18 +374,16 @@ public abstract class BytesInterpreterBase<TOut> : IBytesInterpreter<TOut>
 
         int actualLength;
 
-        
+
         if (encoding == Encoding.Unicode || encoding == Encoding.BigEndianUnicode)
         {
             actualLength = maxBytes;
             for (var i = 0; i <= maxBytes - 2; i += 2)
-            {
                 if (bytes[i] == 0 && bytes[i + 1] == 0)
                 {
                     actualLength = i;
                     break;
                 }
-            }
         }
         else
         {

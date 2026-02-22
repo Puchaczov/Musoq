@@ -138,6 +138,7 @@ public class BuildItems : Dictionary<string, object>
         get => ContainsKey("SCHEMA_REGISTRY") ? (SchemaRegistry)this["SCHEMA_REGISTRY"] : null;
         set => this["SCHEMA_REGISTRY"] = value;
     }
+
     public string? InterpreterSourceCode
     {
         get => ContainsKey("INTERPRETER_SOURCE_CODE") ? (string)this["INTERPRETER_SOURCE_CODE"] : null;

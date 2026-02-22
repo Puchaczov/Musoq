@@ -205,9 +205,9 @@ public class CteHashJoinTests : BasicEntityTestBase
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-        { "#A", [new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 }] },
-        { "#B", [new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 }] },
-        { "#C", [new BasicEntity { Name = "C1", Country = "CountryC", Population = 100 }] }
+            { "#A", [new BasicEntity { Name = "A1", Country = "CountryA", Population = 100 }] },
+            { "#B", [new BasicEntity { Name = "B1", Country = "CountryB", Population = 100 }] },
+            { "#C", [new BasicEntity { Name = "C1", Country = "CountryC", Population = 100 }] }
         };
 
         var vm = CreateAndRunVirtualMachine(

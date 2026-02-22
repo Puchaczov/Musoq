@@ -467,7 +467,8 @@ public class DescParserTests
 
         var schemaFromNode = (SchemaFromNode)descNode.From;
         Assert.AreEqual("#schema", schemaFromNode.Schema);
-        Assert.AreEqual(string.Empty, schemaFromNode.Method, "desc functions should ignore the .method() part and behave like desc functions schema");
+        Assert.AreEqual(string.Empty, schemaFromNode.Method,
+            "desc functions should ignore the .method() part and behave like desc functions schema");
     }
 
     [TestMethod]
@@ -485,7 +486,8 @@ public class DescParserTests
 
         var schemaFromNode = (SchemaFromNode)descNode.From;
         Assert.AreEqual("#schema", schemaFromNode.Schema);
-        Assert.AreEqual(string.Empty, schemaFromNode.Method, "desc functions should ignore the .method part and behave like desc functions schema");
+        Assert.AreEqual(string.Empty, schemaFromNode.Method,
+            "desc functions should ignore the .method part and behave like desc functions schema");
     }
 
     [TestMethod]
@@ -503,7 +505,8 @@ public class DescParserTests
 
         var schemaFromNode = (SchemaFromNode)descNode.From;
         Assert.AreEqual("#schema", schemaFromNode.Schema);
-        Assert.AreEqual(string.Empty, schemaFromNode.Method, "desc functions should ignore the .method('arg1', 123) part and behave like desc functions schema");
+        Assert.AreEqual(string.Empty, schemaFromNode.Method,
+            "desc functions should ignore the .method('arg1', 123) part and behave like desc functions schema");
     }
 
     [TestMethod]
@@ -521,7 +524,8 @@ public class DescParserTests
 
         var schemaFromNode = (SchemaFromNode)descNode.From;
         Assert.AreEqual("#schema", schemaFromNode.Schema);
-        Assert.AreEqual(string.Empty, schemaFromNode.Method, "desc functions should ignore the .method() part and behave like desc functions schema");
+        Assert.AreEqual(string.Empty, schemaFromNode.Method,
+            "desc functions should ignore the .method() part and behave like desc functions schema");
     }
 
     [TestMethod]

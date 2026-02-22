@@ -138,9 +138,15 @@ public abstract class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
     /// <param name="text">The text to parse.</param>
     /// <param name="open">The opening delimiter.</param>
     /// <param name="close">The closing delimiter.</param>
-    /// <param name="nested">If true, handle nested open/close pairs (e.g., matching braces). Mutually exclusive with <paramref name="escaped"/>.</param>
+    /// <param name="nested">
+    ///     If true, handle nested open/close pairs (e.g., matching braces). Mutually exclusive with
+    ///     <paramref name="escaped" />.
+    /// </param>
     /// <param name="trim">If true, trim whitespace from the result.</param>
-    /// <param name="escaped">If true, ignore close delimiters preceded by backslash. Mutually exclusive with <paramref name="nested"/>.</param>
+    /// <param name="escaped">
+    ///     If true, ignore close delimiters preceded by backslash. Mutually exclusive with
+    ///     <paramref name="nested" />.
+    /// </param>
     /// <returns>The text between the delimiters.</returns>
     protected string ReadBetween(ReadOnlySpan<char> text, string open, string close, bool nested = false,
         bool trim = false, bool escaped = false)
@@ -244,14 +250,14 @@ public abstract class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
     /// <summary>
     ///     Reads text matching a regex pattern and returns the Match object for capture group access.
     /// </summary>
-    protected System.Text.RegularExpressions.Match ReadPatternMatch(ReadOnlySpan<char> text, string pattern)
+    protected Match ReadPatternMatch(ReadOnlySpan<char> text, string pattern)
     {
         var match = ExecutePatternMatch(text, pattern);
         _parsePosition += match.Value.Length;
         return match;
     }
 
-    private System.Text.RegularExpressions.Match ExecutePatternMatch(ReadOnlySpan<char> text, string pattern)
+    private Match ExecutePatternMatch(ReadOnlySpan<char> text, string pattern)
     {
         var remaining = text.Slice(_parsePosition).ToString();
         var anchoredPattern = pattern.StartsWith(@"\G") ? pattern : @"\G" + pattern;
@@ -373,7 +379,7 @@ public abstract class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
         return -1;
     }
 
-        private static int FindUnescapedClose(ReadOnlySpan<char> text, string close)
+    private static int FindUnescapedClose(ReadOnlySpan<char> text, string close)
     {
         var pos = 0;
 
@@ -383,11 +389,10 @@ public abstract class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
             var idx = remaining.IndexOf(close.AsSpan());
             if (idx < 0) return -1;
 
-            
+
             var absPos = pos + idx;
             if (absPos > 0 && text[absPos - 1] == '\\')
             {
-                
                 var backslashCount = 0;
                 var check = absPos - 1;
                 while (check >= 0 && text[check] == '\\')
@@ -396,7 +401,7 @@ public abstract class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
                     check--;
                 }
 
-                
+
                 if (backslashCount % 2 != 0)
                 {
                     pos = absPos + close.Length;

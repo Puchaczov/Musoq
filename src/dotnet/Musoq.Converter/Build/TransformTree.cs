@@ -1,7 +1,6 @@
 ﻿#nullable enable annotations
 
 using System.Collections.Generic;
-using System.Linq;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;

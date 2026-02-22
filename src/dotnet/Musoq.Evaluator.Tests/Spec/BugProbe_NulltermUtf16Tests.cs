@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
@@ -13,7 +14,6 @@ namespace Musoq.Evaluator.Tests.Spec;
 ///     as the null terminator. For UTF-16, the null terminator is 0x00 0x00 (two bytes).
 ///     A single 0x00 byte is the HIGH byte of many valid UTF-16 characters
 ///     (e.g., 'A' in UTF-16LE is 0x41 0x00), causing premature truncation.
-///
 ///     Root cause: BytesInterpreterBase.cs line ~383:
 ///     var nullIndex = bytes.IndexOf((byte)0);  // Wrong for UTF-16
 /// </summary>
@@ -33,7 +33,7 @@ public class BugProbe_NulltermUtf16Tests
     public void Binary_NulltermUtf16Le_ShouldNotTruncateAtHighByte()
     {
         // "Hello" in UTF-16LE + null terminator (0x00 0x00) + padding
-        var text = System.Text.Encoding.Unicode.GetBytes("Hello");
+        var text = Encoding.Unicode.GetBytes("Hello");
         var testData = new byte[64];
         Array.Copy(text, testData, text.Length);
         // Remaining bytes are 0x00 — the double 0x00 after "Hello" is the real terminator
@@ -68,7 +68,7 @@ public class BugProbe_NulltermUtf16Tests
     public void Binary_NulltermUtf16Be_ShouldNotTruncateAtHighByte()
     {
         // "Hi" in UTF-16BE = 0x00 0x48 0x00 0x69 + null terminator 0x00 0x00
-        var text = System.Text.Encoding.BigEndianUnicode.GetBytes("Hi");
+        var text = Encoding.BigEndianUnicode.GetBytes("Hi");
         var testData = new byte[32];
         Array.Copy(text, testData, text.Length);
         // Rest is 0x00 padding

@@ -65,13 +65,6 @@ public class UserMistakesTests : BasicEntityTestBase
         }
     }
 
-    private static void DocumentBehavior(QueryAnalysisResult result, string expectedBehavior, bool shouldHaveErrors)
-    {
-        if (shouldHaveErrors)
-            Assert.IsTrue(result.HasErrors || !result.IsParsed,
-                $"Behavior documentation: {expectedBehavior} - but query succeeded");
-    }
-
     private static void AssertNoErrors(QueryAnalysisResult result)
     {
         if (result.HasErrors)
@@ -123,10 +116,8 @@ public class UserMistakesTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - MQ9999_Unknown wrapping method not found exception
-        AssertHasOneOfErrorCodes(result, "wrong method name 'Entity'",
-            DiagnosticCode.MQ9999_Unknown,
-            DiagnosticCode.MQ3003_UnknownTable);
+        // Assert - unknown table/method reference
+        AssertHasErrorCode(result, DiagnosticCode.MQ3003_UnknownTable, "wrong method name 'Entity'");
     }
 
     [TestMethod]
@@ -139,10 +130,8 @@ public class UserMistakesTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - MQ9999_Unknown wrapping SchemaNotFoundException
-        AssertHasOneOfErrorCodes(result, "unknown schema '#X'",
-            DiagnosticCode.MQ9999_Unknown,
-            DiagnosticCode.MQ3010_UnknownSchema);
+        // Assert - schema does not exist
+        AssertHasErrorCode(result, DiagnosticCode.MQ3010_UnknownSchema, "unknown schema '#X'");
     }
 
     #endregion
@@ -306,10 +295,8 @@ public class UserMistakesTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - MQ9999_Unknown wrapping lexer error for unterminated string
-        AssertHasOneOfErrorCodes(result, "unclosed single quote",
-            DiagnosticCode.MQ9999_Unknown,
-            DiagnosticCode.MQ1002_UnterminatedString);
+        // Assert - lexer reports unterminated string
+        AssertHasErrorCode(result, DiagnosticCode.MQ1002_UnterminatedString, "unclosed single quote");
     }
 
     [TestMethod]
@@ -322,9 +309,8 @@ public class UserMistakesTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - MQ9999 or lexer accepts double quote differently
+        // Assert - lexer/parsing behavior depends on quote handling rules
         AssertHasOneOfErrorCodes(result, "unclosed double quote",
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ1002_UnterminatedString,
             DiagnosticCode.MQ2001_UnexpectedToken);
     }
@@ -339,9 +325,8 @@ public class UserMistakesTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - MQ9999 wrapping lexer error or MQ2001
+        // Assert - invalid bracketed identifier syntax
         AssertHasOneOfErrorCodes(result, "unclosed square bracket",
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ2001_UnexpectedToken);
     }
 
@@ -590,7 +575,6 @@ public class UserMistakesTests : BasicEntityTestBase
         // Assert - MQ3031_SetOperatorMissingKeys or similar set operator error
         AssertHasOneOfErrorCodes(result, "UNION column count mismatch",
             DiagnosticCode.MQ3031_SetOperatorMissingKeys,
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ2001_UnexpectedToken);
     }
 
@@ -626,8 +610,7 @@ public class UserMistakesTests : BasicEntityTestBase
 
         // Assert - City is not in GROUP BY and not inside an aggregate → MQ3012
         AssertHasOneOfErrorCodes(result, "City not in GROUP BY",
-            DiagnosticCode.MQ3012_NonAggregateInSelect,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3012_NonAggregateInSelect);
     }
 
     [TestMethod]
@@ -824,7 +807,6 @@ public class UserMistakesTests : BasicEntityTestBase
         // Assert - Parser returns MQ2001 for comma syntax (cross join not supported)
         AssertHasOneOfErrorCodes(result, "duplicate table alias 'a'",
             DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ3002_AmbiguousColumn,
             DiagnosticCode.MQ3003_UnknownTable);
     }
@@ -841,8 +823,7 @@ public class UserMistakesTests : BasicEntityTestBase
 
         // Assert - MQ3001_UnknownColumn or alias resolution error
         AssertHasOneOfErrorCodes(result, "undefined alias 'x'",
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3001_UnknownColumn);
     }
 
     [TestMethod]
@@ -987,6 +968,7 @@ public class UserMistakesTests : BasicEntityTestBase
 
         // Assert - MQ2001: empty query error
         AssertHasOneOfErrorCodes(result, "empty query",
+            DiagnosticCode.MQ2016_IncompleteStatement,
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2017_UnexpectedEndOfFile);
     }
@@ -1003,6 +985,7 @@ public class UserMistakesTests : BasicEntityTestBase
 
         // Assert - MQ2001: whitespace-only query error
         AssertHasOneOfErrorCodes(result, "whitespace-only query",
+            DiagnosticCode.MQ2016_IncompleteStatement,
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2017_UnexpectedEndOfFile);
     }
@@ -1019,6 +1002,7 @@ public class UserMistakesTests : BasicEntityTestBase
 
         // Assert - MQ2001: comment-only query error
         AssertHasOneOfErrorCodes(result, "comment-only query",
+            DiagnosticCode.MQ2016_IncompleteStatement,
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2017_UnexpectedEndOfFile);
     }

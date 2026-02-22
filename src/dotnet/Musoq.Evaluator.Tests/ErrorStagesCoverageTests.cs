@@ -190,11 +190,9 @@ public class ErrorStagesCoverageTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Lexer produces MQ9999_Unknown for unterminated string literals 
-        // (wraps exception: "Token ''' that starts at position X was unrecognized")
-        AssertHasOneOfErrorCodes(result, "unterminated single-quoted string",
-            DiagnosticCode.MQ9999_Unknown,
-            DiagnosticCode.MQ1002_UnterminatedString);
+        // Assert - lexer reports unterminated string literal
+        AssertHasErrorCode(result, DiagnosticCode.MQ1002_UnterminatedString,
+            "unterminated single-quoted string");
 
         // Verify the error message mentions the quote character
         Assert.IsTrue(result.Errors.Any(e => e.Message.Contains("'")),
@@ -683,11 +681,9 @@ public class ErrorStagesCoverageTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Returns MQ9999_Unknown wrapping SchemaNotFoundException
-        // The error message contains: "Exception of type 'Musoq.Evaluator.Tests.Exceptions.SchemaNotFoundException' was thrown"
-        AssertHasOneOfErrorCodes(result, "schema 'unknown' not registered in SchemaProvider",
-            DiagnosticCode.MQ9999_Unknown,
-            DiagnosticCode.MQ3010_UnknownSchema);
+        // Assert - unknown schema should map to MQ3010
+        AssertHasErrorCode(result, DiagnosticCode.MQ3010_UnknownSchema,
+            "schema 'unknown' not registered in SchemaProvider");
 
         // Verify the error mentions schema-related issue
         Assert.IsTrue(result.Errors.Any(e =>
@@ -706,10 +702,9 @@ public class ErrorStagesCoverageTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Returns MQ9999_Unknown with message: "The method 'UnknownMethod' is not recognized. Available methods are: empty, entities."
-        AssertHasOneOfErrorCodes(result, "method 'UnknownMethod' not found in schema A",
-            DiagnosticCode.MQ9999_Unknown,
-            DiagnosticCode.MQ3003_UnknownTable);
+        // Assert - unknown schema method/table source should map to MQ3003
+        AssertHasErrorCode(result, DiagnosticCode.MQ3003_UnknownTable,
+            "method 'UnknownMethod' not found in schema A");
 
         // Verify the error mentions the unknown method and suggests available methods
         Assert.IsTrue(result.Errors.Any(e =>
@@ -831,10 +826,8 @@ public class ErrorStagesCoverageTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Returns MQ9999_Unknown: "The given key '(System.String, System.Int32)' was not present in the dictionary."
-        // This indicates the type resolution doesn't have a + operator for string+int
+        // Assert - invalid operand combination for string + int
         AssertHasOneOfErrorCodes(result, "string + int arithmetic",
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ3007_InvalidOperandTypes,
             DiagnosticCode.MQ3005_TypeMismatch);
     }
@@ -852,8 +845,7 @@ public class ErrorStagesCoverageTests : BasicEntityTestBase
         // Assert - Musoq now enforces standard SQL GROUP BY rules.
         // Name is not in GROUP BY and not inside an aggregate → MQ3012 error.
         AssertHasOneOfErrorCodes(result, "Name not in GROUP BY should produce MQ3012",
-            DiagnosticCode.MQ3012_NonAggregateInSelect,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3012_NonAggregateInSelect);
     }
 
     [TestMethod]
@@ -866,9 +858,8 @@ public class ErrorStagesCoverageTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Returns MQ9999_Unknown wrapping: "Ambiguous column name 'Name' between 'a' and 'b' aliases"
+        // Assert - ambiguous column name should use dedicated diagnostic
         AssertHasOneOfErrorCodes(result, "'Name' exists in both tables - must qualify with alias",
-            DiagnosticCode.MQ9999_Unknown,
             DiagnosticCode.MQ3002_AmbiguousColumn);
 
         // Verify the error mentions ambiguous column
@@ -985,8 +976,7 @@ public class ErrorStagesCoverageTests : BasicEntityTestBase
         AssertHasOneOfErrorCodes(result, "property chain doesn't resolve",
             DiagnosticCode.MQ3028_UnknownProperty,
             DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3014_InvalidPropertyAccess,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3014_InvalidPropertyAccess);
     }
 
     [TestMethod]
@@ -1004,8 +994,7 @@ public class ErrorStagesCoverageTests : BasicEntityTestBase
         AssertHasOneOfErrorCodes(result, "int32 doesn't have 'Length' property",
             DiagnosticCode.MQ3028_UnknownProperty,
             DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3014_InvalidPropertyAccess,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3014_InvalidPropertyAccess);
     }
 
     [TestMethod]
@@ -1181,11 +1170,7 @@ public class ErrorStagesCoverageTests : BasicEntityTestBase
         AssertHasOneOfErrorCodes(result, "invalid property chain on string",
             DiagnosticCode.MQ3028_UnknownProperty,
             DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3014_InvalidPropertyAccess,
-            DiagnosticCode.MQ9999_Unknown);
-
-        // Note: Some internal error messages are currently exposed via MQ9999_Unknown
-        // This is acceptable for now, but ideally should be cleaner error messages
+            DiagnosticCode.MQ3014_InvalidPropertyAccess);
     }
 
     #endregion
@@ -1239,11 +1224,9 @@ public class ErrorStagesCoverageTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Returns MQ9999_Unknown wrapping SchemaNotFoundException
-        // (ideally should be MQ3010_UnknownSchema, but currently wraps exception)
-        AssertHasOneOfErrorCodes(result, "schema 'nonexistent' not registered",
-            DiagnosticCode.MQ9999_Unknown,
-            DiagnosticCode.MQ3010_UnknownSchema);
+        // Assert - unknown schema should map to MQ3010
+        AssertHasErrorCode(result, DiagnosticCode.MQ3010_UnknownSchema,
+            "schema 'nonexistent' not registered");
     }
 
     #endregion

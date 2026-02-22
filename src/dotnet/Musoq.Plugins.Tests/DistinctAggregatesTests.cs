@@ -1,10 +1,9 @@
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
 /// <summary>
-/// Tests for DISTINCT aggregate functions: CountDistinct, SumDistinct, AvgDistinct, MinDistinct, MaxDistinct
+///     Tests for DISTINCT aggregate functions: CountDistinct, SumDistinct, AvgDistinct, MinDistinct, MaxDistinct
 /// </summary>
 [TestClass]
 public class DistinctAggregatesTests : LibraryBaseBaseTests
@@ -15,10 +14,10 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
     public void CountDistinct_IntValues_ShouldCountUnique()
     {
         Library.SetDistinctAggregate(Group, "test", 1);
-        Library.SetDistinctAggregate(Group, "test", 1); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 1);
         Library.SetDistinctAggregate(Group, "test", 2);
         Library.SetDistinctAggregate(Group, "test", 3);
-        Library.SetDistinctAggregate(Group, "test", 2); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 2);
 
         Assert.AreEqual(3, Library.CountDistinct(Group, "test"));
     }
@@ -30,7 +29,7 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
         Library.SetDistinctAggregate(Group, "test", (int?)null);
         Library.SetDistinctAggregate(Group, "test", 2);
         Library.SetDistinctAggregate(Group, "test", (int?)null);
-        Library.SetDistinctAggregate(Group, "test", 1); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 1);
 
         Assert.AreEqual(2, Library.CountDistinct(Group, "test"));
     }
@@ -39,10 +38,10 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
     public void CountDistinct_StringValues_ShouldCountUnique()
     {
         Library.SetDistinctAggregate(Group, "test", "a");
-        Library.SetDistinctAggregate(Group, "test", "a"); // duplicate
+        Library.SetDistinctAggregate(Group, "test", "a");
         Library.SetDistinctAggregate(Group, "test", "b");
         Library.SetDistinctAggregate(Group, "test", "c");
-        Library.SetDistinctAggregate(Group, "test", "b"); // duplicate
+        Library.SetDistinctAggregate(Group, "test", "b");
 
         Assert.AreEqual(3, Library.CountDistinct(Group, "test"));
     }
@@ -51,7 +50,7 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
     public void CountDistinct_DecimalValues_ShouldCountUnique()
     {
         Library.SetDistinctAggregate(Group, "test", 1.5m);
-        Library.SetDistinctAggregate(Group, "test", 1.5m); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 1.5m);
         Library.SetDistinctAggregate(Group, "test", 2.5m);
         Library.SetDistinctAggregate(Group, "test", 3.5m);
 
@@ -76,23 +75,23 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
     public void SumDistinct_IntValues_ShouldSumUnique()
     {
         Library.SetDistinctAggregate(Group, "test", 1);
-        Library.SetDistinctAggregate(Group, "test", 1); // duplicate, should not be summed again
+        Library.SetDistinctAggregate(Group, "test", 1);
         Library.SetDistinctAggregate(Group, "test", 2);
         Library.SetDistinctAggregate(Group, "test", 3);
-        Library.SetDistinctAggregate(Group, "test", 2); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 2);
 
-        Assert.AreEqual(6m, Library.SumDistinct(Group, "test")); // 1 + 2 + 3 = 6
+        Assert.AreEqual(6m, Library.SumDistinct(Group, "test"));
     }
 
     [TestMethod]
     public void SumDistinct_DecimalValues_ShouldSumUnique()
     {
         Library.SetDistinctAggregate(Group, "test", 1.5m);
-        Library.SetDistinctAggregate(Group, "test", 1.5m); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 1.5m);
         Library.SetDistinctAggregate(Group, "test", 2.5m);
         Library.SetDistinctAggregate(Group, "test", 3.5m);
 
-        Assert.AreEqual(7.5m, Library.SumDistinct(Group, "test")); // 1.5 + 2.5 + 3.5 = 7.5
+        Assert.AreEqual(7.5m, Library.SumDistinct(Group, "test"));
     }
 
     [TestMethod]
@@ -103,28 +102,28 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
         Library.SetDistinctAggregate(Group, "test", 20);
         Library.SetDistinctAggregate(Group, "test", (int?)null);
 
-        Assert.AreEqual(30m, Library.SumDistinct(Group, "test")); // 10 + 20 = 30
+        Assert.AreEqual(30m, Library.SumDistinct(Group, "test"));
     }
 
     [TestMethod]
     public void SumDistinct_DoubleValues_ShouldSumUnique()
     {
         Library.SetDistinctAggregate(Group, "test", 1.1);
-        Library.SetDistinctAggregate(Group, "test", 1.1); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 1.1);
         Library.SetDistinctAggregate(Group, "test", 2.2);
         Library.SetDistinctAggregate(Group, "test", 3.3);
 
-        Assert.AreEqual(6.6m, Library.SumDistinct(Group, "test")); // 1.1 + 2.2 + 3.3 = 6.6
+        Assert.AreEqual(6.6m, Library.SumDistinct(Group, "test"));
     }
 
     [TestMethod]
     public void SumDistinct_LongValues_ShouldSumUnique()
     {
         Library.SetDistinctAggregate(Group, "test", 100L);
-        Library.SetDistinctAggregate(Group, "test", 100L); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 100L);
         Library.SetDistinctAggregate(Group, "test", 200L);
 
-        Assert.AreEqual(300m, Library.SumDistinct(Group, "test")); // 100 + 200 = 300
+        Assert.AreEqual(300m, Library.SumDistinct(Group, "test"));
     }
 
     #endregion
@@ -135,12 +134,12 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
     public void AvgDistinct_IntValues_ShouldAverageUnique()
     {
         Library.SetDistinctAggregate(Group, "test", 10);
-        Library.SetDistinctAggregate(Group, "test", 10); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 10);
         Library.SetDistinctAggregate(Group, "test", 20);
         Library.SetDistinctAggregate(Group, "test", 30);
-        Library.SetDistinctAggregate(Group, "test", 20); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 20);
 
-        Assert.AreEqual(20m, Library.AvgDistinct(Group, "test")); // (10 + 20 + 30) / 3 = 20
+        Assert.AreEqual(20m, Library.AvgDistinct(Group, "test"));
     }
 
     [TestMethod]
@@ -150,7 +149,7 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
         Library.SetDistinctAggregate(Group, "test", 2.0m);
         Library.SetDistinctAggregate(Group, "test", 3.0m);
 
-        Assert.AreEqual(2.0m, Library.AvgDistinct(Group, "test")); // (1 + 2 + 3) / 3 = 2
+        Assert.AreEqual(2.0m, Library.AvgDistinct(Group, "test"));
     }
 
     [TestMethod]
@@ -160,17 +159,17 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
         Library.SetDistinctAggregate(Group, "test", (int?)null);
         Library.SetDistinctAggregate(Group, "test", 30);
 
-        Assert.AreEqual(20m, Library.AvgDistinct(Group, "test")); // (10 + 30) / 2 = 20
+        Assert.AreEqual(20m, Library.AvgDistinct(Group, "test"));
     }
 
     [TestMethod]
     public void AvgDistinct_DoubleValues_ShouldAverageUnique()
     {
         Library.SetDistinctAggregate(Group, "test", 1.5);
-        Library.SetDistinctAggregate(Group, "test", 1.5); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 1.5);
         Library.SetDistinctAggregate(Group, "test", 4.5);
 
-        Assert.AreEqual(3.0m, Library.AvgDistinct(Group, "test")); // (1.5 + 4.5) / 2 = 3
+        Assert.AreEqual(3.0m, Library.AvgDistinct(Group, "test"));
     }
 
     #endregion
@@ -181,10 +180,10 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
     public void MinDistinct_IntValues_ShouldFindMinUnique()
     {
         Library.SetDistinctAggregate(Group, "test", 5);
-        Library.SetDistinctAggregate(Group, "test", 5); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 5);
         Library.SetDistinctAggregate(Group, "test", 10);
         Library.SetDistinctAggregate(Group, "test", 3);
-        Library.SetDistinctAggregate(Group, "test", 10); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 10);
 
         Assert.AreEqual(3m, Library.MinDistinct(Group, "test"));
     }
@@ -213,7 +212,7 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
     public void MinDistinct_NegativeValues_ShouldFindMinUnique()
     {
         Library.SetDistinctAggregate(Group, "test", -5);
-        Library.SetDistinctAggregate(Group, "test", -5); // duplicate
+        Library.SetDistinctAggregate(Group, "test", -5);
         Library.SetDistinctAggregate(Group, "test", 10);
         Library.SetDistinctAggregate(Group, "test", -10);
 
@@ -228,10 +227,10 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
     public void MaxDistinct_IntValues_ShouldFindMaxUnique()
     {
         Library.SetDistinctAggregate(Group, "test", 5);
-        Library.SetDistinctAggregate(Group, "test", 5); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 5);
         Library.SetDistinctAggregate(Group, "test", 10);
         Library.SetDistinctAggregate(Group, "test", 3);
-        Library.SetDistinctAggregate(Group, "test", 10); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 10);
 
         Assert.AreEqual(10m, Library.MaxDistinct(Group, "test"));
     }
@@ -260,7 +259,7 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
     public void MaxDistinct_NegativeValues_ShouldFindMaxUnique()
     {
         Library.SetDistinctAggregate(Group, "test", -5);
-        Library.SetDistinctAggregate(Group, "test", -5); // duplicate
+        Library.SetDistinctAggregate(Group, "test", -5);
         Library.SetDistinctAggregate(Group, "test", -2);
         Library.SetDistinctAggregate(Group, "test", -10);
 
@@ -275,7 +274,7 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
     public void DistinctAggregates_ByteValues_ShouldWork()
     {
         Library.SetDistinctAggregate(Group, "test", (byte)10);
-        Library.SetDistinctAggregate(Group, "test", (byte)10); // duplicate
+        Library.SetDistinctAggregate(Group, "test", (byte)10);
         Library.SetDistinctAggregate(Group, "test", (byte)20);
 
         Assert.AreEqual(2, Library.CountDistinct(Group, "test"));
@@ -287,7 +286,7 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
     public void DistinctAggregates_ShortValues_ShouldWork()
     {
         Library.SetDistinctAggregate(Group, "test", (short)100);
-        Library.SetDistinctAggregate(Group, "test", (short)100); // duplicate
+        Library.SetDistinctAggregate(Group, "test", (short)100);
         Library.SetDistinctAggregate(Group, "test", (short)200);
 
         Assert.AreEqual(2, Library.CountDistinct(Group, "test"));
@@ -298,7 +297,7 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
     public void DistinctAggregates_FloatValues_ShouldWork()
     {
         Library.SetDistinctAggregate(Group, "test", 1.5f);
-        Library.SetDistinctAggregate(Group, "test", 1.5f); // duplicate
+        Library.SetDistinctAggregate(Group, "test", 1.5f);
         Library.SetDistinctAggregate(Group, "test", 2.5f);
 
         Assert.AreEqual(2, Library.CountDistinct(Group, "test"));
@@ -309,17 +308,17 @@ public class DistinctAggregatesTests : LibraryBaseBaseTests
     public void DistinctAggregates_WithParentGroup_ShouldWork()
     {
         Library.SetDistinctAggregate(Group, "test", 10, 1);
-        Library.SetDistinctAggregate(Group, "test", 10, 1); // duplicate at parent level
+        Library.SetDistinctAggregate(Group, "test", 10, 1);
         Library.SetDistinctAggregate(Group, "test", 20, 1);
-        Library.SetDistinctAggregate(Group, "test", 5); // at current level
-        Library.SetDistinctAggregate(Group, "test", 5); // duplicate at current level
+        Library.SetDistinctAggregate(Group, "test", 5);
+        Library.SetDistinctAggregate(Group, "test", 5);
         Library.SetDistinctAggregate(Group, "test", 15);
 
-        // Parent level should have 10 + 20 = 30
+
         Assert.AreEqual(2, Library.CountDistinct(Group, "test", 1));
         Assert.AreEqual(30m, Library.SumDistinct(Group, "test", 1));
 
-        // Current level should have 5 + 15 = 20
+
         Assert.AreEqual(2, Library.CountDistinct(Group, "test"));
         Assert.AreEqual(20m, Library.SumDistinct(Group, "test"));
     }

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -67,6 +66,7 @@ public class BetweenTests : BasicEntityTestBase
     {
         TestMethodTemplate("0 between -5 and 5", true);
     }
+
     [TestMethod]
     public void Between_WithArithmeticExpressions_ReturnsTrue()
     {
@@ -133,21 +133,22 @@ public class BetweenTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() where Population between 100000 and 500000";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] 
-                { 
+            {
+                "#A", new[]
+                {
                     new BasicEntity("Small") { Population = 50000 },
                     new BasicEntity("Medium") { Population = 200000 },
                     new BasicEntity("Large") { Population = 1000000 },
                     new BasicEntity("Tiny") { Population = 100000 },
                     new BasicEntity("Huge") { Population = 500000 }
-                } 
+                }
             }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(3, table.Count); // Medium, Tiny, Huge (inclusive range)
+        Assert.AreEqual(3, table.Count);
     }
 
     [TestMethod]
@@ -172,12 +173,13 @@ public class BetweenTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() where Population between 100000 and 500000";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] 
-                { 
+            {
+                "#A", new[]
+                {
                     new BasicEntity("Small") { Population = 50000 },
                     new BasicEntity("Medium") { Population = 200000 },
                     new BasicEntity("Large") { Population = 1000000 }
-                } 
+                }
             }
         };
 
@@ -194,12 +196,13 @@ public class BetweenTests : BasicEntityTestBase
         var query = "select Name from #A.Entities() where Population between 100000 and 500000 and City = 'Boston'";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] 
-                { 
+            {
+                "#A", new[]
+                {
                     new BasicEntity("City1") { Population = 200000, City = "Boston" },
                     new BasicEntity("City2") { Population = 200000, City = "Denver" },
                     new BasicEntity("City3") { Population = 50000, City = "Boston" }
-                } 
+                }
             }
         };
 

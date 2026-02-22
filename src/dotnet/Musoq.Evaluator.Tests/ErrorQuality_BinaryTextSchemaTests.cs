@@ -12,225 +12,11 @@ namespace Musoq.Evaluator.Tests;
 ///     Error Message Quality Audit — Binary and Text Schema Parse/Semantic Error Tests.
 ///     These test parse-level and semantic-level errors when defining binary and text interpretation schemas.
 ///     Covers: P-BIN (binary parse errors), P-TEXT (text parse errors), P-MIX (mixed interaction errors),
-///             E-BIN (binary semantic errors), E-TEXT (text semantic errors).
+///     E-BIN (binary semantic errors), E-TEXT (text semantic errors).
 /// </summary>
 [TestClass]
 public class ErrorQuality_BinaryTextSchemaTests : BasicEntityTestBase
 {
-    #region Test Setup
-
-    private static ISchemaProvider CreateSchemaProvider()
-    {
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
-            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
-        };
-        return new BasicSchemaProvider<BasicEntity>(sources);
-    }
-
-    private static QueryAnalyzer CreateAnalyzer()
-    {
-        return new QueryAnalyzer(CreateSchemaProvider());
-    }
-
-    private static void AssertHasOneOfErrorCodes(QueryAnalysisResult result, string context,
-        params DiagnosticCode[] expectedCodes)
-    {
-        var errors = result.Errors.ToList();
-        Assert.IsNotEmpty(errors,
-            $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but no diagnostics were reported");
-
-        var hasExpected = errors.Any(e => expectedCodes.Contains(e.Code));
-        if (!hasExpected)
-        {
-            var errorDetails = string.Join("\n", errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.Fail(
-                $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but got:\n{errorDetails}");
-        }
-    }
-
-    private static void AssertNoErrors(QueryAnalysisResult result)
-    {
-        if (result.HasErrors)
-        {
-            var errorMessages = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
-            Assert.Fail($"Expected no errors but got:\n{errorMessages}");
-        }
-    }
-
-    private static void AssertParseOrSemanticFailure(QueryAnalysisResult result, string context)
-    {
-        var errors = result.Errors.ToList();
-        Assert.IsNotEmpty(errors,
-            $"Expected parse or semantic error ({context}) but no diagnostics were reported.");
-
-        if (errors.Any(e => string.IsNullOrWhiteSpace(e.Message)))
-            Assert.Fail($"Expected actionable diagnostics ({context}) but one or more errors had empty messages.");
-    }
-
-    #endregion
-
-    // ============================================================================
-    // P-BIN: Binary Schema Parse-Level Errors
-    // ============================================================================
-
-    #region P-BIN: Missing braces, colons, semicolons
-
-    [TestMethod]
-    public void P_BIN_01_MissingOpenBrace()
-    {
-        // Arrange — binary schema without opening brace
-        var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat
-    Magic: int le
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert — Should report parse error for missing brace
-        AssertParseOrSemanticFailure(result,
-            "Missing opening brace should produce parse error");
-    }
-
-    [TestMethod]
-    public void P_BIN_02_MissingCloseBrace()
-    {
-        // Arrange — binary schema without closing brace
-        var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Magic: int le
-;
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert — Should report parse error for missing brace
-        AssertParseOrSemanticFailure(result,
-            "Missing closing brace should produce parse error");
-    }
-
-    [TestMethod]
-    public void P_BIN_03_MissingSemicolonAfterSchema()
-    {
-        // Arrange — binary schema without trailing semicolon
-        var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Magic: int le
-}
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert — Semicolons are optional statement terminators in Musoq
-        AssertNoErrors(result);
-    }
-
-    [TestMethod]
-    public void P_BIN_04_MissingColonAfterFieldName()
-    {
-        // Arrange — field without colon separator
-        var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Magic int le
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert — Should report parse error
-        AssertParseOrSemanticFailure(result,
-            "Missing colon after field name should produce parse error");
-    }
-
-    #endregion
-
-    #region P-BIN: Missing or invalid endianness
-
-    [TestMethod]
-    public void P_BIN_05_MissingEndianness()
-    {
-        // Arrange — int field without le/be
-        var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Magic: int
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert — int requires endianness: should error or misparse
-        AssertParseOrSemanticFailure(result,
-            "int without endianness should report error");
-    }
-
-    [TestMethod]
-    public void P_BIN_06_InvalidEndiannessKeyword()
-    {
-        // Arrange — invalid endianness identifier
-        var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Magic: int middle
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert — 'middle' is not a valid endianness
-        AssertParseOrSemanticFailure(result,
-            "Invalid endianness 'middle' should produce error");
-    }
-
-    #endregion
-
-    #region P-BIN: Unknown field types
-
-    [TestMethod]
-    public void P_BIN_07_UnknownPrimitiveType()
-    {
-        // Arrange — field with nonsense type
-        var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Magic: complex128 le
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert — 'complex128' is not a known binary type
-        AssertParseOrSemanticFailure(result,
-            "Unknown binary type 'complex128' should produce error");
-    }
-
-    [TestMethod]
-    public void P_BIN_08_ByteWithEndianness()
-    {
-        // Arrange — byte doesn't need endianness
-        var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Flag: byte le
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert — byte with endianness is actually rejected by the parser.
-        // Even though byte is single-byte, specifying endianness produces an error.
-        AssertParseOrSemanticFailure(result,
-            "byte with endianness produces a parse error");
-    }
-
-    #endregion
-
     #region P-BIN: Duplicate field names
 
     [TestMethod]
@@ -251,105 +37,6 @@ select 1 from #A.Entities()";
         // The schema definition allows duplicate field names without error.
         // This is a known limitation — ideally MQ4008 should be reported.
         AssertNoErrors(result);
-    }
-
-    #endregion
-
-    #region P-BIN: Invalid array syntax
-
-    [TestMethod]
-    public void P_BIN_10_ByteArrayMissingSize()
-    {
-        // Arrange — byte array without size
-        var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Data: byte[]
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert — byte[] needs size
-        AssertParseOrSemanticFailure(result,
-            "byte[] without size should produce parse error");
-    }
-
-    [TestMethod]
-    public void P_BIN_11_ByteArrayNegativeSize()
-    {
-        // Arrange — byte array with negative size
-        var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Data: byte[-5]
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert — negative size
-        AssertParseOrSemanticFailure(result,
-            "byte[-5] should produce parse error");
-    }
-
-    [TestMethod]
-    public void P_BIN_12_ByteArrayZeroSize()
-    {
-        // Arrange — byte array with zero size
-        var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Data: byte[0]
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert — byte[0] is accepted by the parser without error.
-        // Zero-size arrays are a valid construct in Musoq's schema definitions.
-        AssertNoErrors(result);
-    }
-
-    #endregion
-
-    #region P-BIN: String field issues
-
-    [TestMethod]
-    public void P_BIN_13_StringFieldMissingEncoding()
-    {
-        // Arrange — string field without encoding
-        var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Name: string[20]
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert — string fields should require encoding for clarity.
-        // Without encoding, the parser may either default or error.
-        AssertParseOrSemanticFailure(result,
-            "string[20] without encoding should require explicit encoding");
-    }
-
-    [TestMethod]
-    public void P_BIN_14_StringFieldInvalidEncoding()
-    {
-        // Arrange — string field with unknown encoding
-        var analyzer = CreateAnalyzer();
-        var query = @"binary HeaderFormat {
-    Name: string[20] klingon
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert — 'klingon' is not a valid encoding
-        AssertParseOrSemanticFailure(result,
-            "Invalid encoding 'klingon' should produce error");
     }
 
     #endregion
@@ -446,85 +133,6 @@ select 1 from #A.Entities()";
 
     #endregion
 
-    // ============================================================================
-    // P-TEXT: Text Schema Parse-Level Errors
-    // ============================================================================
-
-    #region P-TEXT: Missing braces, colons, semicolons
-
-    [TestMethod]
-    public void P_TEXT_01_MissingOpenBrace()
-    {
-        // Arrange
-        var analyzer = CreateAnalyzer();
-        var query = @"text LogLine
-    Timestamp: until ' '
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert
-        AssertParseOrSemanticFailure(result,
-            "Missing opening brace should produce parse error");
-    }
-
-    [TestMethod]
-    public void P_TEXT_02_MissingCloseBrace()
-    {
-        // Arrange
-        var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Timestamp: until ' '
-;
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert
-        AssertParseOrSemanticFailure(result,
-            "Missing closing brace should produce parse error");
-    }
-
-    [TestMethod]
-    public void P_TEXT_03_MissingSemicolonAfterSchema()
-    {
-        // Arrange
-        var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Timestamp: until ' '
-}
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert — Semicolons are optional statement terminators in Musoq
-        AssertNoErrors(result);
-    }
-
-    [TestMethod]
-    public void P_TEXT_04_MissingColonAfterFieldName()
-    {
-        // Arrange
-        var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Timestamp until ' '
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert
-        AssertParseOrSemanticFailure(result,
-            "Missing colon after field name should produce parse error");
-    }
-
-    #endregion
-
     #region P-TEXT: Unknown extraction methods
 
     [TestMethod]
@@ -565,86 +173,6 @@ select 1 from #A.Entities()";
         // Assert
         AssertParseOrSemanticFailure(result,
             "until without delimiter should produce parse error");
-    }
-
-    #endregion
-
-    #region P-TEXT: Missing delimiters for 'between'
-
-    [TestMethod]
-    public void P_TEXT_07_BetweenMissingEndDelimiter()
-    {
-        // Arrange — 'between' with only one delimiter
-        var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Data: between '[' 
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert
-        AssertParseOrSemanticFailure(result,
-            "between with missing end delimiter should produce parse error");
-    }
-
-    [TestMethod]
-    public void P_TEXT_08_BetweenMissingBothDelimiters()
-    {
-        // Arrange — 'between' without any delimiters
-        var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Data: between
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert
-        AssertParseOrSemanticFailure(result,
-            "between without delimiters should produce parse error");
-    }
-
-    #endregion
-
-    #region P-TEXT: chars field missing size
-
-    [TestMethod]
-    public void P_TEXT_09_CharsMissingSize()
-    {
-        // Arrange — 'chars' without bracket size
-        var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Code: chars
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert
-        AssertParseOrSemanticFailure(result,
-            "chars without size should produce parse error");
-    }
-
-    [TestMethod]
-    public void P_TEXT_10_CharsNegativeSize()
-    {
-        // Arrange — 'chars[-5]'
-        var analyzer = CreateAnalyzer();
-        var query = @"text LogLine {
-    Code: chars[-5]
-};
-select 1 from #A.Entities()";
-
-        // Act
-        var result = analyzer.ValidateSyntax(query);
-
-        // Assert
-        AssertParseOrSemanticFailure(result,
-            "chars[-5] should produce parse error");
     }
 
     #endregion
@@ -901,7 +429,7 @@ select h.Magic from #A.Entities() a cross apply Interpret(a.Name, 'HeaderFormat'
         AssertHasOneOfErrorCodes(result, "Interpret() referencing wrong schema name",
             DiagnosticCode.MQ4003_UndefinedSchemaReference,
             DiagnosticCode.MQ3010_UnknownSchema,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -930,7 +458,7 @@ select 1 from #A.Entities()";
         AssertHasOneOfErrorCodes(result, "circular binary schema reference",
             DiagnosticCode.MQ4004_CircularSchemaReference,
             DiagnosticCode.MQ3016_CircularReference,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -955,7 +483,7 @@ select 1 from #A.Entities()";
         AssertHasOneOfErrorCodes(result, "undefined nested schema reference",
             DiagnosticCode.MQ4003_UndefinedSchemaReference,
             DiagnosticCode.MQ3010_UnknownSchema,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -980,7 +508,7 @@ select h.Magic from #A.Entities() a cross apply Interpret(a.Name, 'Header') h";
             DiagnosticCode.MQ3005_TypeMismatch,
             DiagnosticCode.MQ3013_CannotResolveMethod,
             DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -1005,7 +533,7 @@ select h.Magic from #A.Entities() a cross apply Interpret(a.Name, 'Header', 'ext
             DiagnosticCode.MQ3006_InvalidArgumentCount,
             DiagnosticCode.MQ3013_CannotResolveMethod,
             DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -1029,7 +557,7 @@ select h.Version from #A.Entities() a cross apply Interpret(a.Name, 'Header') h"
         AssertHasOneOfErrorCodes(result, "accessing non-existent binary field",
             DiagnosticCode.MQ3001_UnknownColumn,
             DiagnosticCode.MQ3014_InvalidPropertyAccess,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -1054,7 +582,7 @@ select 1 from #A.Entities()";
         AssertHasOneOfErrorCodes(result, "when condition referencing unknown field",
             DiagnosticCode.MQ3001_UnknownColumn,
             DiagnosticCode.MQ4006_InvalidFieldConstraint,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -1083,7 +611,7 @@ select l.Data from #A.Entities() a cross apply Parse(a.Population, 'LogLine') l"
             DiagnosticCode.MQ3005_TypeMismatch,
             DiagnosticCode.MQ3013_CannotResolveMethod,
             DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -1104,7 +632,7 @@ select l.Data from #A.Entities() a cross apply Parse(a.Population, 'LogLine') l"
         AssertHasOneOfErrorCodes(result, "Parse() referencing undefined schema",
             DiagnosticCode.MQ4003_UndefinedSchemaReference,
             DiagnosticCode.MQ3010_UnknownSchema,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -1129,7 +657,7 @@ select l.Data from #A.Entities() a cross apply Parse(a.Name) l";
             DiagnosticCode.MQ3006_InvalidArgumentCount,
             DiagnosticCode.MQ3013_CannotResolveMethod,
             DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -1153,7 +681,7 @@ select l.Content from #A.Entities() a cross apply Parse(a.Name, 'LogLine') l";
         AssertHasOneOfErrorCodes(result, "accessing non-existent text field",
             DiagnosticCode.MQ3001_UnknownColumn,
             DiagnosticCode.MQ3014_InvalidPropertyAccess,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -1177,7 +705,7 @@ select l.Magic from #A.Entities() a cross apply Parse(a.Name, 'Header') l";
         AssertHasOneOfErrorCodes(result, "Parse() with binary schema name",
             DiagnosticCode.MQ4003_UndefinedSchemaReference,
             DiagnosticCode.MQ3010_UnknownSchema,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -1201,7 +729,7 @@ select h.Data from #A.Entities() a cross apply Interpret(a.Name, 'LogLine') h";
         AssertHasOneOfErrorCodes(result, "Interpret() with text schema name",
             DiagnosticCode.MQ4003_UndefinedSchemaReference,
             DiagnosticCode.MQ3010_UnknownSchema,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -1321,6 +849,478 @@ select 1 from #A.Entities()";
             var errorDetails = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
             Assert.Inconclusive($"Binary with text 'as' clause produced parse errors:\n{errorDetails}");
         }
+    }
+
+    #endregion
+
+    #region Test Setup
+
+    private static ISchemaProvider CreateSchemaProvider()
+    {
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
+            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
+        };
+        return new BasicSchemaProvider<BasicEntity>(sources);
+    }
+
+    private static QueryAnalyzer CreateAnalyzer()
+    {
+        return new QueryAnalyzer(CreateSchemaProvider());
+    }
+
+    private static void AssertHasOneOfErrorCodes(QueryAnalysisResult result, string context,
+        params DiagnosticCode[] expectedCodes)
+    {
+        var errors = result.Errors.ToList();
+        Assert.IsNotEmpty(errors,
+            $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but no diagnostics were reported");
+
+        var hasExpected = errors.Any(e => expectedCodes.Contains(e.Code));
+        if (!hasExpected)
+        {
+            var errorDetails = string.Join("\n", errors.Select(e => $"  [{e.Code}] {e.Message}"));
+            Assert.Fail(
+                $"Expected one of [{string.Join(", ", expectedCodes)}] ({context}) but got:\n{errorDetails}");
+        }
+    }
+
+    private static void AssertNoErrors(QueryAnalysisResult result)
+    {
+        if (result.HasErrors)
+        {
+            var errorMessages = string.Join("\n", result.Errors.Select(e => $"  [{e.Code}] {e.Message}"));
+            Assert.Fail($"Expected no errors but got:\n{errorMessages}");
+        }
+    }
+
+    private static void AssertParseOrSemanticFailure(QueryAnalysisResult result, string context)
+    {
+        var errors = result.Errors.ToList();
+        Assert.IsNotEmpty(errors,
+            $"Expected parse or semantic error ({context}) but no diagnostics were reported.");
+
+        if (errors.Any(e => string.IsNullOrWhiteSpace(e.Message)))
+            Assert.Fail($"Expected actionable diagnostics ({context}) but one or more errors had empty messages.");
+    }
+
+    #endregion
+
+    // ============================================================================
+    // P-BIN: Binary Schema Parse-Level Errors
+    // ============================================================================
+
+    #region P-BIN: Missing braces, colons, semicolons
+
+    [TestMethod]
+    public void P_BIN_01_MissingOpenBrace()
+    {
+        // Arrange — binary schema without opening brace
+        var analyzer = CreateAnalyzer();
+        var query = @"binary HeaderFormat
+    Magic: int le
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert — Should report parse error for missing brace
+        AssertParseOrSemanticFailure(result,
+            "Missing opening brace should produce parse error");
+    }
+
+    [TestMethod]
+    public void P_BIN_02_MissingCloseBrace()
+    {
+        // Arrange — binary schema without closing brace
+        var analyzer = CreateAnalyzer();
+        var query = @"binary HeaderFormat {
+    Magic: int le
+;
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert — Should report parse error for missing brace
+        AssertParseOrSemanticFailure(result,
+            "Missing closing brace should produce parse error");
+    }
+
+    [TestMethod]
+    public void P_BIN_03_MissingSemicolonAfterSchema()
+    {
+        // Arrange — binary schema without trailing semicolon
+        var analyzer = CreateAnalyzer();
+        var query = @"binary HeaderFormat {
+    Magic: int le
+}
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert — Semicolons are optional statement terminators in Musoq
+        AssertNoErrors(result);
+    }
+
+    [TestMethod]
+    public void P_BIN_04_MissingColonAfterFieldName()
+    {
+        // Arrange — field without colon separator
+        var analyzer = CreateAnalyzer();
+        var query = @"binary HeaderFormat {
+    Magic int le
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert — Should report parse error
+        AssertParseOrSemanticFailure(result,
+            "Missing colon after field name should produce parse error");
+    }
+
+    #endregion
+
+    #region P-BIN: Missing or invalid endianness
+
+    [TestMethod]
+    public void P_BIN_05_MissingEndianness()
+    {
+        // Arrange — int field without le/be
+        var analyzer = CreateAnalyzer();
+        var query = @"binary HeaderFormat {
+    Magic: int
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert — int requires endianness: should error or misparse
+        AssertParseOrSemanticFailure(result,
+            "int without endianness should report error");
+    }
+
+    [TestMethod]
+    public void P_BIN_06_InvalidEndiannessKeyword()
+    {
+        // Arrange — invalid endianness identifier
+        var analyzer = CreateAnalyzer();
+        var query = @"binary HeaderFormat {
+    Magic: int middle
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert — 'middle' is not a valid endianness
+        AssertParseOrSemanticFailure(result,
+            "Invalid endianness 'middle' should produce error");
+    }
+
+    #endregion
+
+    #region P-BIN: Unknown field types
+
+    [TestMethod]
+    public void P_BIN_07_UnknownPrimitiveType()
+    {
+        // Arrange — field with nonsense type
+        var analyzer = CreateAnalyzer();
+        var query = @"binary HeaderFormat {
+    Magic: complex128 le
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert — 'complex128' is not a known binary type
+        AssertParseOrSemanticFailure(result,
+            "Unknown binary type 'complex128' should produce error");
+    }
+
+    [TestMethod]
+    public void P_BIN_08_ByteWithEndianness()
+    {
+        // Arrange — byte doesn't need endianness
+        var analyzer = CreateAnalyzer();
+        var query = @"binary HeaderFormat {
+    Flag: byte le
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert — byte with endianness is actually rejected by the parser.
+        // Even though byte is single-byte, specifying endianness produces an error.
+        AssertParseOrSemanticFailure(result,
+            "byte with endianness produces a parse error");
+    }
+
+    #endregion
+
+    #region P-BIN: Invalid array syntax
+
+    [TestMethod]
+    public void P_BIN_10_ByteArrayMissingSize()
+    {
+        // Arrange — byte array without size
+        var analyzer = CreateAnalyzer();
+        var query = @"binary HeaderFormat {
+    Data: byte[]
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert — byte[] needs size
+        AssertParseOrSemanticFailure(result,
+            "byte[] without size should produce parse error");
+    }
+
+    [TestMethod]
+    public void P_BIN_11_ByteArrayNegativeSize()
+    {
+        // Arrange — byte array with negative size
+        var analyzer = CreateAnalyzer();
+        var query = @"binary HeaderFormat {
+    Data: byte[-5]
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert — negative size
+        AssertParseOrSemanticFailure(result,
+            "byte[-5] should produce parse error");
+    }
+
+    [TestMethod]
+    public void P_BIN_12_ByteArrayZeroSize()
+    {
+        // Arrange — byte array with zero size
+        var analyzer = CreateAnalyzer();
+        var query = @"binary HeaderFormat {
+    Data: byte[0]
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert — byte[0] is accepted by the parser without error.
+        // Zero-size arrays are a valid construct in Musoq's schema definitions.
+        AssertNoErrors(result);
+    }
+
+    #endregion
+
+    #region P-BIN: String field issues
+
+    [TestMethod]
+    public void P_BIN_13_StringFieldMissingEncoding()
+    {
+        // Arrange — string field without encoding
+        var analyzer = CreateAnalyzer();
+        var query = @"binary HeaderFormat {
+    Name: string[20]
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert — string fields should require encoding for clarity.
+        // Without encoding, the parser may either default or error.
+        AssertParseOrSemanticFailure(result,
+            "string[20] without encoding should require explicit encoding");
+    }
+
+    [TestMethod]
+    public void P_BIN_14_StringFieldInvalidEncoding()
+    {
+        // Arrange — string field with unknown encoding
+        var analyzer = CreateAnalyzer();
+        var query = @"binary HeaderFormat {
+    Name: string[20] klingon
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert — 'klingon' is not a valid encoding
+        AssertParseOrSemanticFailure(result,
+            "Invalid encoding 'klingon' should produce error");
+    }
+
+    #endregion
+
+    // ============================================================================
+    // P-TEXT: Text Schema Parse-Level Errors
+    // ============================================================================
+
+    #region P-TEXT: Missing braces, colons, semicolons
+
+    [TestMethod]
+    public void P_TEXT_01_MissingOpenBrace()
+    {
+        // Arrange
+        var analyzer = CreateAnalyzer();
+        var query = @"text LogLine
+    Timestamp: until ' '
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert
+        AssertParseOrSemanticFailure(result,
+            "Missing opening brace should produce parse error");
+    }
+
+    [TestMethod]
+    public void P_TEXT_02_MissingCloseBrace()
+    {
+        // Arrange
+        var analyzer = CreateAnalyzer();
+        var query = @"text LogLine {
+    Timestamp: until ' '
+;
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert
+        AssertParseOrSemanticFailure(result,
+            "Missing closing brace should produce parse error");
+    }
+
+    [TestMethod]
+    public void P_TEXT_03_MissingSemicolonAfterSchema()
+    {
+        // Arrange
+        var analyzer = CreateAnalyzer();
+        var query = @"text LogLine {
+    Timestamp: until ' '
+}
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert — Semicolons are optional statement terminators in Musoq
+        AssertNoErrors(result);
+    }
+
+    [TestMethod]
+    public void P_TEXT_04_MissingColonAfterFieldName()
+    {
+        // Arrange
+        var analyzer = CreateAnalyzer();
+        var query = @"text LogLine {
+    Timestamp until ' '
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert
+        AssertParseOrSemanticFailure(result,
+            "Missing colon after field name should produce parse error");
+    }
+
+    #endregion
+
+    #region P-TEXT: Missing delimiters for 'between'
+
+    [TestMethod]
+    public void P_TEXT_07_BetweenMissingEndDelimiter()
+    {
+        // Arrange — 'between' with only one delimiter
+        var analyzer = CreateAnalyzer();
+        var query = @"text LogLine {
+    Data: between '[' 
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert
+        AssertParseOrSemanticFailure(result,
+            "between with missing end delimiter should produce parse error");
+    }
+
+    [TestMethod]
+    public void P_TEXT_08_BetweenMissingBothDelimiters()
+    {
+        // Arrange — 'between' without any delimiters
+        var analyzer = CreateAnalyzer();
+        var query = @"text LogLine {
+    Data: between
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert
+        AssertParseOrSemanticFailure(result,
+            "between without delimiters should produce parse error");
+    }
+
+    #endregion
+
+    #region P-TEXT: chars field missing size
+
+    [TestMethod]
+    public void P_TEXT_09_CharsMissingSize()
+    {
+        // Arrange — 'chars' without bracket size
+        var analyzer = CreateAnalyzer();
+        var query = @"text LogLine {
+    Code: chars
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert
+        AssertParseOrSemanticFailure(result,
+            "chars without size should produce parse error");
+    }
+
+    [TestMethod]
+    public void P_TEXT_10_CharsNegativeSize()
+    {
+        // Arrange — 'chars[-5]'
+        var analyzer = CreateAnalyzer();
+        var query = @"text LogLine {
+    Code: chars[-5]
+};
+select 1 from #A.Entities()";
+
+        // Act
+        var result = analyzer.ValidateSyntax(query);
+
+        // Assert
+        AssertParseOrSemanticFailure(result,
+            "chars[-5] should produce parse error");
     }
 
     #endregion

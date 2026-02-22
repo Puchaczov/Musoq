@@ -75,13 +75,6 @@ public class ErrorQuality_Phase1_StructuralSyntaxTests : BasicEntityTestBase
         }
     }
 
-    private static void DocumentBehavior(QueryAnalysisResult result, string expectedBehavior, bool shouldHaveErrors)
-    {
-        if (shouldHaveErrors)
-            Assert.IsTrue(result.HasErrors || !result.IsParsed,
-                $"Behavior documentation: {expectedBehavior} - but query succeeded");
-    }
-
     #endregion
 
     // ============================================================================
@@ -153,7 +146,7 @@ public class ErrorQuality_Phase1_StructuralSyntaxTests : BasicEntityTestBase
         AssertHasOneOfErrorCodes(result, "HAVING without GROUP BY",
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -334,8 +327,9 @@ CROSS APPLY #B.Entities()";
         AssertHasOneOfErrorCodes(result, "CROSS APPLY without alias",
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ3022_MissingAlias,
+            DiagnosticCode.MQ3002_AmbiguousColumn,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -486,9 +480,10 @@ SELECT * FROM Recursive r";
         AssertHasOneOfErrorCodes(result, "recursive CTE not supported",
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2013_InvalidCTE,
+            DiagnosticCode.MQ3003_UnknownTable,
             DiagnosticCode.MQ3016_CircularReference,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -507,7 +502,7 @@ WITH MyData AS (SELECT Name FROM #A.Entities())";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2013_InvalidCTE,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -528,7 +523,7 @@ SELECT * FROM MyData md";
             DiagnosticCode.MQ2013_InvalidCTE,
             DiagnosticCode.MQ3021_DuplicateAlias,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -586,7 +581,7 @@ SELECT * FROM Second s";
             DiagnosticCode.MQ3003_UnknownTable,
             DiagnosticCode.MQ3023_TableNotDefined,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -632,7 +627,7 @@ select Name, Value from Source()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2012_InvalidSchemaDefinition,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -653,7 +648,7 @@ select * from Source()";
             DiagnosticCode.MQ2005_InvalidSelectList,
             DiagnosticCode.MQ2012_InvalidSchemaDefinition,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -674,7 +669,7 @@ select Name from Source()";
             DiagnosticCode.MQ2012_InvalidSchemaDefinition,
             DiagnosticCode.MQ4008_DuplicateSchemaField,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -694,7 +689,7 @@ select Name from Source()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2012_InvalidSchemaDefinition,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -714,7 +709,7 @@ select Name from Source()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2012_InvalidSchemaDefinition,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -844,7 +839,7 @@ select Name from Source()";
         AssertHasOneOfErrorCodes(result, "unclosed string literal",
             DiagnosticCode.MQ1002_UnterminatedString,
             DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -986,7 +981,7 @@ select Name from Source()";
             DiagnosticCode.MQ3003_UnknownTable,
             DiagnosticCode.MQ3010_UnknownSchema,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -1004,7 +999,7 @@ select Name from Source()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ3003_UnknownTable,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -1022,7 +1017,7 @@ select Name from Source()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ3010_UnknownSchema,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -1040,7 +1035,7 @@ select Name from Source()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ3010_UnknownSchema,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -1073,7 +1068,7 @@ select Name from Source()";
         AssertHasOneOfErrorCodes(result, "schema reference without parentheses",
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion

@@ -151,10 +151,22 @@ public class Parser
         }
         catch (Exception ex)
         {
+            if (ex.TryToDiagnostic(sourceText, out var diagnostic) && diagnostic != null)
+            {
+                RecordError(
+                    diagnostic.Code,
+                    diagnostic.Message,
+                    diagnostic.Span);
+
+                return ParseResult.Failed(sourceText, diagnostics.ToSortedList());
+            }
+
+            var fallbackDiagnostic = ex.ToDiagnosticOrGeneric(sourceText);
+            var span = fallbackDiagnostic.Span == TextSpan.Empty ? Current.Span : fallbackDiagnostic.Span;
             RecordError(
-                DiagnosticCode.MQ9999_Unknown,
-                $"An unexpected error occurred while parsing: {ex.Message}",
-                Current.Span);
+                fallbackDiagnostic.Code,
+                fallbackDiagnostic.Message,
+                span);
 
             return ParseResult.Failed(sourceText, diagnostics.ToSortedList());
         }
@@ -538,7 +550,8 @@ public class Parser
             {
                 Consume(TokenType.Comma);
 
-                col = ComposeBaseTypes() as IdentifierNode ?? throw new InvalidOperationException(nameof(IdentifierNode));
+                col = ComposeBaseTypes() as IdentifierNode ??
+                      throw new InvalidOperationException(nameof(IdentifierNode));
 
                 if (col is null)
                     throw new SyntaxException(
@@ -1112,9 +1125,6 @@ public class Parser
         return node;
     }
 
-    /// <summary>
-    ///     Parses a BETWEEN expression: expression BETWEEN min AND max
-    /// </summary>
     private Node ComposeBetween(Node expression)
     {
         Consume(TokenType.Between);
@@ -1359,11 +1369,6 @@ public class Parser
         return new ArgsListNode(args.ToArray());
     }
 
-    /// <summary>
-    /// Composes function arguments, detecting if DISTINCT keyword is present.
-    /// Used for aggregate functions like COUNT(DISTINCT column).
-    /// </summary>
-    /// <returns>A tuple containing the arguments list and whether DISTINCT was specified.</returns>
     private (ArgsListNode Args, bool IsDistinct) ComposeArgsWithDistinct()
     {
         var args = new List<Node>();
@@ -1371,7 +1376,7 @@ public class Parser
 
         Consume(TokenType.LeftParenthesis);
 
-        // Check for DISTINCT keyword after opening parenthesis
+
         if (Current.TokenType == TokenType.Distinct)
         {
             Consume(TokenType.Distinct);
@@ -1607,18 +1612,18 @@ public class Parser
         return tokenType switch
         {
             TokenType.And or TokenType.Or or TokenType.Not or
-            TokenType.Where or TokenType.Select or TokenType.From or
-            TokenType.Like or TokenType.NotLike or TokenType.RLike or TokenType.NotRLike or
-            TokenType.As or TokenType.Is or TokenType.Null or
-            TokenType.Union or TokenType.UnionAll or TokenType.Except or TokenType.Intersect or
-            TokenType.GroupBy or TokenType.Having or TokenType.Contains or
-            TokenType.Skip or TokenType.Take or TokenType.With or
-            TokenType.InnerJoin or TokenType.OuterJoin or TokenType.CrossApply or TokenType.OuterApply or
-            TokenType.On or TokenType.OrderBy or TokenType.Asc or TokenType.Desc or
-            TokenType.Functions or TokenType.True or TokenType.False or
-            TokenType.In or TokenType.NotIn or TokenType.Table or TokenType.Couple or
-            TokenType.Case or TokenType.When or TokenType.Then or TokenType.Else or
-            TokenType.Distinct or TokenType.ColumnKeyword or TokenType.Between => true,
+                TokenType.Where or TokenType.Select or TokenType.From or
+                TokenType.Like or TokenType.NotLike or TokenType.RLike or TokenType.NotRLike or
+                TokenType.As or TokenType.Is or TokenType.Null or
+                TokenType.Union or TokenType.UnionAll or TokenType.Except or TokenType.Intersect or
+                TokenType.GroupBy or TokenType.Having or TokenType.Contains or
+                TokenType.Skip or TokenType.Take or TokenType.With or
+                TokenType.InnerJoin or TokenType.OuterJoin or TokenType.CrossApply or TokenType.OuterApply or
+                TokenType.On or TokenType.OrderBy or TokenType.Asc or TokenType.Desc or
+                TokenType.Functions or TokenType.True or TokenType.False or
+                TokenType.In or TokenType.NotIn or TokenType.Table or TokenType.Couple or
+                TokenType.Case or TokenType.When or TokenType.Then or TokenType.Else or
+                TokenType.Distinct or TokenType.ColumnKeyword or TokenType.Between => true,
             _ => false
         };
     }

@@ -17,7 +17,7 @@ public class ConversionMethodsTests : LibraryBaseBaseTests
     {
         ushort expected = 65535;
         var result = Library.FromBytesToUInt16(BitConverter.GetBytes(expected));
-        Assert.AreEqual<ushort?>(expected, result);
+        Assert.AreEqual(expected, result);
     }
 
     #endregion
@@ -29,7 +29,7 @@ public class ConversionMethodsTests : LibraryBaseBaseTests
     {
         var expected = 4294967295u;
         var result = Library.FromBytesToUInt32(BitConverter.GetBytes(expected));
-        Assert.AreEqual<uint?>(expected, result);
+        Assert.AreEqual(expected, result);
     }
 
     #endregion
@@ -41,7 +41,7 @@ public class ConversionMethodsTests : LibraryBaseBaseTests
     {
         var expected = 18446744073709551615UL;
         var result = Library.FromBytesToUInt64(BitConverter.GetBytes(expected));
-        Assert.AreEqual<ulong?>(expected, result);
+        Assert.AreEqual(expected, result);
     }
 
     #endregion
@@ -430,7 +430,7 @@ public class ConversionMethodsTests : LibraryBaseBaseTests
     {
         short expected = 12345;
         var result = Library.FromBytesToInt16(BitConverter.GetBytes(expected));
-        Assert.AreEqual<short?>(expected, result);
+        Assert.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -438,7 +438,7 @@ public class ConversionMethodsTests : LibraryBaseBaseTests
     {
         short expected = -12345;
         var result = Library.FromBytesToInt16(BitConverter.GetBytes(expected));
-        Assert.AreEqual<short?>(expected, result);
+        Assert.AreEqual(expected, result);
     }
 
     #endregion
@@ -450,7 +450,7 @@ public class ConversionMethodsTests : LibraryBaseBaseTests
     {
         var expected = 123456789;
         var result = Library.FromBytesToInt32(BitConverter.GetBytes(expected));
-        Assert.AreEqual<int?>(expected, result);
+        Assert.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -458,7 +458,7 @@ public class ConversionMethodsTests : LibraryBaseBaseTests
     {
         var expected = -123456789;
         var result = Library.FromBytesToInt32(BitConverter.GetBytes(expected));
-        Assert.AreEqual<int?>(expected, result);
+        Assert.AreEqual(expected, result);
     }
 
     #endregion
@@ -470,7 +470,7 @@ public class ConversionMethodsTests : LibraryBaseBaseTests
     {
         var expected = 9223372036854775807L;
         var result = Library.FromBytesToInt64(BitConverter.GetBytes(expected));
-        Assert.AreEqual<long?>(expected, result);
+        Assert.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -478,7 +478,7 @@ public class ConversionMethodsTests : LibraryBaseBaseTests
     {
         var expected = -9223372036854775808L;
         var result = Library.FromBytesToInt64(BitConverter.GetBytes(expected));
-        Assert.AreEqual<long?>(expected, result);
+        Assert.AreEqual(expected, result);
     }
 
     #endregion

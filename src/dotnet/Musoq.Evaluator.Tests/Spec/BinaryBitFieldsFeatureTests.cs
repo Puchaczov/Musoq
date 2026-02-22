@@ -17,6 +17,113 @@ public class BinaryBitFieldsFeatureTests
     private static readonly ILoggerResolver LoggerResolver = new TestsLoggerResolver();
     private static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
 
+    #region Section 4.7: Bit Fields with Alignment
+
+    /// <summary>
+    ///     Tests align[8] directive to force byte alignment after bit fields.
+    /// </summary>
+    [TestMethod]
+    public void Binary_BitField_WithAlignment_ShouldSkipToNextByte()
+    {
+        var query = @"
+            binary Record { 
+                Flags: bits[3],
+                _: align[8],
+                NextByte: byte
+            };
+            select r.Flags, r.NextByte from #test.files() b
+            cross apply Interpret(b.Content, 'Record') r";
+
+        var testData = new byte[] { 0x05, 0xAB };
+        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var schemaProvider = new BinarySchemaProvider(
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
+            TestCompilationOptions);
+        var table = vm.Run(CancellationToken.None);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual((byte)5, table[0][0]);
+        Assert.AreEqual((byte)0xAB, table[0][1]);
+    }
+
+    #endregion
+
+    #region Section 4.7: Bit Fields with Regular Fields
+
+    /// <summary>
+    ///     Tests bit fields mixed with regular byte fields.
+    /// </summary>
+    [TestMethod]
+    public void Binary_BitField_MixedWithRegularFields_ShouldParseAll()
+    {
+        var query = @"
+            binary Packet { 
+                Version: bits[4],
+                HeaderLen: bits[4],
+                Protocol: byte,
+                Length: short le
+            };
+            select p.Version, p.HeaderLen, p.Protocol, p.Length 
+            from #test.files() b
+            cross apply Interpret(b.Content, 'Packet') p";
+
+        var testData = new byte[] { 0x54, 0x06, 0x40, 0x00 };
+        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+        var schemaProvider = new BinarySchemaProvider(
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
+            TestCompilationOptions);
+        var table = vm.Run(CancellationToken.None);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual((byte)4, table[0][0]);
+        Assert.AreEqual((byte)5, table[0][1]);
+        Assert.AreEqual((byte)0x06, table[0][2]);
+        Assert.AreEqual((short)0x0040, table[0][3]);
+    }
+
+    #endregion
+
+    #region Section 4.7: Bit Fields in WHERE Clause
+
+    /// <summary>
+    ///     Tests filtering on bit field values.
+    /// </summary>
+    [TestMethod]
+    public void Binary_BitField_InWhereClause_ShouldFilter()
+    {
+        var query = @"
+            binary Flags { 
+                Readable: bits[1],
+                Writable: bits[1],
+                Executable: bits[1]
+            };
+            select f.Readable, f.Writable, f.Executable
+            from #test.files() b
+            cross apply Interpret(b.Content, 'Flags') f
+            where f.Writable = 1";
+
+        var entities = new[]
+        {
+            new BinaryEntity { Name = "rw.bin", Content = [0b011] },
+            new BinaryEntity { Name = "ro.bin", Content = [0b001] },
+            new BinaryEntity { Name = "rwx.bin", Content = [0b111] }
+        };
+        var schemaProvider = new BinarySchemaProvider(
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+
+        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
+            TestCompilationOptions);
+        var table = vm.Run(CancellationToken.None);
+
+        Assert.AreEqual(2, table.Count);
+    }
+
+    #endregion
+
     #region Section 4.7: Basic Single Bit
 
     /// <summary>
@@ -136,113 +243,6 @@ public class BinaryBitFieldsFeatureTests
         Assert.AreEqual((byte)3, table[0][0]);
         Assert.AreEqual((byte)2, table[0][1]);
         Assert.AreEqual((byte)7, table[0][2]);
-    }
-
-    #endregion
-
-    #region Section 4.7: Bit Fields with Alignment
-
-    /// <summary>
-    ///     Tests align[8] directive to force byte alignment after bit fields.
-    /// </summary>
-    [TestMethod]
-    public void Binary_BitField_WithAlignment_ShouldSkipToNextByte()
-    {
-        var query = @"
-            binary Record { 
-                Flags: bits[3],
-                _: align[8],
-                NextByte: byte
-            };
-            select r.Flags, r.NextByte from #test.files() b
-            cross apply Interpret(b.Content, 'Record') r";
-
-        var testData = new byte[] { 0x05, 0xAB };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
-        var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
-
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
-        var table = vm.Run(CancellationToken.None);
-
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)5, table[0][0]);
-        Assert.AreEqual((byte)0xAB, table[0][1]);
-    }
-
-    #endregion
-
-    #region Section 4.7: Bit Fields with Regular Fields
-
-    /// <summary>
-    ///     Tests bit fields mixed with regular byte fields.
-    /// </summary>
-    [TestMethod]
-    public void Binary_BitField_MixedWithRegularFields_ShouldParseAll()
-    {
-        var query = @"
-            binary Packet { 
-                Version: bits[4],
-                HeaderLen: bits[4],
-                Protocol: byte,
-                Length: short le
-            };
-            select p.Version, p.HeaderLen, p.Protocol, p.Length 
-            from #test.files() b
-            cross apply Interpret(b.Content, 'Packet') p";
-
-        var testData = new byte[] { 0x54, 0x06, 0x40, 0x00 };
-        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
-        var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
-
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
-        var table = vm.Run(CancellationToken.None);
-
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)4, table[0][0]);
-        Assert.AreEqual((byte)5, table[0][1]);
-        Assert.AreEqual((byte)0x06, table[0][2]);
-        Assert.AreEqual((short)0x0040, table[0][3]);
-    }
-
-    #endregion
-
-    #region Section 4.7: Bit Fields in WHERE Clause
-
-    /// <summary>
-    ///     Tests filtering on bit field values.
-    /// </summary>
-    [TestMethod]
-    public void Binary_BitField_InWhereClause_ShouldFilter()
-    {
-        var query = @"
-            binary Flags { 
-                Readable: bits[1],
-                Writable: bits[1],
-                Executable: bits[1]
-            };
-            select f.Readable, f.Writable, f.Executable
-            from #test.files() b
-            cross apply Interpret(b.Content, 'Flags') f
-            where f.Writable = 1";
-
-        var entities = new[]
-        {
-            new BinaryEntity { Name = "rw.bin", Content = [0b011] },
-            new BinaryEntity { Name = "ro.bin", Content = [0b001] },
-            new BinaryEntity { Name = "rwx.bin", Content = [0b111] }
-        };
-        var schemaProvider = new BinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
-
-        var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(), schemaProvider, LoggerResolver,
-            TestCompilationOptions);
-        var table = vm.Run(CancellationToken.None);
-
-        Assert.AreEqual(2, table.Count);
     }
 
     #endregion

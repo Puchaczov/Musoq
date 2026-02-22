@@ -37,9 +37,9 @@ public class BugProbe_RepeatUntilTests
 
         var testData = new byte[]
         {
-            0x01, 0x0A,  // Type=1, Value=10
-            0x02, 0x14,  // Type=2, Value=20
-            0x00, 0x00   // Type=0 (terminator)
+            0x01, 0x0A, // Type=1, Value=10
+            0x02, 0x14, // Type=2, Value=20
+            0x00, 0x00 // Type=0 (terminator)
         };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(

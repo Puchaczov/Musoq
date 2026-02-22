@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
@@ -11,7 +12,6 @@ namespace Musoq.Evaluator.Tests.Spec;
 ///     BUG PROBE: extends with duplicate field names between parent and child.
 ///     GetAllFieldsIncludingInherited collects parent + child fields without
 ///     deduplication, causing duplicate variable declarations in generated C# code.
-///
 ///     Root cause: InterpreterCodeGenerator.cs GetAllFieldsIncludingInherited()
 ///     line ~304-321. allFields.AddRange(schema.Fields) without checking for
 ///     duplicates from parent schema.
@@ -25,8 +25,8 @@ public class BugProbe_ExtendsFieldCollisionTests
     /// <summary>
     ///     BUG: Parent and child schema both define a field with the same name 'Version'.
     ///     Generated code will have:
-    ///       var _version = ReadInt32LE(...);  // from parent
-    ///       var _version = ReadInt32LE(...);  // from child (duplicate!)
+    ///     var _version = ReadInt32LE(...);  // from parent
+    ///     var _version = ReadInt32LE(...);  // from child (duplicate!)
     ///     → CS0128: A local variable named '_version' is already defined.
     ///     Expected: Child field should override parent field.
     /// </summary>
@@ -47,11 +47,11 @@ public class BugProbe_ExtendsFieldCollisionTests
 
         // With field override, child's Version replaces parent's Version at the same position.
         // Data layout: [Version: int le][Tag: byte][Extra: int le]
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
-        bw.Write(2);           // Version (child override, int le)
-        bw.Write((byte)0xAA);  // Tag (inherited from parent)
-        bw.Write(99);          // Extra (child field)
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
+        bw.Write(2); // Version (child override, int le)
+        bw.Write((byte)0xAA); // Tag (inherited from parent)
+        bw.Write(99); // Extra (child field)
         bw.Flush();
 
         var testData = ms.ToArray();
@@ -92,11 +92,11 @@ public class BugProbe_ExtendsFieldCollisionTests
 
         // With field override, both Magic and Flags replace parent's at same position.
         // Data layout: [Magic: int le][Flags: byte][Length: int le]
-        using var ms = new System.IO.MemoryStream();
-        using var bw = new System.IO.BinaryWriter(ms);
-        bw.Write(0x12345678);  // Magic (child override, same type)
-        bw.Write((byte)0x02);  // Flags (child override, same type)
-        bw.Write(100);         // Length (child new field)
+        using var ms = new MemoryStream();
+        using var bw = new BinaryWriter(ms);
+        bw.Write(0x12345678); // Magic (child override, same type)
+        bw.Write((byte)0x02); // Flags (child override, same type)
+        bw.Write(100); // Length (child new field)
         bw.Flush();
 
         var testData = ms.ToArray();

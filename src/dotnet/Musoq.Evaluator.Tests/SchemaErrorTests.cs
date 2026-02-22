@@ -9,19 +9,41 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class SchemaErrorTests : NegativeTestsBase
 {
+    #region 2.4 Property Access Errors
+
+    [TestMethod]
+    public void SE031_DeepPropertyAccessWithInvalidIntermediate_ShouldThrowError()
+    {
+        Assert.Throws<UnknownPropertyException>(() =>
+            CompileQuery("SELECT Info.Label.Nonexistent FROM #test.nested()"));
+    }
+
+    #endregion
+
+    #region 2.6 CTE Forward Reference / Scope Errors
+
+    [TestMethod]
+    public void SE050_CteForwardReference_ShouldThrowError()
+    {
+        Assert.Throws<Exception>(() =>
+            CompileQuery(
+                "WITH First AS (SELECT * FROM Second s), Second AS (SELECT Name FROM #test.people()) SELECT * FROM First f"));
+    }
+
+    #endregion
+
     #region 2.1 Unknown Schema / Table / Column
 
     [TestMethod]
     public void SE001_NonexistentSchema_ShouldThrowSchemaError()
     {
-        Assert.Throws<InvalidOperationException>(() =>
+        Assert.Throws<UnknownInterpretationSchemaException>(() =>
             CompileQuery("SELECT * FROM #nonexistent.table()"));
     }
 
     [TestMethod]
     public void SE002_NonexistentTableInValidSchema_ShouldThrowSchemaError()
     {
-        
         Assert.Throws<Exception>(() =>
             CompileQuery("SELECT * FROM #test.nonexistent()"));
     }
@@ -64,7 +86,6 @@ public class SchemaErrorTests : NegativeTestsBase
     [TestMethod]
     public void SE008_NonexistentColumnInJoinCondition_ShouldThrowError()
     {
-        
         Assert.Throws<VisitorException>(() =>
             CompileQuery("SELECT * FROM #test.people() p INNER JOIN #test.orders() o ON p.FakeId = o.PersonId"));
     }
@@ -72,7 +93,6 @@ public class SchemaErrorTests : NegativeTestsBase
     [TestMethod]
     public void SE009_NonexistentColumnInCaseExpression_ShouldThrowError()
     {
-        
         Assert.Throws<AstValidationException>(() =>
             CompileQuery("SELECT CASE NonExistent WHEN 1 THEN 'a' ELSE 'b' END FROM #test.people()"));
     }
@@ -91,9 +111,9 @@ public class SchemaErrorTests : NegativeTestsBase
     [TestMethod]
     public void SE013_DuplicateCteNames_ShouldThrowError()
     {
-        
         Assert.Throws<ArgumentException>(() =>
-            CompileQuery("WITH A AS (SELECT 1 AS X FROM #test.single()), A AS (SELECT 2 AS X FROM #test.single()) SELECT * FROM A a"));
+            CompileQuery(
+                "WITH A AS (SELECT 1 AS X FROM #test.single()), A AS (SELECT 2 AS X FROM #test.single()) SELECT * FROM A a"));
     }
 
     [TestMethod]
@@ -106,32 +126,8 @@ public class SchemaErrorTests : NegativeTestsBase
     [TestMethod]
     public void SE016_WrongAliasPrefixForColumn_ShouldThrowError()
     {
-        
         Assert.Throws<VisitorException>(() =>
             CompileQuery("SELECT p.Amount FROM #test.people() p INNER JOIN #test.orders() o ON p.Id = o.PersonId"));
-    }
-
-    #endregion
-
-    #region 2.4 Property Access Errors
-
-    [TestMethod]
-    public void SE031_DeepPropertyAccessWithInvalidIntermediate_ShouldThrowError()
-    {
-        Assert.Throws<UnknownPropertyException>(() =>
-            CompileQuery("SELECT Info.Label.Nonexistent FROM #test.nested()"));
-    }
-
-    #endregion
-
-    #region 2.6 CTE Forward Reference / Scope Errors
-
-    [TestMethod]
-    public void SE050_CteForwardReference_ShouldThrowError()
-    {
-        
-        Assert.Throws<Exception>(() =>
-            CompileQuery("WITH First AS (SELECT * FROM Second s), Second AS (SELECT Name FROM #test.people()) SELECT * FROM First f"));
     }
 
     #endregion

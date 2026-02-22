@@ -40,8 +40,8 @@ public class BugProbe_InlineAnonymousSchemaTests
         var testData = new byte[]
         {
             0x78, 0x56, 0x34, 0x12, // Magic = 0x12345678
-            0x03, 0x00,              // Version = 3
-            0xFF                     // Payload
+            0x03, 0x00, // Version = 3
+            0xFF // Payload
         };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(

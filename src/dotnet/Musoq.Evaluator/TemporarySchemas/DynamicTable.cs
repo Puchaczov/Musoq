@@ -26,12 +26,14 @@ public class DynamicTable : ISchemaTable
 
     public ISchemaColumn GetColumnByName(string name)
     {
-        return Columns.SingleOrDefault(column => column.ColumnName == name);
+        return Columns.SingleOrDefault(column =>
+            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase));
     }
 
     public ISchemaColumn[] GetColumnsByName(string name)
     {
-        return Columns.Where(column => column.ColumnName == name).ToArray();
+        return Columns.Where(column =>
+            string.Equals(column.ColumnName, name, StringComparison.OrdinalIgnoreCase)).ToArray();
     }
 
     public SchemaTableMetadata Metadata { get; }
