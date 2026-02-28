@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
@@ -1113,6 +1114,170 @@ public class LowCoverageAreasTests
         var result = key.ToString();
 
         Assert.AreEqual("only", result);
+    }
+
+    #endregion
+
+    #region GroupKey Hash Fast Path Tests
+
+    [TestMethod]
+    public void GroupKey_GetHashCode_EmptyValues_ReturnsZero()
+    {
+        var key = new GroupKey();
+
+        Assert.AreEqual(0, key.GetHashCode());
+    }
+
+    [TestMethod]
+    public void GroupKey_GetHashCode_SingleValue_IsConsistent()
+    {
+        var key1 = new GroupKey("hello");
+        var key2 = new GroupKey("hello");
+
+        Assert.AreEqual(key1.GetHashCode(), key2.GetHashCode());
+    }
+
+    [TestMethod]
+    public void GroupKey_GetHashCode_TwoValues_IsConsistent()
+    {
+        var key1 = new GroupKey("hello", 42);
+        var key2 = new GroupKey("hello", 42);
+
+        Assert.AreEqual(key1.GetHashCode(), key2.GetHashCode());
+    }
+
+    [TestMethod]
+    public void GroupKey_GetHashCode_ThreeValues_IsConsistent()
+    {
+        var key1 = new GroupKey("hello", 42, 3.14);
+        var key2 = new GroupKey("hello", 42, 3.14);
+
+        Assert.AreEqual(key1.GetHashCode(), key2.GetHashCode());
+    }
+
+    [TestMethod]
+    public void GroupKey_GetHashCode_FourValues_IsConsistent()
+    {
+        var key1 = new GroupKey("a", "b", "c", "d");
+        var key2 = new GroupKey("a", "b", "c", "d");
+
+        Assert.AreEqual(key1.GetHashCode(), key2.GetHashCode());
+    }
+
+    [TestMethod]
+    public void GroupKey_GetHashCode_DifferentValues_ProducesDifferentHash()
+    {
+        var key1 = new GroupKey("hello", 42);
+        var key2 = new GroupKey("world", 99);
+
+        Assert.AreNotEqual(key1.GetHashCode(), key2.GetHashCode());
+    }
+
+    [TestMethod]
+    public void GroupKey_GetHashCode_SingleNullValue_IsConsistent()
+    {
+        var key1 = new GroupKey(new object[] { null });
+        var key2 = new GroupKey(new object[] { null });
+
+        Assert.AreEqual(key1.GetHashCode(), key2.GetHashCode());
+    }
+
+    [TestMethod]
+    public void GroupKey_AsDictionaryKey_WorksCorrectly()
+    {
+        var dict = new Dictionary<GroupKey, string>();
+        var key1 = new GroupKey("hello", 42);
+        var key2 = new GroupKey("hello", 42);
+        var key3 = new GroupKey("world", 99);
+
+        dict[key1] = "first";
+        dict[key3] = "second";
+
+        Assert.AreEqual("first", dict[key2]);
+        Assert.AreEqual("second", dict[key3]);
+        Assert.AreEqual(2, dict.Count);
+    }
+
+    [TestMethod]
+    public void GroupKey_AsDictionaryKey_DistinguishesDifferentKeys()
+    {
+        var dict = new Dictionary<GroupKey, int>();
+
+        for (var i = 0; i < 100; i++)
+            dict[new GroupKey(i.ToString(), i)] = i;
+
+        Assert.AreEqual(100, dict.Count);
+
+        for (var i = 0; i < 100; i++)
+            Assert.AreEqual(i, dict[new GroupKey(i.ToString(), i)]);
+    }
+
+    [TestMethod]
+    public void GroupKey_Equals_HashMismatch_ReturnsFalseQuickly()
+    {
+        var key1 = new GroupKey("a", "b");
+        var key2 = new GroupKey("c", "d");
+
+        Assert.IsFalse(key1.Equals(key2));
+    }
+
+    #endregion
+
+    #region FlattenContexts Tests
+
+    [TestMethod]
+    public void FlattenContexts_WhenSingleContext_ReturnsContextDirectly()
+    {
+        var context = new object[] { 1, "hello", 3.14 };
+
+        var result = EvaluationHelper.FlattenContexts(context);
+
+        Assert.AreSame(context, result);
+    }
+
+    [TestMethod]
+    public void FlattenContexts_WhenSingleNullContext_ReturnsArrayWithNull()
+    {
+        var result = EvaluationHelper.FlattenContexts(new object[] { null });
+
+        Assert.IsNotNull(result);
+        Assert.AreEqual(1, result.Length);
+        Assert.IsNull(result[0]);
+    }
+
+    [TestMethod]
+    public void FlattenContexts_WhenSingleContextIsNull_ReturnsArrayWithNull()
+    {
+        var result = EvaluationHelper.FlattenContexts((object[])null);
+
+        Assert.IsNotNull(result);
+        Assert.AreEqual(1, result.Length);
+        Assert.IsNull(result[0]);
+    }
+
+    [TestMethod]
+    public void FlattenContexts_WhenMultipleContexts_ReturnsFlattenedArray()
+    {
+        var ctx1 = new object[] { 1, 2 };
+        var ctx2 = new object[] { 3, 4, 5 };
+
+        var result = EvaluationHelper.FlattenContexts(ctx1, ctx2);
+
+        CollectionAssert.AreEqual(new object[] { 1, 2, 3, 4, 5 }, result);
+    }
+
+    [TestMethod]
+    public void FlattenContexts_WhenMultipleContextsWithNull_InsertsNullForMissing()
+    {
+        var ctx1 = new object[] { 1, 2 };
+        object[] ctx2 = null;
+
+        var result = EvaluationHelper.FlattenContexts(ctx1, ctx2);
+
+        Assert.AreEqual(3, result.Length);
+        Assert.AreEqual(1, result[0]);
+        Assert.AreEqual(2, result[1]);
+        Assert.IsNull(result[2]);
     }
 
     #endregion
