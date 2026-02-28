@@ -22,7 +22,9 @@ public class VisitorException : Exception, IDiagnosticException
     {
         VisitorName = visitorName ?? "Unknown";
         Operation = operation ?? "Unknown";
-        Code = DiagnosticCode.MQ9999_Unknown;
+        var diagnostic = ResolveDiagnosticData();
+        Code = diagnostic.code;
+        Span = diagnostic.span;
     }
 
     /// <summary>
@@ -37,7 +39,9 @@ public class VisitorException : Exception, IDiagnosticException
     {
         VisitorName = visitorName ?? "Unknown";
         Operation = operation ?? "Unknown";
-        Code = DiagnosticCode.MQ9999_Unknown;
+        var diagnostic = ResolveDiagnosticData(innerException);
+        Code = diagnostic.code;
+        Span = diagnostic.span;
     }
 
     /// <summary>
@@ -153,11 +157,24 @@ public class VisitorException : Exception, IDiagnosticException
     /// <param name="suggestion">Suggested resolution.</param>
     /// <returns>A configured VisitorException instance.</returns>
     public static VisitorException CreateForProcessingFailure(string visitorName, string operation, string context,
-        string suggestion = null)
+        string? suggestion = null)
     {
         var message = $"Processing failed: {context}";
         if (!string.IsNullOrEmpty(suggestion)) message += $" {suggestion}";
 
         return new VisitorException(visitorName, operation, message);
+    }
+
+    private static (DiagnosticCode code, TextSpan? span) ResolveDiagnosticData(Exception? exception = null)
+    {
+        if (exception is IDiagnosticException diagnosticException)
+            return (diagnosticException.Code, diagnosticException.Span);
+
+        if (exception == null)
+            return (DiagnosticCode.MQ2030_UnsupportedSyntax, null);
+
+        var diagnostic = exception.ToDiagnosticOrGeneric();
+        TextSpan? span = diagnostic.Span == TextSpan.Empty ? null : diagnostic.Span;
+        return (diagnostic.Code, span);
     }
 }

@@ -38,7 +38,7 @@ public class BugProbe_BinaryTextCompositionTests
             cross apply Interpret(b.Content, 'Config') c";
 
         var payload = Encoding.UTF8.GetBytes("host=local");
-        var testData = new byte[] { (byte)payload.Length };
+        var testData = new[] { (byte)payload.Length };
         var combined = new byte[testData.Length + payload.Length];
         Buffer.BlockCopy(testData, 0, combined, 0, testData.Length);
         Buffer.BlockCopy(payload, 0, combined, testData.Length, payload.Length);

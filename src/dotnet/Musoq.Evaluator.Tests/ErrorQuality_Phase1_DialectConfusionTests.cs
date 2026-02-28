@@ -76,13 +76,6 @@ public class ErrorQuality_Phase1_DialectConfusionTests : BasicEntityTestBase
         }
     }
 
-    private static void DocumentBehavior(QueryAnalysisResult result, string expectedBehavior, bool shouldHaveErrors)
-    {
-        if (shouldHaveErrors)
-            Assert.IsTrue(result.HasErrors || !result.IsParsed,
-                $"Behavior documentation: {expectedBehavior} - but query succeeded");
-    }
-
     #endregion
 
     // ============================================================================
@@ -204,7 +197,7 @@ public class ErrorQuality_Phase1_DialectConfusionTests : BasicEntityTestBase
         // Assert — Should error at semantic level (unknown column ROWNUM)
         AssertHasOneOfErrorCodes(result, "ROWNUM is not a Musoq concept",
             DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -231,7 +224,7 @@ public class ErrorQuality_Phase1_DialectConfusionTests : BasicEntityTestBase
         AssertHasOneOfErrorCodes(result, "COUNT(*) should suggest Count(1)",
             DiagnosticCode.MQ3029_UnresolvableMethod,
             DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -249,7 +242,7 @@ public class ErrorQuality_Phase1_DialectConfusionTests : BasicEntityTestBase
         AssertHasOneOfErrorCodes(result, "COUNT(*) should suggest Count(1)",
             DiagnosticCode.MQ3029_UnresolvableMethod,
             DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -267,63 +260,52 @@ public class ErrorQuality_Phase1_DialectConfusionTests : BasicEntityTestBase
         AssertHasOneOfErrorCodes(result, "count(*) should suggest Count(1)",
             DiagnosticCode.MQ3029_UnresolvableMethod,
             DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
     public void P_AGG_04_CountDistinct()
     {
-        // Arrange — COUNT(DISTINCT column) is standard SQL
+        // Arrange — COUNT(DISTINCT column) is now supported
         var analyzer = CreateAnalyzer();
         var query = "SELECT COUNT(DISTINCT Name) FROM #A.Entities()";
 
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert — Should error and suggest GROUP BY + Count workaround
-        AssertHasOneOfErrorCodes(result, "COUNT(DISTINCT) should suggest GROUP BY + Count",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ9999_Unknown);
+        // Assert — Should succeed now that COUNT(DISTINCT) is supported
+        Assert.IsFalse(result.HasErrors, "COUNT(DISTINCT) should now be supported");
+        Assert.IsTrue(result.IsParsed, "Query should be parsed successfully");
     }
 
     [TestMethod]
     public void P_AGG_05_SumDistinct()
     {
-        // Arrange — SUM(DISTINCT Value)
+        // Arrange — SUM(DISTINCT Value) is now supported
         var analyzer = CreateAnalyzer();
         var query = "SELECT SUM(DISTINCT Population) FROM #A.Entities()";
 
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert — Should error and suggest alternative
-        AssertHasOneOfErrorCodes(result, "SUM(DISTINCT) not supported",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ9999_Unknown);
+        // Assert — Should succeed now that SUM(DISTINCT) is supported
+        Assert.IsFalse(result.HasErrors, "SUM(DISTINCT) should now be supported");
+        Assert.IsTrue(result.IsParsed, "Query should be parsed successfully");
     }
 
     [TestMethod]
     public void P_AGG_06_AvgDistinct()
     {
-        // Arrange — AVG(DISTINCT Value)
+        // Arrange — AVG(DISTINCT Value) is now supported
         var analyzer = CreateAnalyzer();
         var query = "SELECT AVG(DISTINCT Population) FROM #A.Entities()";
 
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert — Should error and suggest alternative
-        AssertHasOneOfErrorCodes(result, "AVG(DISTINCT) not supported",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ9999_Unknown);
+        // Assert — Should succeed now that AVG(DISTINCT) is supported
+        Assert.IsFalse(result.HasErrors, "AVG(DISTINCT) should now be supported");
+        Assert.IsTrue(result.IsParsed, "Query should be parsed successfully");
     }
 
     #endregion
@@ -499,7 +481,7 @@ WHERE Name IN (SELECT Name FROM #B.Entities())";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2024_InvalidSubquery,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -518,7 +500,7 @@ FROM #A.Entities()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2024_InvalidSubquery,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -536,7 +518,7 @@ FROM #A.Entities()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2024_InvalidSubquery,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -555,7 +537,7 @@ WHERE EXISTS (SELECT 1 FROM #B.Entities() b WHERE b.Name = a.Name)";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2024_InvalidSubquery,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -574,7 +556,7 @@ WHERE NOT EXISTS (SELECT 1 FROM #B.Entities() b WHERE b.Name = a.Name)";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2024_InvalidSubquery,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -593,7 +575,7 @@ WHERE Population > (SELECT Population FROM #B.Entities())";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2024_InvalidSubquery,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -612,7 +594,7 @@ WHERE Population > ANY (SELECT Population FROM #B.Entities())";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2024_InvalidSubquery,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -631,7 +613,7 @@ WHERE Population > ALL (SELECT Population FROM #B.Entities())";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2024_InvalidSubquery,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -660,7 +642,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             DiagnosticCode.MQ3031_SetOperatorMissingKeys,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -680,7 +662,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             DiagnosticCode.MQ3031_SetOperatorMissingKeys,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -700,7 +682,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             DiagnosticCode.MQ3031_SetOperatorMissingKeys,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -720,7 +702,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             DiagnosticCode.MQ3031_SetOperatorMissingKeys,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -748,7 +730,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -766,7 +748,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -784,7 +766,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -802,7 +784,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -819,7 +801,7 @@ SELECT Name FROM #B.Entities()";
         AssertHasOneOfErrorCodes(result, "SUM() OVER not supported",
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -836,7 +818,7 @@ SELECT Name FROM #B.Entities()";
         AssertHasOneOfErrorCodes(result, "PARTITION BY not supported",
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -854,7 +836,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -872,7 +854,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion
@@ -932,7 +914,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ2019_InvalidOperator,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             DiagnosticCode.MQ3007_InvalidOperandTypes,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -949,7 +931,7 @@ SELECT Name FROM #B.Entities()";
         AssertHasOneOfErrorCodes(result, "ILIKE not supported, suggest LIKE",
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -966,7 +948,7 @@ SELECT Name FROM #B.Entities()";
         AssertHasOneOfErrorCodes(result, ":: casting should suggest ToString() etc.",
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -984,7 +966,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ2001_UnexpectedToken,
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -1008,7 +990,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ3004_UnknownFunction,
             DiagnosticCode.MQ3013_CannotResolveMethod,
             DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -1040,7 +1022,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ3004_UnknownFunction,
             DiagnosticCode.MQ3013_CannotResolveMethod,
             DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -1058,7 +1040,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ3004_UnknownFunction,
             DiagnosticCode.MQ3013_CannotResolveMethod,
             DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -1076,7 +1058,7 @@ SELECT Name FROM #B.Entities()";
             DiagnosticCode.MQ3004_UnknownFunction,
             DiagnosticCode.MQ3013_CannotResolveMethod,
             DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     [TestMethod]
@@ -1149,7 +1131,7 @@ SELECT Name FROM #B.Entities()";
         AssertHasOneOfErrorCodes(result, "string + number should suggest ToString/Concat",
             DiagnosticCode.MQ3005_TypeMismatch,
             DiagnosticCode.MQ3007_InvalidOperandTypes,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ2030_UnsupportedSyntax);
     }
 
     #endregion

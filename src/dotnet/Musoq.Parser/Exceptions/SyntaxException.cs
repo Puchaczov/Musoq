@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System;
+﻿using System;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Parser.Exceptions;

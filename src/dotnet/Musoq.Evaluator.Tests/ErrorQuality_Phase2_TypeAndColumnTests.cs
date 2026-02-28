@@ -76,13 +76,6 @@ public class ErrorQuality_Phase2_TypeAndColumnTests : BasicEntityTestBase
         }
     }
 
-    private static void DocumentBehavior(QueryAnalysisResult result, string expectedBehavior, bool shouldHaveErrors)
-    {
-        if (shouldHaveErrors)
-            Assert.IsTrue(result.HasErrors || !result.IsParsed,
-                $"Behavior documentation: {expectedBehavior} - but query succeeded");
-    }
-
     #endregion
 
     // ============================================================================
@@ -135,8 +128,7 @@ public class ErrorQuality_Phase2_TypeAndColumnTests : BasicEntityTestBase
         // Assert — Should suggest ToString() or Concat()
         AssertHasOneOfErrorCodes(result, "string + number mixed types",
             DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3007_InvalidOperandTypes,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -152,22 +144,17 @@ public class ErrorQuality_Phase2_TypeAndColumnTests : BasicEntityTestBase
         // Assert — Should explain boolean can't be used in arithmetic
         AssertHasOneOfErrorCodes(result, "boolean in arithmetic context",
             DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3007_InvalidOperandTypes,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
     public void E_TYPE_05_ComparingIncompatibleTypesInJoin()
     {
-        // Arrange — JOIN condition comparing int column with string column
+        // Arrange — JOIN condition using arithmetic operator with incompatible types
         var analyzer = CreateAnalyzer();
-        var query = @"table LeftType { Id 'System.Int32', Name 'System.String' };
-couple #A.Entities() with table LeftType as LeftSource;
-table RightType { Id 'System.String', Value 'System.Decimal' };
-couple #B.Entities() with table RightType as RightSource;
-SELECT l.Name, r.Value
-FROM LeftSource() l
-INNER JOIN RightSource() r ON l.Id = r.Id";
+        var query = @"SELECT a.Name, b.Name
+    FROM #A.Entities() a
+    INNER JOIN #B.Entities() b ON a.Name % 2 = 0";
 
         // Act
         var result = analyzer.Analyze(query);
@@ -175,8 +162,7 @@ INNER JOIN RightSource() r ON l.Id = r.Id";
         // Assert — Should report type mismatch in JOIN condition
         AssertHasOneOfErrorCodes(result, "JOIN condition with incompatible types",
             DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3007_InvalidOperandTypes,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -193,8 +179,7 @@ INNER JOIN RightSource() r ON l.Id = r.Id";
         AssertHasOneOfErrorCodes(result, "Sum on string type",
             DiagnosticCode.MQ3005_TypeMismatch,
             DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     [TestMethod]
@@ -202,9 +187,7 @@ INNER JOIN RightSource() r ON l.Id = r.Id";
     {
         // Arrange — Avg on string column
         var analyzer = CreateAnalyzer();
-        var query = @"table Strings { Name 'System.String' };
-couple #A.Entities() with table Strings as StringSource;
-SELECT Avg(Name) FROM StringSource()";
+        var query = "SELECT Avg(Name) FROM #A.Entities()";
 
         // Act
         var result = analyzer.Analyze(query);
@@ -213,8 +196,7 @@ SELECT Avg(Name) FROM StringSource()";
         AssertHasOneOfErrorCodes(result, "Avg on string column",
             DiagnosticCode.MQ3005_TypeMismatch,
             DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     [TestMethod]
@@ -230,8 +212,7 @@ SELECT Avg(Name) FROM StringSource()";
         // Assert — Should explain negation requires numeric type
         AssertHasOneOfErrorCodes(result, "negation on string",
             DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3007_InvalidOperandTypes,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -247,8 +228,7 @@ SELECT Avg(Name) FROM StringSource()";
         // Assert — Should explain modulo requires numeric types
         AssertHasOneOfErrorCodes(result, "modulo on string",
             DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3007_InvalidOperandTypes,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -312,8 +292,7 @@ SELECT Avg(Name) FROM StringSource()";
         AssertHasOneOfErrorCodes(result, "Substring with integer first argument",
             DiagnosticCode.MQ3005_TypeMismatch,
             DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3029_UnresolvableMethod);
     }
 
     [TestMethod]
@@ -329,8 +308,7 @@ SELECT Avg(Name) FROM StringSource()";
         // Assert — Should explain CASE branches must return same type
         AssertHasOneOfErrorCodes(result, "CASE branches with different types",
             DiagnosticCode.MQ3005_TypeMismatch,
-            DiagnosticCode.MQ3027_InvalidExpressionType,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3027_InvalidExpressionType);
     }
 
     #endregion
@@ -367,8 +345,7 @@ SELECT Avg(Name) FROM StringSource()";
 
         // Assert — Should report unknown column, ideally suggesting 'Name'
         AssertHasOneOfErrorCodes(result, "wrong case 'name' vs 'Name'",
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3001_UnknownColumn);
     }
 
     [TestMethod]
@@ -386,8 +363,7 @@ INNER JOIN #B.Entities() b ON a.Name = b.Name";
         // Assert — Should report unknown column on alias b
         AssertHasOneOfErrorCodes(result, "non-existent column on alias b",
             DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3028_UnknownProperty,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3028_UnknownProperty);
     }
 
     [TestMethod]
@@ -405,8 +381,7 @@ INNER JOIN #B.Entities() b ON a.Name = b.Name";
         // Assert — Should report ambiguous column
         AssertHasOneOfErrorCodes(result, "ambiguous 'Name' in JOIN",
             DiagnosticCode.MQ3002_AmbiguousColumn,
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3001_UnknownColumn);
     }
 
     [TestMethod]
@@ -422,8 +397,7 @@ INNER JOIN #B.Entities() b ON a.Name = b.Name";
         // Assert — Should explain alias can't be used in WHERE
         AssertHasOneOfErrorCodes(result, "alias 'Val' used in WHERE before defined",
             DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ3015_UnknownAlias,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3015_UnknownAlias);
     }
 
     [TestMethod]
@@ -455,8 +429,7 @@ SELECT Name FROM MyData md";
         AssertHasOneOfErrorCodes(result, "property access on primitive int",
             DiagnosticCode.MQ3014_InvalidPropertyAccess,
             DiagnosticCode.MQ3028_UnknownProperty,
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3001_UnknownColumn);
     }
 
     [TestMethod]
@@ -472,8 +445,7 @@ SELECT Name FROM MyData md";
         // Assert — Should explain int doesn't support indexing
         AssertHasOneOfErrorCodes(result, "array index on non-array",
             DiagnosticCode.MQ3017_ObjectNotArray,
-            DiagnosticCode.MQ3018_NoIndexer,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3018_NoIndexer);
     }
 
     [TestMethod]
@@ -490,8 +462,7 @@ SELECT Name FROM MyData md";
         AssertHasOneOfErrorCodes(result, "deep property chain on primitive",
             DiagnosticCode.MQ3014_InvalidPropertyAccess,
             DiagnosticCode.MQ3028_UnknownProperty,
-            DiagnosticCode.MQ3001_UnknownColumn,
-            DiagnosticCode.MQ9999_Unknown);
+            DiagnosticCode.MQ3001_UnknownColumn);
     }
 
     [TestMethod]

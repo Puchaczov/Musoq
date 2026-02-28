@@ -22,7 +22,7 @@ namespace Musoq.Evaluator.Visitors.CodeGeneration;
 /// </summary>
 public sealed class CompilationContextManager
 {
-    private readonly List<string> _loadedAssemblies = new(20);
+    private readonly HashSet<string> _loadedAssemblies = new(20, StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _namespaces = new(16);
     private CSharpCompilation _compilation;
 
@@ -65,10 +65,10 @@ public sealed class CompilationContextManager
     {
         var abstractionDll = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
             "Microsoft.Extensions.Logging.Abstractions.dll");
-        AddAssemblyReference(abstractionDll);
 
 
-        TrackTypes(
+        var coreTypes = new[]
+        {
             typeof(object),
             typeof(CancellationToken),
             typeof(ISchema),
@@ -77,10 +77,28 @@ public sealed class CompilationContextManager
             typeof(SyntaxFactory),
             typeof(ExpandoObject),
             typeof(SchemaFromNode),
-            typeof(ILogger));
+            typeof(ILogger)
+        };
+
+        var newReferences = new List<MetadataReference>(coreTypes.Length + 2);
 
 
-        AddAssemblyReferences(assemblies is Assembly[] arr ? arr : [.. assemblies]);
+        if (!string.IsNullOrEmpty(abstractionDll) && _loadedAssemblies.Add(abstractionDll))
+            newReferences.Add(MetadataReferenceCache.GetOrCreate(abstractionDll));
+
+
+        foreach (var type in coreTypes)
+        {
+            TrackNamespace(type);
+            var location = type.Assembly.Location;
+            if (!string.IsNullOrEmpty(location) && _loadedAssemblies.Add(location))
+                newReferences.Add(MetadataReferenceCache.GetOrCreate(location));
+        }
+
+        if (newReferences.Count > 0)
+            _compilation = _compilation.AddReferences(newReferences);
+
+        AddAssemblyReferences(assemblies as Assembly[] ?? [.. assemblies]);
     }
 
     #region INamespaceTracker
@@ -109,28 +127,9 @@ public sealed class CompilationContextManager
 
     #region ITypeReferenceTracker
 
-    public void TrackType(Type type)
-    {
-        TrackNamespace(type);
-        AddAssemblyReference(type.Assembly);
-    }
-
     public void TrackTypes(params Type[] types)
     {
         foreach (var type in types) TrackType(type);
-    }
-
-    public void AddAssemblyReference(Assembly assembly)
-    {
-        if (string.IsNullOrEmpty(assembly.Location))
-            return;
-
-        if (_loadedAssemblies.Contains(assembly.Location))
-            return;
-
-        _loadedAssemblies.Add(assembly.Location);
-        _compilation = _compilation.AddReferences(
-            MetadataReferenceCache.GetOrCreate(assembly.Location));
     }
 
     public void AddAssemblyReference(string assemblyPath)
@@ -165,6 +164,24 @@ public sealed class CompilationContextManager
         if (newReferences.Count > 0) _compilation = _compilation.AddReferences(newReferences);
     }
 
+    private void TrackType(Type type)
+    {
+        TrackNamespace(type);
+        AddAssemblyReference(type.Assembly);
+    }
+
+    private void AddAssemblyReference(Assembly assembly)
+    {
+        if (string.IsNullOrEmpty(assembly.Location))
+            return;
+
+        if (!_loadedAssemblies.Add(assembly.Location))
+            return;
+
+        _compilation = _compilation.AddReferences(
+            MetadataReferenceCache.GetOrCreate(assembly.Location));
+    }
+
     #endregion
 
     #region Compilation Access
@@ -183,14 +200,6 @@ public sealed class CompilationContextManager
     public void AddSyntaxTree(SyntaxTree syntaxTree)
     {
         _compilation = _compilation.AddSyntaxTrees(syntaxTree);
-    }
-
-    /// <summary>
-    ///     Checks if an assembly is already loaded.
-    /// </summary>
-    public bool IsAssemblyLoaded(string location)
-    {
-        return _loadedAssemblies.Contains(location);
     }
 
     #endregion

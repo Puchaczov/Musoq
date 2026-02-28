@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Parser.Tests;
 
@@ -449,6 +450,100 @@ public class DescParserTests
         var parser = new Parser(lexer);
 
         parser.ComposeAll();
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchemaWithMethodAccess_ShouldProduceFunctionsForSchema()
+    {
+        var query = "desc functions #schema.method()";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        var result = parser.ComposeAll();
+
+        var descNode = GetDescNode(result);
+        Assert.AreEqual(DescForType.FunctionsForSchema, descNode.Type);
+
+        var schemaFromNode = (SchemaFromNode)descNode.From;
+        Assert.AreEqual("#schema", schemaFromNode.Schema);
+        Assert.AreEqual(string.Empty, schemaFromNode.Method,
+            "desc functions should ignore the .method() part and behave like desc functions schema");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchemaWithMethodAccessNoParens_ShouldProduceFunctionsForSchema()
+    {
+        var query = "desc functions #schema.method";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        var result = parser.ComposeAll();
+
+        var descNode = GetDescNode(result);
+        Assert.AreEqual(DescForType.FunctionsForSchema, descNode.Type);
+
+        var schemaFromNode = (SchemaFromNode)descNode.From;
+        Assert.AreEqual("#schema", schemaFromNode.Schema);
+        Assert.AreEqual(string.Empty, schemaFromNode.Method,
+            "desc functions should ignore the .method part and behave like desc functions schema");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchemaWithMethodAccessAndArgs_ShouldProduceFunctionsForSchema()
+    {
+        var query = "desc functions #schema.method('arg1', 123)";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        var result = parser.ComposeAll();
+
+        var descNode = GetDescNode(result);
+        Assert.AreEqual(DescForType.FunctionsForSchema, descNode.Type);
+
+        var schemaFromNode = (SchemaFromNode)descNode.From;
+        Assert.AreEqual("#schema", schemaFromNode.Schema);
+        Assert.AreEqual(string.Empty, schemaFromNode.Method,
+            "desc functions should ignore the .method('arg1', 123) part and behave like desc functions schema");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchemaWithoutHash_MethodAccess_ShouldProduceFunctionsForSchema()
+    {
+        var query = "desc functions schema.method()";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        var result = parser.ComposeAll();
+
+        var descNode = GetDescNode(result);
+        Assert.AreEqual(DescForType.FunctionsForSchema, descNode.Type);
+
+        var schemaFromNode = (SchemaFromNode)descNode.From;
+        Assert.AreEqual("#schema", schemaFromNode.Schema);
+        Assert.AreEqual(string.Empty, schemaFromNode.Method,
+            "desc functions should ignore the .method() part and behave like desc functions schema");
+    }
+
+    [TestMethod]
+    public void DescFunctionsSchema_ShouldProduceFunctionsForSchema_WithEmptyMethod()
+    {
+        var query = "desc functions #schema";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+
+        var result = parser.ComposeAll();
+
+        var descNode = GetDescNode(result);
+        Assert.AreEqual(DescForType.FunctionsForSchema, descNode.Type);
+
+        var schemaFromNode = (SchemaFromNode)descNode.From;
+        Assert.AreEqual("#schema", schemaFromNode.Schema);
+        Assert.AreEqual(string.Empty, schemaFromNode.Method, "desc functions schema should have empty method");
     }
 
     #region Desc Column Tests

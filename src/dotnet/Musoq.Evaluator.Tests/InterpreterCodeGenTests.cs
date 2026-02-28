@@ -1,3 +1,5 @@
+#nullable enable annotations
+
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Build;

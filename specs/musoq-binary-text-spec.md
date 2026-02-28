@@ -2,8 +2,7 @@
 
 **Version:** 0.3.0-draft  
 **Status:** Proposal  
-**Author:** Jakub Puchała / Claude Collaboration  
-**Date:** December 2024
+**Author:** Jakub Puchała
 
 ---
 
@@ -1977,7 +1976,7 @@ CROSS APPLY Parse(line.Value, ApacheLog) log
 WHERE log.Status = '404'
 GROUP BY log.Path
 ORDER BY ErrorCount DESC
-LIMIT 20
+TAKE 20
 ```
 
 ### 12.3 Mixed Binary/Text Protocol

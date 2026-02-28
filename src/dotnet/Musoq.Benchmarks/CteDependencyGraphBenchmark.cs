@@ -27,12 +27,7 @@ namespace Musoq.Benchmarks;
 public class CteDependencyGraphBenchmark
 {
     private static readonly CompilationOptions SequentialOptions = new(
-        ParallelizationMode.Full,
-        true,
-        true,
-        true,
-        true,
-        false);
+        ParallelizationMode.Full);
 
     private static readonly CompilationOptions ParallelOptions = new(
         ParallelizationMode.Full,
@@ -476,7 +471,3 @@ public class CteDependencyGraphBenchmark
 
     #endregion
 }
-
-#region Schema Components
-
-#endregion

@@ -7,6 +7,39 @@ namespace Musoq.Parser.Tests;
 public class NodesTests
 {
     [TestMethod]
+    public void WhenBetweenNode_ShouldReturnString()
+    {
+        var expression = new IntegerNode("5");
+        var min = new IntegerNode("1");
+        var max = new IntegerNode("10");
+        var node = new BetweenNode(expression, min, max);
+
+        Assert.AreEqual("5 between 1 and 10", node.ToString());
+    }
+
+    [TestMethod]
+    public void WhenBetweenNodeWithStrings_ShouldReturnString()
+    {
+        var expression = new StringNode("value");
+        var min = new StringNode("A");
+        var max = new StringNode("Z");
+        var node = new BetweenNode(expression, min, max);
+
+        Assert.AreEqual("'value' between 'A' and 'Z'", node.ToString());
+    }
+
+    [TestMethod]
+    public void WhenBetweenNodeReturnType_ShouldBeBoolean()
+    {
+        var expression = new IntegerNode("5");
+        var min = new IntegerNode("1");
+        var max = new IntegerNode("10");
+        var node = new BetweenNode(expression, min, max);
+
+        Assert.AreEqual(typeof(bool), node.ReturnType);
+    }
+
+    [TestMethod]
     public void WhenOrderByNode_ShouldReturnString()
     {
         var node = new OrderByNode([

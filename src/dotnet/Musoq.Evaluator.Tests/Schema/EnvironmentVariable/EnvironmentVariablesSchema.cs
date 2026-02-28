@@ -9,6 +9,8 @@ namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 
 public class EnvironmentVariablesSchema : SchemaBase
 {
+    private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
+
     private static readonly IReadOnlyDictionary<string, int> EnvironmentVariableNameToIndexMap;
 
     private static readonly IReadOnlyDictionary<int, Func<EnvironmentVariableEntity, object>>
@@ -30,7 +32,7 @@ public class EnvironmentVariablesSchema : SchemaBase
     }
 
     public EnvironmentVariablesSchema()
-        : base("environmentVariables", CreateLibrary())
+        : base("environmentVariables", CachedLibrary.Value)
     {
         AddTable<EnvironmentVariableEntityTable>("all");
         AddSource<EnvironmentVariablesSource>("all");

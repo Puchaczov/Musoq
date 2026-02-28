@@ -1,3 +1,5 @@
+#nullable enable annotations
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -229,9 +231,6 @@ internal static class SchemaNodeEmitter
         Type returnType,
         (string PropertyName, Type PropertyType, string? IntendedTypeName)[] propertiesChain)
     {
-        
-        
-        
         var firstPropertyCastType = !string.IsNullOrEmpty(propertiesChain[0].IntendedTypeName)
             ? propertiesChain[0].IntendedTypeName
             : EvaluationHelper.GetCastableType(propertiesChain[0].PropertyType);

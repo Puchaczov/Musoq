@@ -320,6 +320,15 @@ public sealed class Lexer : ILexer
         var span = new TextSpan(start, Position - start);
 
 
+        if (IsSchemaContext && KeywordLookup.IsSchemaKeyword(text))
+        {
+            if (_currentToken?.TokenType == TokenType.Dot)
+                return AssignToken(new PropertyToken(text, span));
+
+            var schemaType = KeywordLookup.GetSchemaKeywordType(text);
+            return AssignToken(new SchemaToken(text, schemaType, span));
+        }
+
         if (KeywordLookup.TryGetKeyword(text, out var keywordType))
         {
             if (keywordType == TokenType.End && _currentToken?.TokenType == TokenType.Dot)

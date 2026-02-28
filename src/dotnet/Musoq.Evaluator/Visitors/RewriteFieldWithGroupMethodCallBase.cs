@@ -51,7 +51,7 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
             var extractFromGroup = new AccessMethodNode(
                 new FunctionToken(node.Method.Name, TextSpan.Empty),
                 new ArgsListNode(args.ToArray()), node.ExtraAggregateArguments, node.CanSkipInjectSource, node.Method,
-                node.Alias);
+                node.Alias, default, node.IsDistinct);
             Nodes.Push(extractFromGroup);
         }
         else if (fields.Select(ExtractOriginalExpression).Contains(node.ToString()))

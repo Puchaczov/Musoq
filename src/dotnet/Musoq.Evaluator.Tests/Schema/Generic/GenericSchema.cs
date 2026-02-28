@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Musoq.Plugins;
 using Musoq.Schema;
@@ -10,8 +11,10 @@ namespace Musoq.Evaluator.Tests.Schema.Generic;
 public class GenericSchema<TLibrary>(
     IReadOnlyDictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)> tables,
     Dictionary<string, Func<object[], RowSource, RowSource>> filterRowsSource = null)
-    : SchemaBase("test", CreateLibrary()) where TLibrary : LibraryBase, new()
+    : SchemaBase("test", GetOrCreateLibrary()) where TLibrary : LibraryBase, new()
 {
+    private static readonly ConcurrentDictionary<Type, MethodsAggregator> LibraryCache = new();
+
     public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
     {
         if (tables.TryGetValue(name, out var table))
@@ -29,6 +32,11 @@ public class GenericSchema<TLibrary>(
             return filter?.Invoke(parameters, table.RowSource) ?? table.RowSource;
 
         return table.RowSource;
+    }
+
+    private static MethodsAggregator GetOrCreateLibrary()
+    {
+        return LibraryCache.GetOrAdd(typeof(TLibrary), static _ => CreateLibrary());
     }
 
     private static MethodsAggregator CreateLibrary()

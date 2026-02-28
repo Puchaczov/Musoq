@@ -84,11 +84,11 @@ public partial class LibraryBase
 
 
         var cleanHex = hexString
-            .Replace(" ", "")
-            .Replace("-", "")
-            .Replace(":", "")
-            .Replace("0x", "")
-            .Replace("0X", "");
+            .Replace(" ", "", StringComparison.Ordinal)
+            .Replace("-", "", StringComparison.Ordinal)
+            .Replace(":", "", StringComparison.Ordinal)
+            .Replace("0x", "", StringComparison.Ordinal)
+            .Replace("0X", "", StringComparison.Ordinal);
 
         if (cleanHex.Length % 2 != 0)
             return null;

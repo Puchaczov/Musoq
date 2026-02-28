@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -42,7 +43,7 @@ public class JoinProcessingHelperTests
 
         StatementSyntax GetRowsSourceOrEmpty(string alias)
         {
-            return SyntaxFactory.EmptyStatement();
+            return SyntaxFactory.ParseStatement($"{alias}Loaded();");
         }
 
         StatementSyntax GenerateCancellationExpression()
@@ -65,9 +66,18 @@ public class JoinProcessingHelperTests
         Assert.IsGreaterThan(0, result.Statements.Count, "Block should contain statements");
 
 
-        var firstStatement = result.Statements[0];
-        Assert.IsInstanceOfType(firstStatement, typeof(ForEachStatementSyntax),
-            "First statement should be a foreach loop");
+        Assert.AreEqual("sourceLoaded();", result.Statements[0].ToString());
+        Assert.AreEqual(
+            "var sourceRowsCached = sourceRows.Rows as Musoq.Schema.DataSources.IObjectResolver[] ?? System.Linq.Enumerable.ToArray(sourceRows.Rows);",
+            result.Statements[1].ToString());
+        Assert.IsInstanceOfType(result.Statements[2], typeof(ForEachStatementSyntax),
+            "Third statement should be a foreach loop");
+
+        var outerLoop = (ForEachStatementSyntax)result.Statements[2];
+        Assert.IsFalse(outerLoop.Statement.DescendantNodes().OfType<ExpressionStatementSyntax>()
+            .Any(statement => statement.ToString() == "sourceLoaded();"));
+        Assert.IsTrue(outerLoop.Statement.DescendantNodes().OfType<IdentifierNameSyntax>()
+            .Any(identifier => identifier.Identifier.Text == "sourceRowsCached"));
     }
 
     [TestMethod]

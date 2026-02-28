@@ -16,6 +16,19 @@ namespace Musoq.Evaluator.Visitors;
 /// </summary>
 public class InterpreterCodeGenerator
 {
+    private static readonly HashSet<string> CSharpKeywords = new(StringComparer.Ordinal)
+    {
+        "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
+        "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else",
+        "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for",
+        "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock",
+        "long", "namespace", "new", "null", "object", "operator", "out", "override", "params",
+        "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short",
+        "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true",
+        "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using", "virtual",
+        "void", "volatile", "while"
+    };
+
     private readonly Dictionary<string, string> _generatedCode = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
@@ -79,7 +92,7 @@ public class InterpreterCodeGenerator
                 builder.AppendLine(Indent(classCode, 1));
                 builder.AppendLine();
 
-                
+
                 foreach (var (inlineClassName, inlineSchema, _) in _inlineSchemas)
                 {
                     var inlineClassCode = GenerateInlineSchemaNestedClass(inlineClassName, inlineSchema);
@@ -111,10 +124,11 @@ public class InterpreterCodeGenerator
 
 
         _currentTypeParameters = schema.TypeParameters ?? Array.Empty<string>();
+        var typeParameters = _currentTypeParameters;
 
 
         var typeParamsDecl = schema.IsGeneric
-            ? $"<{string.Join(", ", schema.TypeParameters)}>"
+            ? $"<{string.Join(", ", typeParameters)}>"
             : string.Empty;
         var fullClassName = $"{className}{typeParamsDecl}";
 
@@ -122,7 +136,7 @@ public class InterpreterCodeGenerator
         var genericConstraints = string.Empty;
         if (schema.IsGeneric)
         {
-            var constraints = schema.TypeParameters
+            var constraints = typeParameters
                 .Select(t => $"where {t} : IBytesInterpreter<{t}>, new()")
                 .ToArray();
             genericConstraints = " " + string.Join(" ", constraints);
@@ -136,7 +150,7 @@ public class InterpreterCodeGenerator
         builder.AppendLine($"/// Generated interpreter for binary schema '{className}'.");
         if (schema.IsGeneric)
             builder.AppendLine(
-                $"/// This is a generic schema with type parameters: {string.Join(", ", schema.TypeParameters)}.");
+                $"/// This is a generic schema with type parameters: {string.Join(", ", typeParameters)}.");
         if (!string.IsNullOrEmpty(schema.Extends)) builder.AppendLine($"/// Extends schema '{schema.Extends}'.");
         builder.AppendLine("/// </summary>");
         builder.AppendLine(
@@ -152,7 +166,9 @@ public class InterpreterCodeGenerator
             if (field is FieldDefinitionNode { TypeAnnotation: AlignmentNode }) continue;
 
             var clrTypeName = GetClrTypeNameForFieldWithContext(field, allFields);
-            var isConditional = field.IsConditional;
+            var isConditional = field.IsConditional ||
+                                (field is ComputedFieldNode computed &&
+                                 ReferencesConditionalField(computed.Expression, allFields));
             var isTypeParam = IsTypeParameter(clrTypeName);
 
 
@@ -190,7 +206,8 @@ public class InterpreterCodeGenerator
                     builder.Append(Indent(readCode, 2));
 
                     if (parsedField.Name != "_" && parsedField.TypeAnnotation is not AlignmentNode)
-                        fieldInitializers.Add($"{EscapeCSharpIdentifier(parsedField.Name)} = {GetLocalVarName(parsedField.Name)}");
+                        fieldInitializers.Add(
+                            $"{EscapeCSharpIdentifier(parsedField.Name)} = {GetLocalVarName(parsedField.Name)}");
                     break;
                 }
                 case ComputedFieldNode computedField:
@@ -199,7 +216,8 @@ public class InterpreterCodeGenerator
                     builder.Append(Indent(computeCode, 2));
 
                     if (computedField.Name != "_")
-                        fieldInitializers.Add($"{EscapeCSharpIdentifier(computedField.Name)} = {GetLocalVarName(computedField.Name)}");
+                        fieldInitializers.Add(
+                            $"{EscapeCSharpIdentifier(computedField.Name)} = {GetLocalVarName(computedField.Name)}");
                     break;
                 }
             }
@@ -241,7 +259,9 @@ public class InterpreterCodeGenerator
             if (field is FieldDefinitionNode { TypeAnnotation: AlignmentNode }) continue;
 
             var clrTypeName = GetClrTypeNameForFieldInline(field);
-            var isConditional = field.IsConditional;
+            var isConditional = field.IsConditional ||
+                                (field is ComputedFieldNode inlineComputed &&
+                                 ReferencesConditionalField(inlineComputed.Expression, fields));
             var isTypeParam = IsTypeParameter(clrTypeName);
 
             var propertyTypeName = isConditional && !IsReferenceType(clrTypeName) && !isTypeParam
@@ -253,7 +273,7 @@ public class InterpreterCodeGenerator
             builder.AppendLine();
         }
 
-        
+
         foreach (var outerRef in outerRefs)
         {
             builder.AppendLine($"    /// <summary>Outer scope reference for '{outerRef}'.</summary>");
@@ -273,7 +293,7 @@ public class InterpreterCodeGenerator
         builder.AppendLine("        BitOffset = 0;");
         builder.AppendLine();
 
-        
+
         foreach (var outerRef in outerRefs)
         {
             var localVar = GetLocalVarName(outerRef);
@@ -292,7 +312,8 @@ public class InterpreterCodeGenerator
             builder.Append(Indent(readCode, 2));
 
             if (parsedField.Name != "_" && parsedField.TypeAnnotation is not AlignmentNode)
-                fieldInitializers.Add($"{EscapeCSharpIdentifier(parsedField.Name)} = {GetLocalVarName(parsedField.Name)}");
+                fieldInitializers.Add(
+                    $"{EscapeCSharpIdentifier(parsedField.Name)} = {GetLocalVarName(parsedField.Name)}");
         }
 
 
@@ -340,27 +361,21 @@ public class InterpreterCodeGenerator
                 allFields.AddRange(GetAllFieldsIncludingInherited(parentBinarySchema));
         }
 
-        
+
         var overriddenParentNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var childField in schema.Fields)
-        {
             for (var i = 0; i < allFields.Count; i++)
-            {
                 if (string.Equals(allFields[i].Name, childField.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     allFields[i] = childField;
                     overriddenParentNames.Add(childField.Name);
                     break;
                 }
-            }
-        }
 
-        
+
         foreach (var childField in schema.Fields)
-        {
             if (!overriddenParentNames.Contains(childField.Name))
                 allFields.Add(childField);
-        }
 
         return allFields;
     }
@@ -530,14 +545,16 @@ public class InterpreterCodeGenerator
 
                 if (arrayType.ElementType is PrimitiveTypeNode elemPrimitive)
                 {
-                    builder.AppendLine($"    {localVar}[{loopVarInner}] = {GetPrimitiveReadMethod(elemPrimitive)}(data);");
+                    builder.AppendLine(
+                        $"    {localVar}[{loopVarInner}] = {GetPrimitiveReadMethod(elemPrimitive)}(data);");
                 }
                 else if (arrayType.ElementType is SchemaReferenceTypeNode elemSchemaRef)
                 {
                     var elemSchemaName = elemSchemaRef.SchemaName;
                     var elemInterpreterVar = $"_{localVar}_elem_interpreter";
                     builder.AppendLine($"    var {elemInterpreterVar} = new {elemSchemaName}();");
-                    builder.AppendLine($"    {localVar}[{loopVarInner}] = {elemInterpreterVar}.InterpretAt(data, _parsePosition);");
+                    builder.AppendLine(
+                        $"    {localVar}[{loopVarInner}] = {elemInterpreterVar}.InterpretAt(data, _parsePosition);");
                     builder.AppendLine($"    _parsePosition = {elemInterpreterVar}.BytesConsumed;");
                 }
                 else
@@ -588,11 +605,12 @@ public class InterpreterCodeGenerator
         {
             if (field.IsDiscard) continue;
 
-            
+
             if (field.FieldType == TextFieldType.Pattern && field.CaptureGroups.Length > 0)
             {
                 builder.AppendLine($"    /// <summary>Gets the {field.Name} capture result.</summary>");
-                builder.AppendLine($"    public CaptureResult_{field.Name}? {EscapeCSharpIdentifier(field.Name)} {{ get; init; }}");
+                builder.AppendLine(
+                    $"    public CaptureResult_{field.Name}? {EscapeCSharpIdentifier(field.Name)} {{ get; init; }}");
                 builder.AppendLine();
                 continue;
             }
@@ -654,7 +672,7 @@ public class InterpreterCodeGenerator
         builder.AppendLine("        };");
         builder.AppendLine("    }");
 
-        
+
         foreach (var field in schema.Fields)
         {
             if (field.IsDiscard) continue;
@@ -664,9 +682,7 @@ public class InterpreterCodeGenerator
             builder.AppendLine($"    public sealed class CaptureResult_{field.Name}");
             builder.AppendLine("    {");
             foreach (var group in field.CaptureGroups)
-            {
                 builder.AppendLine($"        public string? {group} {{ get; init; }}");
-            }
             builder.AppendLine("    }");
         }
 
@@ -719,8 +735,9 @@ public class InterpreterCodeGenerator
             builder.AppendLine(GenerateTextFieldReadCodeInner(field, localVar, isDiscard, nextField));
         }
 
-        
-        if (!isDiscard && (hasLower || hasUpper) && field.FieldType != TextFieldType.Repeat && field.FieldType != TextFieldType.Switch)
+
+        if (!isDiscard && (hasLower || hasUpper) && field.FieldType != TextFieldType.Repeat &&
+            field.FieldType != TextFieldType.Switch)
         {
             if (hasLower)
                 builder.AppendLine($"{localVar} = {localVar}?.ToLowerInvariant();");
@@ -782,8 +799,10 @@ public class InterpreterCodeGenerator
         var hasEscaped = (field.Modifiers & TextFieldModifier.Escaped) != 0;
         var escapedArg = hasEscaped ? ", escaped: true" : "";
 
-        if (isDiscard) return $"_ = ReadBetween(data, \"{escapedOpen}\", \"{escapedClose}\"{nested}{trimArg}{escapedArg});";
-        return $"var {localVar} = ReadBetween(data, \"{escapedOpen}\", \"{escapedClose}\"{nested}{trimArg}{escapedArg});";
+        if (isDiscard)
+            return $"_ = ReadBetween(data, \"{escapedOpen}\", \"{escapedClose}\"{nested}{trimArg}{escapedArg});";
+        return
+            $"var {localVar} = ReadBetween(data, \"{escapedOpen}\", \"{escapedClose}\"{nested}{trimArg}{escapedArg});";
     }
 
     private string GenerateCharsCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)
@@ -831,7 +850,6 @@ public class InterpreterCodeGenerator
 
         if (field.CaptureGroups.Length > 0 && !isDiscard)
         {
-            
             var builder = new StringBuilder();
             var matchVar = $"_match_{localVar}";
             var captureClassName = $"CaptureResult_{field.Name}";
@@ -841,7 +859,7 @@ public class InterpreterCodeGenerator
             foreach (var group in field.CaptureGroups)
                 groupInits.Add($"{group} = {matchVar}.Groups[\"{group}\"].Value");
             builder.Append(string.Join(", ", groupInits));
-            builder.AppendLine($" }} : null;");
+            builder.AppendLine(" } : null;");
             return builder.ToString();
         }
 
@@ -905,7 +923,7 @@ public class InterpreterCodeGenerator
         if (field.SwitchCases.Length == 0)
             throw new InvalidOperationException("Switch field must have at least one case");
 
-        
+
         var allProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var switchCase in field.SwitchCases)
         {
@@ -913,23 +931,17 @@ public class InterpreterCodeGenerator
             var schema = _registry.Schemas.FirstOrDefault(s =>
                 string.Equals(s.Name, schemaName, StringComparison.OrdinalIgnoreCase));
             if (schema?.Node is TextSchemaNode textNode)
-            {
                 foreach (var f in textNode.Fields)
-                {
-                    if (!f.IsDiscard) allProperties.Add(f.Name);
-                }
-            }
+                    if (!f.IsDiscard)
+                        allProperties.Add(f.Name);
         }
 
-        
+
         var expandoVar = $"_{localVar}_expando";
         var dictVar = $"_{localVar}_dict";
         builder.AppendLine($"var {expandoVar} = new System.Dynamic.ExpandoObject();");
         builder.AppendLine($"var {dictVar} = (System.Collections.Generic.IDictionary<string, object?>){expandoVar};");
-        foreach (var prop in allProperties)
-        {
-            builder.AppendLine($"{dictVar}[\"{prop}\"] = null;");
-        }
+        foreach (var prop in allProperties) builder.AppendLine($"{dictVar}[\"{prop}\"] = null;");
 
         var isFirstCase = true;
         TextSwitchCaseNode? defaultCase = null;
@@ -959,17 +971,15 @@ public class InterpreterCodeGenerator
             builder.AppendLine($"    var _interp_{schemaName} = new {schemaName}();");
             builder.AppendLine($"    var _result_{schemaName} = _interp_{schemaName}.ParseAt(data, _parsePosition);");
             builder.AppendLine($"    _parsePosition = _interp_{schemaName}.Position;");
-            
+
             var matchedSchema = _registry.Schemas.FirstOrDefault(s =>
                 string.Equals(s.Name, schemaName, StringComparison.OrdinalIgnoreCase));
             if (matchedSchema?.Node is TextSchemaNode matchedTextNode)
-            {
                 foreach (var f in matchedTextNode.Fields)
-                {
                     if (!f.IsDiscard)
-                        builder.AppendLine($"    {dictVar}[\"{f.Name}\"] = _result_{schemaName}.{EscapeCSharpIdentifier(f.Name)};");
-                }
-            }
+                        builder.AppendLine(
+                            $"    {dictVar}[\"{f.Name}\"] = _result_{schemaName}.{EscapeCSharpIdentifier(f.Name)};");
+
             builder.AppendLine("}");
         }
 
@@ -984,13 +994,11 @@ public class InterpreterCodeGenerator
             var matchedSchema = _registry.Schemas.FirstOrDefault(s =>
                 string.Equals(s.Name, schemaName, StringComparison.OrdinalIgnoreCase));
             if (matchedSchema?.Node is TextSchemaNode matchedTextNode)
-            {
                 foreach (var f in matchedTextNode.Fields)
-                {
                     if (!f.IsDiscard)
-                        builder.AppendLine($"    {dictVar}[\"{f.Name}\"] = _result_{schemaName}.{EscapeCSharpIdentifier(f.Name)};");
-                }
-            }
+                        builder.AppendLine(
+                            $"    {dictVar}[\"{f.Name}\"] = _result_{schemaName}.{EscapeCSharpIdentifier(f.Name)};");
+
             builder.AppendLine("}");
         }
         else if (!isFirstCase)
@@ -1188,13 +1196,13 @@ public class InterpreterCodeGenerator
     private static string FormatHexLiteral(HexIntegerNode hexNode)
     {
         var value = Convert.ToInt64(hexNode.ObjValue ?? 0L);
-        
-        
-        
+
+
         if (value > int.MaxValue && value <= uint.MaxValue)
             return $"unchecked((int){value}L)";
         return value.ToString();
     }
+
     private static string GetEncodingExpression(StringEncoding encoding)
     {
         return encoding switch
@@ -1709,9 +1717,25 @@ public class InterpreterCodeGenerator
         var expression = GenerateConditionExpression(field.Expression);
         var typeName = InferComputedFieldTypeName(field.Expression, contextFields);
 
+        if (contextFields != null && ReferencesConditionalField(field.Expression, contextFields) &&
+            !IsReferenceType(typeName))
+            typeName += "?";
+
         builder.AppendLine($"var {localVar} = ({typeName})({expression});");
 
         return builder.ToString();
+    }
+
+    private static bool ReferencesConditionalField(Node expression, IReadOnlyList<SchemaFieldNode> contextFields)
+    {
+        return expression switch
+        {
+            IdentifierNode id => contextFields.Any(f =>
+                f.Name.Equals(id.Name, StringComparison.OrdinalIgnoreCase) && f.IsConditional),
+            BinaryNode binary => ReferencesConditionalField(binary.Left, contextFields) ||
+                                 ReferencesConditionalField(binary.Right, contextFields),
+            _ => false
+        };
     }
 
     private string GetLocalVarName(string fieldName)
@@ -1720,23 +1744,11 @@ public class InterpreterCodeGenerator
         return $"_{char.ToLowerInvariant(fieldName[0])}{fieldName.Substring(1)}";
     }
 
-        private static string EscapeCSharpIdentifier(string name)
+    private static string EscapeCSharpIdentifier(string name)
     {
         return CSharpKeywords.Contains(name) ? $"@{name}" : name;
     }
 
-    private static readonly HashSet<string> CSharpKeywords = new(StringComparer.Ordinal)
-    {
-        "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
-        "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else",
-        "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for",
-        "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock",
-        "long", "namespace", "new", "null", "object", "operator", "out", "override", "params",
-        "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short",
-        "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true",
-        "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using", "virtual",
-        "void", "volatile", "while"
-    };
     private static string Indent(string code, int levels)
     {
         var indent = new string(' ', levels * 4);
@@ -1786,7 +1798,8 @@ public class InterpreterCodeGenerator
             DecimalNode decNode => decNode.ObjValue?.ToString() ?? "0",
             WordNode wordNode => $"\"{EscapeString(wordNode.Value)}\"",
             DotNode dotNode => GenerateDotExpression(dotNode),
-            ArrayIndexNode arrayIndex => $"{GenerateConditionExpression(arrayIndex.Array)}[{GenerateConditionExpression(arrayIndex.Index)}]",
+            ArrayIndexNode arrayIndex =>
+                $"{GenerateConditionExpression(arrayIndex.Array)}[{GenerateConditionExpression(arrayIndex.Index)}]",
             AccessColumnNode acNode => GetLocalVarName(acNode.Name),
             IdentifierNode idNode => GetLocalVarName(idNode.Name),
             AccessMethodNode methodNode => GenerateMethodCallExpression(methodNode),
@@ -1836,12 +1849,10 @@ public class InterpreterCodeGenerator
 
     private string GenerateArrayIndexExpression(string listVar, Node indexExpr, string fieldName, string lastElemVar)
     {
-        
-        if (indexExpr is HyphenNode { Left: IntegerNode { ObjValue: int leftVal }, Right: IntegerNode { ObjValue: int rightVal } } && leftVal == 0 && rightVal > 0)
-        {
-            
-            return $"{listVar}[{listVar}.Count - {rightVal}]";
-        }
+        if (indexExpr is HyphenNode
+            {
+                Left: IntegerNode { ObjValue: int leftVal }, Right: IntegerNode { ObjValue: int rightVal }
+            } && leftVal == 0 && rightVal > 0) return $"{listVar}[{listVar}.Count - {rightVal}]";
 
         if (indexExpr is IntegerNode intIdx)
         {
@@ -1850,10 +1861,11 @@ public class InterpreterCodeGenerator
             return $"{listVar}[{idx}]";
         }
 
-        
+
         var indexCode = GenerateSizeExpression(indexExpr);
         return $"{listVar}[{indexCode}]";
     }
+
     private static string EscapeString(string value)
     {
         return value
@@ -1874,7 +1886,7 @@ public class InterpreterCodeGenerator
         };
     }
 
-        private static HashSet<string> CollectOuterFieldReferences(InlineSchemaTypeNode inlineSchema)
+    private static HashSet<string> CollectOuterFieldReferences(InlineSchemaTypeNode inlineSchema)
     {
         var inlineFieldNames = new HashSet<string>(
             inlineSchema.Fields.Select(f => f.Name),
@@ -1894,7 +1906,8 @@ public class InterpreterCodeGenerator
         return outerRefs;
     }
 
-    private static void CollectFieldRefsFromTypeAnnotation(TypeAnnotationNode type, HashSet<string> localNames, HashSet<string> outerRefs)
+    private static void CollectFieldRefsFromTypeAnnotation(TypeAnnotationNode type, HashSet<string> localNames,
+        HashSet<string> outerRefs)
     {
         switch (type)
         {
@@ -1929,7 +1942,7 @@ public class InterpreterCodeGenerator
         }
     }
 
-        private string GenerateOuterRefAssignments(string interpreterVar, InlineSchemaTypeNode inlineSchema)
+    private string GenerateOuterRefAssignments(string interpreterVar, InlineSchemaTypeNode inlineSchema)
     {
         var outerRefs = CollectOuterFieldReferences(inlineSchema);
         if (outerRefs.Count == 0)
@@ -1939,8 +1952,10 @@ public class InterpreterCodeGenerator
         foreach (var outerRef in outerRefs)
         {
             var localVar = GetLocalVarName(outerRef);
-            builder.AppendLine($"{interpreterVar}.Outer{EscapeCSharpIdentifier(outerRef)} = Convert.ToInt32({localVar});");
+            builder.AppendLine(
+                $"{interpreterVar}.Outer{EscapeCSharpIdentifier(outerRef)} = Convert.ToInt32({localVar});");
         }
+
         return builder.ToString();
     }
 }

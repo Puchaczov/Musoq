@@ -12,9 +12,27 @@ namespace Musoq.Evaluator.Visitors;
 public class GetSelectFieldsVisitor : IQueryPartAwareExpressionVisitor
 {
     private readonly List<ISchemaColumn> _collectedFieldNames = [];
+    private ISchemaColumn[] _cachedFieldNames;
+    private bool _fieldNamesCacheValid;
     private QueryPart _queryPart;
 
-    public ISchemaColumn[] CollectedFieldNames => _collectedFieldNames.ToArray();
+    public ISchemaColumn[] CollectedFieldNames
+    {
+        get
+        {
+            if (_fieldNamesCacheValid)
+                return _cachedFieldNames;
+
+            _cachedFieldNames = _collectedFieldNames.ToArray();
+            _fieldNamesCacheValid = true;
+            return _cachedFieldNames;
+        }
+    }
+
+    /// <summary>
+    ///     Provides direct access to the list for efficient enumeration when modification is not needed.
+    /// </summary>
+    public IReadOnlyList<ISchemaColumn> CollectedFieldNamesList => _collectedFieldNames;
 
     public void SetQueryPart(QueryPart part)
     {
@@ -134,6 +152,10 @@ public class GetSelectFieldsVisitor : IQueryPartAwareExpressionVisitor
     }
 
     public void Visit(InNode node)
+    {
+    }
+
+    public void Visit(BetweenNode node)
     {
     }
 

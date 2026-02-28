@@ -1234,7 +1234,6 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     }
 
     [TestMethod]
-    [Ignore("BETWEEN keyword is not currently supported in parser")]
     public void Explore21_CrossApply_WhereWithBetween_ShouldWork()
     {
         const string query = @"
@@ -2751,10 +2750,9 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
     #endregion
 
-    #region Exploration 66: Count distinct - Parser Limitation
+    #region Exploration 66: Count distinct - Now supported
 
     [TestMethod]
-    [Ignore("Parser does not support Count(distinct ...) syntax")]
     public void Explore66_CountDistinct_WithCrossApply_ShouldWork()
     {
         const string query = @"
@@ -2774,6 +2772,8 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
 
         Assert.IsNotNull(table);
         Assert.AreEqual(1, table.Count);
+
+        Assert.AreEqual(3, table[0].Values[0]);
     }
 
     #endregion

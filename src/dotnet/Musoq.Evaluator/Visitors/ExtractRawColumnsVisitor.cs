@@ -13,11 +13,23 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
 {
     private readonly Dictionary<string, List<string>> _columns = new();
     private readonly List<string> _generatedAliases = [];
+    private IReadOnlyDictionary<string, string[]> _cachedColumns;
+    private bool _columnsCacheValid;
     private string _queryAlias;
     private int _schemaFromKey;
 
-    public IReadOnlyDictionary<string, string[]> Columns =>
-        _columns.ToDictionary(f => f.Key, f => f.Value.Distinct().ToArray());
+    public IReadOnlyDictionary<string, string[]> Columns
+    {
+        get
+        {
+            if (_columnsCacheValid)
+                return _cachedColumns;
+
+            _cachedColumns = _columns.ToDictionary(f => f.Key, f => f.Value.Distinct().ToArray());
+            _columnsCacheValid = true;
+            return _cachedColumns;
+        }
+    }
 
     public void Visit(Node node)
     {
@@ -124,6 +136,10 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     }
 
     public void Visit(InNode node)
+    {
+    }
+
+    public void Visit(BetweenNode node)
     {
     }
 

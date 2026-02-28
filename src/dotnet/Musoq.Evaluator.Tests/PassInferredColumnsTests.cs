@@ -52,9 +52,9 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
     public void PassInferredColumnsBasedOnCouplingSyntaxTest()
     {
         const string query = "table Persons {" +
-                             "   Name 'System.String'," +
-                             "   Age 'System.Int32'," +
-                             "   Country 'System.String'" +
+                             "   Name string," +
+                             "   Age int," +
+                             "   Country string" +
                              "};" +
                              "couple #test.whatever with table Persons as SourceOfPersons;" +
                              "select Name, Age from SourceOfPersons() where Country = 'Poland';";
@@ -93,9 +93,9 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
     public void PassInferredColumnsWithJoinBetweenTwoCoupledTables()
     {
         const string query = "table Persons {" +
-                             "   Name 'System.String'," +
-                             "   Age 'System.Int32'," +
-                             "   Country 'System.String'" +
+                             "   Name string," +
+                             "   Age int," +
+                             "   Country string" +
                              "};" +
                              "couple #test.whatever with table Persons as SourceOfPersons;" +
                              "select p1.Name, p1.Age, p2.Name, p2.Age from SourceOfPersons() p1 inner join SourceOfPersons() p2 on p1.Country = p2.Country " +
@@ -157,9 +157,9 @@ public class PassInferredColumnsTests : UnknownQueryTestsBase
     public void PassInferredColumnsWithSetOfCoupledTables()
     {
         const string query = "table Persons {" +
-                             "   Name 'System.String'," +
-                             "   Age 'System.Int32'," +
-                             "   Country 'System.String'" +
+                             "   Name string," +
+                             "   Age int," +
+                             "   Country string" +
                              "};" +
                              "couple #test.whatever with table Persons as SourceOfPersons;" +
                              "select Name, Age from SourceOfPersons() where Country = 'Poland' " +

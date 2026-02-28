@@ -1,7 +1,7 @@
 name: Publish
 
 permissions:
-  contents: read
+  contents: write
 
 on:
   workflow_dispatch:
@@ -56,3 +56,11 @@ jobs:
         foreach ($package in $packages) {
           dotnet nuget push $package.FullName --api-key ${{ secrets.NUGET_MUSOQ_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
         }
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: nuget-publish-${{ github.run_id }}-${{ github.run_attempt }}
+        name: NuGet publish ${{ github.run_number }}
+        generate_release_notes: true
+        files: ./nupkgs/*.nupkg

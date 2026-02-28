@@ -72,7 +72,7 @@ public class Parser
         _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
         _enableRecovery = enableRecovery;
 
-        if (enableRecovery && _lexer.SourceText != null)
+        if (enableRecovery)
             _recoveryManager = new ErrorRecoveryManager(diagnostics, _lexer.SourceText);
     }
 
@@ -151,10 +151,22 @@ public class Parser
         }
         catch (Exception ex)
         {
+            if (ex.TryToDiagnostic(sourceText, out var diagnostic) && diagnostic != null)
+            {
+                RecordError(
+                    diagnostic.Code,
+                    diagnostic.Message,
+                    diagnostic.Span);
+
+                return ParseResult.Failed(sourceText, diagnostics.ToSortedList());
+            }
+
+            var fallbackDiagnostic = ex.ToDiagnosticOrGeneric(sourceText);
+            var span = fallbackDiagnostic.Span == TextSpan.Empty ? Current.Span : fallbackDiagnostic.Span;
             RecordError(
-                DiagnosticCode.MQ9999_Unknown,
-                $"An unexpected error occurred while parsing: {ex.Message}",
-                Current.Span);
+                fallbackDiagnostic.Code,
+                fallbackDiagnostic.Message,
+                span);
 
             return ParseResult.Failed(sourceText, diagnostics.ToSortedList());
         }
@@ -326,10 +338,10 @@ public class Parser
             {
                 var sourceAlias = Current.Value;
                 var schemaName = EnsureHashPrefix(sourceAlias);
-                var accessMethod = ComposeAccessMethod(sourceAlias);
+                ComposeAccessMethod(sourceAlias);
 
                 return new DescNode(
-                    new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, string.Empty, 1),
+                    new SchemaFromNode(schemaName, string.Empty, ArgsListNode.Empty, string.Empty, 1),
                     DescForType.FunctionsForSchema);
             }
 
@@ -342,9 +354,9 @@ public class Parser
 
                 if (Current is FunctionToken)
                 {
-                    var accessMethod = ComposeAccessMethod(string.Empty);
+                    ComposeAccessMethod(string.Empty);
                     return new DescNode(
-                        new SchemaFromNode(schemaNameForFunctions, accessMethod.Name, accessMethod.Arguments,
+                        new SchemaFromNode(schemaNameForFunctions, string.Empty, ArgsListNode.Empty,
                             string.Empty, 1), DescForType.FunctionsForSchema);
                 }
 
@@ -494,7 +506,13 @@ public class Parser
             var fieldName = Current.Value;
             Consume(TokenType.Identifier);
             var typeName = Current.Value;
-            ConsumeWordOrStringLiteral();
+            Consume(TokenType.Identifier);
+
+            if (Current.TokenType == TokenType.QuestionMark)
+            {
+                typeName += "?";
+                Consume(TokenType.QuestionMark);
+            }
 
             if (Current.TokenType == TokenType.Comma)
                 Consume(TokenType.Comma);
@@ -532,7 +550,8 @@ public class Parser
             {
                 Consume(TokenType.Comma);
 
-                col = ComposeBaseTypes() as IdentifierNode;
+                col = ComposeBaseTypes() as IdentifierNode ??
+                      throw new InvalidOperationException(nameof(IdentifierNode));
 
                 if (col is null)
                     throw new SyntaxException(
@@ -994,7 +1013,7 @@ public class Parser
             var nextMinPrecedence = op.Associativity == Associativity.Left ? op.Precendence + 1 : op.Precendence;
             Consume(Current.TokenType);
 
-            
+
             if (curr.TokenType == TokenType.Dot && IsSqlKeywordToken(Current.TokenType))
                 ReplaceCurrentToken(new ColumnToken(Current.Value, Current.Span));
 
@@ -1095,12 +1114,24 @@ public class Parser
                     Consume(TokenType.NotIn);
                     node = new NotNode(new InNode(node, ComposeArgs()));
                     break;
+                case TokenType.Between:
+                    node = ComposeBetween(node);
+                    break;
                 default:
                     throw new NotSupportedException(
                         $"Unrecognized token for ComposeEqualityOperators(), the token was {Current.TokenType}");
             }
 
         return node;
+    }
+
+    private Node ComposeBetween(Node expression)
+    {
+        Consume(TokenType.Between);
+        var min = ComposeArithmeticExpression(0);
+        Consume(TokenType.And);
+        var max = ComposeArithmeticExpression(0);
+        return new BetweenNode(expression, min, max);
     }
 
     private SchemaMethodFromNode ComposeSchemaMethod()
@@ -1306,16 +1337,6 @@ public class Parser
         _lexer.Next();
     }
 
-    private void ConsumeWordOrStringLiteral()
-    {
-        if (Current.TokenType != TokenType.Word && Current.TokenType != TokenType.StringLiteral)
-            throw new SyntaxException($"Expected token is Word or StringLiteral but received {Current.TokenType}.",
-                _lexer.AlreadyResolvedQueryPart);
-
-        Previous = Current;
-        _hasReplacedToken = false;
-        _lexer.Next();
-    }
 
     private void ConsumeAsColumn(TokenType tokenType)
     {
@@ -1346,6 +1367,34 @@ public class Parser
         Consume(TokenType.RightParenthesis);
 
         return new ArgsListNode(args.ToArray());
+    }
+
+    private (ArgsListNode Args, bool IsDistinct) ComposeArgsWithDistinct()
+    {
+        var args = new List<Node>();
+        var isDistinct = false;
+
+        Consume(TokenType.LeftParenthesis);
+
+
+        if (Current.TokenType == TokenType.Distinct)
+        {
+            Consume(TokenType.Distinct);
+            isDistinct = true;
+        }
+
+        if (Current.TokenType != TokenType.RightParenthesis)
+            do
+            {
+                if (Current.TokenType == TokenType.Comma)
+                    Consume(Current.TokenType);
+
+                args.Add(ComposeEqualityOperators());
+            } while (Current.TokenType == TokenType.Comma);
+
+        Consume(TokenType.RightParenthesis);
+
+        return (new ArgsListNode(args.ToArray()), isDistinct);
     }
 
     private Node ComposeBaseTypes(int minPrecedence = 0)
@@ -1563,18 +1612,18 @@ public class Parser
         return tokenType switch
         {
             TokenType.And or TokenType.Or or TokenType.Not or
-            TokenType.Where or TokenType.Select or TokenType.From or
-            TokenType.Like or TokenType.NotLike or TokenType.RLike or TokenType.NotRLike or
-            TokenType.As or TokenType.Is or TokenType.Null or
-            TokenType.Union or TokenType.UnionAll or TokenType.Except or TokenType.Intersect or
-            TokenType.GroupBy or TokenType.Having or TokenType.Contains or
-            TokenType.Skip or TokenType.Take or TokenType.With or
-            TokenType.InnerJoin or TokenType.OuterJoin or TokenType.CrossApply or TokenType.OuterApply or
-            TokenType.On or TokenType.OrderBy or TokenType.Asc or TokenType.Desc or
-            TokenType.Functions or TokenType.True or TokenType.False or
-            TokenType.In or TokenType.NotIn or TokenType.Table or TokenType.Couple or
-            TokenType.Case or TokenType.When or TokenType.Then or TokenType.Else or
-            TokenType.Distinct or TokenType.ColumnKeyword => true,
+                TokenType.Where or TokenType.Select or TokenType.From or
+                TokenType.Like or TokenType.NotLike or TokenType.RLike or TokenType.NotRLike or
+                TokenType.As or TokenType.Is or TokenType.Null or
+                TokenType.Union or TokenType.UnionAll or TokenType.Except or TokenType.Intersect or
+                TokenType.GroupBy or TokenType.Having or TokenType.Contains or
+                TokenType.Skip or TokenType.Take or TokenType.With or
+                TokenType.InnerJoin or TokenType.OuterJoin or TokenType.CrossApply or TokenType.OuterApply or
+                TokenType.On or TokenType.OrderBy or TokenType.Asc or TokenType.Desc or
+                TokenType.Functions or TokenType.True or TokenType.False or
+                TokenType.In or TokenType.NotIn or TokenType.Table or TokenType.Couple or
+                TokenType.Case or TokenType.When or TokenType.Then or TokenType.Else or
+                TokenType.Distinct or TokenType.ColumnKeyword or TokenType.Between => true,
             _ => false
         };
     }
@@ -1582,11 +1631,13 @@ public class Parser
     private AccessMethodNode ComposeAccessMethod(string alias)
     {
         ArgsListNode args;
+        bool isDistinct;
+
         if (Current is FunctionToken func)
         {
             Consume(TokenType.Function);
-            args = ComposeArgs();
-            return new AccessMethodNode(func, args, null, false, null, alias);
+            (args, isDistinct) = ComposeArgsWithDistinct();
+            return new AccessMethodNode(func, args, null, false, null, alias, isDistinct);
         }
 
         if (Current is MethodAccessToken)
@@ -1594,10 +1645,10 @@ public class Parser
             Consume(TokenType.MethodAccess);
             Consume(TokenType.Dot);
             var token = (FunctionToken)ConsumeAndGetToken(TokenType.Function);
-            args = ComposeArgs();
+            (args, isDistinct) = ComposeArgsWithDistinct();
 
             return new AccessMethodNode(token, args, null, false,
-                null, alias);
+                null, alias, default, isDistinct);
         }
 
         throw new NotSupportedException(
@@ -1659,7 +1710,7 @@ public class Parser
         return currentToken.TokenType is TokenType.Greater or TokenType.GreaterEqual or TokenType.Less
             or TokenType.LessEqual or TokenType.Equality or TokenType.Not or TokenType.Diff or TokenType.Like
             or TokenType.NotLike or TokenType.Contains or TokenType.Is or TokenType.In or TokenType.NotIn
-            or TokenType.RLike or TokenType.NotRLike;
+            or TokenType.RLike or TokenType.NotRLike or TokenType.Between;
     }
 
     private static bool IsQueryOperator(Token currentToken)

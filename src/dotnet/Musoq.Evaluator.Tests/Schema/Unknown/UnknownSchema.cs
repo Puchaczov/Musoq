@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Musoq.Evaluator.Tests.Schema.Dynamic;
 using Musoq.Schema;
@@ -9,16 +10,17 @@ namespace Musoq.Evaluator.Tests.Schema.Unknown;
 public class UnknownSchema : SchemaBase
 {
     private const string SchemaName = "Unknown";
+    private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
     private readonly IEnumerable<dynamic> _values;
 
     public UnknownSchema(IEnumerable<dynamic> values)
-        : base(SchemaName, CreateLibrary())
+        : base(SchemaName, CachedLibrary.Value)
     {
         _values = values;
     }
 
     public UnknownSchema()
-        : base(SchemaName, CreateLibrary())
+        : base(SchemaName, CachedLibrary.Value)
     {
         _values = [];
     }

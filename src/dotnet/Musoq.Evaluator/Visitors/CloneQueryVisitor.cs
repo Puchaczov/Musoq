@@ -205,6 +205,14 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new InNode(left, (ArgsListNode)right));
     }
 
+    public override void Visit(BetweenNode node)
+    {
+        var max = Nodes.Pop();
+        var min = Nodes.Pop();
+        var expression = Nodes.Pop();
+        Nodes.Push(new BetweenNode(expression, min, max));
+    }
+
     public override void Visit(FieldNode node)
     {
         Nodes.Push(new FieldNode(Nodes.Pop(), node.FieldOrder, node.FieldName));
@@ -290,7 +298,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
     public override void Visit(AccessMethodNode node)
     {
         Nodes.Push(new AccessMethodNode(node.FunctionToken, (ArgsListNode)Nodes.Pop(), null, node.CanSkipInjectSource,
-            node.Method, node.Alias));
+            node.Method, node.Alias, default, node.IsDistinct));
     }
 
     public override void Visit(AccessRawIdentifierNode node)

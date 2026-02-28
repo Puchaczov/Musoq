@@ -6,17 +6,14 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
-        private static byte[]? PadBytes(byte[] value, int requiredSize)
+    private static byte[] PadBytes(byte[] value, int requiredSize)
     {
-        if (value == null)
-            return null;
-
         if (value.Length >= requiredSize)
             return value;
 
         var padded = new byte[requiredSize];
         Array.Copy(value, 0, padded, 0, value.Length);
-        
+
         return padded;
     }
 
@@ -346,7 +343,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Conversion)]
     public Half? FromBytesToHalf(byte[] value, bool padIfNeeded)
     {
-        const int halfSize = 2; 
+        const int halfSize = 2;
         if (value == null)
             return null;
 

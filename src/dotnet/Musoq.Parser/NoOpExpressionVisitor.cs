@@ -94,6 +94,10 @@ public abstract class NoOpExpressionVisitor : IExpressionVisitor
     {
     }
 
+    public virtual void Visit(BetweenNode node)
+    {
+    }
+
     public virtual void Visit(FieldNode node)
     {
     }

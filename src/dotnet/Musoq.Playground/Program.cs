@@ -39,7 +39,7 @@ inner join cte4 d on a.Id = d.Id";
             Population = i
         }).ToList();
 
-        var provider = new NonEquiSchemaProvider(entities, 0);
+        var provider = new NonEquiSchemaProvider(entities);
 
         Console.WriteLine("=== Testing Join Performance ===");
         Console.WriteLine();

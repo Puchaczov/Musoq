@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser.Nodes;
@@ -10,6 +11,9 @@ namespace Musoq.Evaluator.Visitors;
 /// </summary>
 public static class BuildMetadataAndInferTypesVisitorUtilities
 {
+    private static readonly ConcurrentDictionary<Type, bool> HasIndexerCache = new();
+    private static readonly ConcurrentDictionary<Type, bool> IsIndexableCache = new();
+
     /// <summary>
     ///     Finds the closest common parent type between two types in the inheritance hierarchy.
     /// </summary>
@@ -65,7 +69,10 @@ public static class BuildMetadataAndInferTypesVisitorUtilities
     /// </summary>
     public static bool HasIndexer(Type type)
     {
-        return type is not null && type.GetProperties().Any(f => f.GetIndexParameters().Length > 0);
+        if (type is null) return false;
+
+        return HasIndexerCache.GetOrAdd(type, static t =>
+            t.GetProperties().Any(f => f.GetIndexParameters().Length > 0));
     }
 
     /// <summary>
@@ -75,20 +82,23 @@ public static class BuildMetadataAndInferTypesVisitorUtilities
     {
         if (type == null) return false;
 
-        try
+        return IsIndexableCache.GetOrAdd(type, static t =>
         {
-            if (type.IsArray)
-                return true;
+            try
+            {
+                if (t.IsArray)
+                    return true;
 
-            if (type == typeof(string))
-                return true;
+                if (t == typeof(string))
+                    return true;
 
-            return type.GetProperties().Any(p => p.GetIndexParameters().Length > 0);
-        }
-        catch (Exception ex) when (ex is NotSupportedException || ex is TypeLoadException)
-        {
-            return false;
-        }
+                return t.GetProperties().Any(p => p.GetIndexParameters().Length > 0);
+            }
+            catch (Exception ex) when (ex is NotSupportedException || ex is TypeLoadException)
+            {
+                return false;
+            }
+        });
     }
 
     /// <summary>

@@ -532,6 +532,12 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         node.Accept(_visitor);
     }
 
+    public void Visit(BetweenNode node)
+    {
+        throw new InvalidOperationException(
+            "BetweenNode should have been desugared to AND/comparison nodes before code generation.");
+    }
+
     public void Visit(FieldNode node)
     {
         node.Expression.Accept(this);

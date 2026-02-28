@@ -14,7 +14,6 @@ namespace Musoq.Evaluator.Tests.Spec;
 ///     schema tokens but NOT: Le, Be, ByteType, ShortType, IntType, UIntType, etc.,
 ///     Check, At, Trim, RTrim, LTrim, NullTerm, Utf8, Ascii, Latin1, Ebcdic,
 ///     Nested, Escaped, Greedy, Lazy, Lower, Upper, Capture, Extends.
-///
 ///     Root cause: ComposeIdentifierOrWord switch only handles ~13 schema token types,
 ///     but SchemaKeywordTypes defines ~40 schema keywords.
 /// </summary>

@@ -1,3 +1,5 @@
+#nullable enable annotations
+
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -88,8 +90,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     private readonly IDictionary<string, (int SchemaFromKey, uint PositionalEnvironmentVariableKey)> _schemaFromInfo =
         new Dictionary<string, (int, uint)>();
 
-    private readonly SchemaRegistry? _schemaRegistry;
-
     private readonly IDictionary<SchemaFromNode, List<ISchemaColumn>> _usedColumns =
         new Dictionary<SchemaFromNode, List<ISchemaColumn>>();
 
@@ -154,7 +154,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         _methodResolver = methodResolver ?? new LibraryMethodResolver();
         _nodeFactory = new TypeConversionNodeFactory(_methodResolver);
         _compilationOptions = compilationOptions ?? new CompilationOptions();
-        _schemaRegistry = schemaRegistry;
+        SchemaRegistry = schemaRegistry;
         DiagnosticContext = diagnosticContext;
     }
 
@@ -181,6 +181,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
 
+    public SchemaRegistry? SchemaRegistry { get; }
 
     public IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> InferredColumns
     {
@@ -390,6 +391,14 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         Nodes.Push(new InNode(left, (ArgsListNode)right));
     }
 
+    public override void Visit(BetweenNode node)
+    {
+        var max = SafePop(Nodes, "Visit(BetweenNode).Max");
+        var min = SafePop(Nodes, "Visit(BetweenNode).Min");
+        var expression = SafePop(Nodes, "Visit(BetweenNode).Expression");
+        Nodes.Push(new BetweenNode(expression, min, max));
+    }
+
     public override void Visit(FieldNode node)
     {
         var expression = SafePop(Nodes, VisitorOperationNames.VisitFieldNode);
@@ -488,7 +497,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
         VisitAccessMethod(node,
             (token, modifiedNode, exArgs, arg3, alias, canSkipInjectSource) =>
-                new AccessMethodNode(token, modifiedNode as ArgsListNode, exArgs, canSkipInjectSource, arg3, alias));
+                new AccessMethodNode(token, modifiedNode as ArgsListNode, exArgs, canSkipInjectSource, arg3, alias,
+                    default, node.IsDistinct));
     }
 
     public override void Visit(InterpretCallNode node)
@@ -628,11 +638,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         }
         catch (Exception ex) when (ex is not VisitorException)
         {
-            throw VisitorException.CreateForProcessingFailure(
+            throw new VisitorException(
                 VisitorName,
                 VisitorOperationNames.VisitAccessColumnNode,
-                $"Failed to process column access for '{node.Name}': {ex.Message}",
-                "Check that the column exists in the specified table and that table aliases are correct."
+                $"Failed to process column access for '{node.Name}': {ex.Message}. " +
+                "Check that the column exists in the specified table and that table aliases are correct.",
+                ex
             );
         }
     }
@@ -659,8 +670,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
             if (column == null)
             {
-                
-                
                 if (tableSymbol.IsCompoundTable &&
                     tableSymbol.TryGetColumns(node.Name, out var aliasColumns) &&
                     aliasColumns is { Length: 1 })
@@ -694,7 +703,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             {
                 if (TryReportUnknownProperty(node.TableAlias ?? _identifier, null, node))
                     return;
-                throw new UnknownPropertyException($"Table {node.TableAlias ?? _identifier} could not be found.");
+                var span = node.HasSpan ? node.Span : TextSpan.Empty;
+                throw new UnknownPropertyException(node.TableAlias ?? _identifier, "unknown", span);
             }
 
             var column = tableSymbol.GetColumnByAliasAndName(
@@ -705,7 +715,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             {
                 if (TryReportUnknownProperty(node.ObjectName, null, node))
                     return;
-                throw new UnknownPropertyException($"Column {node.ObjectName} could not be found.");
+                var span = node.HasSpan ? node.Span : TextSpan.Empty;
+                throw new UnknownPropertyException(node.ObjectName, "unknown", span);
             }
 
             Nodes.Push(node);
@@ -781,8 +792,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                             $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
                             node))
                         return;
+                    var nodeSpan = node.HasSpan ? node.Span : TextSpan.Empty;
                     throw new ObjectIsNotAnArrayException(
-                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
+                        nodeSpan);
                 }
 
                 isArray = propertyAccess?.PropertyType.IsArray == true;
@@ -794,16 +807,19 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                             $"Object {parentNodeType.Name} property '{node.Name}' is not an array or indexable type.",
                             node))
                         return;
+                    var notArraySpan = node.HasSpan ? node.Span : TextSpan.Empty;
                     throw new ObjectIsNotAnArrayException(
-                        $"Object {parentNodeType.Name} property '{node.Name}' is not an array or indexable type.");
+                        $"Object {parentNodeType.Name} property '{node.Name}' is not an array or indexable type.",
+                        notArraySpan);
                 }
 
                 if (propertyAccess == null)
                 {
                     if (TryReportUnknownProperty(node.Name, parentNodeType, node))
                         return;
+                    var propSpan = node.HasSpan ? node.Span : TextSpan.Empty;
                     throw new UnknownPropertyException(
-                        $"Property '{node.Name}' not found on object {parentNodeType.Name}.");
+                        node.Name, parentNodeType.Name, propSpan);
                 }
 
                 Nodes.Push(new AccessObjectArrayNode(node.Token, propertyAccess));
@@ -824,8 +840,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                             $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
                             node))
                         return;
+                    var exSpan = node.HasSpan ? node.Span : TextSpan.Empty;
                     throw new ObjectIsNotAnArrayException(
-                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
+                        exSpan);
                 }
 
                 isArray = property?.PropertyType.IsArray == true;
@@ -835,16 +853,18 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 {
                     if (TryReportObjectNotArray($"Object {node.Name} is not an array or indexable type.", node))
                         return;
+                    var naSpan = node.HasSpan ? node.Span : TextSpan.Empty;
                     throw new ObjectIsNotAnArrayException(
-                        $"Object {node.Name} is not an array or indexable type.");
+                        $"Object {node.Name} is not an array or indexable type.", naSpan);
                 }
 
                 if (property == null)
                 {
                     if (TryReportUnknownProperty(node.Name, parentNodeType, node))
                         return;
+                    var propSpan = node.HasSpan ? node.Span : TextSpan.Empty;
                     throw new UnknownPropertyException(
-                        $"Property '{node.Name}' not found on object {parentNodeType.Name}.");
+                        node.Name, parentNodeType.Name, propSpan);
                 }
 
                 Nodes.Push(new AccessObjectArrayNode(node.Token, property));
@@ -853,8 +873,9 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             {
                 if (TryReportUnknownProperty(node.ObjectName, null, node))
                     return;
+                var objSpan = node.HasSpan ? node.Span : TextSpan.Empty;
                 throw new UnknownPropertyException(
-                    $"Could not resolve array access for {node.ObjectName}[{node.Token.Index}]");
+                    node.ObjectName, "unknown", objSpan);
             }
         }
     }
@@ -865,7 +886,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         {
             if (TryReportConstructionNotSupported($"Construction ${node.ToString()} is not yet supported.", node))
                 return;
-            throw new ConstructionNotYetSupported($"Construction ${node.ToString()} is not yet supported.");
+            var keySpan = node.HasSpan ? node.Span : TextSpan.Empty;
+            throw new ConstructionNotYetSupported($"Construction ${node.ToString()} is not yet supported.", keySpan);
         }
 
         var parentNode = SafePeek(Nodes, VisitorOperationNames.VisitAccessObjectKeyNode);
@@ -922,8 +944,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                             $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
                             node))
                         return;
+                    var exSpan1 = node.HasSpan ? node.Span : TextSpan.Empty;
                     throw new ObjectDoesNotImplementIndexerException(
-                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
+                        exSpan1);
                 }
 
                 isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(propertyAccess?.PropertyType);
@@ -933,16 +957,18 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                     if (TryReportNoIndexer(
                             $"Object {parentNodeType.Name} property '{node.Name}' does not implement indexer.", node))
                         return;
+                    var niSpan1 = node.HasSpan ? node.Span : TextSpan.Empty;
                     throw new ObjectDoesNotImplementIndexerException(
-                        $"Object {parentNodeType.Name} property '{node.Name}' does not implement indexer.");
+                        $"Object {parentNodeType.Name} property '{node.Name}' does not implement indexer.", niSpan1);
                 }
 
                 if (propertyAccess == null)
                 {
                     if (TryReportUnknownProperty(node.Name, parentNodeType, node))
                         return;
+                    var propSpan1 = node.HasSpan ? node.Span : TextSpan.Empty;
                     throw new UnknownPropertyException(
-                        $"Property '{node.Name}' not found on object {parentNodeType.Name}.");
+                        node.Name, parentNodeType.Name, propSpan1);
                 }
 
                 Nodes.Push(new AccessObjectKeyNode(node.Token, propertyAccess));
@@ -960,8 +986,9 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 if (TryReportNoIndexer(
                         $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}", node))
                     return;
+                var exSpan2 = node.HasSpan ? node.Span : TextSpan.Empty;
                 throw new ObjectDoesNotImplementIndexerException(
-                    $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+                    $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}", exSpan2);
             }
 
             isIndexer = BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(property?.PropertyType);
@@ -970,16 +997,18 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             {
                 if (TryReportNoIndexer($"Object {node.Name} does not implement indexer.", node))
                     return;
+                var niSpan2 = node.HasSpan ? node.Span : TextSpan.Empty;
                 throw new ObjectDoesNotImplementIndexerException(
-                    $"Object {node.Name} does not implement indexer.");
+                    $"Object {node.Name} does not implement indexer.", niSpan2);
             }
 
             if (property == null)
             {
                 if (TryReportUnknownProperty(node.Name, parentNodeType, node))
                     return;
+                var propSpan2 = node.HasSpan ? node.Span : TextSpan.Empty;
                 throw new UnknownPropertyException(
-                    $"Property '{node.Name}' not found on object {parentNodeType.Name}.");
+                    node.Name, parentNodeType.Name, propSpan2);
             }
 
             Nodes.Push(new AccessObjectKeyNode(node.Token, property));
@@ -989,13 +1018,22 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     public override void Visit(PropertyValueNode node)
     {
         var parentNode = SafePeek(Nodes, VisitorOperationNames.VisitPropertyValueNode);
-        if (parentNode?.ReturnType == null)
-            throw VisitorException.CreateForProcessingFailure(
-                VisitorName,
-                VisitorOperationNames.VisitPropertyValueNode,
-                $"Parent node has no return type for property access '{node.Name}'"
-            );
+        if (parentNode?.ReturnType == null || parentNode.ReturnType == typeof(void))
+        {
+            var span = node.HasSpan ? node.Span : TextSpan.Empty;
+            throw new UnknownColumnOrAliasException(
+                node.Name,
+                "while resolving property access",
+                span);
+        }
+
         var parentNodeType = parentNode.ReturnType;
+
+        if (parentNodeType is NullNode.NullType)
+        {
+            var span = node.HasSpan ? node.Span : TextSpan.Empty;
+            throw new UnknownPropertyException(node.Name, "Null", span);
+        }
 
 
         if (parentNodeType == typeof(object) || parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
@@ -1044,17 +1082,19 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             }
             catch (Exception ex) when (ex is AmbiguousMatchException || ex is ArgumentException)
             {
-                throw VisitorException.CreateForProcessingFailure(
+                throw new VisitorException(
                     VisitorName,
                     VisitorOperationNames.VisitPropertyValueNode,
-                    $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}");
+                    $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
+                    ex);
             }
 
             if (propertyInfo == null)
             {
                 if (TryReportUnknownProperty(node.Name, parentNodeType, node))
                     return;
-                throw new UnknownPropertyException($"Property '{node.Name}' not found on object {parentNodeType.Name}");
+                var span = node.HasSpan ? node.Span : TextSpan.Empty;
+                throw new UnknownPropertyException(node.Name, parentNodeType.Name, span);
             }
 
             Nodes.Push(new PropertyValueNode(node.Name, propertyInfo));
@@ -1149,26 +1189,27 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 var propertyType = typeof(object);
 
 
-                if (_schemaRegistry != null && !string.IsNullOrEmpty(rootIntendedTypeName))
+                if (SchemaRegistry != null && !string.IsNullOrEmpty(rootIntendedTypeName))
                 {
                     var schemaName = rootIntendedTypeName.Split('.').Last();
-                    if (_schemaRegistry.TryGetSchema(schemaName, out var refSchema) &&
+                    if (SchemaRegistry.TryGetSchema(schemaName, out var refSchema) &&
                         refSchema?.Node is BinarySchemaNode binaryNode)
                     {
                         var allFields = GetAllBinarySchemaFields(binaryNode);
-                        var field = allFields.FirstOrDefault(f => string.Equals(f.Name, identNode.Name, StringComparison.OrdinalIgnoreCase));
+                        var field = allFields.FirstOrDefault(f =>
+                            string.Equals(f.Name, identNode.Name, StringComparison.OrdinalIgnoreCase));
                         if (field is FieldDefinitionNode fieldDef)
                             (propertyType, childIntendedTypeName) =
                                 ResolveTypeAnnotationClrTypeWithIntendedName(fieldDef.TypeAnnotation);
                     }
                     else if (schemaName.StartsWith("Inline_"))
                     {
-                        
                         var inlineFieldName = schemaName.Substring("Inline_".Length);
                         var inlineFields = FindInlineSchemaFields(inlineFieldName);
                         if (inlineFields != null)
                         {
-                            var field = inlineFields.FirstOrDefault(f => string.Equals(f.Name, identNode.Name, StringComparison.OrdinalIgnoreCase));
+                            var field = inlineFields.FirstOrDefault(f =>
+                                string.Equals(f.Name, identNode.Name, StringComparison.OrdinalIgnoreCase));
                             if (field is FieldDefinitionNode fieldDef)
                             {
                                 (propertyType, childIntendedTypeName) =
@@ -1185,7 +1226,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             }
 
 
-            newNode = new DotNode(root, expressionNode, node.IsTheMostInner, string.Empty, expressionNode.ReturnType, childIntendedTypeName);
+            newNode = new DotNode(root, expressionNode, node.IsTheMostInner, string.Empty, expressionNode.ReturnType,
+                childIntendedTypeName);
         }
 
         else if (root.ReturnType == typeof(object))
@@ -1209,8 +1251,9 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 {
                     if (TryReportUnknownPropertyWithSuggestions(propertyName, root.ReturnType.GetProperties(), node))
                         return;
+                    var span = node.HasSpan ? node.Span : TextSpan.Empty;
                     PrepareAndThrowUnknownPropertyExceptionMessage(propertyName,
-                        root.ReturnType.GetProperties());
+                        root.ReturnType.GetProperties(), span);
                 }
 
                 newNode = new DotNode(root, exp, node.IsTheMostInner, string.Empty, exp.ReturnType);
@@ -1224,16 +1267,18 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                     if (TryReportUnknownPropertyWithSuggestions(identifierNode.Name, root.ReturnType.GetProperties(),
                             node))
                         return;
+                    var span = node.HasSpan ? node.Span : TextSpan.Empty;
                     PrepareAndThrowUnknownPropertyExceptionMessage(identifierNode.Name,
-                        root.ReturnType.GetProperties());
+                        root.ReturnType.GetProperties(), span);
                 }
 
                 newNode = new DotNode(root, exp, node.IsTheMostInner, string.Empty, exp.ReturnType);
             }
             else
             {
+                var dotSpan = node.HasSpan ? node.Span : TextSpan.Empty;
                 throw new NotSupportedException(
-                    $"Unsupported expression type in DotNode: {exp?.GetType().Name ?? "null"}");
+                    $"Unsupported expression type in property access at position {dotSpan.Start}: {exp?.GetType().Name ?? "null"}. Check the query syntax near this location.");
             }
         }
 
@@ -1317,7 +1362,23 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public override void Visit(SchemaFromNode node)
     {
-        var schema = _provider.GetSchema(node.Schema);
+        ISchema schema;
+        try
+        {
+            schema = _provider.GetSchema(node.Schema);
+        }
+        catch (Exception ex)
+        {
+            if (ex is IDiagnosticException)
+                throw;
+
+            var span = node.HasSpan ? node.Span : TextSpan.Empty;
+            throw new UnknownInterpretationSchemaException(
+                node.Schema,
+                $"Unknown schema '{node.Schema}'.",
+                span);
+        }
+
         const bool hasExternallyProvidedTypes = false;
 
         _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
@@ -1326,7 +1387,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         {
             if (TryReportDuplicateAlias(node, _queryAlias, node))
                 return;
-            throw new AliasAlreadyUsedException(node, _queryAlias);
+            var span = node.HasSpan ? node.Span : TextSpan.Empty;
+            throw new AliasAlreadyUsedException(_queryAlias, span);
         }
 
         _generatedAliases.Add(_queryAlias);
@@ -1415,13 +1477,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         AddAssembly(targetColumn.ColumnType.Assembly);
 
-        
-        
-        
+
         if (node.PropertiesChain.Length > 1
             && targetColumn.ColumnType == typeof(object)
             && !string.IsNullOrEmpty(targetColumn.IntendedTypeName)
-            && _schemaRegistry != null)
+            && SchemaRegistry != null)
         {
             var resolved = ResolveSchemaPropertyChain(
                 targetColumn.IntendedTypeName,
@@ -1439,10 +1499,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
                 UpdateQueryAliasAndSymbolTable(node, schema, table);
 
-                
-                
-                
-                
+
                 var resolvedChain = new PropertyFromNode.PropertyNameAndTypePair[node.PropertiesChain.Length];
                 resolvedChain[0] = new PropertyFromNode.PropertyNameAndTypePair(
                     targetColumn.ColumnName, targetColumn.ColumnType, targetColumn.IntendedTypeName);
@@ -1549,8 +1606,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
 
             Type? returnType = null;
-            if (schemaName != null && _schemaRegistry != null &&
-                _schemaRegistry.TryGetSchema(schemaName, out var schemaRegistration))
+            if (schemaName != null && SchemaRegistry != null &&
+                SchemaRegistry.TryGetSchema(schemaName, out var schemaRegistration))
                 returnType = schemaRegistration?.GeneratedType;
 
             var interpretTableSymbol = new TableSymbol(
@@ -1674,7 +1731,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             {
                 if (TryReportTableNotDefined(node.VariableName, node))
                     return;
-                throw new TableIsNotDefinedException(node.VariableName);
+                var span = node.HasSpan ? node.Span : TextSpan.Empty;
+                throw new TableIsNotDefinedException(node.VariableName, span);
             }
 
             tableSymbol = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(node.VariableName);
@@ -1750,12 +1808,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         else if (interpretCall is ArgsListNode argsNode) schemaName = ExtractSchemaNameFromArgs(argsNode);
 
 
-        if (schemaName != null && _schemaRegistry != null)
+        if (schemaName != null && SchemaRegistry != null)
         {
             var interpretTable = CreateInterpretTable(schemaName);
 
             Type? returnType = null;
-            if (_schemaRegistry.TryGetSchema(schemaName, out var schemaRegistration))
+            if (SchemaRegistry.TryGetSchema(schemaName, out var schemaRegistration))
                 returnType = schemaRegistration?.GeneratedType;
 
             var interpretTableSymbol = new TableSymbol(
@@ -1828,7 +1886,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
         var from = Nodes.Pop() as FromNode;
 
-        if (from is null) throw new FromNodeIsNull();
+        if (from is null)
+        {
+            var span = node.HasSpan ? node.Span : TextSpan.Empty;
+            throw new FromNodeIsNull(span);
+        }
 
         if (groupBy == null && _refreshMethods.Count > 0)
             groupBy = new GroupByNode([new FieldNode(new IntegerNode("1", "s"), 0, string.Empty)], null);
@@ -1869,7 +1931,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         if (take != null)
             ValidateExpressionIsPrimitive(take.Expression, "TAKE");
 
-        
+
         if (groupBy != null && select != null)
             ValidateGroupBySemantics(select, groupBy);
 
@@ -1877,11 +1939,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         long? takeValue = take?.Expression is IntegerNode takeInt ? Convert.ToInt64(takeInt.ObjValue) : null;
         var isDistinct = select?.IsDistinct ?? false;
 
-        
-        
-        
-        
-        
+
         //    Note: DISTINCT creates an implicit GROUP BY
         var isSingleTableQuery = _aliasToSchemaFromNodeMap.Count == 1;
         var hasOrderBy = orderBy != null;
@@ -1921,7 +1979,9 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public override void Visit(InternalQueryNode node)
     {
-        throw new NotSupportedException("Internal Query Node is not supported here");
+        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        throw new NotSupportedException(
+            $"Internal Query Node is not supported in this context at position {span.Start}");
     }
 
     public override void Visit(RootNode node)
@@ -2059,7 +2119,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             {
                 if (TryReportTypeNotFound(remappedType, node))
                     continue;
-                throw new TypeNotFoundException($"Type '{remappedType}' could not be found.");
+                var span = node.HasSpan ? node.Span : TextSpan.Empty;
+                throw new TypeNotFoundException(remappedType, string.Empty, span);
             }
 
             tableColumns.Add(new SchemaColumn(columnName, i, type));
@@ -2169,7 +2230,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         {
             if (TryReportFieldLinkOutOfRange(index, _groupByFields.Count, node))
                 return;
-            throw new FieldLinkIndexOutOfRangeException(index, _groupByFields.Count);
+            var span = node.HasSpan ? node.Span : TextSpan.Empty;
+            throw new FieldLinkIndexOutOfRangeException(index, _groupByFields.Count, span);
         }
 
         Nodes.Push(_groupByFields[index].Expression);
@@ -2223,6 +2285,31 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
         var right = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (right)");
         var left = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (left)");
+
+
+        if (isArithmeticOperation)
+        {
+            var leftIsNull = left.ReturnType is NullNode.NullType;
+            var rightIsNull = right.ReturnType is NullNode.NullType;
+
+            if (leftIsNull && rightIsNull)
+            {
+                Nodes.Push(new NullNode(typeof(object)));
+                return;
+            }
+
+            if (leftIsNull || rightIsNull)
+            {
+                var nonNullType = leftIsNull ? right.ReturnType : left.ReturnType;
+                var baseType = BuildMetadataAndInferTypesVisitorUtilities.StripNullable(nonNullType);
+
+                var newLeft = leftIsNull ? new NullNode(baseType, left.Span) : left;
+                var newRight = rightIsNull ? new NullNode(baseType, right.Span) : right;
+
+                Nodes.Push(nodeFactory(newLeft, newRight));
+                return;
+            }
+        }
 
         var leftIsObject = TypeConversionNodeFactory.IsObjectType(left.ReturnType);
         var rightIsObject = TypeConversionNodeFactory.IsObjectType(right.ReturnType);
@@ -2387,7 +2474,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         {
             if (TryReportMissingAlias(node))
                 return default;
-            throw new AliasMissingException(node);
+            var span = node.HasSpan ? node.Span : TextSpan.Empty;
+            throw new AliasMissingException(
+                $"Alias must be provided for method call when more than one schema is used. Problem occurred in method {node}",
+                span);
         }
 
         var alias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : _identifier;
@@ -2413,15 +2503,29 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         groupArgTypes[0] = typeof(string);
         for (var i = 1; i < argCount; i++) groupArgTypes[i] = argTypes[i];
 
-        if (context.SchemaTablePair.Schema.TryResolveAggregationMethod(node.Name, groupArgTypes, context.EntityType,
+
+        var methodName = node.Name;
+        if (node.IsDistinct)
+        {
+            var distinctMethodName = $"{node.Name}Distinct";
+            if (context.SchemaTablePair.Schema.TryResolveAggregationMethod(distinctMethodName, groupArgTypes,
+                    context.EntityType,
+                    out var distinctMethod)) return (distinctMethod, false);
+
+
+            throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(
+                $"{node.Name}(DISTINCT ...)", args.Args);
+        }
+
+        if (context.SchemaTablePair.Schema.TryResolveAggregationMethod(methodName, groupArgTypes, context.EntityType,
                 out var method)) return (method, false);
 
-        if (context.SchemaTablePair.Schema.TryResolveMethod(node.Name, argTypes, context.EntityType, out method))
+        if (context.SchemaTablePair.Schema.TryResolveMethod(methodName, argTypes, context.EntityType, out method))
             return (method, false);
 
-        if (context.SchemaTablePair.Schema.TryResolveRawMethod(node.Name, argTypes, out method)) return (method, true);
+        if (context.SchemaTablePair.Schema.TryResolveRawMethod(methodName, argTypes, out method)) return (method, true);
 
-        throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(node.Name, args.Args);
+        throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(methodName, args.Args);
     }
 
     private MethodInfo ProcessGenericMethodIfNeeded(MethodInfo method, ArgsListNode args, Type entityType)
@@ -2471,7 +2575,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var newSetArgs = new List<Node> { new WordNode(identifier) };
         newSetArgs.AddRange(args.Args);
 
-        var setMethodName = $"Set{method.Name}";
+
+        var setMethodName = node.IsDistinct ? "SetDistinctAggregate" : $"Set{method.Name}";
         var argTypes = newSetArgs.Select(f => f.ReturnType).ToArray();
 
         if (!context.SchemaTablePair.Schema.TryResolveAggregationMethod(setMethodName, argTypes, context.EntityType,
@@ -2566,7 +2671,20 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     private void ProcessSingleTable(AllColumnsNode node, TableSymbol tableSymbol, string identifier)
     {
         var generatedColumnIdentifier = node.Alias ?? identifier;
-        var tuple = tableSymbol.GetTableByAlias(generatedColumnIdentifier);
+        (ISchema Schema, ISchemaTable Table, string TableName) tuple;
+        try
+        {
+            tuple = tableSymbol.GetTableByAlias(generatedColumnIdentifier);
+        }
+        catch (KeyNotFoundException)
+        {
+            var span = node.HasSpan ? node.Span : TextSpan.Empty;
+            throw new UnknownColumnOrAliasException(
+                generatedColumnIdentifier,
+                "in wildcard projection",
+                span);
+        }
+
         var table = tuple.Table;
 
         var generatedColumns = GetOrCreateGeneratedColumns(generatedColumnIdentifier);
@@ -2676,10 +2794,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             StringComparer.OrdinalIgnoreCase);
 
         var groupByColumnNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var field in groupBy.Fields)
-        {
-            CollectColumnNames(field.Expression, groupByColumnNames);
-        }
+        foreach (var field in groupBy.Fields) CollectColumnNames(field.Expression, groupByColumnNames);
 
         foreach (var field in select.Fields)
         {
@@ -2757,6 +2872,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                         stack.Push(whenThen.When);
                         stack.Push(whenThen.Then);
                     }
+
                     if (caseNode.Else != null)
                         stack.Push(caseNode.Else);
                     break;
@@ -2843,6 +2959,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                         stack.Push(whenThen.When);
                         stack.Push(whenThen.Then);
                     }
+
                     if (caseNode.Else != null)
                         stack.Push(caseNode.Else);
                     break;
@@ -2913,15 +3030,9 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             throw new SetOperatorMustHaveSameQuantityOfColumnsException();
         }
 
-        for (var i = 0; i < leftFields.Length; i++)
-            if (leftFields[i].Expression.ReturnType != rightFields[i].Expression.ReturnType)
-            {
-                if (TryReportSetOperatorColumnTypes(leftFields[i], rightFields[i], rightFields[i].Expression))
-                    continue;
-                throw new SetOperatorMustHaveSameTypesOfColumnsException(leftFields[i], rightFields[i]);
-            }
+        ReconcileFieldTypesForSetOperation(leftFields, rightFields, rightFields[0].Expression);
 
-        _cachedSetFields.TryAdd(cachedSetOperatorKey, rightFields);
+        _cachedSetFields.TryAdd(cachedSetOperatorKey, ResolveFieldsForCache(leftFields, rightFields));
     }
 
     private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, string cachedSetOperatorKey,
@@ -2939,18 +3050,68 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             throw new SetOperatorMustHaveSameQuantityOfColumnsException();
         }
 
-        for (var i = 0; i < leftFields.Length; i++)
-            if (leftFields[i].Expression.ReturnType != rightFields[i].Expression.ReturnType)
-            {
-                if (TryReportSetOperatorColumnTypes(leftFields[i], rightFields[i], leftFields[i].Expression))
-                    continue;
-                throw new SetOperatorMustHaveSameTypesOfColumnsException(leftFields[i], rightFields[i]);
-            }
+        ReconcileFieldTypesForSetOperation(leftFields, rightFields, leftFields[0].Expression);
 
-        _cachedSetFields.TryAdd(currentSetOperatorKey, leftFields);
+        _cachedSetFields.TryAdd(currentSetOperatorKey, ResolveFieldsForCache(leftFields, rightFields));
     }
 
-    private static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] _columns)
+    private void ReconcileFieldTypesForSetOperation(FieldNode[] leftFields, FieldNode[] rightFields,
+        Node errorContextNode)
+    {
+        for (var i = 0; i < leftFields.Length; i++)
+        {
+            var leftType = leftFields[i].Expression.ReturnType;
+            var rightType = rightFields[i].Expression.ReturnType;
+
+            if (leftType == rightType)
+                continue;
+
+            var leftIsNull = leftType is NullNode.NullType;
+            var rightIsNull = rightType is NullNode.NullType;
+
+            if (leftIsNull && rightIsNull)
+                continue;
+
+            if (leftIsNull)
+            {
+                leftFields[i] = new FieldNode(
+                    new NullNode(rightType, leftFields[i].Expression.Span),
+                    leftFields[i].FieldOrder,
+                    leftFields[i].FieldName,
+                    leftFields[i].Span);
+                continue;
+            }
+
+            if (rightIsNull)
+            {
+                rightFields[i] = new FieldNode(
+                    new NullNode(leftType, rightFields[i].Expression.Span),
+                    rightFields[i].FieldOrder,
+                    rightFields[i].FieldName,
+                    rightFields[i].Span);
+                continue;
+            }
+
+            if (TryReportSetOperatorColumnTypes(leftFields[i], rightFields[i], errorContextNode))
+                continue;
+            throw new SetOperatorMustHaveSameTypesOfColumnsException(leftFields[i], rightFields[i]);
+        }
+    }
+
+    private static FieldNode[] ResolveFieldsForCache(FieldNode[] leftFields, FieldNode[] rightFields)
+    {
+        var resolved = new FieldNode[leftFields.Length];
+
+        for (var i = 0; i < leftFields.Length; i++)
+            resolved[i] = leftFields[i].Expression.ReturnType is NullNode.NullType
+                ? rightFields[i]
+                : leftFields[i];
+
+        return resolved;
+    }
+
+    private static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] _columns,
+        TextSpan span = default)
     {
         var library = new TransitionLibrary();
         var candidates = new StringBuilder();
@@ -2971,10 +3132,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             candidates.Append(candidatesColumns[^1].ColumnName);
 
             throw new UnknownColumnOrAliasException(
-                $"Column or Alias '{identifier}' could not be found. Did you mean to use [{candidates}]?");
+                identifier,
+                $"Did you mean to use [{candidates}]?",
+                span);
         }
 
-        throw new UnknownColumnOrAliasException($"Column or Alias {identifier} could not be found.");
+        throw new UnknownColumnOrAliasException(identifier, string.Empty, span);
     }
 
     /// <summary>
@@ -2994,11 +3157,13 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return true;
         }
 
-        PrepareAndThrowUnknownColumnExceptionMessage(identifier, columns);
+        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        PrepareAndThrowUnknownColumnExceptionMessage(identifier, columns, span);
         return false;
     }
 
-    private static void PrepareAndThrowUnknownPropertyExceptionMessage(string identifier, PropertyInfo[] properties)
+    private static void PrepareAndThrowUnknownPropertyExceptionMessage(string identifier, PropertyInfo[] properties,
+        TextSpan span = default)
     {
         var library = new TransitionLibrary();
         var candidates = new StringBuilder();
@@ -3019,10 +3184,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             candidates.Append(candidatesProperties[^1].Name);
 
             throw new UnknownPropertyException(
-                $"Column '{identifier}' could not be found. Did you mean to use [{candidates}]?");
+                identifier,
+                $"Did you mean to use [{candidates}]?",
+                span);
         }
 
-        throw new UnknownPropertyException($"Column {identifier} could not be found.");
+        throw new UnknownPropertyException(identifier, "unknown", span);
     }
 
     private static bool IsInterpretFunction(string functionName)
@@ -3057,17 +3224,17 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     private ISchemaTable CreateInterpretTable(string? schemaName)
     {
-        if (schemaName == null || _schemaRegistry == null)
+        if (schemaName == null || SchemaRegistry == null)
         {
             var msg =
-                $"DEBUG: schemaName={schemaName ?? "null"}, registry={(_schemaRegistry != null ? $"present with {_schemaRegistry.Schemas.Count()} schemas" : "null")}";
+                $"DEBUG: schemaName={schemaName ?? "null"}, registry={(SchemaRegistry != null ? $"present with {SchemaRegistry.Schemas.Count()} schemas" : "null")}";
             throw new InvalidOperationException(msg);
         }
 
-        var schema = _schemaRegistry.GetSchema(schemaName);
+        var schema = SchemaRegistry.GetSchema(schemaName);
         if (schema == null)
         {
-            var schemaNames = string.Join(", ", _schemaRegistry.Schemas.Select(s => s.Name));
+            var schemaNames = string.Join(", ", SchemaRegistry.Schemas.Select(s => s.Name));
             throw new InvalidOperationException($"DEBUG: schema '{schemaName}' not found. Available: [{schemaNames}]");
         }
 
@@ -3099,7 +3266,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                         ResolveTypeAnnotationClrTypeWithIntendedName(parsedField.TypeAnnotation);
                     isConditional = parsedField.IsConditional;
 
-                    
+
                     if (parsedField.TypeAnnotation is InlineSchemaTypeNode)
                         intendedTypeName = $"Musoq.Generated.Interpreters.Inline_{parsedField.Name}";
                 }
@@ -3112,6 +3279,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                         columnType = InferComputedFieldType(computedField.Expression, columns);
                     else
                         columnType = exprType;
+
+                    isConditional = ReferencesConditionalField(computedField.Expression, allFields);
                 }
                 else
                 {
@@ -3134,7 +3303,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
                 if (field.FieldType == TextFieldType.Pattern && field.CaptureGroups.Length > 0)
                 {
-                    
                     columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(object),
                         $"Musoq.Generated.Interpreters.{schema.Name}.CaptureResult_{field.Name}"));
                     continue;
@@ -3142,7 +3310,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
                 if (field.FieldType == TextFieldType.Repeat)
                 {
-                    
                     var elementSchemaName = field.PrimaryValue ?? "object";
                     columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(object[]),
                         $"Musoq.Generated.Interpreters.{elementSchemaName}[]"));
@@ -3151,8 +3318,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
                 if (field.FieldType == TextFieldType.Switch)
                 {
-                    
-                    
                     columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(ExpandoObject)));
                     continue;
                 }
@@ -3177,58 +3342,47 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         if (!string.IsNullOrEmpty(binaryNode.Extends))
         {
-            var parentSchema = _schemaRegistry.GetSchema(binaryNode.Extends);
+            var parentSchema = SchemaRegistry.GetSchema(binaryNode.Extends);
             if (parentSchema?.Node is BinarySchemaNode parentBinaryNode)
                 allFields.AddRange(GetAllBinarySchemaFields(parentBinaryNode));
         }
 
-        
+
         var overriddenParentNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var childField in binaryNode.Fields)
-        {
             for (var i = 0; i < allFields.Count; i++)
-            {
                 if (string.Equals(allFields[i].Name, childField.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     allFields[i] = childField;
                     overriddenParentNames.Add(childField.Name);
                     break;
                 }
-            }
-        }
 
-        
+
         foreach (var childField in binaryNode.Fields)
-        {
             if (!overriddenParentNames.Contains(childField.Name))
                 allFields.Add(childField);
-        }
 
         return allFields;
     }
 
-        private SchemaFieldNode[]? FindInlineSchemaFields(string fieldName)
+    private SchemaFieldNode[]? FindInlineSchemaFields(string fieldName)
     {
-        if (_schemaRegistry == null) return null;
+        if (SchemaRegistry == null) return null;
 
-        foreach (var registration in _schemaRegistry.Schemas)
-        {
+        foreach (var registration in SchemaRegistry.Schemas)
             if (registration.Node is BinarySchemaNode binaryNode)
             {
                 var allFields = GetAllBinarySchemaFields(binaryNode);
                 foreach (var field in allFields)
-                {
                     if (field is FieldDefinitionNode { TypeAnnotation: InlineSchemaTypeNode inlineSchema }
                         && string.Equals(field.Name, fieldName, StringComparison.OrdinalIgnoreCase))
-                    {
                         return inlineSchema.Fields;
-                    }
-                }
             }
-        }
 
         return null;
     }
+
     private Type ResolveTypeAnnotationClrType(TypeAnnotationNode typeAnnotation)
     {
         var (type, _) = ResolveTypeAnnotationClrTypeWithIntendedName(typeAnnotation);
@@ -3240,7 +3394,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
         if (typeAnnotation is SchemaReferenceTypeNode schemaRef)
         {
-            if (_schemaRegistry != null && _schemaRegistry.TryGetSchema(schemaRef.SchemaName, out var refSchema))
+            if (SchemaRegistry != null && SchemaRegistry.TryGetSchema(schemaRef.SchemaName, out var refSchema))
             {
                 if (refSchema?.GeneratedType != null)
                     return (refSchema.GeneratedType, null);
@@ -3260,8 +3414,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         if (typeAnnotation is StringTypeNode stringType &&
             !string.IsNullOrEmpty(stringType.AsTextSchemaName))
         {
-            if (_schemaRegistry != null &&
-                _schemaRegistry.TryGetSchema(stringType.AsTextSchemaName, out var textSchema))
+            if (SchemaRegistry != null &&
+                SchemaRegistry.TryGetSchema(stringType.AsTextSchemaName, out var textSchema))
             {
                 if (textSchema?.GeneratedType != null)
                     return (textSchema.GeneratedType, null);
@@ -3282,14 +3436,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return (arrayClrType, arrayIntendedTypeName);
         }
 
-        if (typeAnnotation is InlineSchemaTypeNode)
-        {
-            
-            
-            
-            
-            return (typeof(object), null);
-        }
+        if (typeAnnotation is InlineSchemaTypeNode) return (typeof(object), null);
 
         if (typeAnnotation is RepeatUntilTypeNode repeatUntilType)
         {
@@ -3303,14 +3450,14 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return (typeAnnotation.ClrType, null);
     }
 
-        private (Type ClrType, string? IntendedTypeName)? ResolveSchemaPropertyChain(
+    private (Type ClrType, string? IntendedTypeName)? ResolveSchemaPropertyChain(
         string intendedTypeName,
         PropertyFromNode.PropertyNameAndTypePair[] remainingProperties)
     {
-        if (_schemaRegistry == null || remainingProperties.Length == 0)
+        if (SchemaRegistry == null || remainingProperties.Length == 0)
             return null;
 
-        
+
         var lastDot = intendedTypeName.LastIndexOf('.');
         var simpleName = lastDot >= 0 ? intendedTypeName.Substring(lastDot + 1) : intendedTypeName;
 
@@ -3330,21 +3477,19 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             typeArgs = Array.Empty<string>();
         }
 
-        if (!_schemaRegistry.TryGetSchema(baseSchemaName, out var schemaRegistration))
+        if (!SchemaRegistry.TryGetSchema(baseSchemaName, out var schemaRegistration))
             return null;
 
         if (schemaRegistration?.Node is not BinarySchemaNode binaryNode)
             return null;
 
-        
+
         var typeParamMap = new Dictionary<string, string>();
         if (binaryNode.TypeParameters != null)
-        {
             for (var i = 0; i < binaryNode.TypeParameters.Length && i < typeArgs.Length; i++)
                 typeParamMap[binaryNode.TypeParameters[i]] = typeArgs[i];
-        }
 
-        
+
         var propertyName = remainingProperties[0].PropertyName;
         var allFields = GetAllBinarySchemaFields(binaryNode);
         var field = allFields.OfType<FieldDefinitionNode>().FirstOrDefault(f => f.Name == propertyName);
@@ -3353,17 +3498,16 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return ResolveTypeAnnotationWithSubstitution(field.TypeAnnotation, typeParamMap);
     }
 
-        private (Type ClrType, string? IntendedTypeName) ResolveTypeAnnotationWithSubstitution(
+    private (Type ClrType, string? IntendedTypeName) ResolveTypeAnnotationWithSubstitution(
         TypeAnnotationNode typeAnnotation, Dictionary<string, string> typeParamMap)
     {
         if (typeAnnotation is SchemaReferenceTypeNode schemaRef)
         {
-            
             var resolvedName = typeParamMap.TryGetValue(schemaRef.SchemaName, out var substitutedName)
                 ? substitutedName
                 : schemaRef.SchemaName;
 
-            if (_schemaRegistry != null && _schemaRegistry.TryGetSchema(resolvedName, out var refSchema))
+            if (SchemaRegistry != null && SchemaRegistry.TryGetSchema(resolvedName, out var refSchema))
                 return (typeof(object), refSchema?.GeneratedTypeName);
 
             return (typeof(object), null);
@@ -3375,13 +3519,25 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return (elemType.MakeArrayType(), elemIntended != null ? $"{elemIntended}[]" : null);
         }
 
-        
+
         return ResolveTypeAnnotationClrTypeWithIntendedName(typeAnnotation);
     }
 
     private static ISchemaTable CreateEmptyTable()
     {
         return new DynamicTable([]);
+    }
+
+    private static bool ReferencesConditionalField(Node expression, IReadOnlyList<SchemaFieldNode> contextFields)
+    {
+        return expression switch
+        {
+            IdentifierNode id => contextFields.Any(f =>
+                f.Name.Equals(id.Name, StringComparison.OrdinalIgnoreCase) && f.IsConditional),
+            BinaryNode binary => ReferencesConditionalField(binary.Left, contextFields) ||
+                                 ReferencesConditionalField(binary.Right, contextFields),
+            _ => false
+        };
     }
 
     private static Type InferComputedFieldType(Node expression, List<ISchemaColumn> contextColumns)
@@ -3659,14 +3815,14 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return new DynamicTable([new SchemaColumn(nameof(PrimitiveTypeEntity<int>.Value), 0, nestedType)]);
 
 
-        if (nestedType == typeof(object) && !string.IsNullOrEmpty(intendedTypeName) && _schemaRegistry != null)
+        if (nestedType == typeof(object) && !string.IsNullOrEmpty(intendedTypeName) && SchemaRegistry != null)
         {
             var elementIntendedTypeName = intendedTypeName.EndsWith("[]")
                 ? intendedTypeName.Substring(0, intendedTypeName.Length - 2)
                 : intendedTypeName;
             var schemaName = elementIntendedTypeName.Split('.').Last();
 
-            if (_schemaRegistry.TryGetSchema(schemaName, out var schemaRegistration))
+            if (SchemaRegistry.TryGetSchema(schemaName, out var schemaRegistration))
             {
                 if (schemaRegistration?.Node is BinarySchemaNode binaryNode)
                 {
@@ -3675,17 +3831,35 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                     var columnIndex = 0;
 
                     foreach (var field in allFields)
+                    {
+                        if (field.Name.StartsWith('_'))
+                            continue;
+
+                        if (field is FieldDefinitionNode { TypeAnnotation: AlignmentNode })
+                            continue;
+
                         if (field is FieldDefinitionNode fieldDef)
                         {
                             var (columnType, childIntendedTypeName) =
                                 ResolveTypeAnnotationClrTypeWithIntendedName(fieldDef.TypeAnnotation);
+
+                            if (fieldDef.IsConditional && columnType.IsValueType &&
+                                Nullable.GetUnderlyingType(columnType) == null)
+                                columnType = typeof(Nullable<>).MakeGenericType(columnType);
+
                             columns.Add(new SchemaColumn(field.Name, columnIndex++, columnType, childIntendedTypeName));
                         }
                         else if (field is ComputedFieldNode computedField)
                         {
                             var columnType = InferComputedFieldType(computedField.Expression, columns);
+
+                            if (ReferencesConditionalField(computedField.Expression, allFields) &&
+                                columnType.IsValueType && Nullable.GetUnderlyingType(columnType) == null)
+                                columnType = typeof(Nullable<>).MakeGenericType(columnType);
+
                             columns.Add(new SchemaColumn(field.Name, columnIndex++, columnType));
                         }
+                    }
 
                     return new DynamicTable(columns.ToArray());
                 }
@@ -3824,7 +3998,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             {
                 if (TryReportUnknownPropertyWithSuggestions(property.PropertyName, type.GetProperties(), node))
                     return null;
-                PrepareAndThrowUnknownPropertyExceptionMessage(property.PropertyName, type.GetProperties());
+                var span = node?.HasSpan == true ? node.Span : TextSpan.Empty;
+                PrepareAndThrowUnknownPropertyExceptionMessage(property.PropertyName, type.GetProperties(), span);
                 return null;
             }
 
@@ -3875,7 +4050,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             {
                 if (TryReportUnknownPropertyWithSuggestions(property.PropertyName, rootType.GetProperties(), node))
                     return null;
-                PrepareAndThrowUnknownPropertyExceptionMessage(property.PropertyName, rootType.GetProperties());
+                var span = node?.HasSpan == true ? node.Span : TextSpan.Empty;
+                PrepareAndThrowUnknownPropertyExceptionMessage(property.PropertyName, rootType.GetProperties(), span);
                 return null;
             }
 
@@ -3974,6 +4150,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         }
 
 
+        var span = node?.HasSpan == true ? node.Span : TextSpan.Empty;
         var availableList = availableColumns.ToArray();
         if (availableList.Length > 0)
         {
@@ -3985,10 +4162,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
             if (candidates.Length > 0)
                 throw new UnknownColumnOrAliasException(
-                    $"Column or Alias '{columnName}' could not be found. Did you mean to use [{string.Join(", ", candidates)}]?");
+                    columnName,
+                    $"Did you mean to use [{string.Join(", ", candidates)}]?",
+                    span);
         }
 
-        throw new UnknownColumnOrAliasException($"Column or Alias '{columnName}' could not be found.");
+        throw new UnknownColumnOrAliasException(columnName, string.Empty, span);
     }
 
     /// <summary>
@@ -4008,10 +4187,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return true;
         }
 
+        var span = node?.HasSpan == true ? node.Span : TextSpan.Empty;
         throw new UnknownPropertyException(
-            objectType != null
-                ? $"Property '{propertyName}' not found on object {objectType.Name}."
-                : $"Property '{propertyName}' could not be found.");
+            propertyName,
+            objectType?.Name ?? "unknown",
+            span);
     }
 
     /// <summary>
@@ -4032,7 +4212,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return true;
         }
 
-        throw new TypeNotFoundException($"Type '{typeName}' could not be found.");
+        var span = node?.HasSpan == true ? node.Span : TextSpan.Empty;
+        throw new TypeNotFoundException(typeName, string.Empty, span);
     }
 
     /// <summary>
@@ -4052,7 +4233,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return true;
         }
 
-        throw new AmbiguousColumnException(columnName, alias1, alias2);
+        var span = node?.HasSpan == true ? node.Span : TextSpan.Empty;
+        throw new AmbiguousColumnException(columnName, alias1, alias2, span);
     }
 
     /// <summary>
@@ -4110,7 +4292,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return true;
         }
 
-        throw new ObjectIsNotAnArrayException(message);
+        var span = node?.HasSpan == true ? node.Span : TextSpan.Empty;
+        throw new ObjectIsNotAnArrayException(message, span);
     }
 
     /// <summary>
@@ -4128,7 +4311,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return true;
         }
 
-        throw new ObjectDoesNotImplementIndexerException(message);
+        var span = node?.HasSpan == true ? node.Span : TextSpan.Empty;
+        throw new ObjectDoesNotImplementIndexerException(message, span);
     }
 
     /// <summary>
@@ -4192,7 +4376,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return true;
         }
 
-        throw new AliasAlreadyUsedException(schemaNode, alias);
+        var span = node?.HasSpan == true ? node.Span : TextSpan.Empty;
+        throw new AliasAlreadyUsedException(alias, span);
     }
 
     /// <summary>
@@ -4212,7 +4397,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return true;
         }
 
-        throw new AliasMissingException(methodNode);
+        var span = methodNode.HasSpan ? methodNode.Span : TextSpan.Empty;
+        throw new AliasMissingException(
+            $"Alias must be provided for method call when more than one schema is used. Problem occurred in method {methodNode}",
+            span);
     }
 
     /// <summary>
@@ -4233,7 +4421,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return true;
         }
 
-        throw new TableIsNotDefinedException(tableName);
+        var span = node?.HasSpan == true ? node.Span : TextSpan.Empty;
+        throw new TableIsNotDefinedException(tableName, span);
     }
 
     /// <summary>
@@ -4323,7 +4512,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return true;
         }
 
-        throw new FieldLinkIndexOutOfRangeException(index, maxCount);
+        var span = node?.HasSpan == true ? node.Span : TextSpan.Empty;
+        throw new FieldLinkIndexOutOfRangeException(index, maxCount, span);
     }
 
     /// <summary>
@@ -4345,7 +4535,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             return true;
         }
 
-        throw new ColumnMustBeMarkedAsBindablePropertyAsTableException();
+        var span = node?.HasSpan == true ? node.Span : TextSpan.Empty;
+        throw new ColumnMustBeMarkedAsBindablePropertyAsTableException(columnName, span);
     }
 
     /// <summary>

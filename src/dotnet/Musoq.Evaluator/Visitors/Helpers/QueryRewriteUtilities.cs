@@ -15,6 +15,8 @@ namespace Musoq.Evaluator.Visitors.Helpers;
 /// </summary>
 public static class QueryRewriteUtilities
 {
+    private static readonly Regex UnescapedQuotePattern = new(@"(?<!\\)'", RegexOptions.Compiled);
+
     /// <summary>
     ///     Rewrites nullable boolean expressions to handle proper null semantics.
     /// </summary>
@@ -44,8 +46,7 @@ public static class QueryRewriteUtilities
         if (fieldName == null)
             throw new ArgumentNullException(nameof(fieldName));
 
-        var pattern = @"(?<!\\)'";
-        var result = Regex.Replace(fieldName, pattern, string.Empty);
+        var result = UnescapedQuotePattern.Replace(fieldName, string.Empty);
         result = result.Replace("\\'", "'");
 
         return result;

@@ -1,3 +1,5 @@
+#nullable enable annotations
+
 using System;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

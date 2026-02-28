@@ -13,6 +13,21 @@ namespace Musoq.Evaluator.Tests;
 public class BuildMetadataAndInferTypesVisitorTests
 {
     [TestMethod]
+    public void Constructor_ShouldAcceptSchemaRegistry_AndExposeItViaProperty()
+    {
+        var logger = new Mock<ILogger<BuildMetadataAndInferTypesVisitor>>();
+        var registry = new SchemaRegistry();
+
+        var visitor = new BuildMetadataAndInferTypesVisitor(
+            new EnvironmentVariablesSchemaProvider(),
+            new Dictionary<string, string[]>(),
+            logger.Object,
+            schemaRegistry: registry);
+
+        Assert.AreSame(registry, visitor.SchemaRegistry);
+    }
+
+    [TestMethod]
     public void WhenPassedToSchemaMethodArgumentMustHaveKnownType_ShouldHave()
     {
         var query = "select 1 from #EnironmentVariables.All() d cross apply #EnvironmentVariables.All(d.Key) e";

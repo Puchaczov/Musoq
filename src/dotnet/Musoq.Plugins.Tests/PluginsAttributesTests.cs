@@ -358,49 +358,62 @@ public class PluginsAttributesTests
     [TestMethod]
     public void MethodCategories_String_IsCorrectValue()
     {
-        Assert.AreEqual("String", MethodCategories.String);
+        var value = typeof(MethodCategories).GetField(nameof(MethodCategories.String))?.GetRawConstantValue() as string;
+        Assert.AreEqual("String", value);
     }
 
     [TestMethod]
     public void MethodCategories_Math_IsCorrectValue()
     {
-        Assert.AreEqual("Math", MethodCategories.Math);
+        var value = typeof(MethodCategories).GetField(nameof(MethodCategories.Math))?.GetRawConstantValue() as string;
+        Assert.AreEqual("Math", value);
     }
 
     [TestMethod]
     public void MethodCategories_DateTime_IsCorrectValue()
     {
-        Assert.AreEqual("DateTime", MethodCategories.DateTime);
+        var value =
+            typeof(MethodCategories).GetField(nameof(MethodCategories.DateTime))?.GetRawConstantValue() as string;
+        Assert.AreEqual("DateTime", value);
     }
 
     [TestMethod]
     public void MethodCategories_Conversion_IsCorrectValue()
     {
-        Assert.AreEqual("Conversion", MethodCategories.Conversion);
+        var value =
+            typeof(MethodCategories).GetField(nameof(MethodCategories.Conversion))?.GetRawConstantValue() as string;
+        Assert.AreEqual("Conversion", value);
     }
 
     [TestMethod]
     public void MethodCategories_Aggregate_IsCorrectValue()
     {
-        Assert.AreEqual("Aggregate", MethodCategories.Aggregate);
+        var value =
+            typeof(MethodCategories).GetField(nameof(MethodCategories.Aggregate))?.GetRawConstantValue() as string;
+        Assert.AreEqual("Aggregate", value);
     }
 
     [TestMethod]
     public void MethodCategories_Cryptography_IsCorrectValue()
     {
-        Assert.AreEqual("Cryptography", MethodCategories.Cryptography);
+        var value =
+            typeof(MethodCategories).GetField(nameof(MethodCategories.Cryptography))?.GetRawConstantValue() as string;
+        Assert.AreEqual("Cryptography", value);
     }
 
     [TestMethod]
     public void MethodCategories_Json_IsCorrectValue()
     {
-        Assert.AreEqual("Json", MethodCategories.Json);
+        var value = typeof(MethodCategories).GetField(nameof(MethodCategories.Json))?.GetRawConstantValue() as string;
+        Assert.AreEqual("Json", value);
     }
 
     [TestMethod]
     public void MethodCategories_Network_IsCorrectValue()
     {
-        Assert.AreEqual("Network", MethodCategories.Network);
+        var value = typeof(MethodCategories).GetField(nameof(MethodCategories.Network))
+            ?.GetRawConstantValue() as string;
+        Assert.AreEqual("Network", value);
     }
 
     #endregion

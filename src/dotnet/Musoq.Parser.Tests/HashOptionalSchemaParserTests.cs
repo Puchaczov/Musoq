@@ -973,7 +973,7 @@ public class HashOptionalSchemaParserTests
     public void HashOptional_DescWithCouple_ShouldParse()
     {
         var query =
-            "table T { Id 'System.Int32' }; couple schema.method with table T as Source; select Id from Source()";
+            "table T { Id int }; couple schema.method with table T as Source; select Id from Source()";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
@@ -1102,7 +1102,7 @@ public class HashOptionalSchemaParserTests
     [TestMethod]
     public void HashOptional_CastFunction_ShouldParse()
     {
-        var query = "select Cast(Col, 'System.Int32') from schema.method()";
+        var query = "select Cast(Col, int) from schema.method()";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();

@@ -16,10 +16,10 @@ public class StarTestsWithDateTimeOffset : UnknownQueryTestsBase
     {
         // Arrange
         const string query = "table Dates {" +
-                             "  Id 'System.Int32'," +
-                             "  Name 'System.String'," +
-                             "  CreatedAt 'System.DateTimeOffset'," +
-                             "  UpdatedAt 'System.Nullable`1[System.DateTimeOffset]'" +
+                             "  Id int," +
+                             "  Name string," +
+                             "  CreatedAt datetimeoffset," +
+                             "  UpdatedAt datetimeoffset?" +
                              "};" +
                              "couple #test.whatever with table Dates as Dates; " +
                              "select * from Dates() order by Id";
@@ -55,7 +55,7 @@ public class StarTestsWithDateTimeOffset : UnknownQueryTestsBase
 
         Assert.AreEqual(typeof(int?), idColumn.ColumnType);
         Assert.AreEqual(typeof(string), nameColumn.ColumnType);
-        Assert.AreEqual(typeof(DateTimeOffset), createdAtColumn.ColumnType);
+        Assert.AreEqual(typeof(DateTimeOffset?), createdAtColumn.ColumnType);
         Assert.AreEqual(typeof(DateTimeOffset?), updatedAtColumn.ColumnType);
 
         var idIndex = table.Columns.ToList().IndexOf(idColumn);

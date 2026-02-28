@@ -1,6 +1,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests.Exceptions;
 
@@ -122,7 +123,8 @@ public class EvaluatorExceptionsTests
         var exception = new FromNodeIsNull();
 
         // Assert
-        Assert.Contains("From node is null", exception.Message);
+        Assert.Contains("FROM clause is missing", exception.Message);
+        Assert.AreEqual(DiagnosticCode.MQ2004_MissingFromClause, exception.Code);
     }
 
     #endregion
@@ -412,6 +414,7 @@ public class EvaluatorExceptionsTests
         Assert.AreEqual(operation, exception.Operation);
         Assert.Contains(visitorName, exception.Message);
         Assert.Contains(operation, exception.Message);
+        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, exception.Code);
     }
 
     [TestMethod]
@@ -428,6 +431,7 @@ public class EvaluatorExceptionsTests
 
         // Assert
         Assert.AreEqual(innerException, exception.InnerException);
+        Assert.AreEqual(innerException.ToDiagnosticOrGeneric().Code, exception.Code);
     }
 
     [TestMethod]
@@ -448,6 +452,19 @@ public class EvaluatorExceptionsTests
 
         // Assert
         Assert.AreEqual("Unknown", exception.Operation);
+    }
+
+    [TestMethod]
+    public void VisitorException_WithKnownFallbackInnerException_ShouldUseMappedCode()
+    {
+        // Arrange
+        var innerException = new NotSupportedException("Unsupported operation");
+
+        // Act
+        var exception = new VisitorException("TestVisitor", "Visit", "Error occurred", innerException);
+
+        // Assert
+        Assert.AreEqual(DiagnosticCode.MQ2030_UnsupportedSyntax, exception.Code);
     }
 
     [TestMethod]

@@ -9,14 +9,14 @@ public class AccessMethodNode : Node
 {
     public AccessMethodNode(FunctionToken functionToken, ArgsListNode args, ArgsListNode extraAggregateArguments,
         bool canSkipInjectSource,
-        MethodInfo method = null, string alias = "")
-        : this(functionToken, args, extraAggregateArguments, canSkipInjectSource, method, alias, default)
+        MethodInfo method = null, string alias = "", bool isDistinct = false)
+        : this(functionToken, args, extraAggregateArguments, canSkipInjectSource, method, alias, default, isDistinct)
     {
     }
 
     public AccessMethodNode(FunctionToken functionToken, ArgsListNode args, ArgsListNode extraAggregateArguments,
         bool canSkipInjectSource,
-        MethodInfo method, string alias, TextSpan span)
+        MethodInfo method, string alias, TextSpan span, bool isDistinct = false)
     {
         FunctionToken = functionToken;
         Arguments = args;
@@ -24,7 +24,8 @@ public class AccessMethodNode : Node
         CanSkipInjectSource = canSkipInjectSource;
         Method = method;
         Alias = alias;
-        Id = $"{nameof(AccessMethodNode)}{alias}{functionToken.Value}{args.Id}";
+        IsDistinct = isDistinct;
+        Id = $"{nameof(AccessMethodNode)}{alias}{functionToken.Value}{args.Id}{(isDistinct ? "Distinct" : "")}";
 
         // If no explicit span provided, try to compute from function token and args
         if (span.IsEmpty && functionToken != null)
@@ -54,6 +55,12 @@ public class AccessMethodNode : Node
     public string Alias { get; }
 
     public ArgsListNode ExtraAggregateArguments { get; }
+
+    /// <summary>
+    ///     Indicates whether this aggregate function should operate on distinct values only.
+    ///     Used with aggregate functions like COUNT(DISTINCT column).
+    /// </summary>
+    public bool IsDistinct { get; }
 
     public int ArgsCount => Arguments.Args.Length;
 

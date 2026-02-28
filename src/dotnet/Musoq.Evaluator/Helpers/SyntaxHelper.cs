@@ -380,15 +380,14 @@ public static class SyntaxHelper
     public static InvocationExpressionSyntax CreateEmptyColumnArray()
     {
         return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName("Array"),
-                    SyntaxFactory.GenericName(
-                            SyntaxFactory.Identifier("Empty"))
-                        .WithTypeArgumentList(
-                            SyntaxFactory.TypeArgumentList(
-                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                    SyntaxFactory.IdentifierName("ISchemaColumn"))))))
-            .NormalizeWhitespace();
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName("Array"),
+                SyntaxFactory.GenericName(
+                        SyntaxFactory.Identifier("Empty"))
+                    .WithTypeArgumentList(
+                        SyntaxFactory.TypeArgumentList(
+                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                SyntaxFactory.IdentifierName("ISchemaColumn"))))));
     }
 }

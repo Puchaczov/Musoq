@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿#nullable enable annotations
+
+using System.Collections.Generic;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
@@ -29,10 +30,11 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
 
         var metadata =
             items.CreateBuildMetadataAndInferTypesVisitor?.Invoke(items.SchemaProvider, extractColumnsVisitor.Columns,
-                items.CompilationOptions) ??
-            new BuildMetadataAndInferTypesVisitor(items.SchemaProvider, extractColumnsVisitor.Columns,
+                items.CompilationOptions, items.SchemaRegistry)
+            ?? new BuildMetadataAndInferTypesVisitor(items.SchemaProvider, extractColumnsVisitor.Columns,
                 loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(), items.CompilationOptions,
                 items.SchemaRegistry);
+
         var metadataTraverser = new BuildMetadataAndInferTypesTraverseVisitor(metadata);
 
         queryTree.Accept(metadataTraverser);

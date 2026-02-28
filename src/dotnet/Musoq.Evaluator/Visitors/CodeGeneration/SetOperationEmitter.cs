@@ -143,12 +143,17 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
             .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    CreateElementAccess(first, fieldIndex),
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
                     SyntaxFactory.IdentifierName("Equals")))
             .WithArgumentList(
                 SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(CreateElementAccess(second, fieldIndex)))));
+                    SyntaxFactory.SeparatedList<ArgumentSyntax>(
+                        new SyntaxNodeOrToken[]
+                        {
+                            SyntaxFactory.Argument(CreateElementAccess(first, fieldIndex)),
+                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                            SyntaxFactory.Argument(CreateElementAccess(second, fieldIndex))
+                        })));
     }
 
     private static ElementAccessExpressionSyntax CreateElementAccess(string identifier, int index)

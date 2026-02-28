@@ -299,7 +299,7 @@ public class GenericMethodsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void Coalesce_AllNull_ReturnsDefault()
     {
-        Assert.IsNull(Library.Coalesce<string>(null, null, null));
+        Assert.IsNull(Library.Coalesce<string>(null!, null!, null!));
     }
 
     [TestMethod]
@@ -311,13 +311,13 @@ public class GenericMethodsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void Coalesce_FirstNull_ReturnsSecond()
     {
-        Assert.AreEqual("second", Library.Coalesce<string>(null, "second", "third"));
+        Assert.AreEqual("second", Library.Coalesce<string>(null!, "second", "third"));
     }
 
     [TestMethod]
     public void Coalesce_FirstTwoNull_ReturnsThird()
     {
-        Assert.AreEqual("third", Library.Coalesce<string>(null, null, "third"));
+        Assert.AreEqual("third", Library.Coalesce<string>(null!, null!, "third"));
     }
 
     [TestMethod]
@@ -329,7 +329,7 @@ public class GenericMethodsExtendedTests : LibraryBaseBaseTests
     [TestMethod]
     public void Coalesce_SingleNullElement_ReturnsDefault()
     {
-        Assert.IsNull(Library.Coalesce<string>(new string?[] { null }));
+        Assert.IsNull(Library.Coalesce<string>(new string[] { null! }));
     }
 
     [TestMethod]

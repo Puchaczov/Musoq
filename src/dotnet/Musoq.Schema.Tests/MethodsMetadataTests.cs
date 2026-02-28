@@ -27,12 +27,71 @@ public class MethodsMetadataTests
         Assert.AreEqual(typeof(string[]), parameters[1].ParameterType);
     }
 
+    [TestMethod]
+    public void WhenRegisteringDerivedLibrary_ShouldResolveMethodsFromConcreteHierarchy()
+    {
+        var methodsManager = new MethodsManager();
+
+        methodsManager.RegisterLibraries(new DerivedTestLibraryBase());
+
+        var hasDerivedMethod = methodsManager.TryGetMethod(nameof(DerivedTestLibraryBase.DerivedMethod),
+            [typeof(string)], null, out _);
+        var hasIntermediateMethod = methodsManager.TryGetMethod(nameof(IntermediateTestLibraryBase.IntermediateMethod),
+            [typeof(int)], null, out _);
+        var hasLibraryBaseMethod = methodsManager.TryGetMethod(nameof(LibraryBase.GetTypeName), [typeof(object)], null,
+            out _);
+
+        Assert.IsTrue(hasDerivedMethod);
+        Assert.IsTrue(hasIntermediateMethod);
+        Assert.IsTrue(hasLibraryBaseMethod);
+    }
+
+    [TestMethod]
+    public void WhenRegisteringDerivedLibrary_ShouldNotResolveMethodsOutsideConcreteHierarchy()
+    {
+        var methodsManager = new MethodsManager();
+
+        methodsManager.RegisterLibraries(new DerivedTestLibraryBase());
+
+        var hasSiblingMethod = methodsManager.TryGetMethod(nameof(SiblingTestLibraryBase.SiblingMethod), [typeof(int)],
+            null, out _);
+
+        Assert.IsFalse(hasSiblingMethod);
+    }
+
     private class TestLibraryBase : LibraryBase
     {
         [BindableMethod]
         public int TestMethod1([InjectSpecificSource(typeof(TestEntity))] TestEntity entity, params string[] arguments)
         {
             return 0;
+        }
+    }
+
+    private class IntermediateTestLibraryBase : LibraryBase
+    {
+        [BindableMethod]
+        public int IntermediateMethod(int value)
+        {
+            return value;
+        }
+    }
+
+    private sealed class DerivedTestLibraryBase : IntermediateTestLibraryBase
+    {
+        [BindableMethod]
+        public string DerivedMethod(string value)
+        {
+            return value;
+        }
+    }
+
+    private sealed class SiblingTestLibraryBase : LibraryBase
+    {
+        [BindableMethod]
+        public int SiblingMethod(int value)
+        {
+            return value;
         }
     }
 

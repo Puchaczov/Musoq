@@ -137,6 +137,12 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         if (!VisitForArgsListNode((ArgsListNode)node.Right)) Nodes.Push(clonedNode);
     }
 
+    public override void Visit(BetweenNode node)
+    {
+        var clonedNode = Nodes.Pop();
+        Nodes.Push(clonedNode);
+    }
+
     private bool ContainsOtherAlias(Node node)
     {
         var visitor = new IsComplexVisitor(_schemaFromNode.Alias);

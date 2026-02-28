@@ -1,15 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Components;
-using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
-using Musoq.Schema.Managers;
 using Musoq.Tests.Common;
-using SchemaColumn = Musoq.Schema.DataSources.SchemaColumn;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -40,17 +35,19 @@ public class CoupledSchemaQueryHintsTests
         var api = new ApiDataSourceQueryHintsIntegrationTests.FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity { Id = i, Name = $"Item{i}" });
+            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
+                { Id = i, Name = $"Item{i}" });
         });
 
         var query = @"
-            table Person { Name 'System.String', Status 'System.String', Priority 'System.Int32' };
+            table Person { Name string, Status string, Priority int };
             couple #api.items with table Person as People;
             select p.Name, p.Priority from People() p skip 10";
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert
@@ -70,17 +67,19 @@ public class CoupledSchemaQueryHintsTests
         var api = new ApiDataSourceQueryHintsIntegrationTests.FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity { Id = i, Name = $"Item{i}" });
+            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
+                { Id = i, Name = $"Item{i}" });
         });
 
         var query = @"
-            table Person { Name 'System.String', Status 'System.String', Priority 'System.Int32' };
+            table Person { Name string, Status string, Priority int };
             couple #api.items with table Person as People;
             select p.Name, p.Priority from People() p take 5";
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert
@@ -100,17 +99,19 @@ public class CoupledSchemaQueryHintsTests
         var api = new ApiDataSourceQueryHintsIntegrationTests.FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity { Id = i, Name = $"Item{i}" });
+            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
+                { Id = i, Name = $"Item{i}" });
         });
 
         var query = @"
-            table Person { Name 'System.String', Status 'System.String', Priority 'System.Int32' };
+            table Person { Name string, Status string, Priority int };
             couple #api.items with table Person as People;
             select p.Name, p.Priority from People() p skip 10 take 5";
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert
@@ -130,17 +131,19 @@ public class CoupledSchemaQueryHintsTests
         var api = new ApiDataSourceQueryHintsIntegrationTests.FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity { Id = i % 10, Name = $"Item{i % 10}" });
+            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
+                { Id = i % 10, Name = $"Item{i % 10}" });
         });
 
         var query = @"
-            table Person { Name 'System.String', Status 'System.String', Priority 'System.Int32' };
+            table Person { Name string, Status string, Priority int };
             couple #api.items with table Person as People;
             select distinct p.Name from People() p skip 2 take 3";
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert - DISTINCT creates implicit GROUP BY
@@ -158,17 +161,19 @@ public class CoupledSchemaQueryHintsTests
         var api = new ApiDataSourceQueryHintsIntegrationTests.FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity { Id = i, Name = $"Item{i}" });
+            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
+                { Id = i, Name = $"Item{i}" });
         });
 
         var query = @"
-            table Person { Name 'System.String', Status 'System.String', Priority 'System.Int32' };
+            table Person { Name string, Status string, Priority int };
             couple #api.items with table Person as People;
             select p.Name, p.Priority from People() p order by p.Name skip 10 take 5";
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert - ORDER BY means no hints
@@ -186,17 +191,19 @@ public class CoupledSchemaQueryHintsTests
         var api = new ApiDataSourceQueryHintsIntegrationTests.FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity { Id = i, Name = $"Category{i % 5}" });
+            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
+                { Id = i, Name = $"Category{i % 5}" });
         });
 
         var query = @"
-            table Person { Name 'System.String', Status 'System.String', Priority 'System.Int32' };
+            table Person { Name string, Status string, Priority int };
             couple #api.items with table Person as People;
             select p.Name, Count(p.Priority) from People() p group by p.Name take 3";
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert - GROUP BY means no hints
@@ -214,7 +221,7 @@ public class CoupledSchemaQueryHintsTests
         RuntimeContext capturedCategoriesContext = null;
 
         var multiApi = new ApiDataSourceQueryHintsIntegrationTests.FakeMultiApiDataSource(
-            itemsProvider: ctx =>
+            ctx =>
             {
                 capturedItemsContext = ctx;
                 return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
@@ -224,7 +231,7 @@ public class CoupledSchemaQueryHintsTests
                     Status = $"cat{i % 3}"
                 });
             },
-            categoriesProvider: ctx =>
+            ctx =>
             {
                 capturedCategoriesContext = ctx;
                 return Enumerable.Range(0, 3).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeCategoryEntity
@@ -235,8 +242,8 @@ public class CoupledSchemaQueryHintsTests
             });
 
         var query = @"
-            table Item { Id 'System.Int32', Name 'System.String', Status 'System.String' };
-            table Category { CategoryId 'System.String', CategoryName 'System.String' };
+            table Item { Id int, Name string, Status string };
+            table Category { CategoryId string, CategoryName string };
             couple #multiapi.items with table Item as Items;
             couple #multiapi.categories with table Category as Categories;
             select i.Name, c.CategoryName 
@@ -246,7 +253,8 @@ public class CoupledSchemaQueryHintsTests
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeMultiApiSchemaProvider(multiApi), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeMultiApiSchemaProvider(multiApi), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert - Multi-table means no hints for any source
@@ -267,17 +275,19 @@ public class CoupledSchemaQueryHintsTests
         var api = new ApiDataSourceQueryHintsIntegrationTests.FakeApiDataSource(ctx =>
         {
             capturedContext = ctx;
-            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity { Id = i, Name = $"Item{i}" });
+            return Enumerable.Range(1, 100).Select(i => new ApiDataSourceQueryHintsIntegrationTests.FakeApiEntity
+                { Id = i, Name = $"Item{i}" });
         });
 
         var query = @"
-            table Person { Name 'System.String', Status 'System.String', Priority 'System.Int32' };
+            table Person { Name string, Status string, Priority int };
             couple #api.items with table Person as People;
             select p.Name, p.Priority from People() p";
 
         // Act
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
-            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver, TestCompilationOptions);
+            new ApiDataSourceQueryHintsIntegrationTests.FakeApiSchemaProvider(api), LoggerResolver,
+            TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
         // Assert - No optimization clauses means QueryHints.Empty
@@ -287,4 +297,3 @@ public class CoupledSchemaQueryHintsTests
             "No optimization clauses should result in no hints");
     }
 }
-

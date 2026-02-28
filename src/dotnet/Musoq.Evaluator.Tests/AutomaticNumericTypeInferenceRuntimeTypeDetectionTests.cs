@@ -14,8 +14,8 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     public void WhenObjectContainsByte_AndComparingToInt_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value > 100";
@@ -45,8 +45,8 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     public void WhenObjectContainsLong_AndComparingToInt_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value > 1000";
@@ -76,8 +76,8 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     public void WhenObjectContainsDouble_AndComparingToDecimal_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Price 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Price object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Price > 25.00";
@@ -107,8 +107,8 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     public void WhenObjectContainsDecimal_AndComparingToDecimal_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Price 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Price object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Price = 30.50";
@@ -136,8 +136,8 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     public void WhenObjectContainsMixedNumericTypes_ShouldHandleAll()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value > 100";
@@ -178,8 +178,8 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     public void WhenObjectContainsFloat_AndComparingToInt_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value > 100";
@@ -209,8 +209,8 @@ public class AutomaticNumericTypeInferenceRuntimeTypeDetectionTests : UnknownQue
     public void WhenObjectContainsShort_AndComparingToInt_ShouldWork()
     {
         const string query = "table Items {" +
-                             "  Value 'System.Object'," +
-                             "  Name 'System.String'" +
+                             "  Value object," +
+                             "  Name string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Value = 150";

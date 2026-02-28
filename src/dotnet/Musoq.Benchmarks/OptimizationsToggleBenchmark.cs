@@ -328,7 +328,3 @@ public class OptimizationsToggleBenchmark
 
     #endregion
 }
-
-#region Schema Implementation for OptimizationsToggleBenchmark
-
-#endregion

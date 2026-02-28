@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Visitors;
-using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
@@ -54,17 +53,18 @@ public sealed class QueryAnalyzer
         try
         {
             var lexer = new Lexer(query, true);
-            var parser = new Musoq.Parser.Parser(lexer, diagnosticBag, true);
+            var parser = new Musoq.Parser.Parser(lexer, diagnosticBag);
             var parseResult = parser.ParseWithDiagnostics();
 
             rootNode = parseResult.Root;
         }
         catch (Exception ex)
         {
+            var diagnostic = ex.ToDiagnosticOrGeneric(sourceText);
             diagnosticBag.AddError(
-                DiagnosticCode.MQ2001_UnexpectedToken,
-                $"Fatal parse error: {ex.Message}",
-                TextSpan.Empty);
+                diagnostic.Code,
+                diagnostic.Message,
+                diagnostic.Span);
         }
 
         if (rootNode == null)
@@ -126,16 +126,17 @@ public sealed class QueryAnalyzer
         try
         {
             var lexer = new Lexer(query, true);
-            var parser = new Musoq.Parser.Parser(lexer, diagnosticBag, true);
+            var parser = new Musoq.Parser.Parser(lexer, diagnosticBag);
             var parseResult = parser.ParseWithDiagnostics();
             rootNode = parseResult.Root;
         }
         catch (Exception ex)
         {
+            var diagnostic = ex.ToDiagnosticOrGeneric(sourceText);
             diagnosticBag.AddError(
-                DiagnosticCode.MQ2001_UnexpectedToken,
-                $"Parse error: {ex.Message}",
-                TextSpan.Empty);
+                diagnostic.Code,
+                diagnostic.Message,
+                diagnostic.Span);
         }
 
         return new QueryAnalysisResult

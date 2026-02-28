@@ -50,8 +50,7 @@ public static class LiteralNodeSyntaxConverter
             .WithOpenParenToken(
                 SyntaxFactory.Token(SyntaxKind.OpenParenToken))
             .WithCloseParenToken(
-                SyntaxFactory.Token(SyntaxKind.CloseParenToken))
-            .NormalizeWhitespace();
+                SyntaxFactory.Token(SyntaxKind.CloseParenToken));
     }
 
     /// <summary>

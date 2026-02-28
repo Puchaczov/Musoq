@@ -27,6 +27,7 @@ public interface IExpressionVisitor
     void Visit(LikeNode node);
     void Visit(RLikeNode node);
     void Visit(InNode node);
+    void Visit(BetweenNode node);
     void Visit(FieldNode node);
     void Visit(FieldOrderedNode node);
     void Visit(StringNode node);
