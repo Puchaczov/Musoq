@@ -326,7 +326,7 @@ public class MethodsMetadata
         for (var i = 0; i < methodCount; i++)
             scoredMethods[i] = (MeasureHowCloseTheMethodIsAgainstTheArguments(methods[i]), i);
 
-        scoredMethods.Sort((a, b) => a.Score.CompareTo(b.Score));
+        scoredMethods.Sort(static (a, b) => a.Score.CompareTo(b.Score));
 
         MethodInfo firstMatchMethod = null;
         MethodInfo secondMatchMethod = null;

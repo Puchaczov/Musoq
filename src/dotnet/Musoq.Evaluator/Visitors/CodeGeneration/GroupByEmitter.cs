@@ -173,29 +173,30 @@ internal static class GroupByEmitter
 
     private static StatementSyntax CreateGroupLookupIfStatement()
     {
-        var condition = SyntaxFactory.InvocationExpression(
+        var tryGetValueCall = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName("groups"),
-                    SyntaxFactory.IdentifierName("ContainsKey")))
+                    SyntaxFactory.IdentifierName("TryGetValue")))
             .WithArgumentList(
                 SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("key")))));
+                    SyntaxFactory.SeparatedList<ArgumentSyntax>(new SyntaxNodeOrToken[]
+                    {
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("key")),
+                        SyntaxFactory.Token(SyntaxKind.CommaToken),
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("group"))
+                            .WithRefKindKeyword(SyntaxFactory.Token(SyntaxKind.OutKeyword))
+                    })));
+
+        var condition = SyntaxFactory.PrefixUnaryExpression(
+            SyntaxKind.LogicalNotExpression,
+            tryGetValueCall);
 
         var thenBlock = StatementEmitter.CreateBlock(
-            StatementEmitter.CreateAssignment("group",
-                SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("groups"))
-                    .WithArgumentList(
-                        SyntaxFactory.BracketedArgumentList(
-                            SyntaxFactory.SingletonSeparatedList(
-                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("key")))))));
-
-        var elseBlock = StatementEmitter.CreateBlock(
             CreateGroupCreationAssignment(),
             CreateGroupsAddInvocation());
 
-        return StatementEmitter.CreateIf(condition, thenBlock, elseBlock);
+        return StatementEmitter.CreateIf(condition, thenBlock);
     }
 
     private static StatementSyntax CreateGroupCreationAssignment()

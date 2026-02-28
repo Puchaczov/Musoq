@@ -58,15 +58,12 @@ public abstract class Row : IEquatable<Row>, IValue<Key>, IReadOnlyRow
 
     public override int GetHashCode()
     {
-        var hashCode = -1000162029;
+        var hashCode = new HashCode();
 
         for (int i = 0, j = Count; i < j; ++i)
-        {
-            var value = this[i];
-            hashCode = hashCode * -1521134295 + (value?.GetHashCode() ?? 0);
-        }
+            hashCode.Add(this[i]);
 
-        return hashCode;
+        return hashCode.ToHashCode();
     }
 
     public bool CheckWithKey(Key key)

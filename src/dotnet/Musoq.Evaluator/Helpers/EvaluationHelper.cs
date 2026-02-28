@@ -645,6 +645,9 @@ public static class EvaluationHelper
     /// </returns>
     public static object[] FlattenContexts(params object[][] contexts)
     {
+        if (contexts.Length == 1)
+            return contexts[0] ?? [null];
+
         var size = 0;
         for (var i = 0; i < contexts.Length; i++)
             if (contexts[i] != null)

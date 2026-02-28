@@ -1,18 +1,28 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 using System.Text;
 
 namespace Musoq.Evaluator.Tables;
 
 [DebuggerDisplay("{ToString()}")]
-public class GroupKey(params object[] values)
+public class GroupKey : IEquatable<GroupKey>
 {
-    public readonly object[] Values = values;
+    public readonly object[] Values;
+    private readonly int _cachedHashCode;
+
+    public GroupKey(params object[] values)
+    {
+        Values = values;
+        _cachedHashCode = ComputeHash(values);
+    }
 
     public bool Equals(GroupKey other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
+
+        if (_cachedHashCode != other._cachedHashCode)
+            return false;
 
         if (Values.Length != other.Values.Length)
             return false;
@@ -54,61 +64,30 @@ public class GroupKey(params object[] values)
 
     public override bool Equals(object obj)
     {
-        if (ReferenceEquals(null, obj)) return false;
-        if (ReferenceEquals(this, obj)) return true;
-        if (obj.GetType() != GetType()) return false;
-        return Equals(Values, ((GroupKey)obj).Values);
+        return obj is GroupKey other && Equals(other);
     }
 
-    public override int GetHashCode()
+    public override int GetHashCode() => _cachedHashCode;
+
+    private static int ComputeHash(object[] values)
     {
-        unchecked
+        return values.Length switch
         {
-            var hash = 0;
-            for (var i = 0; i < Values.Length; ++i)
-            {
-                var val = Values[i];
-
-                if (val == null)
-                    continue;
-
-                hash += val.GetHashCode();
-            }
-
-            return hash;
-        }
+            0 => 0,
+            1 => values[0]?.GetHashCode() ?? 0,
+            2 => HashCode.Combine(values[0], values[1]),
+            3 => HashCode.Combine(values[0], values[1], values[2]),
+            _ => ComputeFullHash(values)
+        };
     }
 
-    private static bool Equals<T>(IReadOnlyList<T> first, IReadOnlyList<T> second)
+    private static int ComputeFullHash(object[] values)
     {
-        if (first.Count != second.Count)
-            return false;
+        var hashCode = new HashCode();
 
-        var areEqual = true;
+        for (var i = 0; i < values.Length; ++i)
+            hashCode.Add(values[i]);
 
-        for (var i = 0; i < first.Count && areEqual; i++)
-        {
-            var f = first[i];
-            var s = second[i];
-
-            if (f == null && s == null)
-                continue;
-
-            if (f != null && s == null)
-            {
-                areEqual = false;
-                continue;
-            }
-
-            if (f == null)
-            {
-                areEqual = false;
-                continue;
-            }
-
-            areEqual &= f.Equals(s);
-        }
-
-        return areEqual;
+        return hashCode.ToHashCode();
     }
 }

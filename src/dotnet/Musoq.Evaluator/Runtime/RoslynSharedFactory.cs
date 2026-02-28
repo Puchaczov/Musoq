@@ -60,7 +60,7 @@ public static class RoslynSharedFactory
         return compilation.WithOptions(
             new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
-                    optimizationLevel: OptimizationLevel.Debug,
+                    optimizationLevel: OptimizationLevel.Release,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
                     deterministic: false)
                 .WithConcurrentBuild(false)

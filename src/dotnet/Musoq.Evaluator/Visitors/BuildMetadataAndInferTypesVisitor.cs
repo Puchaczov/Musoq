@@ -44,6 +44,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     private static readonly WhereNode AllTrueWhereNode =
         new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
 
+    private static readonly Dictionary<Type, DynamicObjectPropertyTypeHintAttribute[]> TypeHintAttributeCache = new();
+
     private readonly IDictionary<string, string> _aliasMapToInMemoryTableMap =
         new Dictionary<string, string>();
 
@@ -747,8 +749,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         if (parentNodeType != null && parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
-            var typeHintingAttributes =
-                parentNodeType.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray();
+            var typeHintingAttributes = GetCachedTypeHintAttributes(parentNodeType);
 
             foreach (var t in typeHintingAttributes)
             {
@@ -900,8 +901,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var parentNodeType = parentNode.ReturnType;
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
-            var typeHintingAttributes =
-                parentNodeType.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray();
+            var typeHintingAttributes = GetCachedTypeHintAttributes(parentNodeType);
 
             foreach (var t in typeHintingAttributes)
             {
@@ -1038,8 +1038,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         if (parentNodeType == typeof(object) || parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
-            var typeHintingAttributes =
-                parentNodeType.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray();
+            var typeHintingAttributes = GetCachedTypeHintAttributes(parentNodeType);
 
             foreach (var t in typeHintingAttributes)
             {
@@ -4659,4 +4658,17 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     }
 
     #endregion
+
+    private static DynamicObjectPropertyTypeHintAttribute[] GetCachedTypeHintAttributes(Type type)
+    {
+        lock (TypeHintAttributeCache)
+        {
+            if (TypeHintAttributeCache.TryGetValue(type, out var cached))
+                return cached;
+
+            var attributes = type.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray();
+            TypeHintAttributeCache[type] = attributes;
+            return attributes;
+        }
+    }
 }

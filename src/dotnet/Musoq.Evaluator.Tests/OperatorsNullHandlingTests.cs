@@ -174,4 +174,124 @@ public class OperatorsNullHandlingTests
     }
 
     #endregion
+
+    #region LIKE Fast Path Tests
+
+    [TestMethod]
+    public void Like_WhenPatternHasNoWildcards_ShouldMatchExact()
+    {
+        Assert.IsTrue(_operators.Like("hello", "hello"));
+        Assert.IsFalse(_operators.Like("hello", "world"));
+    }
+
+    [TestMethod]
+    public void Like_WhenPatternHasNoWildcards_ShouldBeCaseInsensitive()
+    {
+        Assert.IsTrue(_operators.Like("Hello", "HELLO"));
+        Assert.IsTrue(_operators.Like("WORLD", "world"));
+    }
+
+    [TestMethod]
+    public void Like_WhenPatternStartsWithPercent_ShouldMatchSuffix()
+    {
+        Assert.IsTrue(_operators.Like("hello world", "%world"));
+        Assert.IsFalse(_operators.Like("hello world", "%xyz"));
+    }
+
+    [TestMethod]
+    public void Like_WhenPatternEndsWithPercent_ShouldMatchPrefix()
+    {
+        Assert.IsTrue(_operators.Like("hello world", "hello%"));
+        Assert.IsFalse(_operators.Like("hello world", "xyz%"));
+    }
+
+    [TestMethod]
+    public void Like_WhenPatternWrappedWithPercent_ShouldMatchContains()
+    {
+        Assert.IsTrue(_operators.Like("hello world", "%lo wo%"));
+        Assert.IsFalse(_operators.Like("hello world", "%xyz%"));
+    }
+
+    [TestMethod]
+    public void Like_WhenPatternIsSinglePercent_ShouldMatchAnything()
+    {
+        Assert.IsTrue(_operators.Like("anything", "%"));
+        Assert.IsTrue(_operators.Like("", "%"));
+    }
+
+    [TestMethod]
+    public void Like_WhenPatternIsDoublePercent_ShouldMatchAnything()
+    {
+        Assert.IsTrue(_operators.Like("anything", "%%"));
+        Assert.IsTrue(_operators.Like("", "%%"));
+    }
+
+    [TestMethod]
+    public void Like_WhenPatternHasMultiplePercents_ShouldFallbackToRegex()
+    {
+        Assert.IsTrue(_operators.Like("hello world foo", "hello%world%foo"));
+        Assert.IsFalse(_operators.Like("hello world foo", "hello%bar%foo"));
+    }
+
+    [TestMethod]
+    public void Like_WhenPatternHasUnderscore_ShouldFallbackToRegex()
+    {
+        Assert.IsTrue(_operators.Like("hat", "h_t"));
+        Assert.IsFalse(_operators.Like("hoot", "h_t"));
+    }
+
+    [TestMethod]
+    public void Like_WhenPatternHasNonAscii_ShouldFallbackToRegex()
+    {
+        Assert.IsTrue(_operators.Like("café", "caf%"));
+        Assert.IsTrue(_operators.Like("naïve", "%ïve"));
+    }
+
+    [TestMethod]
+    public void Like_WhenPatternIsEmpty_ShouldMatchEmptyString()
+    {
+        Assert.IsTrue(_operators.Like("", ""));
+        Assert.IsFalse(_operators.Like("notempty", ""));
+    }
+
+    [TestMethod]
+    public void Like_WhenSuffixMatchIsCaseInsensitive_ShouldWork()
+    {
+        Assert.IsTrue(_operators.Like("Hello World", "%WORLD"));
+        Assert.IsTrue(_operators.Like("HELLO WORLD", "%world"));
+    }
+
+    [TestMethod]
+    public void Like_WhenPrefixMatchIsCaseInsensitive_ShouldWork()
+    {
+        Assert.IsTrue(_operators.Like("Hello World", "HELLO%"));
+        Assert.IsTrue(_operators.Like("HELLO WORLD", "hello%"));
+    }
+
+    [TestMethod]
+    public void Like_WhenContainsMatchIsCaseInsensitive_ShouldWork()
+    {
+        Assert.IsTrue(_operators.Like("Hello World", "%LO WO%"));
+        Assert.IsTrue(_operators.Like("HELLO WORLD", "%lo wo%"));
+    }
+
+    [TestMethod]
+    public void Like_WhenPatternHasRegexSpecialChars_ShouldTreatAsLiteral()
+    {
+        Assert.IsTrue(_operators.Like("price is $100", "%$100"));
+        Assert.IsTrue(_operators.Like("file.txt", "file.txt"));
+        Assert.IsTrue(_operators.Like("(test)", "%(test)%"));
+    }
+
+    [TestMethod]
+    public void Like_WhenCalledMultipleTimes_ShouldUseCachedMatcher()
+    {
+        var pattern = "cached_test%";
+
+        Assert.IsTrue(_operators.Like("cached_test_value1", pattern));
+        Assert.IsTrue(_operators.Like("cached_test_value2", pattern));
+        Assert.IsFalse(_operators.Like("other_value", pattern));
+    }
+
+    #endregion
 }

@@ -68,7 +68,7 @@ public sealed class Group
         if (Converters.TryGetValue(name, out var converter))
             return (T?)converter(value);
 
-        return (T?)Values[name];
+        return (T?)value;
     }
 
     /// <summary>
@@ -95,10 +95,11 @@ public sealed class Group
     /// <returns></returns>
     public T? GetOrCreateValue<T>(string name, T? defValue = default)
     {
-        if (!Values.ContainsKey(name))
-            Values.Add(name, defValue);
+        if (Values.TryGetValue(name, out var existing))
+            return (T?)existing;
 
-        return (T?)Values[name];
+        Values.Add(name, defValue);
+        return defValue;
     }
 
     /// <summary>
@@ -110,10 +111,12 @@ public sealed class Group
     /// <returns></returns>
     public T? GetOrCreateValue<T>(string name, Func<T> createDefault)
     {
-        if (!Values.ContainsKey(name))
-            Values.Add(name, createDefault());
+        if (Values.TryGetValue(name, out var existing))
+            return (T?)existing;
 
-        return (T?)Values[name];
+        var created = createDefault();
+        Values.Add(name, created);
+        return created;
     }
 
     /// <summary>
@@ -138,11 +141,14 @@ public sealed class Group
     /// <returns></returns>
     public TR? GetOrCreateValueWithConverter<T, TR>(string name, T value, Func<object?, object?> converter)
     {
-        if (!Values.ContainsKey(name))
-            Values.Add(name, value);
+        if (!Values.TryGetValue(name, out var existing))
+        {
+            existing = value;
+            Values.Add(name, existing);
+        }
 
         Converters.TryAdd(name, converter);
 
-        return (TR?)Converters[name](Values[name]);
+        return (TR?)converter(existing);
     }
 }
