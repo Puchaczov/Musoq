@@ -3,22 +3,42 @@ name: CI
 on:
   push:
     branches:
-      - '**'
+      - master
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - 'LICENSE'
+      - '.github/workflows/jekyll-gh-pages.yml'
+      - '.github/workflows/update-badge.yml'
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - 'LICENSE'
+      - '.github/workflows/jekyll-gh-pages.yml'
+      - '.github/workflows/update-badge.yml'
 
 jobs:
   build:
-    strategy:
-      matrix:
-        runs-on: [windows-latest]
-
-    runs-on: ${{ matrix.runs-on }}
-    name: Running tests on ${{ matrix.runs-on }}.
+    runs-on: ubuntu-latest
+    name: Running tests on ubuntu-latest.
     steps:
     - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
-        ref: ${{ github.ref }}
-    - name: Install trx2junit
-      run: dotnet tool install -g trx2junit
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Build.props') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
     - name: Build & Run tests
       run: dotnet test src/dotnet/Musoq.sln --configuration Release --logger "trx;LogFileName=test-results.trx"

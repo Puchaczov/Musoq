@@ -7,7 +7,7 @@ on:
 
 jobs:
   update-badge:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     name: Update test results badge
@@ -16,12 +16,20 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        fetch-depth: 1
     
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
+    
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Build.props') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
     
     - name: Install trx2junit
       run: dotnet tool install -g trx2junit
@@ -30,14 +38,16 @@ jobs:
       run: dotnet test src/dotnet/Musoq.sln --configuration Release --logger "trx;LogFileName=test-results.trx"
     
     - name: Convert TRX to JUnit
+      shell: pwsh
       run: |
         $trxFiles = Get-ChildItem -Recurse -Filter test-results.trx
         $trx2junitPath = (Get-Command trx2junit).Source
         foreach ($trxFile in $trxFiles) {
-          & $trx2junitPath $trxFile.FullName --output ($trxFile.DirectoryName + "\test-results.xml")
+          & $trx2junitPath $trxFile.FullName --output (Join-Path $trxFile.DirectoryName "test-results.xml")
         }
     
     - name: Merge JUnit results
+      shell: pwsh
       run: |
         $xmlFiles = Get-ChildItem -Recurse -File -Filter test-results.xml
         $mergedXml = [xml]"<testsuites></testsuites>"
