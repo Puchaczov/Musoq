@@ -23,7 +23,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Build and test
+    name: Running tests on ubuntu-latest.
     steps:
     - uses: actions/checkout@v4
 
