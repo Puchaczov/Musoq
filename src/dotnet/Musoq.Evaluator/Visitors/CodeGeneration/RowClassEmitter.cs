@@ -33,9 +33,10 @@ internal static class RowClassEmitter
         var constructor = CreateConstructor(className, constructorParams, constructorBody);
         var indexer = CreateIndexer(node.Fields.Length);
         var countProp = CreateCountProperty(node.Fields.Length);
-        var valuesProp = CreateValuesProperty(valuesInit);
+        var (valuesBackingField, valuesProp) = CreateValuesPropertyWithCache(valuesInit);
         var contextsProp = CreateContextsProperty();
 
+        fields.Add(valuesBackingField);
         fields.Add(contextsProp);
 
         return SyntaxFactory.ClassDeclaration(className)
@@ -85,13 +86,34 @@ internal static class RowClassEmitter
             contextExprs.Add(SyntaxFactory.IdentifierName(paramName));
         }
 
-        var flattenContextsInvocation = SyntaxFactory.InvocationExpression(
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                SyntaxFactory.IdentifierName(nameof(EvaluationHelper.FlattenContexts))),
-            SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
-                contextExprs.Select(SyntaxFactory.Argument))));
+        ExpressionSyntax contextsExpression;
+        if (contexts.Length == 1)
+        {
+            contextsExpression = SyntaxFactory.BinaryExpression(
+                SyntaxKind.CoalesceExpression,
+                contextExprs[0],
+                SyntaxFactory.ArrayCreationExpression(
+                    SyntaxFactory.ArrayType(
+                            SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
+                        .WithRankSpecifiers(SyntaxFactory.SingletonList(
+                            SyntaxFactory.ArrayRankSpecifier(
+                                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                    SyntaxFactory.OmittedArraySizeExpression())))),
+                    SyntaxFactory.InitializerExpression(
+                        SyntaxKind.ArrayInitializerExpression,
+                        SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)))));
+        }
+        else
+        {
+            contextsExpression = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper.FlattenContexts))),
+                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                    contextExprs.Select(SyntaxFactory.Argument))));
+        }
 
         var contextBody = new List<StatementSyntax>
         {
@@ -99,7 +121,7 @@ internal static class RowClassEmitter
                 SyntaxFactory.AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
                     SyntaxFactory.IdentifierName("Contexts"),
-                    flattenContextsInvocation))
+                    contextsExpression))
         };
 
         return (contextParams, contextBody);
@@ -143,21 +165,29 @@ internal static class RowClassEmitter
 
     private static IndexerDeclarationSyntax CreateIndexer(int fieldCount)
     {
-        var indexerBody = StatementEmitter.CreateEmptyBlock();
+        var switchSections = new List<SwitchSectionSyntax>();
 
         for (var i = 0; i < fieldCount; i++)
-            indexerBody = indexerBody.AddStatements(
-                StatementEmitter.CreateIf(
-                    SyntaxFactory.BinaryExpression(
-                        SyntaxKind.EqualsExpression,
-                        SyntaxFactory.IdentifierName("index"),
-                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i))),
-                    StatementEmitter.CreateReturn(SyntaxFactory.IdentifierName($"Item{i}"))));
+            switchSections.Add(
+                SyntaxFactory.SwitchSection()
+                    .WithLabels(SyntaxFactory.SingletonList<SwitchLabelSyntax>(
+                        SyntaxFactory.CaseSwitchLabel(
+                            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i)))))
+                    .WithStatements(SyntaxFactory.SingletonList<StatementSyntax>(
+                        StatementEmitter.CreateReturn(SyntaxFactory.IdentifierName($"Item{i}")))));
 
-        indexerBody = indexerBody.AddStatements(
-            StatementEmitter.CreateThrow(
-                SyntaxFactory.ObjectCreationExpression(SyntaxHelper.IndexOutOfRangeExceptionTypeSyntax)
-                    .WithArgumentList(SyntaxFactory.ArgumentList())));
+        switchSections.Add(
+            SyntaxFactory.SwitchSection()
+                .WithLabels(SyntaxFactory.SingletonList<SwitchLabelSyntax>(SyntaxFactory.DefaultSwitchLabel()))
+                .WithStatements(SyntaxFactory.SingletonList<StatementSyntax>(
+                    StatementEmitter.CreateThrow(
+                        SyntaxFactory.ObjectCreationExpression(SyntaxHelper.IndexOutOfRangeExceptionTypeSyntax)
+                            .WithArgumentList(SyntaxFactory.ArgumentList())))));
+
+        var switchStatement = SyntaxFactory.SwitchStatement(SyntaxFactory.IdentifierName("index"))
+            .WithSections(SyntaxFactory.List(switchSections));
+
+        var indexerBody = SyntaxFactory.Block(switchStatement);
 
         return SyntaxFactory
             .IndexerDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
@@ -185,19 +215,35 @@ internal static class RowClassEmitter
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 
-    private static PropertyDeclarationSyntax CreateValuesProperty(List<ExpressionSyntax> valuesInit)
+    private static (FieldDeclarationSyntax BackingField, PropertyDeclarationSyntax Property)
+        CreateValuesPropertyWithCache(List<ExpressionSyntax> valuesInit)
     {
-        return SyntaxFactory.PropertyDeclaration(SyntaxHelper.ObjectArrayTypeSyntax, "Values")
+        var backingField = SyntaxFactory.FieldDeclaration(
+                SyntaxFactory.VariableDeclaration(
+                        SyntaxFactory.NullableType(SyntaxHelper.ObjectArrayTypeSyntax))
+                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator("_values"))))
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)));
+
+        var arrayCreation = SyntaxFactory.ArrayCreationExpression(
+            SyntaxHelper.ObjectArrayTypeSyntax,
+            SyntaxFactory.InitializerExpression(
+                SyntaxKind.ArrayInitializerExpression,
+                SyntaxFactory.SeparatedList(valuesInit)));
+
+        var coalescingAssignment = SyntaxFactory.AssignmentExpression(
+            SyntaxKind.CoalesceAssignmentExpression,
+            SyntaxFactory.IdentifierName("_values"),
+            arrayCreation);
+
+        var property = SyntaxFactory.PropertyDeclaration(SyntaxHelper.ObjectArrayTypeSyntax, "Values")
             .WithModifiers(SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),
                 SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
-            .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(
-                SyntaxFactory.ArrayCreationExpression(
-                    SyntaxHelper.ObjectArrayTypeSyntax,
-                    SyntaxFactory.InitializerExpression(
-                        SyntaxKind.ArrayInitializerExpression,
-                        SyntaxFactory.SeparatedList(valuesInit)))))
+            .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(coalescingAssignment))
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+
+        return (backingField, property);
     }
 
     private static PropertyDeclarationSyntax CreateContextsProperty()

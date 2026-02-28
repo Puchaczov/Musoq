@@ -184,6 +184,58 @@ The solution file [Musoq.sln](src/dotnet/Musoq.sln) is located in `src/dotnet/` 
 - **Magic numbers and strings are a tax on the next reader.** Name them with constants or well-named variables that explain *why* that value exists.
 - **Overview your changes before committing.** Ask yourself: is there anything that looks similar that we could extract? We must not duplicate code. No shortcuts.
 
+## Performance Changes — Mandatory Baseline Rule
+
+**Before implementing ANY performance optimization**, you MUST:
+
+1. **Establish a baseline** — Run the relevant benchmarks on the **unmodified code** and record the results. This is non-negotiable. Without a baseline, you cannot prove an optimization is actually faster.
+2. **Run benchmarks after changes** — Run the same benchmarks on the modified code under identical conditions.
+3. **Compare and report** — Present a before/after comparison table showing the metric, baseline value, optimized value, and percentage change. Flag any regressions.
+
+### How to Run Benchmarks
+```bash
+# Available benchmark suites (all in src/dotnet/Musoq.Benchmarks):
+dotnet run --project src/dotnet/Musoq.Benchmarks -c Release -- --filter "*CompilationPipeline*" --job short
+dotnet run --project src/dotnet/Musoq.Benchmarks -c Release -- --filter "*ExecutionBenchmark*" --job short
+dotnet run --project src/dotnet/Musoq.Benchmarks -c Release -- --filter "*DistinctBenchmark*" --job short
+dotnet run --project src/dotnet/Musoq.Benchmarks -c Release -- --filter "*JoinBenchmark*" --job short --memory
+dotnet run --project src/dotnet/Musoq.Benchmarks -c Release -- --filter "*InClause*" --job short
+
+# For memory allocation analysis, add --memory flag
+# For detailed results, add --exporters json
+```
+
+### Baseline Workflow
+```bash
+# 1. Stash or shelve your changes
+git stash
+
+# 2. Build and run benchmarks on clean code (baseline)
+dotnet build src/dotnet/Musoq.sln -c Release
+dotnet run --project src/dotnet/Musoq.Benchmarks -c Release -- --filter "*RelevantBenchmark*" --job short
+
+# 3. Record baseline results
+
+# 4. Restore your changes
+git stash pop
+
+# 5. Build and run same benchmarks (optimized)
+dotnet build src/dotnet/Musoq.sln -c Release
+dotnet run --project src/dotnet/Musoq.Benchmarks -c Release -- --filter "*RelevantBenchmark*" --job short
+
+# 6. Compare results and report
+```
+
+### Interpreting Results
+- Changes within **±3%** are likely measurement noise — mark as "≈ NOISE"
+- Improvements beyond **-3%** are genuine — mark as "✅ FASTER"
+- Regressions beyond **+3%** need justification — mark as "⚠️ SLOWER"
+- **Compilation time vs execution time trade-off**: It's acceptable for compilation to be slower if execution is significantly faster (compilation happens once per query, execution happens per row/batch)
+- Always consider the **absolute magnitude** — a 50% improvement on a 1μs operation matters less than a 5% improvement on a 500ms operation
+
+### When to Add New Benchmarks
+If your optimization targets a code path not covered by existing benchmarks, **write a new benchmark first** in `src/dotnet/Musoq.Benchmarks/` before measuring. A benchmark that doesn't exist can't prove anything.
+
 ## Validation
 
 ### Manual Testing and Validation Scenarios

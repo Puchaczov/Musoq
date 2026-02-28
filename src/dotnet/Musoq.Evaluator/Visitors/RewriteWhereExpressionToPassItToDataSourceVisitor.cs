@@ -27,11 +27,15 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 {
     private readonly Node _equalityNode;
     private readonly SchemaFromNode _schemaFromNode;
+    private readonly IsComplexVisitor _isComplexVisitor;
+    private readonly IsComplexTraverseVisitor _isComplexTraverseVisitor;
 
     public RewriteWhereExpressionToPassItToDataSourceVisitor(SchemaFromNode schemaFromNode)
     {
         _schemaFromNode = schemaFromNode;
         _equalityNode = new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s"));
+        _isComplexVisitor = new IsComplexVisitor(schemaFromNode.Alias);
+        _isComplexTraverseVisitor = new IsComplexTraverseVisitor(_isComplexVisitor);
     }
 
     public WhereNode WhereNode => (WhereNode)Nodes.Peek();
@@ -145,24 +149,20 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
     private bool ContainsOtherAlias(Node node)
     {
-        var visitor = new IsComplexVisitor(_schemaFromNode.Alias);
-        var traverser = new IsComplexTraverseVisitor(visitor);
-        node.Accept(traverser);
-        return visitor.IsComplex;
+        _isComplexVisitor.Reset();
+        node.Accept(_isComplexTraverseVisitor);
+        return _isComplexVisitor.IsComplex;
     }
 
     private bool VisitForBinaryNode(BinaryNode node)
     {
-        var isComplexVisitor = new IsComplexVisitor(_schemaFromNode.Alias);
-        var isComplexTraverseVisitor = new IsComplexTraverseVisitor(isComplexVisitor);
+        _isComplexVisitor.Reset();
+        node.Left.Accept(_isComplexTraverseVisitor);
+        var leftIsComplex = _isComplexVisitor.IsComplex;
 
-        node.Left.Accept(isComplexTraverseVisitor);
-        var leftIsComplex = isComplexVisitor.IsComplex;
-
-        isComplexVisitor.Reset();
-
-        node.Right.Accept(isComplexTraverseVisitor);
-        var rightIsComplex = isComplexVisitor.IsComplex;
+        _isComplexVisitor.Reset();
+        node.Right.Accept(_isComplexTraverseVisitor);
+        var rightIsComplex = _isComplexVisitor.IsComplex;
 
         if (leftIsComplex || rightIsComplex)
         {
@@ -175,14 +175,12 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
     private bool VisitForArgsListNode(ArgsListNode node)
     {
-        var isComplexVisitor = new IsComplexVisitor(_schemaFromNode.Alias);
-        var isComplexTraverseVisitor = new IsComplexTraverseVisitor(isComplexVisitor);
         var isComplex = false;
         foreach (var argument in node.Args)
         {
-            argument.Accept(isComplexTraverseVisitor);
-            isComplex |= isComplexVisitor.IsComplex;
-            isComplexVisitor.Reset();
+            _isComplexVisitor.Reset();
+            argument.Accept(_isComplexTraverseVisitor);
+            isComplex |= _isComplexVisitor.IsComplex;
         }
 
         if (isComplex)

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Emit;
 using Musoq.Converter.Exceptions;
@@ -9,34 +10,37 @@ public class TurnQueryIntoRunnableCode(BuildChain successor) : BuildChain(succes
 {
     public override void Build(BuildItems items)
     {
-        using (var dllStream = new MemoryStream())
+        using var dllStream = new MemoryStream();
+        using var pdbStream = new MemoryStream();
+
+        var result = items.Compilation.Emit(
+            dllStream,
+            pdbStream,
+            options: new EmitOptions(false, DebugInformationFormat.PortablePdb));
+
+        items.EmitResult = result;
+
+        if (!result.Success)
         {
-            using (var pdbStream = new MemoryStream())
-            {
-                var result = items.Compilation.Emit(
-                    dllStream,
-                    pdbStream,
-                    options: new EmitOptions(false, DebugInformationFormat.PortablePdb));
+            var all = new StringBuilder();
 
-                items.PdbFile = pdbStream.ToArray();
-                items.EmitResult = result;
+            foreach (var diagnostic in result.Diagnostics)
+                all.Append(diagnostic);
 
-                if (!result.Success)
-                {
-                    var all = new StringBuilder();
+            items.DllFile = null;
+            items.PdbFile = null;
 
-                    foreach (var diagnostic in result.Diagnostics)
-                        all.Append(diagnostic);
-
-                    items.DllFile = null;
-                    items.PdbFile = null;
-
-                    throw new CompilationException(all.ToString());
-                }
-            }
-
-            items.DllFile = dllStream.ToArray();
+            throw new CompilationException(all.ToString());
         }
+
+        if (!pdbStream.TryGetBuffer(out var pdbBuffer))
+            pdbBuffer = new ArraySegment<byte>(pdbStream.ToArray());
+        
+        if (!dllStream.TryGetBuffer(out var dllBuffer))
+            dllBuffer = new ArraySegment<byte>(dllStream.ToArray());
+
+        items.PdbFile = pdbBuffer.Count == pdbBuffer.Array!.Length ? pdbBuffer.Array : pdbBuffer.ToArray();
+        items.DllFile = dllBuffer.Count == dllBuffer.Array!.Length ? dllBuffer.Array : dllBuffer.ToArray();
 
         Successor?.Build(items);
     }

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tables;
@@ -136,6 +137,7 @@ public class Table : IndexedList<Key, Row>, IEnumerable<Row>, IReadOnlyTable
         foreach (var value in values) Add(value);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void FlushPendingRows()
     {
         if (!_hasPendingRows)

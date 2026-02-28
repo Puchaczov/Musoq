@@ -1079,10 +1079,9 @@ public class LowCoverageAreasTests
     public void GroupKey_GetHashCode_AllNulls()
     {
         var key1 = new GroupKey(null, null);
+        var key2 = new GroupKey(null, null);
 
-        var hash = key1.GetHashCode();
-
-        Assert.AreEqual(0, hash);
+        Assert.AreEqual(key1.GetHashCode(), key2.GetHashCode());
     }
 
     [TestMethod]

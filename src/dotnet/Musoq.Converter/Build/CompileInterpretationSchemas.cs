@@ -68,6 +68,23 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
     private static SchemaRegistry ExtractSchemaDefinitions(RootNode queryTree)
     {
         var registry = new SchemaRegistry();
+
+        if (queryTree.Expression is StatementsArrayNode statementsArray)
+        {
+            var hasSchemaNodes = false;
+            foreach (var statement in statementsArray.Statements)
+            {
+                if (statement.Node is BinarySchemaNode or TextSchemaNode)
+                {
+                    hasSchemaNodes = true;
+                    break;
+                }
+            }
+
+            if (!hasSchemaNodes)
+                return registry;
+        }
+
         var visitor = new SchemaDefinitionVisitor(registry);
         var traverseVisitor = new SchemaDefinitionTraverseVisitor(visitor);
 
