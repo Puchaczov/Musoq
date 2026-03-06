@@ -1,9 +1,11 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Exceptions;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Multi;
 using Musoq.Evaluator.Tests.Schema.Multi.First;
 using Musoq.Evaluator.Tests.Schema.Multi.Second;
+using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -35,11 +37,13 @@ public class AliasTests : MultiSchemaTestBase
     {
         const string query = "select b.ZeroItem from #schema.first() a";
 
-        Assert.Throws<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, [
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
             new FirstEntity()
         ], [
             new SecondEntity()
         ]));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3015_UnknownAlias, DiagnosticPhase.Bind, "b");
     }
 
     [TestMethod]
@@ -210,13 +214,16 @@ cross apply first.Split('') b";
         const string query =
             "select a.FirstItem from #schema.first() a inner join #schema.second() a on a.FirstItem = a.FirstItem";
 
-        Assert.Throws<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
             new FirstEntity(),
             new FirstEntity()
         ], [
             new SecondEntity(),
             new SecondEntity()
         ]));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind);
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -228,7 +235,7 @@ cross apply first.Split('') b";
             inner join #schema.second() b on src.FirstItem = b.FirstItem
             inner join #schema.third() b on b.FirstItem = src.FirstItem";
 
-        Assert.Throws<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
             new FirstEntity(),
             new FirstEntity(),
             new FirstEntity()
@@ -237,6 +244,9 @@ cross apply first.Split('') b";
             new SecondEntity(),
             new SecondEntity()
         ]));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind);
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -250,13 +260,15 @@ cross apply first.Split('') b";
             from #schema.second() src
             inner join src on src.FirstItem = src.FirstItem";
 
-        Assert.Throws<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
             new FirstEntity(),
             new FirstEntity()
         ], [
             new SecondEntity(),
             new SecondEntity()
         ]));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind, "src");
     }
 
     [TestMethod]
@@ -267,13 +279,16 @@ cross apply first.Split('') b";
             from #schema.first() a 
             cross apply #schema.second() a";
 
-        Assert.Throws<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
             new FirstEntity(),
             new FirstEntity()
         ], [
             new SecondEntity(),
             new SecondEntity()
         ]));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind);
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -284,12 +299,15 @@ cross apply first.Split('') b";
             from #schema.first() a 
             outer apply #schema.second() a";
 
-        Assert.Throws<AliasAlreadyUsedException>(() => CreateAndRunVirtualMachine(query, [
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
             new FirstEntity(),
             new FirstEntity()
         ], [
             new SecondEntity(),
             new SecondEntity()
         ]));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind);
+        AssertHasGuidance(ex);
     }
 }

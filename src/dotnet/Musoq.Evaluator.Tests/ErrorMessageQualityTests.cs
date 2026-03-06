@@ -1,9 +1,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
-using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.NegativeTests;
-using Musoq.Parser.Exceptions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -34,10 +32,9 @@ public class ErrorMessageQualityTests : NegativeTestsBase
             CompileQuery("SELECT * FROM #test.people() LIMIT 10");
             Assert.Fail("Expected an error for LIMIT keyword");
         }
-        catch (AstValidationException ex)
+        catch (MusoqQueryException ex)
         {
-            Assert.IsInstanceOfType<SyntaxException>(ex.InnerException,
-                $"Inner exception should be SyntaxException but was: {ex.InnerException?.GetType().Name}");
+            Assert.IsNotNull(ex.InnerException, "MusoqQueryException should preserve the original exception");
             Assert.IsTrue(
                 ex.Message.Contains("Integer") || ex.Message.Contains("expected") || ex.Message.Contains("parse"),
                 $"Error message should indicate a syntax issue near LIMIT: {ex.Message}");
@@ -52,10 +49,9 @@ public class ErrorMessageQualityTests : NegativeTestsBase
             CompileQuery("SELECT * FROM #test.people() ORDER BY Name OFFSET 5");
             Assert.Fail("Expected an error for OFFSET keyword");
         }
-        catch (AstValidationException ex)
+        catch (MusoqQueryException ex)
         {
-            Assert.IsInstanceOfType<SyntaxException>(ex.InnerException,
-                $"Inner exception should be SyntaxException but was: {ex.InnerException?.GetType().Name}");
+            Assert.IsNotNull(ex.InnerException, "MusoqQueryException should preserve the original exception");
             Assert.IsTrue(
                 ex.Message.Contains("Unrecognized") || ex.Message.Contains("Identifier") ||
                 ex.Message.Contains("parse"),
@@ -71,7 +67,7 @@ public class ErrorMessageQualityTests : NegativeTestsBase
             CompileQuery("SELECT Name FROM #test.people() UNION SELECT Name FROM #test.people()");
             Assert.Fail("Expected an error for UNION without column list");
         }
-        catch (SyntaxException)
+        catch (MusoqQueryException)
         {
             // Expected — Musoq requires UNION (ColumnList)
         }
@@ -91,10 +87,9 @@ public class ErrorMessageQualityTests : NegativeTestsBase
             CompileQuery("SELECT * FROM #test.people() WHERE Age != 25");
             Assert.Fail("Expected an error for != operator");
         }
-        catch (AstValidationException ex)
+        catch (MusoqQueryException ex)
         {
-            Assert.IsInstanceOfType<SyntaxException>(ex.InnerException,
-                $"Inner exception should be SyntaxException but was: {ex.InnerException?.GetType().Name}");
+            Assert.IsNotNull(ex.InnerException, "MusoqQueryException should preserve the original exception");
             Assert.IsTrue(
                 ex.Message.Contains("!=") || ex.Message.Contains("<>") || ex.Message.Contains("operator"),
                 $"Error message should explain that '!=' is invalid and suggest '<>': {ex.Message}");
@@ -109,10 +104,9 @@ public class ErrorMessageQualityTests : NegativeTestsBase
             CompileQuery("SELECT * FROM #test.people() WHERE Id IN (SELECT PersonId FROM #test.orders())");
             Assert.Fail("Expected an error for subquery");
         }
-        catch (AstValidationException ex)
+        catch (MusoqQueryException ex)
         {
-            Assert.IsInstanceOfType<SyntaxException>(ex.InnerException,
-                $"Inner exception should be SyntaxException but was: {ex.InnerException?.GetType().Name}");
+            Assert.IsNotNull(ex.InnerException, "MusoqQueryException should preserve the original exception");
             Assert.IsTrue(
                 ex.Message.Contains("select") || ex.Message.Contains("Select") || ex.Message.Contains("cannot be used"),
                 $"Error message should indicate subqueries are not supported: {ex.Message}");
@@ -127,7 +121,7 @@ public class ErrorMessageQualityTests : NegativeTestsBase
             CompileQuery("SELECT name FROM #test.people()");
             Assert.Fail("Expected an error for case-sensitive column name");
         }
-        catch (UnknownColumnOrAliasException)
+        catch (MusoqQueryException)
         {
             // Expected — column 'name' doesn't match 'Name'
         }
@@ -147,7 +141,7 @@ public class ErrorMessageQualityTests : NegativeTestsBase
             CompileQuery("SELECT ToUpper(City) AS UpperCity, Count(1) FROM #test.people() GROUP BY UpperCity");
             Assert.Fail("Expected an error for using alias in GROUP BY");
         }
-        catch (UnknownColumnOrAliasException)
+        catch (MusoqQueryException)
         {
             // Expected — cannot use SELECT alias in GROUP BY
         }

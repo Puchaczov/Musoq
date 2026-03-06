@@ -95,6 +95,28 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ5006_DeprecatedSyntax] = "Deprecated syntax: {0}",
         [DiagnosticCode.MQ5007_PerformanceWarning] = "Performance warning: {0}",
         [DiagnosticCode.MQ5008_UnreachableCode] = "Unreachable code detected",
+        [DiagnosticCode.MQ5009_OrderByAliasBehavior] =
+            "ORDER BY alias '{0}' may not resolve to the computed expression in this version",
+
+        // Feature-Gate Errors (MQ6xxx)
+        [DiagnosticCode.MQ6001_CteUnavailable] =
+            "CTE syntax (WITH ... AS ...) is currently unavailable in this parser path",
+        [DiagnosticCode.MQ6002_DescUnavailable] =
+            "DESC introspection is unavailable in this build",
+        [DiagnosticCode.MQ6003_SimpleCaseNotSupported] =
+            "Simple CASE syntax is not supported; use searched CASE (CASE WHEN ... THEN ... END)",
+        [DiagnosticCode.MQ6004_CoalesceWithLiteralNull] =
+            "Coalesce/IfNull with literal NULL is not supported in this version",
+
+        // Runtime Errors (MQ7xxx)
+        [DiagnosticCode.MQ7001_DataSourceBindingFailed] =
+            "Could not bind to data source constructor for '{0}'",
+        [DiagnosticCode.MQ7002_DataSourceIteratorError] =
+            "Data source entered invalid iterator state",
+
+        // Code Generation Errors (MQ8xxx)
+        [DiagnosticCode.MQ8001_CodeGenerationFailed] =
+            "Generated C# code failed to compile: {0}",
 
         // Unknown
         [DiagnosticCode.MQ9999_Unknown] = "An unknown error occurred: {0}"
@@ -138,6 +160,7 @@ public static class ErrorCatalog
         {
             >= 5000 and < 6000 => DiagnosticSeverity.Warning,
             >= 1000 and < 5000 => DiagnosticSeverity.Error,
+            >= 6000 and < 9000 => DiagnosticSeverity.Error,
             _ => DiagnosticSeverity.Error
         };
     }
@@ -156,6 +179,9 @@ public static class ErrorCatalog
             >= 3000 and < 4000 => "Semantic",
             >= 4000 and < 5000 => "Schema",
             >= 5000 and < 6000 => "Warning",
+            >= 6000 and < 7000 => "FeatureGate",
+            >= 7000 and < 8000 => "Runtime",
+            >= 8000 and < 9000 => "CodeGeneration",
             _ => "Unknown"
         };
     }

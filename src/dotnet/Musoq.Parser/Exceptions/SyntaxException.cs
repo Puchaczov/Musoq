@@ -1,5 +1,6 @@
 ﻿using System;
 using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Lexing;
 
 namespace Musoq.Parser.Exceptions;
 
@@ -21,12 +22,19 @@ public class SyntaxException : Exception, IDiagnosticException
 
     /// <summary>
     ///     Initializes a new instance of SyntaxException with the specified message, query part, and inner exception.
+    ///     If the inner exception is a <see cref="LexerException" />, its diagnostic code and span are preserved
+    ///     so that lexer-level diagnostics (e.g. unterminated strings, invalid literals) survive parser wrapping.
     /// </summary>
     public SyntaxException(string message, string queryPart, Exception innerException)
         : base(message, innerException)
     {
         QueryPart = queryPart;
-        Code = DiagnosticCode.MQ2001_UnexpectedToken;
+        Code = innerException is LexerException lexerException
+            ? lexerException.Code
+            : DiagnosticCode.MQ2001_UnexpectedToken;
+
+        if (innerException is LexerException { Span: not null } lexerWithSpan)
+            Span = lexerWithSpan.Span;
     }
 
     /// <summary>

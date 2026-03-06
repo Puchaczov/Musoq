@@ -1,10 +1,12 @@
-﻿#nullable enable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Exceptions;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -24,7 +26,10 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             }
         };
 
-        Assert.Throws<UnknownInterpretationSchemaException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3010_UnknownSchema, DiagnosticPhase.Bind, "#B");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -108,7 +113,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             }
         };
 
-        Assert.Throws<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertSingleError(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "Namre");
     }
 
     [TestMethod]
@@ -444,7 +451,9 @@ public class SingleSchemaEvaluatorTests : BasicEntityTestBase
             }
         };
 
-        Assert.Throws<UnknownColumnOrAliasException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertSingleError(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "Populationr");
     }
 
     [TestMethod]

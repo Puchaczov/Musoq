@@ -1,9 +1,8 @@
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
-using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.NegativeTests;
-using Musoq.Parser.Exceptions;
+using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -22,15 +21,21 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE003_ComparingIntToBool_ShouldThrowCompilationError()
     {
-        Assert.Throws<CompilationException>(() =>
+        // Known quality gap: produces MQ9999 CompilationException instead of MQ3005_TypeMismatch
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.types() WHERE IntCol = true"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime);
     }
 
     [TestMethod]
     public void TE004_ComparingDecimalToGuid_ShouldThrowCompilationError()
     {
-        Assert.Throws<CompilationException>(() =>
+        // Known quality gap: produces MQ9999 CompilationException instead of MQ3005_TypeMismatch
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.types() WHERE DecimalCol = GuidCol"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime);
     }
 
     #endregion
@@ -40,50 +45,71 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE010_AddingStringToInt_ShouldThrowInvalidOperandTypesException()
     {
-        Assert.Throws<InvalidOperandTypesException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name + Age FROM #test.people()"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3007_InvalidOperandTypes, DiagnosticPhase.Bind, "String");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void TE011_MultiplyingStringByInt_ShouldThrowInvalidOperandTypesException()
     {
-        Assert.Throws<InvalidOperandTypesException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name * 3 FROM #test.people()"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3007_InvalidOperandTypes, DiagnosticPhase.Bind, "String");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void TE012_DividingByString_ShouldThrowInvalidOperandTypesException()
     {
-        Assert.Throws<InvalidOperandTypesException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Age / 'two' FROM #test.people()"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3007_InvalidOperandTypes, DiagnosticPhase.Bind, "String");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void TE013_ModuloWithString_ShouldThrowInvalidOperandTypesException()
     {
-        Assert.Throws<InvalidOperandTypesException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Age % 'three' FROM #test.people()"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3007_InvalidOperandTypes, DiagnosticPhase.Bind, "String");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void TE014_ArithmeticOnDateTimeDirectly_ShouldThrowError()
     {
-        Assert.Throws<Exception>(() =>
+        // Known quality gap: produces MQ9999 CompilationException instead of MQ3007_InvalidOperandTypes
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT BirthDate + BirthDate FROM #test.people()"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime);
     }
 
     [TestMethod]
     public void TE015_ArithmeticOnBool_ShouldThrowCompilationError()
     {
-        Assert.Throws<CompilationException>(() =>
+        // Known quality gap: produces MQ9999 CompilationException instead of MQ3007_InvalidOperandTypes
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT BoolCol + BoolCol FROM #test.types()"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime);
     }
 
     [TestMethod]
     public void TE016_ArithmeticOnGuid_ShouldThrowError()
     {
-        Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT GuidCol + 1 FROM #test.types()"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3007_InvalidOperandTypes, DiagnosticPhase.Bind, "Guid");
+        AssertHasGuidance(ex);
     }
 
     #endregion
@@ -93,22 +119,31 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE020_AndWithNonBooleanOperands_ShouldThrowCompilationError()
     {
-        Assert.Throws<CompilationException>(() =>
+        // Known quality gap: produces MQ9999 CompilationException instead of MQ3007_InvalidOperandTypes
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE Name AND Age"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime);
     }
 
     [TestMethod]
     public void TE021_OrWithNonBooleanOperands_ShouldThrowCompilationError()
     {
-        Assert.Throws<CompilationException>(() =>
+        // Known quality gap: produces MQ9999 CompilationException instead of MQ3007_InvalidOperandTypes
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE 'hello' OR 42"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime);
     }
 
     [TestMethod]
     public void TE022_NotOnNonBoolean_ShouldThrowError()
     {
-        Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE NOT Name"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
+        AssertHasGuidance(ex);
     }
 
     #endregion
@@ -118,15 +153,21 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE031_SubstringWithNonIntegerStart_ShouldThrowError()
     {
-        Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Substring(Name, 'zero', 5) FROM #test.people()"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "Substring");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void TE033_WrongNumberOfArgumentsToFunction_ShouldThrowError()
     {
-        Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Substring(Name) FROM #test.people()"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "Substring");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -139,22 +180,31 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE035_AggregateFunctionOnIncompatibleType_ShouldThrowError()
     {
-        Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Sum(Name) FROM #test.people()"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "SetSum");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void TE036_AvgOnString_ShouldThrowError()
     {
-        Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Avg(City) FROM #test.people()"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "SetAvg");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void TE038_NonexistentFunction_ShouldThrowError()
     {
-        Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT CompletelyFakeFunction(Name) FROM #test.people()"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "CompletelyFakeFunction");
+        AssertHasGuidance(ex);
     }
 
     #endregion
@@ -164,15 +214,21 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE040_UnionWithMismatchedColumnTypes_ShouldThrowTypeError()
     {
-        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name FROM #test.people() UNION ALL (Name) SELECT Age AS Name FROM #test.people()"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3020_SetOperatorColumnTypes, DiagnosticPhase.Bind, "same types");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void TE041_ExceptWithMismatchedTypes_ShouldThrowTypeError()
     {
-        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Age FROM #test.people() EXCEPT (Age) SELECT Name AS Age FROM #test.people()"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3020_SetOperatorColumnTypes, DiagnosticPhase.Bind, "same types");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -197,22 +253,31 @@ public class TypeErrorTests : NegativeTestsBase
     [TestMethod]
     public void TE060_LikeOnNonStringColumn_ShouldThrowError()
     {
-        Assert.Throws<Exception>(() =>
+        // Known quality gap: produces MQ9999 CompilationException instead of MQ3005_TypeMismatch
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE Age LIKE '%5%'"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime);
     }
 
     [TestMethod]
     public void TE061_RlikeOnNonStringColumn_ShouldThrowError()
     {
-        Assert.Throws<Exception>(() =>
+        // Known quality gap: produces MQ9999 CompilationException instead of MQ3005_TypeMismatch
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE Age RLIKE '\\d+'"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime);
     }
 
     [TestMethod]
     public void TE062_ContainsOnNonStringColumn_ShouldThrowError()
     {
-        Assert.Throws<Exception>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE Age CONTAINS '5'"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
+        AssertHasGuidance(ex);
     }
 
     #endregion

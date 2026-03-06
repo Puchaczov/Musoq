@@ -1,8 +1,8 @@
 # Musoq Core SQL Language Specification
 
-**Version:** 1.0.0-draft  
+**Version:** 1.0.0
 **Status:** Specification  
-**Date:** February 2026
+**Author:** Jakub Puchała
 
 ---
 
@@ -51,6 +51,8 @@ This specification covers:
 - Query execution semantics (clause evaluation order, NULL handling, type coercion)
 - Error conditions and their causes
 
+Unless stated otherwise, behavior described in this document refers to the **Musoq query engine**. Some host applications (for example, specific CLI preprocessors) may apply additional parsing/validation before a query reaches the engine.
+
 This specification does **not** cover:
 
 - Specific data source schemas (e.g., git, file system, Docker) — each data source defines its own tables and columns
@@ -69,6 +71,7 @@ Musoq implements a subset of SQL with several extensions:
 | Set operation keys | Implicit (all columns) | Explicit key columns required: `UNION (col1)` |
 | Not-equal operator | Both `<>` and `!=` | Only `<>` is supported — `!=` is rejected with a helpful error suggesting `<>` |
 | CASE WHEN | ELSE is optional | ELSE is **mandatory** |
+| Simple CASE form | `CASE expr WHEN value THEN ...` | Supported (desugared to searched CASE internally) |
 | FROM-first syntax | Not standard | Supported: `FROM ... WHERE ... SELECT ...` |
 | CROSS APPLY / OUTER APPLY | T-SQL extension | Fully supported with method and property expansion |
 | Recursive CTEs | Supported in many dialects | **Not supported** |
@@ -476,7 +479,7 @@ Columns may hold arrays (`T[]`) or enumerables (`IEnumerable<T>`). These can be:
 Statements are optionally terminated with `;`. Multiple statements in a batch are separated by `;`:
 
 ```sql
-table MyTable { Name string };
+table MyTable { Name: string };
 couple #A.Entities with table MyTable as Source;
 select Name from Source();
 ```
@@ -683,11 +686,22 @@ select p.City from cte p
 After a `COUPLE` statement, the coupled alias becomes a data source:
 
 ```sql
-table MyTable { Name string };
+table MyTable { Name: string };
 couple #A.Entities with table MyTable as Source;
 select Name from Source()
 select Name from Source(true, 'param')   -- with arguments
 ```
+
+### 6.5 `#system.range(start, end)` Semantics
+
+The `#system.range(start, end)` source uses an **end-exclusive** interval.
+
+```sql
+select Value from #system.range(1, 5)
+-- Returns: 1, 2, 3, 4
+```
+
+Formally, the returned sequence is equivalent to $[start, end)$.
 
 ---
 
@@ -871,7 +885,49 @@ inner join #B.entities() b on a.Id = b.Id + 1
 inner join #B.entities() b on a.Population > b.Population + 100
 ```
 
-### 8.7 Keywords Are Case-Insensitive
+### 8.7 Function Calls in Multi-Source Queries
+
+In queries with multiple data sources (joins, applies), function calls **must** be prefixed with a table alias. This is because each schema has its own method registry, and the engine must know which schema's function to invoke:
+
+```sql
+-- WRONG: Unqualified function call in a multi-source query
+select ToDecimal(a.Id)
+from #A.entities() a
+inner join #B.entities() b on a.Id = b.Id
+-- Error: Alias must be provided for method call when more than one schema is used
+
+-- CORRECT: Prefix function call with the table alias
+select a.ToDecimal(a.Id)
+from #A.entities() a
+inner join #B.entities() b on a.Id = b.Id
+```
+
+This applies to all functions, including aggregation:
+
+```sql
+-- WRONG:
+select Count(a.City) from #A.entities() a inner join #B.entities() b on a.Id = b.Id group by a.City
+
+-- CORRECT:
+select a.Count(a.City) from #A.entities() a inner join #B.entities() b on a.Id = b.Id group by a.City
+```
+
+For complex analytics that combine JOINs with GROUP BY, use a CTE to flatten the join first, then aggregate on the single-source CTE:
+
+```sql
+with joined as (
+    select a.City as City, b.Population as Population
+    from #A.entities() a
+    inner join #B.entities() b on a.City = b.City
+)
+select j.City, Sum(j.Population) as TotalPop
+from joined j
+group by j.City
+```
+
+> **Note:** In single-table queries, function calls do not need an alias prefix.
+
+### 8.8 Keywords Are Case-Insensitive
 
 All forms are valid:
 
@@ -1045,6 +1101,11 @@ group by Substr(Name, 0, 2)
 select case when Population >= 500 then 'big' else 'small' end, Count(City)
 from #A.entities()
 group by case when Population >= 500 then 'big' else 'small' end
+
+-- Function-of-column expression in SELECT and GROUP BY (supported)
+select ToString(CommittedWhen, 'yyyy-MM', '') as MonthBucket, Count(Sha)
+from #A.commits()
+group by ToString(CommittedWhen, 'yyyy-MM', '')
 ```
 
 ### 10.4 Parent-Level Aggregation
@@ -1269,7 +1330,41 @@ select Name, Population from #A.entities() order by Population * -1
 
 ORDER BY uses **ordinal (case-sensitive) comparison** for strings: uppercase letters sort before lowercase (`'A'` < `'a'`).
 
-### 12.2 SKIP
+### 12.2 ORDER BY with SELECT Aliases
+
+SELECT aliases defined with `AS` can be referenced directly in ORDER BY:
+
+```sql
+select City, Money as Amount from #A.entities() order by Amount desc
+```
+
+This also works with computed expressions:
+
+```sql
+select City, Money * 2 as DoubledMoney from #A.entities() order by DoubledMoney desc
+```
+
+And with aggregate functions after GROUP BY:
+
+```sql
+select City, Sum(Money) as TotalRevenue
+from #A.entities()
+group by City
+order by TotalRevenue desc
+```
+
+Alias lookup is **case-insensitive**:
+
+```sql
+select City as CITYNAME, Money as amount from #A.entities() order by Amount desc
+-- "Amount" matches alias "amount"
+```
+
+> **Note:** Only explicit aliases (those declared with `AS`) can be referenced in ORDER BY. Auto-generated column names (where no `AS` is used) must be referenced by their expression directly.
+
+When an explicit alias is used in `ORDER BY`, ordering applies to the aliased **SELECT expression result**, not to an unrelated source column with the same name.
+
+### 12.3 SKIP
 
 Skip the first N rows of the result:
 
@@ -1279,7 +1374,7 @@ select Name from #A.entities() skip 2
 
 If SKIP exceeds the number of rows, zero rows are returned (no error).
 
-### 12.3 TAKE
+### 12.4 TAKE
 
 Take the first N rows of the result:
 
@@ -1289,7 +1384,7 @@ select Name from #A.entities() take 3
 
 If TAKE exceeds the number of available rows, all available rows are returned (no error).
 
-### 12.4 SKIP + TAKE (Pagination)
+### 12.5 SKIP + TAKE (Pagination)
 
 Combine for pagination:
 
@@ -1298,7 +1393,7 @@ select Name from #A.entities() order by Name skip 10 take 5
 -- Skip first 10, return next 5
 ```
 
-### 12.5 Interaction with GROUP BY and HAVING
+### 12.6 Interaction with GROUP BY and HAVING
 
 ORDER BY, SKIP, and TAKE are applied after GROUP BY and HAVING:
 
@@ -1414,9 +1509,9 @@ Defines a named table structure with typed columns:
 
 ```sql
 table TableName {
-    Column1 type1,
-    Column2 type2,
-    Column3 type3?       -- ? suffix for nullable
+    Column1: type1,
+    Column2: type2,
+    Column3: type3?       -- ? suffix for nullable
 };
 ```
 
@@ -1451,9 +1546,9 @@ Supported type keywords:
 
 ```sql
 table Invoice {
-    ProductName string,
-    Price decimal,
-    Date datetimeoffset?
+    ProductName: string,
+    Price: decimal,
+    Date: datetimeoffset?
 };
 ```
 
@@ -1469,7 +1564,7 @@ couple #schema.Method with table TableName as AliasName;
 
 ```sql
 table DummyTable {
-    Name string
+    Name: string
 };
 couple #A.Entities with table DummyTable as SourceOfDummyRows;
 select Name from SourceOfDummyRows();
@@ -1491,6 +1586,7 @@ TABLE and COUPLE are used when:
 ---
 
 ## 15. DESC Statement
+
 
 ### 15.1 Describe a Schema
 
@@ -1658,8 +1754,10 @@ select * from cte
 | `Translate` | `(string?, string?, string?) → string?` | Character-by-character translation |
 | `ToTitleCase` | `(string?) → string?` | Title case formatting |
 | `Capitalize` | `(string?) → string?` | Capitalize first character |
-| `GetNthWord` | `(string?, int, string?) → string?` | Nth word in string |
+| `GetNthWord` | `(string?, int, string?) → string?` | Nth word in string (0-based index) |
 | `GetFirstWord` | `(string, string) → string?` | First word |
+| `GetSecondWord` | `(string, string) → string?` | Second word |
+| `GetThirdWord` | `(string, string) → string?` | Third word |
 | `GetLastWord` | `(string?, string?) → string?` | Last word |
 | `WordCount` | `(string?) → int?` | Count words |
 | `LineCount` | `(string?) → int?` | Count lines |
@@ -1950,6 +2048,8 @@ Cross-type operations promote to the wider type (e.g., `byte AND long` → `long
 | `MergeArrays` | `(params T[][]) → T[]?` | Merge arrays |
 | `LongestCommonSequence` | `(IEnumerable<T>?, IEnumerable<T>?) → IEnumerable<T>?` | LCS |
 
+`Coalesce` and `IfNull` accept explicit `null` literals and perform generic type inference using the first compatible non-null argument.
+
 ---
 
 ## 18. NULL Semantics
@@ -1978,6 +2078,12 @@ Use `IS NULL` or `IS NOT NULL` to test for null:
 where Value is null
 where Value is not null
 ```
+
+### 18.2.1 NULL Comparisons Inside `CASE WHEN`
+
+Expected logical model is three-valued logic (`null = null` evaluates to `null`, not `true`).
+
+> **Known deviation:** Some runtime paths may currently treat `null = null` as truthy in `CASE WHEN` evaluation. Query authors should prefer explicit null predicates (`IS NULL` / `IS NOT NULL`) to avoid ambiguity until this behavior is unified.
 
 ### 18.3 NULL in LIKE, RLIKE, CONTAINS
 
@@ -2059,6 +2165,7 @@ These operations use **ordinal (case-sensitive)** comparison:
 | Operation | Example |
 |-----------|---------|
 | `=` / `<>` | `'Hello' = 'hello'` → false |
+| `>` / `>=` / `<` / `<=` | `'b' > 'a'` → true (ordinal) |
 | `ORDER BY` | `'A'` sorts before `'a'` (ASCII order) |
 | `GROUP BY` | `'Hello'` and `'hello'` are different groups |
 | `DISTINCT` | `'Hello'` and `'hello'` are different values |
@@ -2395,7 +2502,16 @@ primary        ::= literal
                  | case_expression
                  | '::' integer
 
-case_expression ::= CASE {WHEN expression THEN expression}+ ELSE expression END
+case_expression ::= searched_case_expression
+                  | simple_case_expression
+
+searched_case_expression ::= CASE when_clause+ ELSE expression END
+
+simple_case_expression ::= CASE expression simple_when_clause+ ELSE expression END
+
+when_clause ::= WHEN expression THEN expression
+
+simple_when_clause ::= WHEN expression THEN expression
 ```
 
 ### 23.7 Literal Grammar
@@ -2433,7 +2549,7 @@ table_definition ::= TABLE identifier '{' column_def_list '}'
 
 column_def_list ::= column_def { ',' column_def } [',']
 
-column_def     ::= identifier type_name ['?']
+column_def     ::= identifier ':' type_name ['?']
 
 type_name      ::= identifier
                   | qualified_type_name
@@ -2523,6 +2639,7 @@ From **lowest** to **highest** precedence:
 | Pagination | `OFFSET n LIMIT m` | `SKIP n TAKE m` |
 | Not-equal | `<>` and `!=` | Only `<>` supported — `!=` is rejected with a suggestion to use `<>` |
 | CASE WHEN ELSE | ELSE optional | ELSE **mandatory** |
+| Simple CASE | `CASE expr WHEN value THEN ...` | Supported |
 | Set operations | `UNION` (implicit key) | `UNION (key_columns)` (explicit keys) |
 | Recursive CTEs | Supported | Not supported |
 | Subqueries in FROM | Supported | Not supported (use CTEs) |
@@ -2558,6 +2675,18 @@ select
         when Population >= 500 then 'medium'
         when Population >= 100 then 'small'
         else 'tiny'
+    end
+from #A.entities()
+```
+
+Simple CASE is also supported:
+
+```sql
+select
+    case Population
+        when 100 then 'small'
+        when 1000 then 'large'
+        else 'other'
     end
 from #A.entities()
 ```

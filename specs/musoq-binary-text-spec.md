@@ -1,7 +1,7 @@
 # Musoq Interpretation Schemas: Language Extension Specification
 
-**Version:** 0.3.0-draft  
-**Status:** Proposal  
+**Version:** 1.0.0
+**Status:** Specification
 **Author:** Jakub Puchała
 
 ---
@@ -86,8 +86,8 @@ This extension follows patterns established by Musoq's existing `table` definiti
 ```sql
 -- Existing Musoq table definition
 table Invoice {
-    ProductName 'string',
-    Price 'decimal'
+    ProductName: string,
+    Price: decimal
 };
 
 -- New binary schema definition (analogous structure)

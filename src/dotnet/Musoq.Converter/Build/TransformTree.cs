@@ -1,6 +1,8 @@
 ﻿#nullable enable annotations
 
+using System;
 using System.Collections.Generic;
+using Musoq.Evaluator;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
@@ -28,18 +30,42 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
 
         queryTree.Accept(extractRawColumnsTraverseVisitor);
 
-        var metadata =
-            items.CreateBuildMetadataAndInferTypesVisitor?.Invoke(items.SchemaProvider, extractColumnsVisitor.Columns,
-                items.CompilationOptions, items.SchemaRegistry)
-            ?? new BuildMetadataAndInferTypesVisitor(items.SchemaProvider, extractColumnsVisitor.Columns,
-                loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(), items.CompilationOptions,
-                items.SchemaRegistry);
+        var metadata = CreateMetadataVisitor(items, extractColumnsVisitor.Columns);
 
         var metadataTraverser = new BuildMetadataAndInferTypesTraverseVisitor(metadata);
 
-        queryTree.Accept(metadataTraverser);
-        queryTree = metadata.Root;
+        if (items.DiagnosticContext != null)
+        {
+            try
+            {
+                queryTree.Accept(metadataTraverser);
+                queryTree = metadata.Root;
+            }
+            catch (Exception ex)
+            {
+                if (!items.DiagnosticContext.HasErrors)
+                    items.DiagnosticContext.ReportException(ex);
+            }
 
+            if (items.DiagnosticContext.HasErrors)
+                return;
+        }
+        else
+        {
+            queryTree.Accept(metadataTraverser);
+            queryTree = metadata.Root;
+        }
+
+        if (items.CompilationOptions.UseConstantFolding)
+        {
+            var constantFolder = new ConstantFoldingVisitor(items.DiagnosticContext);
+            var constantFolderTraverser = new ConstantFoldingTraverseVisitor(constantFolder);
+            queryTree.Accept(constantFolderTraverser);
+            queryTree = constantFolder.Root;
+
+            if (items.DiagnosticContext is { HasErrors: true })
+                return;
+        }
 
         queryTree = EliminateDeadCtes(queryTree);
 
@@ -69,6 +95,32 @@ public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver)
 
         Successor?.Build(items);
     }
+
+    private BuildMetadataAndInferTypesVisitor CreateMetadataVisitor(
+        BuildItems items,
+        IReadOnlyDictionary<string, string[]> columns)
+    {
+        if (items.CreateBuildMetadataAndInferTypesVisitor != null)
+            return items.CreateBuildMetadataAndInferTypesVisitor(
+                items.SchemaProvider, columns, items.CompilationOptions, items.SchemaRegistry);
+
+        if (items.DiagnosticContext != null)
+            return new BuildMetadataAndInferTypesVisitor(
+                items.SchemaProvider,
+                columns,
+                loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(),
+                items.DiagnosticContext,
+                items.CompilationOptions,
+                items.SchemaRegistry);
+
+        return new BuildMetadataAndInferTypesVisitor(
+            items.SchemaProvider,
+            columns,
+            loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(),
+            items.CompilationOptions,
+            items.SchemaRegistry);
+    }
+
 
     private static RootNode EliminateDeadCtes(RootNode queryTree)
     {

@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Exceptions;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -227,7 +229,9 @@ public class MethodInvocationTests : BasicEntityTestBase
             }
         };
 
-        Assert.Throws<AliasMissingException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3022_MissingAlias, DiagnosticPhase.Bind, "Alias");
     }
 
     [TestMethod]

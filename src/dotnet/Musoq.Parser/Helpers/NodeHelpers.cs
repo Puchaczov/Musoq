@@ -35,7 +35,7 @@ public static class NodeHelpers
 
             { (typeof(short), typeof(byte)), typeof(int) },
             { (typeof(short), typeof(sbyte)), typeof(int) },
-            { (typeof(short), typeof(short)), typeof(short) },
+            { (typeof(short), typeof(short)), typeof(int) },
             { (typeof(short), typeof(ushort)), typeof(int) },
             { (typeof(short), typeof(int)), typeof(int) },
             { (typeof(short), typeof(uint)), typeof(uint) },
@@ -47,7 +47,7 @@ public static class NodeHelpers
             { (typeof(ushort), typeof(byte)), typeof(int) },
             { (typeof(ushort), typeof(sbyte)), typeof(int) },
             { (typeof(ushort), typeof(short)), typeof(int) },
-            { (typeof(ushort), typeof(ushort)), typeof(ushort) },
+            { (typeof(ushort), typeof(ushort)), typeof(int) },
             { (typeof(ushort), typeof(int)), typeof(int) },
             { (typeof(ushort), typeof(uint)), typeof(uint) },
             { (typeof(ushort), typeof(long)), typeof(long) },

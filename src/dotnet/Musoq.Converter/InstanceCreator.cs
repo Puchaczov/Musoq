@@ -13,6 +13,7 @@ using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Runtime;
+using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.Api;
 using SchemaFromNode = Musoq.Evaluator.Parser.SchemaFromNode;
@@ -61,31 +62,27 @@ public static class InstanceCreator
     public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver)
     {
-        return CompileForExecution(
-            script,
-            assemblyName,
-            schemaProvider,
-            loggerResolver,
-            () => new CreateTree(
-                new CompileInterpretationSchemas(
-                    new TransformTree(
-                        new TurnQueryIntoRunnableCode(null), loggerResolver))),
-            _ => { });
+        var result = CompileWithDiagnostics(script, assemblyName, schemaProvider, loggerResolver);
+
+        if (result.Succeeded)
+            return result.CompiledQuery!;
+
+        throw result.CaughtException != null
+            ? new MusoqQueryException(result.ToEnvelopes(), result.CaughtException)
+            : new MusoqQueryException(result.ToEnvelopes());
     }
 
     public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider,
         ILoggerResolver loggerResolver, CompilationOptions compilationOptions)
     {
-        return CompileForExecution(
-            script,
-            assemblyName,
-            schemaProvider,
-            loggerResolver,
-            () => new CreateTree(
-                new CompileInterpretationSchemas(
-                    new TransformTree(
-                        new TurnQueryIntoRunnableCode(null), loggerResolver))),
-            buildItems => { buildItems.CompilationOptions = compilationOptions; });
+        var result = CompileWithDiagnostics(script, assemblyName, schemaProvider, loggerResolver, compilationOptions);
+
+        if (result.Succeeded)
+            return result.CompiledQuery!;
+
+        throw result.CaughtException != null
+            ? new MusoqQueryException(result.ToEnvelopes(), result.CaughtException)
+            : new MusoqQueryException(result.ToEnvelopes());
     }
 
     public static CompiledQuery CompileForExecution(string script, string assemblyName, ISchemaProvider schemaProvider,
@@ -187,11 +184,81 @@ public static class InstanceCreator
         return new CompiledQuery(runnable);
     }
 
-    public static Task<CompiledQuery> CompileForExecutionAsync(string script, string assemblyName,
-        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver,
-        IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables)
+    /// <summary>
+    ///     Compiles a query using the diagnostic-collection path. Never throws for query errors;
+    ///     instead, all errors are collected in the returned <see cref="BuildResult" />.
+    ///     This is the preferred API for new consumers replacing the exception-throwing path.
+    /// </summary>
+    public static BuildResult CompileWithDiagnostics(string script, string assemblyName,
+        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver)
     {
-        return Task.Factory.StartNew(() => CompileForExecution(script, assemblyName, schemaProvider, loggerResolver));
+        return CompileWithDiagnostics(script, assemblyName, schemaProvider, loggerResolver, null);
+    }
+
+    /// <summary>
+    ///     Compiles a query using the diagnostic-collection path with custom compilation options.
+    ///     Never throws for query errors; instead, all errors are collected in the returned <see cref="BuildResult" />.
+    /// </summary>
+    public static BuildResult CompileWithDiagnostics(string script, string assemblyName,
+        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CompilationOptions? compilationOptions)
+    {
+        var diagnosticContext = new DiagnosticContext(new SourceText(script));
+
+        var items = new BuildItems
+        {
+            SchemaProvider = schemaProvider,
+            RawQuery = script,
+            AssemblyName = assemblyName,
+            CreateBuildMetadataAndInferTypesVisitor = null,
+            DiagnosticContext = diagnosticContext
+        };
+
+        if (compilationOptions != null)
+            items.CompilationOptions = compilationOptions;
+
+        RuntimeLibraries.CreateReferences();
+
+        var chain = new CreateTree(
+            new CompileInterpretationSchemas(
+                new TransformTree(
+                    new TurnQueryIntoRunnableCode(null), loggerResolver)));
+
+        Exception? caughtException = null;
+        try
+        {
+            chain.Build(items);
+        }
+        catch (CompilationException ce)
+        {
+            caughtException = ce;
+            diagnosticContext.ReportException(ce);
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
+        {
+            caughtException = ex;
+            diagnosticContext.ReportException(ex);
+        }
+
+        var diagnostics = diagnosticContext.Diagnostics.ToList();
+
+        if (diagnosticContext.HasErrors)
+            return BuildResult.Failure(diagnostics, script, caughtException);
+
+        var runnable = CreateRunnable(items);
+        runnable.Logger = loggerResolver.ResolveLogger();
+
+        return BuildResult.Success(new CompiledQuery(runnable), diagnostics, script);
+    }
+
+    /// <summary>
+    ///     Asynchronous version of
+    ///     <see cref="CompileWithDiagnostics(string, string, ISchemaProvider, ILoggerResolver, CompilationOptions)" />.
+    /// </summary>
+    public static Task<BuildResult> CompileWithDiagnosticsAsync(string script, string assemblyName,
+        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CompilationOptions compilationOptions)
+    {
+        return Task.Factory.StartNew(() =>
+            CompileWithDiagnostics(script, assemblyName, schemaProvider, loggerResolver, compilationOptions));
     }
 
     private static IRunnable CreateRunnableForDebug(BuildItems items, Func<Assembly> loadAssembly)

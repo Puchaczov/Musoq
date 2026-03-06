@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Musoq.Evaluator.Visitors.Helpers;
 using Musoq.Parser.Nodes;
@@ -35,6 +37,62 @@ public static class ComparisonEmitter
             nodes.Push(b);
             SyntaxBinaryOperationHelper.ProcessValueEqualsOperation(nodes, generator);
         }
+    }
+
+    /// <summary>
+    ///     Processes a relational comparison (greater than, less than, etc.),
+    ///     generating string.Compare for string operands instead of raw operators.
+    /// </summary>
+    public static void ProcessRelationalComparison(
+        Node leftNode,
+        Node rightNode,
+        Stack<SyntaxNode> nodes,
+        SyntaxGenerator generator,
+        SyntaxKind comparisonKind,
+        Action<Stack<SyntaxNode>, SyntaxGenerator> fallback)
+    {
+        if (IsStringVsStringComparison(leftNode, rightNode))
+        {
+            var right = nodes.Pop();
+            var left = nodes.Pop();
+
+            var stringCompareCall = CreateStringCompareCall(left, right);
+            var zeroLiteral = SyntaxFactory.LiteralExpression(
+                SyntaxKind.NumericLiteralExpression,
+                SyntaxFactory.Literal(0));
+
+            nodes.Push(SyntaxFactory.BinaryExpression(comparisonKind, stringCompareCall, zeroLiteral));
+        }
+        else
+        {
+            fallback(nodes, generator);
+        }
+    }
+
+    private static bool IsStringVsStringComparison(Node leftNode, Node rightNode)
+    {
+        return leftNode.ReturnType == typeof(string) && rightNode.ReturnType == typeof(string);
+    }
+
+    private static InvocationExpressionSyntax CreateStringCompareCall(SyntaxNode left, SyntaxNode right)
+    {
+        return SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                    SyntaxFactory.IdentifierName("Compare")))
+            .WithArgumentList(
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SeparatedList(new[]
+                    {
+                        SyntaxFactory.Argument((ExpressionSyntax)left),
+                        SyntaxFactory.Argument((ExpressionSyntax)right),
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.IdentifierName("StringComparison"),
+                                SyntaxFactory.IdentifierName("Ordinal")))
+                    })));
     }
 
     private static bool IsCharVsStringComparison(Node leftNode, Node rightNode)

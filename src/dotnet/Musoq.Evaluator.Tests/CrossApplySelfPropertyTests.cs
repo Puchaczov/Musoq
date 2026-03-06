@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Exceptions;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Generic;
+using Musoq.Parser.Diagnostics;
 using Musoq.Plugins.Attributes;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -475,7 +477,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass6>().ToArray();
 
-        Assert.Throws<AliasAlreadyUsedException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
         {
             var vm = CreateAndRunVirtualMachine(
                 query,
@@ -484,6 +486,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
             vm.Run(TestContext.CancellationToken);
         });
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind, "a");
     }
 
     [TestMethod]

@@ -15,7 +15,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
     public void SumTimeSpanTest()
     {
         const string query = "table Periods {" +
-                             "  Period timespan" +
+                             "  Period: timespan" +
                              "};" +
                              "couple #test.whatever with table Periods as Periods; " +
                              "select SumTimeSpan(Period) from Periods()";
@@ -47,7 +47,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
     public void MinTimeSpanTest()
     {
         const string query = "table Periods {" +
-                             "  Period timespan" +
+                             "  Period: timespan" +
                              "};" +
                              "couple #test.whatever with table Periods as Periods; " +
                              "select MinTimeSpan(Period) from Periods()";
@@ -79,7 +79,7 @@ public class TimeSpanTests : UnknownQueryTestsBase
     public void MaxTimeSpanTest()
     {
         const string query = "table Periods {" +
-                             "  Period timespan" +
+                             "  Period: timespan" +
                              "};" +
                              "couple #test.whatever with table Periods as Periods; " +
                              "select MaxTimeSpan(Period) from Periods()";
@@ -111,8 +111,8 @@ public class TimeSpanTests : UnknownQueryTestsBase
     public void AddTimeSpansTest()
     {
         const string query = "table Periods {" +
-                             "  Period1 timespan" +
-                             "  Period2 timespan" +
+                             "  Period1: timespan" +
+                             "  Period2: timespan" +
                              "};" +
                              "couple #test.whatever with table Periods as Periods; " +
                              "select AddTimeSpans(Period1, Period2) from Periods()";
@@ -142,8 +142,8 @@ public class TimeSpanTests : UnknownQueryTestsBase
     public void SubtractTimeSpansTest()
     {
         const string query = "table Periods {" +
-                             "  Period1 timespan" +
-                             "  Period2 timespan" +
+                             "  Period1: timespan" +
+                             "  Period2: timespan" +
                              "};" +
                              "couple #test.whatever with table Periods as Periods; " +
                              "select SubtractTimeSpans(Period1, Period2) from Periods()";
@@ -169,3 +169,4 @@ public class TimeSpanTests : UnknownQueryTestsBase
         Assert.AreEqual(TimeSpan.FromHours(1), table[0].Values[0]);
     }
 }
+

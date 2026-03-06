@@ -344,11 +344,10 @@ public class ErrorStagesCoverageTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - @ appears to be treated as valid (possibly column prefix or ignored)
-        // Document actual behavior: the query parses successfully
+        // Assert - @ is not a valid token in Musoq SQL and should produce an error
         DocumentParserBehavior(result,
-            "@ character: parser treats as valid token or ignores it",
-            false);
+            "@ character: lexer rejects as unknown token",
+            true);
     }
 
     [TestMethod]

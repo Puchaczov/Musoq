@@ -149,7 +149,7 @@ public class ArithmeticForCrossTypesTests : BasicEntityTestBase
     [TestMethod]
     public void WhenShortAndShortUsed_ShouldHaveColumnOfThatType()
     {
-        TestMethodTemplate<short>("1s + 1s", 2);
+        TestMethodTemplate<int>("1s + 1s", 2);
     }
 
     [TestMethod]
@@ -215,7 +215,7 @@ public class ArithmeticForCrossTypesTests : BasicEntityTestBase
     [TestMethod]
     public void WhenUShortAndUShortUsed_ShouldHaveColumnOfThatType()
     {
-        TestMethodTemplate<ushort>("1us + 1us", 2);
+        TestMethodTemplate<int>("1us + 1us", 2);
     }
 
     [TestMethod]

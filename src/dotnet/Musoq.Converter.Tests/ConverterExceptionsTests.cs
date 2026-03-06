@@ -1,6 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
+using Musoq.Converter.Tests.Components;
+using Musoq.Converter.Tests.Schema;
+using Musoq.Evaluator;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Converter.Tests;
 
@@ -258,6 +264,375 @@ public class ConverterExceptionsTests
         Assert.AreEqual(message, exception.Message);
         Assert.Contains("line 3", exception.Message);
         Assert.Contains("INVALID", exception.Message);
+    }
+
+    #endregion
+
+    #region MusoqQueryException Tests
+
+    [TestMethod]
+    public void MusoqQueryException_WhenSingleEnvelope_ShouldSetMessageFromEnvelope()
+    {
+        var envelope = CreateTestEnvelope("Missing alias for data source");
+
+        var exception = new MusoqQueryException(envelope);
+
+        Assert.AreEqual("Missing alias for data source", exception.Message);
+        Assert.HasCount(1, exception.Envelopes);
+        Assert.AreSame(envelope, exception.PrimaryEnvelope);
+    }
+
+    [TestMethod]
+    public void MusoqQueryException_WhenSingleEnvelopeWithInner_ShouldPreserveInnerException()
+    {
+        var envelope = CreateTestEnvelope("Query failed");
+        var inner = new InvalidOperationException("internal error");
+
+        var exception = new MusoqQueryException(envelope, inner);
+
+        Assert.AreEqual("Query failed", exception.Message);
+        Assert.AreSame(inner, exception.InnerException);
+    }
+
+    [TestMethod]
+    public void MusoqQueryException_WhenMultipleEnvelopes_ShouldBuildSummaryMessage()
+    {
+        var envelopes = new List<MusoqErrorEnvelope>
+        {
+            CreateTestEnvelope("First error"),
+            CreateTestEnvelope("Second error"),
+            CreateTestEnvelope("Third error")
+        };
+
+        var exception = new MusoqQueryException(envelopes);
+
+        Assert.Contains("First error", exception.Message);
+        Assert.Contains("+2 more errors", exception.Message);
+        Assert.HasCount(3, exception.Envelopes);
+        Assert.AreSame(envelopes[0], exception.PrimaryEnvelope);
+    }
+
+    [TestMethod]
+    public void MusoqQueryException_WhenTwoEnvelopes_ShouldUseSingularMoreError()
+    {
+        var envelopes = new List<MusoqErrorEnvelope>
+        {
+            CreateTestEnvelope("First error"),
+            CreateTestEnvelope("Second error")
+        };
+
+        var exception = new MusoqQueryException(envelopes);
+
+        Assert.Contains("+1 more error)", exception.Message);
+    }
+
+    [TestMethod]
+    public void MusoqQueryException_FormatText_WhenSingleEnvelope_ShouldFormatCorrectly()
+    {
+        var envelope = new MusoqErrorEnvelope(
+            DiagnosticCode.MQ3022_MissingAlias,
+            DiagnosticSeverity.Error,
+            DiagnosticPhase.Bind,
+            "Missing alias",
+            2, 5, null, null,
+            "Aliases are required",
+            ["Add alias after source"],
+            "Core Spec §Aliasing",
+            null);
+
+        var exception = new MusoqQueryException(envelope);
+        var text = exception.FormatText();
+
+        Assert.Contains("MQ3022", text);
+        Assert.Contains("[error]", text);
+        Assert.Contains("[bind]", text);
+        Assert.Contains("Missing alias", text);
+        Assert.Contains("At: line 2, column 5", text);
+    }
+
+    [TestMethod]
+    public void MusoqQueryException_FormatText_WhenMultipleEnvelopes_ShouldSeparateWithDashes()
+    {
+        var envelopes = new List<MusoqErrorEnvelope>
+        {
+            CreateTestEnvelope("Error one"),
+            CreateTestEnvelope("Error two")
+        };
+
+        var exception = new MusoqQueryException(envelopes);
+        var text = exception.FormatText();
+
+        Assert.Contains("Error one", text);
+        Assert.Contains("---", text);
+        Assert.Contains("Error two", text);
+    }
+
+    [TestMethod]
+    public void MusoqQueryException_FormatJson_WhenSingleEnvelope_ShouldReturnJsonObject()
+    {
+        var envelope = CreateTestEnvelope("Test error");
+        var exception = new MusoqQueryException(envelope);
+        var json = exception.FormatJson();
+
+        Assert.StartsWith("{", json);
+        Assert.EndsWith("}", json);
+        Assert.Contains("\"code\":", json);
+        Assert.Contains("\"message\":\"Test error\"", json);
+    }
+
+    [TestMethod]
+    public void MusoqQueryException_FormatJson_WhenMultipleEnvelopes_ShouldReturnJsonArray()
+    {
+        var envelopes = new List<MusoqErrorEnvelope>
+        {
+            CreateTestEnvelope("Error one"),
+            CreateTestEnvelope("Error two")
+        };
+
+        var exception = new MusoqQueryException(envelopes);
+        var json = exception.FormatJson();
+
+        Assert.StartsWith("[", json);
+        Assert.EndsWith("]", json);
+    }
+
+    [TestMethod]
+    public void MusoqQueryException_WhenNullEnvelopes_ShouldThrowArgumentNull()
+    {
+        Assert.Throws<ArgumentNullException>(
+            () => new MusoqQueryException((IReadOnlyList<MusoqErrorEnvelope>)null!));
+    }
+
+    [TestMethod]
+    public void MusoqQueryException_IsException()
+    {
+        var envelope = CreateTestEnvelope("Test");
+        var exception = new MusoqQueryException(envelope);
+
+        Assert.IsInstanceOfType(exception, typeof(Exception));
+    }
+
+    private static MusoqErrorEnvelope CreateTestEnvelope(string message)
+    {
+        return new MusoqErrorEnvelope(
+            DiagnosticCode.MQ9999_Unknown,
+            DiagnosticSeverity.Error,
+            DiagnosticPhase.Runtime,
+            message,
+            null, null, null, null, null,
+            Array.Empty<string>(), null, null);
+    }
+
+    #endregion
+
+    #region CompileForExecution Envelope Tests
+
+    [TestMethod]
+    public void CompileForExecution_WhenQueryIsInvalid_ShouldThrowMusoqQueryException()
+    {
+        var exception = Assert.Throws<MusoqQueryException>(
+            () => InstanceCreator.CompileForExecution(
+                "SELECT nonexistent FROM #system.dual()",
+                Guid.NewGuid().ToString(),
+                new SystemSchemaProvider(),
+                new TestsLoggerResolver()));
+
+        Assert.AreEqual(1, exception.Envelopes.Count,
+            $"Expected exactly 1 error but got {exception.Envelopes.Count}: [{string.Join(", ", exception.Envelopes.Select(e => $"{e.Code}: {e.Message}"))}]");
+        Assert.AreEqual(DiagnosticCode.MQ3001_UnknownColumn, exception.PrimaryEnvelope.Code);
+    }
+
+    [TestMethod]
+    public void CompileForExecution_WhenQueryIsValid_ShouldCompileSuccessfully()
+    {
+        var compiled = InstanceCreator.CompileForExecution(
+            "select 1 from #system.dual()",
+            Guid.NewGuid().ToString(),
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver());
+
+        var result = compiled.Run();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void CompileForExecution_WhenInvalid_ShouldHaveFormattedOutput()
+    {
+        var exception = Assert.Throws<MusoqQueryException>(
+            () => InstanceCreator.CompileForExecution(
+                "SELECTE BADD SYNTAKS",
+                Guid.NewGuid().ToString(),
+                new SystemSchemaProvider(),
+                new TestsLoggerResolver()));
+
+        var text = exception.FormatText();
+        var json = exception.FormatJson();
+
+        Assert.IsFalse(string.IsNullOrWhiteSpace(text));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(json));
+        Assert.Contains("MQ", text);
+    }
+
+    [TestMethod]
+    public void CompileForExecution_WhenSyntaxError_ShouldPreserveInnerException()
+    {
+        var exception = Assert.Throws<MusoqQueryException>(
+            () => InstanceCreator.CompileForExecution(
+                "SELECTE BADD SYNTAKS",
+                Guid.NewGuid().ToString(),
+                new SystemSchemaProvider(),
+                new TestsLoggerResolver()));
+
+        Assert.IsNotNull(exception.InnerException);
+    }
+
+    #endregion
+
+    #region CompileWithDiagnostics Tests
+
+    [TestMethod]
+    public void CompileWithDiagnostics_WhenQueryIsValid_ShouldReturnSucceededResult()
+    {
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "select 1 from #system.dual()",
+            Guid.NewGuid().ToString(),
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver());
+
+        Assert.IsTrue(result.Succeeded);
+        Assert.IsFalse(result.HasErrors);
+        Assert.IsNotNull(result.CompiledQuery);
+    }
+
+    [TestMethod]
+    public void CompileWithDiagnostics_WhenQueryIsValid_ShouldProduceRunnableQuery()
+    {
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "select 1 from #system.dual()",
+            Guid.NewGuid().ToString(),
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver());
+
+        var table = result.CompiledQuery!.Run();
+
+        Assert.IsNotNull(table);
+    }
+
+    [TestMethod]
+    public void CompileWithDiagnostics_WhenQueryHasSemanticError_ShouldReturnFailedResult()
+    {
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "SELECT nonexistent FROM #system.dual()",
+            Guid.NewGuid().ToString(),
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver());
+
+        Assert.IsFalse(result.Succeeded);
+        Assert.IsTrue(result.HasErrors);
+        Assert.IsNull(result.CompiledQuery);
+    }
+
+    [TestMethod]
+    public void CompileWithDiagnostics_WhenQueryHasSemanticError_ShouldCollectDiagnostics()
+    {
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "SELECT nonexistent FROM #system.dual()",
+            Guid.NewGuid().ToString(),
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver());
+
+        Assert.AreEqual(1, result.Errors.Count,
+            $"Expected exactly 1 error but got {result.Errors.Count}: [{string.Join(", ", result.Errors.Select(e => $"{e.Code}: {e.Message}"))}]");
+        Assert.AreEqual(DiagnosticCode.MQ3001_UnknownColumn, result.Errors[0].Code);
+    }
+
+    [TestMethod]
+    public void CompileWithDiagnostics_WhenQueryHasSyntaxError_ShouldReturnFailedResult()
+    {
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "SELECTE BADD SYNTAKS",
+            Guid.NewGuid().ToString(),
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver());
+
+        Assert.IsFalse(result.Succeeded);
+        Assert.IsTrue(result.HasErrors);
+        Assert.IsNull(result.CompiledQuery);
+    }
+
+    [TestMethod]
+    public void CompileWithDiagnostics_WhenQueryHasError_ToEnvelopesShouldReturnEnvelopes()
+    {
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "SELECT nonexistent FROM #system.dual()",
+            Guid.NewGuid().ToString(),
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver());
+
+        var envelopes = result.ToEnvelopes();
+
+        Assert.AreEqual(1, envelopes.Count,
+            $"Expected exactly 1 envelope but got {envelopes.Count}: [{string.Join(", ", envelopes.Select(e => $"{e.Code}: {e.Message}"))}]");
+        Assert.AreEqual(DiagnosticCode.MQ3001_UnknownColumn, envelopes[0].Code);
+    }
+
+    [TestMethod]
+    public void CompileWithDiagnostics_WhenQueryIsValid_ErrorsShouldBeEmpty()
+    {
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "select 1 from #system.dual()",
+            Guid.NewGuid().ToString(),
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver());
+
+        Assert.AreEqual(0, result.Errors.Count);
+        Assert.AreEqual(0, result.ToEnvelopes().Count);
+    }
+
+    [TestMethod]
+    public void CompileWithDiagnostics_WithCompilationOptions_ShouldRespectOptions()
+    {
+        var options = new CompilationOptions(ParallelizationMode.Full);
+
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "select 1 from #system.dual()",
+            Guid.NewGuid().ToString(),
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver(),
+            options);
+
+        Assert.IsTrue(result.Succeeded);
+    }
+
+    #endregion
+
+    #region BuildResult Tests
+
+    [TestMethod]
+    public void BuildResult_WhenSucceeded_WarningsShouldBeAccessible()
+    {
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "select 1 from #system.dual()",
+            Guid.NewGuid().ToString(),
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver());
+
+        Assert.IsNotNull(result.Warnings);
+        Assert.IsNotNull(result.Diagnostics);
+    }
+
+    [TestMethod]
+    public void BuildResult_WhenFailed_CompiledQueryShouldBeNull()
+    {
+        var result = InstanceCreator.CompileWithDiagnostics(
+            "SELECT nonexistent FROM #system.dual()",
+            Guid.NewGuid().ToString(),
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver());
+
+        Assert.IsNull(result.CompiledQuery);
+        Assert.IsFalse(result.Succeeded);
     }
 
     #endregion

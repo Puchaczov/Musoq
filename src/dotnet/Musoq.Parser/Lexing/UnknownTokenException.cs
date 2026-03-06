@@ -35,13 +35,21 @@ public class UnknownTokenException : LexerException
     public string RemainingInput { get; }
 
     /// <inheritdoc />
-    public override TextSpan Span => new(Position, 1);
+    public override TextSpan? Span => new TextSpan(Position, 1);
 
     /// <inheritdoc />
-    public override Diagnostic ToDiagnostic(SourceText sourceText)
+    public override Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
+        var span = Span ?? new TextSpan(Position, 1);
+
+        if (sourceText is null)
+        {
+            return Diagnostic.Error(Code, $"Unknown token '{Character}'", span)
+                .WithRelatedInfo($"Remaining input: {RemainingInput[..Math.Min(50, RemainingInput.Length)]}...");
+        }
+
         var location = sourceText.GetLocation(Position);
-        var contextSnippet = sourceText.GetContextSnippet(Span);
+        var contextSnippet = sourceText.GetContextSnippet(span);
 
         return new Diagnostic(
                 Code,
@@ -50,6 +58,6 @@ public class UnknownTokenException : LexerException
                 location,
                 null,
                 contextSnippet)
-            .WithRelatedInfo($"Remaining input: {RemainingInput.Substring(0, Math.Min(50, RemainingInput.Length))}...");
+            .WithRelatedInfo($"Remaining input: {RemainingInput[..Math.Min(50, RemainingInput.Length)]}...");
     }
 }

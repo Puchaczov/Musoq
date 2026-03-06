@@ -22,7 +22,9 @@ public sealed class Diagnostic
         SourceLocation? endLocation = null,
         string? contextSnippet = null,
         IEnumerable<string>? relatedInfo = null,
-        IEnumerable<DiagnosticAction>? suggestedFixes = null)
+        IEnumerable<DiagnosticAction>? suggestedFixes = null,
+        string? explanation = null,
+        string? docsReference = null)
     {
         Code = code;
         Severity = severity;
@@ -34,6 +36,8 @@ public sealed class Diagnostic
         _suggestedFixes = suggestedFixes != null
             ? new List<DiagnosticAction>(suggestedFixes)
             : new List<DiagnosticAction>();
+        Explanation = explanation;
+        DocsReference = docsReference;
     }
 
     /// <summary>
@@ -92,6 +96,21 @@ public sealed class Diagnostic
     public bool IsWarning => Severity == DiagnosticSeverity.Warning;
 
     /// <summary>
+    ///     Gets a plain-language explanation of why this error occurred.
+    /// </summary>
+    public string? Explanation { get; }
+
+    /// <summary>
+    ///     Gets a documentation reference for this diagnostic (e.g., spec section or doc page id).
+    /// </summary>
+    public string? DocsReference { get; }
+
+    /// <summary>
+    ///     Gets the compilation phase where this diagnostic originated.
+    /// </summary>
+    public DiagnosticPhase Phase => DiagnosticPhaseMapping.FromCode(Code);
+
+    /// <summary>
     ///     Gets the text span from location information.
     /// </summary>
     public TextSpan Span => new(Location.Offset, EndLocation.Offset - Location.Offset);
@@ -103,7 +122,7 @@ public sealed class Diagnostic
     {
         var newRelatedInfo = new List<string>(_relatedInfo) { info };
         return new Diagnostic(Code, Severity, Message, Location, EndLocation, ContextSnippet,
-            newRelatedInfo, _suggestedFixes);
+            newRelatedInfo, _suggestedFixes, Explanation, DocsReference);
     }
 
     /// <summary>
@@ -113,7 +132,25 @@ public sealed class Diagnostic
     {
         var newFixes = new List<DiagnosticAction>(_suggestedFixes) { action };
         return new Diagnostic(Code, Severity, Message, Location, EndLocation, ContextSnippet,
-            _relatedInfo, newFixes);
+            _relatedInfo, newFixes, Explanation, DocsReference);
+    }
+
+    /// <summary>
+    ///     Creates a copy of this diagnostic with an explanation.
+    /// </summary>
+    public Diagnostic WithExplanation(string explanation)
+    {
+        return new Diagnostic(Code, Severity, Message, Location, EndLocation, ContextSnippet,
+            _relatedInfo, _suggestedFixes, explanation, DocsReference);
+    }
+
+    /// <summary>
+    ///     Creates a copy of this diagnostic with a documentation reference.
+    /// </summary>
+    public Diagnostic WithDocsReference(string docsReference)
+    {
+        return new Diagnostic(Code, Severity, Message, Location, EndLocation, ContextSnippet,
+            _relatedInfo, _suggestedFixes, Explanation, docsReference);
     }
 
     /// <summary>

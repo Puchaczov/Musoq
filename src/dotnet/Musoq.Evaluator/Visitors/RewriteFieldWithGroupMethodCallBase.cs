@@ -56,6 +56,7 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
         }
         else if (fields.Select(ExtractOriginalExpression).Contains(node.ToString()))
         {
+            Nodes.Pop();
             Nodes.Push(new AccessColumnNode(node.ToString(), string.Empty, node.ReturnType, TextSpan.Empty));
         }
         else
@@ -72,8 +73,71 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
     public override void Visit(CaseNode node)
     {
         if (fields.Select(f => f.Expression.ToString()).Contains(node.ToString()))
+        {
+            for (var i = 0; i < node.WhenThenPairs.Length; i++)
+            {
+                Nodes.Pop();
+                Nodes.Pop();
+            }
+
+            Nodes.Pop();
             Nodes.Push(new AccessColumnNode(node.ToString(), string.Empty, node.ReturnType, TextSpan.Empty));
+        }
         else
+        {
             base.Visit(node);
+        }
+    }
+
+    public override void Visit(StarNode node)
+    {
+        if (TryReplaceWithGroupColumn(node))
+            return;
+
+        base.Visit(node);
+    }
+
+    public override void Visit(FSlashNode node)
+    {
+        if (TryReplaceWithGroupColumn(node))
+            return;
+
+        base.Visit(node);
+    }
+
+    public override void Visit(ModuloNode node)
+    {
+        if (TryReplaceWithGroupColumn(node))
+            return;
+
+        base.Visit(node);
+    }
+
+    public override void Visit(AddNode node)
+    {
+        if (TryReplaceWithGroupColumn(node))
+            return;
+
+        base.Visit(node);
+    }
+
+    public override void Visit(HyphenNode node)
+    {
+        if (TryReplaceWithGroupColumn(node))
+            return;
+
+        base.Visit(node);
+    }
+
+    private bool TryReplaceWithGroupColumn(BinaryNode node)
+    {
+        var nodeString = node.ToString();
+        if (!fields.Select(ExtractOriginalExpression).Contains(nodeString))
+            return false;
+
+        Nodes.Pop();
+        Nodes.Pop();
+        Nodes.Push(new AccessColumnNode(nodeString, string.Empty, node.ReturnType, TextSpan.Empty));
+        return true;
     }
 }
