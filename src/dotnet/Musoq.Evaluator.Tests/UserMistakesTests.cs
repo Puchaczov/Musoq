@@ -309,8 +309,11 @@ public class UserMistakesTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - lexer/parsing behavior depends on quote handling rules
+        // Assert - double quotes are not string delimiters in Musoq (single quotes are),
+        // so " is an unknown token (MQ1001) rather than an unterminated string (MQ1002).
+        // The parser may also report MQ2001 due to the unexpected token.
         AssertHasOneOfErrorCodes(result, "unclosed double quote",
+            DiagnosticCode.MQ1001_UnknownToken,
             DiagnosticCode.MQ1002_UnterminatedString,
             DiagnosticCode.MQ2001_UnexpectedToken);
     }
@@ -821,8 +824,9 @@ public class UserMistakesTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - MQ3001_UnknownColumn or alias resolution error
+        // Assert - unknown alias 'x' should be reported
         AssertHasOneOfErrorCodes(result, "undefined alias 'x'",
+            DiagnosticCode.MQ3015_UnknownAlias,
             DiagnosticCode.MQ3001_UnknownColumn);
     }
 

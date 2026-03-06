@@ -125,7 +125,7 @@ public class ArithmeticForMethodCallAndTypeSpecificOperationTests : BasicEntityT
     [TestMethod]
     public void WhenShortMethodCallAndShortUsed_ShouldHaveColumnOfThatType()
     {
-        TestMethodTemplate<short>("DoNothing(1s) + 1s", 2);
+        TestMethodTemplate<int>("DoNothing(1s) + 1s", 2);
     }
 
     [TestMethod]
@@ -179,7 +179,7 @@ public class ArithmeticForMethodCallAndTypeSpecificOperationTests : BasicEntityT
     [TestMethod]
     public void WhenUShortMethodCallAndUShortUsed_ShouldHaveColumnOfThatType()
     {
-        TestMethodTemplate<ushort>("DoNothing(1us) + 1us", 2);
+        TestMethodTemplate<int>("DoNothing(1us) + 1us", 2);
     }
 
     [TestMethod]

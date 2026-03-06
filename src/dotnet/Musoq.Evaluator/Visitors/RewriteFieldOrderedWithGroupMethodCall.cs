@@ -33,6 +33,7 @@ public class RewriteFieldOrderedWithGroupMethodCall
 
         if (MatchesGroupByField(nodeString))
         {
+            Nodes.Pop();
             Nodes.Push(new AccessColumnNode(nodeString, string.Empty, node.ReturnType, TextSpan.Empty));
             return;
         }

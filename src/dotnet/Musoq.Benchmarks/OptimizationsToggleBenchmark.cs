@@ -21,6 +21,7 @@ public class OptimizationsToggleBenchmark
         ParallelizationMode.None,
         false,
         false,
+        false,
         false);
 
     private readonly ILoggerResolver _loggerResolver = new BenchmarkLoggerResolver();

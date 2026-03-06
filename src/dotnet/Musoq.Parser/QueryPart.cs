@@ -7,5 +7,6 @@ public enum QueryPart
     From,
     Where,
     GroupBy,
-    Having
+    Having,
+    OrderBy
 }

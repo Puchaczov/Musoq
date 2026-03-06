@@ -1,6 +1,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Exceptions;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.NegativeTests;
+using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -12,8 +14,11 @@ public class CompileErrorTests : NegativeTestsBase
     [TestMethod]
     public void CE040_SelectStarWithGroupBy_ShouldThrowErrorForNonGroupedColumns()
     {
-        Assert.Throws<NonAggregatedColumnInSelectException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() GROUP BY City"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3012_NonAggregateInSelect, DiagnosticPhase.Bind, "GROUP BY");
+        AssertHasGuidance(ex);
     }
 
     #endregion
@@ -23,15 +28,22 @@ public class CompileErrorTests : NegativeTestsBase
     [TestMethod]
     public void CE001_NonAggregatedNonGroupedColumnInSelect_ShouldThrowError()
     {
-        Assert.Throws<NonAggregatedColumnInSelectException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name, City, Count(1) FROM #test.people() GROUP BY City"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3012_NonAggregateInSelect, DiagnosticPhase.Bind, "Name");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void CE002_MultipleNonAggregatedColumnsMissingFromGroupBy_ShouldThrowError()
     {
-        Assert.Throws<NonAggregatedColumnInSelectException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name, Age, City, Count(1) FROM #test.people() GROUP BY City"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3012_NonAggregateInSelect, DiagnosticPhase.Bind, "Age");
+        AssertHasGuidance(ex);
+        AssertSecondaryEnvelopeCode(ex, 1, DiagnosticCode.MQ3012_NonAggregateInSelect, "Name");
     }
 
     [TestMethod]
@@ -48,15 +60,19 @@ public class CompileErrorTests : NegativeTestsBase
     [TestMethod]
     public void CE010_SelectAliasUsedInWhere_ShouldThrowCompileError()
     {
-        Assert.Throws<UnknownColumnOrAliasException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name AS FileName FROM #test.people() WHERE FileName = 'test'"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "FileName");
     }
 
     [TestMethod]
     public void CE011_SelectAliasUsedInGroupBy_ShouldThrowError()
     {
-        Assert.Throws<UnknownColumnOrAliasException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Length(Name) AS NameLen FROM #test.people() GROUP BY NameLen"));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "NameLen");
     }
 
     #endregion

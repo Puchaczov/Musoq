@@ -498,6 +498,11 @@ public class ExtractRawColumnsVisitor : IAwareExpressionVisitor
     {
     }
 
+    public bool IsCurrentContextColumn(string name)
+    {
+        return false;
+    }
+
     public void Visit(InterpretCallNode node)
     {
     }

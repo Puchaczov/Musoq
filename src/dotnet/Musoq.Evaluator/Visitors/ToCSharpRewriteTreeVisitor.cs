@@ -237,22 +237,30 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public override void Visit(GreaterOrEqualNode node)
     {
-        SyntaxBinaryOperationHelper.ProcessGreaterThanOrEqualOperation(Nodes, Generator);
+        ComparisonEmitter.ProcessRelationalComparison(node.Left, node.Right, Nodes, Generator,
+            SyntaxKind.GreaterThanOrEqualExpression,
+            SyntaxBinaryOperationHelper.ProcessGreaterThanOrEqualOperation);
     }
 
     public override void Visit(LessOrEqualNode node)
     {
-        SyntaxBinaryOperationHelper.ProcessLessThanOrEqualOperation(Nodes, Generator);
+        ComparisonEmitter.ProcessRelationalComparison(node.Left, node.Right, Nodes, Generator,
+            SyntaxKind.LessThanOrEqualExpression,
+            SyntaxBinaryOperationHelper.ProcessLessThanOrEqualOperation);
     }
 
     public override void Visit(GreaterNode node)
     {
-        SyntaxBinaryOperationHelper.ProcessGreaterThanOperation(Nodes, Generator);
+        ComparisonEmitter.ProcessRelationalComparison(node.Left, node.Right, Nodes, Generator,
+            SyntaxKind.GreaterThanExpression,
+            SyntaxBinaryOperationHelper.ProcessGreaterThanOperation);
     }
 
     public override void Visit(LessNode node)
     {
-        SyntaxBinaryOperationHelper.ProcessLessThanOperation(Nodes, Generator);
+        ComparisonEmitter.ProcessRelationalComparison(node.Left, node.Right, Nodes, Generator,
+            SyntaxKind.LessThanExpression,
+            SyntaxBinaryOperationHelper.ProcessLessThanOperation);
     }
 
     public override void Visit(DiffNode node)

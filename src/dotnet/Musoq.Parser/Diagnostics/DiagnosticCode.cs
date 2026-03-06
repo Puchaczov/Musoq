@@ -368,6 +368,11 @@ public enum DiagnosticCode
     /// </summary>
     MQ3031_SetOperatorMissingKeys = 3031,
 
+    /// <summary>
+    ///     Arithmetic overflow in constant expression.
+    /// </summary>
+    MQ3032_ArithmeticOverflow = 3032,
+
     // ============================================
     // Schema Definition Errors (MQ4xxx)
     // ============================================
@@ -465,6 +470,69 @@ public enum DiagnosticCode
     ///     Unreachable code detected.
     /// </summary>
     MQ5008_UnreachableCode = 5008,
+
+    /// <summary>
+    ///     ORDER BY alias may not resolve to the computed expression.
+    /// </summary>
+    MQ5009_OrderByAliasBehavior = 5009,
+
+    /// <summary>
+    ///     Condition always evaluates to true (redundant filter).
+    /// </summary>
+    MQ5010_TautologicalCondition = 5010,
+
+    /// <summary>
+    ///     Condition always evaluates to false (no rows will be returned).
+    /// </summary>
+    MQ5011_ContradictoryCondition = 5011,
+
+    // ============================================
+    // Feature-Gate Errors (MQ6xxx)
+    // Known limitations flagged explicitly.
+    // ============================================
+
+    /// <summary>
+    ///     CTE syntax is unavailable in this parser/CLI path.
+    /// </summary>
+    MQ6001_CteUnavailable = 6001,
+
+    /// <summary>
+    ///     DESC introspection is unavailable due to alias-validator conflict.
+    /// </summary>
+    MQ6002_DescUnavailable = 6002,
+
+    /// <summary>
+    ///     Simple CASE syntax is not supported (only searched CASE).
+    /// </summary>
+    MQ6003_SimpleCaseNotSupported = 6003,
+
+    /// <summary>
+    ///     Coalesce/IfNull with literal NULL is not supported.
+    /// </summary>
+    MQ6004_CoalesceWithLiteralNull = 6004,
+
+    // ============================================
+    // Runtime Errors (MQ7xxx)
+    // ============================================
+
+    /// <summary>
+    ///     Data source constructor binding failed at runtime.
+    /// </summary>
+    MQ7001_DataSourceBindingFailed = 7001,
+
+    /// <summary>
+    ///     Data source iterator entered an invalid state.
+    /// </summary>
+    MQ7002_DataSourceIteratorError = 7002,
+
+    // ============================================
+    // Code Generation Errors (MQ8xxx)
+    // ============================================
+
+    /// <summary>
+    ///     Roslyn compilation of the generated C# code failed.
+    /// </summary>
+    MQ8001_CodeGenerationFailed = 8001,
 
     // ============================================
     // Internal/Unknown (MQ9xxx)

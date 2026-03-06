@@ -21,7 +21,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
     public void WhenSingleValueTableIsCoupledWithSchema_ShouldHaveAppropriateTypesTest()
     {
         const string query = "table DummyTable {" +
-                             "   Name string" +
+                             "   Name: string" +
                              "};" +
                              "couple #A.Entities with table DummyTable as SourceOfDummyRows;" +
                              "select Name from SourceOfDummyRows();";
@@ -69,8 +69,8 @@ public class CouplingSyntaxTests : BasicEntityTestBase
     public void WhenTwoValuesTableIsCoupledWithSchema_ShouldHaveAppropriateTypesTest()
     {
         const string query = "table DummyTable {" +
-                             "   Country string," +
-                             "   Population decimal" +
+                             "   Country: string," +
+                             "   Population: decimal" +
                              "};" +
                              "couple #A.Entities with table DummyTable as SourceOfDummyRows;" +
                              "select Country, Population from SourceOfDummyRows();";
@@ -121,11 +121,11 @@ public class CouplingSyntaxTests : BasicEntityTestBase
     public void WhenTwoTablesAreCoupledWithSchemas_ShouldHaveAppropriateTypesTest()
     {
         const string query = "table FirstTable {" +
-                             "   Country string," +
-                             "   Population decimal" +
+                             "   Country: string," +
+                             "   Population: decimal" +
                              "};" +
                              "table SecondTable {" +
-                             "   Name string," +
+                             "   Name: string," +
                              "};" +
                              "couple #A.Entities with table FirstTable as SourceOfFirstTableRows;" +
                              "couple #B.Entities with table SecondTable as SourceOfSecondTableRows;" +
@@ -182,8 +182,8 @@ public class CouplingSyntaxTests : BasicEntityTestBase
     public void WhenArgumentPassedToAliasedSchema_ShouldBeProperlyRecognized()
     {
         const string query = "table DummyTable {" +
-                             "   Parameter0 bool," +
-                             "   Parameter1 string" +
+                             "   Parameter0: bool," +
+                             "   Parameter1: string" +
                              "};" +
                              "couple #A.Entities with table DummyTable as SourceOfDummyRows;" +
                              "select Parameter0, Parameter1 from SourceOfDummyRows(true, 'test');";
@@ -209,7 +209,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
     {
         var query = "" +
                     "table Values {" +
-                    "   Text string" +
+                    "   Text: string" +
                     "};" +
                     "couple #unknown.others with table Values as SourceOfValues;" +
                     "with Anything as (" +
@@ -330,3 +330,4 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         }
     }
 }
+

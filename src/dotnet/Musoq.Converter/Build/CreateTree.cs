@@ -1,5 +1,6 @@
 ﻿using System;
 using Musoq.Converter.Exceptions;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 
 namespace Musoq.Converter.Build;
@@ -25,6 +26,7 @@ public class CreateTree(BuildChain successor) : BuildChain(successor)
                 throw AstValidationException.ForNullNode("RootNode", "CreateTree after parsing");
 
             items.RawQueryTree = rootNode;
+            items.SourceText = new SourceText(items.RawQuery);
         }
         catch (Exception ex) when (!(ex is AstValidationException))
         {

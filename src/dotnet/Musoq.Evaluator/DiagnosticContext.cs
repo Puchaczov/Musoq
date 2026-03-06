@@ -155,6 +155,20 @@ public sealed class DiagnosticContext
     }
 
     /// <summary>
+    ///     Reports an unknown alias error with suggestions.
+    /// </summary>
+    public void ReportUnknownAlias(string alias, IEnumerable<string> availableAliases, Node node)
+    {
+        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        var message = $"Unknown alias '{alias}'.";
+
+        var suggestion = ErrorCatalog.GetDidYouMeanSuggestion(alias, availableAliases);
+        if (!string.IsNullOrEmpty(suggestion)) message += $" {suggestion}";
+
+        ReportError(DiagnosticCode.MQ3015_UnknownAlias, message, span);
+    }
+
+    /// <summary>
     ///     Reports an unknown column error with suggestions.
     /// </summary>
     public void ReportUnknownColumn(string columnName, IEnumerable<string> availableColumns, Node node)

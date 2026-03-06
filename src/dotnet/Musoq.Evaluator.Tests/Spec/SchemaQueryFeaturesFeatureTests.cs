@@ -245,11 +245,11 @@ public class SchemaQueryFeaturesFeatureTests
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual((short)3, table[0][0]);
         Assert.AreEqual((short)4, table[0][1]);
-        Assert.AreEqual((short)(3 * 4), table[0][2]);
+        Assert.AreEqual(3 * 4, table[0][2]);
         Assert.AreEqual((3 + 4) * 2, table[0][3]);
         Assert.AreEqual((short)5, table[1][0]);
         Assert.AreEqual((short)6, table[1][1]);
-        Assert.AreEqual((short)(5 * 6), table[1][2]);
+        Assert.AreEqual(5 * 6, table[1][2]);
         Assert.AreEqual((5 + 6) * 2, table[1][3]);
     }
 

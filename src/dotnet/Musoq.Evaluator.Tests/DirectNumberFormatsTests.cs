@@ -1,6 +1,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -370,20 +372,29 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
     [TestMethod]
     public void HexadecimalOverflow_TooLargeForLong()
     {
-        Assert.Throws<AstValidationException>(() => TestMethodTemplate("0xFFFFFFFFFFFFFFFF1", 0L));
+        var ex = Assert.Throws<MusoqQueryException>(() => TestMethodTemplate("0xFFFFFFFFFFFFFFFF1", 0L));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "too large");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void BinaryOverflow_TooLargeForLong()
     {
-        Assert.Throws<AstValidationException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             TestMethodTemplate("0b11111111111111111111111111111111111111111111111111111111111111111", 0L));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "too large");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
     public void OctalOverflow_TooLargeForLong()
     {
-        Assert.Throws<AstValidationException>(() => TestMethodTemplate("0o7777777777777777777777", 0L));
+        var ex = Assert.Throws<MusoqQueryException>(() => TestMethodTemplate("0o7777777777777777777777", 0L));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "too large");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]

@@ -876,7 +876,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.String)]
     public string? GetFirstWord(string text, string separator)
     {
-        return GetNthWord(text, 1, separator);
+        return GetNthWord(text, 0, separator);
     }
 
     /// <summary>
@@ -889,7 +889,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.String)]
     public string? GetSecondWord(string text, string separator)
     {
-        return GetNthWord(text, 2, separator);
+        return GetNthWord(text, 1, separator);
     }
 
     /// <summary>
@@ -902,7 +902,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.String)]
     public string? GetThirdWord(string text, string separator)
     {
-        return GetNthWord(text, 3, separator);
+        return GetNthWord(text, 2, separator);
     }
 
     /// <summary>

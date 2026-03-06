@@ -162,7 +162,7 @@ FROM #A.Entities()";
     {
         // Arrange — TABLE/COUPLE definition + CTE
         var analyzer = CreateAnalyzer();
-        var query = @"table TypedRow { Id int, Name string };
+        var query = @"table TypedRow { Id: int, Name: string };
 couple #A.Entities() with table TypedRow as TypedSource;
 WITH MyData AS (
     SELECT Id, Name FROM TypedSource()
@@ -283,3 +283,4 @@ INNER JOIN #B.Entities() b ON
 
     #endregion
 }
+

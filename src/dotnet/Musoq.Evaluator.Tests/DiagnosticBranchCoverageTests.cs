@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Parser;
@@ -241,9 +242,9 @@ public class DiagnosticBranchCoverageTests : BasicEntityTestBase
         try
         {
             CreateAndRunVirtualMachine("SELECT NonExistentColumn FROM #A.Entities()", sources);
-            Assert.Fail("Expected UnknownColumnOrAliasException was not thrown");
+            Assert.Fail("Expected MusoqQueryException was not thrown");
         }
-        catch (UnknownColumnOrAliasException)
+        catch (MusoqQueryException)
         {
             // Expected
         }
@@ -566,7 +567,7 @@ public class DiagnosticBranchCoverageTests : BasicEntityTestBase
                 SELECT Name, City FROM #A.Entities()", sources);
             Assert.Fail("Should have thrown exception for column count mismatch");
         }
-        catch (SetOperatorMustHaveKeyColumnsException)
+        catch (MusoqQueryException)
         {
             // Expected - Union requires key columns to be defined
         }

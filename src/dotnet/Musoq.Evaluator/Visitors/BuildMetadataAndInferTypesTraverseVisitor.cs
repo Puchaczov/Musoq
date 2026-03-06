@@ -183,6 +183,19 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
             }
         }
 
+        if (ident != null && node == theMostOuter &&
+            !Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name) &&
+            !_visitor.IsCurrentContextColumn(ident.Name))
+        {
+            var column = theMostOuter.Expression as IdentifierNode;
+            if (column != null)
+            {
+                Visit(new AccessColumnNode(column.Name, ident.Name,
+                    ident.HasSpan ? ident.Span : TextSpan.Empty));
+                return;
+            }
+        }
+
         var setTheMostInnerIdentifier = false;
         if (_theMostInnerIdentifier is null)
         {
@@ -519,6 +532,8 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
         node.Skip?.Accept(this);
         node.Take?.Accept(this);
+
+        SetQueryPart(QueryPart.OrderBy);
         node.OrderBy?.Accept(this);
         node.Accept(_visitor);
         RestoreScope();

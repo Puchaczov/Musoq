@@ -1010,19 +1010,16 @@ SELECT Name FROM #B.Entities()";
     [TestMethod]
     public void P_MISC_09_IfNull_MySqlSqliteStyle()
     {
-        // Arrange — IFNULL (MySQL/SQLite)
+        // Arrange — IFNULL is a built-in Musoq function (IfNull<T>),
+        // and now correctly resolves when the first argument is a null literal.
         var analyzer = CreateAnalyzer();
         var query = "SELECT IFNULL(null, Name) FROM #A.Entities()";
 
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert — Should suggest Coalesce or Musoq equivalent
-        AssertHasOneOfErrorCodes(result, "IFNULL should suggest Coalesce or Musoq equivalent",
-            DiagnosticCode.MQ3004_UnknownFunction,
-            DiagnosticCode.MQ3013_CannotResolveMethod,
-            DiagnosticCode.MQ3029_UnresolvableMethod,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        // Assert — IfNull is supported natively in Musoq
+        AssertNoErrors(result);
     }
 
     [TestMethod]

@@ -489,8 +489,11 @@ public sealed class Lexer : ILexer
                     Position += hexMatch.Length;
                     return AssignToken(new HexIntegerToken(hexMatch.Value, new TextSpan(start, hexMatch.Length)));
                 }
+
+                return HandleInvalidBaseNumber(start, DiagnosticCode.MQ1006_InvalidHexNumber, "hexadecimal", "0x");
             }
-            else if (next == 'b')
+
+            if (next == 'b')
             {
                 var binMatch = BinaryIntegerRegex.Match(Input, Position);
                 if (binMatch.Success && binMatch.Index == Position)
@@ -498,8 +501,11 @@ public sealed class Lexer : ILexer
                     Position += binMatch.Length;
                     return AssignToken(new BinaryIntegerToken(binMatch.Value, new TextSpan(start, binMatch.Length)));
                 }
+
+                return HandleInvalidBaseNumber(start, DiagnosticCode.MQ1007_InvalidBinaryNumber, "binary", "0b");
             }
-            else if (next == 'o')
+
+            if (next == 'o')
             {
                 var octMatch = OctalIntegerRegex.Match(Input, Position);
                 if (octMatch.Success && octMatch.Index == Position)
@@ -507,6 +513,8 @@ public sealed class Lexer : ILexer
                     Position += octMatch.Length;
                     return AssignToken(new OctalIntegerToken(octMatch.Value, new TextSpan(start, octMatch.Length)));
                 }
+
+                return HandleInvalidBaseNumber(start, DiagnosticCode.MQ1008_InvalidOctalNumber, "octal", "0o");
             }
         }
 
@@ -568,6 +576,29 @@ public sealed class Lexer : ILexer
         return AssignToken(new IntegerToken(numText, new TextSpan(start, Position - start), suffix));
     }
 
+    private Token HandleInvalidBaseNumber(int start, DiagnosticCode code, string baseName, string prefix)
+    {
+        var scanEnd = Position + 2;
+        while (scanEnd < Input.Length && FastCharacterClassifier.IsIdentifierContinue(Input[scanEnd]))
+            scanEnd++;
+
+        var invalidLiteral = Input[start..scanEnd];
+        var span = new TextSpan(start, scanEnd - start);
+
+        if (RecoverOnError)
+        {
+            Diagnostics.AddError(code, span, invalidLiteral);
+            Position = scanEnd;
+            return AssignToken(new ErrorToken(Input[start], span));
+        }
+
+        Position = scanEnd;
+        throw new LexerException(
+            $"Invalid {baseName} number literal '{invalidLiteral}'. Expected valid {baseName} digits after '{prefix}' prefix.",
+            start,
+            code);
+    }
+
     private Token ScanStringLiteral()
     {
         var start = Position;
@@ -598,13 +629,13 @@ public sealed class Lexer : ILexer
 
             var span = new TextSpan(start, end - start);
             Diagnostics.AddError(DiagnosticCode.MQ1002_UnterminatedString,
-                "Unterminated string literal", span);
+                "Unterminated string literal: missing closing '", span);
 
             Position = end;
             return AssignToken(new ErrorToken(Input[start..end], span));
         }
 
-        throw new UnknownTokenException(Position, '\'', "Unterminated string literal");
+        throw new LexerException("Unterminated string literal: missing closing '", start, DiagnosticCode.MQ1002_UnterminatedString);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -769,6 +800,21 @@ public sealed class Lexer : ILexer
                 Position += match.Length;
                 return AssignToken(new CommentToken(match.Value, new TextSpan(start, match.Length)));
             }
+
+            var span = new TextSpan(start, Input.Length - start);
+
+            if (RecoverOnError)
+            {
+                Diagnostics.AddError(DiagnosticCode.MQ1005_UnterminatedBlockComment, span, Input[start..]);
+                Position = Input.Length;
+                return AssignToken(new ErrorToken(Input[start], span));
+            }
+
+            Position = Input.Length;
+            throw new LexerException(
+                "Unterminated block comment. Expected closing '*/' but reached end of input.",
+                start,
+                DiagnosticCode.MQ1005_UnterminatedBlockComment);
         }
 
 
@@ -865,7 +911,8 @@ public sealed class Lexer : ILexer
             return AssignToken(new ErrorToken(c, span));
         }
 
-        return AssignToken(new WordToken(FastCharacterClassifier.CharToString(c), span));
+        var remaining = Input[start..];
+        throw new UnknownTokenException(start, c, remaining);
     }
 
     private bool ShouldSkipToken(Token token)
