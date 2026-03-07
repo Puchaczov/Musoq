@@ -3,6 +3,8 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.NegativeTests;
+using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -41,15 +43,21 @@ public class RuntimeErrorTests : NegativeTestsBase
     [TestMethod]
     public void RE004_DivisionByZeroLiteral_ShouldThrowCompilationError()
     {
-        Assert.Throws<CompilationException>(() =>
+        // Constant folding detects division by zero at compile time
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT 10 / 0 FROM #test.single()"));
+
+        AssertSingleError(ex, DiagnosticCode.MQ3008_DivisionByZero, DiagnosticPhase.Bind);
     }
 
     [TestMethod]
     public void RE006_ModuloByZeroLiteral_ShouldThrowCompilationError()
     {
-        Assert.Throws<CompilationException>(() =>
+        // Constant folding detects modulo by zero at compile time
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT 10 % 0 FROM #test.single()"));
+
+        AssertSingleError(ex, DiagnosticCode.MQ3008_DivisionByZero, DiagnosticPhase.Bind);
     }
 
     #endregion

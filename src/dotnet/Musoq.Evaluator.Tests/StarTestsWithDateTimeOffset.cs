@@ -16,10 +16,10 @@ public class StarTestsWithDateTimeOffset : UnknownQueryTestsBase
     {
         // Arrange
         const string query = "table Dates {" +
-                             "  Id int," +
-                             "  Name string," +
-                             "  CreatedAt datetimeoffset," +
-                             "  UpdatedAt datetimeoffset?" +
+                             "  Id: int," +
+                             "  Name: string," +
+                             "  CreatedAt: datetimeoffset," +
+                             "  UpdatedAt: datetimeoffset?" +
                              "};" +
                              "couple #test.whatever with table Dates as Dates; " +
                              "select * from Dates() order by Id";
@@ -74,3 +74,4 @@ public class StarTestsWithDateTimeOffset : UnknownQueryTestsBase
         Assert.IsNull(table[1].Values[updatedAtIndex]);
     }
 }
+

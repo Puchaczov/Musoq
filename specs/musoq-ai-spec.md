@@ -1,9 +1,8 @@
 # Musoq AI Interpretation Schema: Language Extension Specification
 
-**Version:** 0.3.0  
+**Version:** 0.1.0
 **Status:** Proposal  
-**Author:** Jakub Puchała  
-**Date:** February 2026
+**Author:** Jakub Puchała
 
 ---
 

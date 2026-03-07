@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Exceptions;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -1080,7 +1082,10 @@ select Name from #A.Entities() where Name = '005'";
             { "#A", [new BasicEntity("001")] }
         };
 
-        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3020_SetOperatorColumnTypes, DiagnosticPhase.Bind, "same types");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -1092,7 +1097,10 @@ select Name from #A.Entities() where Name = '005'";
             { "#A", [new BasicEntity("001")] }
         };
 
-        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3020_SetOperatorColumnTypes, DiagnosticPhase.Bind, "same types");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -1104,7 +1112,10 @@ select Name from #A.Entities() where Name = '005'";
             { "#A", [new BasicEntity("001")] }
         };
 
-        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3020_SetOperatorColumnTypes, DiagnosticPhase.Bind, "same types");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -1116,7 +1127,10 @@ select Name from #A.Entities() where Name = '005'";
             { "#A", [new BasicEntity("001")] }
         };
 
-        Assert.Throws<SetOperatorMustHaveSameTypesOfColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3020_SetOperatorColumnTypes, DiagnosticPhase.Bind, "same types");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -1128,7 +1142,10 @@ select Name from #A.Entities() where Name = '005'";
             { "#A", [new BasicEntity("001")] }
         };
 
-        Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "Union");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -1140,7 +1157,10 @@ select Name from #A.Entities() where Name = '005'";
             { "#A", [new BasicEntity("001")] }
         };
 
-        Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "UnionAll");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -1152,7 +1172,10 @@ select Name from #A.Entities() where Name = '005'";
             { "#A", [new BasicEntity("001")] }
         };
 
-        Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "Except");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -1164,6 +1187,9 @@ select Name from #A.Entities() where Name = '005'";
             { "#A", [new BasicEntity("001")] }
         };
 
-        Assert.Throws<SetOperatorMustHaveKeyColumnsException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "Intersect");
+        AssertHasGuidance(ex);
     }
 }

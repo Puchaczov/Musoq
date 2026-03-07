@@ -13,8 +13,8 @@ public class AutomaticNumericTypeInferenceDebugDecimalTest : UnknownQueryTestsBa
     public void Debug_StringToDecimal_SimpleCase()
     {
         const string query = "table Items {" +
-                             "  Price string," +
-                             "  Name string" +
+                             "  Price: string," +
+                             "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Price = 100.50";
@@ -34,8 +34,8 @@ public class AutomaticNumericTypeInferenceDebugDecimalTest : UnknownQueryTestsBa
     public void Debug_StringToDecimal_IntegerWorks()
     {
         const string query = "table Items {" +
-                             "  Price string," +
-                             "  Name string" +
+                             "  Price: string," +
+                             "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Price = 100";
@@ -55,8 +55,8 @@ public class AutomaticNumericTypeInferenceDebugDecimalTest : UnknownQueryTestsBa
     public void Debug_ObjectToDecimal_Works()
     {
         const string query = "table Items {" +
-                             "  Price object," +
-                             "  Name string" +
+                             "  Price: object," +
+                             "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Price = 100.50";
@@ -72,3 +72,4 @@ public class AutomaticNumericTypeInferenceDebugDecimalTest : UnknownQueryTestsBa
         Assert.AreEqual("Match", table[0].Values[0]);
     }
 }
+

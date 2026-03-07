@@ -15,7 +15,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
     public void MinDateTimeOffsetTest()
     {
         const string query = "table Dates {" +
-                             "  Date datetimeoffset" +
+                             "  Date: datetimeoffset" +
                              "};" +
                              "couple #test.whatever with table Dates as Dates; " +
                              "select MinDateTimeOffset(Date) from Dates()";
@@ -45,7 +45,7 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
     public void MaxDateTimeOffsetTest()
     {
         const string query = "table Dates {" +
-                             "  Date datetimeoffset" +
+                             "  Date: datetimeoffset" +
                              "};" +
                              "couple #test.whatever with table Dates as Dates; " +
                              "select MaxDateTimeOffset(Date) from Dates()";
@@ -75,8 +75,8 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
     public void SubtractDateTimeOffsetsTest()
     {
         const string query = "table Dates {" +
-                             "  Date1 datetimeoffset," +
-                             "  Date2 datetimeoffset" +
+                             "  Date1: datetimeoffset," +
+                             "  Date2: datetimeoffset" +
                              "};" +
                              "couple #test.whatever with table Dates as Dates; " +
                              "select SubtractDateTimeOffsets(Date1, Date2) from Dates()";
@@ -104,8 +104,8 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
     public void SubtractDateTimeOffsets_MinusOperatorTest()
     {
         const string query = "table Dates {" +
-                             "  Date1 datetimeoffset," +
-                             "  Date2 datetimeoffset" +
+                             "  Date1: datetimeoffset," +
+                             "  Date2: datetimeoffset" +
                              "};" +
                              "couple #test.whatever with table Dates as Dates; " +
                              "select Date1 - Date2 from Dates()";
@@ -129,3 +129,4 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
         Assert.AreEqual(TimeSpan.Zero, table[0].Values[0]);
     }
 }
+

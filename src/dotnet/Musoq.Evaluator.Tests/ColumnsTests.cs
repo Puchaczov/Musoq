@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Exceptions;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -23,7 +25,9 @@ public class ColumnsTests : BasicEntityTestBase
             }
         };
 
-        Assert.Throws<UnknownPropertyException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3028_UnknownProperty, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]
@@ -88,7 +92,9 @@ public class ColumnsTests : BasicEntityTestBase
             }
         };
 
-        Assert.Throws<ObjectDoesNotImplementIndexerException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3018_NoIndexer, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]
@@ -103,7 +109,9 @@ public class ColumnsTests : BasicEntityTestBase
             }
         };
 
-        Assert.Throws<ObjectDoesNotImplementIndexerException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3028_UnknownProperty, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]
@@ -118,7 +126,9 @@ public class ColumnsTests : BasicEntityTestBase
             }
         };
 
-        Assert.Throws<ConstructionNotYetSupported>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3028_UnknownProperty, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]
@@ -133,7 +143,9 @@ public class ColumnsTests : BasicEntityTestBase
             }
         };
 
-        Assert.Throws<ObjectIsNotAnArrayException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3017_ObjectNotArray, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]
@@ -148,7 +160,9 @@ public class ColumnsTests : BasicEntityTestBase
             }
         };
 
-        Assert.Throws<ObjectIsNotAnArrayException>(() => CreateAndRunVirtualMachine(query, sources));
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3028_UnknownProperty, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]

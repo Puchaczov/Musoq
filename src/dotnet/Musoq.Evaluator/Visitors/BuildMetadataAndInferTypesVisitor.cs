@@ -98,6 +98,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     private readonly IDictionary<SchemaFromNode, WhereNode> _usedWhereNodes =
         new Dictionary<SchemaFromNode, WhereNode>();
 
+    private readonly Dictionary<string, Node> _selectFieldAliases = new(StringComparer.OrdinalIgnoreCase);
+
     protected readonly Dictionary<uint, IReadOnlyDictionary<string, string>> InternalPositionalEnvironmentVariables =
         new();
 
@@ -417,12 +419,16 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
         var fields = CreateFields(node.Fields);
 
+        CollectSelectFieldAliases(fields);
+
         Nodes.Push(new SelectNode(fields.ToArray(), node.IsDistinct));
     }
 
     public override void Visit(GroupSelectNode node)
     {
         var fields = CreateFields(node.Fields);
+
+        CollectSelectFieldAliases(fields);
 
         Nodes.Push(new GroupSelectNode(fields.ToArray()));
     }
@@ -597,6 +603,18 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                     "Verify that the table or alias is properly defined in the query."
                 );
 
+            if (!string.IsNullOrEmpty(node.Alias) && !tableSymbol.ContainsAlias(node.Alias))
+            {
+                if (TryReportUnknownAlias(node.Alias, tableSymbol.CompoundTables, node))
+                    return;
+
+                throw VisitorException.CreateForProcessingFailure(
+                    VisitorName,
+                    VisitorOperationNames.VisitAccessColumnNode,
+                    $"Unknown alias '{node.Alias}'",
+                    "Verify that the alias is defined in the FROM or JOIN clause.");
+            }
+
             var tuple = !string.IsNullOrEmpty(node.Alias)
                 ? tableSymbol.GetTableByAlias(node.Alias)
                 : tableSymbol.GetTableByColumnName(node.Name);
@@ -679,6 +697,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                     var singleCol = aliasColumns[0];
                     Visit(new AccessColumnNode(singleCol.ColumnName, node.Name, singleCol.ColumnType,
                         TextSpan.Empty, singleCol.IntendedTypeName));
+                    return;
+                }
+
+                if (_queryPart == QueryPart.OrderBy && _selectFieldAliases.TryGetValue(node.Name, out var aliasExpression))
+                {
+                    Nodes.Push(aliasExpression);
                     return;
                 }
 
@@ -1467,12 +1491,19 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         if (targetColumn == null)
         {
             if (TryReportOrThrowUnknownColumn(node.FirstProperty.PropertyName, table.Columns, node))
+            {
+                PushErrorRecoveryState(node, schema);
                 return;
+            }
+
             return;
         }
 
         if (ValidateBindablePropertyAsTableWithDiagnostics(table, targetColumn, node))
+        {
+            PushErrorRecoveryState(node, schema);
             return;
+        }
 
         AddAssembly(targetColumn.ColumnType.Assembly);
 
@@ -1493,7 +1524,11 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                     resolved.Value.IntendedTypeName,
                     node);
                 if (resolvedNestedTable == null)
+                {
+                    PushErrorRecoveryState(node, schema);
                     return;
+                }
+
                 table = resolvedNestedTable;
 
                 UpdateQueryAliasAndSymbolTable(node, schema, table);
@@ -1524,14 +1559,21 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         var followedType = FollowPropertiesWithDiagnostics(targetColumn.ColumnType, node.PropertiesChain, node);
         if (followedType == null)
+        {
+            PushErrorRecoveryState(node, schema);
             return;
+        }
 
         var nestedTable = TurnTypeIntoTableWithIntendedTypeName(
             followedType,
             targetColumn.IntendedTypeName,
             node);
         if (nestedTable == null)
+        {
+            PushErrorRecoveryState(node, schema);
             return;
+        }
+
         table = nestedTable;
 
         UpdateQueryAliasAndSymbolTable(node, schema, table);
@@ -1539,7 +1581,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var rewrittenChain =
             RewritePropertiesChainWithTargetColumnWithDiagnostics(targetColumn, node.PropertiesChain, node);
         if (rewrittenChain == null)
+        {
+            PushErrorRecoveryState(node, schema);
             return;
+        }
 
         Nodes.Push(
             new Parser.PropertyFromNode(
@@ -2264,6 +2309,16 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
     }
 
+    public bool IsCurrentContextColumn(string name)
+    {
+        if (string.IsNullOrEmpty(_identifier)) return false;
+
+        if (!_currentScope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(_identifier, out var tableSymbol))
+            return false;
+
+        return tableSymbol.GetColumnByAliasAndName(_identifier, name) != null;
+    }
+
     private void VisitBinaryOperatorWithSafePop<T>(Func<Node, Node, T> nodeFactory, string operationName) where T : Node
     {
         var nodes = SafePopMultiple(Nodes, 2, operationName);
@@ -2418,6 +2473,28 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 fields.Add(new FieldNode(field.Expression, positionCounter++, field.FieldName));
 
         return fields.ToArray();
+    }
+
+    private void CollectSelectFieldAliases(FieldNode[] fields)
+    {
+        _selectFieldAliases.Clear();
+
+        foreach (var field in fields)
+        {
+            if (field.Expression is AllColumnsNode)
+                continue;
+
+            var expressionText = field.Expression.ToString();
+            var alias = field.FieldName;
+
+            if (string.IsNullOrEmpty(alias))
+                continue;
+
+            if (string.Equals(alias, expressionText, StringComparison.Ordinal))
+                continue;
+
+            _selectFieldAliases.TryAdd(alias, field.Expression);
+        }
     }
 
     private void AddAllColumnsFields(List<FieldNode> fields, AllColumnsNode allColumnsNode, ref int positionCounter)
@@ -2779,6 +2856,13 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
         _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
         _currentScope[node.Id] = _queryAlias;
+    }
+
+    private void PushErrorRecoveryState(PropertyFromNode node, ISchema schema)
+    {
+        var emptyTable = new DynamicTable([], typeof(object));
+        UpdateQueryAliasAndSymbolTable(node, schema, emptyTable);
+        Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertiesChain));
     }
 
     private static Exception SetOperatorDoesNotHaveKeysException(string setOperator)
@@ -3158,6 +3242,24 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         var span = node.HasSpan ? node.Span : TextSpan.Empty;
         PrepareAndThrowUnknownColumnExceptionMessage(identifier, columns, span);
+        return false;
+    }
+
+    /// <summary>
+    ///     Reports an unknown alias error if diagnostic context is available.
+    /// </summary>
+    /// <param name="alias">The alias that was not found.</param>
+    /// <param name="availableAliases">Available aliases for suggestions.</param>
+    /// <param name="node">The node where the error occurred.</param>
+    /// <returns>True if error was reported (continue execution), false otherwise.</returns>
+    protected bool TryReportUnknownAlias(string alias, string[] availableAliases, Node node)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportUnknownAlias(alias, availableAliases, node);
+            return true;
+        }
+
         return false;
     }
 
@@ -3639,13 +3741,15 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var paramsParameterIndex = paramsParameter.Position;
         var typesToReduce = args.Args.Skip(paramsParameterIndex).Select(f => f.ReturnType).ToArray();
 
-        var typeToReduce = typesToReduce.Length > 1 ? typesToReduce.First().MakeArrayType() : typesToReduce.First();
+        var nonNullTypes = typesToReduce.Where(t => t is not NullNode.NullType).ToArray();
 
-        if (typeToReduce is null)
-        {
-            reducedMethod = null;
-            return false;
-        }
+        Type typeToReduce;
+        if (nonNullTypes.Length > 1)
+            typeToReduce = nonNullTypes.First().MakeArrayType();
+        else if (nonNullTypes.Length == 1)
+            typeToReduce = nonNullTypes.First();
+        else
+            typeToReduce = typeof(object);
 
         var lastNonNullType = typeToReduce;
         while (typeToReduce is not null)
@@ -3727,7 +3831,13 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             }
         }
 
-        var genericArgumentsConcreteTypes = genericArgumentsDistinct.Distinct().ToArray();
+        var genericArgumentsConcreteTypes = genericArgumentsDistinct
+            .Where(t => t is not NullNode.NullType)
+            .Distinct()
+            .ToArray();
+
+        if (genericArgumentsConcreteTypes.Length == 0)
+            genericArgumentsConcreteTypes = [typeof(object)];
 
         constructedMethod = methodInfo.MakeGenericMethod(genericArgumentsConcreteTypes);
         return true;
@@ -3927,7 +4037,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         var isValid = IsGenericEnumerable(propertyInfo!.PropertyType, out var elementType) ||
                       IsArray(propertyInfo.PropertyType!, out elementType) ||
-                      elementType.IsPrimitive || elementType == typeof(string);
+                      (elementType != null && (elementType.IsPrimitive || elementType == typeof(string)));
 
         if (!isValid) throw new ColumnMustBeMarkedAsBindablePropertyAsTableException();
     }
@@ -3942,7 +4052,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         var isValid = IsGenericEnumerable(propertyInfo!.PropertyType, out var elementType) ||
                       IsArray(propertyInfo.PropertyType!, out elementType) ||
-                      elementType.IsPrimitive || elementType == typeof(string);
+                      (elementType != null && (elementType.IsPrimitive || elementType == typeof(string)));
 
         if (!isValid)
         {

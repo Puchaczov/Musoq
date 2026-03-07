@@ -17,6 +17,11 @@
 ///     Whether to validate that query expressions only use primitive types. Defaults
 ///     to true.
 /// </param>
+/// <param name="useConstantFolding">
+///     Whether constant folding optimization should be used. When enabled, constant
+///     expressions (e.g. 10 + 20, 'hello' + ' world') are evaluated at compile time.
+///     Also detects division/modulo by zero in constant expressions. Defaults to true.
+/// </param>
 /// <param name="useCteParallelization">
 ///     Whether CTE parallelization should be used. When enabled, CTEs that do not depend
 ///     on each other will be executed in parallel. Defaults to false.
@@ -28,6 +33,7 @@ public class CompilationOptions(
     bool useHashJoin = true,
     bool useSortMergeJoin = true,
     bool useCommonSubexpressionElimination = true,
+    bool useConstantFolding = true,
     bool usePrimitiveTypeValidation = true,
     bool useCteParallelization = false)
 {
@@ -51,6 +57,13 @@ public class CompilationOptions(
     ///     When enabled, duplicate expressions are computed once and cached for reuse within a row.
     /// </summary>
     public bool UseCommonSubexpressionElimination { get; } = useCommonSubexpressionElimination;
+
+    /// <summary>
+    ///     Gets a value indicating whether constant folding optimization should be used.
+    ///     When enabled, constant expressions are evaluated at compile time, reducing runtime work
+    ///     and enabling compile-time detection of errors like division by zero.
+    /// </summary>
+    public bool UseConstantFolding { get; } = useConstantFolding;
 
     /// <summary>
     ///     Gets a value indicating whether primitive type validation should be enforced.

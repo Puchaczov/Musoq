@@ -547,11 +547,16 @@ public class MethodsMetadata
 
     private static bool CanSafelyPassNull(Type to, Type from)
     {
-        if (from.FullName != typeof(NullNode.NullType).FullName)
+        if (!IsNullType(from))
             return false;
         return (to.IsGenericType && to.GetGenericTypeDefinition() == typeof(Nullable<>))
                || to.IsGenericParameter
                || !to.IsValueType;
+    }
+
+    private static bool IsNullType(Type type)
+    {
+        return type.FullName == typeof(NullNode.NullType).FullName;
     }
 
     private static bool TypeConformsToConstraints(Type genericType, Type type)
@@ -593,21 +598,9 @@ public class MethodsMetadata
         if (types == null || types.Length == 0)
             return typeof(object);
 
-        if (types.Length == 1)
-            return types[0];
+        var nonNullTypes = types.Where(t => !IsNullType(t)).ToArray();
 
-        var commonBaseTypes = GetTypeHierarchy(types[0]);
-
-        for (var i = 1; i < types.Length; i++)
-        {
-            var currentHierarchy = GetTypeHierarchy(types[i]);
-            commonBaseTypes.IntersectWith(currentHierarchy);
-
-            if (commonBaseTypes.Count == 1 && commonBaseTypes.Single() == typeof(object))
-                return typeof(object);
-        }
-
-        return FindMostSpecificType(commonBaseTypes);
+        return FindCommonBaseTypeFromNonNullTypes(nonNullTypes);
     }
 
     private static Type FindCommonBaseType(IReadOnlyList<Type> types, int startIndex)
@@ -616,14 +609,29 @@ public class MethodsMetadata
         if (count <= 0)
             return typeof(object);
 
-        if (count == 1)
-            return types[startIndex];
-
-        var commonBaseTypes = GetTypeHierarchy(types[startIndex]);
-
-        for (var i = startIndex + 1; i < types.Count; i++)
+        var nonNullTypes = new List<Type>();
+        for (var i = startIndex; i < types.Count; i++)
         {
-            var currentHierarchy = GetTypeHierarchy(types[i]);
+            if (!IsNullType(types[i]))
+                nonNullTypes.Add(types[i]);
+        }
+
+        return FindCommonBaseTypeFromNonNullTypes(nonNullTypes);
+    }
+
+    private static Type FindCommonBaseTypeFromNonNullTypes(IReadOnlyCollection<Type> nonNullTypes)
+    {
+        if (nonNullTypes.Count == 0)
+            return typeof(object);
+
+        if (nonNullTypes.Count == 1)
+            return nonNullTypes.First();
+
+        var commonBaseTypes = GetTypeHierarchy(nonNullTypes.First());
+
+        foreach (var type in nonNullTypes.Skip(1))
+        {
+            var currentHierarchy = GetTypeHierarchy(type);
             commonBaseTypes.IntersectWith(currentHierarchy);
 
             if (commonBaseTypes.Count == 1 && commonBaseTypes.Single() == typeof(object))

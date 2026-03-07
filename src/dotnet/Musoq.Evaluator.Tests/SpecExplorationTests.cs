@@ -6,6 +6,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.Unknown;
+using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -628,14 +630,12 @@ public class SpecExplorationCoreLanguageTests : BasicEntityTestBase
             }
         };
 
-        var exception = Assert.Throws<AstValidationException>(() =>
+        var exception = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(
                 "select Name from #A.Entities() where Name != 'Bob'",
                 sources));
 
-        Assert.IsTrue(
-            exception.Message.Contains("!=") && exception.Message.Contains("<>"),
-            $"Error should suggest using <> instead of !=, got: {exception.Message}");
+        AssertErrorEnvelope(exception, DiagnosticCode.MQ2019_InvalidOperator, DiagnosticPhase.Parse, "!=");
     }
 
     #endregion
@@ -1498,7 +1498,7 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_BasicStringColumn()
     {
         const string query =
-            "table DummyTable { Name string };" +
+            "table DummyTable { Name: string };" +
             "couple #test.whatever with table DummyTable as SourceOfDummyRows;" +
             "select Name from SourceOfDummyRows()";
 
@@ -1527,7 +1527,7 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_MultipleColumns()
     {
         const string query =
-            "table DataTable { Country string, Population decimal };" +
+            "table DataTable { Country: string, Population: decimal };" +
             "couple #test.whatever with table DataTable as Countries;" +
             "select Country, Population from Countries() where Population > 100";
 
@@ -1557,7 +1557,7 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_WithCTE()
     {
         const string query =
-            "table TypedRow { Id int, Name string };" +
+            "table TypedRow { Id: int, Name: string };" +
             "couple #test.whatever with table TypedRow as TypedSource;" +
             "with FilteredData as (" +
             "    select Id, Name from TypedSource() where Id > 10" +
@@ -1590,7 +1590,7 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_TypeKeywordsCaseInsensitive()
     {
         const string query =
-            "table T { Col1 STRING, Col2 Int, Col3 DECIMAL };" +
+            "table T { Col1: STRING, Col2: Int, Col3: DECIMAL };" +
             "couple #test.whatever with table T as Source;" +
             "select Col1, Col2, Col3 from Source()";
 
@@ -1614,7 +1614,7 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_TrailingComma()
     {
         const string query =
-            "table NullableExample { Id int?, Name string, IsActive bool?, };" +
+            "table NullableExample { Id: int?, Name: string, IsActive: bool?, };" +
             "couple #test.whatever with table NullableExample as Data;" +
             "select Id, Name, IsActive from Data()";
 
@@ -1637,7 +1637,7 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_WithAggregation()
     {
         const string query =
-            "table Sales { Product string, Amount decimal };" +
+            "table Sales { Product: string, Amount: decimal };" +
             "couple #test.whatever with table Sales as SalesData;" +
             "select Product, Sum(Amount) from SalesData() group by Product";
 
@@ -1667,8 +1667,8 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_CorrectStatementOrder_TableBeforeCouple()
     {
         const string query =
-            "table T1 { Col1 string };" +
-            "table T2 { Col2 string };" +
+            "table T1 { Col1: string };" +
+            "table T2 { Col2: string };" +
             "couple #test.whatever with table T1 as Source1;" +
             "select Col1 from Source1()";
 
@@ -1689,7 +1689,7 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_IntType()
     {
         const string query =
-            "table T { Value int };" +
+            "table T { Value: int };" +
             "couple #test.whatever with table T as Source;" +
             "select Value from Source()";
 
@@ -1707,7 +1707,7 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_BoolType()
     {
         const string query =
-            "table T { Active bool };" +
+            "table T { Active: bool };" +
             "couple #test.whatever with table T as Source;" +
             "select Active from Source()";
 
@@ -1725,7 +1725,7 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
     public void Spec_TableCouple_DecimalType()
     {
         const string query =
-            "table T { Price decimal };" +
+            "table T { Price: decimal };" +
             "couple #test.whatever with table T as Source;" +
             "select Price from Source()";
 
@@ -2080,3 +2080,4 @@ public class SpecExplorationErrorTests : BasicEntityTestBase
 
     #endregion
 }
+

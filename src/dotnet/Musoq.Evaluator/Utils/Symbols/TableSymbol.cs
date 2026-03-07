@@ -69,6 +69,11 @@ public class TableSymbol : Symbol
         return score;
     }
 
+    public bool ContainsAlias(string alias)
+    {
+        return _fullTableName == alias || _tables.ContainsKey(alias);
+    }
+
     public (ISchema Schema, ISchemaTable Table, string TableName) GetTableByAlias(string alias)
     {
         if (_fullTableName == alias)

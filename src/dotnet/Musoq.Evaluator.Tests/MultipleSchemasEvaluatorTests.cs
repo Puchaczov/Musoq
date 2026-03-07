@@ -1,8 +1,10 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Exceptions;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Multi;
 using Musoq.Evaluator.Tests.Schema.Multi.First;
 using Musoq.Evaluator.Tests.Schema.Multi.Second;
+using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -151,10 +153,13 @@ public class MultipleSchemasEvaluatorTests : MultiSchemaTestBase
     {
         var query = @"select FirstItem from #schema.first() first inner join #schema.second() second on 1 = 1";
 
-        Assert.Throws<AmbiguousColumnException>(() => CreateAndRunVirtualMachine(query, [
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
             new FirstEntity()
         ], [
             new SecondEntity()
         ]));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3002_AmbiguousColumn, DiagnosticPhase.Bind, "FirstItem");
+        AssertHasGuidance(ex);
     }
 }

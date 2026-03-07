@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator.Exceptions;
+using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Parser.Diagnostics;
+using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -29,8 +31,10 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]
@@ -44,8 +48,10 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Array");
     }
 
     [TestMethod]
@@ -59,8 +65,10 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Dictionary");
     }
 
     [TestMethod]
@@ -74,8 +82,10 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Other");
     }
 
     [TestMethod]
@@ -107,8 +117,10 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]
@@ -122,8 +134,10 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]
@@ -137,8 +151,10 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]
@@ -152,8 +168,10 @@ public class InvalidQueryOutputTypeTests : BasicEntityTestBase
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]
@@ -171,8 +189,10 @@ select Self from cte";
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]
@@ -190,8 +210,10 @@ select Array from cte";
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Array");
     }
 
     [TestMethod]
@@ -245,8 +267,10 @@ select Name, City from cte";
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]
@@ -267,8 +291,10 @@ select Self from cte2";
         };
 
         // Act & Assert
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
 
     #region Primitive Type Validation - All Supported Types
@@ -525,8 +551,10 @@ select Self from cte2";
             { "#A", [new BasicEntity("test")] }
         };
 
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]
@@ -538,8 +566,10 @@ select Self from cte2";
             { "#A", [new BasicEntity("test")] }
         };
 
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Array");
     }
 
     #endregion
@@ -640,8 +670,10 @@ select Self from cte2";
             { "#A", [new BasicEntity("test")] }
         };
 
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
 
     [TestMethod]
@@ -653,8 +685,10 @@ select Self from cte2";
             { "#A", [new BasicEntity("test")] }
         };
 
-        Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Array");
     }
 
     #endregion
@@ -1019,10 +1053,10 @@ select Name, City from cte2";
             { "#A", [new BasicEntity("test")] }
         };
 
-        var exception = Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var exception = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
 
-        Assert.Contains("Self", exception.Message, "Exception message should contain the column name 'Self'");
+        AssertErrorEnvelope(exception, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
         Assert.Contains("SELECT", exception.Message, "Exception message should mention SELECT clause");
     }
 
@@ -1035,10 +1069,11 @@ select Name, City from cte2";
             { "#A", [new BasicEntity("test")] }
         };
 
-        var exception = Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var exception = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
 
-        Assert.Contains("ORDER BY", exception.Message, "Exception message should mention ORDER BY clause");
+        AssertErrorEnvelope(exception, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
+        AssertMessageContains(exception, "ORDER BY");
     }
 
     [TestMethod]
@@ -1050,11 +1085,10 @@ select Name, City from cte2";
             { "#A", [new BasicEntity("test")] }
         };
 
-        var exception = Assert.Throws<InvalidQueryExpressionTypeException>(() =>
+        var exception = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachineWithValidation(query, sources));
 
-        Assert.IsTrue(exception.Message.Contains("GROUP BY") || exception.Message.Contains("SELECT"),
-            "Exception message should mention GROUP BY or SELECT clause");
+        AssertErrorEnvelope(exception, DiagnosticCode.MQ3027_InvalidExpressionType, DiagnosticPhase.Bind, "Self");
     }
 
     #endregion

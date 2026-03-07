@@ -8,6 +8,7 @@ using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Visitors;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
 using Musoq.Schema.Api;
@@ -149,5 +150,17 @@ public class BuildItems : Dictionary<string, object>
     {
         get => ContainsKey("CTE_EXECUTION_PLAN") ? (CteExecutionPlan)this["CTE_EXECUTION_PLAN"] : null;
         set => this["CTE_EXECUTION_PLAN"] = value!;
+    }
+
+    public SourceText? SourceText
+    {
+        get => ContainsKey("SOURCE_TEXT") ? (SourceText)this["SOURCE_TEXT"] : null;
+        set => this["SOURCE_TEXT"] = value!;
+    }
+
+    public DiagnosticContext? DiagnosticContext
+    {
+        get => ContainsKey("DIAGNOSTIC_CONTEXT") ? (DiagnosticContext)this["DIAGNOSTIC_CONTEXT"] : null;
+        set => this["DIAGNOSTIC_CONTEXT"] = value!;
     }
 }

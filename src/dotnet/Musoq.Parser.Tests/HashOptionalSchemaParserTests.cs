@@ -973,7 +973,7 @@ public class HashOptionalSchemaParserTests
     public void HashOptional_DescWithCouple_ShouldParse()
     {
         var query =
-            "table T { Id int }; couple schema.method with table T as Source; select Id from Source()";
+            "table T { Id: int }; couple schema.method with table T as Source; select Id from Source()";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();

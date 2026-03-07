@@ -1,8 +1,10 @@
 # Musoq TABLE and COUPLE Statements Specification
 
-**Version:** 1.0.0-draft  
+**Version:** 1.0.0
 **Status:** Specification  
-**Date:** February 2026
+**Author:** Jakub Puchała
+
+> **Compatibility note:** TABLE/COUPLE syntax is defined at language level, but successful execution also depends on target schema plugin implementation and host/runtime version alignment.
 
 ---
 
@@ -103,7 +105,7 @@ table_name ::= identifier
 
 column_def_list ::= column_def { ',' column_def } [',']
 
-column_def ::= column_name type_name ['?']
+column_def ::= column_name ':' type_name ['?']
 
 column_name ::= identifier
 
@@ -114,9 +116,9 @@ type_name ::= identifier
 
 ```sql
 table TableName {
-    Column1 type1,
-    Column2 type2,
-    Column3 type3?
+    Column1: type1,
+    Column2: type2,
+    Column3: type3?
 };
 ```
 
@@ -144,11 +146,11 @@ Each column definition consists of:
 **Valid column definitions:**
 
 ```sql
-Name string           -- Non-nullable string
-Age int               -- Nullable int (value types are auto-nullable)
-Price decimal         -- Nullable decimal
-IsActive bool?        -- Explicitly nullable boolean
-Date datetimeoffset?  -- Explicitly nullable DateTimeOffset
+Name: string           -- Non-nullable string
+Age: int               -- Nullable int (value types are auto-nullable)
+Price: decimal         -- Nullable decimal
+IsActive: bool?        -- Explicitly nullable boolean
+Date: datetimeoffset?  -- Explicitly nullable DateTimeOffset
 ```
 
 ### 3.4 Scope and Visibility
@@ -251,8 +253,8 @@ Define table, couple to source, query:
 
 ```sql
 table Items {
-    Name string,
-    Price decimal
+    Name: string,
+    Price: decimal
 };
 couple #store.products with table Items as Products;
 select Name, Price from Products();
@@ -264,13 +266,13 @@ Define multiple tables and couple them to different sources:
 
 ```sql
 table CustomerTable {
-    Id int,
-    Name string
+    Id: int,
+    Name: string
 };
 table OrderTable {
-    OrderId int,
-    CustomerId int,
-    Amount decimal
+    OrderId: int,
+    CustomerId: int,
+    Amount: decimal
 };
 couple #data.customers with table CustomerTable as Customers;
 couple #data.orders with table OrderTable as Orders;
@@ -286,7 +288,7 @@ Pass arguments to the coupled alias:
 
 ```sql
 table FilteredData {
-    Value string
+    Value: string
 };
 couple #source.method with table FilteredData as Data;
 select Value from Data(true, 'filter-pattern');
@@ -298,8 +300,8 @@ Combine with Common Table Expressions:
 
 ```sql
 table TypedRow {
-    Id int,
-    Name string
+    Id: int,
+    Name: string
 };
 couple #A.Entities with table TypedRow as TypedSource;
 
@@ -315,7 +317,7 @@ Use CTE results as input to a coupled source:
 
 ```sql
 table OutputSchema {
-    Text string
+    Text: string
 };
 couple #processor.transform with table OutputSchema as Transformer;
 
@@ -373,9 +375,9 @@ Type keywords can be written in any case:
 
 ```sql
 table Example {
-    Col1 STRING,
-    Col2 Int,
-    Col3 DECIMAL
+    Col1: STRING,
+    Col2: Int,
+    Col3: DECIMAL
 };
 ```
 
@@ -385,7 +387,7 @@ Types not in the keyword list can be specified using their fully-qualified .NET 
 
 ```sql
 table Example {
-    CustomData System.SomeCustomType
+    CustomData: System.SomeCustomType
 };
 ```
 
@@ -400,21 +402,41 @@ table Example {
 | Error | Cause | Example |
 |-------|-------|---------|
 | **Unexpected Token** | Invalid syntax in TABLE or COUPLE | `table { }` (missing name) |
-| **Missing Identifier** | Column without name | `table T { string }` |
-| **Missing Type** | Column without type | `table T { Name }` |
-| **Unclosed Braces** | Missing closing brace | `table T { Name string` |
+| **Missing Identifier** | Column without name | `table T { : string }` |
+| **Missing Type** | Column without type | `table T { Name: }` |
+| **Unclosed Braces** | Missing closing brace | `table T { Name: string` |
 
 ### 7.2 Semantic Errors
 
 | Error | Cause | Example |
 |-------|-------|---------|
-| **TypeNotFoundException** | Unrecognized type name | `table T { Name banana }` |
+| **TypeNotFoundException** | Unrecognized type name | `table T { Name: banana }` |
 | **Invalid Schema Definition** | Empty table or structural issues | `table Empty {}` |
-| **Duplicate Column Names** | Same column name used twice | `table T { Name string, Name int }` |
+| **Duplicate Column Names** | Same column name used twice | `table T { Name: string, Name: int }` |
 | **Undefined Table Reference** | COUPLE references non-existent TABLE | `couple #A.X with table Unknown as Y` |
 | **Undefined Alias** | Query references uncoupled alias | `select * from NonExistent()` |
+| **Constructor Not Found** | Internal adapter type generated for a schema source does not expose the expected constructor | `couple #separatedvalues.comma with table CsvRow as Csv` |
 
-### 7.3 Diagnostic Codes
+### 7.3 Runtime Adapter Diagnostics
+
+When COUPLE is used with dynamic file-based sources (for example separated values), host/runtime internals may route through generated adapter/helper types. In stack traces, names such as `memoryMapped` can appear.
+
+If execution fails with an error similar to:
+
+```text
+Constructor on type '...memoryMapped' not found
+```
+
+treat this as a **runtime/plugin integration issue**, not as invalid TABLE/COUPLE query syntax.
+
+Recommended checks:
+
+1. Verify schema plugin package version matches the engine version.
+2. Validate source method signature and arguments independently (without COUPLE).
+3. Retry with non-memory-mapped source mode, if the plugin exposes one.
+4. Reproduce in another host (API/runtime) to distinguish host-preprocessor issues from engine/plugin issues.
+
+### 7.4 Diagnostic Codes
 
 | Code | Description |
 |------|-------------|
@@ -435,7 +457,7 @@ table_definition ::= TABLE identifier '{' column_def_list '}'
 
 column_def_list ::= column_def { ',' column_def } [',']
 
-column_def ::= identifier type_name [ '?' ]
+column_def ::= identifier ':' type_name [ '?' ]
 
 type_name ::= identifier
             | qualified_type_name
@@ -471,7 +493,7 @@ table_alias ::= identifier
 
 ```sql
 table DummyTable {
-    Name string
+    Name: string
 };
 couple #A.Entities with table DummyTable as SourceOfDummyRows;
 select Name from SourceOfDummyRows();
@@ -481,8 +503,8 @@ select Name from SourceOfDummyRows();
 
 ```sql
 table DataTable {
-    Country string,
-    Population decimal
+    Country: string,
+    Population: decimal
 };
 couple #data.countries with table DataTable as Countries;
 select Country, Population from Countries() where Population > 100;
@@ -492,11 +514,11 @@ select Country, Population from Countries() where Population > 100;
 
 ```sql
 table FirstTable {
-    Country string,
-    Population decimal
+    Country: string,
+    Population: decimal
 };
 table SecondTable {
-    Name string
+    Name: string
 };
 couple #A.Entities with table FirstTable as Source1;
 couple #B.Entities with table SecondTable as Source2;
@@ -510,8 +532,8 @@ inner join Source2() s2 on s1.Country = s2.Name;
 
 ```sql
 table Parameters {
-    Parameter0 bool,
-    Parameter1 string
+    Parameter0: bool,
+    Parameter1: string
 };
 couple #config.reader with table Parameters as Config;
 select Parameter0, Parameter1 from Config(true, 'test');
@@ -521,26 +543,26 @@ select Parameter0, Parameter1 from Config(true, 'test');
 
 ```sql
 table AllTypes {
-    ByteCol byte,
-    SByteCol sbyte,
-    ShortCol short,
-    IntCol int,
-    LongCol long,
-    UShortCol ushort,
-    UIntCol uint,
-    ULongCol ulong,
-    FloatCol float,
-    DoubleCol double,
-    DecimalCol decimal,
-    MoneyCol money,
-    BoolCol bool,
-    CharCol char,
-    StringCol string,
-    DateTimeCol datetime,
-    DateTimeOffsetCol datetimeoffset,
-    TimeSpanCol timespan,
-    GuidCol guid,
-    ObjectCol object
+    ByteCol: byte,
+    SByteCol: sbyte,
+    ShortCol: short,
+    IntCol: int,
+    LongCol: long,
+    UShortCol: ushort,
+    UIntCol: uint,
+    ULongCol: ulong,
+    FloatCol: float,
+    DoubleCol: double,
+    DecimalCol: decimal,
+    MoneyCol: money,
+    BoolCol: bool,
+    CharCol: char,
+    StringCol: string,
+    DateTimeCol: datetime,
+    DateTimeOffsetCol: datetimeoffset,
+    TimeSpanCol: timespan,
+    GuidCol: guid,
+    ObjectCol: object
 };
 couple #data.source with table AllTypes as TypedData;
 select * from TypedData();
@@ -550,9 +572,9 @@ select * from TypedData();
 
 ```sql
 table NullableExample {
-    Id int?,
-    Name string,
-    IsActive bool?,
+    Id: int?,
+    Name: string,
+    IsActive: bool?,
 };
 couple #dynamic.source with table NullableExample as Data;
 select Id, Name, IsActive from Data();
@@ -568,7 +590,7 @@ TABLE/COUPLE definitions MUST appear before CTEs:
 
 ```sql
 -- Correct order
-table TypedRow { Id int, Name string };
+table TypedRow { Id: int, Name: string };
 couple #A.Entities with table TypedRow as TypedSource;
 
 with FilteredData as (
@@ -582,8 +604,8 @@ select * from FilteredData;
 Coupled aliases can be used with all JOIN types:
 
 ```sql
-table T1 { Key string, Value1 int };
-table T2 { Key string, Value2 int };
+table T1 { Key: string, Value1: int };
+table T2 { Key: string, Value2: int };
 couple #data.left with table T1 as Left;
 couple #data.right with table T2 as Right;
 
@@ -603,8 +625,8 @@ left join Right() r on l.Key = r.Key;
 Coupled aliases can be used with CROSS APPLY and OUTER APPLY:
 
 ```sql
-table Container { Items object };
-table Item { Name string, Price decimal };
+table Container { Items: object };
+table Item { Name: string, Price: decimal };
 couple #data.containers with table Container as Containers;
 couple #data.items with table Item as Items;
 
@@ -618,7 +640,7 @@ cross apply Items(c.Items) i;
 Standard aggregation functions work with coupled sources:
 
 ```sql
-table Sales { Product string, Amount decimal };
+table Sales { Product: string, Amount: decimal };
 couple #data.sales with table Sales as SalesData;
 
 select Product, Sum(Amount) as Total
@@ -633,7 +655,7 @@ order by Total desc;
 Coupled aliases can be used in UNION, EXCEPT, and INTERSECT:
 
 ```sql
-table Record { Id int, Name string };
+table Record { Id: int, Name: string };
 couple #source.a with table Record as SourceA;
 couple #source.b with table Record as SourceB;
 
@@ -653,8 +675,8 @@ Within a query batch, statements must follow this order:
 
 ```sql
 -- Correct order
-table T1 { Col1 string };           -- 1. TABLE
-table T2 { Col2 int };              -- 1. TABLE
+table T1 { Col1: string };           -- 1. TABLE
+table T2 { Col2: int };              -- 1. TABLE
 
 couple #A.X with table T1 as X;     -- 2. COUPLE
 couple #B.Y with table T2 as Y;     -- 2. COUPLE
@@ -674,8 +696,8 @@ inner join Y() on CTE.Col1 = Y.Col2;
 
 ```sql
 table TableName {
-    Column1 type1,
-    Column2 type2?,
+    Column1: type1,
+    Column2: type2?,
     ...
 };
 ```

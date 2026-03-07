@@ -14,9 +14,9 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
     public void WhenComparingStringColumnInComplexBooleanExpression_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size string," +
-                             "  Price string," +
-                             "  Name string" +
+                             "  Size: string," +
+                             "  Price: string," +
+                             "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size > 1000 and Price < 50";
@@ -47,8 +47,8 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
     public void WhenComparingStringColumnWithOrExpression_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size string," +
-                             "  Name string" +
+                             "  Size: string," +
+                             "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size < 500 or Size > 2000";
@@ -78,8 +78,8 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
     public void WhenComparingStringColumnInBetweenSimulation_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  Size string," +
-                             "  Name string" +
+                             "  Size: string," +
+                             "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where Size >= 1000 and Size <= 2000";
@@ -107,9 +107,9 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
     public void WhenComparingMultipleStringColumnsWithDifferentTypes_ShouldAutoConvert()
     {
         const string query = "table Items {" +
-                             "  IntValue string," +
-                             "  LongValue string," +
-                             "  Name string" +
+                             "  IntValue: string," +
+                             "  LongValue: string," +
+                             "  Name: string" +
                              "};" +
                              "couple #test.whatever with table Items as Items; " +
                              "select Name from Items() where IntValue = 1000 and LongValue = 9223372036854775807l";
@@ -135,3 +135,4 @@ public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryT
 
     #endregion
 }
+

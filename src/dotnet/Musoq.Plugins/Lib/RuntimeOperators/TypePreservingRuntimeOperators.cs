@@ -62,49 +62,25 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
     /// <inheritdoc />
     public bool? GreaterThan(object? left, object? right)
     {
-        var leftDecimal = _comparisonConverter.TryConvertToDecimal(left);
-        var rightDecimal = _comparisonConverter.TryConvertToDecimal(right);
-
-        if (!leftDecimal.HasValue || !rightDecimal.HasValue)
-            return null;
-
-        return leftDecimal.Value > rightDecimal.Value;
+        return CompareRelational(left, right, static cmp => cmp > 0);
     }
 
     /// <inheritdoc />
     public bool? LessThan(object? left, object? right)
     {
-        var leftDecimal = _comparisonConverter.TryConvertToDecimal(left);
-        var rightDecimal = _comparisonConverter.TryConvertToDecimal(right);
-
-        if (!leftDecimal.HasValue || !rightDecimal.HasValue)
-            return null;
-
-        return leftDecimal.Value < rightDecimal.Value;
+        return CompareRelational(left, right, static cmp => cmp < 0);
     }
 
     /// <inheritdoc />
     public bool? GreaterThanOrEqual(object? left, object? right)
     {
-        var leftDecimal = _comparisonConverter.TryConvertToDecimal(left);
-        var rightDecimal = _comparisonConverter.TryConvertToDecimal(right);
-
-        if (!leftDecimal.HasValue || !rightDecimal.HasValue)
-            return null;
-
-        return leftDecimal.Value >= rightDecimal.Value;
+        return CompareRelational(left, right, static cmp => cmp >= 0);
     }
 
     /// <inheritdoc />
     public bool? LessThanOrEqual(object? left, object? right)
     {
-        var leftDecimal = _comparisonConverter.TryConvertToDecimal(left);
-        var rightDecimal = _comparisonConverter.TryConvertToDecimal(right);
-
-        if (!leftDecimal.HasValue || !rightDecimal.HasValue)
-            return null;
-
-        return leftDecimal.Value <= rightDecimal.Value;
+        return CompareRelational(left, right, static cmp => cmp <= 0);
     }
 
     /// <inheritdoc />
@@ -180,6 +156,20 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
             return null;
 
         return operation(leftConverted.Value, rightConverted.Value);
+    }
+
+    private bool? CompareRelational(object? left, object? right, Func<int, bool> predicate)
+    {
+        var leftDecimal = _comparisonConverter.TryConvertToDecimal(left);
+        var rightDecimal = _comparisonConverter.TryConvertToDecimal(right);
+
+        if (leftDecimal.HasValue && rightDecimal.HasValue)
+            return predicate(leftDecimal.Value.CompareTo(rightDecimal.Value));
+
+        if (left is string leftStr && right is string rightStr)
+            return predicate(string.Compare(leftStr, rightStr, StringComparison.Ordinal));
+
+        return null;
     }
 
     private enum ArithmeticType
