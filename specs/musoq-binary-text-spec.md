@@ -259,6 +259,36 @@ Single complex objects are wrapped in a single-element array for uniform process
 // null with OUTER:      new T[] { null }
 ```
 
+### 3.3 Inline Property Access on Interpret / Parse
+
+`Interpret()`, `Parse()`, and their offset/try variants return structured objects. Beyond binding these objects via CROSS APPLY, you can access their properties **directly inline** within any expression context:
+
+```sql
+-- Direct property access without CROSS APPLY
+SELECT Interpret(data, Header).Magic FROM ...
+
+-- Inside CASE expressions
+CASE frame.MsgType
+    WHEN 0x01 THEN Parse(ToString(frame.Payload, 'utf8'), CommandPayload).Command
+    WHEN 0x02 THEN ToString(Interpret(frame.Payload, TelemetryPayload).SensorId)
+    ELSE 'Unknown'
+END
+```
+
+**Semantics:**
+- The interpretation function is called and returns a single structured object
+- The `.Field` accessor resolves the named property on the returned object
+- If the interpretation fails (for `TryInterpret`/`TryParse` returning `null`), property access yields `null`
+
+**When to use each pattern:**
+
+| Pattern | Use When |
+|---------|----------|
+| `CROSS APPLY Interpret(...) alias` | Multiple fields are needed from the same parsed object |
+| `Interpret(...).Field` inline | Only one field is needed, or inside expressions like CASE branches |
+
+**Note:** When accessing multiple fields from the same interpretation result, prefer CROSS APPLY to avoid redundant parsing. Each inline `Interpret(...).Field` call re-parses the data independently.
+
 ---
 
 ## 4. Binary Schema Syntax
@@ -2007,7 +2037,8 @@ SELECT
     frame.MsgType,
     CASE frame.MsgType
         WHEN 0x01 THEN Parse(ToString(frame.Payload, 'utf8'), CommandPayload).Command
-        WHEN 0x02 THEN Interpret(frame.Payload, TelemetryPayload).SensorId
+        WHEN 0x02 THEN ToString(Interpret(frame.Payload, TelemetryPayload).SensorId)
+        ELSE 'Unknown'
     END AS Identifier
 FROM #os.file('/capture.bin') f
 CROSS APPLY InterpretAt(f.GetBytes(), 0, MessageFrame) frame
@@ -2084,6 +2115,7 @@ SELECT
         WHEN 1 THEN r.StringData
         WHEN 2 THEN ToHex(r.BlobData)
         WHEN 3 THEN 'Nested: ' + ToString(r.NestedCount) + ' items'
+        ELSE 'Unknown record type'
     END AS Content
 FROM #os.file('/data/storage.dat') f
 CROSS APPLY Interpret(f.GetBytes(), StorageHeader) h
