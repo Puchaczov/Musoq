@@ -277,7 +277,8 @@ public class ConverterExceptionsTests
 
         var exception = new MusoqQueryException(envelope);
 
-        Assert.AreEqual("Missing alias for data source", exception.Message);
+        Assert.Contains("MQ9999", exception.Message);
+        Assert.Contains("Message: Missing alias for data source", exception.Message);
         Assert.HasCount(1, exception.Envelopes);
         Assert.AreSame(envelope, exception.PrimaryEnvelope);
     }
@@ -290,12 +291,12 @@ public class ConverterExceptionsTests
 
         var exception = new MusoqQueryException(envelope, inner);
 
-        Assert.AreEqual("Query failed", exception.Message);
+        Assert.Contains("Message: Query failed", exception.Message);
         Assert.AreSame(inner, exception.InnerException);
     }
 
     [TestMethod]
-    public void MusoqQueryException_WhenMultipleEnvelopes_ShouldBuildSummaryMessage()
+    public void MusoqQueryException_WhenMultipleEnvelopes_ShouldUseFormattedEnvelopeText()
     {
         var envelopes = new List<MusoqErrorEnvelope>
         {
@@ -306,14 +307,16 @@ public class ConverterExceptionsTests
 
         var exception = new MusoqQueryException(envelopes);
 
-        Assert.Contains("First error", exception.Message);
-        Assert.Contains("+2 more errors", exception.Message);
+        Assert.Contains("Message: First error", exception.Message);
+        Assert.Contains("Message: Second error", exception.Message);
+        Assert.Contains("Message: Third error", exception.Message);
+        Assert.Contains("---", exception.Message);
         Assert.HasCount(3, exception.Envelopes);
         Assert.AreSame(envelopes[0], exception.PrimaryEnvelope);
     }
 
     [TestMethod]
-    public void MusoqQueryException_WhenTwoEnvelopes_ShouldUseSingularMoreError()
+    public void MusoqQueryException_WhenTwoEnvelopes_ShouldSeparateFormattedErrors()
     {
         var envelopes = new List<MusoqErrorEnvelope>
         {
@@ -323,7 +326,23 @@ public class ConverterExceptionsTests
 
         var exception = new MusoqQueryException(envelopes);
 
-        Assert.Contains("+1 more error)", exception.Message);
+        Assert.Contains("Message: First error", exception.Message);
+        Assert.Contains("Message: Second error", exception.Message);
+        Assert.Contains("---", exception.Message);
+    }
+
+    [TestMethod]
+    public void MusoqQueryException_Message_ShouldMatchFormatText()
+    {
+        var envelopes = new List<MusoqErrorEnvelope>
+        {
+            CreateTestEnvelope("First error"),
+            CreateTestEnvelope("Second error")
+        };
+
+        var exception = new MusoqQueryException(envelopes);
+
+        Assert.AreEqual(exception.FormatText(), exception.Message);
     }
 
     [TestMethod]
@@ -485,6 +504,34 @@ public class ConverterExceptionsTests
                 new TestsLoggerResolver()));
 
         Assert.IsNotNull(exception.InnerException);
+    }
+
+    [TestMethod]
+    public void CompileForExecution_WhenKeywordIsMistyped_ShouldIncludeDidYouMeanGuidance()
+    {
+        var exception = Assert.Throws<MusoqQueryException>(
+            () => InstanceCreator.CompileForExecution(
+                "SELECTE BADD SYNTAKS",
+                Guid.NewGuid().ToString(),
+                new SystemSchemaProvider(),
+                new TestsLoggerResolver()));
+
+        Assert.Contains("Did you mean 'SELECT'?", exception.Message);
+        Assert.Contains("Try:", exception.Message);
+    }
+
+    [TestMethod]
+    public void CompileForExecution_WhenDialectKeywordUsed_ShouldSuggestMusoqEquivalent()
+    {
+        var exception = Assert.Throws<MusoqQueryException>(
+            () => InstanceCreator.CompileForExecution(
+                "SELECT 1 FROM #system.dual() LIMIT 5",
+                Guid.NewGuid().ToString(),
+                new SystemSchemaProvider(),
+                new TestsLoggerResolver()));
+
+        Assert.Contains("Musoq uses TAKE instead of LIMIT", exception.Message);
+        Assert.Contains("TAKE", exception.Message);
     }
 
     #endregion

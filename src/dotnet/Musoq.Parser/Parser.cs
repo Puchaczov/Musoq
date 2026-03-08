@@ -21,6 +21,13 @@ public class Parser
     private static readonly TokenType[] SetOperators =
         [TokenType.Union, TokenType.UnionAll, TokenType.Except, TokenType.Intersect];
 
+    private static readonly string[] ClauseKeywords =
+        ["WHERE", "GROUP", "ORDER", "HAVING", "TAKE", "SKIP", "UNION", "EXCEPT", "INTERSECT", "JOIN", "INNER", "OUTER", "CROSS"];
+
+    private const int MinLengthForLargerDistance = 5;
+    private const int ShortWordMaxDistance = 1;
+    private const int LongWordMaxDistance = 2;
+
     private readonly DiagnosticBag? _diagnostics;
     private readonly bool _enableRecovery;
     private readonly Stack<HashSet<string>> _fromAliasesStack = new();
@@ -204,7 +211,8 @@ public class Parser
     {
         if (_diagnostics == null) return;
 
-        _diagnostics.AddError(code, message, span);
+        var diagnostic = SyntaxDiagnosticEnhancer.CreateDiagnostic(code, message, span, Current, _lexer.SourceText);
+        _diagnostics.Add(diagnostic);
     }
 
     private void RecordSyntaxException(SyntaxException ex)
@@ -212,7 +220,8 @@ public class Parser
         if (_diagnostics == null) return;
 
         var span = ex.Span ?? Current.Span;
-        _diagnostics.AddError(ex.Code, ex.Message, span);
+        var diagnostic = SyntaxDiagnosticEnhancer.CreateDiagnostic(ex.Code, ex.Message, span, Current, _lexer.SourceText);
+        _diagnostics.Add(diagnostic);
     }
 
     private bool TryRecoverToNextStatement()
@@ -321,8 +330,11 @@ public class Parser
                     TokenType.Semicolon);
 
             default:
-                throw new SyntaxException($"Cannot compose statement, {Current.TokenType} is not expected here",
-                    _lexer.AlreadyResolvedQueryPart);
+                throw new SyntaxException(
+                    $"Cannot compose statement, {Current.TokenType} is not expected here",
+                    _lexer.AlreadyResolvedQueryPart,
+                    DiagnosticCode.MQ2001_UnexpectedToken,
+                    Current.Span);
         }
     }
 
@@ -945,10 +957,19 @@ public class Parser
             case TokenType.Word:
                 return ConsumeAndGetToken(TokenType.Word).Value;
             case TokenType.Identifier:
+                if (IsLikelyMisspelledClauseKeyword(Current.Value))
+                    return string.Empty;
                 return ConsumeAndGetToken(TokenType.Identifier).Value;
         }
 
         return string.Empty;
+    }
+
+    private static bool IsLikelyMisspelledClauseKeyword(string identifier)
+    {
+        var maxDistance = identifier.Length >= MinLengthForLargerDistance ? LongWordMaxDistance : ShortWordMaxDistance;
+
+        return ErrorCatalog.GetDidYouMeanSuggestion(identifier, ClauseKeywords, maxDistance: maxDistance) != null;
     }
 
     private Order ComposeOrder()
@@ -1101,7 +1122,7 @@ public class Parser
                     break;
                 case TokenType.Contains:
                     Consume(TokenType.Contains);
-                    node = new ContainsNode(node, ComposeArgs());
+                    node = new ContainsNode(node, ComposeNonEmptyArgs("CONTAINS"));
                     break;
                 case TokenType.Is:
                     Consume(TokenType.Is);
@@ -1332,8 +1353,11 @@ public class Parser
     private void Consume(TokenType tokenType)
     {
         if (!Current.TokenType.Equals(tokenType))
-            throw new SyntaxException($"Expected token is {tokenType} but received {Current.TokenType}.",
-                _lexer.AlreadyResolvedQueryPart);
+            throw new SyntaxException(
+                $"Expected token is {tokenType} but received {Current.TokenType}.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2001_UnexpectedToken,
+                Current.Span);
 
         Previous = Current;
         _hasReplacedToken = false;
@@ -1344,8 +1368,11 @@ public class Parser
     private void ConsumeAsColumn(TokenType tokenType)
     {
         if (!Current.TokenType.Equals(tokenType))
-            throw new SyntaxException($"Expected token is {tokenType} but received {Current.TokenType}.",
-                _lexer.AlreadyResolvedQueryPart);
+            throw new SyntaxException(
+                $"Expected token is {tokenType} but received {Current.TokenType}.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2001_UnexpectedToken,
+                Current.Span);
 
         _hasReplacedToken = false;
         _lexer.NextOf(ColumnRegex,
@@ -1370,6 +1397,18 @@ public class Parser
         Consume(TokenType.RightParenthesis);
 
         return new ArgsListNode(args.ToArray());
+    }
+
+    private ArgsListNode ComposeNonEmptyArgs(string operatorName)
+    {
+        var args = ComposeArgs();
+
+        if (args.Args.Length != 0)
+            return args;
+
+        throw new SyntaxException(
+            $"{operatorName} requires at least one argument inside parentheses.",
+            _lexer.AlreadyResolvedQueryPart);
     }
 
     private (ArgsListNode Args, bool IsDistinct) ComposeArgsWithDistinct()

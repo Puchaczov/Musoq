@@ -17,7 +17,7 @@ public class SchemaErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Info.Label.Nonexistent FROM #test.nested()"));
 
-        AssertSingleError(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "Nonexistent");
+        AssertSingleError(ex, DiagnosticCode.MQ3028_UnknownProperty, DiagnosticPhase.Bind, "Nonexistent");
     }
 
     #endregion
@@ -51,11 +51,11 @@ public class SchemaErrorTests : NegativeTestsBase
     [TestMethod]
     public void SE002_NonexistentTableInValidSchema_ShouldThrowSchemaError()
     {
-        // Known quality gap: produces MQ9999 wrapping TableNotFoundException
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.nonexistent()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime);
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3003_UnknownTable, DiagnosticPhase.Bind, "nonexistent");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]

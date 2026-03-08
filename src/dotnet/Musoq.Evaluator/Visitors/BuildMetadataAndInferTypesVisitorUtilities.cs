@@ -198,17 +198,42 @@ public static class BuildMetadataAndInferTypesVisitorUtilities
     {
         var indexes = new int[keys.Length];
 
-        var fieldIndex = 0;
-        var index = 0;
-
-        foreach (var field in node.Select.Fields)
-        {
-            if (keys.Contains(field.FieldName))
-                indexes[index++] = fieldIndex;
-
-            fieldIndex += 1;
-        }
+        for (var i = 0; i < keys.Length; i++)
+            indexes[i] = TryGetSetOperatorFieldPosition(node, keys[i], out var position) ? position : 0;
 
         return indexes;
+    }
+
+    public static bool TryGetSetOperatorFieldPosition(QueryNode node, string key, out int position)
+    {
+        position = 0;
+
+        for (var i = 0; i < node.Select.Fields.Length; i++)
+        {
+            if (!MatchesSetOperatorKey(node.Select.Fields[i], key))
+                continue;
+
+            position = i;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool MatchesSetOperatorKey(FieldNode field, string key)
+    {
+        if (string.Equals(field.FieldName, key, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (!string.IsNullOrWhiteSpace(field.FieldName) &&
+            field.FieldName.EndsWith($".{key}", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        var expressionText = field.Expression.ToString();
+
+        if (string.Equals(expressionText, key, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return expressionText.EndsWith($".{key}", StringComparison.OrdinalIgnoreCase);
     }
 }

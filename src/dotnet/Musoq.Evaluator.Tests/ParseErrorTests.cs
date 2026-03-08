@@ -161,11 +161,12 @@ public class ParseErrorTests : NegativeTestsBase
     [TestMethod]
     public void PE033_DoubleOperator_ShouldThrowError()
     {
-        // Known quality gap: produces MQ9999 CompilationException instead of a proper type/parse error
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE Age >> 10"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime);
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind,
+            "WHERE clause requires a boolean expression");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]

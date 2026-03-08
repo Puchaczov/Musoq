@@ -81,7 +81,11 @@ public class SyntaxException : Exception, IDiagnosticException
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
         var span = Span ?? TextSpan.Empty;
-        return Diagnostic.Error(Code, Message, span);
+        var effectiveSourceText = sourceText;
+        if (effectiveSourceText == null && !string.IsNullOrWhiteSpace(QueryPart))
+            effectiveSourceText = new SourceText(QueryPart);
+
+        return SyntaxDiagnosticEnhancer.CreateDiagnostic(Code, Message, span, currentToken: null, effectiveSourceText);
     }
 
     /// <summary>

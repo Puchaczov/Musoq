@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter.Exceptions;
+using Musoq.Parser.Diagnostics;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
@@ -193,16 +195,14 @@ public class EscapeTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void WhenInvalidUnicodeSequences_ShouldHandleGracefully()
+    public void WhenInvalidUnicodeSequences_ShouldReportParseError()
     {
         const string query = """select '\u123' from #A.entities()""";
 
         var sources = CreateSource();
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
+        var exception = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("\\u123", table[0].Values[0]);
+        Assert.AreEqual(DiagnosticCode.MQ1004_InvalidEscapeSequence, exception.Envelopes[0].Code);
     }
 
     [TestMethod]

@@ -17,6 +17,7 @@ using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Nodes.InterpretationSchema;
@@ -41,6 +42,23 @@ namespace Musoq.Evaluator.Visitors;
 
 public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExpressionVisitor
 {
+    private enum BinaryOperatorKind
+    {
+        Add,
+        Subtract,
+        Multiply,
+        Divide,
+        Modulo,
+        BitwiseAnd,
+        BitwiseOr,
+        BitwiseXor,
+        LeftShift,
+        RightShift,
+        Equality,
+        Inequality,
+        Relational
+    }
+
     private static readonly WhereNode AllTrueWhereNode =
         new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
 
@@ -247,19 +265,20 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public override void Visit(StarNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new StarNode(left, right), isArithmeticOperation: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new StarNode(left, right), node,
+            BinaryOperatorKind.Multiply, isArithmeticOperation: true);
     }
 
     public override void Visit(FSlashNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new FSlashNode(left, right),
-            isArithmeticOperation: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new FSlashNode(left, right), node,
+            BinaryOperatorKind.Divide, isArithmeticOperation: true);
     }
 
     public override void Visit(ModuloNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new ModuloNode(left, right),
-            isArithmeticOperation: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new ModuloNode(left, right), node,
+            BinaryOperatorKind.Modulo, isArithmeticOperation: true);
     }
 
     public override void Visit(AddNode node)
@@ -280,54 +299,69 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         {
             Nodes.Push(left);
             Nodes.Push(right);
-            VisitBinaryOperatorWithTypeConversion((l, r) => new AddNode(l, r), isArithmeticOperation: true);
+            VisitBinaryOperatorWithTypeConversion((l, r) => new AddNode(l, r), node, BinaryOperatorKind.Add,
+                isArithmeticOperation: true);
         }
     }
 
     public override void Visit(HyphenNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new HyphenNode(left, right),
-            isArithmeticOperation: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new HyphenNode(left, right), node,
+            BinaryOperatorKind.Subtract, isArithmeticOperation: true);
     }
 
     public override void Visit(AndNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new AndNode(left, right), VisitorOperationNames.VisitAndNode);
+        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitAndNode);
+        var left = nodes[0];
+        var right = nodes[1];
+
+        ValidateBooleanOperand(left, "AND", node);
+        ValidateBooleanOperand(right, "AND", node);
+
+        Nodes.Push(new AndNode(left, right));
     }
 
     public override void Visit(OrNode node)
     {
-        VisitBinaryOperatorWithSafePop((left, right) => new OrNode(left, right), VisitorOperationNames.VisitOrNode);
+        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitOrNode);
+        var left = nodes[0];
+        var right = nodes[1];
+
+        ValidateBooleanOperand(left, "OR", node);
+        ValidateBooleanOperand(right, "OR", node);
+
+        Nodes.Push(new OrNode(left, right));
     }
 
     public override void Visit(BitwiseAndNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new BitwiseAndNode(left, right),
-            isArithmeticOperation: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new BitwiseAndNode(left, right), node,
+            BinaryOperatorKind.BitwiseAnd, isArithmeticOperation: true);
     }
 
     public override void Visit(BitwiseOrNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new BitwiseOrNode(left, right),
-            isArithmeticOperation: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new BitwiseOrNode(left, right), node,
+            BinaryOperatorKind.BitwiseOr, isArithmeticOperation: true);
     }
 
     public override void Visit(BitwiseXorNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new BitwiseXorNode(left, right),
-            isArithmeticOperation: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new BitwiseXorNode(left, right), node,
+            BinaryOperatorKind.BitwiseXor, isArithmeticOperation: true);
     }
 
     public override void Visit(LeftShiftNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new LeftShiftNode(left, right),
-            isArithmeticOperation: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new LeftShiftNode(left, right), node,
+            BinaryOperatorKind.LeftShift, isArithmeticOperation: true);
     }
 
     public override void Visit(RightShiftNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new RightShiftNode(left, right),
-            isArithmeticOperation: true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new RightShiftNode(left, right), node,
+            BinaryOperatorKind.RightShift, isArithmeticOperation: true);
     }
 
     public override void Visit(ShortCircuitingNodeLeft node)
@@ -344,48 +378,67 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     public override void Visit(EqualityNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new EqualityNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new EqualityNode(left, right), node,
+            BinaryOperatorKind.Equality);
     }
 
     public override void Visit(GreaterOrEqualNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterOrEqualNode(left, right), true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterOrEqualNode(left, right), node,
+            BinaryOperatorKind.Relational, true);
     }
 
     public override void Visit(LessOrEqualNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new LessOrEqualNode(left, right), true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new LessOrEqualNode(left, right), node,
+            BinaryOperatorKind.Relational, true);
     }
 
     public override void Visit(GreaterNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterNode(left, right), true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterNode(left, right), node,
+            BinaryOperatorKind.Relational, true);
     }
 
     public override void Visit(LessNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new LessNode(left, right), true);
+        VisitBinaryOperatorWithTypeConversion((left, right) => new LessNode(left, right), node,
+            BinaryOperatorKind.Relational, true);
     }
 
     public override void Visit(DiffNode node)
     {
-        VisitBinaryOperatorWithTypeConversion((left, right) => new DiffNode(left, right));
+        VisitBinaryOperatorWithTypeConversion((left, right) => new DiffNode(left, right), node,
+            BinaryOperatorKind.Inequality);
     }
 
     public override void Visit(NotNode node)
     {
         var operand = SafePop(Nodes, VisitorOperationNames.VisitNotNode);
+        ValidateBooleanOperand(operand, "NOT", node);
         Nodes.Push(new NotNode(operand));
     }
 
     public override void Visit(LikeNode node)
     {
-        VisitBinaryOperatorWithDirectPop((left, right) => new LikeNode(left, right));
+        var right = SafePop(Nodes, "Visit(LikeNode) right");
+        var left = SafePop(Nodes, "Visit(LikeNode) left");
+
+        ValidatePatternOperand(left, "LIKE", node);
+        ValidatePatternOperand(right, "LIKE", node);
+
+        Nodes.Push(new LikeNode(left, right));
     }
 
     public override void Visit(RLikeNode node)
     {
-        VisitBinaryOperatorWithDirectPop((left, right) => new RLikeNode(left, right));
+        var right = SafePop(Nodes, "Visit(RLikeNode) right");
+        var left = SafePop(Nodes, "Visit(RLikeNode) left");
+
+        ValidatePatternOperand(left, "RLIKE", node);
+        ValidatePatternOperand(right, "RLIKE", node);
+
+        Nodes.Push(new RLikeNode(left, right));
     }
 
     public override void Visit(InNode node)
@@ -635,8 +688,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
             if (column == null)
             {
-                if (TryReportOrThrowUnknownColumn(node.Name, tuple.Table.Columns, node))
-                    return;
+                TryReportOrThrowUnknownColumn(node.Name, tuple.Table.Columns, node);
                 return;
             }
 
@@ -1954,7 +2006,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         ValidateSelectFieldsArePrimitive(queryNode.Select.Fields, "SELECT");
 
         if (where != null)
+        {
             ValidateExpressionIsPrimitive(where.Expression, "WHERE");
+            ValidateExpressionIsBoolean(where.Expression, "WHERE");
+        }
 
         if (groupBy != null)
         {
@@ -1962,12 +2017,18 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 ValidateExpressionIsPrimitive(field.Expression, "GROUP BY");
 
             if (groupBy.Having != null)
+            {
                 ValidateExpressionIsPrimitive(groupBy.Having.Expression, "HAVING");
+                ValidateExpressionIsBoolean(groupBy.Having.Expression, "HAVING");
+            }
         }
 
         if (orderBy != null)
             foreach (var field in orderBy.Fields)
+            {
+                ValidateOrderByExpression(field);
                 ValidateExpressionIsPrimitive(field.Expression, "ORDER BY");
+            }
 
         if (skip != null)
             ValidateExpressionIsPrimitive(skip.Expression, "SKIP");
@@ -2334,8 +2395,9 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         Nodes.Push(nodeFactory(left, right));
     }
 
-    private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory,
-        bool isRelationalComparison = false, bool isArithmeticOperation = false) where T : Node
+    private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory, Node errorContextNode,
+        BinaryOperatorKind operatorKind, bool isRelationalComparison = false,
+        bool isArithmeticOperation = false) where T : Node
     {
         var right = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (right)");
         var left = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (left)");
@@ -2386,6 +2448,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             isArithmeticOperation);
         transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft, isRelationalComparison,
             isArithmeticOperation);
+
+        ValidateBinaryOperatorOperands(transformedLeft, transformedRight, operatorKind, errorContextNode);
 
         Nodes.Push(nodeFactory(transformedLeft, transformedRight));
     }
@@ -2601,7 +2665,30 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         if (context.SchemaTablePair.Schema.TryResolveRawMethod(methodName, argTypes, out method)) return (method, true);
 
-        throw CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(methodName, args.Args);
+        throw CreateMethodResolutionExceptionWithSuggestion(methodName, args.Args, context);
+    }
+
+    private static CannotResolveMethodException CreateMethodResolutionExceptionWithSuggestion(
+        string methodName, Node[] args, MethodResolutionContext context)
+    {
+        var allMethods = context.SchemaTablePair.Schema.GetAllLibraryMethods();
+        var availableNames = allMethods.Keys;
+        var suggestion = ErrorCatalog.GetDidYouMeanSuggestion(methodName, availableNames, maxDistance: 2);
+
+        if (!string.IsNullOrWhiteSpace(suggestion))
+        {
+            var types = args.Length > 0
+                ? string.Join(", ", args.Select(f => f.ReturnType?.ToString() ?? "null"))
+                : string.Empty;
+
+            var message = string.IsNullOrEmpty(types)
+                ? $"Method {methodName} cannot be resolved. Did you mean '{suggestion}'?"
+                : $"Method {methodName} with argument types {types} cannot be resolved. Did you mean '{suggestion}'?";
+
+            return new CannotResolveMethodException(message);
+        }
+
+        return CannotResolveMethodException.CreateForCannotMatchMethodNameOrArguments(methodName, args);
     }
 
     private MethodInfo ProcessGenericMethodIfNeeded(MethodInfo method, ArgsListNode args, Type entityType)
@@ -3097,6 +3184,41 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         }
     }
 
+    private void ValidateExpressionIsBoolean(Node expression, string context)
+    {
+        var expressionType = NormalizeOperandType(expression.ReturnType);
+        if (CanSkipStaticTypeValidation(expressionType))
+            return;
+
+        if (expressionType == typeof(bool))
+            return;
+
+        if (TryReportTypeMismatch(
+                $"{context} clause requires a boolean expression, but got '{expressionType.Name}'.",
+                expression))
+            return;
+
+        throw new TypeMismatchException(typeof(bool), expressionType,
+            expression.HasSpan ? expression.Span : TextSpan.Empty);
+    }
+
+    private void ValidateOrderByExpression(FieldOrderedNode field)
+    {
+        if (field.Expression is not IntegerNode integerNode)
+            return;
+
+        if (!string.IsNullOrEmpty(field.FieldName) &&
+            !string.Equals(field.FieldName, integerNode.ToString(), StringComparison.Ordinal))
+            return;
+
+        const string message = "ORDER BY column position is not supported. Use a column name or alias instead of a numeric position.";
+
+        if (TryReportSemanticError<NotSupportedException>(DiagnosticCode.MQ2030_UnsupportedSyntax, message, field))
+            return;
+
+        throw new NotSupportedException(message);
+    }
+
     private void MakeSureBothSideFieldsAreOfAssignableTypes(QueryNode left, QueryNode right,
         string cachedSetOperatorKey)
     {
@@ -3235,6 +3357,13 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
         if (DiagnosticContext != null)
         {
+            var dialectMessage = GetDialectColumnHint(identifier);
+            if (dialectMessage != null)
+            {
+                DiagnosticContext.ReportError(DiagnosticCode.MQ3001_UnknownColumn, dialectMessage, node);
+                return true;
+            }
+
             var availableColumns = columns.Select(c => c.ColumnName);
             DiagnosticContext.ReportUnknownColumn(identifier, availableColumns, node);
             return true;
@@ -3704,7 +3833,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                type == typeof(short) || type == typeof(ushort) ||
                type == typeof(int) || type == typeof(uint) ||
                type == typeof(long) || type == typeof(ulong) ||
-               type == typeof(float) || type == typeof(double);
+               type == typeof(float) || type == typeof(double) ||
+               type == typeof(decimal);
     }
 
     private static Type GetWiderNumericType(Type left, Type right)
@@ -4180,19 +4310,29 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             throw SetOperatorDoesNotHaveKeysException(setOperatorName);
         }
 
-        var key = CreateSetOperatorPositionKey();
-        _currentScope[MetaAttributes.SetOperatorName] = key;
-        SetOperatorFieldPositions.Add(key,
-            BuildMetadataAndInferTypesVisitorUtilities.CreateSetOperatorPositionIndexes((QueryNode)node.Left,
-                node.Keys));
-
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
+        if (left is not QueryNode leftQuery)
+            throw new InvalidOperationException($"Expected left side of {setOperatorName} to be a query node.");
+
+        if (!ValidateSetOperatorKeys(leftQuery, node.Keys, node))
+        {
+            Nodes.Push(left);
+            Nodes.Push(right);
+            Nodes.Push(CreateSetOperatorNode(setOperatorName, node, left, right));
+            return;
+        }
+
+        var key = CreateSetOperatorPositionKey();
+        _currentScope[MetaAttributes.SetOperatorName] = key;
+        SetOperatorFieldPositions.Add(key,
+            BuildMetadataAndInferTypesVisitorUtilities.CreateSetOperatorPositionIndexes(leftQuery, node.Keys));
+
         if (right is QueryNode rightAsQueryNode)
-            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode)left, rightAsQueryNode, key);
+            MakeSureBothSideFieldsAreOfAssignableTypes(leftQuery, rightAsQueryNode, key);
         else
-            MakeSureBothSideFieldsAreOfAssignableTypes((QueryNode)left, PreviousSetOperatorPositionKey(), key);
+            MakeSureBothSideFieldsAreOfAssignableTypes(leftQuery, PreviousSetOperatorPositionKey(), key);
 
         var rightMethodName = Methods.Pop();
         var leftMethodName = Methods.Pop();
@@ -4200,9 +4340,221 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var methodName = $"{leftMethodName}_{setOperatorName}_{rightMethodName}";
         Methods.Push(methodName);
         _currentScope.ScopeSymbolTable.AddSymbol(methodName,
-            _currentScope.Child[0].ScopeSymbolTable.GetSymbol(((QueryNode)left).From.Alias));
+            _currentScope.Child[0].ScopeSymbolTable.GetSymbol(leftQuery.From.Alias));
 
         Nodes.Push(CreateSetOperatorNode(setOperatorName, node, left, right));
+    }
+
+    private bool ValidateSetOperatorKeys(QueryNode query, IReadOnlyCollection<string> keys, Node node)
+    {
+        var availableFieldNames = query.Select.Fields
+            .SelectMany(field => new[] { field.FieldName, field.Expression.ToString() })
+            .Where(fieldName => !string.IsNullOrWhiteSpace(fieldName))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var missingKey = keys.FirstOrDefault(key =>
+            !BuildMetadataAndInferTypesVisitorUtilities.TryGetSetOperatorFieldPosition(query, key, out _));
+        if (missingKey == null)
+            return true;
+
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportUnknownColumn(missingKey, availableFieldNames, node);
+            return false;
+        }
+
+        throw new InvalidOperationException($"Unknown column '{missingKey}'.");
+    }
+
+    private void ValidateBooleanOperand(Node operand, string operatorName, Node errorContextNode)
+    {
+        var operandType = NormalizeOperandType(operand.ReturnType);
+        if (CanSkipStaticTypeValidation(operandType) || operandType == typeof(bool))
+            return;
+
+        ThrowOrReportInvalidOperandTypes(typeof(bool), operandType, errorContextNode,
+            $"Operator {operatorName} requires boolean operands, but got '{operandType.Name}'.");
+    }
+
+    private void ValidatePatternOperand(Node operand, string operatorName, Node errorContextNode)
+    {
+        var operandType = NormalizeOperandType(operand.ReturnType);
+        if (CanSkipStaticTypeValidation(operandType) || operandType == typeof(string))
+            return;
+
+        var message =
+            $"Operator {operatorName} requires string operands, but got '{operandType.Name}'.";
+
+        if (TryReportTypeMismatch(message, errorContextNode))
+            return;
+
+        throw new TypeMismatchException(typeof(string), operandType,
+            errorContextNode.HasSpan ? errorContextNode.Span : TextSpan.Empty);
+    }
+
+    private void ValidateBinaryOperatorOperands(Node left, Node right, BinaryOperatorKind operatorKind, Node errorContextNode)
+    {
+        var leftType = NormalizeOperandType(left.ReturnType);
+        var rightType = NormalizeOperandType(right.ReturnType);
+
+        if (CanSkipStaticTypeValidation(leftType) || CanSkipStaticTypeValidation(rightType))
+            return;
+
+        var isValid = operatorKind switch
+        {
+            BinaryOperatorKind.Add => CanApplyAddition(leftType, rightType),
+            BinaryOperatorKind.Subtract => CanApplySubtraction(leftType, rightType),
+            BinaryOperatorKind.Multiply => CanApplyNumericOperator(leftType, rightType),
+            BinaryOperatorKind.Divide => CanApplyNumericOperator(leftType, rightType),
+            BinaryOperatorKind.Modulo => CanApplyNumericOperator(leftType, rightType),
+            BinaryOperatorKind.BitwiseAnd => CanApplyBitwiseOperator(leftType, rightType),
+            BinaryOperatorKind.BitwiseOr => CanApplyBitwiseOperator(leftType, rightType),
+            BinaryOperatorKind.BitwiseXor => CanApplyBitwiseOperator(leftType, rightType),
+            BinaryOperatorKind.LeftShift => CanApplyShiftOperator(leftType, rightType),
+            BinaryOperatorKind.RightShift => CanApplyShiftOperator(leftType, rightType),
+            BinaryOperatorKind.Equality => CanApplyEqualityOperator(leftType, rightType),
+            BinaryOperatorKind.Inequality => CanApplyEqualityOperator(leftType, rightType),
+            BinaryOperatorKind.Relational => CanApplyRelationalOperator(leftType, rightType),
+            _ => true
+        };
+
+        if (isValid)
+            return;
+
+        if (operatorKind is BinaryOperatorKind.Equality or BinaryOperatorKind.Inequality or BinaryOperatorKind.Relational)
+        {
+            var message =
+                $"Type mismatch: cannot compare '{leftType.Name}' with '{rightType.Name}'.";
+            if (TryReportTypeMismatch(message, errorContextNode))
+                return;
+
+            throw new TypeMismatchException(leftType, rightType,
+                errorContextNode.HasSpan ? errorContextNode.Span : TextSpan.Empty);
+        }
+
+        ThrowOrReportInvalidOperandTypes(leftType, rightType, errorContextNode);
+    }
+
+    private bool TryReportTypeMismatch(string message, Node node)
+    {
+        if (DiagnosticContext == null)
+            return false;
+
+        DiagnosticContext.ReportError(DiagnosticCode.MQ3005_TypeMismatch, message, node);
+        return true;
+    }
+
+    private void ThrowOrReportInvalidOperandTypes(Type leftType, Type rightType, Node errorContextNode,
+        string? message = null)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportError(
+                DiagnosticCode.MQ3007_InvalidOperandTypes,
+                message ?? $"Invalid operand types for operator: '{leftType.Name}' and '{rightType.Name}'.",
+                errorContextNode);
+            return;
+        }
+
+        throw new InvalidOperandTypesException(leftType, rightType);
+    }
+
+    private static Type NormalizeOperandType(Type type)
+    {
+        if (type is NullNode.NullType)
+            return type;
+
+        return BuildMetadataAndInferTypesVisitorUtilities.StripNullable(type);
+    }
+
+    private static bool CanSkipStaticTypeValidation(Type type)
+    {
+        return type == typeof(object) ||
+               type is NullNode.NullType ||
+               !BuildMetadataAndInferTypesVisitorUtilities.IsValidQueryExpressionType(type);
+    }
+
+    private static bool IsIntegralType(Type type)
+    {
+        return type == typeof(byte) || type == typeof(sbyte) || type == typeof(short) || type == typeof(ushort) ||
+               type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong);
+    }
+
+    private static bool CanApplyAddition(Type leftType, Type rightType)
+    {
+        if (leftType == typeof(string) && rightType == typeof(string))
+            return true;
+
+        if (IsNumericType(leftType) && IsNumericType(rightType))
+            return true;
+
+        if (leftType == typeof(DateTime) && rightType == typeof(TimeSpan))
+            return true;
+
+        if (leftType == typeof(TimeSpan) && rightType == typeof(DateTime))
+            return true;
+
+        if (leftType == typeof(DateTimeOffset) && rightType == typeof(TimeSpan))
+            return true;
+
+        if (leftType == typeof(TimeSpan) && rightType == typeof(DateTimeOffset))
+            return true;
+
+        return leftType == typeof(TimeSpan) && rightType == typeof(TimeSpan);
+    }
+
+    private static bool CanApplySubtraction(Type leftType, Type rightType)
+    {
+        if (IsNumericType(leftType) && IsNumericType(rightType))
+            return true;
+
+        if (leftType == typeof(DateTime) && (rightType == typeof(DateTime) || rightType == typeof(TimeSpan)))
+            return true;
+
+        if (leftType == typeof(DateTimeOffset) &&
+            (rightType == typeof(DateTimeOffset) || rightType == typeof(TimeSpan)))
+            return true;
+
+        return leftType == typeof(TimeSpan) && rightType == typeof(TimeSpan);
+    }
+
+    private static bool CanApplyNumericOperator(Type leftType, Type rightType)
+    {
+        return IsNumericType(leftType) && IsNumericType(rightType);
+    }
+
+    private static bool CanApplyBitwiseOperator(Type leftType, Type rightType)
+    {
+        return IsIntegralType(leftType) && IsIntegralType(rightType);
+    }
+
+    private static bool CanApplyShiftOperator(Type leftType, Type rightType)
+    {
+        return IsIntegralType(leftType) && IsIntegralType(rightType);
+    }
+
+    private static bool CanApplyEqualityOperator(Type leftType, Type rightType)
+    {
+        if (leftType == rightType)
+            return true;
+
+        if ((leftType == typeof(char) && rightType == typeof(string)) ||
+            (leftType == typeof(string) && rightType == typeof(char)))
+            return true;
+
+        return IsNumericType(leftType) && IsNumericType(rightType);
+    }
+
+    private static bool CanApplyRelationalOperator(Type leftType, Type rightType)
+    {
+        if (IsNumericType(leftType) && IsNumericType(rightType))
+            return true;
+
+        if (leftType != rightType)
+            return false;
+
+        return leftType == typeof(string) || leftType == typeof(DateTime) || leftType == typeof(DateTimeOffset) ||
+               leftType == typeof(TimeSpan);
     }
 
     private SetOperatorNode CreateSetOperatorNode(string setOperatorName, SetOperatorNode node, Node left, Node right)
@@ -4292,7 +4644,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         if (DiagnosticContext != null)
         {
             var availableProperties = objectType?.GetProperties().Select(p => p.Name) ?? [];
-            DiagnosticContext.ReportUnknownColumn(propertyName, availableProperties, node);
+            DiagnosticContext.ReportUnknownProperty(propertyName, availableProperties, node);
             return true;
         }
 
@@ -4648,34 +5000,16 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         throw new ColumnMustBeMarkedAsBindablePropertyAsTableException(columnName, span);
     }
 
-    /// <summary>
-    ///     Reports an unknown column or alias error with suggestions. If diagnostics are enabled, records the error and
-    ///     returns true.
-    ///     Otherwise throws the exception.
-    /// </summary>
-    /// <param name="identifier">The unknown identifier.</param>
-    /// <param name="columns">Available columns for suggestions.</param>
-    /// <param name="node">The node where the error occurred.</param>
-    /// <returns>True if error was reported (diagnostics mode), false if exception was thrown.</returns>
-    protected bool TryReportUnknownColumnWithSuggestions(string identifier, ISchemaColumn[] columns, Node? node)
+    private static readonly Dictionary<string, string> DialectColumnHints =
+        new[] { "TOP", "FIRST", "LIMIT" }.ToDictionary(
+            keyword => keyword,
+            keyword => $"Musoq does not support {keyword}. Use TAKE after the FROM clause instead. " +
+                       "Example: SELECT Name FROM #schema.method() alias TAKE 5",
+            StringComparer.OrdinalIgnoreCase);
+
+    private static string? GetDialectColumnHint(string identifier)
     {
-        if (DiagnosticContext != null)
-        {
-            var library = new TransitionLibrary();
-            var candidatesColumns = columns.Where(col =>
-                library.Soundex(col.ColumnName) == library.Soundex(identifier) ||
-                library.LevenshteinDistance(col.ColumnName, identifier) < 3).ToArray();
-
-            var message = candidatesColumns.Length > 0
-                ? $"Column or Alias '{identifier}' could not be found. Did you mean to use [{string.Join(", ", candidatesColumns.Select(c => c.ColumnName))}]?"
-                : $"Column or Alias '{identifier}' could not be found.";
-
-            DiagnosticContext.ReportError(DiagnosticCode.MQ3001_UnknownColumn, message, node);
-            return true;
-        }
-
-
-        return false;
+        return DialectColumnHints.GetValueOrDefault(identifier);
     }
 
     /// <summary>
@@ -4696,8 +5030,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 library.LevenshteinDistance(prop.Name, identifier) < 3).ToArray();
 
             var message = candidatesProperties.Length > 0
-                ? $"Property '{identifier}' could not be found. Did you mean to use [{string.Join(", ", candidatesProperties.Select(p => p.Name))}]?"
-                : $"Property '{identifier}' could not be found.";
+                ? $"Unknown property '{identifier}'. Did you mean to use [{string.Join(", ", candidatesProperties.Select(p => p.Name))}]?"
+                : $"Unknown property '{identifier}'.";
 
             DiagnosticContext.ReportError(DiagnosticCode.MQ3028_UnknownProperty, message, node);
             return true;

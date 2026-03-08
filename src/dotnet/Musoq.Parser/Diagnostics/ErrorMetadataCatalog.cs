@@ -40,6 +40,16 @@ public static class ErrorMetadataCatalog
             ],
             "Core Spec §Numeric Literals"),
 
+        [DiagnosticCode.MQ1004_InvalidEscapeSequence] = new(
+            DiagnosticCode.MQ1004_InvalidEscapeSequence,
+            DiagnosticPhase.Parse,
+            "The string literal contains an escape sequence that Musoq does not recognize.",
+            [
+                "Use one of the supported escapes like \\n, \\r, \\t, \\', \\\\, \\uFFFF, or \\xFF.",
+                "If you want a literal backslash, escape it as \\\\."
+            ],
+            "Core Spec §String Literals"),
+
         // ============================================
         // Parser/Syntax Errors (MQ2xxx) — Phase: Parse
         // ============================================
@@ -50,6 +60,16 @@ public static class ErrorMetadataCatalog
             [
                 "Check for missing keywords, commas, or parentheses near this location.",
                 "Verify the query follows Musoq SQL syntax."
+            ],
+            "Core Spec §Statement Structure"),
+
+        [DiagnosticCode.MQ2002_MissingToken] = new(
+            DiagnosticCode.MQ2002_MissingToken,
+            DiagnosticPhase.Parse,
+            "A required keyword, delimiter, or closing token is missing at this position.",
+            [
+                "Insert the missing keyword or delimiter near the highlighted location.",
+                "Check for a missing FROM clause, comma, or closing parenthesis."
             ],
             "Core Spec §Statement Structure"),
 
@@ -80,6 +100,26 @@ public static class ErrorMetadataCatalog
             ],
             "Core Spec §CTE"),
 
+        [DiagnosticCode.MQ2016_IncompleteStatement] = new(
+            DiagnosticCode.MQ2016_IncompleteStatement,
+            DiagnosticPhase.Parse,
+            "The query ended before Musoq could form a complete statement.",
+            [
+                "Complete the statement with the missing clause or expression.",
+                "Start with a full query shape such as: SELECT ... FROM #schema.method() alias"
+            ],
+            "Core Spec §Statement Structure"),
+
+        [DiagnosticCode.MQ2030_UnsupportedSyntax] = new(
+            DiagnosticCode.MQ2030_UnsupportedSyntax,
+            DiagnosticPhase.Parse,
+            "The query uses syntax that Musoq does not support or that is not valid in this position.",
+            [
+                "Rewrite the clause using Musoq SQL syntax.",
+                "If this came from another SQL dialect, check the Musoq equivalent keywords."
+            ],
+            "Core Spec §Statement Structure"),
+
         // ============================================
         // Semantic Errors (MQ3xxx) — Phase: Bind
         // ============================================
@@ -99,6 +139,16 @@ public static class ErrorMetadataCatalog
             "The column name matches columns in multiple data sources and is ambiguous.",
             ["Qualify the column with a table alias: alias.ColumnName"],
             "Core Spec §Column References"),
+
+        [DiagnosticCode.MQ3003_UnknownTable] = new(
+            DiagnosticCode.MQ3003_UnknownTable,
+            DiagnosticPhase.Bind,
+            "The referenced table or schema method could not be resolved in the selected schema.",
+            [
+                "Check the method name after the schema prefix, for example #schema.method().",
+                "Verify the schema exposes this data source."
+            ],
+            "Core Spec §FROM Clause"),
 
         [DiagnosticCode.MQ3004_UnknownFunction] = new(
             DiagnosticCode.MQ3004_UnknownFunction,
@@ -221,6 +271,16 @@ public static class ErrorMetadataCatalog
             [
                 "Check the property name for typos.",
                 "Verify the object type exposes this property."
+            ],
+            "Core Spec §Property Access"),
+
+        [DiagnosticCode.MQ3028_UnknownProperty] = new(
+            DiagnosticCode.MQ3028_UnknownProperty,
+            DiagnosticPhase.Bind,
+            "The property name could not be resolved on the referenced object.",
+            [
+                "Check the property name for typos.",
+                "Verify the object type exposes this property before accessing it."
             ],
             "Core Spec §Property Access"),
 

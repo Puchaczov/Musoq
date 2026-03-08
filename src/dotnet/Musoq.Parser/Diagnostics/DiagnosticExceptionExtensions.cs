@@ -55,6 +55,9 @@ public static class DiagnosticExceptionExtensions
         if (exception.Message.Contains("Unterminated string literal", StringComparison.OrdinalIgnoreCase))
             return DiagnosticCode.MQ1002_UnterminatedString;
 
+        if (IsTableNotFoundException(exception))
+            return DiagnosticCode.MQ3003_UnknownTable;
+
         if (exception is NullReferenceException or ArgumentNullException or IndexOutOfRangeException)
             return DiagnosticCode.MQ2030_UnsupportedSyntax;
 
@@ -115,6 +118,13 @@ public static class DiagnosticExceptionExtensions
         var originalMessage = exception.Message;
 
 
+        if (IsTableNotFoundException(exception))
+        {
+            var tableName = string.IsNullOrWhiteSpace(originalMessage) ? "unknown" : originalMessage;
+            return $"Unknown table or data source '{tableName}'. Check the schema method name in the FROM clause.";
+        }
+
+
         switch (exception)
         {
             case KeyNotFoundException:
@@ -124,18 +134,18 @@ public static class DiagnosticExceptionExtensions
                 {
                     var keyMatch = Regex.Match(originalMessage, @"'([^']+)'");
                     if (keyMatch.Success)
-                        return $"Internal error: Reference '{keyMatch.Groups[1].Value}' could not be resolved. " +
-                               "This may indicate a malformed query structure. Please verify your query syntax.";
+                        return $"Reference '{keyMatch.Groups[1].Value}' could not be resolved. " +
+                               "Check table names, aliases, and query structure near this location.";
                 }
 
-                return $"Internal error: A required reference could not be found. {originalMessage}";
+                return "A required reference could not be found. Check table names, aliases, and query structure.";
 
             case NullReferenceException:
-                return "Internal error: A null reference was encountered during query processing. " +
-                       "This may indicate an invalid query structure.";
+                return "Query processing failed because a null reference was encountered. " +
+                       "This usually means the query structure is invalid or incomplete.";
 
             case ArgumentNullException argNull:
-                return $"Internal error: Required value '{argNull.ParamName}' was not provided. " +
+                return $"Required value '{argNull.ParamName}' was not provided. " +
                        "Please verify your query is complete.";
 
             case ArgumentException arg when arg.ParamName != null:
@@ -146,15 +156,23 @@ public static class DiagnosticExceptionExtensions
                 return $"Query processing error: {originalMessage}";
 
             case NotSupportedException:
-                return $"Unsupported operation: {originalMessage}";
+                return $"This query uses unsupported syntax or behavior: {originalMessage}";
 
             case IndexOutOfRangeException:
-                return "Internal error: An index was out of range during query processing. " +
-                       "This may indicate a malformed query with mismatched elements.";
+                return "Query processing failed because an index was out of range. " +
+                       "This usually means the query contains mismatched elements.";
 
             default:
 
-                return $"Unexpected error ({exception.GetType().Name}): {originalMessage}";
+                return $"Query processing failed: {originalMessage}";
         }
+    }
+
+    private static bool IsTableNotFoundException(Exception exception)
+    {
+        return string.Equals(
+            exception.GetType().FullName,
+            "Musoq.Schema.Exceptions.TableNotFoundException",
+            StringComparison.Ordinal);
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Musoq.Parser.Nodes;
+﻿using System;
+
+namespace Musoq.Parser.Nodes;
 
 public class ContainsNode : BinaryNode
 {
@@ -12,6 +14,8 @@ public class ContainsNode : BinaryNode
     public ArgsListNode ToCompareExpression { get; }
 
     public override string Id { get; }
+
+    public override Type ReturnType => typeof(bool);
 
     public override void Accept(IExpressionVisitor visitor)
     {

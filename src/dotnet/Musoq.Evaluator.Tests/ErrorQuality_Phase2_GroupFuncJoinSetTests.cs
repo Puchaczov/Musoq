@@ -413,11 +413,9 @@ SELECT Name FROM #B.Entities()";
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert — Musoq does not validate column names in set operation key lists
-        // during semantic analysis. The key list is processed during code generation,
-        // and non-existent column references may cause runtime errors rather than
-        // compile-time diagnostics. This is a known limitation.
-        AssertNoErrors(result);
+        // Assert — invalid set-operator key columns should now be reported during analysis.
+        AssertHasOneOfErrorCodes(result, "non-existent set-operator key column",
+            DiagnosticCode.MQ3001_UnknownColumn);
     }
 
     [TestMethod]
