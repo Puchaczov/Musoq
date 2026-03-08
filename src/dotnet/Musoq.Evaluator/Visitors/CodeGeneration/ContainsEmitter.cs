@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,7 +30,7 @@ public static class ContainsEmitter
         MethodInfo containsMethod)
     {
         var expressions = ExtractExpressions(comparisonValues);
-        var objExpression = SyntaxHelper.CreateArrayOfObjects(node.ReturnType.Name, expressions);
+        var objExpression = SyntaxHelper.CreateArrayOfObjects(GetComparisonElementTypeName(node), expressions);
 
         var argumentList = SyntaxGenerationHelper.CreateArgumentList(
             (ExpressionSyntax)valueExpression,
@@ -42,6 +43,16 @@ public static class ContainsEmitter
             ArgumentList = argumentList,
             MethodNode = methodNode
         };
+    }
+
+    private static string GetComparisonElementTypeName(ContainsNode node)
+    {
+        var type = node.Left.ReturnType;
+
+        if (type is null || type == typeof(void) || type == typeof(object))
+            return nameof(Object);
+
+        return Nullable.GetUnderlyingType(type)?.Name ?? type.Name;
     }
 
     private static ExpressionSyntax[] ExtractExpressions(ArgumentListSyntax comparisonValues)

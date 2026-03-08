@@ -13,6 +13,7 @@ using Musoq.Converter.Build;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Runtime;
+using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.Api;
@@ -202,6 +203,17 @@ public static class InstanceCreator
     public static BuildResult CompileWithDiagnostics(string script, string assemblyName,
         ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CompilationOptions? compilationOptions)
     {
+        if (string.IsNullOrWhiteSpace(script))
+        {
+            var emptySourceText = new SourceText(script ?? string.Empty);
+            var emptyContext = new DiagnosticContext(emptySourceText);
+            emptyContext.ReportError(
+                DiagnosticCode.MQ2016_IncompleteStatement,
+                "The query is empty. Provide a valid SQL query starting with SELECT, WITH, DESC, TABLE, or COUPLE.",
+                TextSpan.Empty);
+            return BuildResult.Failure(emptyContext.Diagnostics.ToList(), script ?? string.Empty);
+        }
+
         var diagnosticContext = new DiagnosticContext(new SourceText(script));
 
         var items = new BuildItems

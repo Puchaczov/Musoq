@@ -41,23 +41,14 @@ public class UnknownTokenException : LexerException
     public override Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
         var span = Span ?? new TextSpan(Position, 1);
+        var remainingInputPreview = RemainingInput[..Math.Min(50, RemainingInput.Length)];
+        var message =
+            $"Unknown token '{Character}'. Remove the unsupported character or rewrite this part using valid Musoq syntax.";
+        var relatedInfo = new[] { $"Remaining input: {remainingInputPreview}..." };
 
         if (sourceText is null)
-        {
-            return Diagnostic.Error(Code, $"Unknown token '{Character}'", span)
-                .WithRelatedInfo($"Remaining input: {RemainingInput[..Math.Min(50, RemainingInput.Length)]}...");
-        }
+            return SyntaxDiagnosticEnhancer.EnhanceLexerDiagnostic(Code, message, span, sourceText, relatedInfo);
 
-        var location = sourceText.GetLocation(Position);
-        var contextSnippet = sourceText.GetContextSnippet(span);
-
-        return new Diagnostic(
-                Code,
-                DiagnosticSeverity.Error,
-                $"Unknown token '{Character}'",
-                location,
-                null,
-                contextSnippet)
-            .WithRelatedInfo($"Remaining input: {RemainingInput[..Math.Min(50, RemainingInput.Length)]}...");
+        return SyntaxDiagnosticEnhancer.EnhanceLexerDiagnostic(Code, message, span, sourceText, relatedInfo);
     }
 }

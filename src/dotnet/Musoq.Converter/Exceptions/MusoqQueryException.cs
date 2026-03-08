@@ -17,7 +17,7 @@ public sealed class MusoqQueryException : Exception
     ///     Creates a new MusoqQueryException with a single envelope.
     /// </summary>
     public MusoqQueryException(MusoqErrorEnvelope envelope)
-        : base(envelope.Message)
+        : base(BuildMessage(envelope))
     {
         Envelopes = [envelope];
     }
@@ -26,7 +26,7 @@ public sealed class MusoqQueryException : Exception
     ///     Creates a new MusoqQueryException with a single envelope and inner exception.
     /// </summary>
     public MusoqQueryException(MusoqErrorEnvelope envelope, Exception innerException)
-        : base(envelope.Message, innerException)
+        : base(BuildMessage(envelope), innerException)
     {
         Envelopes = [envelope];
     }
@@ -64,23 +64,7 @@ public sealed class MusoqQueryException : Exception
     /// </summary>
     public string FormatText()
     {
-        if (Envelopes.Count == 1)
-            return MusoqErrorEnvelopeFormatter.FormatText(Envelopes[0]);
-
-        var sb = new StringBuilder();
-        for (var i = 0; i < Envelopes.Count; i++)
-        {
-            if (i > 0)
-            {
-                sb.AppendLine();
-                sb.AppendLine("---");
-                sb.AppendLine();
-            }
-
-            sb.Append(MusoqErrorEnvelopeFormatter.FormatText(Envelopes[i]));
-        }
-
-        return sb.ToString();
+        return BuildMessage(Envelopes);
     }
 
     /// <summary>
@@ -103,14 +87,36 @@ public sealed class MusoqQueryException : Exception
         return sb.ToString();
     }
 
+    private static string BuildMessage(MusoqErrorEnvelope envelope)
+    {
+        ArgumentNullException.ThrowIfNull(envelope);
+        return MusoqErrorEnvelopeFormatter.FormatText(envelope);
+    }
+
     private static string BuildMessage(IReadOnlyList<MusoqErrorEnvelope> envelopes)
     {
-        if (envelopes == null || envelopes.Count == 0)
+        if (envelopes == null)
+            throw new ArgumentNullException(nameof(envelopes));
+
+        if (envelopes.Count == 0)
             return "Query compilation failed.";
 
         if (envelopes.Count == 1)
-            return envelopes[0].Message;
+            return BuildMessage(envelopes[0]);
 
-        return $"{envelopes[0].Message} (+{envelopes.Count - 1} more error{(envelopes.Count > 2 ? "s" : "")})";
+        var sb = new StringBuilder();
+        for (var i = 0; i < envelopes.Count; i++)
+        {
+            if (i > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("---");
+                sb.AppendLine();
+            }
+
+            sb.Append(MusoqErrorEnvelopeFormatter.FormatText(envelopes[i]));
+        }
+
+        return sb.ToString();
     }
 }

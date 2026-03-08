@@ -149,6 +149,48 @@ public class QueryAnalyzerTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void ValidateSyntax_MistypedSelectKeyword_SuggestsSelect()
+    {
+        var schemaProvider = CreateSchemaProvider();
+        var analyzer = new QueryAnalyzer(schemaProvider);
+        var query = "SELECTE Name FROM #A.Entities()";
+
+        var result = analyzer.ValidateSyntax(query);
+        var error = result.Errors.FirstOrDefault();
+
+        Assert.IsNotNull(error, "Expected a syntax diagnostic for mistyped SELECT keyword.");
+        Assert.Contains("Did you mean 'SELECT'?", error.Message);
+    }
+
+    [TestMethod]
+    public void ValidateSyntax_LimitKeyword_SuggestsTake()
+    {
+        var schemaProvider = CreateSchemaProvider();
+        var analyzer = new QueryAnalyzer(schemaProvider);
+        var query = "SELECT Name FROM #A.Entities() LIMIT 5";
+
+        var result = analyzer.ValidateSyntax(query);
+        var error = result.Errors.FirstOrDefault();
+
+        Assert.IsNotNull(error, "Expected a syntax diagnostic for LIMIT.");
+        Assert.Contains("TAKE", error.Message);
+    }
+
+    [TestMethod]
+    public void ValidateSyntax_GarbageCharacter_ExplainsHowToFixIt()
+    {
+        var schemaProvider = CreateSchemaProvider();
+        var analyzer = new QueryAnalyzer(schemaProvider);
+        var query = "SELECT @ FROM #A.Entities()";
+
+        var result = analyzer.ValidateSyntax(query);
+        var error = result.Errors.FirstOrDefault(e => e.Code == DiagnosticCode.MQ1001_UnknownToken);
+
+        Assert.IsNotNull(error, "Expected an unknown-token diagnostic for garbage character input.");
+        Assert.Contains("Remove the unsupported character", error.Message);
+    }
+
+    [TestMethod]
     public void ValidateSyntax_UnclosedParenthesis_ReturnsError()
     {
         // Arrange
@@ -203,6 +245,37 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         var errors = result.Errors.ToList();
         Assert.IsNotEmpty(errors,
             $"Should report at least one error. Actual errors: {string.Join(", ", errors.Select(e => $"{e.Code}: {e.Message}"))}");
+    }
+
+    [TestMethod]
+    public void Analyze_UnknownColumnTypo_UsesDidYouMeanWording()
+    {
+        var schemaProvider = CreateSchemaProvider();
+        var analyzer = new QueryAnalyzer(schemaProvider);
+        var query = "SELECT Nmae FROM #A.Entities()";
+
+        var result = analyzer.Analyze(query);
+
+        var error = result.Errors.FirstOrDefault(e => e.Code == DiagnosticCode.MQ3001_UnknownColumn);
+
+        Assert.IsNotNull(error, "Expected unknown-column diagnostic for misspelled column name.");
+        Assert.Contains("Did you mean 'Name'?", error.Message);
+    }
+
+    [TestMethod]
+    public void Analyze_UnknownProperty_UsesUnknownPropertyDiagnostic()
+    {
+        var schemaProvider = CreateSchemaProvider();
+        var analyzer = new QueryAnalyzer(schemaProvider);
+        var query = "SELECT Self.NonExistingProperty FROM #A.Entities()";
+
+        var result = analyzer.Analyze(query);
+
+        var error = result.Errors.FirstOrDefault(e => e.Code == DiagnosticCode.MQ3028_UnknownProperty);
+
+        Assert.IsNotNull(error,
+            $"Expected unknown-property diagnostic. Actual errors: {string.Join(", ", result.Errors.Select(e => $"{e.Code}: {e.Message}"))}");
+        Assert.Contains("Unknown property", error.Message);
     }
 
     [TestMethod]

@@ -22,6 +22,6 @@ public class DiagnosticContextTests
         var diagnostic = context.Diagnostics.Single();
 
         Assert.AreEqual(DiagnosticCode.MQ2003_InvalidExpression, diagnostic.Code);
-        Assert.AreEqual(innerException.Message, diagnostic.Message);
+        StringAssert.Contains(diagnostic.Message, innerException.Message);
     }
 }

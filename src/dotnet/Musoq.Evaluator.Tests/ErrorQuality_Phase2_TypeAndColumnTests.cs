@@ -241,11 +241,9 @@ public class ErrorQuality_Phase2_TypeAndColumnTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert — Musoq allows LIKE on non-string columns. The engine implicitly
-        // converts the column value to a string representation before applying the
-        // pattern match. This is more permissive than standard SQL which typically
-        // requires LIKE operands to be character types.
-        AssertNoErrors(result);
+        // Assert — LIKE should now require string operands and report a clear bind-time diagnostic.
+        AssertHasOneOfErrorCodes(result, "LIKE on non-string",
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -258,10 +256,9 @@ public class ErrorQuality_Phase2_TypeAndColumnTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert — Musoq allows RLIKE on non-string columns, similar to LIKE.
-        // The engine implicitly converts the column value to a string before applying
-        // the regex pattern match. This is more permissive than standard SQL.
-        AssertNoErrors(result);
+        // Assert — RLIKE should now require string operands and report a clear bind-time diagnostic.
+        AssertHasOneOfErrorCodes(result, "RLIKE on non-string",
+            DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]

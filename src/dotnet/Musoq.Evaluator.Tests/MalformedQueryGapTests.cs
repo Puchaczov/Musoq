@@ -350,12 +350,12 @@ public class MalformedQueryGapTests : NegativeTestsBase
     [TestMethod]
     public void WhenNotInWithEmptyList_ShouldThrowError()
     {
-        // Known quality gap: produces internal error rather than a clear message
-        // about empty NOT IN lists being unsupported
+        // Known quality gap: empty NOT IN still falls into a generic fallback path,
+        // but the message should at least explain the structural problem.
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() WHERE Age NOT IN ()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2030_UnsupportedSyntax, DiagnosticPhase.Parse, "Internal error");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2030_UnsupportedSyntax, DiagnosticPhase.Parse, "index was out of range");
     }
 
     [TestMethod]
@@ -427,12 +427,14 @@ public class MalformedQueryGapTests : NegativeTestsBase
     #region ORDER BY edge cases
 
     [TestMethod]
-    public void WhenOrderByPositionNumber_ShouldTreatAsConstant()
+    public void WhenOrderByPositionNumber_ShouldThrowUnsupportedSyntax()
     {
-        var vm = CompileQuery("SELECT Name, Age FROM #test.people() ORDER BY 1");
-        var table = vm.Run(TokenSource.Token);
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CompileQuery("SELECT Name, Age FROM #test.people() ORDER BY 1"));
 
-        Assert.AreEqual(5, table.Count);
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2030_UnsupportedSyntax, DiagnosticPhase.Parse,
+            "ORDER BY column position is not supported");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -461,7 +463,8 @@ public class MalformedQueryGapTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT * FROM #test.people() a CROSS APPLY #test.nonexistent() AS t"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime, "TableNotFoundException");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3003_UnknownTable, DiagnosticPhase.Bind, "nonexistent");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -543,36 +546,33 @@ public class MalformedQueryGapTests : NegativeTestsBase
     #region Set operation key column errors
 
     [TestMethod]
-    public void WhenUnionWithNonExistentKeyColumn_ShouldCompileButKeyIsIgnored()
+    public void WhenUnionWithNonExistentKeyColumn_ShouldThrowUnknownColumnError()
     {
-        var vm = CompileQuery(
-            "SELECT Name FROM #test.people() UNION (NonExistent) SELECT Name FROM #test.people()");
-        var table = vm.Run(TokenSource.Token);
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CompileQuery("SELECT Name FROM #test.people() UNION (NonExistent) SELECT Name FROM #test.people()"));
 
-        Assert.IsGreaterThan(0, table.Count,
-            "UNION with non-existent key column currently compiles — missing validation");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "NonExistent");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
-    public void WhenExceptWithNonExistentKeyColumn_ShouldCompileButKeyIsIgnored()
+    public void WhenExceptWithNonExistentKeyColumn_ShouldThrowUnknownColumnError()
     {
-        var vm = CompileQuery(
-            "SELECT Name FROM #test.people() EXCEPT (NonExistent) SELECT Name FROM #test.people()");
-        var table = vm.Run(TokenSource.Token);
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CompileQuery("SELECT Name FROM #test.people() EXCEPT (NonExistent) SELECT Name FROM #test.people()"));
 
-        Assert.IsGreaterThanOrEqualTo(0, table.Count,
-            "EXCEPT with non-existent key column currently compiles — missing validation");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "NonExistent");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
-    public void WhenIntersectWithNonExistentKeyColumn_ShouldCompileButKeyIsIgnored()
+    public void WhenIntersectWithNonExistentKeyColumn_ShouldThrowUnknownColumnError()
     {
-        var vm = CompileQuery(
-            "SELECT Name FROM #test.people() INTERSECT (NonExistent) SELECT Name FROM #test.people()");
-        var table = vm.Run(TokenSource.Token);
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CompileQuery("SELECT Name FROM #test.people() INTERSECT (NonExistent) SELECT Name FROM #test.people()"));
 
-        Assert.IsGreaterThanOrEqualTo(0, table.Count,
-            "INTERSECT with non-existent key column currently compiles — missing validation");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "NonExistent");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
@@ -609,12 +609,12 @@ public class MalformedQueryGapTests : NegativeTestsBase
     [TestMethod]
     public void WhenHavingWithNonAggregateExpression_ShouldThrowError()
     {
-        // Known quality gap: falls through to Roslyn compilation error (MQ9999)
-        // rather than catching at semantic analysis that HAVING requires a boolean expression
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT City, Count(1) FROM #test.people() GROUP BY City HAVING City"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime, "CompilationException");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind,
+            "HAVING clause requires a boolean expression");
+        AssertHasGuidance(ex);
     }
 
     #endregion
@@ -636,21 +636,23 @@ public class MalformedQueryGapTests : NegativeTestsBase
     }
 
     [TestMethod]
-    public void WhenIncompleteUnicodeEscape_ShouldBeTreatedAsLiteral()
+    public void WhenIncompleteUnicodeEscape_ShouldThrowParseError()
     {
-        var vm = CompileQuery("SELECT '\\u12' FROM #test.single()");
-        var table = vm.Run(TokenSource.Token);
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CompileQuery("SELECT '\\u12' FROM #test.single()"));
 
-        Assert.AreEqual(1, table.Count);
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ1004_InvalidEscapeSequence, DiagnosticPhase.Parse, "\\u12");
+        AssertHasGuidance(ex);
     }
 
     [TestMethod]
-    public void WhenIncompleteHexEscape_ShouldBeTreatedAsLiteral()
+    public void WhenIncompleteHexEscape_ShouldThrowParseError()
     {
-        var vm = CompileQuery("SELECT '\\x1' FROM #test.single()");
-        var table = vm.Run(TokenSource.Token);
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            CompileQuery("SELECT '\\x1' FROM #test.single()"));
 
-        Assert.AreEqual(1, table.Count);
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ1004_InvalidEscapeSequence, DiagnosticPhase.Parse, "\\x1");
+        AssertHasGuidance(ex);
     }
 
     #endregion
@@ -810,12 +812,12 @@ public class MalformedQueryGapTests : NegativeTestsBase
     [TestMethod]
     public void WhenTwoSelectStatements_ShouldThrowError()
     {
-        // Known quality gap: falls through to Roslyn compilation error (MQ9999)
-        // rather than detecting duplicate SELECT statements at parse or semantic phase
+        // Known quality gap: multiple statements still fall through to generated-code compilation,
+        // but the surfaced message should clearly say query processing failed.
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT 1 FROM #test.single(); SELECT 2 FROM #test.single()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime, "CompilationException");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ9999_Unknown, DiagnosticPhase.Runtime, "Query processing failed:");
     }
 
     [TestMethod]

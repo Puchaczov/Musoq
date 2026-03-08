@@ -145,6 +145,14 @@ public sealed class DiagnosticContext
     }
 
     /// <summary>
+    ///     Imports diagnostics collected elsewhere into this context.
+    /// </summary>
+    public void AddRange(IEnumerable<Diagnostic> diagnostics)
+    {
+        _diagnostics.AddRange(diagnostics);
+    }
+
+    /// <summary>
     ///     Reports a diagnostic from an exception.
     /// </summary>
     public void ReportException(Exception exception, TextSpan? span = null)
@@ -163,7 +171,8 @@ public sealed class DiagnosticContext
         var message = $"Unknown alias '{alias}'.";
 
         var suggestion = ErrorCatalog.GetDidYouMeanSuggestion(alias, availableAliases);
-        if (!string.IsNullOrEmpty(suggestion)) message += $" {suggestion}";
+        if (!string.IsNullOrEmpty(suggestion))
+            message += CreateDidYouMeanMessage(suggestion);
 
         ReportError(DiagnosticCode.MQ3015_UnknownAlias, message, span);
     }
@@ -177,9 +186,25 @@ public sealed class DiagnosticContext
         var message = $"Unknown column '{columnName}'.";
 
         var suggestion = ErrorCatalog.GetDidYouMeanSuggestion(columnName, availableColumns);
-        if (!string.IsNullOrEmpty(suggestion)) message += $" {suggestion}";
+        if (!string.IsNullOrEmpty(suggestion))
+            message += CreateDidYouMeanMessage(suggestion);
 
         ReportError(DiagnosticCode.MQ3001_UnknownColumn, message, span);
+    }
+
+    /// <summary>
+    ///     Reports an unknown property error with suggestions.
+    /// </summary>
+    public void ReportUnknownProperty(string propertyName, IEnumerable<string> availableProperties, Node node)
+    {
+        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        var message = $"Unknown property '{propertyName}'.";
+
+        var suggestion = ErrorCatalog.GetDidYouMeanSuggestion(propertyName, availableProperties);
+        if (!string.IsNullOrEmpty(suggestion))
+            message += CreateDidYouMeanMessage(suggestion);
+
+        ReportError(DiagnosticCode.MQ3028_UnknownProperty, message, span);
     }
 
     /// <summary>
@@ -191,7 +216,8 @@ public sealed class DiagnosticContext
         var message = $"Unknown function '{functionName}'.";
 
         var suggestion = ErrorCatalog.GetDidYouMeanSuggestion(functionName, availableFunctions);
-        if (!string.IsNullOrEmpty(suggestion)) message += $" {suggestion}";
+        if (!string.IsNullOrEmpty(suggestion))
+            message += CreateDidYouMeanMessage(suggestion);
 
         ReportError(DiagnosticCode.MQ3004_UnknownFunction, message, span);
     }
@@ -244,6 +270,11 @@ public sealed class DiagnosticContext
     public SemanticAnalysisResult ToResult(Node rootNode)
     {
         return new SemanticAnalysisResult(rootNode, _diagnostics.ToSortedList());
+    }
+
+    private static string CreateDidYouMeanMessage(string suggestion)
+    {
+        return $" Did you mean '{suggestion}'?";
     }
 
     private sealed class ScopeGuard : IDisposable

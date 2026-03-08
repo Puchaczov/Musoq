@@ -609,6 +609,18 @@ public sealed class Lexer : ILexer
             Position += match.Length;
             var fullText = match.Value;
             var innerText = fullText[1..^1];
+
+            if (TryFindInvalidEscapeSequence(innerText.AsSpan(), out var invalidEscape, out var invalidEscapeSpan))
+            {
+                var absoluteSpan = new TextSpan(start + 1 + invalidEscapeSpan.Start, invalidEscapeSpan.Length);
+                var message = $"Invalid escape sequence '{invalidEscape}'.";
+
+                if (RecoverOnError)
+                    Diagnostics.AddError(DiagnosticCode.MQ1004_InvalidEscapeSequence, message, absoluteSpan);
+                else
+                    throw new LexerException(message, absoluteSpan.Start, DiagnosticCode.MQ1004_InvalidEscapeSequence);
+            }
+
             var unescaped = innerText.Unescape();
             return AssignToken(new StringLiteralToken(unescaped, new TextSpan(start, match.Length)));
         }
@@ -650,6 +662,83 @@ public sealed class Lexer : ILexer
                                ?? new WordToken(FastCharacterClassifier.CharToString(c), new TextSpan(start, 1)));
 
         return AssignToken(new WordToken(FastCharacterClassifier.CharToString(c), new TextSpan(start, 1)));
+    }
+
+    private static bool TryFindInvalidEscapeSequence(ReadOnlySpan<char> value, out string invalidEscape,
+        out TextSpan span)
+    {
+        for (var i = 0; i < value.Length; i++)
+        {
+            if (value[i] != '\\')
+                continue;
+
+            if (i + 1 >= value.Length)
+            {
+                invalidEscape = "\\";
+                span = new TextSpan(i, 1);
+                return true;
+            }
+
+            var next = value[i + 1];
+
+            if (IsSimpleEscape(next))
+            {
+                i += 1;
+                continue;
+            }
+
+            if (next == 'u')
+                return TryValidateFixedLengthEscape(value, i, 4, out invalidEscape, out span);
+
+            if (next == 'x')
+                return TryValidateFixedLengthEscape(value, i, 2, out invalidEscape, out span);
+
+            i += 1;
+        }
+
+        invalidEscape = string.Empty;
+        span = TextSpan.Empty;
+        return false;
+    }
+
+    private static bool TryValidateFixedLengthEscape(ReadOnlySpan<char> value, int start, int digitsLength,
+        out string invalidEscape, out TextSpan span)
+    {
+        var availableDigits = Math.Min(digitsLength, value.Length - (start + 2));
+
+        if (availableDigits == 0)
+        {
+            invalidEscape = string.Empty;
+            span = TextSpan.Empty;
+            return false;
+        }
+
+        if (availableDigits < digitsLength)
+        {
+            var invalidLength = Math.Min(2 + availableDigits, value.Length - start);
+            invalidEscape = value.Slice(start, invalidLength).ToString();
+            span = new TextSpan(start, invalidLength);
+            return true;
+        }
+
+        for (var i = 0; i < digitsLength; i++)
+        {
+            if (Uri.IsHexDigit(value[start + 2 + i]))
+                continue;
+
+            invalidEscape = value.Slice(start, 2 + digitsLength).ToString();
+            span = new TextSpan(start, 2 + digitsLength);
+            return true;
+        }
+
+        invalidEscape = string.Empty;
+        span = TextSpan.Empty;
+        return false;
+    }
+
+    private static bool IsSimpleEscape(char value)
+    {
+        return value is '\\' or '\'' or '"' or 'n' or 'r' or 't' or 'b' or 'f' or 'e' or '0';
     }
 
     private Token ScanMultiCharOperator()

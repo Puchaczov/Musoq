@@ -53,7 +53,7 @@ public class ParserValidationException : ArgumentException, IDiagnosticException
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
         var span = Span ?? TextSpan.Empty;
-        return Diagnostic.Error(Code, Message, span);
+        return SyntaxDiagnosticEnhancer.CreateDiagnostic(Code, Message, span, currentToken: null, sourceText);
     }
 
     /// <summary>
