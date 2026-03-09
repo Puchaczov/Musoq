@@ -1689,7 +1689,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             _generatedAliases.Add(_queryAlias);
 
             _logger?.LogDebug(
-                "DEBUG Visit(AliasedFromNode): Processing Interpret function '{Identifier}' with alias '{Alias}' -> _queryAlias='{QueryAlias}'",
+                "Visit(AliasedFromNode): Processing Interpret function '{Identifier}' with alias '{Alias}' -> _queryAlias='{QueryAlias}'",
                 node.Identifier, node.Alias, _queryAlias);
 
             var args = (ArgsListNode)Nodes.Pop();
@@ -1719,13 +1719,16 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             _aliasMapToInMemoryTableMap.Add(_queryAlias, _queryAlias);
 
             _logger?.LogDebug(
-                "DEBUG Visit(AliasedFromNode): Registered TableSymbol '{QueryAlias}' with {ColumnCount} columns in scope '{ScopeName}'",
+                "Visit(AliasedFromNode): Registered TableSymbol '{QueryAlias}' with {ColumnCount} columns in scope '{ScopeName}'",
                 _queryAlias, interpretTable?.Columns?.Count() ?? 0, _currentScope.Name);
 
             Nodes.Push(new AliasedFromNode(node.Identifier, args, _queryAlias, returnType ?? node.ReturnType,
                 node.InSourcePosition));
             return;
         }
+
+        if (!_explicitlyUsedAliases.ContainsKey(node.Identifier) && TryResolveAsStandaloneFunction(node))
+            return;
 
         var schemaInfo = _explicitlyUsedAliases[node.Identifier];
         var tableName = _explicitlyCoupledTablesWithAliases[node.Identifier];
@@ -3431,41 +3434,102 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                functionName.Equals("TryParse", StringComparison.OrdinalIgnoreCase);
     }
 
+    private bool TryResolveAsStandaloneFunction(AliasedFromNode node)
+    {
+        var sourceAlias = _queryAlias;
+
+        if (string.IsNullOrEmpty(sourceAlias))
+            return false;
+
+        ISchema schema;
+        ISchemaTable sourceTable;
+
+        if (_aliasToSchemaFromNodeMap.TryGetValue(sourceAlias, out var schemaFrom))
+        {
+            schema = _provider.GetSchema(schemaFrom.Schema);
+            var sourceSymbol = FindTableSymbolInScopeHierarchy(sourceAlias);
+            sourceTable = sourceSymbol.FullTable;
+        }
+        else if (_aliasMapToInMemoryTableMap.TryGetValue(sourceAlias, out var inMemoryName))
+        {
+            var sourceSymbol = FindTableSymbolInScopeHierarchy(inMemoryName);
+            sourceTable = sourceSymbol.FullTable;
+            schema = new TransitionSchema(inMemoryName, sourceTable);
+        }
+        else
+        {
+            return false;
+        }
+
+        var entityType = sourceTable.Metadata.TableEntityType;
+        var args = (ArgsListNode)Nodes.Pop();
+        var argTypes = args.Args.Select(a => a.ReturnType).ToArray();
+
+        if (!schema.TryResolveMethod(node.Identifier, argTypes, entityType, out var method) &&
+            !schema.TryResolveRawMethod(node.Identifier, argTypes, out method))
+            return false;
+
+        var returnType = method.ReturnType;
+        var convertedTable = TurnTypeIntoTableWithDiagnostics(returnType, node);
+
+        if (convertedTable == null)
+            return false;
+
+        _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString());
+        _generatedAliases.Add(_queryAlias);
+
+        var functionToken = new FunctionToken(node.Identifier, TextSpan.Empty);
+        var canSkipInjectSource = schema.TryResolveRawMethod(node.Identifier, argTypes, out _);
+        var accessMethodNode = new AccessMethodNode(functionToken, args, null, canSkipInjectSource, method,
+            sourceAlias);
+
+        var tableSymbol = new TableSymbol(_queryAlias, schema, convertedTable, !string.IsNullOrEmpty(node.Alias));
+        _currentScope.ScopeSymbolTable.AddSymbol(_queryAlias, tableSymbol);
+        _currentScope[node.Id] = _queryAlias;
+        _aliasMapToInMemoryTableMap.Add(_queryAlias, sourceAlias);
+        _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
+
+        AddAssembly(method.DeclaringType!.Assembly);
+
+        Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, sourceAlias, accessMethodNode, returnType));
+        return true;
+    }
+
     private static string? ExtractSchemaNameFromArgs(ArgsListNode args, string? functionName = null)
     {
         var schemaArgIndex = functionName?.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase) == true ? 2 : 1;
 
         if (args.Args.Length <= schemaArgIndex)
             throw new InvalidOperationException(
-                $"DEBUG ExtractSchemaNameFromArgs: args.Length={args.Args.Length}, expected > {schemaArgIndex} for function {functionName ?? "unknown"}");
+                $"Interpret function '{functionName ?? "unknown"}' requires at least {schemaArgIndex + 1} arguments, got {args.Args.Length}.");
 
         var schemaArg = args.Args[schemaArgIndex];
 
         if (schemaArg is StringNode stringNode)
             return stringNode.Value;
 
-
         if (schemaArg is WordNode wordNode)
             return wordNode.Value;
 
+        if (schemaArg is IdentifierNode identifierNode)
+            throw new InvalidOperationException(
+                $"Schema name '{identifierNode.Name}' must be quoted. Use '{functionName ?? "Parse"}(source, \'{identifierNode.Name}\')' instead of '{functionName ?? "Parse"}(source, {identifierNode.Name})'.");
+
         throw new InvalidOperationException(
-            $"DEBUG ExtractSchemaNameFromArgs: args[{schemaArgIndex}] type is {schemaArg?.GetType().Name ?? "null"}, value: {schemaArg}");
+            $"Expected schema name as a quoted string at argument index {schemaArgIndex}, got {schemaArg?.GetType().Name ?? "null"}.");
     }
 
     private ISchemaTable CreateInterpretTable(string? schemaName)
     {
         if (schemaName == null || SchemaRegistry == null)
-        {
-            var msg =
-                $"DEBUG: schemaName={schemaName ?? "null"}, registry={(SchemaRegistry != null ? $"present with {SchemaRegistry.Schemas.Count()} schemas" : "null")}";
-            throw new InvalidOperationException(msg);
-        }
+            throw new InvalidOperationException(
+                $"Cannot create interpret table: schema name is '{schemaName ?? "null"}' and schema registry is {(SchemaRegistry != null ? "present" : "null")}.");
 
         var schema = SchemaRegistry.GetSchema(schemaName);
         if (schema == null)
         {
             var schemaNames = string.Join(", ", SchemaRegistry.Schemas.Select(s => s.Name));
-            throw new InvalidOperationException($"DEBUG: schema '{schemaName}' not found. Available: [{schemaNames}]");
+            throw new InvalidOperationException($"Interpretation schema '{schemaName}' not found. Available: [{schemaNames}].");
         }
 
 

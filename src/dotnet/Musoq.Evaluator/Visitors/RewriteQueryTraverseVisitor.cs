@@ -1019,8 +1019,10 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
             {
                 StringNode stringNode => stringNode.Value,
                 WordNode wordNode => wordNode.Value,
+                IdentifierNode identifierNode => throw new InvalidOperationException(
+                    $"Schema name '{identifierNode.Name}' must be quoted. Use 'InterpretAt(source, offset, \'{identifierNode.Name}\')' instead of 'InterpretAt(source, offset, {identifierNode.Name})'."),
                 _ => throw new InvalidOperationException(
-                    $"Expected schema name as string or identifier, got {node.Args.Args[2].GetType().Name}")
+                    $"Expected schema name as a quoted string, got {node.Args.Args[2].GetType().Name}")
             };
 
             return new InterpretAtCallNode(dataSource, offset, schemaNameForAt, node.ReturnType);
@@ -1031,8 +1033,10 @@ public class RewriteQueryTraverseVisitor : IExpressionVisitor
         {
             StringNode stringNode => stringNode.Value,
             WordNode wordNode => wordNode.Value,
+            IdentifierNode identifierNode => throw new InvalidOperationException(
+                $"Schema name '{identifierNode.Name}' must be quoted. Use '{node.Identifier}(source, \'{identifierNode.Name}\')' instead of '{node.Identifier}(source, {identifierNode.Name})'."),
             _ => throw new InvalidOperationException(
-                $"Expected schema name as string or identifier, got {node.Args.Args[1].GetType().Name}")
+                $"Expected schema name as a quoted string, got {node.Args.Args[1].GetType().Name}")
         };
 
 

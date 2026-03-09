@@ -1206,6 +1206,18 @@ public partial class LibraryBase
     }
 
     /// <summary>
+    ///     Splits the input string into an array of lines, handling both Windows (\r\n) and Linux (\n) newlines
+    /// </summary>
+    /// <param name="input">The input</param>
+    /// <returns>Array of lines</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.String)]
+    public string[]? Lines(string? input)
+    {
+        return SplitByNewLines(input);
+    }
+
+    /// <summary>
     ///     Joins the specified values with the separator
     /// </summary>
     /// <param name="separator">The separator</param>
