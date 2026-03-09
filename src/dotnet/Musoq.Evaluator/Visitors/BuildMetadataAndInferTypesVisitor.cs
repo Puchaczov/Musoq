@@ -737,6 +737,12 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     {
         if (node.Name != _identifier && _queryPart != QueryPart.From)
         {
+            if (_queryPart == QueryPart.OrderBy && _selectFieldAliases.TryGetValue(node.Name, out var aliasExpression))
+            {
+                Nodes.Push(aliasExpression);
+                return;
+            }
+
             var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_identifier);
             var column = tableSymbol.GetColumnByAliasAndName(_identifier, node.Name);
 
@@ -749,12 +755,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                     var singleCol = aliasColumns[0];
                     Visit(new AccessColumnNode(singleCol.ColumnName, node.Name, singleCol.ColumnType,
                         TextSpan.Empty, singleCol.IntendedTypeName));
-                    return;
-                }
-
-                if (_queryPart == QueryPart.OrderBy && _selectFieldAliases.TryGetValue(node.Name, out var aliasExpression))
-                {
-                    Nodes.Push(aliasExpression);
                     return;
                 }
 

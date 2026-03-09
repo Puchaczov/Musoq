@@ -999,4 +999,48 @@ select * from f";
         Assert.AreEqual("WARSAW", (string)table[0].Values[0]);
         Assert.AreEqual("PARIS", (string)table[0].Values[1]);
     }
+
+    [TestMethod]
+    public void WhenCteWithOrderByAliasOfFunctionCall_ShouldSortByTransformedValue()
+    {
+        var query = @"
+            with cte as (
+                select Name as OldColumn, ToInt32(Name) as NumValue from #A.Entities()
+            )
+            select OldColumn, NumValue from cte order by NumValue asc";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("20"),
+                    new BasicEntity("3"),
+                    new BasicEntity("1"),
+                    new BasicEntity("10"),
+                    new BasicEntity("2")
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(5, table.Count);
+
+        // Integer sort: 1, 2, 3, 10, 20 (NOT string sort: "1", "10", "2", "20", "3")
+        Assert.AreEqual("1", table[0].Values[0]);
+        Assert.AreEqual(1, table[0].Values[1]);
+
+        Assert.AreEqual("2", table[1].Values[0]);
+        Assert.AreEqual(2, table[1].Values[1]);
+
+        Assert.AreEqual("3", table[2].Values[0]);
+        Assert.AreEqual(3, table[2].Values[1]);
+
+        Assert.AreEqual("10", table[3].Values[0]);
+        Assert.AreEqual(10, table[3].Values[1]);
+
+        Assert.AreEqual("20", table[4].Values[0]);
+        Assert.AreEqual(20, table[4].Values[1]);
+    }
 }
