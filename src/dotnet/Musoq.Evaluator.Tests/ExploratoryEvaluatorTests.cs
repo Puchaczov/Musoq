@@ -4130,6 +4130,26 @@ public class ExploratoryEvaluatorTests : GenericEntityTestBase
     }
 
     [TestMethod]
+    public void WhenIfNullWithNullAndInteger_ShouldReturnInteger()
+    {
+        const string query = @"
+            select IfNull(null, 42) as V
+            from #schema.first() p";
+
+        var source = new List<Person>
+        {
+            new() { Name = "John", Age = 30 }
+        }.ToArray();
+
+        var vm = CreateAndRunVirtualMachine(query, source);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.IsNotNull(table);
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(42, table[0].Values[0]);
+    }
+
+    [TestMethod]
     public void WhenCoalesceWithNullAndColumnValue_ShouldReturnColumnValue()
     {
         const string query = @"
