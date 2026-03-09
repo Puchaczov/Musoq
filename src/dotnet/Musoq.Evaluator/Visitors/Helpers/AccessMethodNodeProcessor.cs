@@ -260,7 +260,7 @@ public static class AccessMethodNodeProcessor
     {
         var method = node.Method;
 
-        if (method.IsGenericMethod && method.GetCustomAttribute<AggregationMethodAttribute>() != null)
+        if (method.IsGenericMethod && method.IsConstructedGenericMethod)
             return GenerateGenericMethodInvocation(node, generator, variableName, args);
 
         return generator.InvocationExpression(
@@ -281,30 +281,13 @@ public static class AccessMethodNodeProcessor
         if (genericArgs.Length == 0)
             throw new NotSupportedException("Generic method without generic arguments.");
 
-        var syntaxArgs = new List<SyntaxNodeOrToken>();
+        var typeArgNodes = new List<TypeSyntax>();
 
-        for (var i = 0; i < genericArgs.Length - 1; ++i)
-        {
-            syntaxArgs.Add(SyntaxFactory.IdentifierName(genericArgs[i].FullName!));
-            syntaxArgs.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
-        }
+        foreach (var genericArg in genericArgs)
+            typeArgNodes.Add(SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(genericArg)));
 
-        syntaxArgs.Add(SyntaxFactory.IdentifierName(genericArgs[^1].FullName!));
-
-        TypeArgumentListSyntax typeArgs;
-        if (syntaxArgs.Count < 2)
-        {
-            var syntaxArg = (IdentifierNameSyntax)syntaxArgs[0];
-            typeArgs = SyntaxFactory.TypeArgumentList(
-                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(syntaxArg!)
-            );
-        }
-        else
-        {
-            typeArgs = SyntaxFactory.TypeArgumentList(
-                SyntaxFactory.SeparatedList<TypeSyntax>(
-                    syntaxArgs.ToArray()));
-        }
+        var typeArgs = SyntaxFactory.TypeArgumentList(
+            SyntaxFactory.SeparatedList(typeArgNodes));
 
         var genericName = SyntaxFactory
             .GenericName(node.Name)
