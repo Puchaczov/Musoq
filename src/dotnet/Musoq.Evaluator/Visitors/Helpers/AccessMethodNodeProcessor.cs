@@ -281,30 +281,13 @@ public static class AccessMethodNodeProcessor
         if (genericArgs.Length == 0)
             throw new NotSupportedException("Generic method without generic arguments.");
 
-        var syntaxArgs = new List<SyntaxNodeOrToken>();
+        var typeArgNodes = new List<TypeSyntax>();
 
-        for (var i = 0; i < genericArgs.Length - 1; ++i)
-        {
-            syntaxArgs.Add(SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(genericArgs[i])));
-            syntaxArgs.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
-        }
+        foreach (var genericArg in genericArgs)
+            typeArgNodes.Add(SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(genericArg)));
 
-        syntaxArgs.Add(SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(genericArgs[^1])));
-
-        TypeArgumentListSyntax typeArgs;
-        if (syntaxArgs.Count < 2)
-        {
-            var syntaxArg = (TypeSyntax)syntaxArgs[0];
-            typeArgs = SyntaxFactory.TypeArgumentList(
-                SyntaxFactory.SingletonSeparatedList(syntaxArg)
-            );
-        }
-        else
-        {
-            typeArgs = SyntaxFactory.TypeArgumentList(
-                SyntaxFactory.SeparatedList<TypeSyntax>(
-                    syntaxArgs.ToArray()));
-        }
+        var typeArgs = SyntaxFactory.TypeArgumentList(
+            SyntaxFactory.SeparatedList(typeArgNodes));
 
         var genericName = SyntaxFactory
             .GenericName(node.Name)

@@ -3971,11 +3971,17 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         if (genericArgumentsConcreteTypes.Length == 0)
             genericArgumentsConcreteTypes = [typeof(object)];
         else if (hasNullType)
+        {
             for (var i = 0; i < genericArgumentsConcreteTypes.Length; i++)
+            {
                 if (genericArgumentsConcreteTypes[i].IsValueType &&
                     Nullable.GetUnderlyingType(genericArgumentsConcreteTypes[i]) == null)
+                {
                     genericArgumentsConcreteTypes[i] =
                         typeof(Nullable<>).MakeGenericType(genericArgumentsConcreteTypes[i]);
+                }
+            }
+        }
 
         constructedMethod = methodInfo.MakeGenericMethod(genericArgumentsConcreteTypes);
         return true;
