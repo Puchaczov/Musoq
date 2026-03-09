@@ -57,6 +57,26 @@ public partial class LibraryBase
     }
 
     /// <summary>
+    ///     Converts given value to DateTime using exact format and specified culture
+    /// </summary>
+    /// <param name="value">The value</param>
+    /// <param name="format">The exact format to use for parsing</param>
+    /// <param name="culture">The culture to use for parsing</param>
+    /// <returns>Converted to DateTime value</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
+    public DateTime? ToDateTimeWithFormat(string value, string format, string culture)
+    {
+        if (string.IsNullOrEmpty(value))
+            return null;
+
+        if (!DateTime.TryParseExact(value, format, CultureInfo.GetCultureInfo(culture), DateTimeStyles.None, out var result))
+            return null;
+
+        return result;
+    }
+
+    /// <summary>
     ///     Subtracts two DateTime values and returns the difference as a TimeSpan
     /// </summary>
     /// <param name="date1">The first DateTime value</param>

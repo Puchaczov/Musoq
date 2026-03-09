@@ -125,4 +125,95 @@ public class DateTimeOffsetTests : LibraryBaseBaseTests
 
         Assert.IsNull(result);
     }
+
+    [TestMethod]
+    public void WhenSingleDateTimeValueAdded_ShouldPass()
+    {
+        Library.SetMinDateTime(Group, "min", new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        Library.SetMaxDateTime(Group, "max", new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+        var min = Library.MinDateTime(Group, "min", 0);
+        var max = Library.MaxDateTime(Group, "max", 0);
+
+        Assert.AreEqual(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc), min);
+        Assert.AreEqual(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc), max);
+    }
+
+    [TestMethod]
+    public void WhenNullDateTimeValueAdded_ShouldReturnDefaultMinMax()
+    {
+        Library.SetMinDateTime(Group, "min", null);
+        Library.SetMaxDateTime(Group, "max", null);
+
+        var min = Library.MinDateTime(Group, "min", 0);
+        var max = Library.MaxDateTime(Group, "max", 0);
+
+        Assert.AreEqual(default, min);
+        Assert.AreEqual(default, max);
+    }
+
+    [TestMethod]
+    public void WhenMultipleDateTimeValuesAdded_ShouldReturnCorrectMinMax()
+    {
+        Library.SetMinDateTime(Group, "min", new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        Library.SetMinDateTime(Group, "min", new DateTime(2019, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        Library.SetMaxDateTime(Group, "max", new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        Library.SetMaxDateTime(Group, "max", new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+        var min = Library.MinDateTime(Group, "min", 0);
+        var max = Library.MaxDateTime(Group, "max", 0);
+
+        Assert.AreEqual(new DateTime(2019, 1, 1, 0, 0, 0, DateTimeKind.Utc), min);
+        Assert.AreEqual(new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc), max);
+    }
+
+    [TestMethod]
+    public void WhenFirstAddedNullDateTimeThenValue_ShouldReturnCorrectMinMax()
+    {
+        Library.SetMinDateTime(Group, "min", null);
+        Library.SetMinDateTime(Group, "min", new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        Library.SetMaxDateTime(Group, "max", null);
+        Library.SetMaxDateTime(Group, "max", new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+        var min = Library.MinDateTime(Group, "min", 0);
+        var max = Library.MaxDateTime(Group, "max", 0);
+
+        Assert.AreEqual(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc), min);
+        Assert.AreEqual(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc), max);
+    }
+
+    [TestMethod]
+    public void WhenFirstAddedDateTimeValueThenNull_ShouldReturnCorrectMinMax()
+    {
+        Library.SetMinDateTime(Group, "min", new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        Library.SetMinDateTime(Group, "min", null);
+        Library.SetMaxDateTime(Group, "max", new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        Library.SetMaxDateTime(Group, "max", null);
+
+        var min = Library.MinDateTime(Group, "min", 0);
+        var max = Library.MaxDateTime(Group, "max", 0);
+
+        Assert.AreEqual(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc), min);
+        Assert.AreEqual(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc), max);
+    }
+
+    [TestMethod]
+    public void WhenMinDateTimeCalledWithoutParent_ShouldReturnCorrectValue()
+    {
+        Library.SetMinDateTime(Group, "min", new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+        var min = Library.MinDateTime(Group, "min");
+
+        Assert.AreEqual(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc), min);
+    }
+
+    [TestMethod]
+    public void WhenMaxDateTimeCalledWithoutParent_ShouldReturnCorrectValue()
+    {
+        Library.SetMaxDateTime(Group, "max", new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+        var max = Library.MaxDateTime(Group, "max");
+
+        Assert.AreEqual(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc), max);
+    }
 }

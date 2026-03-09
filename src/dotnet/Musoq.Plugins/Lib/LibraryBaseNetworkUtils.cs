@@ -280,6 +280,66 @@ public partial class LibraryBase
     }
 
     /// <summary>
+    ///     Converts a Unix timestamp (seconds since epoch) to DateTimeOffset.
+    /// </summary>
+    /// <param name="unixTimestamp">The Unix timestamp</param>
+    /// <returns>The DateTimeOffset in UTC</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Network)]
+    public DateTimeOffset? UnixToDateTimeOffset(long? unixTimestamp)
+    {
+        if (!unixTimestamp.HasValue)
+            return null;
+
+        return DateTimeOffset.FromUnixTimeSeconds(unixTimestamp.Value);
+    }
+
+    /// <summary>
+    ///     Converts a Unix timestamp in milliseconds to DateTimeOffset.
+    /// </summary>
+    /// <param name="unixTimestampMs">The Unix timestamp in milliseconds</param>
+    /// <returns>The DateTimeOffset in UTC</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Network)]
+    public DateTimeOffset? UnixMillisToDateTimeOffset(long? unixTimestampMs)
+    {
+        if (!unixTimestampMs.HasValue)
+            return null;
+
+        return DateTimeOffset.FromUnixTimeMilliseconds(unixTimestampMs.Value);
+    }
+
+    /// <summary>
+    ///     Converts a DateTimeOffset to Unix timestamp (seconds since epoch).
+    /// </summary>
+    /// <param name="dateTimeOffset">The DateTimeOffset</param>
+    /// <returns>The Unix timestamp</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Network)]
+    public long? DateTimeOffsetToUnix(DateTimeOffset? dateTimeOffset)
+    {
+        if (!dateTimeOffset.HasValue)
+            return null;
+
+        return dateTimeOffset.Value.ToUnixTimeSeconds();
+    }
+
+    /// <summary>
+    ///     Converts a DateTimeOffset to Unix timestamp in milliseconds.
+    /// </summary>
+    /// <param name="dateTimeOffset">The DateTimeOffset</param>
+    /// <returns>The Unix timestamp in milliseconds</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Network)]
+    public long? DateTimeOffsetToUnixMillis(DateTimeOffset? dateTimeOffset)
+    {
+        if (!dateTimeOffset.HasValue)
+            return null;
+
+        return dateTimeOffset.Value.ToUnixTimeMilliseconds();
+    }
+
+    /// <summary>
     ///     Converts a string to a URL-friendly slug.
     /// </summary>
     /// <param name="value">The string to convert</param>

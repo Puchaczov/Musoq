@@ -12,7 +12,7 @@ public partial class LibraryBase
     /// <param name="value">The value to convert.</param>
     /// <returns>The converted DateTimeOffset value, or null if the conversion fails.</returns>
     [BindableMethod]
-    [MethodCategory(MethodCategories.DateTime)]
+    [MethodCategory(MethodCategories.Conversion)]
     public DateTimeOffset? ToDateTimeOffset(string value)
     {
         return ToDateTimeOffset(value, CultureInfo.CurrentCulture.Name);
@@ -25,7 +25,7 @@ public partial class LibraryBase
     /// <param name="culture">The culture to use for conversion.</param>
     /// <returns>The converted DateTimeOffset value, or null if the conversion fails.</returns>
     [BindableMethod]
-    [MethodCategory(MethodCategories.DateTime)]
+    [MethodCategory(MethodCategories.Conversion)]
     public DateTimeOffset? ToDateTimeOffset(string value, string culture)
     {
         if (string.IsNullOrEmpty(value))
@@ -38,13 +38,52 @@ public partial class LibraryBase
     }
 
     /// <summary>
+    ///     Converts the given value to DateTimeOffset using exact format.
+    /// </summary>
+    /// <param name="value">The value to convert.</param>
+    /// <param name="format">The exact format to use for parsing.</param>
+    /// <returns>The converted DateTimeOffset value, or null if the conversion fails.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
+    public DateTimeOffset? ToDateTimeOffsetWithFormat(string value, string format)
+    {
+        if (string.IsNullOrEmpty(value))
+            return null;
+
+        if (!DateTimeOffset.TryParseExact(value, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
+            return null;
+
+        return result;
+    }
+
+    /// <summary>
+    ///     Converts the given value to DateTimeOffset using exact format and specified culture.
+    /// </summary>
+    /// <param name="value">The value to convert.</param>
+    /// <param name="format">The exact format to use for parsing.</param>
+    /// <param name="culture">The culture to use for parsing.</param>
+    /// <returns>The converted DateTimeOffset value, or null if the conversion fails.</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
+    public DateTimeOffset? ToDateTimeOffsetWithFormat(string value, string format, string culture)
+    {
+        if (string.IsNullOrEmpty(value))
+            return null;
+
+        if (!DateTimeOffset.TryParseExact(value, format, CultureInfo.GetCultureInfo(culture), DateTimeStyles.None, out var result))
+            return null;
+
+        return result;
+    }
+
+    /// <summary>
     ///     Subtracts the first DateTimeOffset from the second DateTimeOffset.
     /// </summary>
     /// <param name="first">The first DateTimeOffset.</param>
     /// <param name="second">The second DateTimeOffset.</param>
     /// <returns>The result of the subtraction, or null if either of the values is null.</returns>
     [BindableMethod]
-    [MethodCategory(MethodCategories.DateTime)]
+    [MethodCategory(MethodCategories.Conversion)]
     public TimeSpan? SubtractDateTimeOffsets(DateTimeOffset? first, DateTimeOffset? second)
     {
         if (first is null || second is null)
@@ -158,6 +197,114 @@ public partial class LibraryBase
             parentGroup.SetValue(name, value.Value);
 
         if (minDateTimeOffset > value)
+            parentGroup.SetValue(name, value.Value);
+    }
+
+    /// <summary>
+    ///     Retrieves the maximum DateTime value from the specified group.
+    /// </summary>
+    /// <param name="group">The group to retrieve the value from.</param>
+    /// <param name="name">The name of the value to retrieve.</param>
+    /// <param name="parent">The parent group index.</param>
+    /// <returns>The maximum DateTime value.</returns>
+    [AggregationGetMethod]
+    public DateTime? MaxDateTime([InjectGroup] Group group, string name, int parent)
+    {
+        var parentGroup = GetParentGroup(group, parent);
+        return parentGroup.GetValue<DateTime?>(name);
+    }
+
+    /// <summary>
+    ///     Retrieves the maximum DateTime value from the specified group.
+    /// </summary>
+    /// <param name="group">The group to retrieve the value from.</param>
+    /// <param name="name">The name of the value to retrieve.</param>
+    /// <returns>The maximum DateTime value.</returns>
+    [AggregationGetMethod]
+    public DateTime? MaxDateTime([InjectGroup] Group group, string name)
+    {
+        var parentGroup = GetParentGroup(group, 0);
+        return parentGroup.GetValue<DateTime?>(name);
+    }
+
+    /// <summary>
+    ///     Sets the maximum DateTime value in the specified group.
+    /// </summary>
+    /// <param name="group">The group to set the value in.</param>
+    /// <param name="name">The name of the value to set.</param>
+    /// <param name="value">The value to set.</param>
+    /// <param name="parent">The parent group index.</param>
+    [AggregationSetMethod]
+    public void SetMaxDateTime([InjectGroup] Group group, string name, DateTime? value, int parent = 0)
+    {
+        var parentGroup = GetParentGroup(group, parent);
+
+        if (value == null)
+        {
+            parentGroup.GetOrCreateValue<DateTime?>(name, () => null);
+            return;
+        }
+
+        var maxDateTime = parentGroup.GetOrCreateValue<DateTime?>(name, DateTime.MinValue);
+
+        if (maxDateTime is null)
+            parentGroup.SetValue(name, value.Value);
+
+        if (maxDateTime < value)
+            parentGroup.SetValue(name, value.Value);
+    }
+
+    /// <summary>
+    ///     Retrieves the minimum DateTime value from the specified group.
+    /// </summary>
+    /// <param name="group">The group to retrieve the value from.</param>
+    /// <param name="name">The name of the value to retrieve.</param>
+    /// <param name="parent">The parent group index.</param>
+    /// <returns>The minimum DateTime value.</returns>
+    [AggregationGetMethod]
+    public DateTime? MinDateTime([InjectGroup] Group group, string name, int parent)
+    {
+        var parentGroup = GetParentGroup(group, parent);
+        return parentGroup.GetValue<DateTime?>(name);
+    }
+
+    /// <summary>
+    ///     Retrieves the minimum DateTime value from the specified group.
+    /// </summary>
+    /// <param name="group">The group to retrieve the value from.</param>
+    /// <param name="name">The name of the value to retrieve.</param>
+    /// <returns>The minimum DateTime value.</returns>
+    [AggregationGetMethod]
+    public DateTime? MinDateTime([InjectGroup] Group group, string name)
+    {
+        var parentGroup = GetParentGroup(group, 0);
+        return parentGroup.GetValue<DateTime?>(name);
+    }
+
+    /// <summary>
+    ///     Sets the minimum DateTime value in the specified group.
+    /// </summary>
+    /// <param name="group">The group to set the value in.</param>
+    /// <param name="name">The name of the value to set.</param>
+    /// <param name="value">The value to set.</param>
+    /// <param name="parent">The parent group index.</param>
+    [AggregationSetMethod]
+    public void SetMinDateTime([InjectGroup] Group group, string name, DateTime? value, int parent = 0)
+    {
+        var parentGroup = GetParentGroup(group, parent);
+
+        if (value == null)
+        {
+            parentGroup.GetOrCreateValue<DateTime?>(name, () => null);
+            return;
+        }
+
+        var minDateTime = parentGroup.GetOrCreateValue<DateTime?>(name, DateTime.MaxValue);
+
+        if (minDateTime is null)
+            parentGroup.SetValue(name, value.Value);
+
+        if (minDateTime > value)
             parentGroup.SetValue(name, value.Value);
     }
 }

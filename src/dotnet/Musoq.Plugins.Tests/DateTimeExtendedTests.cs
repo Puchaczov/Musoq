@@ -948,4 +948,231 @@ public class DateTimeExtendedTests : LibraryBaseBaseTests
     }
 
     #endregion
+
+    #region DateTime Extraction Methods
+
+    [TestMethod]
+    public void Year_NullDateTime_ReturnsNull()
+    {
+        Assert.IsNull(Library.Year((DateTime?)null));
+    }
+
+    [TestMethod]
+    public void Year_ValidDateTime_ReturnsYear()
+    {
+        var date = new DateTime(2024, 6, 15, 12, 30, 45);
+        Assert.AreEqual(2024, Library.Year(date));
+    }
+
+    [TestMethod]
+    public void Month_NullDateTime_ReturnsNull()
+    {
+        Assert.IsNull(Library.Month((DateTime?)null));
+    }
+
+    [TestMethod]
+    public void Month_ValidDateTime_ReturnsMonth()
+    {
+        var date = new DateTime(2024, 6, 15, 12, 30, 45);
+        Assert.AreEqual(6, Library.Month(date));
+    }
+
+    [TestMethod]
+    public void Day_NullDateTime_ReturnsNull()
+    {
+        Assert.IsNull(Library.Day((DateTime?)null));
+    }
+
+    [TestMethod]
+    public void Day_ValidDateTime_ReturnsDay()
+    {
+        var date = new DateTime(2024, 6, 15, 12, 30, 45);
+        Assert.AreEqual(15, Library.Day(date));
+    }
+
+    [TestMethod]
+    public void Hour_NullDateTime_ReturnsNull()
+    {
+        Assert.IsNull(Library.Hour((DateTime?)null));
+    }
+
+    [TestMethod]
+    public void Hour_ValidDateTime_ReturnsHour()
+    {
+        var date = new DateTime(2024, 6, 15, 12, 30, 45);
+        Assert.AreEqual(12, Library.Hour(date));
+    }
+
+    [TestMethod]
+    public void Minute_NullDateTime_ReturnsNull()
+    {
+        Assert.IsNull(Library.Minute((DateTime?)null));
+    }
+
+    [TestMethod]
+    public void Minute_ValidDateTime_ReturnsMinute()
+    {
+        var date = new DateTime(2024, 6, 15, 12, 30, 45);
+        Assert.AreEqual(30, Library.Minute(date));
+    }
+
+    [TestMethod]
+    public void Second_NullDateTime_ReturnsNull()
+    {
+        Assert.IsNull(Library.Second((DateTime?)null));
+    }
+
+    [TestMethod]
+    public void Second_ValidDateTime_ReturnsSecond()
+    {
+        var date = new DateTime(2024, 6, 15, 12, 30, 45);
+        Assert.AreEqual(45, Library.Second(date));
+    }
+
+    [TestMethod]
+    public void Milliseconds_NullDateTime_ReturnsNull()
+    {
+        Assert.IsNull(Library.Milliseconds((DateTime?)null));
+    }
+
+    [TestMethod]
+    public void Milliseconds_ValidDateTime_ReturnsMilliseconds()
+    {
+        var date = new DateTime(2024, 6, 15, 12, 30, 45, 123);
+        Assert.AreEqual(123, Library.Milliseconds(date));
+    }
+
+    [TestMethod]
+    public void DayOfWeek_NullDateTime_ReturnsNull()
+    {
+        Assert.IsNull(Library.DayOfWeek((DateTime?)null));
+    }
+
+    [TestMethod]
+    public void DayOfWeek_ValidDateTime_ReturnsDayOfWeek()
+    {
+        var date = new DateTime(2024, 6, 15);
+        Assert.AreEqual((int)DayOfWeek.Saturday, Library.DayOfWeek(date));
+    }
+
+    #endregion
+
+    #region ExtractTimeSpan DateTime Tests
+
+    [TestMethod]
+    public void ExtractTimeSpan_NullDateTime_ReturnsNull()
+    {
+        Assert.IsNull(Library.ExtractTimeSpan((DateTime?)null));
+    }
+
+    [TestMethod]
+    public void ExtractTimeSpan_ValidDateTime_ReturnsTimeSpan()
+    {
+        var date = new DateTime(2024, 6, 15, 14, 30, 45, 123);
+        var result = Library.ExtractTimeSpan(date);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(14, result.Value.Hours);
+        Assert.AreEqual(30, result.Value.Minutes);
+        Assert.AreEqual(45, result.Value.Seconds);
+    }
+
+    #endregion
+
+    #region ToDateTimeWithFormat with Culture Tests
+
+    [TestMethod]
+    public void ToDateTimeWithFormat_WithCulture_NullValue_ReturnsNull()
+    {
+        Assert.IsNull(Library.ToDateTimeWithFormat((string)null!, "yyyy-MM-dd", "en-US"));
+    }
+
+    [TestMethod]
+    public void ToDateTimeWithFormat_WithCulture_EmptyValue_ReturnsNull()
+    {
+        Assert.IsNull(Library.ToDateTimeWithFormat(string.Empty, "yyyy-MM-dd", "en-US"));
+    }
+
+    [TestMethod]
+    public void ToDateTimeWithFormat_WithCulture_ValidValue_ReturnsDateTime()
+    {
+        var result = Library.ToDateTimeWithFormat("15/06/2024", "dd/MM/yyyy", "en-GB");
+        Assert.IsNotNull(result);
+        Assert.AreEqual(2024, result.Value.Year);
+        Assert.AreEqual(6, result.Value.Month);
+        Assert.AreEqual(15, result.Value.Day);
+    }
+
+    [TestMethod]
+    public void ToDateTimeWithFormat_WithCulture_InvalidFormat_ReturnsNull()
+    {
+        Assert.IsNull(Library.ToDateTimeWithFormat("2024-06-15", "dd/MM/yyyy HH:mm", "en-US"));
+    }
+
+    #endregion
+
+    #region ToDateTimeOffsetWithFormat Tests
+
+    [TestMethod]
+    public void ToDateTimeOffsetWithFormat_NullValue_ReturnsNull()
+    {
+        Assert.IsNull(Library.ToDateTimeOffsetWithFormat((string)null!, "yyyy-MM-dd"));
+    }
+
+    [TestMethod]
+    public void ToDateTimeOffsetWithFormat_EmptyValue_ReturnsNull()
+    {
+        Assert.IsNull(Library.ToDateTimeOffsetWithFormat(string.Empty, "yyyy-MM-dd"));
+    }
+
+    [TestMethod]
+    public void ToDateTimeOffsetWithFormat_ValidValue_ReturnsDateTimeOffset()
+    {
+        var result = Library.ToDateTimeOffsetWithFormat("2024-06-15 14:30:00 +02:00", "yyyy-MM-dd HH:mm:ss zzz");
+        Assert.IsNotNull(result);
+        Assert.AreEqual(2024, result.Value.Year);
+        Assert.AreEqual(6, result.Value.Month);
+        Assert.AreEqual(15, result.Value.Day);
+        Assert.AreEqual(14, result.Value.Hour);
+        Assert.AreEqual(30, result.Value.Minute);
+    }
+
+    [TestMethod]
+    public void ToDateTimeOffsetWithFormat_InvalidFormat_ReturnsNull()
+    {
+        Assert.IsNull(Library.ToDateTimeOffsetWithFormat("2024-06-15", "dd/MM/yyyy HH:mm"));
+    }
+
+    #endregion
+
+    #region ToDateTimeOffsetWithFormat with Culture Tests
+
+    [TestMethod]
+    public void ToDateTimeOffsetWithFormat_WithCulture_NullValue_ReturnsNull()
+    {
+        Assert.IsNull(Library.ToDateTimeOffsetWithFormat((string)null!, "yyyy-MM-dd", "en-US"));
+    }
+
+    [TestMethod]
+    public void ToDateTimeOffsetWithFormat_WithCulture_EmptyValue_ReturnsNull()
+    {
+        Assert.IsNull(Library.ToDateTimeOffsetWithFormat(string.Empty, "yyyy-MM-dd", "en-US"));
+    }
+
+    [TestMethod]
+    public void ToDateTimeOffsetWithFormat_WithCulture_ValidValue_ReturnsDateTimeOffset()
+    {
+        var result = Library.ToDateTimeOffsetWithFormat("15/06/2024 14:30:00 +02:00", "dd/MM/yyyy HH:mm:ss zzz", "en-GB");
+        Assert.IsNotNull(result);
+        Assert.AreEqual(2024, result.Value.Year);
+        Assert.AreEqual(6, result.Value.Month);
+        Assert.AreEqual(15, result.Value.Day);
+    }
+
+    [TestMethod]
+    public void ToDateTimeOffsetWithFormat_WithCulture_InvalidFormat_ReturnsNull()
+    {
+        Assert.IsNull(Library.ToDateTimeOffsetWithFormat("2024-06-15", "dd/MM/yyyy HH:mm", "en-US"));
+    }
+
+    #endregion
 }
