@@ -260,7 +260,7 @@ public static class AccessMethodNodeProcessor
     {
         var method = node.Method;
 
-        if (method.IsGenericMethod && method.GetCustomAttribute<AggregationMethodAttribute>() != null)
+        if (method.IsGenericMethod && method.IsConstructedGenericMethod)
             return GenerateGenericMethodInvocation(node, generator, variableName, args);
 
         return generator.InvocationExpression(
@@ -285,18 +285,18 @@ public static class AccessMethodNodeProcessor
 
         for (var i = 0; i < genericArgs.Length - 1; ++i)
         {
-            syntaxArgs.Add(SyntaxFactory.IdentifierName(genericArgs[i].FullName!));
+            syntaxArgs.Add(SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(genericArgs[i])));
             syntaxArgs.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
         }
 
-        syntaxArgs.Add(SyntaxFactory.IdentifierName(genericArgs[^1].FullName!));
+        syntaxArgs.Add(SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(genericArgs[^1])));
 
         TypeArgumentListSyntax typeArgs;
         if (syntaxArgs.Count < 2)
         {
-            var syntaxArg = (IdentifierNameSyntax)syntaxArgs[0];
+            var syntaxArg = (TypeSyntax)syntaxArgs[0];
             typeArgs = SyntaxFactory.TypeArgumentList(
-                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(syntaxArg!)
+                SyntaxFactory.SingletonSeparatedList(syntaxArg)
             );
         }
         else
