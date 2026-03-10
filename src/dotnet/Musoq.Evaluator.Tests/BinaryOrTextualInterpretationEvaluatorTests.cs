@@ -5599,6 +5599,301 @@ public class BinaryOrTextualInterpretationEvaluatorTests
 
     #endregion
 
+    #region Parse and TryParse in SELECT Should Fail
+
+    [TestMethod]
+    public void Query_ParseInSelect_ShouldProduceMeaningfulError()
+    {
+        var query = @"
+            text LogEntry {
+                Level: until ':',
+                _: literal ' ',
+                Message: rest
+            };
+            select Parse('INFO: booted', 'LogEntry')
+            from #test.lines() f";
+
+        var entities = new[] { new TextEntity { Name = "log.txt", Text = "dummy" } };
+        var schemaProvider = new TextSchemaProvider(
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            InstanceCreator.CompileForExecution(
+                query,
+                Guid.NewGuid().ToString(),
+                schemaProvider,
+                LoggerResolver, TestCompilationOptions));
+
+        Assert.IsTrue(
+            ex.Message.Contains("CROSS APPLY", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("OUTER APPLY", StringComparison.OrdinalIgnoreCase),
+            $"Expected error mentioning CROSS APPLY or OUTER APPLY, got: {ex.Message}");
+        Assert.IsTrue(
+            ex.Message.Contains("Parse", StringComparison.Ordinal),
+            $"Expected error mentioning 'Parse', got: {ex.Message}");
+    }
+
+    [TestMethod]
+    public void Query_TryParseInSelect_ShouldProduceMeaningfulError()
+    {
+        var query = @"
+            text LogEntry {
+                Level: until ':',
+                _: literal ' ',
+                Message: rest
+            };
+            select TryParse('INFO: booted', 'LogEntry')
+            from #test.lines() f";
+
+        var entities = new[] { new TextEntity { Name = "log.txt", Text = "dummy" } };
+        var schemaProvider = new TextSchemaProvider(
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            InstanceCreator.CompileForExecution(
+                query,
+                Guid.NewGuid().ToString(),
+                schemaProvider,
+                LoggerResolver, TestCompilationOptions));
+
+        Assert.IsTrue(
+            ex.Message.Contains("CROSS APPLY", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("OUTER APPLY", StringComparison.OrdinalIgnoreCase),
+            $"Expected error mentioning CROSS APPLY or OUTER APPLY, got: {ex.Message}");
+        Assert.IsTrue(
+            ex.Message.Contains("TryParse", StringComparison.Ordinal),
+            $"Expected error mentioning 'TryParse', got: {ex.Message}");
+    }
+
+    [TestMethod]
+    public void Query_InterpretInSelect_ShouldProduceMeaningfulError()
+    {
+        var query = @"
+            binary Header {
+                Magic: int le
+            };
+            select Interpret(0x00, 'Header')
+            from #test.files() f";
+
+        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = [0x00] } };
+        var schemaProvider = new BinarySchemaProvider(
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            InstanceCreator.CompileForExecution(
+                query,
+                Guid.NewGuid().ToString(),
+                schemaProvider,
+                LoggerResolver, TestCompilationOptions));
+
+        Assert.IsTrue(
+            ex.Message.Contains("CROSS APPLY", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("OUTER APPLY", StringComparison.OrdinalIgnoreCase),
+            $"Expected error mentioning CROSS APPLY or OUTER APPLY, got: {ex.Message}");
+        Assert.IsTrue(
+            ex.Message.Contains("Interpret", StringComparison.Ordinal),
+            $"Expected error mentioning 'Interpret', got: {ex.Message}");
+    }
+
+    [TestMethod]
+    public void Query_ParseInWhereClause_ShouldProduceMeaningfulError()
+    {
+        var query = @"
+            text KeyValue {
+                Key: until '=',
+                Value: rest
+            };
+            select 1
+            from #test.lines() f
+            where Parse('key=val', 'KeyValue') is not null";
+
+        var entities = new[] { new TextEntity { Name = "data.txt", Text = "dummy" } };
+        var schemaProvider = new TextSchemaProvider(
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+
+        var ex = Assert.Throws<MusoqQueryException>(() =>
+            InstanceCreator.CompileForExecution(
+                query,
+                Guid.NewGuid().ToString(),
+                schemaProvider,
+                LoggerResolver, TestCompilationOptions));
+
+        Assert.IsTrue(
+            ex.Message.Contains("CROSS APPLY", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("OUTER APPLY", StringComparison.OrdinalIgnoreCase),
+            $"Expected error mentioning CROSS APPLY or OUTER APPLY, got: {ex.Message}");
+    }
+
+    #endregion
+
+    #region Parse With String Literal Tests
+
+    [TestMethod]
+    public void Query_ParseWithStringLiteral_ShouldWork()
+    {
+        var query = @"
+            text LogEntry {
+                Timestamp: between '[' ']',
+                _: literal ' ',
+                Level: until ':',
+                _: literal ' ',
+                Message: rest
+            };
+            select
+                log.Timestamp,
+                log.Level,
+                log.Message
+            from #test.lines() f
+            cross apply Parse('[2026-03-09] INFO: booted', 'LogEntry') log";
+
+        var entities = new[] { new TextEntity { Name = "log.txt", Text = "dummy" } };
+        var schemaProvider = new TextSchemaProvider(
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver, TestCompilationOptions);
+
+        var table = vm.Run(CancellationToken.None);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("2026-03-09", table[0][0]);
+        Assert.AreEqual("INFO", table[0][1]);
+        Assert.AreEqual("booted", table[0][2]);
+    }
+
+    [TestMethod]
+    public void Query_ParseWithStringLiteral_SelectConstant_ShouldWork()
+    {
+        var query = @"
+            text KeyValue {
+                Key: until '=',
+                Value: rest
+            };
+            select
+                1 as X
+            from #test.lines() f
+            cross apply Parse('host=localhost', 'KeyValue') kv";
+
+        var entities = new[] { new TextEntity { Name = "data.txt", Text = "dummy" } };
+        var schemaProvider = new TextSchemaProvider(
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver, TestCompilationOptions);
+
+        var table = vm.Run(CancellationToken.None);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(1, table[0][0]);
+    }
+
+    [TestMethod]
+    public void Query_ParseWithStringLiteral_SelectParsedFields_ShouldWork()
+    {
+        var query = @"
+            text KeyValue {
+                Key: until '=',
+                Value: rest
+            };
+            select
+                kv.Key,
+                kv.Value
+            from #test.lines() f
+            cross apply Parse('host=localhost', 'KeyValue') kv";
+
+        var entities = new[] { new TextEntity { Name = "data.txt", Text = "dummy" } };
+        var schemaProvider = new TextSchemaProvider(
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver, TestCompilationOptions);
+
+        var table = vm.Run(CancellationToken.None);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("host", table[0][0]);
+        Assert.AreEqual("localhost", table[0][1]);
+    }
+
+    [TestMethod]
+    public void Query_TryParseWithStringLiteral_ShouldWork()
+    {
+        var query = @"
+            text LogEntry {
+                Timestamp: between '[' ']',
+                _: literal ' ',
+                Level: until ':',
+                _: literal ' ',
+                Message: rest
+            };
+            select
+                log.Timestamp,
+                log.Level,
+                log.Message
+            from #test.lines() f
+            outer apply TryParse('[2026-03-09] INFO: booted', 'LogEntry') log";
+
+        var entities = new[] { new TextEntity { Name = "log.txt", Text = "dummy" } };
+        var schemaProvider = new TextSchemaProvider(
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver, TestCompilationOptions);
+
+        var table = vm.Run(CancellationToken.None);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("2026-03-09", table[0][0]);
+        Assert.AreEqual("INFO", table[0][1]);
+        Assert.AreEqual("booted", table[0][2]);
+    }
+
+    [TestMethod]
+    public void Query_TryParseWithStringLiteral_WhenParsingFails_ShouldReturnNull()
+    {
+        var query = @"
+            text LogEntry {
+                Timestamp: between '[' ']',
+                _: literal ' ',
+                Level: until ':',
+                _: literal ' ',
+                Message: rest
+            };
+            select
+                log.Timestamp
+            from #test.lines() f
+            outer apply TryParse('not a valid log entry', 'LogEntry') log";
+
+        var entities = new[] { new TextEntity { Name = "log.txt", Text = "dummy" } };
+        var schemaProvider = new TextSchemaProvider(
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver, TestCompilationOptions);
+
+        var table = vm.Run(CancellationToken.None);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.IsNull(table[0][0]);
+    }
+
+    #endregion
+
     #region Test Entities and Schema Infrastructure
 
     /// <summary>

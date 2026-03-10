@@ -1,3 +1,4 @@
+// ReSharper disable InconsistentNaming
 namespace Musoq.Parser.Diagnostics;
 
 /// <summary>
@@ -372,6 +373,11 @@ public enum DiagnosticCode
     ///     Arithmetic overflow in constant expression.
     /// </summary>
     MQ3032_ArithmeticOverflow = 3032,
+
+    /// <summary>
+    ///     Parse/Interpret function used outside CROSS APPLY or OUTER APPLY.
+    /// </summary>
+    MQ3033_InterpretFunctionOutsideApply = 3033,
 
     // ============================================
     // Schema Definition Errors (MQ4xxx)

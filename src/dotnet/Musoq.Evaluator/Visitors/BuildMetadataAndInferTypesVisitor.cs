@@ -2668,7 +2668,24 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         if (context.SchemaTablePair.Schema.TryResolveRawMethod(methodName, argTypes, out method)) return (method, true);
 
+        if (IsInterpretOrParseFunction(methodName))
+            throw new CannotResolveMethodException(
+                $"'{methodName}' can only be used inside CROSS APPLY or OUTER APPLY, not in SELECT or WHERE. " +
+                $"Example: ... CROSS APPLY {methodName}(source, 'SchemaName') alias",
+                DiagnosticCode.MQ3033_InterpretFunctionOutsideApply,
+                node.Span);
+
         throw CreateMethodResolutionExceptionWithSuggestion(methodName, args.Args, context);
+    }
+
+    private static bool IsInterpretOrParseFunction(string methodName)
+    {
+        return methodName.Equals("Interpret", StringComparison.OrdinalIgnoreCase) ||
+               methodName.Equals("Parse", StringComparison.OrdinalIgnoreCase) ||
+               methodName.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase) ||
+               methodName.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase) ||
+               methodName.Equals("TryParse", StringComparison.OrdinalIgnoreCase) ||
+               methodName.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase);
     }
 
     private static CannotResolveMethodException CreateMethodResolutionExceptionWithSuggestion(

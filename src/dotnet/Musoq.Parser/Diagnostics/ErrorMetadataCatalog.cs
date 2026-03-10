@@ -227,6 +227,16 @@ public static class ErrorMetadataCatalog
             ],
             "Core Spec §Method Resolution"),
 
+        [DiagnosticCode.MQ3033_InterpretFunctionOutsideApply] = new(
+            DiagnosticCode.MQ3033_InterpretFunctionOutsideApply,
+            DiagnosticPhase.Bind,
+            "Parse/Interpret functions can only be used inside CROSS APPLY or OUTER APPLY.",
+            [
+                "Move the function call to a CROSS APPLY or OUTER APPLY clause.",
+                "Use TryParse in OUTER APPLY if parsing may fail."
+            ],
+            "Binary/Text Spec §Usage"),
+
         [DiagnosticCode.MQ3005_TypeMismatch] = new(
             DiagnosticCode.MQ3005_TypeMismatch,
             DiagnosticPhase.Bind,

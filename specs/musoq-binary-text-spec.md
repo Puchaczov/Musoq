@@ -259,35 +259,42 @@ Single complex objects are wrapped in a single-element array for uniform process
 // null with OUTER:      new T[] { null }
 ```
 
-### 3.3 Inline Property Access on Interpret / Parse
+### 3.3 APPLY-Only Restriction
 
-`Interpret()`, `Parse()`, and their offset/try variants return structured objects. Beyond binding these objects via CROSS APPLY, you can access their properties **directly inline** within any expression context:
+All interpretation functions — `Interpret()`, `Parse()`, `TryInterpret()`, `TryParse()`, `InterpretAt()`, and `PartialInterpret()` — **must** appear as the right-hand side of a `CROSS APPLY` or `OUTER APPLY` clause. They cannot be used directly in `SELECT`, `WHERE`, `HAVING`, or other expression contexts.
+
+**Valid usage:**
 
 ```sql
--- Direct property access without CROSS APPLY
-SELECT Interpret(data, Header).Magic FROM ...
+-- CROSS APPLY — parsing succeeds or the row is excluded
+SELECT h.Magic, h.Version
+FROM #os.file('/data.bin') f
+CROSS APPLY Interpret(f.GetBytes(), Header) h
 
--- Inside CASE expressions
-CASE frame.MsgType
-    WHEN 0x01 THEN Parse(ToString(frame.Payload, 'utf8'), CommandPayload).Command
-    WHEN 0x02 THEN ToString(Interpret(frame.Payload, TelemetryPayload).SensorId)
-    ELSE 'Unknown'
-END
+-- OUTER APPLY — row is preserved with NULLs when parsing fails
+SELECT log.Timestamp, log.Level
+FROM #os.file('/app.log') f
+CROSS APPLY Lines(f.GetContent()) line
+OUTER APPLY TryParse(line.Value, LogEntry) log
 ```
 
-**Semantics:**
-- The interpretation function is called and returns a single structured object
-- The `.Field` accessor resolves the named property on the returned object
-- If the interpretation fails (for `TryInterpret`/`TryParse` returning `null`), property access yields `null`
+**Invalid usage (compile-time error MQ3033):**
 
-**When to use each pattern:**
+```sql
+-- ERROR: Parse cannot appear in SELECT
+SELECT Parse(line.Value, LogEntry)
+FROM ...
 
-| Pattern | Use When |
-|---------|----------|
-| `CROSS APPLY Interpret(...) alias` | Multiple fields are needed from the same parsed object |
-| `Interpret(...).Field` inline | Only one field is needed, or inside expressions like CASE branches |
+-- ERROR: TryInterpret cannot appear in WHERE
+SELECT 1
+FROM #os.files('./', '*.bin') f
+WHERE TryInterpret(f.GetBytes(), Header) IS NOT NULL
+```
 
-**Note:** When accessing multiple fields from the same interpretation result, prefer CROSS APPLY to avoid redundant parsing. Each inline `Interpret(...).Field` call re-parses the data independently.
+**Rationale:**  
+Interpretation functions return structured objects whose fields must be bound to an alias through APPLY. Without an alias, there is no way to reference individual fields of the parsed result. The APPLY clause provides the necessary scoping and alias binding.
+
+**Note:** Inline property access (e.g., `Interpret(data, Header).Magic` in SELECT) is reserved for a future version. See §13.1.
 
 ---
 
@@ -1310,16 +1317,18 @@ TryInterpret(data, SchemaType) -> SchemaType?
 TryParse(text, SchemaType) -> SchemaType?
 ```
 
-Returns `null` instead of throwing on parse failure.
+Returns `null` instead of throwing on parse failure. Like all interpretation functions, `TryInterpret` and `TryParse` must be used inside `CROSS APPLY` or `OUTER APPLY` (see §3.3).
 
 ```sql
+-- Use OUTER APPLY so that rows are preserved when parsing fails
 SELECT 
     f.Name,
-    CASE WHEN TryInterpret(f.GetBytes(), Header) IS NOT NULL 
+    CASE WHEN h.Magic IS NOT NULL 
          THEN 'Valid' 
          ELSE 'Invalid' 
     END AS Status
 FROM #os.files('./', '*.bin') f
+OUTER APPLY TryInterpret(f.GetBytes(), Header) h
 ```
 
 **Behavior with CROSS/OUTER APPLY:**
@@ -2128,6 +2137,7 @@ CROSS APPLY InterpretAt(f.GetBytes(), h.DataOffset, StorageRecord) r
 
 ### 13.1 Potential Extensions
 
+- **Inline property access on Interpret / Parse** — Allow `Interpret(data, Header).Magic` syntax directly in SELECT, WHERE, and CASE expressions without requiring CROSS APPLY. This would let users access a single field from a parsed result inline. When accessing multiple fields, CROSS APPLY would remain preferred to avoid redundant parsing. Currently, all interpretation functions must appear inside CROSS APPLY or OUTER APPLY (see §3.3).
 - Compression/encryption integration
 - Schema versioning annotations
 - Schema imports from external files
@@ -2200,6 +2210,7 @@ upper, ushort, utf16be, utf16le, utf8, WHEN, whitespace
 | ISE010 | Expression | Condition expression error |
 | ISE011 | Type | Endianness required for multi-byte type |
 | ISE012 | Type | Invalid bit field size (must be 1-64) |
+| MQ3033 | Bind | Interpret/Parse function used outside CROSS APPLY or OUTER APPLY |
 
 ---
 

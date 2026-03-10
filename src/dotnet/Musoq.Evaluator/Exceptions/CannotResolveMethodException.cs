@@ -32,6 +32,16 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
     }
 
     /// <summary>
+    ///     Initializes a new instance with a message, diagnostic code, and span.
+    /// </summary>
+    public CannotResolveMethodException(string message, DiagnosticCode code, TextSpan span)
+        : base(message)
+    {
+        Code = code;
+        Span = span;
+    }
+
+    /// <summary>
     ///     Gets the diagnostic code for this exception.
     /// </summary>
     public DiagnosticCode Code { get; }
