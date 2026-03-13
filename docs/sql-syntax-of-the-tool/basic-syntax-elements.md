@@ -23,7 +23,7 @@ I implicitly assume that you know the basics of SQL. If you're not familiar with
 Each data source provides entry points that the `desc` syntax uses. Additionally, you can utilize the online documentation which should indicate which columns are available for use. The syntax of this expression looks as follows:
 
 ```sql
-desc #schema.method(param1, ..., paramN)
+desc schema.method(param1, ..., paramN)
 ```
 
 Such an expression will return a table with columns and their corresponding data types that are available for use.

@@ -200,7 +200,7 @@ binary Record {
 
 -- Query follows schema definitions
 SELECT h.Magic, r.Id, r.Value
-FROM #os.file('/data.bin') f
+FROM os.file('/data.bin') f
 CROSS APPLY Interpret(f.GetBytes(), Header) h
 CROSS APPLY InterpretAt(f.GetBytes(), 6, Record) r
 ```
@@ -230,7 +230,7 @@ Both CROSS APPLY and OUTER APPLY accept enumerable and scalar complex types:
 
 ```sql
 SELECT h.Magic, h.Version
-FROM #os.file('/data.bin') f
+FROM os.file('/data.bin') f
 CROSS APPLY Interpret(f.GetBytes(), Header) h
 ```
 
@@ -245,7 +245,7 @@ Arrays remain enumerable and work with CROSS/OUTER APPLY as collections:
 
 ```sql
 SELECT c.Magic, r.Id, r.Value
-FROM #os.file('/data.bin') f
+FROM os.file('/data.bin') f
 CROSS APPLY Interpret(f.GetBytes(), Container) c
 CROSS APPLY c.Records r
 ```
@@ -268,12 +268,12 @@ All interpretation functions — `Interpret()`, `Parse()`, `TryInterpret()`, `Tr
 ```sql
 -- CROSS APPLY — parsing succeeds or the row is excluded
 SELECT h.Magic, h.Version
-FROM #os.file('/data.bin') f
+FROM os.file('/data.bin') f
 CROSS APPLY Interpret(f.GetBytes(), Header) h
 
 -- OUTER APPLY — row is preserved with NULLs when parsing fails
 SELECT log.Timestamp, log.Level
-FROM #os.file('/app.log') f
+FROM os.file('/app.log') f
 CROSS APPLY Lines(f.GetContent()) line
 OUTER APPLY TryParse(line.Value, LogEntry) log
 ```
@@ -287,7 +287,7 @@ FROM ...
 
 -- ERROR: TryInterpret cannot appear in WHERE
 SELECT 1
-FROM #os.files('./', '*.bin') f
+FROM os.files('./', '*.bin') f
 WHERE TryInterpret(f.GetBytes(), Header) IS NOT NULL
 ```
 
@@ -1272,7 +1272,7 @@ In SQL queries, the schema type is referenced by name (without parentheses), con
 ```sql
 -- Schema type referenced by name, no parentheses
 SELECT h.Magic, h.Version
-FROM #os.file('/data.bin') f
+FROM os.file('/data.bin') f
 CROSS APPLY Interpret(f.GetBytes(), Header) h
 ```
 
@@ -1291,7 +1291,7 @@ Parses byte array according to schema, returning structured result.
 
 ```sql
 SELECT h.Magic, h.Version
-FROM #os.file('/data.bin') f
+FROM os.file('/data.bin') f
 CROSS APPLY Interpret(f.GetBytes(), Header) h
 ```
 
@@ -1305,7 +1305,7 @@ Parses string according to text schema.
 
 ```sql
 SELECT log.Timestamp, log.Level, log.Message
-FROM #os.file('/app.log') f
+FROM os.file('/app.log') f
 CROSS APPLY Lines(f.GetContent()) line
 CROSS APPLY Parse(line.Value, LogEntry) log
 ```
@@ -1327,7 +1327,7 @@ SELECT
          THEN 'Valid' 
          ELSE 'Invalid' 
     END AS Status
-FROM #os.files('./', '*.bin') f
+FROM os.files('./', '*.bin') f
 OUTER APPLY TryInterpret(f.GetBytes(), Header) h
 ```
 
@@ -1347,7 +1347,7 @@ Begin parsing at specified byte offset:
 SELECT 
     h.Magic,
     d.RecordCount
-FROM #os.file('/complex.bin') f
+FROM os.file('/complex.bin') f
 CROSS APPLY Interpret(f.GetBytes(), Header) h
 CROSS APPLY InterpretAt(f.GetBytes(), h.DataOffset, DataSection) d
 ```
@@ -1365,7 +1365,7 @@ binary RecordFile {
 }
 
 SELECT r.Id, r.Value
-FROM #os.file('/records.bin') f
+FROM os.file('/records.bin') f
 CROSS APPLY Interpret(f.GetBytes(), RecordFile) file
 CROSS APPLY file.Records r
 ```
@@ -1375,10 +1375,10 @@ CROSS APPLY file.Records r
 ```sql
 WITH RecordOffsets AS (
     SELECT n.Value * 64 AS Offset
-    FROM #range.numbers(0, 100) n
+    FROM range.numbers(0, 100) n
 )
 SELECT r.Id, r.Value
-FROM #os.file('/records.bin') f
+FROM os.file('/records.bin') f
 CROSS JOIN RecordOffsets o
 CROSS APPLY InterpretAt(f.GetBytes(), o.Offset, Record) r
 WHERE o.Offset < Length(f.GetBytes())
@@ -1603,7 +1603,7 @@ SELECT
     p.ErrorField,
     p.ErrorMessage,
     p.BytesConsumed
-FROM #os.file('/corrupted.bin') f
+FROM os.file('/corrupted.bin') f
 CROSS APPLY PartialInterpret(f.GetBytes(), Header) p
 ```
 
@@ -1971,7 +1971,7 @@ SELECT
     ihdr.Height,
     ihdr.BitDepth,
     ihdr.ColorType
-FROM #os.files('./', '*.png') f
+FROM os.files('./', '*.png') f
 CROSS APPLY Interpret(f.GetBytes(), PngSignature) sig
 CROSS APPLY InterpretAt(f.GetBytes(), 8, PngChunk) chunk
 CROSS APPLY Interpret(chunk.Data, IhdrData) ihdr
@@ -2009,7 +2009,7 @@ SELECT
     log.Path,
     Count(*) AS ErrorCount,
     Max(log.Timestamp) AS LastSeen
-FROM #os.file('/var/log/apache2/access.log') f
+FROM os.file('/var/log/apache2/access.log') f
 CROSS APPLY Lines(f.GetContent()) line
 CROSS APPLY Parse(line.Value, ApacheLog) log
 WHERE log.Status = '404'
@@ -2049,7 +2049,7 @@ SELECT
         WHEN 0x02 THEN ToString(Interpret(frame.Payload, TelemetryPayload).SensorId)
         ELSE 'Unknown'
     END AS Identifier
-FROM #os.file('/capture.bin') f
+FROM os.file('/capture.bin') f
 CROSS APPLY InterpretAt(f.GetBytes(), 0, MessageFrame) frame
 WHERE frame.MsgType IN (0x01, 0x02)
 ```
@@ -2076,7 +2076,7 @@ SELECT
     Concat(r.AddressLine1, ', ', r.City, ', ', r.State, ' ', r.ZipCode) AS Address,
     ToDecimal(r.Balance) / 100.0 AS Balance,
     ParseDate(r.LastUpdate, 'yyyyMMdd') AS LastUpdated
-FROM #os.file('/mainframe/CUSTMAST.DAT') f
+FROM os.file('/mainframe/CUSTMAST.DAT') f
 CROSS APPLY Lines(f.GetContent()) line
 CROSS APPLY Parse(line.Value, CobolCustomerRecord) r
 WHERE r.StatusCode = 'A'
@@ -2126,7 +2126,7 @@ SELECT
         WHEN 3 THEN 'Nested: ' + ToString(r.NestedCount) + ' items'
         ELSE 'Unknown record type'
     END AS Content
-FROM #os.file('/data/storage.dat') f
+FROM os.file('/data/storage.dat') f
 CROSS APPLY Interpret(f.GetBytes(), StorageHeader) h
 CROSS APPLY InterpretAt(f.GetBytes(), h.DataOffset, StorageRecord) r
 ```

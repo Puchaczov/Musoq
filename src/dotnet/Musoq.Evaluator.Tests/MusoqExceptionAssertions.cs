@@ -117,7 +117,7 @@ internal static class MusoqExceptionAssertions
         DiagnosticCode expectedCode,
         DiagnosticPhase expectedPhase)
     {
-        Assert.AreEqual(1, exception.Envelopes.Count,
+        Assert.HasCount(1, exception.Envelopes,
             $"Expected exactly 1 error but got {exception.Envelopes.Count}: [{string.Join(", ", exception.Envelopes.Select(e => $"{e.Code}: {e.Message}"))}]");
 
         AssertErrorEnvelope(exception, expectedCode, expectedPhase);
@@ -133,7 +133,7 @@ internal static class MusoqExceptionAssertions
         DiagnosticPhase expectedPhase,
         string expectedMessageSubstring)
     {
-        Assert.AreEqual(1, exception.Envelopes.Count,
+        Assert.HasCount(1, exception.Envelopes,
             $"Expected exactly 1 error but got {exception.Envelopes.Count}: [{string.Join(", ", exception.Envelopes.Select(e => $"{e.Code}: {e.Message}"))}]");
 
         AssertErrorEnvelope(exception, expectedCode, expectedPhase, expectedMessageSubstring);
@@ -149,7 +149,7 @@ internal static class MusoqExceptionAssertions
     {
         var actualCodes = exception.Envelopes.Select(e => e.Code).ToArray();
 
-        Assert.AreEqual(expectedCodes.Length, actualCodes.Length,
+        Assert.HasCount(expectedCodes.Length, actualCodes,
             $"Expected {expectedCodes.Length} error(s) [{string.Join(", ", expectedCodes)}] but got {actualCodes.Length}: [{string.Join(", ", exception.Envelopes.Select(e => $"{e.Code}: {e.Message}"))}]");
 
         for (var i = 0; i < expectedCodes.Length; i++)
@@ -166,7 +166,7 @@ internal static class MusoqExceptionAssertions
         DiagnosticCode expectedCode)
     {
         Assert.IsFalse(result.Succeeded, "Expected build to fail");
-        Assert.AreEqual(1, result.Errors.Count,
+        Assert.HasCount(1, result.Errors,
             $"Expected exactly 1 error but got {result.Errors.Count}: [{string.Join(", ", result.Errors.Select(e => $"{e.Code}: {e.Message}"))}]");
         Assert.AreEqual(expectedCode, result.Errors[0].Code,
             $"Expected error code {expectedCode} but got {result.Errors[0].Code}. Message: {result.Errors[0].Message}");
@@ -184,7 +184,7 @@ internal static class MusoqExceptionAssertions
 
         var actualCodes = result.Errors.Select(e => e.Code).ToArray();
 
-        Assert.AreEqual(expectedCodes.Length, actualCodes.Length,
+        Assert.HasCount(expectedCodes.Length, actualCodes,
             $"Expected {expectedCodes.Length} error(s) [{string.Join(", ", expectedCodes)}] but got {actualCodes.Length}: [{string.Join(", ", result.Errors.Select(e => $"{e.Code}: {e.Message}"))}]");
 
         for (var i = 0; i < expectedCodes.Length; i++)

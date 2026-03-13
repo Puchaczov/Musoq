@@ -28,6 +28,9 @@ public class GenericSchema<TLibrary>(
         if (!tables.TryGetValue(name, out var table))
             throw new NotSupportedException($"Table {name} is not supported.");
 
+        if (filterRowsSource == null)
+            return table.RowSource;
+
         if (filterRowsSource.TryGetValue(name, out var filter))
             return filter?.Invoke(parameters, table.RowSource) ?? table.RowSource;
 

@@ -183,12 +183,13 @@ public static class ErrorMetadataCatalog
         [DiagnosticCode.MQ3022_MissingAlias] = new(
             DiagnosticCode.MQ3022_MissingAlias,
             DiagnosticPhase.Bind,
-            "Musoq requires aliases for all FROM sources and projected expressions.",
+            "In multi-source queries, method calls must be qualified with a source alias so Musoq can choose which schema library implementation to invoke.",
             [
-                "Add an alias after the source: FROM #schema.method() myAlias",
-                "Add AS alias to expressions: SELECT expr AS name"
+                "Prefix the method with the owning source alias, for example: a.ToDecimal(a.Id) or b.Sum(b.Amount)",
+                "For aggregates, remember that the alias chooses the schema library implementation, not the input column source",
+                "If the aggregate is already aliased in SELECT, prefer that projection alias in ORDER BY instead of repeating the aggregate expression"
             ],
-            "Core Spec §Statement Structure / Aliasing"),
+            "Core Spec §JOIN Clause / Function Calls in Multi-Source Queries and §GROUP BY and Aggregation"),
 
         [DiagnosticCode.MQ3021_DuplicateAlias] = new(
             DiagnosticCode.MQ3021_DuplicateAlias,
@@ -236,6 +237,27 @@ public static class ErrorMetadataCatalog
                 "Use TryParse in OUTER APPLY if parsing may fail."
             ],
             "Binary/Text Spec §Usage"),
+
+        [DiagnosticCode.MQ3034_AmbiguousAggregateOwner] = new(
+            DiagnosticCode.MQ3034_AmbiguousAggregateOwner,
+            DiagnosticPhase.Bind,
+            "An unqualified aggregate call matched multiple source aliases, but those aliases resolve to different aggregate implementations.",
+            [
+                "Prefix the aggregate with the intended source alias, for example: first.Sum(...) or second.Sum(...)",
+                "Choose the alias whose schema library should own the aggregate implementation",
+                "If the aggregate appears in ORDER BY, alias it in SELECT first and order by that projection alias"
+            ],
+            "Core Spec §JOIN Clause / Function Calls in Multi-Source Queries and §GROUP BY and Aggregation"),
+
+        [DiagnosticCode.MQ3035_AmbiguousMethodOwner] = new(
+            DiagnosticCode.MQ3035_AmbiguousMethodOwner,
+            DiagnosticPhase.Bind,
+            "An unqualified method call matched multiple source aliases, but those aliases resolve to different method implementations.",
+            [
+                "Prefix the method with the intended source alias, for example: first.MyMethod(...) or second.MyMethod(...)",
+                "Choose the alias whose schema library should own the method implementation"
+            ],
+            "Core Spec §JOIN Clause / Function Calls in Multi-Source Queries"),
 
         [DiagnosticCode.MQ3005_TypeMismatch] = new(
             DiagnosticCode.MQ3005_TypeMismatch,
@@ -325,8 +347,11 @@ public static class ErrorMetadataCatalog
         [DiagnosticCode.MQ3031_SetOperatorMissingKeys] = new(
             DiagnosticCode.MQ3031_SetOperatorMissingKeys,
             DiagnosticPhase.Bind,
-            "Set operators require key columns to determine how to combine rows.",
-            ["Specify key columns for the set operator."],
+            "Musoq set operators do not infer row identity from the full projection. You must supply an explicit key-column list immediately after UNION, UNION ALL, EXCEPT, or INTERSECT.",
+            [
+                "Rewrite the query as UNION (<key_columns>), UNION ALL (<key_columns>), EXCEPT (<key_columns>), or INTERSECT (<key_columns>).",
+                "Choose key columns that identify the rows Musoq should deduplicate, subtract, or match across both queries."
+            ],
             "Core Spec §Set Operators"),
 
         [DiagnosticCode.MQ3023_TableNotDefined] = new(

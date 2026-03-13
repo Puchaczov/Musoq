@@ -1144,7 +1144,7 @@ select Name from #A.Entities() where Name = '005'";
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "Union");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "UNION");
         AssertHasGuidance(ex);
     }
 
@@ -1159,7 +1159,7 @@ select Name from #A.Entities() where Name = '005'";
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "UnionAll");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "UNION ALL");
         AssertHasGuidance(ex);
     }
 
@@ -1174,7 +1174,7 @@ select Name from #A.Entities() where Name = '005'";
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "Except");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "EXCEPT");
         AssertHasGuidance(ex);
     }
 
@@ -1189,7 +1189,7 @@ select Name from #A.Entities() where Name = '005'";
 
         var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "Intersect");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "INTERSECT");
         AssertHasGuidance(ex);
     }
 }

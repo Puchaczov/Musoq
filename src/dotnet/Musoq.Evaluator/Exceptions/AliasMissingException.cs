@@ -11,12 +11,16 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class AliasMissingException : Exception, IDiagnosticException
 {
+    public static string CreateMethodCallMessage(string methodCall)
+    {
+        return $"Method call '{methodCall}' must be qualified with a source alias when more than one schema is used. Prefix it with the alias that owns the method implementation, for example 'a.{methodCall}' or 'b.{methodCall}'. For aggregates, the alias chooses the schema library implementation. If the expression is already aliased in SELECT, prefer that alias in ORDER BY instead of repeating the aggregate.";
+    }
+
     /// <summary>
     ///     Initializes a new instance with node.
     /// </summary>
     public AliasMissingException(AccessMethodNode node)
-        : base(
-            $"Alias must be provided for method call when more than one schema is used. Problem occurred in method {node}")
+        : base(CreateMethodCallMessage(node.ToString()))
     {
         Code = DiagnosticCode.MQ3022_MissingAlias;
     }

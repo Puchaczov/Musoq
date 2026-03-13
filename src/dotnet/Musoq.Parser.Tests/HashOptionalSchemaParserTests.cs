@@ -351,6 +351,8 @@ public class HashOptionalSchemaParserTests
     #region LEFT/RIGHT OUTER JOIN
 
     [TestMethod]
+    [DataRow("select a.Col from schemaA.methodA() a left join schemaB.methodB() b on a.Id = b.Id")]
+    [DataRow("select a.Col from schemaA.methodA() a right join schemaB.methodB() b on a.Id = b.Id")]
     [DataRow("select a.Col from schemaA.methodA() a left outer join schemaB.methodB() b on a.Id = b.Id")]
     [DataRow("select a.Col from schemaA.methodA() a right outer join schemaB.methodB() b on a.Id = b.Id")]
     public void HashOptional_OuterJoin_ShouldParse(string query)
@@ -365,6 +367,16 @@ public class HashOptionalSchemaParserTests
     public void HashOptional_LeftOuterJoinMixedWithHash_ShouldParse()
     {
         var query = "select a.Col from #schemaA.methodA() a left outer join schemaB.methodB() b on a.Id = b.Id";
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void HashOptional_LeftJoinMixedWithHash_ShouldParse()
+    {
+        var query = "select a.Col from #schemaA.methodA() a left join schemaB.methodB() b on a.Id = b.Id";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();

@@ -51,7 +51,7 @@ This specification covers:
 |------|------------|
 | **Table Definition** | A named structure with typed columns created by the TABLE statement |
 | **Coupled Alias** | A named reference to a schema method bound via COUPLE that can be used as a data source |
-| **Schema Method** | A method exposed by a schema provider (e.g., `#A.Entities`, `#csv.file('/path')`) |
+| **Schema Method** | A method exposed by a schema provider (e.g., `A.Entities`, `csv.file('/path')`) |
 | **Dynamic Row Source** | A data source that returns rows with unknown or object-typed columns at query definition time |
 
 ---
@@ -176,7 +176,7 @@ Date: datetimeoffset?  -- Explicitly nullable DateTimeOffset
 ```ebnf
 couple_statement ::= COUPLE schema_source WITH TABLE table_name AS alias_name
 
-schema_source ::= ['#'] schema_name '.' method_name
+schema_source ::= schema_name '.' method_name
 
 schema_name ::= identifier
 
@@ -190,7 +190,7 @@ alias_name ::= identifier
 ### 4.2 Structure
 
 ```sql
-couple #Schema.Method with table TableName as AliasName;
+couple Schema.Method with table TableName as AliasName;
 ```
 
 **Components:**
@@ -198,7 +198,7 @@ couple #Schema.Method with table TableName as AliasName;
 | Component | Description |
 |-----------|-------------|
 | `couple` | Keyword initiating the binding |
-| `#Schema.Method` | Schema method reference (hash prefix optional) |
+| `Schema.Method` | Schema method reference |
 | `with table` | Keywords linking to the table definition |
 | `TableName` | Name of a previously defined TABLE |
 | `as` | Keyword introducing the alias |
@@ -207,11 +207,9 @@ couple #Schema.Method with table TableName as AliasName;
 
 ### 4.3 Schema Method Reference
 
-The schema method can be specified with or without the `#` prefix:
+The schema method is specified as `Schema.Method`:
 
 ```sql
--- Both are equivalent
-couple #A.Entities with table MyTable as Source;
 couple A.Entities with table MyTable as Source;
 ```
 
@@ -239,7 +237,7 @@ select * from AliasName(true, 'filter', 123)
 select a.Column1 from AliasName() a
 
 -- Can be used with CTE results as arguments
-with Data as (select * from #other.source())
+with Data as (select * from other.source())
 select * from AliasName(Data)
 ```
 
@@ -256,7 +254,7 @@ table Items {
     Name: string,
     Price: decimal
 };
-couple #store.products with table Items as Products;
+couple store.products with table Items as Products;
 select Name, Price from Products();
 ```
 
@@ -274,8 +272,8 @@ table OrderTable {
     CustomerId: int,
     Amount: decimal
 };
-couple #data.customers with table CustomerTable as Customers;
-couple #data.orders with table OrderTable as Orders;
+couple data.customers with table CustomerTable as Customers;
+couple data.orders with table OrderTable as Orders;
 
 select c.Name, o.Amount 
 from Customers() c 
@@ -290,7 +288,7 @@ Pass arguments to the coupled alias:
 table FilteredData {
     Value: string
 };
-couple #source.method with table FilteredData as Data;
+couple source.method with table FilteredData as Data;
 select Value from Data(true, 'filter-pattern');
 ```
 
@@ -303,7 +301,7 @@ table TypedRow {
     Id: int,
     Name: string
 };
-couple #A.Entities with table TypedRow as TypedSource;
+couple A.Entities with table TypedRow as TypedSource;
 
 with FilteredData as (
     select Id, Name from TypedSource() where Id > 10
@@ -319,10 +317,10 @@ Use CTE results as input to a coupled source:
 table OutputSchema {
     Text: string
 };
-couple #processor.transform with table OutputSchema as Transformer;
+couple processor.transform with table OutputSchema as Transformer;
 
 with InputData as (
-    select Value from #input.source()
+    select Value from input.source()
 )
 select Text from Transformer(InputData);
 ```
@@ -413,9 +411,9 @@ table Example {
 | **TypeNotFoundException** | Unrecognized type name | `table T { Name: banana }` |
 | **Invalid Schema Definition** | Empty table or structural issues | `table Empty {}` |
 | **Duplicate Column Names** | Same column name used twice | `table T { Name: string, Name: int }` |
-| **Undefined Table Reference** | COUPLE references non-existent TABLE | `couple #A.X with table Unknown as Y` |
+| **Undefined Table Reference** | COUPLE references non-existent TABLE | `couple A.X with table Unknown as Y` |
 | **Undefined Alias** | Query references uncoupled alias | `select * from NonExistent()` |
-| **Constructor Not Found** | Internal adapter type generated for a schema source does not expose the expected constructor | `couple #separatedvalues.comma with table CsvRow as Csv` |
+| **Constructor Not Found** | Internal adapter type generated for a schema source does not expose the expected constructor | `couple separatedvalues.comma with table CsvRow as Csv` |
 
 ### 7.3 Runtime Adapter Diagnostics
 
@@ -495,7 +493,7 @@ table_alias ::= identifier
 table DummyTable {
     Name: string
 };
-couple #A.Entities with table DummyTable as SourceOfDummyRows;
+couple A.Entities with table DummyTable as SourceOfDummyRows;
 select Name from SourceOfDummyRows();
 ```
 
@@ -506,7 +504,7 @@ table DataTable {
     Country: string,
     Population: decimal
 };
-couple #data.countries with table DataTable as Countries;
+couple data.countries with table DataTable as Countries;
 select Country, Population from Countries() where Population > 100;
 ```
 
@@ -520,8 +518,8 @@ table FirstTable {
 table SecondTable {
     Name: string
 };
-couple #A.Entities with table FirstTable as Source1;
-couple #B.Entities with table SecondTable as Source2;
+couple A.Entities with table FirstTable as Source1;
+couple B.Entities with table SecondTable as Source2;
 
 select s1.Country, s2.Name 
 from Source1() s1 
@@ -535,7 +533,7 @@ table Parameters {
     Parameter0: bool,
     Parameter1: string
 };
-couple #config.reader with table Parameters as Config;
+couple config.reader with table Parameters as Config;
 select Parameter0, Parameter1 from Config(true, 'test');
 ```
 
@@ -564,7 +562,7 @@ table AllTypes {
     GuidCol: guid,
     ObjectCol: object
 };
-couple #data.source with table AllTypes as TypedData;
+couple data.source with table AllTypes as TypedData;
 select * from TypedData();
 ```
 
@@ -576,7 +574,7 @@ table NullableExample {
     Name: string,
     IsActive: bool?,
 };
-couple #dynamic.source with table NullableExample as Data;
+couple dynamic.source with table NullableExample as Data;
 select Id, Name, IsActive from Data();
 ```
 
@@ -591,7 +589,7 @@ TABLE/COUPLE definitions MUST appear before CTEs:
 ```sql
 -- Correct order
 table TypedRow { Id: int, Name: string };
-couple #A.Entities with table TypedRow as TypedSource;
+couple A.Entities with table TypedRow as TypedSource;
 
 with FilteredData as (
     select Id, Name from TypedSource()
@@ -606,8 +604,8 @@ Coupled aliases can be used with all JOIN types:
 ```sql
 table T1 { Key: string, Value1: int };
 table T2 { Key: string, Value2: int };
-couple #data.left with table T1 as Left;
-couple #data.right with table T2 as Right;
+couple data.left with table T1 as Left;
+couple data.right with table T2 as Right;
 
 -- INNER JOIN
 select l.Value1, r.Value2 
@@ -627,8 +625,8 @@ Coupled aliases can be used with CROSS APPLY and OUTER APPLY:
 ```sql
 table Container { Items: object };
 table Item { Name: string, Price: decimal };
-couple #data.containers with table Container as Containers;
-couple #data.items with table Item as Items;
+couple data.containers with table Container as Containers;
+couple data.items with table Item as Items;
 
 select c.*, i.Name, i.Price
 from Containers() c
@@ -641,7 +639,7 @@ Standard aggregation functions work with coupled sources:
 
 ```sql
 table Sales { Product: string, Amount: decimal };
-couple #data.sales with table Sales as SalesData;
+couple data.sales with table Sales as SalesData;
 
 select Product, Sum(Amount) as Total
 from SalesData()
@@ -656,8 +654,8 @@ Coupled aliases can be used in UNION, EXCEPT, and INTERSECT:
 
 ```sql
 table Record { Id: int, Name: string };
-couple #source.a with table Record as SourceA;
-couple #source.b with table Record as SourceB;
+couple source.a with table Record as SourceA;
+couple source.b with table Record as SourceB;
 
 select Id, Name from SourceA()
 union (Id)
@@ -678,8 +676,8 @@ Within a query batch, statements must follow this order:
 table T1 { Col1: string };           -- 1. TABLE
 table T2 { Col2: int };              -- 1. TABLE
 
-couple #A.X with table T1 as X;     -- 2. COUPLE
-couple #B.Y with table T2 as Y;     -- 2. COUPLE
+couple A.X with table T1 as X;     -- 2. COUPLE
+couple B.Y with table T2 as Y;     -- 2. COUPLE
 
 with CTE as (                       -- 3. CTE
     select * from X()

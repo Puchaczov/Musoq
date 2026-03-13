@@ -20,6 +20,7 @@ public class AliasAlreadyUsedException : Exception, IDiagnosticException
     {
         Alias = alias;
         Code = DiagnosticCode.MQ3021_DuplicateAlias;
+        Span = node.HasSpan ? node.Span : null;
     }
 
     /// <summary>

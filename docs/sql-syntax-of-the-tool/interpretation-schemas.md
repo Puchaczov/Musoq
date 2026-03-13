@@ -136,7 +136,7 @@ INTERPRET binary BmpHeader {
 SELECT 
     h.FileSize,
     h.DataOffset
-FROM #os.file('image.bmp') f
+FROM os.file('image.bmp') f
 CROSS APPLY Interpret(f.GetBytes(), BmpHeader) h
 ```
 
@@ -157,7 +157,7 @@ SELECT
     r.Name,
     r.Age,
     r.Email
-FROM #csv.lines('data.csv') l
+FROM csv.lines('data.csv') l
 CROSS APPLY Parse(l.Line, CsvRow) r
 ```
 
@@ -168,7 +168,7 @@ Read at a specific offset:
 ```sql
 SELECT 
     h.Magic
-FROM #os.file('data.bin') f
+FROM os.file('data.bin') f
 CROSS APPLY InterpretAt(f.GetBytes(), 100, Header) h
 ```
 
@@ -225,7 +225,7 @@ SELECT
     z.CompressedSize,
     z.UncompressedSize,
     z.CompressionMethod
-FROM #os.file('archive.zip') f
+FROM os.file('archive.zip') f
 CROSS APPLY Interpret(f.GetBytes(), ZipLocalHeader) z
 WHERE z.Signature = 0x04034B50  -- PK\x03\x04
 ```
@@ -253,7 +253,7 @@ SELECT
     a.Method,
     a.Path,
     a.StatusCode
-FROM #text.lines('/var/log/apache/access.log') l
+FROM text.lines('/var/log/apache/access.log') l
 CROSS APPLY Parse(l.Line, ApacheLogEntry) a
 WHERE a.StatusCode = '404'
 ```

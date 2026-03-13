@@ -703,7 +703,7 @@ public class DiagnosticTests
         Assert.AreEqual(DiagnosticCode.MQ3001_UnknownColumn, metadata!.Code);
         Assert.AreEqual(DiagnosticPhase.Bind, metadata.Phase);
         Assert.IsFalse(string.IsNullOrEmpty(metadata.Explanation));
-        Assert.IsTrue(metadata.SuggestedFixes.Length > 0);
+        Assert.IsNotEmpty(metadata.SuggestedFixes);
         Assert.IsFalse(string.IsNullOrEmpty(metadata.DocsReference));
     }
 
@@ -805,7 +805,7 @@ public class DiagnosticTests
         Assert.AreEqual(1, envelope.Line);
         Assert.AreEqual(8, envelope.Column);
         Assert.IsNotNull(envelope.Explanation);
-        Assert.IsTrue(envelope.SuggestedFixes.Count > 0);
+        Assert.IsNotEmpty(envelope.SuggestedFixes);
         Assert.IsNotNull(envelope.DocsReference);
     }
 

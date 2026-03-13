@@ -19,7 +19,7 @@ ai Receipt {
 }
 
 SELECT r.StoreName, r.Total, r.Currency
-FROM #os.files('./receipts', true) f
+FROM os.files('./receipts', true) f
 CROSS APPLY Infer(f.Base64File(), Receipt) r
 ORDER BY r.Total DESC
 ```
@@ -38,12 +38,12 @@ This query extracts structured data from every receipt image in a folder. The `a
 -- Cross-reference AI-extracted invoices with a bank statement CSV
 with Invoices as (
     SELECT inv.Vendor.Name, inv.Total, inv.InvoiceDate
-    FROM #os.files('./invoices') f
+    FROM os.files('./invoices') f
     CROSS APPLY Infer(f.Base64File(), Invoice) inv
 ),
 Payments as (
     SELECT ToDecimal(Amount) as Amount, Description
-    FROM #separatedvalues.comma('./bank.csv', true, 0)
+    FROM separatedvalues.comma('./bank.csv', true, 0)
 )
 SELECT i.Name, i.Total, p.Amount
 FROM Invoices i
@@ -261,7 +261,7 @@ ai Receipt {
 }
 
 SELECT r.StoreName, r.Total
-FROM #os.files('./receipts', true) f
+FROM os.files('./receipts', true) f
 CROSS APPLY Infer(f.Base64File(), Receipt) r
 ```
 
@@ -894,7 +894,7 @@ Returns `null` instead of throwing on extraction failure.
 
 ```sql
 SELECT r.StoreName, r.Total
-FROM #os.files('./receipts') f
+FROM os.files('./receipts') f
 CROSS APPLY Infer(f.GetFileContent(), Receipt) r
 ```
 
@@ -902,7 +902,7 @@ CROSS APPLY Infer(f.GetFileContent(), Receipt) r
 
 ```sql
 SELECT r.StoreName, r.Total
-FROM #os.files('./scanned-receipts', true) f
+FROM os.files('./scanned-receipts', true) f
 CROSS APPLY Infer(f.Base64File(), Receipt) r
 WHERE f.Extension IN ('.jpg', '.png', '.pdf')
 ```
@@ -911,7 +911,7 @@ WHERE f.Extension IN ('.jpg', '.png', '.pdf')
 
 ```sql
 SELECT r.StoreName, r.Total
-FROM #os.files('./invoices') f
+FROM os.files('./invoices') f
 CROSS APPLY Infer(
     f.GetFileContent(), 
     Invoice, 
@@ -925,7 +925,7 @@ CROSS APPLY Infer(
 SELECT 
     f.Name,
     CASE WHEN r IS NOT NULL THEN r.Total ELSE NULL END as Total
-FROM #os.files('./mixed-documents') f
+FROM os.files('./mixed-documents') f
 OUTER APPLY TryInfer(f.GetFileContent(), Receipt) r
 ```
 
@@ -938,7 +938,7 @@ SELECT
     li.Description,
     li.Quantity,
     li.Amount
-FROM #os.files('./invoices') f
+FROM os.files('./invoices') f
 CROSS APPLY Infer(f.Base64File(), Invoice) inv
 CROSS APPLY inv.LineItems li
 WHERE inv.TotalAmount > 1000
@@ -1066,7 +1066,7 @@ SELECT
     f.Name,
     cl.DocumentType,
     cl.Language
-FROM #os.files('./documents', true) f
+FROM os.files('./documents', true) f
 CROSS APPLY Interpret(f.GetBytes(), PdfHeader) header
 CROSS APPLY Infer(f.GetFileContent(), DocumentClassification) cl
 WHERE cl.DocumentType = 'invoice'
@@ -1131,7 +1131,7 @@ SELECT
     p.ExtractedFields,
     p.ValidationErrors,
     p.RawResponse
-FROM #os.file('./problematic-invoice.pdf') f
+FROM os.file('./problematic-invoice.pdf') f
 CROSS APPLY PartialInfer(f.Base64File(), Invoice) p
 ```
 
@@ -1816,7 +1816,7 @@ SELECT
     inv.InvoiceDate,
     inv.Total,
     inv.Currency
-FROM #os.files('./invoices', true) f
+FROM os.files('./invoices', true) f
 CROSS APPLY Infer(f.Base64File(), Invoice) inv
 WHERE f.Extension IN ('.pdf', '.jpg', '.png')
 ORDER BY inv.InvoiceDate DESC
@@ -1832,7 +1832,7 @@ SELECT
     li.Quantity,
     li.UnitPrice,
     li.Amount
-FROM #os.files('./invoices', true) f
+FROM os.files('./invoices', true) f
 CROSS APPLY Infer(f.Base64File(), Invoice) inv
 CROSS APPLY inv.LineItems li
 WHERE li.Amount > 100
@@ -1850,7 +1850,7 @@ table BankTransaction {
     Amount string,
     Balance string
 };
-couple #separatedvalues.comma with table BankTransaction as Transactions;
+couple separatedvalues.comma with table BankTransaction as Transactions;
 
 with Invoices as (
     SELECT 
@@ -1858,7 +1858,7 @@ with Invoices as (
         inv.Total,
         inv.InvoiceDate,
         inv.InvoiceNumber
-    FROM #os.files('./invoices', true) f
+    FROM os.files('./invoices', true) f
     CROSS APPLY Infer(f.Base64File(), Invoice) inv
 ),
 BankData as (
@@ -1919,7 +1919,7 @@ SELECT
     r.Date,
     r.Total,
     r.PaymentMethod
-FROM #os.files('~/receipts/2025', true) f
+FROM os.files('~/receipts/2025', true) f
 CROSS APPLY Infer(f.Base64File(), Receipt) r
 WHERE f.Extension IN ('.jpg', '.png')
 ORDER BY r.Date DESC
@@ -1962,7 +1962,7 @@ SELECT
     cl.Component,
     cl.UserImpact,
     cl.Action
-FROM #os.file('/var/log/syslog') f
+FROM os.file('/var/log/syslog') f
 CROSS APPLY Lines(f.GetContent()) line
 CROSS APPLY Parse(line.Value, SyslogLine) log
 CROSS APPLY Infer(log.Message, LogClassification) cl
@@ -2013,7 +2013,7 @@ SELECT
     bm.IsActive,
     bm.MigrationRisk,
     bm.RiskReason
-FROM #os.file('/mainframe/ACCTMAST.DAT') f
+FROM os.file('/mainframe/ACCTMAST.DAT') f
 CROSS APPLY Lines(f.GetContent()) line
 CROSS APPLY Parse(line.Value, CobolRecord) r
 CROSS APPLY Infer(
@@ -2066,7 +2066,7 @@ SELECT
     smell.Severity,
     smell.Description,
     sec.OverallRisk
-FROM #csharp.solution('./MyProject.sln') s
+FROM csharp.solution('./MyProject.sln') s
 CROSS APPLY s.Projects p
 CROSS APPLY p.Documents d
 CROSS APPLY d.Classes c
@@ -2125,7 +2125,7 @@ with Descriptions as (
         desc.Description,
         desc.ContainsText,
         desc.VisibleText
-    FROM #os.files('./incoming-documents', true) f
+    FROM os.files('./incoming-documents', true) f
     CROSS APPLY Infer(f.Base64File(), ImageDescription) desc
     WHERE f.Extension IN ('.jpg', '.png', '.pdf')
 )

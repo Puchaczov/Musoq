@@ -95,14 +95,14 @@ public sealed class MusoqErrorEnvelope
         var fixes = BuildSuggestedFixes(diagnostic, metadata);
 
         string? snippet = diagnostic.ContextSnippet;
-        if (snippet == null && queryText != null && diagnostic.Location.IsValid)
+        if (snippet == null && queryText != null && diagnostic.Location.IsValid && !IsEmptySpanAtOrigin(diagnostic))
         {
             var sourceText = new SourceText(queryText);
             snippet = sourceText.GetContextSnippet(diagnostic.Span);
         }
 
-        int? line = diagnostic.Location.IsValid ? diagnostic.Location.Line : null;
-        int? column = diagnostic.Location.IsValid ? diagnostic.Location.Column : null;
+        int? line = diagnostic.Location.IsValid && !IsEmptySpanAtOrigin(diagnostic) ? diagnostic.Location.Line : null;
+        int? column = diagnostic.Location.IsValid && !IsEmptySpanAtOrigin(diagnostic) ? diagnostic.Location.Column : null;
         var spanLength = diagnostic.Span.Length;
         int? length = spanLength > 0 ? spanLength : null;
 
@@ -158,5 +158,10 @@ public sealed class MusoqErrorEnvelope
             fixes.AddRange(metadata.SuggestedFixes);
 
         return fixes.ToArray();
+    }
+
+    private static bool IsEmptySpanAtOrigin(Diagnostic diagnostic)
+    {
+        return diagnostic.Location.Offset == 0 && diagnostic.Span.Length == 0;
     }
 }

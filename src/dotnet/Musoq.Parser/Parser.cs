@@ -934,7 +934,7 @@ public class Parser
     private FieldNode ConsumeField(int order)
     {
         var fieldExpression = ComposeOperations();
-        var alias = ComposeAlias();
+        var (alias, _) = ComposeAlias();
         return new FieldNode(fieldExpression, order, alias);
     }
 
@@ -945,24 +945,26 @@ public class Parser
         return new FieldOrderedNode(fieldExpression, level, string.Empty, order);
     }
 
-    private string ComposeAlias()
+    private (string Alias, TextSpan Span) ComposeAlias()
     {
         switch (Current.TokenType)
         {
             case TokenType.As:
                 Consume(TokenType.As);
-                var name = Current.Value;
+                var token = Current;
                 Consume(Current.TokenType);
-                return name;
+                return (token.Value, token.Span);
             case TokenType.Word:
-                return ConsumeAndGetToken(TokenType.Word).Value;
+                var wordToken = ConsumeAndGetToken(TokenType.Word);
+                return (wordToken.Value, wordToken.Span);
             case TokenType.Identifier:
                 if (IsLikelyMisspelledClauseKeyword(Current.Value))
-                    return string.Empty;
-                return ConsumeAndGetToken(TokenType.Identifier).Value;
+                    return (string.Empty, default);
+                var idToken = ConsumeAndGetToken(TokenType.Identifier);
+                return (idToken.Value, idToken.Span);
         }
 
-        return string.Empty;
+        return (string.Empty, default);
     }
 
     private static bool IsLikelyMisspelledClauseKeyword(string identifier)
@@ -1165,7 +1167,7 @@ public class Parser
             var sourceAlias = Current.Value;
             var schemaName = EnsureHashPrefix(sourceAlias);
             var accessMethod = ComposeAccessMethod(sourceAlias);
-            var alias = ComposeAlias();
+            var (alias, _) = ComposeAlias();
 
             return new SchemaMethodFromNode(alias, schemaName, accessMethod.Name);
         }
@@ -1173,7 +1175,7 @@ public class Parser
         var schemaNode = ComposeSchemaName();
         ConsumeAsColumn(TokenType.Dot);
         var identifier = (IdentifierNode)ComposeBaseTypes();
-        var composeAlias = ComposeAlias();
+        var (composeAlias, _) = ComposeAlias();
 
         return new SchemaMethodFromNode(composeAlias, schemaNode, identifier.Name);
     }
@@ -1184,6 +1186,7 @@ public class Parser
             Consume(TokenType.From);
 
         string alias;
+        TextSpan aliasSpan;
         if (Current.TokenType == TokenType.Word)
         {
             var name = ComposeWord();
@@ -1194,16 +1197,19 @@ public class Parser
                 Consume(TokenType.Dot);
                 var accessMethod = ComposeAccessMethod(string.Empty);
 
-                alias = ComposeAlias();
+                (alias, aliasSpan) = ComposeAlias();
 
                 fromNode = new SchemaFromNode(name.Value, accessMethod.Name, accessMethod.Arguments, alias,
                     _fromPosition);
             }
             else
             {
-                alias = ComposeAlias();
+                (alias, aliasSpan) = ComposeAlias();
                 fromNode = new ReferentialFromNode(name.Value, alias);
             }
+
+            if (!aliasSpan.IsEmpty)
+                fromNode.WithSpan(aliasSpan);
 
             if (!string.IsNullOrWhiteSpace(alias))
                 RegisterFromAlias(alias);
@@ -1214,19 +1220,22 @@ public class Parser
         if (Current.TokenType == TokenType.Function)
         {
             var method = ComposeAccessMethod(string.Empty);
-            alias = ComposeAlias();
+            (alias, aliasSpan) = ComposeAlias();
 
             if (!string.IsNullOrWhiteSpace(alias))
                 RegisterFromAlias(alias);
 
-            return new AliasedFromNode(method.Name, method.Arguments, alias, _fromPosition);
+            var fromNode = new AliasedFromNode(method.Name, method.Arguments, alias, _fromPosition);
+            if (!aliasSpan.IsEmpty)
+                fromNode.WithSpan(aliasSpan);
+            return fromNode;
         }
 
         if (Current.TokenType == TokenType.MethodAccess)
         {
             var sourceAlias = Current.Value;
             var accessMethod = ComposeAccessMethod(sourceAlias);
-            alias = ComposeAlias();
+            (alias, aliasSpan) = ComposeAlias();
 
             var isSchemaReference = sourceAlias.StartsWith('#') ||
                                     !isApplyContext ||
@@ -1239,7 +1248,10 @@ public class Parser
                 if (!string.IsNullOrWhiteSpace(alias))
                     RegisterFromAlias(alias);
 
-                return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                var fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                if (!aliasSpan.IsEmpty)
+                    fromNode.WithSpan(aliasSpan);
+                return fromNode;
             }
 
             if (sourceAlias.StartsWith('#'))
@@ -1247,17 +1259,22 @@ public class Parser
                 if (!string.IsNullOrWhiteSpace(alias))
                     RegisterFromAlias(alias);
 
-                return new SchemaFromNode(sourceAlias, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                var fromNode = new SchemaFromNode(sourceAlias, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                if (!aliasSpan.IsEmpty)
+                    fromNode.WithSpan(aliasSpan);
+                return fromNode;
             }
 
             if (string.IsNullOrWhiteSpace(alias))
                 throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
 
-            var fromNode = new AccessMethodFromNode(alias, sourceAlias, accessMethod);
+            var accessFromNode = new AccessMethodFromNode(alias, sourceAlias, accessMethod);
+            if (!aliasSpan.IsEmpty)
+                accessFromNode.WithSpan(aliasSpan);
 
             RegisterFromAlias(alias);
 
-            return fromNode;
+            return accessFromNode;
         }
 
 
@@ -1276,14 +1293,17 @@ public class Parser
             if (Current.TokenType == TokenType.Function)
             {
                 var accessMethod = ComposeAccessMethod(string.Empty);
-                alias = ComposeAlias();
+                (alias, aliasSpan) = ComposeAlias();
 
                 var schemaName = EnsureHashPrefix(columnName);
 
                 if (!string.IsNullOrWhiteSpace(alias))
                     RegisterFromAlias(alias);
 
-                return new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                var fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, alias, _fromPosition);
+                if (!aliasSpan.IsEmpty)
+                    fromNode.WithSpan(aliasSpan);
+                return fromNode;
             }
 
             var properties = new List<string>();
@@ -1310,24 +1330,30 @@ public class Parser
 
             if (anyParsed)
             {
-                alias = ComposeAlias();
+                (alias, aliasSpan) = ComposeAlias();
 
                 if (string.IsNullOrWhiteSpace(alias))
                     throw new NotSupportedException("Alias cannot be empty when parsing From clause.");
 
                 RegisterFromAlias(alias);
-                return new PropertyFromNode(alias, columnName, properties.ToArray());
+                var fromNode = new PropertyFromNode(alias, columnName, properties.ToArray());
+                if (!aliasSpan.IsEmpty)
+                    fromNode.WithSpan(aliasSpan);
+                return fromNode;
             }
 
             throw new NotSupportedException($"Unrecognized token {Current.TokenType} when parsing From clause.");
         }
 
-        alias = ComposeAlias();
+        (alias, aliasSpan) = ComposeAlias();
 
         if (!string.IsNullOrWhiteSpace(alias))
             RegisterFromAlias(alias);
 
-        return new InMemoryTableFromNode(columnName, alias);
+        var inMemoryNode = new InMemoryTableFromNode(columnName, alias);
+        if (!aliasSpan.IsEmpty)
+            inMemoryNode.WithSpan(aliasSpan);
+        return inMemoryNode;
     }
 
     private void ConsumeWhiteSpaces()
@@ -1445,7 +1471,7 @@ public class Parser
         {
             case TokenType.Decimal:
                 var token = ConsumeAndGetToken(TokenType.Decimal);
-                return new DecimalNode(token.Value);
+                return new DecimalNode(token.Value, token.Span);
             case TokenType.Integer:
                 return ComposeInteger();
             case TokenType.HexadecimalInteger:
@@ -1471,7 +1497,7 @@ public class Parser
 
                 Consume(TokenType.Identifier);
 
-                return new IdentifierNode(column.Value);
+                return new IdentifierNode(column.Value, null, column.Span);
             case TokenType.KeyAccess:
                 var keyAccess = (KeyAccessToken)Current;
                 Consume(TokenType.KeyAccess);
@@ -1487,19 +1513,19 @@ public class Parser
                 return ComposeAccessMethod(methodAccess.Alias);
             case TokenType.Property:
                 token = ConsumeAndGetToken(TokenType.Property);
-                return new PropertyValueNode(token.Value);
+                return new PropertyValueNode(token.Value).WithSpan(token.Span);
             case TokenType.AliasedStar:
                 token = ConsumeAndGetToken(TokenType.AliasedStar);
-                return new AllColumnsNode(token.Value.Replace(".*", string.Empty));
+                return new AllColumnsNode(token.Value.Replace(".*", string.Empty)).WithSpan(token.Span);
             case TokenType.Star:
-                Consume(TokenType.Star);
-                return new AllColumnsNode();
+                token = ConsumeAndGetToken(TokenType.Star);
+                return new AllColumnsNode().WithSpan(token.Span);
             case TokenType.True:
-                Consume(TokenType.True);
-                return new BooleanNode(true);
+                token = ConsumeAndGetToken(TokenType.True);
+                return new BooleanNode(true, token.Span);
             case TokenType.False:
-                Consume(TokenType.False);
-                return new BooleanNode(false);
+                token = ConsumeAndGetToken(TokenType.False);
+                return new BooleanNode(false, token.Span);
             case TokenType.LeftParenthesis:
                 return SkipComposeSkip(TokenType.LeftParenthesis, f => f.ComposeOperations(),
                     TokenType.RightParenthesis);
@@ -1511,10 +1537,11 @@ public class Parser
                 var (whenThenNodes, elseNode) = ComposeCase();
                 return new CaseNode(whenThenNodes, elseNode);
             case TokenType.FieldLink:
-                return new FieldLinkNode(ConsumeAndGetToken().Value);
+                token = ConsumeAndGetToken();
+                return new FieldLinkNode(token.Value).WithSpan(token.Span);
             case TokenType.Null:
-                Consume(TokenType.Null);
-                return new NullNode();
+                token = ConsumeAndGetToken(TokenType.Null);
+                return new NullNode(token.Span);
             default:
 
                 if (IsSchemaKeywordToken(Current.TokenType)) return ComposeSchemaTokenAsWord();
@@ -1561,42 +1588,44 @@ public class Parser
     private IntegerNode ComposeInteger()
     {
         var token = (IntegerToken)ConsumeAndGetToken(TokenType.Integer);
-        return new IntegerNode(token.Value, token.Abbreviation);
+        return new IntegerNode(token.Value, token.Abbreviation, token.Span);
     }
 
     private HexIntegerNode ComposeHexInteger()
     {
         var token = (HexIntegerToken)ConsumeAndGetToken(TokenType.HexadecimalInteger);
-        return new HexIntegerNode(token.Value);
+        return new HexIntegerNode(token.Value, token.Span);
     }
 
     private BinaryIntegerNode ComposeBinaryInteger()
     {
         var token = (BinaryIntegerToken)ConsumeAndGetToken(TokenType.BinaryInteger);
-        return new BinaryIntegerNode(token.Value);
+        return new BinaryIntegerNode(token.Value, token.Span);
     }
 
     private OctalIntegerNode ComposeOctalInteger()
     {
         var token = (OctalIntegerToken)ConsumeAndGetToken(TokenType.OctalInteger);
-        return new OctalIntegerNode(token.Value);
+        return new OctalIntegerNode(token.Value, token.Span);
     }
 
     private WordNode ComposeWord()
     {
         var tokenType = Current.TokenType;
-        return tokenType switch
+
+        var token = tokenType switch
         {
-            TokenType.Word => new WordNode(ConsumeAndGetToken(TokenType.Word).Value),
-            TokenType.StringLiteral => new WordNode(ConsumeAndGetToken(TokenType.StringLiteral).Value),
+            TokenType.Word => ConsumeAndGetToken(TokenType.Word),
+            TokenType.StringLiteral => ConsumeAndGetToken(TokenType.StringLiteral),
             _ => throw new NotSupportedException($"Expected Word or StringLiteral but got {tokenType}")
         };
+        return new WordNode(token.Value, token.Span);
     }
 
     private WordNode ComposeSchemaTokenAsWord()
     {
         var token = ConsumeAndGetToken();
-        return new WordNode(token.Value);
+        return new WordNode(token.Value, token.Span);
     }
 
     private static bool IsSchemaKeywordToken(TokenType tokenType)

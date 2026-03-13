@@ -511,7 +511,7 @@ public class MalformedQueryGapTests : NegativeTestsBase
             CompileQuery(
                 "table MyTable { Col: banana }; couple #test.people with table MyTable as Source; select Col from Source()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "Col");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3005_TypeMismatch, DiagnosticPhase.Bind, "banana");
     }
 
     [TestMethod]
@@ -1052,13 +1052,13 @@ public class MalformedQueryGapTests : NegativeTestsBase
     #region Missing alias prefix in multi-table context
 
     [TestMethod]
-    public void WhenFunctionCallWithoutAliasPrefixInJoin_ShouldThrowError()
+    public void WhenFunctionCallWithoutAliasPrefixInJoin_WhenSharedMethod_ShouldAutoResolve()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery(
-                "SELECT ToUpper(Name) FROM #test.people() a INNER JOIN #test.orders() o ON a.Id = o.PersonId"));
+        var vm = CompileQuery(
+            "SELECT ToUpper(Name) FROM #test.people() a INNER JOIN #test.orders() o ON a.Id = o.PersonId");
+        var table = vm.Run(TokenSource.Token);
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3022_MissingAlias, DiagnosticPhase.Bind, "Alias must be provided");
+        Assert.AreEqual(5, table.Count);
     }
 
     [TestMethod]

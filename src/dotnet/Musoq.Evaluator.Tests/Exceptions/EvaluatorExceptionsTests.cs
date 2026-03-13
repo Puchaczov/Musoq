@@ -176,7 +176,8 @@ public class EvaluatorExceptionsTests
 
         // Assert
         Assert.Contains(setOperator, exception.Message);
-        Assert.Contains("keys", exception.Message);
+        Assert.Contains("<key_columns>", exception.Message);
+        Assert.Contains("not supported", exception.Message);
     }
 
     #endregion

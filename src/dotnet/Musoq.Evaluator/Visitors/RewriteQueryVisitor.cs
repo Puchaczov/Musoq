@@ -883,7 +883,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
                     var newArgs = new ArgsListNode(newNodes.ToArray());
                     newRefreshMethods.Add(new AccessMethodNode(method.FunctionToken, newArgs,
-                        method.ExtraAggregateArguments, method.CanSkipInjectSource, method.Method, string.Empty,
+                        method.ExtraAggregateArguments, method.CanSkipInjectSource, method.Method, method.Alias,
                         default, method.IsDistinct));
                 }
 

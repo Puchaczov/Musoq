@@ -243,6 +243,28 @@ public sealed class DiagnosticContext
     }
 
     /// <summary>
+    ///     Reports an ambiguous aggregate owner error.
+    /// </summary>
+    public void ReportAmbiguousAggregateOwner(string methodCall, IEnumerable<string> candidateAliases, Node node)
+    {
+        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        var aliases = string.Join(", ", candidateAliases.Select(alias => $"'{alias}'"));
+        var message = $"Aggregate call '{methodCall}' is ambiguous because multiple source aliases expose different implementations: {aliases}.";
+        ReportError(DiagnosticCode.MQ3034_AmbiguousAggregateOwner, message, span);
+    }
+
+    /// <summary>
+    ///     Reports an ambiguous method owner error.
+    /// </summary>
+    public void ReportAmbiguousMethodOwner(string methodCall, IEnumerable<string> candidateAliases, Node node)
+    {
+        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        var aliases = string.Join(", ", candidateAliases.Select(alias => $"'{alias}'"));
+        var message = $"Method call '{methodCall}' is ambiguous because multiple source aliases expose different implementations: {aliases}.";
+        ReportError(DiagnosticCode.MQ3035_AmbiguousMethodOwner, message, span);
+    }
+
+    /// <summary>
     ///     Reports an invalid argument count.
     /// </summary>
     public void ReportInvalidArgumentCount(string functionName, int expected, int actual, Node node)

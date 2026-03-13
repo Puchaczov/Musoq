@@ -1154,6 +1154,18 @@ public class ParserTests
     }
 
     [TestMethod]
+    public void SchemaWithoutHash_LeftJoin_ShouldParse()
+    {
+        var query = "select a.Name from some.a() a left join other.b() b on a.Id = b.Id";
+
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
     public void SchemaWithoutHash_LeftOuterJoin_ShouldParse()
     {
         var query = "select a.Name from some.a() a left outer join other.b() b on a.Id = b.Id";

@@ -71,8 +71,14 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ3014_InvalidPropertyAccess] = "'{0}' does not contain a property named '{1}'",
         [DiagnosticCode.MQ3015_UnknownAlias] = "Unknown alias '{0}'",
         [DiagnosticCode.MQ3016_CircularReference] = "Circular reference detected in '{0}'",
+        [DiagnosticCode.MQ3022_MissingAlias] =
+            "Method call '{0}' must be qualified with a source alias when more than one schema is used",
+        [DiagnosticCode.MQ3034_AmbiguousAggregateOwner] =
+            "Aggregate call '{0}' is ambiguous because multiple source aliases expose different implementations: {1}",
+        [DiagnosticCode.MQ3035_AmbiguousMethodOwner] =
+            "Method call '{0}' is ambiguous because multiple source aliases expose different implementations: {1}",
         [DiagnosticCode.MQ3031_SetOperatorMissingKeys] =
-            "Set operator '{0}' must have key columns to determine how to combine rows",
+            "Set operators require explicit key columns in Musoq; use the operator followed by '(<key_columns>)' instead of bare standard SQL syntax",
 
         // Schema Definition Errors (MQ4xxx)
         [DiagnosticCode.MQ4001_InvalidBinarySchemaField] = "Invalid binary schema field '{0}'",

@@ -214,7 +214,7 @@ public class MethodInvocationTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void WhenMethodCallDoesNotHaveAlias_ShouldThrows()
+    public void WhenMethodCallDoesNotHaveAlias_WhenSharedMethod_ShouldAutoResolve()
     {
         var query =
             "select Contains(first.City, 'W') from #A.entities() first inner join #B.entities() second on first.Country = second.Country";
@@ -222,16 +222,18 @@ public class MethodInvocationTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", []
+                "#A", [new BasicEntity("Poland", "Warsaw")]
             },
             {
-                "#B", []
+                "#B", [new BasicEntity("Poland", "Krakow")]
             }
         };
 
-        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3022_MissingAlias, DiagnosticPhase.Bind, "Alias");
+        Assert.AreEqual(1, table.Count);
+        Assert.IsTrue((bool?)table[0].Values[0]);
     }
 
     [TestMethod]

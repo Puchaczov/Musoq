@@ -117,7 +117,7 @@ public class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
 
         var msg = ex.Message;
         Assert.IsNotNull(msg);
-        Assert.IsTrue(msg.Length > 0, "Should produce a meaningful error message");
+        Assert.IsGreaterThan(0, msg.Length, "Should produce a meaningful error message");
     }
 
     [TestMethod]
@@ -132,7 +132,7 @@ public class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
         AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse);
         var msg = ex.Message;
         Assert.IsNotNull(msg);
-        Assert.IsTrue(msg.Length > 0, "Should produce a meaningful error for misspelled compound keyword");
+        Assert.IsGreaterThan(0, msg.Length, "Should produce a meaningful error for misspelled compound keyword");
     }
 
     #endregion
@@ -322,7 +322,7 @@ public class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
         var msg = ex.Message;
         // Should give some indication about the issue
         Assert.IsNotNull(msg);
-        Assert.IsTrue(msg.Length > 0, "Should produce a non-empty error message");
+        Assert.IsGreaterThan(0, msg.Length, "Should produce a non-empty error message");
     }
 
     [TestMethod]
@@ -333,7 +333,7 @@ public class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
 
         var msg = ex.Message;
         Assert.IsNotNull(msg);
-        Assert.IsTrue(msg.Length > 0, "Should produce a non-empty error message");
+        Assert.IsGreaterThan(0, msg.Length, "Should produce a non-empty error message");
     }
 
     [TestMethod]
@@ -352,7 +352,7 @@ public class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
             // If it fails, error should be helpful
             var msg = ex.Message;
             Assert.IsNotNull(msg);
-            Assert.IsTrue(msg.Length > 0);
+            Assert.IsGreaterThan(0, msg.Length);
         }
     }
 
@@ -437,7 +437,7 @@ public class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
         var msg = ex.Message;
         // Should either work or suggest the right function name
         Assert.IsNotNull(msg);
-        Assert.IsTrue(msg.Length > 0, $"Error should be meaningful. Got: {msg}");
+        Assert.IsGreaterThan(0, msg.Length, $"Error should be meaningful. Got: {msg}");
     }
 
     [TestMethod]
@@ -543,7 +543,7 @@ public class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
             // If not supported, should say so clearly
             var msg = ex.Message;
             Assert.IsNotNull(msg);
-            Assert.IsTrue(msg.Length > 0);
+            Assert.IsGreaterThan(0, msg.Length);
         }
     }
 
@@ -563,7 +563,7 @@ public class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
 
         var msg = ex.Message;
         Assert.IsNotNull(msg);
-        Assert.IsTrue(msg.Length > 0, "Empty query should give a meaningful error");
+        Assert.IsGreaterThan(0, msg.Length, "Empty query should give a meaningful error");
     }
 
     [TestMethod]
@@ -574,7 +574,7 @@ public class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
 
         var msg = ex.Message;
         Assert.IsNotNull(msg);
-        Assert.IsTrue(msg.Length > 0, "Whitespace-only query should give a meaningful error");
+        Assert.IsGreaterThan(0, msg.Length, "Whitespace-only query should give a meaningful error");
     }
 
     [TestMethod]
@@ -585,7 +585,7 @@ public class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
 
         var msg = ex.Message;
         Assert.IsNotNull(msg);
-        Assert.IsTrue(msg.Length > 0, "Semicolon-only should give a meaningful error");
+        Assert.IsGreaterThan(0, msg.Length, "Semicolon-only should give a meaningful error");
     }
 
     [TestMethod]
@@ -729,7 +729,7 @@ public class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
 
         var msg = ex.Message;
         Assert.IsNotNull(msg);
-        Assert.IsTrue(msg.Length > 0, "Should give error for backtick identifiers");
+        Assert.IsGreaterThan(0, msg.Length, "Should give error for backtick identifiers");
     }
 
     [TestMethod]

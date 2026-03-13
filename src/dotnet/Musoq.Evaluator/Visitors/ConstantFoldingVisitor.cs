@@ -54,7 +54,7 @@ public sealed class ConstantFoldingVisitor : CloneQueryVisitor
             }
         }
 
-        Nodes.Push(new AddNode(left, right));
+        Nodes.Push(new AddNode(left, right).WithSpan(node.Span));
     }
 
     public override void Visit(HyphenNode node)
@@ -64,7 +64,7 @@ public sealed class ConstantFoldingVisitor : CloneQueryVisitor
         var right = nodes[1];
 
         var folded = TryFoldArithmetic(left, right, Subtract, node.Span);
-        Nodes.Push(folded ?? new HyphenNode(left, right));
+        Nodes.Push(folded ?? new HyphenNode(left, right).WithSpan(node.Span));
     }
 
     public override void Visit(StarNode node)
@@ -74,56 +74,56 @@ public sealed class ConstantFoldingVisitor : CloneQueryVisitor
         var right = nodes[1];
 
         var folded = TryFoldArithmetic(left, right, Multiply, node.Span);
-        Nodes.Push(folded ?? new StarNode(left, right));
+        Nodes.Push(folded ?? new StarNode(left, right).WithSpan(node.Span));
     }
 
     public override void Visit(FSlashNode node)
     {
         var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitFSlashNode);
         var folded = TryFoldDivisionLike(nodes[0], nodes[1], Divide, node.Span);
-        Nodes.Push(folded ?? new FSlashNode(nodes[0], nodes[1]));
+        Nodes.Push(folded ?? new FSlashNode(nodes[0], nodes[1]).WithSpan(node.Span));
     }
 
     public override void Visit(ModuloNode node)
     {
         var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitModuloNode);
         var folded = TryFoldDivisionLike(nodes[0], nodes[1], Modulo, node.Span);
-        Nodes.Push(folded ?? new ModuloNode(nodes[0], nodes[1]));
+        Nodes.Push(folded ?? new ModuloNode(nodes[0], nodes[1]).WithSpan(node.Span));
     }
 
     public override void Visit(BitwiseAndNode node)
     {
         var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitBitwiseAndNode);
         var folded = TryFoldBitwise(nodes[0], nodes[1], BitwiseAnd, node.Span);
-        Nodes.Push(folded ?? new BitwiseAndNode(nodes[0], nodes[1]));
+        Nodes.Push(folded ?? new BitwiseAndNode(nodes[0], nodes[1]).WithSpan(node.Span));
     }
 
     public override void Visit(BitwiseOrNode node)
     {
         var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitBitwiseOrNode);
         var folded = TryFoldBitwise(nodes[0], nodes[1], BitwiseOr, node.Span);
-        Nodes.Push(folded ?? new BitwiseOrNode(nodes[0], nodes[1]));
+        Nodes.Push(folded ?? new BitwiseOrNode(nodes[0], nodes[1]).WithSpan(node.Span));
     }
 
     public override void Visit(BitwiseXorNode node)
     {
         var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitBitwiseXorNode);
         var folded = TryFoldBitwise(nodes[0], nodes[1], BitwiseXor, node.Span);
-        Nodes.Push(folded ?? new BitwiseXorNode(nodes[0], nodes[1]));
+        Nodes.Push(folded ?? new BitwiseXorNode(nodes[0], nodes[1]).WithSpan(node.Span));
     }
 
     public override void Visit(LeftShiftNode node)
     {
         var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitLeftShiftNode);
         var folded = TryFoldBitwise(nodes[0], nodes[1], LeftShift, node.Span);
-        Nodes.Push(folded ?? new LeftShiftNode(nodes[0], nodes[1]));
+        Nodes.Push(folded ?? new LeftShiftNode(nodes[0], nodes[1]).WithSpan(node.Span));
     }
 
     public override void Visit(RightShiftNode node)
     {
         var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitRightShiftNode);
         var folded = TryFoldBitwise(nodes[0], nodes[1], RightShift, node.Span);
-        Nodes.Push(folded ?? new RightShiftNode(nodes[0], nodes[1]));
+        Nodes.Push(folded ?? new RightShiftNode(nodes[0], nodes[1]).WithSpan(node.Span));
     }
 
     public override void Visit(AndNode node)
@@ -138,7 +138,7 @@ public sealed class ConstantFoldingVisitor : CloneQueryVisitor
             return;
         }
 
-        Nodes.Push(new AndNode(left, right));
+        Nodes.Push(new AndNode(left, right).WithSpan(node.Span));
     }
 
     public override void Visit(OrNode node)
@@ -153,7 +153,7 @@ public sealed class ConstantFoldingVisitor : CloneQueryVisitor
             return;
         }
 
-        Nodes.Push(new OrNode(left, right));
+        Nodes.Push(new OrNode(left, right).WithSpan(node.Span));
     }
 
     public override void Visit(NotNode node)
@@ -166,21 +166,21 @@ public sealed class ConstantFoldingVisitor : CloneQueryVisitor
             return;
         }
 
-        Nodes.Push(new NotNode(operand));
+        Nodes.Push(new NotNode(operand).WithSpan(node.Span));
     }
 
     public override void Visit(WhereNode node)
     {
         var expression = Nodes.Pop();
         ReportConstantCondition(expression, "WHERE");
-        Nodes.Push(new WhereNode(expression));
+        Nodes.Push(new WhereNode(expression).WithSpan(node.Span));
     }
 
     public override void Visit(HavingNode node)
     {
         var expression = Nodes.Pop();
         ReportConstantCondition(expression, "HAVING");
-        Nodes.Push(new HavingNode(expression));
+        Nodes.Push(new HavingNode(expression).WithSpan(node.Span));
     }
 
     #region Arithmetic helpers

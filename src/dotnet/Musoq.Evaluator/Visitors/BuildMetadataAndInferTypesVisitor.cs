@@ -1470,6 +1470,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(),
             _queryAlias, node.QueryId, hasExternallyProvidedTypes);
+        if (node.HasSpan)
+            aliasedSchemaFromNode.WithSpan(node.Span);
 
         var environmentVariables =
             RetrieveEnvironmentVariables(_positionalEnvironmentVariablesKey, aliasedSchemaFromNode);
@@ -2425,7 +2427,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 var newLeft = leftIsNull ? new NullNode(baseType, left.Span) : left;
                 var newRight = rightIsNull ? new NullNode(baseType, right.Span) : right;
 
-                Nodes.Push(nodeFactory(newLeft, newRight));
+                var nullBranchResult = nodeFactory(newLeft, newRight);
+                if (errorContextNode.HasSpan)
+                    nullBranchResult.WithSpan(errorContextNode.Span);
+                Nodes.Push(nullBranchResult);
                 return;
             }
         }
@@ -2454,7 +2459,10 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         ValidateBinaryOperatorOperands(transformedLeft, transformedRight, operatorKind, errorContextNode);
 
-        Nodes.Push(nodeFactory(transformedLeft, transformedRight));
+        var result = nodeFactory(transformedLeft, transformedRight);
+        if (errorContextNode.HasSpan)
+            result.WithSpan(errorContextNode.Span);
+        Nodes.Push(result);
     }
 
     private Node TransformStringToDateTimeIfNeeded(Node candidateNode, Node otherNode)
@@ -2613,38 +2621,311 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
     private MethodResolutionContext ResolveMethodContext(AccessMethodNode node, ArgsListNode args)
     {
+        var identifier = GetCurrentMethodResolutionIdentifier();
+
         if (_usedSchemasQuantity > 1 && string.IsNullOrWhiteSpace(node.Alias))
         {
+            if (TryInferAggregateMethodContext(identifier, node, args, out var inferredContext))
+                return inferredContext;
+
+            if (TryReportAmbiguousAggregateOwnerFromGetterCandidates(identifier, node, args))
+                return default;
+
+            if (TryInferNonAggregateMethodContext(identifier, node, args, out var nonAggContext))
+                return nonAggContext;
+
             if (TryReportMissingAlias(node))
                 return default;
             var span = node.HasSpan ? node.Span : TextSpan.Empty;
-            throw new AliasMissingException(
-                $"Alias must be provided for method call when more than one schema is used. Problem occurred in method {node}",
-                span);
+            throw new AliasMissingException(AliasMissingException.CreateMethodCallMessage(node.ToString()), span);
         }
 
-        var alias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : _identifier;
-        var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(alias);
+        var alias = !string.IsNullOrEmpty(node.Alias) ? node.Alias : identifier;
+        return CreateMethodResolutionContext(alias);
+    }
+
+    private bool TryInferAggregateMethodContext(string identifier, AccessMethodNode node, ArgsListNode args,
+        out MethodResolutionContext context)
+    {
+        context = default;
+
+        var tableSymbol = FindTableSymbolInScopeHierarchy(identifier);
+        if (!tableSymbol.IsCompoundTable)
+            return false;
+
+        AggregateResolutionSignature? signature = null;
+        MethodResolutionContext? resolvedContext = null;
+        var ambiguousAliases = new List<string>();
+
+        foreach (var alias in tableSymbol.CompoundTables)
+        {
+            var candidateContext = CreateMethodResolutionContext(alias, false);
+
+            if (!TryResolveAggregateSignature(node, args, candidateContext, out var candidateSignature))
+                continue;
+
+            if (signature == null)
+            {
+                signature = candidateSignature;
+                resolvedContext = candidateContext;
+                continue;
+            }
+
+            if (!signature.Value.Equals(candidateSignature))
+            {
+                if (ambiguousAliases.Count == 0 && resolvedContext != null)
+                    ambiguousAliases.Add(resolvedContext.Value.Alias);
+
+                ambiguousAliases.Add(candidateContext.Alias);
+            }
+        }
+
+        if (ambiguousAliases.Count > 0)
+        {
+            ReportAmbiguousAggregateOwner(node, ambiguousAliases);
+            return false;
+        }
+
+        if (resolvedContext == null)
+            return false;
+
+        RegisterMethodContextAssemblies(resolvedContext.Value.EntityType);
+        context = resolvedContext.Value;
+        return true;
+    }
+
+    private bool TryReportAmbiguousAggregateOwnerFromGetterCandidates(string identifier, AccessMethodNode node,
+        ArgsListNode args)
+    {
+        var tableSymbol = FindTableSymbolInScopeHierarchy(identifier);
+        if (!tableSymbol.IsCompoundTable)
+            return false;
+
+        var groupArgTypes = GetGroupArgumentTypes(args);
+        var methodName = node.IsDistinct ? $"{node.Name}Distinct" : node.Name;
+        var candidateAliases = new List<string>();
+        Type? schemaType = null;
+        MethodInfo resolvedMethod = null;
+
+        foreach (var alias in tableSymbol.CompoundTables)
+        {
+            var candidateContext = CreateMethodResolutionContext(alias, false);
+            if (!candidateContext.SchemaTablePair.Schema.TryResolveAggregationMethod(methodName, groupArgTypes,
+                    candidateContext.EntityType, out var candidateMethod))
+                continue;
+
+            if (schemaType == null)
+            {
+                schemaType = candidateContext.SchemaTablePair.Schema.GetType();
+                resolvedMethod = candidateMethod;
+                candidateAliases.Add(alias);
+                continue;
+            }
+
+            if (schemaType != candidateContext.SchemaTablePair.Schema.GetType() ||
+                !AreSameMethod(resolvedMethod, candidateMethod))
+            {
+                candidateAliases.Add(alias);
+            }
+        }
+
+        if (candidateAliases.Count <= 1)
+            return false;
+
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportAmbiguousAggregateOwner(node.ToString(), candidateAliases, node);
+            return true;
+        }
+
+        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        throw new AmbiguousAggregateOwnerException(node.ToString(), candidateAliases, span);
+    }
+
+    private string GetCurrentMethodResolutionIdentifier()
+    {
+        return _currentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId)
+            ? _currentScope[MetaAttributes.ProcessedQueryId]
+            : _identifier;
+    }
+
+    private bool TryInferNonAggregateMethodContext(string identifier, AccessMethodNode node, ArgsListNode args,
+        out MethodResolutionContext context)
+    {
+        context = default;
+
+        var tableSymbol = FindTableSymbolInScopeHierarchy(identifier);
+        if (!tableSymbol.IsCompoundTable)
+            return false;
+
+        var argTypes = GetArgumentTypes(args);
+        var methodName = node.Name;
+
+        MethodInfo? firstMethod = null;
+        MethodResolutionContext? resolvedContext = null;
+        var ambiguousAliases = new List<string>();
+        var allSameMethod = true;
+
+        foreach (var alias in tableSymbol.CompoundTables)
+        {
+            var candidateContext = CreateMethodResolutionContext(alias, false);
+            var schema = candidateContext.SchemaTablePair.Schema;
+
+            if (!schema.TryResolveMethod(methodName, argTypes, candidateContext.EntityType, out var candidateMethod) &&
+                !schema.TryResolveRawMethod(methodName, argTypes, out candidateMethod))
+                continue;
+
+            if (firstMethod == null)
+            {
+                firstMethod = candidateMethod;
+                resolvedContext = candidateContext;
+                ambiguousAliases.Add(alias);
+                continue;
+            }
+
+            ambiguousAliases.Add(alias);
+
+            if (!AreSameMethod(firstMethod, candidateMethod))
+                allSameMethod = false;
+        }
+
+        if (resolvedContext == null)
+            return false;
+
+        if (ambiguousAliases.Count > 1 && !allSameMethod)
+        {
+            ReportAmbiguousMethodOwner(node, ambiguousAliases);
+            return true;
+        }
+
+        RegisterMethodContextAssemblies(resolvedContext.Value.EntityType);
+        context = resolvedContext.Value;
+        return true;
+    }
+
+    private void ReportAmbiguousMethodOwner(AccessMethodNode methodNode, IReadOnlyCollection<string> candidateAliases)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportAmbiguousMethodOwner(methodNode.ToString(), candidateAliases, methodNode);
+            return;
+        }
+
+        var span = methodNode.HasSpan ? methodNode.Span : TextSpan.Empty;
+        throw new AmbiguousMethodOwnerException(methodNode.ToString(), candidateAliases, span);
+    }
+
+    private static bool AreSameMethod(MethodInfo left, MethodInfo right)
+    {
+        return left.Module.Equals(right.Module) && left.MetadataToken == right.MetadataToken;
+    }
+
+    private void ReportAmbiguousAggregateOwner(AccessMethodNode methodNode, IReadOnlyCollection<string> candidateAliases)
+    {
+        if (DiagnosticContext != null)
+        {
+            DiagnosticContext.ReportAmbiguousAggregateOwner(methodNode.ToString(), candidateAliases, methodNode);
+            return;
+        }
+
+        var span = methodNode.HasSpan ? methodNode.Span : TextSpan.Empty;
+        throw new AmbiguousAggregateOwnerException(methodNode.ToString(), candidateAliases, span);
+    }
+
+    private MethodResolutionContext CreateMethodResolutionContext(string alias, bool registerAssemblies = true)
+    {
+        var tableSymbol = FindTableSymbolInScopeHierarchy(alias);
         var schemaTablePair = tableSymbol.GetTableByAlias(alias);
         var entityType = schemaTablePair.Table.Metadata.TableEntityType;
 
-        AddAssembly(entityType.Assembly);
-        AddBaseTypeAssembly(entityType);
+        if (registerAssemblies)
+            RegisterMethodContextAssemblies(entityType);
 
         return new MethodResolutionContext(alias, tableSymbol, schemaTablePair, entityType);
+    }
+
+    private void RegisterMethodContextAssemblies(Type entityType)
+    {
+        AddAssembly(entityType.Assembly);
+        AddBaseTypeAssembly(entityType);
+    }
+
+    private bool TryResolveAggregateSignature(AccessMethodNode node, ArgsListNode args, MethodResolutionContext context,
+        out AggregateResolutionSignature signature)
+    {
+        signature = default;
+
+        var argTypes = GetArgumentTypes(args);
+        var groupArgTypes = GetGroupArgumentTypes(args);
+
+        var methodName = node.Name;
+        if (node.IsDistinct)
+        {
+            methodName = $"{methodName}Distinct";
+            if (!context.SchemaTablePair.Schema.TryResolveAggregationMethod(methodName, groupArgTypes,
+                    context.EntityType, out var distinctMethod))
+                return false;
+
+            if (!TryResolveSetAggregationMethod(node, argTypes, distinctMethod, context, out var setDistinctMethod))
+                return false;
+
+            signature = new AggregateResolutionSignature(context.SchemaTablePair.Schema.GetType(), distinctMethod,
+                setDistinctMethod);
+            return true;
+        }
+
+        if (!context.SchemaTablePair.Schema.TryResolveAggregationMethod(methodName, groupArgTypes, context.EntityType,
+                out var method))
+            return false;
+
+        if (!TryResolveSetAggregationMethod(node, argTypes, method, context, out var setMethod))
+            return false;
+
+        signature = new AggregateResolutionSignature(context.SchemaTablePair.Schema.GetType(), method, setMethod);
+        return true;
+    }
+
+    private bool TryResolveSetAggregationMethod(AccessMethodNode node, Type[] argTypes, MethodInfo method,
+        MethodResolutionContext context, out MethodInfo setMethod)
+    {
+        var setMethodName = node.IsDistinct ? "SetDistinctAggregate" : $"Set{method.Name}";
+        var setArgTypes = new Type[argTypes.Length + 1];
+        setArgTypes[0] = typeof(string);
+
+        for (var i = 0; i < argTypes.Length; i++)
+            setArgTypes[i + 1] = argTypes[i];
+
+        return context.SchemaTablePair.Schema.TryResolveAggregationMethod(setMethodName, setArgTypes,
+            context.EntityType, out setMethod);
+    }
+
+    private static Type[] GetArgumentTypes(ArgsListNode args)
+    {
+        var argTypes = new Type[args.Args.Length];
+
+        for (var i = 0; i < args.Args.Length; i++)
+            argTypes[i] = args.Args[i].ReturnType;
+
+        return argTypes;
+    }
+
+    private static Type[] GetGroupArgumentTypes(ArgsListNode args)
+    {
+        var groupArgCount = args.Args.Length > 0 ? args.Args.Length : 1;
+        var groupArgTypes = new Type[groupArgCount];
+        groupArgTypes[0] = typeof(string);
+
+        for (var i = 1; i < args.Args.Length; i++)
+            groupArgTypes[i] = args.Args[i].ReturnType;
+
+        return groupArgTypes;
     }
 
     private (MethodInfo Method, bool CanSkipInjectSource) ResolveMethod(AccessMethodNode node, ArgsListNode args,
         MethodResolutionContext context)
     {
-        var argCount = args.Args.Length;
-        var argTypes = new Type[argCount];
-
-        for (var i = 0; i < argCount; i++) argTypes[i] = args.Args[i].ReturnType;
-        var groupArgCount = argCount > 0 ? argCount : 1;
-        var groupArgTypes = new Type[groupArgCount];
-        groupArgTypes[0] = typeof(string);
-        for (var i = 1; i < argCount; i++) groupArgTypes[i] = argTypes[i];
+        var argTypes = GetArgumentTypes(args);
+        var groupArgTypes = GetGroupArgumentTypes(args);
 
 
         var methodName = node.Name;
@@ -4687,6 +4968,26 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         (ISchema Schema, ISchemaTable Table, string TableName) SchemaTablePair,
         Type EntityType);
 
+    private readonly record struct AggregateResolutionSignature(Type SchemaType, MethodInfo Method, MethodInfo SetMethod)
+    {
+        public bool Equals(AggregateResolutionSignature other)
+        {
+            return SchemaType == other.SchemaType && AreSameMethod(Method, other.Method) &&
+                   AreSameMethod(SetMethod, other.SetMethod);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(SchemaType, Method.Module, Method.MetadataToken, SetMethod.Module,
+                SetMethod.MetadataToken);
+        }
+
+        private static bool AreSameMethod(MethodInfo left, MethodInfo right)
+        {
+            return left.Module.Equals(right.Module) && left.MetadataToken == right.MetadataToken;
+        }
+    }
+
     #region Diagnostic Helpers
 
     /// <summary>
@@ -4948,15 +5249,13 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         {
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3022_MissingAlias,
-                $"Alias must be provided for method call when more than one schema is used. Problem occurred in method {methodNode}",
+                AliasMissingException.CreateMethodCallMessage(methodNode.ToString()),
                 methodNode);
             return true;
         }
 
         var span = methodNode.HasSpan ? methodNode.Span : TextSpan.Empty;
-        throw new AliasMissingException(
-            $"Alias must be provided for method call when more than one schema is used. Problem occurred in method {methodNode}",
-            span);
+        throw new AliasMissingException(AliasMissingException.CreateMethodCallMessage(methodNode.ToString()), span);
     }
 
     /// <summary>
@@ -5170,7 +5469,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         {
             DiagnosticContext.ReportError(
                 DiagnosticCode.MQ3031_SetOperatorMissingKeys,
-                $"{setOperator} operator must have keys. Set operators require key columns to determine how to combine rows.",
+                SetOperatorMustHaveKeyColumnsException.CreateMessage(setOperator),
                 node);
             return true;
         }

@@ -379,6 +379,16 @@ public enum DiagnosticCode
     /// </summary>
     MQ3033_InterpretFunctionOutsideApply = 3033,
 
+    /// <summary>
+    ///     Aggregate owner is ambiguous across multiple source aliases.
+    /// </summary>
+    MQ3034_AmbiguousAggregateOwner = 3034,
+
+    /// <summary>
+    ///     Method owner is ambiguous across multiple source aliases.
+    /// </summary>
+    MQ3035_AmbiguousMethodOwner = 3035,
+
     // ============================================
     // Schema Definition Errors (MQ4xxx)
     // ============================================

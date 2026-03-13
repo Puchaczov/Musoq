@@ -402,6 +402,57 @@ group by cities.Country";
     }
 
     [TestMethod]
+    public void JoinWithGroupByAndUnqualifiedSharedAggregateShouldInferAlias()
+    {
+        var query = @"
+select
+    cities.Country,
+    Sum(population.Population) as TotalPopulation
+from #A.entities() countries
+inner join #B.entities() cities on countries.Country = cities.Country
+inner join #C.entities() population on cities.City = population.City
+group by cities.Country
+order by TotalPopulation desc";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity("Poland", "Krakow"),
+                    new BasicEntity("Germany", "Berlin")
+                ]
+            },
+            {
+                "#B", [
+                    new BasicEntity("Poland", "Krakow"),
+                    new BasicEntity("Poland", "Wroclaw"),
+                    new BasicEntity("Poland", "Warszawa"),
+                    new BasicEntity("Poland", "Gdansk"),
+                    new BasicEntity("Germany", "Berlin")
+                ]
+            },
+            {
+                "#C", [
+                    new BasicEntity { City = "Krakow", Population = 400 },
+                    new BasicEntity { City = "Wroclaw", Population = 500 },
+                    new BasicEntity { City = "Warszawa", Population = 1000 },
+                    new BasicEntity { City = "Gdansk", Population = 200 },
+                    new BasicEntity { City = "Berlin", Population = 400 }
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual("Poland", table[0][0]);
+        Assert.AreEqual(2100m, table[0][1]);
+        Assert.AreEqual("Germany", table[1][0]);
+        Assert.AreEqual(400m, table[1][1]);
+    }
+
+    [TestMethod]
     public void JoinWithGroupByAndOrderByTest()
     {
         var query = @"

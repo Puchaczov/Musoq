@@ -66,9 +66,9 @@ Musoq implements a subset of SQL with several extensions:
 
 | Aspect | Standard SQL | Musoq |
 |--------|-------------|-------|
-| Data sources | Tables in a database | Schema providers (`#schema.method()`) |
+| Data sources | Tables in a database | Schema providers (`schema.method()`) |
 | Pagination | `OFFSET` / `LIMIT` | `SKIP` / `TAKE` |
-| Set operation keys | Implicit (all columns) | Explicit key columns required: `UNION (col1)` |
+| Set operation keys | Implicit (all columns) | Explicit key columns required: `UNION (col1)`; bare `UNION` / `UNION ALL` is rejected |
 | Not-equal operator | Both `<>` and `!=` | Only `<>` is supported — `!=` is rejected with a helpful error suggesting `<>` |
 | CASE WHEN | ELSE is optional | ELSE is **mandatory** |
 | Simple CASE form | `CASE expr WHEN value THEN ...` | Supported (desugared to searched CASE internally) |
@@ -83,8 +83,8 @@ Musoq implements a subset of SQL with several extensions:
 
 | Term | Definition |
 |------|------------|
-| **Schema** | A named data source provider (e.g., `#git`, `#os`, `#csv`) that exposes one or more methods |
-| **Method** | A specific data-producing function on a schema (e.g., `#git.log()`, `#os.files('/path')`) |
+| **Schema** | A named data source provider (e.g., `git`, `os`, `csv`) that exposes one or more methods |
+| **Method** | A specific data-producing function on a schema (e.g., `git.log()`, `os.files('/path')`) |
 | **Entity** | A single row returned by a data source method |
 | **Column** | A named, typed field within an entity |
 | **Expression** | Any computation that produces a value (arithmetic, function call, column reference, etc.) |
@@ -165,10 +165,10 @@ All keywords are **case-insensitive**. `SELECT`, `select`, and `SeLeCt` are all 
 **Bracket-quoted identifiers** allow reserved words and special characters:
 
 ```sql
-select [case], [order], [Column With Spaces] from #schema.method()
+select [case], [order], [Column With Spaces] from schema.method()
 ```
 
-The `#` prefix identifies a schema data source. It is **optional** — `#A.Entities()` and `A.Entities()` are equivalent.
+Schema data sources are referenced directly as `Schema.Method()`.
 
 ### 2.4 Comments
 
@@ -185,7 +185,7 @@ The `#` prefix identifies a schema data source. It is **optional** — `#A.Entit
 String literals are enclosed in single quotes:
 
 ```sql
-select 'Hello, World!' from #system.dual()
+select 'Hello, World!' from system.dual()
 ```
 
 #### Escape Sequences
@@ -214,19 +214,19 @@ select 'Hello, World!' from #system.dual()
 **Examples:**
 
 ```sql
-select '\\' from #system.dual()                    -- result: \
-select '\'' from #system.dual()                     -- result: '
-select '\n' from #system.dual()                     -- result: (newline)
-select '\u0041' from #system.dual()                 -- result: A
-select '\x41' from #system.dual()                   -- result: A
-select 'Hello\nWorld\t\u0394\\test' from #system.dual()  -- result: Hello(LF)World(TAB)Δ\test
-select '\0\b\f\e' from #system.dual()              -- result: (null)(backspace)(formfeed)(ESC)
+select '\\' from system.dual()                    -- result: \
+select '\'' from system.dual()                     -- result: '
+select '\n' from system.dual()                     -- result: (newline)
+select '\u0041' from system.dual()                 -- result: A
+select '\x41' from system.dual()                   -- result: A
+select 'Hello\nWorld\t\u0394\\test' from system.dual()  -- result: Hello(LF)World(TAB)Δ\test
+select '\0\b\f\e' from system.dual()              -- result: (null)(backspace)(formfeed)(ESC)
 ```
 
 Special characters are valid inside string literals — all punctuation, braces, brackets, etc.:
 
 ```sql
-select '{', '}', '[', ']', '(', ')' from #system.dual()
+select '{', '}', '[', ']', '(', ')' from system.dual()
 ```
 
 ### 2.6 Numeric Literals
@@ -236,8 +236,8 @@ select '{', '}', '[', ']', '(', ')' from #system.dual()
 Bare integers default to `int` (32-bit signed integer):
 
 ```sql
-select 42 from #system.dual()        -- type: int
-select -42 from #system.dual()       -- type: int (negative)
+select 42 from system.dual()        -- type: int
+select -42 from system.dual()       -- type: int (negative)
 ```
 
 #### Decimal Literals
@@ -245,9 +245,9 @@ select -42 from #system.dual()       -- type: int (negative)
 Numbers with a decimal point are `decimal`:
 
 ```sql
-select 3.14 from #system.dual()      -- type: decimal
-select -1.5 from #system.dual()      -- type: decimal
-select .5 from #system.dual()        -- type: decimal (leading dot)
+select 3.14 from system.dual()      -- type: decimal
+select -1.5 from system.dual()      -- type: decimal
+select .5 from system.dual()        -- type: decimal (leading dot)
 ```
 
 #### Numeric Type Suffixes
@@ -269,16 +269,16 @@ Append a suffix to force a specific numeric type:
 **Examples:**
 
 ```sql
-select 1b from #system.dual()        -- sbyte
-select 255ub from #system.dual()     -- byte
-select 1000s from #system.dual()     -- short
-select 65535us from #system.dual()   -- ushort
-select 42i from #system.dual()       -- int (explicit)
-select 100ui from #system.dual()     -- uint
-select 1l from #system.dual()        -- long
-select 1ul from #system.dual()       -- ulong
-select 42d from #system.dual()       -- decimal (integer forced to decimal)
-select 1.0 from #system.dual()       -- decimal (implicit from decimal point)
+select 1b from system.dual()        -- sbyte
+select 255ub from system.dual()     -- byte
+select 1000s from system.dual()     -- short
+select 65535us from system.dual()   -- ushort
+select 42i from system.dual()       -- int (explicit)
+select 100ui from system.dual()     -- uint
+select 1l from system.dual()        -- long
+select 1ul from system.dual()       -- ulong
+select 42d from system.dual()       -- decimal (integer forced to decimal)
+select 1.0 from system.dual()       -- decimal (implicit from decimal point)
 ```
 
 #### Alternative Number Bases
@@ -294,24 +294,24 @@ Prefixes are case-insensitive: `0xFF` and `0XFF` are equivalent.
 **Examples:**
 
 ```sql
-select 0xFF from #system.dual()                    -- 255 (long)
-select 0b1010 from #system.dual()                  -- 10 (long)
-select 0o77 from #system.dual()                    -- 63 (long)
-select 0xFF + 0b1010 + 0o77 + 42 from #system.dual()  -- 370 (mixed arithmetic)
-select 0x0 from #system.dual()                     -- 0 (zero values valid)
+select 0xFF from system.dual()                    -- 255 (long)
+select 0b1010 from system.dual()                  -- 10 (long)
+select 0o77 from system.dual()                    -- 63 (long)
+select 0xFF + 0b1010 + 0o77 + 42 from system.dual()  -- 370 (mixed arithmetic)
+select 0x0 from system.dual()                     -- 0 (zero values valid)
 ```
 
 ### 2.7 Boolean Literals
 
 ```sql
-select true from #system.dual()
-select false from #system.dual()
+select true from system.dual()
+select false from system.dual()
 ```
 
 ### 2.8 NULL Literal
 
 ```sql
-select null from #system.dual()
+select null from system.dual()
 ```
 
 ### 2.9 Operators
@@ -335,18 +335,18 @@ select null from #system.dual()
 All arithmetic operators are **left-associative**. Use parentheses to override precedence:
 
 ```sql
-select 256 + 256 / 2 from #system.dual()       -- 384 (division first)
-select (256 + 256) / 2 from #system.dual()      -- 256 (parentheses override)
-select 2 * 3 / 2 from #system.dual()            -- 3
-select 1 + 2 * 3 * (7 * 8) - (45 - 10) from #system.dual()  -- 302
+select 256 + 256 / 2 from system.dual()       -- 384 (division first)
+select (256 + 256) / 2 from system.dual()      -- 256 (parentheses override)
+select 2 * 3 / 2 from system.dual()            -- 3
+select 1 + 2 * 3 * (7 * 8) - (45 - 10) from system.dual()  -- 302
 ```
 
 **Unary minus** is supported:
 
 ```sql
-select 1 - -1 from #system.dual()               -- 2
-select 1 - -(1 + 2) from #system.dual()         -- 4
-select 1 + (-2) from #system.dual()             -- -1
+select 1 - -1 from system.dual()               -- 2
+select 1 - -(1 + 2) from system.dual()         -- 4
+select 1 + (-2) from system.dual()             -- -1
 ```
 
 #### Comparison Operators
@@ -389,8 +389,8 @@ select 1 + (-2) from #system.dual()             -- -1
 The `+` operator concatenates strings when both operands are strings:
 
 ```sql
-select 'Hello' + ' ' + 'World' from #system.dual()   -- 'Hello World'
-select Concat(Name, ' - ', City) from #schema.method()  -- alternative
+select 'Hello' + ' ' + 'World' from system.dual()   -- 'Hello World'
+select Concat(Name, ' - ', City) from schema.method()  -- alternative
 ```
 
 ---
@@ -433,8 +433,8 @@ Any type can be nullable. When a column is nullable, its values may be `null`. V
 ```sql
 -- If outer apply produces no match, b.Population becomes decimal? (nullable)
 select a.Name, b.Population
-from #A.entities() a
-outer apply #B.entities(a.Country) b
+from A.entities() a
+outer apply B.entities(a.Country) b
 ```
 
 ### 3.4 Complex Object Types
@@ -442,10 +442,10 @@ outer apply #B.entities(a.Country) b
 Data sources may expose columns containing complex objects with nested properties. Access nested values with dot notation:
 
 ```sql
-select Self.Name from #A.entities()              -- one level deep
-select Self.Self.Name from #A.entities()          -- two levels deep
-select Self.Dictionary['key'] from #A.entities()  -- dictionary access
-select Self.Array[2] from #A.entities()           -- array indexing
+select Self.Name from A.entities()              -- one level deep
+select Self.Self.Name from A.entities()          -- two levels deep
+select Self.Dictionary['key'] from A.entities()  -- dictionary access
+select Self.Array[2] from A.entities()           -- array indexing
 ```
 
 ### 3.5 Collections and Arrays
@@ -480,7 +480,7 @@ Statements are optionally terminated with `;`. Multiple statements in a batch ar
 
 ```sql
 table MyTable { Name: string };
-couple #A.Entities with table MyTable as Source;
+couple A.Entities with table MyTable as Source;
 select Name from Source();
 ```
 
@@ -510,14 +510,14 @@ SELECT [DISTINCT] expression [[AS] alias], ...
 Any expression can appear in SELECT:
 
 ```sql
-select 1 from #system.dual()                          -- literal
-select Name from #A.entities()                         -- column reference
-select a.Name from #A.entities() a                     -- qualified column
-select 1 + 2 * 3 from #system.dual()                  -- arithmetic
-select Concat(City, ', ', Country) from #A.entities()  -- function call
-select a.GetPopulation() from #A.entities() a          -- method on entity
-select Self.Name from #A.entities()                    -- property access
-select Self.Array[2] from #A.entities()                -- indexed access
+select 1 from system.dual()                          -- literal
+select Name from A.entities()                         -- column reference
+select a.Name from A.entities() a                     -- qualified column
+select 1 + 2 * 3 from system.dual()                  -- arithmetic
+select Concat(City, ', ', Country) from A.entities()  -- function call
+select a.GetPopulation() from A.entities() a          -- method on entity
+select Self.Name from A.entities()                    -- property access
+select Self.Array[2] from A.entities()                -- indexed access
 ```
 
 ### 5.3 Column Aliasing
@@ -525,9 +525,9 @@ select Self.Array[2] from #A.entities()                -- indexed access
 Three equivalent forms:
 
 ```sql
-select Name as FullName from #A.entities()       -- explicit AS keyword
-select Name FullName from #A.entities()           -- implicit (space-separated)
-select Name [Full Name] from #A.entities()        -- bracketed (allows spaces)
+select Name as FullName from A.entities()       -- explicit AS keyword
+select Name FullName from A.entities()           -- implicit (space-separated)
+select Name [Full Name] from A.entities()        -- bracketed (allows spaces)
 ```
 
 When no alias is given, the column name is derived from the expression:
@@ -539,10 +539,10 @@ When no alias is given, the column name is derived from the expression:
 
 ```sql
 -- ERROR: SELECT alias cannot be used in WHERE
-select Name as FileName from #A.entities() where FileName = 'test'
+select Name as FileName from A.entities() where FileName = 'test'
 
 -- ERROR: SELECT alias cannot be used in GROUP BY
-select Length(Name) as NameLen from #A.entities() group by NameLen
+select Length(Name) as NameLen from A.entities() group by NameLen
 ```
 
 ### 5.4 Star Expression (Wildcard)
@@ -550,22 +550,22 @@ select Length(Name) as NameLen from #A.entities() group by NameLen
 `*` expands to all columns from the data source:
 
 ```sql
-select * from #A.entities()                              -- all columns
-select *, Name as Name2 from #A.entities() a             -- star + explicit columns
-select *, * from #A.entities() a                          -- duplicated columns
+select * from A.entities()                              -- all columns
+select *, Name as Name2 from A.entities() a             -- star + explicit columns
+select *, * from A.entities() a                          -- duplicated columns
 ```
 
 Qualified star selects columns from a specific table in a join:
 
 ```sql
-select a.* from #A.entities() a inner join #B.entities() b on a.Id = b.Id
-select a.*, b.* from #A.entities() a inner join #B.entities() b on a.Id = b.Id
+select a.* from A.entities() a inner join B.entities() b on a.Id = b.Id
+select a.*, b.* from A.entities() a inner join B.entities() b on a.Id = b.Id
 ```
 
 Star works through CTEs:
 
 ```sql
-with p as (select City, Country from #A.entities())
+with p as (select City, Country from A.entities())
 select * from p       -- expands to City, Country
 ```
 
@@ -574,14 +574,14 @@ select * from p       -- expands to City, Country
 `SELECT DISTINCT` removes duplicate rows from the result:
 
 ```sql
-select distinct Country from #A.entities()
-select distinct City, Country from #A.entities()   -- unique combinations
+select distinct Country from A.entities()
+select distinct City, Country from A.entities()   -- unique combinations
 ```
 
 DISTINCT uses **ordinal (case-sensitive) comparison** — `'POLAND'` and `'poland'` are treated as different values. To achieve case-insensitive deduplication, use `ToLower()`:
 
 ```sql
-select distinct ToLower(Country) from #A.entities()
+select distinct ToLower(Country) from A.entities()
 ```
 
 ### 5.6 RowNumber
@@ -589,13 +589,13 @@ select distinct ToLower(Country) from #A.entities()
 `RowNumber()` returns a 1-based sequential integer for each row in the result:
 
 ```sql
-select RowNumber(), Name from #A.entities()
+select RowNumber(), Name from A.entities()
 ```
 
 `RowNumber()` is assigned **after** ORDER BY but **before** SKIP/TAKE. When used with ORDER BY, rows are first sorted, then numbered sequentially:
 
 ```sql
-select Country, RowNumber() from #A.entities() order by Country
+select Country, RowNumber() from A.entities() order by Country
 -- Rows are sorted alphabetically, then numbered 1, 2, 3, ...
 -- Germany → 1, Poland → 2 (sorted order determines numbering)
 ```
@@ -603,14 +603,14 @@ select Country, RowNumber() from #A.entities() order by Country
 With SKIP, row numbers are assigned before SKIP is applied:
 
 ```sql
-select Country, RowNumber() from #A.entities() order by Country skip 1
+select Country, RowNumber() from A.entities() order by Country skip 1
 -- Full result: Germany=1, Poland=2; after SKIP 1: Poland=2 (number preserved)
 ```
 
 With WHERE filtering, `RowNumber()` counts only the rows that pass the filter:
 
 ```sql
-select Country, RowNumber() from #A.entities() where Country = 'Poland'
+select Country, RowNumber() from A.entities() where Country = 'Poland'
 -- Returns rows numbered 1, 2, ... (only matching rows counted)
 ```
 
@@ -623,22 +623,15 @@ select Country, RowNumber() from #A.entities() where Country = 'Poland'
 The primary data source syntax uses schema providers:
 
 ```sql
-select * from #schema.method()
-select * from #schema.method(arg1, arg2)
-select * from #schema.method() alias
-```
-
-The `#` prefix is **optional** — both forms are equivalent:
-
-```sql
-select * from #A.Entities()    -- with hash
-select * from A.Entities()     -- without hash (equivalent)
+select * from schema.method()
+select * from schema.method(arg1, arg2)
+select * from schema.method() alias
 ```
 
 Arguments can be literals of any type:
 
 ```sql
-select * from #test.whatever(1, 2d, true, false, 'text')
+select * from test.whatever(1, 2d, true, false, 'text')
 ```
 
 ### 6.2 Table Aliasing
@@ -646,23 +639,23 @@ select * from #test.whatever(1, 2d, true, false, 'text')
 Data sources can be given an alias for reference in expressions:
 
 ```sql
-select a.Name from #A.entities() a
-select entities.Name from #A.entities() entities
+select a.Name from A.entities() a
+select entities.Name from A.entities() entities
 ```
 
 In **single-table queries**, aliasing is optional — column names can be used directly:
 
 ```sql
-select Name from #A.entities()         -- no alias needed
-select a.Name from #A.entities() a     -- alias optional
+select Name from A.entities()         -- no alias needed
+select a.Name from A.entities() a     -- alias optional
 ```
 
-In **multi-table queries** (joins, applies), aliases are required to disambiguate columns:
+In **multi-table queries** (joins, applies), aliases are required to disambiguate columns. For function calls, the engine attempts auto-resolution first — see [§8.7.1](#871-method-auto-resolution-algorithm) for details:
 
 ```sql
 select a.Name, b.City
-from #A.entities() a
-inner join #B.entities() b on a.Id = b.Id
+from A.entities() a
+inner join B.entities() b on a.Id = b.Id
 ```
 
 ### 6.3 CTE References
@@ -670,14 +663,14 @@ inner join #B.entities() b on a.Id = b.Id
 After a CTE is defined, use its name as a data source:
 
 ```sql
-with cte as (select City, Country from #A.entities())
+with cte as (select City, Country from A.entities())
 select * from cte
 ```
 
 CTE references can be aliased:
 
 ```sql
-with cte as (select City from #A.entities())
+with cte as (select City from A.entities())
 select p.City from cte p
 ```
 
@@ -687,17 +680,17 @@ After a `COUPLE` statement, the coupled alias becomes a data source:
 
 ```sql
 table MyTable { Name: string };
-couple #A.Entities with table MyTable as Source;
+couple A.Entities with table MyTable as Source;
 select Name from Source()
 select Name from Source(true, 'param')   -- with arguments
 ```
 
-### 6.5 `#system.range(start, end)` Semantics
+### 6.5 `system.range(start, end)` Semantics
 
-The `#system.range(start, end)` source uses an **end-exclusive** interval.
+The `system.range(start, end)` source uses an **end-exclusive** interval.
 
 ```sql
-select Value from #system.range(1, 5)
+select Value from system.range(1, 5)
 -- Returns: 1, 2, 3, 4
 ```
 
@@ -810,7 +803,7 @@ where Match('\d+', Name) = true
 where Match('\d+', Name)
 
 -- Also works in CASE WHEN:
-select case when Match('\d+', Name) then 'yes' else 'no' end from #A.entities()
+select case when Match('\d+', Name) then 'yes' else 'no' end from A.entities()
 ```
 
 ---
@@ -823,14 +816,14 @@ Returns only rows where the join condition matches in both tables:
 
 ```sql
 select a.City, b.Population
-from #A.entities() a
-inner join #B.entities() b on a.City = b.City
+from A.entities() a
+inner join B.entities() b on a.City = b.City
 ```
 
 `JOIN` without the `INNER` keyword is equivalent to `INNER JOIN`:
 
 ```sql
-from #A.entities() a join #B.entities() b on a.City = b.City
+from A.entities() a join B.entities() b on a.City = b.City
 ```
 
 ### 8.2 LEFT OUTER JOIN
@@ -839,8 +832,8 @@ Returns all rows from the left table. Unmatched right-side columns are `null`:
 
 ```sql
 select a.City, b.Population
-from #A.entities() a
-left join #B.entities() b on a.City = b.City
+from A.entities() a
+left join B.entities() b on a.City = b.City
 ```
 
 `LEFT OUTER JOIN` and `LEFT JOIN` are equivalent.
@@ -851,8 +844,8 @@ Returns all rows from the right table. Unmatched left-side columns are `null`:
 
 ```sql
 select a.City, b.Population
-from #A.entities() a
-right join #B.entities() b on a.City = b.City
+from A.entities() a
+right join B.entities() b on a.City = b.City
 ```
 
 ### 8.4 Cross Join
@@ -861,8 +854,8 @@ Produce a Cartesian product using a tautological condition:
 
 ```sql
 select a.Name, b.Name
-from #A.entities() a
-inner join #B.entities() b on 1 = 1
+from A.entities() a
+inner join B.entities() b on 1 = 1
 ```
 
 ### 8.5 Multiple Joins
@@ -871,9 +864,9 @@ Chain multiple joins in a single query:
 
 ```sql
 select a.City, b.Population, c.Area
-from #A.entities() a
-inner join #B.entities() b on a.City = b.City
-inner join #C.entities() c on a.City = c.City
+from A.entities() a
+inner join B.entities() b on a.City = b.City
+inner join C.entities() c on a.City = c.City
 ```
 
 ### 8.6 Join Condition Expressions
@@ -881,35 +874,117 @@ inner join #C.entities() c on a.City = c.City
 Join conditions can contain expressions, not just simple column equality:
 
 ```sql
-inner join #B.entities() b on a.Id = b.Id + 1
-inner join #B.entities() b on a.Population > b.Population + 100
+inner join B.entities() b on a.Id = b.Id + 1
+inner join B.entities() b on a.Population > b.Population + 100
 ```
 
 ### 8.7 Function Calls in Multi-Source Queries
 
-In queries with multiple data sources (joins, applies), function calls **must** be prefixed with a table alias. This is because each schema has its own method registry, and the engine must know which schema's function to invoke:
+In queries with multiple data sources (joins, applies), each schema has its own method registry. When a function call is **unqualified** (no alias prefix), the engine uses the **method auto-resolution algorithm** described in §8.7.1 to determine which schema owns the method. When auto-resolution cannot determine a single owner, the caller must disambiguate by prefixing the function call with a table alias.
+
+#### 8.7.1 Method Auto-Resolution Algorithm
+
+When a function is called without an alias prefix in a multi-source query, the engine attempts to resolve the owning schema automatically. It does so by trying to bind the method against **every** schema in scope and then applying three rules in order:
+
+1. **Common method rule.** If **all** candidate schemas resolve the method to the **same underlying implementation** (identical module and metadata token), the engine picks any one of them. This is the typical case for built-in library methods (e.g., `ToDecimal`, `Concat`, `Contains`) that every schema inherits from a shared base.
+
+2. **Unique method rule.** If **exactly one** candidate schema resolves the method successfully, the engine picks that schema. This applies to methods that are unique to a particular schema's library.
+
+3. **Ambiguity error.** If **two or more** candidate schemas resolve the method to **different implementations**, the engine cannot choose and raises diagnostic **MQ3035** (`AmbiguousMethodOwner`). The caller must add an alias prefix to disambiguate.
+
+> **Aggregate methods** (those decorated with `[InjectGroup]`) follow a separate but analogous auto-resolution path that was already present before this algorithm was introduced. The rules above extend the same principle to all non-aggregate methods.
+
+#### 8.7.2 Method Categories
+
+Understanding how methods are classified helps predict when auto-resolution succeeds or fails:
+
+| Category | Characteristic | Auto-Resolution |
+|----------|---------------|-----------------|
+| **Aggregate** | Decorated with `[InjectGroup]` (e.g., `Sum`, `Count`, `Avg`) | Resolved via dedicated aggregate inference; same common-method logic applies |
+| **Pure utility** | No special injection; stateless (e.g., `ToDecimal`, `Concat`, `Abs`) | Almost always shared across schemas → Rule 1 resolves them |
+| **Entity-bound** | Decorated with `[InjectSpecificSource]`; schema-specific | Resolves only in the schema that defines them → Rule 2 or Rule 3 applies |
+
+#### 8.7.3 Examples
+
+**Auto-resolved — common method (Rule 1):**
+
+`ToDecimal` is inherited by every schema from the shared plugin library. Both schemas resolve it to the same implementation, so no alias is needed:
 
 ```sql
--- WRONG: Unqualified function call in a multi-source query
-select ToDecimal(a.Id)
-from #A.entities() a
-inner join #B.entities() b on a.Id = b.Id
--- Error: Alias must be provided for method call when more than one schema is used
+select e.Department, Sum(ToDecimal(t.Amount)) as total_amount
+from separatedvalues.comma('employees.csv', true, 0) e
+inner join separatedvalues.comma('transactions.csv', true, 0) t
+    on e.Id = t.EmployeeId
+group by e.Department
+```
 
--- CORRECT: Prefix function call with the table alias
-select a.ToDecimal(a.Id)
-from #A.entities() a
-inner join #B.entities() b on a.Id = b.Id
+**Auto-resolved — unique method (Rule 2):**
+
+If `SpecialParse` exists only in schema A's library but not in schema B's, the engine resolves it to A automatically:
+
+```sql
+select SpecialParse(a.RawData), b.Name
+from A.entities() a
+inner join B.entities() b on a.Id = b.Id
+```
+
+**Ambiguous — explicit alias required (Rule 3):**
+
+If schemas A and B each define their own `Transform` with different implementations, the engine raises MQ3035. The caller must specify which schema's `Transform` to use:
+
+```sql
+-- ERROR MQ3035: Transform resolves to different implementations in A and B
+select Transform(a.Value)
+from A.entities() a
+inner join B.entities() b on a.Id = b.Id
+
+-- FIX: prefix with the desired schema alias
+select a.Transform(a.Value)
+from A.entities() a
+inner join B.entities() b on a.Id = b.Id
+```
+
+#### 8.7.4 Explicit Alias Prefix
+
+Even when auto-resolution would succeed, you can always qualify a function call with an alias prefix. The alias selects the **schema library owner** for that method call. It does **not** require that every argument come from the same alias. For example, this is valid because the aggregate implementation is taken from `countries`, while the value being aggregated comes from `population`:
+
+```sql
+select cities.Country, countries.Sum(population.Population)
+from A.entities() countries
+inner join B.entities() cities on countries.Country = cities.Country
+inner join C.entities() population on cities.City = population.City
+group by cities.Country
 ```
 
 This applies to all functions, including aggregation:
 
 ```sql
--- WRONG:
-select Count(a.City) from #A.entities() a inner join #B.entities() b on a.Id = b.Id group by a.City
+-- Explicit alias on aggregate
+select a.Count(a.City)
+from A.entities() a
+inner join B.entities() b on a.Id = b.Id
+group by a.City
 
--- CORRECT:
-select a.Count(a.City) from #A.entities() a inner join #B.entities() b on a.Id = b.Id group by a.City
+-- Auto-resolved alias on aggregate (Count is shared across schemas)
+select Count(a.City)
+from A.entities() a
+inner join B.entities() b on a.Id = b.Id
+group by a.City
+```
+
+#### 8.7.5 Best Practices
+
+When the same aggregate expression is projected with `AS`, prefer the projected alias in `ORDER BY` instead of repeating the aggregate call. This avoids repeating method binding and reads more naturally:
+
+```sql
+select
+    e.Department as department,
+    Sum(ToDecimal(t.Amount)) as total_amount
+from separatedvalues.comma('employees.csv', true, 0) e
+inner join separatedvalues.comma('transactions.csv', true, 0) t
+    on e.Id = t.EmployeeId
+group by e.Department
+order by total_amount desc
 ```
 
 For complex analytics that combine JOINs with GROUP BY, use a CTE to flatten the join first, then aggregate on the single-source CTE:
@@ -917,15 +992,15 @@ For complex analytics that combine JOINs with GROUP BY, use a CTE to flatten the
 ```sql
 with joined as (
     select a.City as City, b.Population as Population
-    from #A.entities() a
-    inner join #B.entities() b on a.City = b.City
+    from A.entities() a
+    inner join B.entities() b on a.City = b.City
 )
 select j.City, Sum(j.Population) as TotalPop
 from joined j
 group by j.City
 ```
 
-> **Note:** In single-table queries, function calls do not need an alias prefix.
+> **Note:** In single-table queries, function calls never need an alias prefix.
 
 ### 8.8 Keywords Are Case-Insensitive
 
@@ -947,8 +1022,8 @@ Inner Join ... On ...
 
 ```sql
 select a.Country, b.City
-from #A.entities() a
-cross apply #B.entities(a.Country) b
+from A.entities() a
+cross apply B.entities(a.Country) b
 ```
 
 The right-side data source receives values from the left side as method arguments.
@@ -959,8 +1034,8 @@ Like `CROSS APPLY`, but preserves left-side rows without matches. Unmatched righ
 
 ```sql
 select a.Country, b.City
-from #A.entities() a
-outer apply #B.entities(a.Country) b
+from A.entities() a
+outer apply B.entities(a.Country) b
 -- If no match for a.Country, b.City is null
 ```
 
@@ -973,12 +1048,12 @@ Call a method on a row that produces a table of results:
 ```sql
 -- Split a string into rows
 select b.Value
-from #schema.first() a
+from schema.first() a
 cross apply a.Split(a.Text, ' ') as b
 
 -- Chain method results
 select c.Value
-from #schema.first() a
+from schema.first() a
 cross apply a.Split(a.Text, ' ') as b
 cross apply b.ToCharArray(b.Value) as c
 ```
@@ -988,7 +1063,7 @@ Nested method calls are supported:
 ```sql
 -- Skip first element, take next 6
 select b.Value
-from #schema.first() a
+from schema.first() a
 cross apply a.Take(a.Skip(a.Split(a.Text, ' '), 1), 6) as b
 ```
 
@@ -999,19 +1074,19 @@ Expand a collection property (array, list) into rows:
 ```sql
 -- Expand an array property
 select a.City, b.Value
-from #schema.first() a
+from schema.first() a
 cross apply a.Values as b
 
 -- Expand nested collection
 select d.Value
-from #schema.first() a
+from schema.first() a
 cross apply a.Values as b
 cross apply b.Values as c
 cross apply c.Values as d
 
 -- Expand through property chain
 select b.Value
-from #schema.first() a
+from schema.first() a
 cross apply a.ComplexType.PrimitiveValues as b
 ```
 
@@ -1025,13 +1100,13 @@ Multiple applies can be chained. Each can reference results from previous ones:
 
 ```sql
 select b.Value, c.Value
-from #schema.first() a
+from schema.first() a
 cross apply a.Split(a.Text, ' ') as b
 cross apply b.ToCharArray(b.Value) as c
 
 -- Apply results can be filtered and grouped
 select b.Length(b.Value), b.Count(Length(b.Value))
-from #schema.first() a
+from schema.first() a
 cross apply a.Split(a.Text, ' ') as b
 group by b.Length(b.Value)
 ```
@@ -1042,7 +1117,7 @@ When multiple applies reference the same source, they produce a Cartesian produc
 
 ```sql
 select b.Value, c.Value
-from #schema.first() a
+from schema.first() a
 cross apply a.Split(a.Numbers, ',') as b
 cross apply a.Split(a.Words, ' ') as c
 -- Every combination of b and c values
@@ -1080,31 +1155,71 @@ SELECT group_column, aggregate_function(column) FROM ... GROUP BY group_column
 
 All numeric aggregation functions (`Count`, `Sum`, `Avg`, `Min`, `Max`, `StDev`) accept any numeric type (`byte`, `short`, `int`, `long`, `float`, `double`, `decimal`, etc.) as input.
 
+In a query with only one source, aggregates can be written without a source alias:
+
+```sql
+select Country, Sum(Population) from A.entities() group by Country
+```
+
+In a query with multiple sources, aggregates are still method calls and therefore must be qualified with a source alias:
+
+```sql
+-- ERROR: multi-source aggregate without an owning alias
+select e.Department, Sum(ToDecimal(t.Amount))
+from separatedvalues.comma('/adventure/data/employees.csv', true, 0) e
+inner join separatedvalues.comma('/adventure/data/transactions.csv', true, 0) t
+    on e.Id = t.EmployeeId
+group by e.Department
+
+-- CORRECT: the alias chooses the aggregate implementation owner
+select e.Department, t.Sum(ToDecimal(t.Amount))
+from separatedvalues.comma('/adventure/data/employees.csv', true, 0) e
+inner join separatedvalues.comma('/adventure/data/transactions.csv', true, 0) t
+    on e.Id = t.EmployeeId
+group by e.Department
+```
+
+The aggregate owner alias and the argument source do not have to match. The alias determines which schema library resolves `Sum`, `Count`, and similar methods.
+
+If multiple aliases can resolve the same unqualified aggregate and they resolve to different implementations, the query is ambiguous and Musoq reports the candidate aliases. In that case, qualify the aggregate explicitly:
+
+```sql
+-- ERROR: aggregate owner is ambiguous across aliases
+select AggregateMethodB()
+from #schema.first() first
+inner join #schema.second() second on 1 = 1
+
+-- CORRECT:
+select first.AggregateMethodB()
+from #schema.first() first
+inner join #schema.second() second on 1 = 1
+```
+
 ### 10.3 GROUP BY Examples
 
 ```sql
 -- Basic grouping with count
-select Country, Count(Country) from #A.entities() group by Country
+select Country, Count(Country) from A.entities() group by Country
 
 -- Grouping with sum
-select Country, Sum(Population) from #A.entities() group by Country
+select Country, Sum(Population) from A.entities() group by Country
 
 -- Multi-column grouping
-select Country, City, Count(City) from #A.entities() group by Country, City
+select Country, City, Count(City) from A.entities() group by Country, City
 
 -- Grouping with expression
 select Substr(Name, 0, 2), Count(Name)
-from #A.entities()
+from A.entities()
 group by Substr(Name, 0, 2)
 
 -- CASE WHEN in GROUP BY
 select case when Population >= 500 then 'big' else 'small' end, Count(City)
-from #A.entities()
+from A.entities()
 group by case when Population >= 500 then 'big' else 'small' end
 
 -- Function-of-column expression in SELECT and GROUP BY (supported)
 select ToString(CommittedWhen, 'yyyy-MM', '') as MonthBucket, Count(Sha)
-from #A.commits()
+from A.commits()
 group by ToString(CommittedWhen, 'yyyy-MM', '')
 ```
 
@@ -1115,7 +1230,7 @@ Aggregate functions accept an optional second parameter indicating the "parent l
 ```sql
 -- Group by Month, City but aggregate at Month level
 select SumIncome(Money, 1), SumOutcome(Money, 1)
-from #A.Entities()
+from A.Entities()
 group by Month, City
 ```
 
@@ -1128,7 +1243,7 @@ With `group by Month, City`:
 Using aggregate functions without GROUP BY produces a single-row result aggregating all rows:
 
 ```sql
-select Count(Name), Sum(Population) from #A.entities()
+select Count(Name), Sum(Population) from A.entities()
 -- Returns one row with totals
 ```
 
@@ -1137,7 +1252,7 @@ select Count(Name), Sum(Population) from #A.entities()
 Grouping by a constant treats all rows as a single group:
 
 ```sql
-select Count(Country) from #A.entities() group by 'fake'
+select Count(Country) from A.entities() group by 'fake'
 -- Equivalent to aggregate without GROUP BY
 ```
 
@@ -1146,7 +1261,7 @@ select Count(Country) from #A.entities() group by 'fake'
 HAVING filters groups after aggregation:
 
 ```sql
-select Name, Count(Name) from #A.entities()
+select Name, Count(Name) from A.entities()
 group by Name
 having Count(Name) >= 2
 ```
@@ -1154,7 +1269,7 @@ having Count(Name) >= 2
 HAVING can use any aggregate expression:
 
 ```sql
-select City, Sum(Money) from #A.entities()
+select City, Sum(Money) from A.entities()
 group by City
 having Sum(Money) >= 400
 ```
@@ -1165,17 +1280,17 @@ In a SELECT with GROUP BY, every non-aggregated column must appear in the GROUP 
 
 ```sql
 -- VALID: Name is in GROUP BY
-select Name, Count(Name) from #A.entities() group by Name
+select Name, Count(Name) from A.entities() group by Name
 
 -- VALID: Only aggregates, no non-aggregated columns
-select Count(Country) from #A.entities() group by Country
+select Count(Country) from A.entities() group by Country
 
 -- ERROR: Name is not in GROUP BY
-select Name, City, Count(1) from #A.entities() group by City
+select Name, City, Count(1) from A.entities() group by City
 -- Throws NonAggregatedColumnInSelectException
 
 -- ERROR: SELECT * with GROUP BY expands to non-aggregated columns
-select * from #A.entities() group by City
+select * from A.entities() group by City
 -- Throws NonAggregatedColumnInSelectException
 ```
 
@@ -1185,14 +1300,14 @@ select * from #A.entities() group by City
 
 ```sql
 -- If some Country values are null, null is its own group
-select Country, Count(Country) from #A.entities() group by Country
+select Country, Count(Country) from A.entities() group by Country
 -- Group: null, Count(Country): 0 (Count ignores nulls)
 ```
 
 Multi-column grouping treats `(POLAND, null)` as distinct from `(POLAND, WARSAW)`:
 
 ```sql
-select Country, City, Count(City) from #A.entities() group by Country, City
+select Country, City, Count(City) from A.entities() group by Country, City
 ```
 
 ---
@@ -1210,6 +1325,15 @@ query1 EXCEPT (key_col1) query2
 query1 INTERSECT (key_col1) query2
 ```
 
+Standard SQL forms without a key list are not accepted:
+
+```sql
+query1 UNION query2
+query1 UNION ALL query2
+```
+
+If you omit the parenthesized key list, Musoq raises an error telling you to rewrite the operator as `UNION (<key_columns>)`, `UNION ALL (<key_columns>)`, `EXCEPT (<key_columns>)`, or `INTERSECT (<key_columns>)`.
+
 The key columns specify which columns are used to determine row identity for deduplication, difference, or intersection.
 
 ### 11.2 UNION
@@ -1217,9 +1341,9 @@ The key columns specify which columns are used to determine row identity for ded
 Combines results from two queries, removing duplicates identified by the key columns:
 
 ```sql
-select Name from #A.Entities()
+select Name from A.Entities()
 union (Name)
-select Name from #B.Entities()
+select Name from B.Entities()
 ```
 
 ### 11.3 UNION ALL
@@ -1227,9 +1351,9 @@ select Name from #B.Entities()
 Combines results preserving all rows including duplicates:
 
 ```sql
-select Name from #A.Entities()
+select Name from A.Entities()
 union all (Name)
-select Name from #B.Entities()
+select Name from B.Entities()
 ```
 
 ### 11.4 EXCEPT
@@ -1237,9 +1361,9 @@ select Name from #B.Entities()
 Returns rows from the first query that do not appear in the second query:
 
 ```sql
-select Name from #A.Entities()
+select Name from A.Entities()
 except (Name)
-select Name from #B.Entities()
+select Name from B.Entities()
 ```
 
 ### 11.5 INTERSECT
@@ -1247,9 +1371,9 @@ select Name from #B.Entities()
 Returns only rows that appear in both queries:
 
 ```sql
-select Name from #A.Entities()
+select Name from A.Entities()
 intersect (Name)
-select Name from #B.Entities()
+select Name from B.Entities()
 ```
 
 ### 11.6 Chaining Set Operations
@@ -1257,15 +1381,15 @@ select Name from #B.Entities()
 Three or more queries can be chained:
 
 ```sql
-select Name from #A.Entities()
+select Name from A.Entities()
 union all (Name)
-select Name from #A.Entities()
+select Name from A.Entities()
 union all (Name)
-select Name from #A.Entities()
+select Name from A.Entities()
 union all (Name)
-select Name from #A.Entities()
+select Name from A.Entities()
 union all (Name)
-select Name from #A.Entities()
+select Name from A.Entities()
 ```
 
 ### 11.7 Different Source Columns
@@ -1273,9 +1397,9 @@ select Name from #A.Entities()
 Source columns can differ if aliases unify them:
 
 ```sql
-select Name from #A.Entities()
+select Name from A.Entities()
 union (Name)
-select City as Name from #B.Entities()   -- City aliased as Name
+select City as Name from B.Entities()   -- City aliased as Name
 ```
 
 ### 11.8 SKIP/TAKE per Subquery
@@ -1283,20 +1407,20 @@ select City as Name from #B.Entities()   -- City aliased as Name
 Each subquery in a set operation can have its own SKIP/TAKE:
 
 ```sql
-select Name from #A.Entities() skip 1
+select Name from A.Entities() skip 1
 union (Name)
-select Name from #B.Entities() skip 2
+select Name from B.Entities() skip 2
 ```
 
 ### 11.9 Set Operations in CTEs
 
 ```sql
 with p as (
-    select 1 as Id, 'First' as Name from #A.Entities()
+    select 1 as Id, 'First' as Name from A.Entities()
     union all (Name)
-    select 2 as Id, 'Second' as Name from #A.Entities()
+    select 2 as Id, 'Second' as Name from A.Entities()
     union all (Name)
-    select 3 as Id, 'Third' as Name from #A.Entities()
+    select 3 as Id, 'Third' as Name from A.Entities()
 )
 select Id, Name from p
 ```
@@ -1310,22 +1434,22 @@ select Id, Name from p
 Sorts result rows. Default direction is ascending:
 
 ```sql
-select Name from #A.entities() order by Name            -- ascending (default)
-select Name from #A.entities() order by Name asc        -- explicit ascending
-select Name from #A.entities() order by Name desc       -- descending
+select Name from A.entities() order by Name            -- ascending (default)
+select Name from A.entities() order by Name asc        -- explicit ascending
+select Name from A.entities() order by Name desc       -- descending
 ```
 
 Multi-column ordering with mixed directions:
 
 ```sql
-select City, Population from #A.entities()
+select City, Population from A.entities()
 order by Population desc, City asc
 ```
 
 ORDER BY can use expressions:
 
 ```sql
-select Name, Population from #A.entities() order by Population * -1
+select Name, Population from A.entities() order by Population * -1
 ```
 
 ORDER BY uses **ordinal (case-sensitive) comparison** for strings: uppercase letters sort before lowercase (`'A'` < `'a'`).
@@ -1335,28 +1459,41 @@ ORDER BY uses **ordinal (case-sensitive) comparison** for strings: uppercase let
 SELECT aliases defined with `AS` can be referenced directly in ORDER BY:
 
 ```sql
-select City, Money as Amount from #A.entities() order by Amount desc
+select City, Money as Amount from A.entities() order by Amount desc
 ```
 
 This also works with computed expressions:
 
 ```sql
-select City, Money * 2 as DoubledMoney from #A.entities() order by DoubledMoney desc
+select City, Money * 2 as DoubledMoney from A.entities() order by DoubledMoney desc
 ```
 
 And with aggregate functions after GROUP BY:
 
 ```sql
 select City, Sum(Money) as TotalRevenue
-from #A.entities()
+from A.entities()
 group by City
 order by TotalRevenue desc
+```
+
+This is the recommended form in multi-source grouped queries as well:
+
+```sql
+select
+    e.Department as department,
+    t.Sum(ToDecimal(t.Amount)) as total_amount
+from separatedvalues.comma('/adventure/data/employees.csv', true, 0) e
+inner join separatedvalues.comma('/adventure/data/transactions.csv', true, 0) t
+    on e.Id = t.EmployeeId
+group by e.Department
+order by total_amount desc
 ```
 
 Alias lookup is **case-insensitive**:
 
 ```sql
-select City as CITYNAME, Money as amount from #A.entities() order by Amount desc
+select City as CITYNAME, Money as amount from A.entities() order by Amount desc
 -- "Amount" matches alias "amount"
 ```
 
@@ -1369,7 +1506,7 @@ When an explicit alias is used in `ORDER BY`, ordering applies to the aliased **
 Skip the first N rows of the result:
 
 ```sql
-select Name from #A.entities() skip 2
+select Name from A.entities() skip 2
 ```
 
 If SKIP exceeds the number of rows, zero rows are returned (no error).
@@ -1379,7 +1516,7 @@ If SKIP exceeds the number of rows, zero rows are returned (no error).
 Take the first N rows of the result:
 
 ```sql
-select Name from #A.entities() take 3
+select Name from A.entities() take 3
 ```
 
 If TAKE exceeds the number of available rows, all available rows are returned (no error).
@@ -1389,7 +1526,7 @@ If TAKE exceeds the number of available rows, all available rows are returned (n
 Combine for pagination:
 
 ```sql
-select Name from #A.entities() order by Name skip 10 take 5
+select Name from A.entities() order by Name skip 10 take 5
 -- Skip first 10, return next 5
 ```
 
@@ -1398,7 +1535,7 @@ select Name from #A.entities() order by Name skip 10 take 5
 ORDER BY, SKIP, and TAKE are applied after GROUP BY and HAVING:
 
 ```sql
-select City, Sum(Money) from #A.entities()
+select City, Sum(Money) from A.entities()
 group by City
 having Sum(Money) >= 400
 order by City
@@ -1423,7 +1560,7 @@ SELECT ... FROM cte_name
 
 ```sql
 with p as (
-    select City, Country from #A.entities()
+    select City, Country from A.entities()
 )
 select Country, City from p
 ```
@@ -1432,7 +1569,7 @@ select Country, City from p
 
 ```sql
 with p as (
-    select City, Country from #A.entities()
+    select City, Country from A.entities()
 )
 select * from p    -- expands to City, Country
 ```
@@ -1441,7 +1578,7 @@ select * from p    -- expands to City, Country
 
 ```sql
 with summary as (
-    select Country, Sum(Population) from #A.entities() group by Country
+    select Country, Sum(Population) from A.entities() group by Country
 )
 select * from summary
 ```
@@ -1450,7 +1587,7 @@ Aggregation can also occur on a CTE reference:
 
 ```sql
 with raw as (
-    select Population, Country from #A.entities()
+    select Population, Country from A.entities()
 )
 select Country, Sum(Population) from raw group by Country
 ```
@@ -1461,8 +1598,8 @@ Define multiple CTEs separated by commas:
 
 ```sql
 with
-    cities as (select City, Country from #A.entities()),
-    countries as (select distinct Country from #A.entities())
+    cities as (select City, Country from A.entities()),
+    countries as (select distinct Country from A.entities())
 select * from cities
 ```
 
@@ -1470,9 +1607,9 @@ select * from cities
 
 ```sql
 with combined as (
-    select Name from #A.Entities()
+    select Name from A.Entities()
     union (Name)
-    select Name from #B.Entities()
+    select Name from B.Entities()
 )
 select * from combined
 ```
@@ -1480,10 +1617,10 @@ select * from combined
 ### 13.7 CTE with JOIN
 
 ```sql
-with p as (select City, Country from #A.entities())
+with p as (select City, Country from A.entities())
 select p.City, b.Population
 from p
-inner join #B.entities() b on p.City = b.City
+inner join B.entities() b on p.City = b.City
 ```
 
 ### 13.8 Limitations
@@ -1494,7 +1631,7 @@ inner join #B.entities() b on p.City = b.City
 ```sql
 -- ERROR: Duplicate alias 'a'
 with p as (
-    select 1 from #A.entities() a inner join #A.entities() a on 1 = 1
+    select 1 from A.entities() a inner join A.entities() a on 1 = 1
 )
 select * from p
 ```
@@ -1557,7 +1694,7 @@ table Invoice {
 Binds a schema method to a table structure, creating a new data source alias:
 
 ```sql
-couple #schema.Method with table TableName as AliasName;
+couple schema.Method with table TableName as AliasName;
 ```
 
 **Complete Example:**
@@ -1566,7 +1703,7 @@ couple #schema.Method with table TableName as AliasName;
 table DummyTable {
     Name: string
 };
-couple #A.Entities with table DummyTable as SourceOfDummyRows;
+couple A.Entities with table DummyTable as SourceOfDummyRows;
 select Name from SourceOfDummyRows();
 ```
 
@@ -1590,61 +1727,94 @@ TABLE and COUPLE are used when:
 
 ### 15.1 Describe a Schema
 
-List available methods on a schema:
+List available methods exposed by a schema:
 
 ```sql
-desc #A
+desc A
 ```
 
-Returns a single-column table with method names (e.g., `empty`, `entities`).
+Returns a single-column table named `Name`. Each row contains one available schema method (for example `empty`, `entities`).
 
-### 15.2 Describe a Method (Constructors)
+### 15.2 Describe a Method (Overloads)
 
 ```sql
-desc #A.entities
+desc A.entities
 ```
 
-Returns the method name.
+Returns one row per available overload of the selected method.
 
-### 15.3 Describe Table Columns
+The result shape is:
 
-List columns exposed by a method, including name, index, and type:
+- `Name`
+- `Param 0`, `Param 1`, ... as needed to fit the widest overload
+
+Each parameter cell contains `ParameterName: Full.Type.Name`. Overloads with fewer parameters leave the remaining parameter columns empty.
+
+### 15.3 Describe a Specific Constructor Result
+
+Describe the columns produced by a concrete constructor call:
 
 ```sql
-desc #A.entities()
+desc A.entities()
 ```
 
 Returns a table with columns: `Name`, `Index`, `Type`.
 
-Arguments can be passed to describe methods with specific parameters:
+Arguments may be provided when the schema method is overloaded and the engine needs to identify a specific constructor:
 
 ```sql
-desc #dynamic.method(0, 'test', 10.5d)
+desc dynamic.method(0, 'test', 10.5d)
 ```
 
-### 15.4 Describe a Specific Column
+The argument values are matched against the selected constructor signature. The returned table describes the row shape produced by that constructor.
 
-Inspect a specific column's type structure, useful for complex or nested types:
+### 15.4 Describe a Specific Column or Nested Property
+
+Inspect the structure behind a complex column, private table, or nested property path:
 
 ```sql
-desc #A.entities() column Array             -- describe an array column
-desc #A.entities() column Children           -- describe a complex type column
-desc #A.entities() column Self.Children      -- nested property path
-desc #A.entities() column Self.Other.Children  -- deep nested path
+desc A.entities() column Array             -- describe an array column
+desc A.entities() column Self              -- describe a complex object column
+desc A.entities() column Children          -- describe a complex type column
+desc A.entities() column Self.Children     -- nested property path
+desc A.entities() column Self.Other.Children  -- deep nested path
+desc A.entities() column Self.Dictionary   -- IEnumerable<T> path
 ```
 
-Column name matching for DESC is **case-insensitive**.
+Returns a table with columns: `Name`, `Index`, `Type`.
+
+Rules:
+
+- Root column names and nested property names are matched case-insensitively.
+- Property paths may be arbitrarily deep: `A.B.C.D` is valid if each step resolves.
+- The final target may be a complex object, an array, or any `IEnumerable<T>`.
+- If the final target is an array or `IEnumerable<T>`, the output describes the element type.
+- If the final target is a complex object, the output describes that object's properties so you can continue exploratory navigation.
+- If the final target is a primitive, `string`, or `object`, the statement fails.
+- If any path segment does not exist, the statement fails.
+
+For nested descriptions, the `Index` column refers to the original top-level column index from the described table.
 
 ### 15.5 Describe Schema Functions
 
 ```sql
-desc functions #A
-desc functions #A.entities
-desc functions #A.entities()
-desc functions #A.entities('filter')    -- with arguments
+desc functions A
+desc functions A.entities
+desc functions A.entities()
+desc functions A.entities('filter')    -- with arguments
 ```
 
-Lists all functions available when querying the schema. Accepts optional method and argument context.
+Returns a table with columns: `Method`, `Description`, `Category`, `Source`.
+
+This statement lists the query functions available for the schema context. A `.method` or `.method(...)` suffix is accepted by the parser, but it does not narrow the function list. These forms behave the same as `desc functions A`.
+
+Only user-visible query functions are returned. Internal helpers and aggregation-set helpers are excluded.
+
+### 15.6 General DESC Rules
+
+- `DESC`, `FUNCTIONS`, and `COLUMN` are case-insensitive.
+- Optional trailing semicolons are accepted.
+- Normal statement whitespace, comments, and multiline formatting are accepted.
 
 ---
 
@@ -1682,17 +1852,17 @@ SELECT columns
 
 ```sql
 -- Simple
-from #A.Entities() select City, Country
+from A.Entities() select City, Country
 
 -- With WHERE
-from #A.Entities() where Country = 'POLAND' select City, Country
+from A.Entities() where Country = 'POLAND' select City, Country
 
 -- With GROUP BY
-from #A.Entities() group by Country select Country, Sum(Population)
+from A.Entities() group by Country select Country, Sum(Population)
 
 -- Full combination
-from #A.Entities() a
-inner join #B.Entities() b on a.City = b.City
+from A.Entities() a
+inner join B.Entities() b on a.City = b.City
 where a.Country = 'POLAND'
 group by a.Country
 select a.Country, Sum(b.Population)
@@ -1702,7 +1872,7 @@ take 5
 
 -- Inside a CTE
 with cte as (
-    from #A.Entities() where Country = 'POLAND' select City, Country
+    from A.Entities() where Country = 'POLAND' select City, Country
 )
 select * from cte
 ```
@@ -2059,8 +2229,8 @@ Cross-type operations promote to the wider type (e.g., `byte AND long` → `long
 Most expressions involving `null` produce `null`:
 
 ```sql
-select null + 1 from #system.dual()        -- null
-select null = null from #system.dual()      -- null (not true)
+select null + 1 from system.dual()        -- null
+select null = null from system.dual()      -- null (not true)
 ```
 
 ### 18.2 NULL in Comparisons
@@ -2101,7 +2271,7 @@ Expected logical model is three-valued logic (`null = null` evaluates to `null`,
 
 ```sql
 -- Data: (POLAND, WARSAW), (POLAND, null), (GERMANY, BERLIN)
-select Country, City, Count(1) from #A.entities() group by Country, City
+select Country, City, Count(1) from A.entities() group by Country, City
 -- Groups: (POLAND, WARSAW), (POLAND, null), (GERMANY, BERLIN)
 ```
 
@@ -2112,8 +2282,8 @@ When `LEFT JOIN` or `OUTER APPLY` produces no match for a left-side row, right-s
 ```sql
 -- If no match, b.Population becomes decimal? with value null
 select a.City, b.Population
-from #A.entities() a
-left join #B.entities() b on a.City = b.City
+from A.entities() a
+left join B.entities() b on a.City = b.City
 ```
 
 ### 18.6 NULL-Related Functions
@@ -2132,10 +2302,10 @@ left join #B.entities() b on a.City = b.City
 Most built-in functions return `null` when any required parameter is `null`:
 
 ```sql
-select Trim(null) from #system.dual()        -- null
-select ToUpper(null) from #system.dual()      -- null
-select Abs(null) from #system.dual()          -- null
-select Concat(null, 'text') from #system.dual()  -- null
+select Trim(null) from system.dual()        -- null
+select ToUpper(null) from system.dual()      -- null
+select Abs(null) from system.dual()          -- null
+select Concat(null, 'text') from system.dual()  -- null
 ```
 
 ---
@@ -2175,8 +2345,8 @@ These operations use **ordinal (case-sensitive)** comparison:
 To group or deduplicate case-insensitively, normalize with `ToLower()` or `ToUpper()`:
 
 ```sql
-select ToLower(Name), Count(Name) from #A.entities() group by ToLower(Name)
-select distinct ToLower(Name) from #A.entities()
+select ToLower(Name), Count(Name) from A.entities() group by ToLower(Name)
+select distinct ToLower(Name) from A.entities()
 ```
 
 ### 19.4 Unicode Support
@@ -2192,8 +2362,8 @@ Full Unicode support across all operations including LIKE, GROUP BY, ORDER BY, a
 Array elements are accessed with bracket notation (0-based):
 
 ```sql
-select Array[0] from #A.entities()     -- first element
-select Array[2] from #A.entities()     -- third element
+select Array[0] from A.entities()     -- first element
+select Array[2] from A.entities()     -- third element
 ```
 
 #### Negative Indexing
@@ -2201,8 +2371,8 @@ select Array[2] from #A.entities()     -- third element
 Negative indices count from the end (Python-style wrapping):
 
 ```sql
-select Array[-1] from #A.entities()    -- last element
-select Array[-2] from #A.entities()    -- second to last
+select Array[-1] from A.entities()    -- last element
+select Array[-2] from A.entities()    -- second to last
 ```
 
 #### Out-of-Bounds Access
@@ -2220,8 +2390,8 @@ Out-of-bounds access **never throws an exception**. It returns the default value
 Strings support bracket indexing to access individual characters:
 
 ```sql
-select Name[0] from #A.entities()      -- first character
-select Name[-1] from #A.entities()     -- last character
+select Name[0] from A.entities()      -- first character
+select Name[-1] from A.entities()     -- last character
 ```
 
 Out-of-bounds on strings returns `'\0'` (null character). Null strings return `'\0'`.
@@ -2231,7 +2401,7 @@ Out-of-bounds on strings returns `'\0'` (null character). Null strings return `'
 Access dictionary values by key:
 
 ```sql
-select Dict['key_name'] from #A.entities()
+select Dict['key_name'] from A.entities()
 ```
 
 Missing keys return `null` (no exception).
@@ -2241,11 +2411,11 @@ Missing keys return `null` (no exception).
 Access nested object properties with dot notation:
 
 ```sql
-select Self.Name from #A.entities()              -- single level
-select Self.Self.Name from #A.entities()          -- two levels
-select Self.Self.Array from #A.entities()         -- deep property
-select Self.Array[2] from #A.entities()           -- property + index
-select Inc(Self.Array[2]) from #A.entities()      -- function on indexed property
+select Self.Name from A.entities()              -- single level
+select Self.Self.Name from A.entities()          -- two levels
+select Self.Self.Array from A.entities()         -- deep property
+select Self.Array[2] from A.entities()           -- property + index
+select Inc(Self.Array[2]) from A.entities()      -- function on indexed property
 ```
 
 Accessing a non-existing property throws `UnknownPropertyException` at compile time.
@@ -2255,8 +2425,8 @@ Accessing a non-existing property throws `UnknownPropertyException` at compile t
 Entity methods can be called with dot notation:
 
 ```sql
-select a.GetPopulation() from #A.entities() a
-select a.ToUpperInvariant(a.City) from #A.entities() a
+select a.GetPopulation() from A.entities() a
+select a.ToUpperInvariant(a.City) from A.entities() a
 ```
 
 ---
@@ -2350,6 +2520,7 @@ When an `object`-typed column is compared to a numeric literal, runtime conversi
 | Non-array indexed | `Self[0]` on non-array type | `ObjectIsNotAnArrayException` |
 | SELECT * with GROUP BY | Star expands to non-aggregated columns | `NonAggregatedColumnInSelectException` |
 | Missing alias in multi-table | Column without table qualifier in join | `AliasMissingException` |
+| Ambiguous method owner (MQ3035) | Unqualified function call resolves to different implementations across schemas — see [§8.7.1](#871-method-auto-resolution-algorithm) | `AmbiguousMethodOwnerException` |
 
 ### 22.2 Runtime Errors
 
@@ -2406,10 +2577,10 @@ cte_def        ::= identifier AS '(' set_operators ')'
 ```ebnf
 set_operators  ::= query { set_operator query }
 
-set_operator   ::= UNION ['(' key_list ')']
-                 | UNION ALL ['(' key_list ')']
-                 | EXCEPT ['(' key_list ')']
-                 | INTERSECT ['(' key_list ')']
+set_operator   ::= UNION '(' key_list ')'
+                 | UNION ALL '(' key_list ')'
+                 | EXCEPT '(' key_list ')'
+                 | INTERSECT '(' key_list ')'
 
 key_list       ::= [identifier {',' identifier}]
 
@@ -2440,7 +2611,7 @@ reordered_query ::= FROM from_clause
 from_clause    ::= schema_source [alias]
                  | identifier [alias]
 
-schema_source  ::= ['#'] identifier '.' identifier '(' [arg_list] ')'
+schema_source  ::= identifier '.' identifier '(' [arg_list] ')'
 
 alias          ::= identifier | AS identifier
 
@@ -2558,10 +2729,20 @@ qualified_type_name ::= identifier { '.' identifier }
 
 couple_statement ::= COUPLE schema_source WITH TABLE identifier AS identifier
 
-desc_statement ::= DESC ['#'] identifier
-                 | DESC ['#'] identifier '.' identifier
-                 | DESC ['#'] identifier '.' identifier '(' [arg_list] ')'
-                 | DESC FUNCTIONS ['#'] identifier
+desc_statement ::= DESC desc_target [column_clause]
+                 | DESC FUNCTIONS desc_function_target
+
+desc_target ::= identifier
+              | identifier '.' identifier
+              | identifier '.' identifier '(' [arg_list] ')'
+
+desc_function_target ::= identifier
+                       | identifier '.' identifier
+                       | identifier '.' identifier '(' [arg_list] ')'
+
+column_clause ::= COLUMN column_path
+
+column_path ::= identifier { '.' identifier }
 ```
 
 ---
@@ -2635,21 +2816,19 @@ From **lowest** to **highest** precedence:
 
 | Feature | Standard SQL | Musoq |
 |---------|-------------|-------|
-| Data sources | `FROM table_name` | `FROM #schema.method()` |
+| Data sources | `FROM table_name` | `FROM schema.method()` |
 | Pagination | `OFFSET n LIMIT m` | `SKIP n TAKE m` |
 | Not-equal | `<>` and `!=` | Only `<>` supported — `!=` is rejected with a suggestion to use `<>` |
 | CASE WHEN ELSE | ELSE optional | ELSE **mandatory** |
 | Simple CASE | `CASE expr WHEN value THEN ...` | Supported |
-| Set operations | `UNION` (implicit key) | `UNION (key_columns)` (explicit keys) |
+| Set operations | `UNION` / `UNION ALL` without extra syntax | `UNION (key_columns)` / `UNION ALL (key_columns)`; bare standard SQL form is rejected |
 | Recursive CTEs | Supported | Not supported |
 | Subqueries in FROM | Supported | Not supported (use CTEs) |
 | `BETWEEN` | `x BETWEEN a AND b` | Supported — `x BETWEEN a AND b` is equivalent to `x >= a AND x <= b` |
 | Window functions | `ROW_NUMBER() OVER (...)` | `RowNumber()` (no OVER clause, sequential) |
 | String comparison | Implementation-defined | LIKE is case-insensitive; `=` is ordinal |
-| `#` prefix | Not applicable | Optional schema identifier prefix |
 | Cross/Outer Apply | T-SQL only | Fully supported with method/property expansion |
 | Array indexing | Not standard | `column[n]`, negative indexing, safe OOB |
-| Hash-optional | N/A | `#A.Entities()` = `A.Entities()` |
 | Property navigation | Not standard | `column.property.subproperty` |
 | Type suffixes | Not standard | `42l`, `255ub`, `3.14d` |
 | Hex/bin/oct literals | Varies | `0xFF`, `0b1010`, `0o77` |
@@ -2676,7 +2855,7 @@ select
         when Population >= 100 then 'small'
         else 'tiny'
     end
-from #A.entities()
+from A.entities()
 ```
 
 Simple CASE is also supported:
@@ -2688,7 +2867,7 @@ select
         when 1000 then 'large'
         else 'other'
     end
-from #A.entities()
+from A.entities()
 ```
 
 CASE expressions can be nested:
@@ -2707,11 +2886,11 @@ CASE can appear in SELECT, WHERE, GROUP BY, ORDER BY, and HAVING:
 ```sql
 -- In GROUP BY
 select case when Population >= 500 then 'big' else 'small' end, Count(1)
-from #A.entities()
+from A.entities()
 group by case when Population >= 500 then 'big' else 'small' end
 
 -- In arithmetic
-select 1 + (case when 2 > 1 then 1 else 0 end) - 1 from #system.dual()
+select 1 + (case when 2 > 1 then 1 else 0 end) - 1 from system.dual()
 
 -- Short-circuit evaluation: only the matching branch is evaluated
 select case when City <> 'X' then 'safe' else ThrowException() end from ...
@@ -2723,10 +2902,10 @@ Field links use `::N` syntax (where N is a positive integer starting from 1) to 
 
 ```sql
 -- ::1 refers to the first GROUP BY expression (Country)
-select ::1, Count(Name) from #A.entities() group by Country
+select ::1, Count(Name) from A.entities() group by Country
 
 -- Equivalent to:
-select Country, Count(Name) from #A.entities() group by Country
+select Country, Count(Name) from A.entities() group by Country
 ```
 
 **Rules:**

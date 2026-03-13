@@ -720,7 +720,7 @@ public class TokenFactoryTests
     [TestMethod]
     public void Create_OuterJoinToken_LeftJoin_ReturnsCorrectType()
     {
-        var regex = new Regex(@"(left|right)\s+outer\s+join", RegexOptions.IgnoreCase);
+        var regex = new Regex(@"(left|right)(?:\s+outer)?\s+join", RegexOptions.IgnoreCase);
         var match = regex.Match("left outer join");
         var token = TokenFactory.Create(TokenType.OuterJoin, 0, "left outer join", match);
         Assert.IsNotNull(token);
@@ -730,11 +730,35 @@ public class TokenFactoryTests
     }
 
     [TestMethod]
+    public void Create_OuterJoinToken_LeftJoinWithoutOuter_ReturnsCorrectType()
+    {
+        var regex = new Regex(@"(left|right)(?:\s+outer)?\s+join", RegexOptions.IgnoreCase);
+        var match = regex.Match("left join");
+        var token = TokenFactory.Create(TokenType.OuterJoin, 0, "left join", match);
+        Assert.IsNotNull(token);
+        Assert.IsInstanceOfType<OuterJoinToken>(token);
+        var outerJoin = (OuterJoinToken)token;
+        Assert.AreEqual(OuterJoinType.Left, outerJoin.Type);
+    }
+
+    [TestMethod]
     public void Create_OuterJoinToken_RightJoin_ReturnsCorrectType()
     {
-        var regex = new Regex(@"(left|right)\s+outer\s+join", RegexOptions.IgnoreCase);
+        var regex = new Regex(@"(left|right)(?:\s+outer)?\s+join", RegexOptions.IgnoreCase);
         var match = regex.Match("right outer join");
         var token = TokenFactory.Create(TokenType.OuterJoin, 0, "right outer join", match);
+        Assert.IsNotNull(token);
+        Assert.IsInstanceOfType<OuterJoinToken>(token);
+        var outerJoin = (OuterJoinToken)token;
+        Assert.AreEqual(OuterJoinType.Right, outerJoin.Type);
+    }
+
+    [TestMethod]
+    public void Create_OuterJoinToken_RightJoinWithoutOuter_ReturnsCorrectType()
+    {
+        var regex = new Regex(@"(left|right)(?:\s+outer)?\s+join", RegexOptions.IgnoreCase);
+        var match = regex.Match("right join");
+        var token = TokenFactory.Create(TokenType.OuterJoin, 0, "right join", match);
         Assert.IsNotNull(token);
         Assert.IsInstanceOfType<OuterJoinToken>(token);
         var outerJoin = (OuterJoinToken)token;

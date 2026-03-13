@@ -1195,7 +1195,7 @@ public class LowCoverageAreasTests
 
         Assert.AreEqual("first", dict[key2]);
         Assert.AreEqual("second", dict[key3]);
-        Assert.AreEqual(2, dict.Count);
+        Assert.HasCount(2, dict);
     }
 
     [TestMethod]
@@ -1206,7 +1206,7 @@ public class LowCoverageAreasTests
         for (var i = 0; i < 100; i++)
             dict[new GroupKey(i.ToString(), i)] = i;
 
-        Assert.AreEqual(100, dict.Count);
+        Assert.HasCount(100, dict);
 
         for (var i = 0; i < 100; i++)
             Assert.AreEqual(i, dict[new GroupKey(i.ToString(), i)]);
@@ -1241,7 +1241,7 @@ public class LowCoverageAreasTests
         var result = EvaluationHelper.FlattenContexts(new object[] { null });
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(1, result.Length);
+        Assert.HasCount(1, result);
         Assert.IsNull(result[0]);
     }
 
@@ -1251,7 +1251,7 @@ public class LowCoverageAreasTests
         var result = EvaluationHelper.FlattenContexts((object[])null);
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(1, result.Length);
+        Assert.HasCount(1, result);
         Assert.IsNull(result[0]);
     }
 
@@ -1274,7 +1274,7 @@ public class LowCoverageAreasTests
 
         var result = EvaluationHelper.FlattenContexts(ctx1, ctx2);
 
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual(1, result[0]);
         Assert.AreEqual(2, result[1]);
         Assert.IsNull(result[2]);

@@ -166,7 +166,7 @@ public class ErrorGapAnalysisTests : GenericEntityTestBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(query, source));
 
-        AssertExactErrors(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticCode.MQ3025_ColumnMustBeArray);
+        AssertExactErrors(ex, DiagnosticCode.MQ3025_ColumnMustBeArray, DiagnosticCode.MQ3001_UnknownColumn);
     }
 
     [TestMethod]
@@ -178,7 +178,7 @@ public class ErrorGapAnalysisTests : GenericEntityTestBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(query, source));
 
-        AssertExactErrors(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticCode.MQ3025_ColumnMustBeArray);
+        AssertExactErrors(ex, DiagnosticCode.MQ3025_ColumnMustBeArray, DiagnosticCode.MQ3001_UnknownColumn);
     }
 
     #endregion
@@ -194,7 +194,7 @@ public class ErrorGapAnalysisTests : GenericEntityTestBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CreateAndRunVirtualMachine(query, source));
 
-        AssertExactErrors(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticCode.MQ3026_ColumnNotBindable);
+        AssertExactErrors(ex, DiagnosticCode.MQ3026_ColumnNotBindable, DiagnosticCode.MQ3001_UnknownColumn);
     }
 
     #endregion

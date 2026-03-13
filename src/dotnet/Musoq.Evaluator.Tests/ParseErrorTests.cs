@@ -358,8 +358,10 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name FROM #test.people() UNION SELECT Name FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "Union");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "UNION");
         AssertHasGuidance(ex);
+        AssertMessageContains(ex, "UNION (<key_columns>)");
+        AssertMessageContains(ex, "not supported");
     }
 
     [TestMethod]
@@ -368,8 +370,9 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name FROM #test.people() UNION () SELECT Name FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "Union");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "UNION");
         AssertHasGuidance(ex);
+        AssertMessageContains(ex, "UNION (<key_columns>)");
     }
 
     [TestMethod]
@@ -388,7 +391,7 @@ public class ParseErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name FROM #test.people() INTERSECT SELECT Name FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "Intersect");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "INTERSECT");
         AssertHasGuidance(ex);
     }
 

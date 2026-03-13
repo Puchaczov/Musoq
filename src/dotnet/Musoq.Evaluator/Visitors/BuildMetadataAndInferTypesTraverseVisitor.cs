@@ -178,7 +178,7 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
             if (column != null)
             {
-                Visit(new AccessColumnNode(column.Name, ident.Name, TextSpan.Empty));
+                Visit(new AccessColumnNode(column.Name, ident.Name, node.Span));
                 return;
             }
         }
