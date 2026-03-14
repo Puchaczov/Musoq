@@ -92,6 +92,9 @@ public abstract class Row : IEquatable<Row>, IValue<Key>, IReadOnlyRow
 
     internal string DebugInfo()
     {
+        if (Count == 0)
+            return string.Empty;
+
         var rowText = new StringBuilder();
 
         for (var i = 0; i < Count - 1; i++)
