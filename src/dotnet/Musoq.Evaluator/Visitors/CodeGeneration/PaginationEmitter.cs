@@ -23,16 +23,16 @@ public static class PaginationEmitter
     public static SkipNodeResult GenerateSkipCode(long skipValue, SyntaxGenerator generator)
     {
         var skip = SyntaxFactory.LocalDeclarationStatement(
-                SyntaxHelper.CreateAssignment(SkipIdentifier, (ExpressionSyntax)generator.LiteralExpression(1)))
+                SyntaxHelper.CreateAssignment(SkipIdentifier, (ExpressionSyntax)generator.LiteralExpression(skipValue)))
             .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
 
         var ifStatement = generator.IfStatement(
-            generator.LessThanOrEqualExpression(
+            generator.GreaterThanExpression(
                 SyntaxFactory.IdentifierName(SkipIdentifier),
-                generator.LiteralExpression(skipValue)),
+                generator.LiteralExpression(0L)),
             [
                 SyntaxFactory.PostfixUnaryExpression(
-                    SyntaxKind.PostIncrementExpression,
+                    SyntaxKind.PostDecrementExpression,
                     SyntaxFactory.IdentifierName(SkipIdentifier)),
                 StatementEmitter.CreateContinue()
             ]);

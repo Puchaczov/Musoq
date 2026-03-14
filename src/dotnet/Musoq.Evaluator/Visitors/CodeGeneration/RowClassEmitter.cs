@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,14 +27,14 @@ internal static class RowClassEmitter
     /// <returns>A class declaration syntax.</returns>
     public static MemberDeclarationSyntax GenerateRowClass(string className, SelectNode node, Scope scope)
     {
-        var (fields, constructorParams, constructorBody, valuesInit) = GenerateFieldsAndConstructorParams(node);
+        var (fields, constructorParams, constructorBody, valuesInit, fieldNames) = GenerateFieldsAndConstructorParams(node);
         var (contextParams, contextBody) = GenerateContextParams(scope);
 
         constructorParams.AddRange(contextParams);
         constructorBody.AddRange(contextBody);
 
         var constructor = CreateConstructor(className, constructorParams, constructorBody);
-        var indexer = CreateIndexer(node.Fields.Length);
+        var indexer = CreateIndexer(node.Fields.Length, i => fieldNames[i]);
         var countProp = CreateCountProperty(node.Fields.Length);
         var (valuesBackingField, valuesProp) = CreateValuesPropertyWithCache(valuesInit);
         var contextsProp = CreateContextsProperty();
@@ -47,29 +50,32 @@ internal static class RowClassEmitter
     }
 
     private static (List<MemberDeclarationSyntax> Fields, List<ParameterSyntax> ConstructorParams,
-        List<StatementSyntax> ConstructorBody, List<ExpressionSyntax> ValuesInit)
+        List<StatementSyntax> ConstructorBody, List<ExpressionSyntax> ValuesInit, List<string> FieldNames)
         GenerateFieldsAndConstructorParams(SelectNode node)
     {
         var fields = new List<MemberDeclarationSyntax>();
         var constructorParams = new List<ParameterSyntax>();
         var constructorBody = new List<StatementSyntax>();
         var valuesInit = new List<ExpressionSyntax>();
+        var fieldNames = new List<string>();
+        var usedNames = new HashSet<string>(StringComparer.Ordinal);
 
         for (var i = 0; i < node.Fields.Length; i++)
         {
-            var fieldName = $"Item{i}";
+            var fieldName = SanitizeFieldName(node.Fields[i].FieldName, i, usedNames);
             var type = node.Fields[i].Expression.ReturnType;
             var typeSyntax = SyntaxFactory.ParseTypeName(EvaluationHelper.GetCastableType(type));
 
             fields.Add(CreatePublicField(fieldName, typeSyntax, node.Fields[i].FieldName));
 
-            var paramName = $"item{i}";
+            var paramName = DeriveParameterName(fieldName);
             constructorParams.Add(CreateParameter(paramName, typeSyntax));
             constructorBody.Add(CreateFieldAssignment(fieldName, paramName));
             valuesInit.Add(SyntaxFactory.IdentifierName(fieldName));
+            fieldNames.Add(fieldName);
         }
 
-        return (fields, constructorParams, constructorBody, valuesInit);
+        return (fields, constructorParams, constructorBody, valuesInit, fieldNames);
     }
 
     private static (List<ParameterSyntax> Params, List<StatementSyntax> Body) GenerateContextParams(Scope scope)
@@ -127,6 +133,68 @@ internal static class RowClassEmitter
         return (contextParams, contextBody);
     }
 
+    private static readonly HashSet<string> CSharpKeywords =
+    [
+        "abstract", "as", "async", "await", "base", "bool", "break", "byte", "case", "catch", "char",
+        "checked", "class", "const", "continue", "decimal", "default", "delegate", "do", "double",
+        "else", "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for",
+        "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock",
+        "long", "namespace", "new", "null", "object", "operator", "out", "override", "params",
+        "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short",
+        "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true",
+        "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using", "var", "virtual",
+        "void", "volatile", "while"
+    ];
+
+    private static readonly HashSet<string> ReservedRowMembers =
+    [
+        "Contexts", "Values", "Count", "_values"
+    ];
+
+    private static string SanitizeFieldName(string columnName, int index, HashSet<string> usedNames)
+    {
+        var sb = new StringBuilder(columnName.Length);
+
+        foreach (var ch in columnName)
+        {
+            if (char.IsLetterOrDigit(ch))
+                sb.Append(ch);
+            else if (ch is '_')
+                sb.Append(ch);
+            else if (sb.Length > 0 && sb[sb.Length - 1] != '_')
+                sb.Append('_');
+        }
+
+        if (sb.Length == 0 || char.IsDigit(sb[0]))
+            sb.Insert(0, '_');
+
+        var candidate = sb.ToString();
+
+        if (CSharpKeywords.Contains(candidate) || ReservedRowMembers.Contains(candidate))
+            candidate = $"_{candidate}";
+
+        if (!usedNames.Add(candidate))
+        {
+            candidate = $"{candidate}_{index}";
+            usedNames.Add(candidate);
+        }
+
+        return candidate;
+    }
+
+    private static string DeriveParameterName(string fieldName)
+    {
+        if (fieldName.Length == 0)
+            return "p";
+
+        var lowered = $"{char.ToLower(fieldName[0], CultureInfo.InvariantCulture)}{fieldName.Substring(1)}";
+
+        if (lowered == fieldName || CSharpKeywords.Contains(lowered))
+            return $"p_{fieldName}";
+
+        return lowered;
+    }
+
     private static MemberDeclarationSyntax CreatePublicField(string fieldName, TypeSyntax typeSyntax, string comment)
     {
         var sanitizedComment = comment.Replace("\n", "\\n").Replace("\r", "\\r");
@@ -163,31 +231,29 @@ internal static class RowClassEmitter
             .WithBody(StatementEmitter.CreateBlock(body.ToArray()));
     }
 
-    private static IndexerDeclarationSyntax CreateIndexer(int fieldCount)
+    private static IndexerDeclarationSyntax CreateIndexer(int fieldCount, Func<int, string> fieldNameForIndex)
     {
-        var switchSections = new List<SwitchSectionSyntax>();
+        var arms = new List<SwitchExpressionArmSyntax>();
 
         for (var i = 0; i < fieldCount; i++)
-            switchSections.Add(
-                SyntaxFactory.SwitchSection()
-                    .WithLabels(SyntaxFactory.SingletonList<SwitchLabelSyntax>(
-                        SyntaxFactory.CaseSwitchLabel(
-                            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i)))))
-                    .WithStatements(SyntaxFactory.SingletonList<StatementSyntax>(
-                        StatementEmitter.CreateReturn(SyntaxFactory.IdentifierName($"Item{i}")))));
+            arms.Add(
+                SyntaxFactory.SwitchExpressionArm(
+                    SyntaxFactory.ConstantPattern(
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i))),
+                    SyntaxFactory.CastExpression(
+                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
+                        SyntaxFactory.IdentifierName(fieldNameForIndex(i)))));
 
-        switchSections.Add(
-            SyntaxFactory.SwitchSection()
-                .WithLabels(SyntaxFactory.SingletonList<SwitchLabelSyntax>(SyntaxFactory.DefaultSwitchLabel()))
-                .WithStatements(SyntaxFactory.SingletonList<StatementSyntax>(
-                    StatementEmitter.CreateThrow(
-                        SyntaxFactory.ObjectCreationExpression(SyntaxHelper.IndexOutOfRangeExceptionTypeSyntax)
-                            .WithArgumentList(SyntaxFactory.ArgumentList())))));
+        arms.Add(
+            SyntaxFactory.SwitchExpressionArm(
+                SyntaxFactory.DiscardPattern(),
+                SyntaxFactory.ThrowExpression(
+                    SyntaxFactory.ObjectCreationExpression(SyntaxHelper.IndexOutOfRangeExceptionTypeSyntax)
+                        .WithArgumentList(SyntaxFactory.ArgumentList()))));
 
-        var switchStatement = SyntaxFactory.SwitchStatement(SyntaxFactory.IdentifierName("index"))
-            .WithSections(SyntaxFactory.List(switchSections));
-
-        var indexerBody = SyntaxFactory.Block(switchStatement);
+        var switchExpression = SyntaxFactory.SwitchExpression(
+            SyntaxFactory.IdentifierName("index"),
+            SyntaxFactory.SeparatedList(arms));
 
         return SyntaxFactory
             .IndexerDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
@@ -197,9 +263,8 @@ internal static class RowClassEmitter
             .WithParameterList(SyntaxFactory.BracketedParameterList(SyntaxFactory.SingletonSeparatedList(
                 SyntaxFactory.Parameter(SyntaxFactory.Identifier("index"))
                     .WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword))))))
-            .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(
-                SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                    .WithBody(indexerBody))));
+            .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(switchExpression))
+            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 
     private static PropertyDeclarationSyntax CreateCountProperty(int count)

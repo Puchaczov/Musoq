@@ -74,7 +74,7 @@ internal static class SchemaNodeEmitter
                 SyntaxFactory.SeparatedList([
                     SyntaxHelper.StringLiteralArgument(method),
                     SyntaxFactory.Argument(runtimeContext),
-                    SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf(nameof(Object), args.ToArray()))
+                    SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf("object", args.ToArray()))
                 ])));
     }
 

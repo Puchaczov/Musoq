@@ -205,7 +205,7 @@ public class DescStatementEmitter(SyntaxGenerator generator)
                 SyntaxFactory.SeparatedList([
                     SyntaxHelper.StringLiteralArgument(schemaNode.Method),
                     SyntaxFactory.Argument(CreateRuntimeContext(schemaNode, originallyInferredColumns)),
-                    SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf(nameof(Object), args))
+                    SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf("object", args))
                 ]),
                 SyntaxFactory.Token(SyntaxKind.CloseParenToken)));
 

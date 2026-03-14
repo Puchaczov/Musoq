@@ -64,7 +64,10 @@ public static class InternalQueryNodeProcessor
         statements.Add(QueryEmitter.CreateIndexToValueDictDeclaration(indexToColumnMapCode));
 
         var foreachBlock = GroupByEmitter.CreateGroupByForeach(block, node.From.Alias.ToRowItem(), sourceName);
-        var fullBlock = StatementEmitter.CreateBlock(getRowsSourceFunc(node.From.Alias), foreachBlock);
+        var rowsSource = getRowsSourceFunc(node.From.Alias);
+        var fullBlock = rowsSource is EmptyStatementSyntax
+            ? StatementEmitter.CreateBlock(foreachBlock)
+            : StatementEmitter.CreateBlock(rowsSource, foreachBlock);
         statements.AddRange(fullBlock.Statements);
 
         if (!string.IsNullOrEmpty(queryId))

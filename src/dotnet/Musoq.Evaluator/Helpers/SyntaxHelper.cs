@@ -103,7 +103,7 @@ public static class SyntaxHelper
 
     public static ArrayCreationExpressionSyntax CreateArrayOfObjects(ExpressionSyntax[] expressions)
     {
-        return CreateArrayOf(nameof(Object), expressions);
+        return CreateArrayOf("object", expressions);
     }
 
     public static ArrayCreationExpressionSyntax CreateArrayOfObjects(string typeName,

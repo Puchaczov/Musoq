@@ -50,7 +50,7 @@ public static class ContainsEmitter
         var type = node.Left.ReturnType;
 
         if (type is null || type == typeof(void) || type == typeof(object))
-            return nameof(Object);
+            return "object";
 
         return Nullable.GetUnderlyingType(type)?.Name ?? type.Name;
     }
