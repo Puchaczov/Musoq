@@ -45,29 +45,7 @@ public abstract class SchemaBase : ISchema
             throw SchemaArgumentException.ForNullArgument(nameof(runtimeContext), "getting a table by name");
 
         var tableName = $"{name.ToLowerInvariant()}{TablePart}";
-        var methods = GetConstructors(tableName).Select(c => c.ConstructorInfo).ToArray();
-
-        if (methods.Length == 0)
-        {
-            var availableTables = GetAvailableTableNames();
-            throw SchemaArgumentException.ForInvalidMethodName(name, availableTables);
-        }
-
-        if (!TryMatchConstructorWithParams(methods, parameters ?? [], out var constructorInfo))
-        {
-            var availableSignatures = methods.Select(GetMethodSignature).ToArray();
-            var providedTypes = parameters?.Select(p => p?.GetType().Name ?? "null").ToArray() ?? [];
-            throw MethodResolutionException.ForUnresolvedMethod(name, providedTypes, availableSignatures);
-        }
-
-        try
-        {
-            return (ISchemaTable)constructorInfo.OriginConstructor.Invoke(parameters ?? []);
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException($"Failed to create table '{name}': {ex.Message}", ex);
-        }
+        return ResolveAndCreate<ISchemaTable>(name, tableName, GetAvailableTableNames, parameters);
     }
 
     public virtual RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
@@ -79,34 +57,50 @@ public abstract class SchemaBase : ISchema
             throw SchemaArgumentException.ForNullArgument(nameof(runtimeContext), "getting a row source");
 
         var sourceName = $"{name.ToLowerInvariant()}{SourcePart}";
-        var methods = GetConstructors(sourceName).Select(c => c.ConstructorInfo).ToArray();
-
-        if (methods.Length == 0)
-        {
-            var availableSources = GetAvailableSourceNames();
-            throw SchemaArgumentException.ForInvalidMethodName(name, availableSources);
-        }
 
         if (AdditionalArguments.TryGetValue(sourceName, out var argument))
             parameters = parameters.ExpandParameters(argument);
 
-        if (!TryMatchConstructorWithParams(methods, parameters ?? [], out var constructorInfo))
+        return ResolveAndCreate<RowSource>(name, sourceName, GetAvailableSourceNames, parameters, (ci, p) =>
         {
-            var availableSignatures = methods.Select(GetMethodSignature).ToArray();
-            var providedTypes = parameters?.Select(p => p?.GetType().Name ?? "null").ToArray() ?? [];
-            throw MethodResolutionException.ForUnresolvedMethod(name, providedTypes, availableSignatures);
+            if (ci.SupportsInterCommunicator)
+                return p.ExpandParameters(runtimeContext);
+            return p;
+        });
+    }
+
+    private T ResolveAndCreate<T>(
+        string displayName,
+        string resolvedName,
+        Func<string> getAvailableNames,
+        object[] parameters,
+        Func<ConstructorInfo, object[], object[]> transformParameters = null) where T : class
+    {
+        var methods = GetConstructors(resolvedName).Select(c => c.ConstructorInfo).ToArray();
+
+        if (methods.Length == 0)
+        {
+            var available = getAvailableNames();
+            throw SchemaArgumentException.ForInvalidMethodName(displayName, available);
         }
 
-        if (constructorInfo.SupportsInterCommunicator)
-            parameters = parameters.ExpandParameters(runtimeContext);
+        if (!TryMatchConstructorWithParams(methods, parameters, out var constructorInfo))
+        {
+            var availableSignatures = methods.Select(GetMethodSignature).ToArray();
+            var providedTypes = parameters.Select(p => p?.GetType().Name ?? "null").ToArray();
+            throw MethodResolutionException.ForUnresolvedMethod(displayName, providedTypes, availableSignatures);
+        }
+
+        if (transformParameters != null)
+            parameters = transformParameters(constructorInfo, parameters);
 
         try
         {
-            return (RowSource)constructorInfo.OriginConstructor.Invoke(parameters ?? []);
+            return (T)constructorInfo.OriginConstructor.Invoke(parameters);
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Failed to create row source '{name}': {ex.Message}", ex);
+            throw new InvalidOperationException($"Failed to create {typeof(T).Name} '{displayName}': {ex.Message}", ex);
         }
     }
 
@@ -221,26 +215,19 @@ public abstract class SchemaBase : ISchema
         ConstructorsMethods.AddRange(schemaMethodInfos);
     }
 
-    private string GetAvailableTableNames()
+    private string GetAvailableTableNames() => GetAvailableNames(TablePart, "No tables available");
+
+    private string GetAvailableSourceNames() => GetAvailableNames(SourcePart, "No sources available");
+
+    private string GetAvailableNames(string suffix, string noItemsMessage)
     {
-        var tableNames = ConstructorsMethods
-            .Where(cm => cm.MethodName.Contains(TablePart))
-            .Select(cm => cm.MethodName.Replace(TablePart, string.Empty))
+        var names = ConstructorsMethods
+            .Where(cm => cm.MethodName.Contains(suffix))
+            .Select(cm => cm.MethodName.Replace(suffix, string.Empty))
             .Distinct()
             .ToArray();
 
-        return tableNames.Length == 0 ? "No tables available" : string.Join(", ", tableNames);
-    }
-
-    private string GetAvailableSourceNames()
-    {
-        var sourceNames = ConstructorsMethods
-            .Where(cm => cm.MethodName.Contains(SourcePart))
-            .Select(cm => cm.MethodName.Replace(SourcePart, string.Empty))
-            .Distinct()
-            .ToArray();
-
-        return sourceNames.Length == 0 ? "No sources available" : string.Join(", ", sourceNames);
+        return names.Length == 0 ? noItemsMessage : string.Join(", ", names);
     }
 
     private static string GetMethodSignature(ConstructorInfo constructorInfo)

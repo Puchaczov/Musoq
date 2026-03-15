@@ -638,34 +638,28 @@ public class Parser
             return keys.ToArray();
         }
 
-        var value = Current.Value;
-        Consume(Current.TokenType);
-        if (Current.TokenType == TokenType.Dot)
-        {
-            Consume(Current.TokenType);
-            value = $"{value}.{Current.Value}";
-            Consume(Current.TokenType);
-        }
-
-        keys.Add(value);
+        keys.Add(ParsePotentiallyDottedName());
         while (Current.TokenType == TokenType.Comma)
         {
             Consume(TokenType.Comma);
-            value = Current.Value;
-            Consume(Current.TokenType);
-            if (Current.TokenType == TokenType.Dot)
-            {
-                Consume(Current.TokenType);
-                value = $"{value}.{Current.Value}";
-                Consume(Current.TokenType);
-            }
-
-            keys.Add(value);
+            keys.Add(ParsePotentiallyDottedName());
         }
 
         Consume(TokenType.RightParenthesis);
 
         return keys.ToArray();
+    }
+
+    private string ParsePotentiallyDottedName()
+    {
+        var value = Current.Value;
+        Consume(Current.TokenType);
+        if (Current.TokenType != TokenType.Dot) return value;
+
+        Consume(Current.TokenType);
+        value = $"{value}.{Current.Value}";
+        Consume(Current.TokenType);
+        return value;
     }
 
     private static bool IsSetOperator(TokenType currentTokenType)
@@ -693,9 +687,7 @@ public class Parser
             _fromPosition += 1;
             var selectNode = ComposeSelectNode();
             var fromNode = ComposeFrom();
-
             fromNode = ComposeJoinOrApply(fromNode);
-
             var whereNode = ComposeWhere(false);
             var groupBy = ComposeGroupByNode();
             var orderBy = ComposeOrderBy();
@@ -1632,56 +1624,29 @@ public class Parser
     {
         return tokenType switch
         {
-            TokenType.Binary => true,
-            TokenType.Text => true,
-            TokenType.LittleEndian => true,
-            TokenType.BigEndian => true,
-            TokenType.ByteType => true,
-            TokenType.SByteType => true,
-            TokenType.ShortType => true,
-            TokenType.UShortType => true,
-            TokenType.IntType => true,
-            TokenType.UIntType => true,
-            TokenType.LongType => true,
-            TokenType.ULongType => true,
-            TokenType.FloatType => true,
-            TokenType.DoubleType => true,
-            TokenType.BitsType => true,
-            TokenType.Align => true,
-            TokenType.StringType => true,
-            TokenType.Utf8 => true,
-            TokenType.Utf16Le => true,
-            TokenType.Utf16Be => true,
-            TokenType.Ascii => true,
-            TokenType.Latin1 => true,
-            TokenType.Ebcdic => true,
-            TokenType.Trim => true,
-            TokenType.RTrim => true,
-            TokenType.LTrim => true,
-            TokenType.NullTerm => true,
-            TokenType.Check => true,
-            TokenType.At => true,
-            TokenType.Colon => true,
-            TokenType.Pattern => true,
-            TokenType.Literal => true,
-            TokenType.Until => true,
-            TokenType.Between => true,
-            TokenType.Chars => true,
-            TokenType.Token => true,
-            TokenType.Rest => true,
-            TokenType.Whitespace => true,
-            TokenType.Optional => true,
-            TokenType.Repeat => true,
-            TokenType.Switch => true,
-            TokenType.Nested => true,
-            TokenType.Escaped => true,
-            TokenType.Greedy => true,
-            TokenType.Lazy => true,
-            TokenType.Lower => true,
-            TokenType.Upper => true,
-            TokenType.Capture => true,
-            TokenType.Extends => true,
-            TokenType.End => true,
+            TokenType.Binary or TokenType.Text or
+                TokenType.LittleEndian or TokenType.BigEndian or
+                TokenType.ByteType or TokenType.SByteType or
+                TokenType.ShortType or TokenType.UShortType or
+                TokenType.IntType or TokenType.UIntType or
+                TokenType.LongType or TokenType.ULongType or
+                TokenType.FloatType or TokenType.DoubleType or
+                TokenType.BitsType or TokenType.Align or
+                TokenType.StringType or TokenType.Utf8 or
+                TokenType.Utf16Le or TokenType.Utf16Be or
+                TokenType.Ascii or TokenType.Latin1 or TokenType.Ebcdic or
+                TokenType.Trim or TokenType.RTrim or TokenType.LTrim or
+                TokenType.NullTerm or TokenType.Check or
+                TokenType.At or TokenType.Colon or
+                TokenType.Pattern or TokenType.Literal or
+                TokenType.Until or TokenType.Between or
+                TokenType.Chars or TokenType.Token or
+                TokenType.Rest or TokenType.Whitespace or
+                TokenType.Optional or TokenType.Repeat or
+                TokenType.Switch or TokenType.Nested or
+                TokenType.Escaped or TokenType.Greedy or TokenType.Lazy or
+                TokenType.Lower or TokenType.Upper or
+                TokenType.Capture or TokenType.Extends or TokenType.End => true,
             _ => false
         };
     }

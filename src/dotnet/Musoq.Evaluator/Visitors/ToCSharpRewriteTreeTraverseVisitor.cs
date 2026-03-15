@@ -8,250 +8,101 @@ using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
+public class ToCSharpRewriteTreeTraverseVisitor : RawTraverseVisitor<IToCSharpTranslationExpressionVisitor>
 {
     private readonly CompilationOptions _compilationOptions;
-    private readonly IToCSharpTranslationExpressionVisitor _visitor;
     private ScopeWalker _walker;
 
     public ToCSharpRewriteTreeTraverseVisitor(IToCSharpTranslationExpressionVisitor visitor, ScopeWalker walker,
         CompilationOptions compilationOptions)
+        : base(visitor)
     {
-        _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
         _walker = walker;
         _compilationOptions = compilationOptions;
     }
 
-    public void Visit(SelectNode node)
+    public override void Visit(WhereNode node)
     {
-        foreach (var field in node.Fields)
-            field.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(GroupSelectNode node)
-    {
-        foreach (var field in node.Fields)
-            field.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(StringNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(IntegerNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(HexIntegerNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(BinaryIntegerNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(OctalIntegerNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(BooleanNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(WordNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(NullNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(ContainsNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(AccessMethodNode node)
-    {
-        node.Arguments.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(AccessRawIdentifierNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(IsNullNode node)
-    {
+        Visitor.AddNullSuspiciousSection();
         node.Expression.Accept(this);
-        node.Accept(_visitor);
+        node.Accept(Visitor);
+        Visitor.RemoveNullSuspiciousSection();
     }
 
-    public void Visit(AccessRefreshAggregationScoreNode node)
-    {
-        node.Arguments.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(AccessColumnNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(AllColumnsNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(IdentifierNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(AccessObjectArrayNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(AccessObjectKeyNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(PropertyValueNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(DotNode node)
-    {
-        node.Root.Accept(this);
-        node.Expression.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(AccessCallChainNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public virtual void Visit(WhereNode node)
-    {
-        _visitor.AddNullSuspiciousSection();
-        node.Expression.Accept(this);
-        node.Accept(_visitor);
-        _visitor.RemoveNullSuspiciousSection();
-    }
-
-    public void Visit(GroupByNode node)
+    public override void Visit(GroupByNode node)
     {
         foreach (var field in node.Fields)
             field.Accept(this);
 
         node.Having?.Accept(this);
-        node.Accept(_visitor);
+        node.Accept(Visitor);
     }
 
-    public void Visit(HavingNode node)
+    public override void Visit(HavingNode node)
     {
-        _visitor.AddNullSuspiciousSection();
+        Visitor.AddNullSuspiciousSection();
         node.Expression.Accept(this);
-        node.Accept(_visitor);
-        _visitor.RemoveNullSuspiciousSection();
+        node.Accept(Visitor);
+        Visitor.RemoveNullSuspiciousSection();
     }
 
-    public void Visit(SkipNode node)
+    public override void Visit(JoinInMemoryWithSourceTableFromNode node)
     {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(TakeNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(JoinInMemoryWithSourceTableFromNode node)
-    {
-        _visitor.SetInsideJoinOrApply(true);
-        _visitor.AddNullSuspiciousSection();
+        Visitor.SetInsideJoinOrApply(true);
+        Visitor.AddNullSuspiciousSection();
 
         node.SourceTable.Accept(this);
         node.Expression.Accept(this);
-        node.Accept(_visitor);
+        node.Accept(Visitor);
 
-        _visitor.SetInsideJoinOrApply(false);
-        _visitor.RemoveNullSuspiciousSection();
+        Visitor.SetInsideJoinOrApply(false);
+        Visitor.RemoveNullSuspiciousSection();
     }
 
-    public void Visit(ApplyInMemoryWithSourceTableFromNode node)
+    public override void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
-        _visitor.SetInsideJoinOrApply(true);
-        _visitor.AddNullSuspiciousSection();
+        Visitor.SetInsideJoinOrApply(true);
+        Visitor.AddNullSuspiciousSection();
 
         node.SourceTable.Accept(this);
-        node.Accept(_visitor);
+        node.Accept(Visitor);
 
-        _visitor.SetInsideJoinOrApply(false);
-        _visitor.RemoveNullSuspiciousSection();
+        Visitor.SetInsideJoinOrApply(false);
+        Visitor.RemoveNullSuspiciousSection();
     }
 
-    public void Visit(SchemaFromNode node)
+    public override void Visit(JoinSourcesTableFromNode node)
     {
-        node.Parameters.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(JoinSourcesTableFromNode node)
-    {
-        _visitor.SetInsideJoinOrApply(true);
-        _visitor.AddNullSuspiciousSection();
+        Visitor.SetInsideJoinOrApply(true);
+        Visitor.AddNullSuspiciousSection();
 
         node.Expression.Accept(this);
         node.First.Accept(this);
         node.Second.Accept(this);
 
-        node.Accept(_visitor);
+        node.Accept(Visitor);
 
-        _visitor.SetInsideJoinOrApply(false);
-        _visitor.RemoveNullSuspiciousSection();
+        Visitor.SetInsideJoinOrApply(false);
+        Visitor.RemoveNullSuspiciousSection();
     }
 
-    public void Visit(ApplySourcesTableFromNode node)
+    public override void Visit(ApplySourcesTableFromNode node)
     {
-        _visitor.SetInsideJoinOrApply(true);
-        _visitor.AddNullSuspiciousSection();
+        Visitor.SetInsideJoinOrApply(true);
+        Visitor.AddNullSuspiciousSection();
 
         node.First.Accept(this);
         node.Second.Accept(this);
 
+        Visitor.SetQueryIdentifier(node.Alias);
 
-        _visitor.SetQueryIdentifier(node.Alias);
+        node.Accept(Visitor);
 
-        node.Accept(_visitor);
-
-        _visitor.SetInsideJoinOrApply(false);
-        _visitor.RemoveNullSuspiciousSection();
+        Visitor.SetInsideJoinOrApply(false);
+        Visitor.RemoveNullSuspiciousSection();
     }
 
-    public void Visit(InMemoryTableFromNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(JoinFromNode node)
+    public override void Visit(JoinFromNode node)
     {
         var joins = new Stack<JoinFromNode>();
 
@@ -282,10 +133,10 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
             join.Expression.Accept(this);
         }
 
-        join.Accept(_visitor);
+        join.Accept(Visitor);
     }
 
-    public void Visit(ApplyFromNode node)
+    public override void Visit(ApplyFromNode node)
     {
         var applies = new Stack<ApplyFromNode>();
 
@@ -313,97 +164,44 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
             apply.With.Accept(this);
         }
 
-        apply.Accept(_visitor);
+        apply.Accept(Visitor);
     }
 
-    public void Visit(ExpressionFromNode node)
+    public override void Visit(ExpressionFromNode node)
     {
-        _visitor.SetQueryIdentifier(node.Alias);
+        Visitor.SetQueryIdentifier(node.Alias);
         node.Expression.Accept(this);
-        node.Accept(_visitor);
+        node.Accept(Visitor);
     }
 
-    public void Visit(InterpretFromNode node)
+    public override void Visit(InterpretFromNode node)
     {
-        _visitor.SetQueryIdentifier(node.Alias);
+        Visitor.SetQueryIdentifier(node.Alias);
         node.InterpretCall.Accept(this);
-        node.Accept(_visitor);
+        node.Accept(Visitor);
     }
 
-    public void Visit(AccessMethodFromNode node)
+    public override void Visit(AliasedFromNode node)
     {
-        node.AccessMethod.Accept(this);
-        node.Accept(_visitor);
+        node.Accept(Visitor);
     }
 
-    public void Visit(SchemaMethodFromNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(PropertyFromNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(AliasedFromNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(CreateTransformationTableNode node)
+    public override void Visit(CreateTransformationTableNode node)
     {
         _walker = _walker.NextChild();
-        _visitor.SetScope(_walker.Scope);
+        Visitor.SetScope(_walker.Scope);
 
-        node.Accept(_visitor);
+        node.Accept(Visitor);
 
         _walker = _walker.Parent();
     }
 
-    public void Visit(RenameTableNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(TranslatedSetTreeNode node)
-    {
-        foreach (var item in node.Nodes)
-            item.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(IntoNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(QueryScope node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(ShouldBePresentInTheTable node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(TranslatedSetOperatorNode node)
-    {
-        foreach (var item in node.CreateTableNodes)
-            item.Accept(_visitor);
-
-        node.FQuery.Accept(this);
-        node.SQuery.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(QueryNode node)
+    public override void Visit(QueryNode node)
     {
         _walker = _walker.NextChild();
-        _visitor.SetScope(_walker.Scope);
+        Visitor.SetScope(_walker.Scope);
 
-        _visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
+        Visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
 
         if (
             _compilationOptions.ParallelizationMode == ParallelizationMode.None ||
@@ -411,11 +209,11 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
             node.Take != null ||
             node.OrderBy != null
         )
-            _visitor.SetResultParallelizationImpossible();
+            Visitor.SetResultParallelizationImpossible();
 
-        _visitor.SetQueryIdentifier(node.From.Alias);
+        Visitor.SetQueryIdentifier(node.From.Alias);
 
-        _visitor.InitializeCseForQuery(node);
+        Visitor.InitializeCseForQuery(node);
 
         node.From.Accept(this);
         node.Where?.Accept(this);
@@ -425,241 +223,52 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         node.Skip?.Accept(this);
         node.GroupBy?.Accept(this);
         node.OrderBy?.Accept(this);
-        node.Accept(_visitor);
+        node.Accept(Visitor);
 
         _walker = _walker.Parent();
     }
 
-    public void Visit(OrNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(ShortCircuitingNodeLeft node)
-    {
-        node.Expression.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(ShortCircuitingNodeRight node)
-    {
-        node.Expression.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(HyphenNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(AndNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(EqualityNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(GreaterOrEqualNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(LessOrEqualNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(GreaterNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(LessNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(DiffNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(NotNode node)
-    {
-        node.Expression.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(LikeNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(RLikeNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(InNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(BetweenNode node)
+    public override void Visit(BetweenNode node)
     {
         throw new InvalidOperationException(
             "BetweenNode should have been desugared to AND/comparison nodes before code generation.");
     }
 
-    public void Visit(FieldNode node)
-    {
-        node.Expression.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(FieldOrderedNode node)
-    {
-        node.Expression.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(ArgsListNode node)
+    public override void Visit(ArgsListNode node)
     {
         foreach (var item in node.Args)
         {
-            _visitor.AddNullSuspiciousSection();
+            Visitor.AddNullSuspiciousSection();
             item.Accept(this);
-            _visitor.RemoveNullSuspiciousSection();
+            Visitor.RemoveNullSuspiciousSection();
         }
 
-        node.Accept(_visitor);
+        node.Accept(Visitor);
     }
 
-    public void Visit(DecimalNode node)
+    public override void Visit(Node node)
     {
-        node.Accept(_visitor);
+        node.Accept(Visitor);
     }
 
-    public void Visit(Node node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(DescNode node)
+    public override void Visit(DescNode node)
     {
         _walker = _walker.NextChild();
 
-        node.Accept(_visitor);
+        node.Accept(Visitor);
 
         _walker = _walker.Parent();
     }
 
-    public void Visit(StarNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(FSlashNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(ModuloNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(AddNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(BitwiseAndNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(BitwiseOrNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(BitwiseXorNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(LeftShiftNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(RightShiftNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(ArrayIndexNode node)
-    {
-        node.Array.Accept(this);
-        node.Index.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(InternalQueryNode node)
+    public override void Visit(InternalQueryNode node)
     {
         _walker = _walker.NextChild();
-        _visitor.SetScope(_walker.Scope);
+        Visitor.SetScope(_walker.Scope);
 
-        _visitor.SetMethodAccessType(MethodAccessType.TransformingQuery);
-        _visitor.SetQueryIdentifier(node.From.Alias);
+        Visitor.SetMethodAccessType(MethodAccessType.TransformingQuery);
+        Visitor.SetQueryIdentifier(node.From.Alias);
 
-        _visitor.InitializeCseForQuery(node);
+        Visitor.InitializeCseForQuery(node);
 
         node.Refresh?.Accept(this);
         node.From.Accept(this);
@@ -668,142 +277,73 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
         node.Take?.Accept(this);
         node.Skip?.Accept(this);
         node.GroupBy?.Accept(this);
-        node.Accept(_visitor);
+        node.Accept(Visitor);
 
         _walker = _walker.Parent();
     }
 
-    public void Visit(RootNode node)
+    public override void Visit(UnionNode node)
     {
-        node.Expression.Accept(this);
-        node.Accept(_visitor);
+        TraverseSetOperatorWithScope(node);
     }
 
-    public void Visit(SingleSetNode node)
+    public override void Visit(UnionAllNode node)
     {
-        node.Query.Accept(this);
-        node.Accept(_visitor);
+        TraverseSetOperatorWithScope(node);
     }
 
-    public void Visit(UnionNode node)
+    public override void Visit(ExceptNode node)
     {
-        TraverseSetOperator(node);
+        TraverseSetOperatorWithScope(node);
     }
 
-    public void Visit(UnionAllNode node)
+    public override void Visit(IntersectNode node)
     {
-        TraverseSetOperator(node);
+        TraverseSetOperatorWithScope(node);
     }
 
-    public void Visit(ExceptNode node)
-    {
-        TraverseSetOperator(node);
-    }
-
-    public void Visit(RefreshNode node)
-    {
-        foreach (var item in node.Nodes)
-            item.Accept(this);
-
-        node.Accept(_visitor);
-    }
-
-    public void Visit(IntersectNode node)
-    {
-        TraverseSetOperator(node);
-    }
-
-    public void Visit(PutTrueNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(MultiStatementNode node)
+    public override void Visit(MultiStatementNode node)
     {
         _walker = _walker.NextChild();
-        _visitor.SetScope(_walker.Scope);
+        Visitor.SetScope(_walker.Scope);
 
         foreach (var cNode in node.Nodes) cNode.Accept(this);
-        node.Accept(_visitor);
+        node.Accept(Visitor);
 
         _walker = _walker.Parent();
-        _visitor.SetScope(_walker.Scope);
+        Visitor.SetScope(_walker.Scope);
     }
 
-    public void Visit(CteExpressionNode node)
+    public override void Visit(CteExpressionNode node)
     {
         _walker = _walker.NextChild();
-        _visitor.SetScope(_walker.Scope);
+        Visitor.SetScope(_walker.Scope);
 
         foreach (var exp in node.InnerExpression) exp.Accept(this);
         node.OuterExpression.Accept(this);
-        node.Accept(_visitor);
+        node.Accept(Visitor);
 
         _walker = _walker.Parent();
-        _visitor.SetScope(_walker.Scope);
+        Visitor.SetScope(_walker.Scope);
     }
 
-    public void Visit(CteInnerExpressionNode node)
+    public override void Visit(CteInnerExpressionNode node)
     {
         _walker = _walker.NextChild();
-        _visitor.SetScope(_walker.Scope);
+        Visitor.SetScope(_walker.Scope);
 
         node.Value.Accept(this);
-        node.Accept(_visitor);
+        node.Accept(Visitor);
 
         _walker = _walker.Parent();
-        _visitor.SetScope(_walker.Scope);
+        Visitor.SetScope(_walker.Scope);
     }
 
-    public void Visit(JoinNode node)
+    public override void Visit(CaseNode node)
     {
-        node.Join.Accept(this);
-        node.Accept(_visitor);
-    }
+        var oldMethodAccessType = Visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
 
-    public void Visit(ApplyNode node)
-    {
-        node.Apply.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(OrderByNode node)
-    {
-        foreach (var field in node.Fields)
-            field.Accept(this);
-
-        node.Accept(_visitor);
-    }
-
-    public void Visit(CreateTableNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(CoupleNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    public void Visit(StatementsArrayNode node)
-    {
-        foreach (var statement in node.Statements)
-            statement.Accept(this);
-
-        node.Accept(_visitor);
-    }
-
-    public void Visit(StatementNode node)
-    {
-        node.Node.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(CaseNode node)
-    {
-        var oldMethodAccessType = _visitor.SetMethodAccessType(MethodAccessType.ResultQuery);
-
-        _visitor.SetCaseWhenContext(true);
+        Visitor.SetCaseWhenContext(true);
 
         node.Else.Accept(this);
 
@@ -813,148 +353,106 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
             node.WhenThenPairs[i].Then.Accept(this);
         }
 
-        _visitor.SetCaseWhenContext(false);
+        Visitor.SetCaseWhenContext(false);
 
-        node.Accept(_visitor);
+        node.Accept(Visitor);
 
-        _visitor.SetMethodAccessType(oldMethodAccessType);
+        Visitor.SetMethodAccessType(oldMethodAccessType);
     }
 
-    public void Visit(WhenNode node)
+    public override void Visit(WhenNode node)
     {
-        _visitor.AddNullSuspiciousSection();
+        Visitor.AddNullSuspiciousSection();
         node.Expression.Accept(this);
-        node.Accept(_visitor);
-        _visitor.RemoveNullSuspiciousSection();
+        node.Accept(Visitor);
+        Visitor.RemoveNullSuspiciousSection();
     }
 
-    public void Visit(ThenNode node)
+    public override void Visit(ThenNode node)
     {
-        _visitor.AddNullSuspiciousSection();
+        Visitor.AddNullSuspiciousSection();
         node.Expression.Accept(this);
-        node.Accept(_visitor);
-        _visitor.RemoveNullSuspiciousSection();
+        node.Accept(Visitor);
+        Visitor.RemoveNullSuspiciousSection();
     }
 
-    public void Visit(ElseNode node)
+    public override void Visit(ElseNode node)
     {
-        _visitor.AddNullSuspiciousSection();
+        Visitor.AddNullSuspiciousSection();
         node.Expression.Accept(this);
-        node.Accept(_visitor);
-        _visitor.RemoveNullSuspiciousSection();
+        node.Accept(Visitor);
+        Visitor.RemoveNullSuspiciousSection();
     }
 
-    public void Visit(FieldLinkNode node)
+    public override void Visit(FieldLinkNode node)
     {
         throw new NotSupportedException();
     }
 
-    public void Visit(InterpretCallNode node)
-    {
-        node.DataSource.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(ParseCallNode node)
-    {
-        node.DataSource.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(TryInterpretCallNode node)
-    {
-        node.DataSource.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(TryParseCallNode node)
-    {
-        node.DataSource.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(PartialInterpretCallNode node)
-    {
-        node.DataSource.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(InterpretAtCallNode node)
-    {
-        node.DataSource.Accept(this);
-        node.Offset.Accept(this);
-        node.Accept(_visitor);
-    }
-
-    public void Visit(BinarySchemaNode node)
+    public override void Visit(BinarySchemaNode node)
     {
     }
 
-    public void Visit(TextSchemaNode node)
+    public override void Visit(TextSchemaNode node)
     {
     }
 
-    public void Visit(FieldDefinitionNode node)
+    public override void Visit(FieldDefinitionNode node)
     {
     }
 
-    public void Visit(ComputedFieldNode node)
+    public override void Visit(ComputedFieldNode node)
     {
     }
 
-    public void Visit(TextFieldDefinitionNode node)
+    public override void Visit(TextFieldDefinitionNode node)
     {
     }
 
-    public void Visit(FieldConstraintNode node)
+    public override void Visit(FieldConstraintNode node)
     {
     }
 
-    public void Visit(PrimitiveTypeNode node)
+    public override void Visit(PrimitiveTypeNode node)
     {
     }
 
-    public void Visit(ByteArrayTypeNode node)
+    public override void Visit(ByteArrayTypeNode node)
     {
     }
 
-    public void Visit(StringTypeNode node)
+    public override void Visit(StringTypeNode node)
     {
     }
 
-    public void Visit(SchemaReferenceTypeNode node)
+    public override void Visit(SchemaReferenceTypeNode node)
     {
     }
 
-    public void Visit(ArrayTypeNode node)
+    public override void Visit(ArrayTypeNode node)
     {
     }
 
-    public void Visit(BitsTypeNode node)
+    public override void Visit(BitsTypeNode node)
     {
     }
 
-    public void Visit(AlignmentNode node)
+    public override void Visit(AlignmentNode node)
     {
     }
 
-    public void Visit(RepeatUntilTypeNode node)
+    public override void Visit(RepeatUntilTypeNode node)
     {
     }
 
-    public void Visit(InlineSchemaTypeNode node)
+    public override void Visit(InlineSchemaTypeNode node)
     {
     }
 
-    public void Visit(FromNode node)
-    {
-        node.Accept(_visitor);
-    }
-
-    private void TraverseSetOperator(SetOperatorNode node)
+    private void TraverseSetOperatorWithScope(SetOperatorNode node)
     {
         _walker = _walker.NextChild();
-        _visitor.SetScope(_walker.Scope);
+        Visitor.SetScope(_walker.Scope);
 
         if (node.Right is SetOperatorNode)
         {
@@ -963,7 +461,7 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
             nodes.Push(node);
 
             node.Left.Accept(this);
-            _visitor.IncrementMethodIdentifier();
+            Visitor.IncrementMethodIdentifier();
 
             while (nodes.Count > 0)
             {
@@ -974,20 +472,20 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
                     nodes.Push(operatorNode);
 
                     _walker = _walker.NextChild();
-                    _visitor.SetScope(_walker.Scope);
+                    Visitor.SetScope(_walker.Scope);
 
                     operatorNode.Left.Accept(this);
-                    _visitor.IncrementMethodIdentifier();
+                    Visitor.IncrementMethodIdentifier();
 
-                    current.Accept(_visitor);
+                    current.Accept(Visitor);
                     howManyTimesChildWereUsed += 1;
                     continue;
                 }
 
                 current.Right.Accept(this);
-                _visitor.IncrementMethodIdentifier();
+                Visitor.IncrementMethodIdentifier();
 
-                current.Accept(_visitor);
+                current.Accept(Visitor);
 
                 howManyTimesChildWereUsed += 1;
             }
@@ -995,21 +493,21 @@ public class ToCSharpRewriteTreeTraverseVisitor : IExpressionVisitor
             for (var i = 0; i < howManyTimesChildWereUsed; ++i)
             {
                 _walker = _walker.Parent();
-                _visitor.SetScope(_walker.Scope);
+                Visitor.SetScope(_walker.Scope);
             }
         }
         else
         {
             node.Left.Accept(this);
 
-            _visitor.IncrementMethodIdentifier();
+            Visitor.IncrementMethodIdentifier();
 
             node.Right.Accept(this);
 
-            node.Accept(_visitor);
+            node.Accept(Visitor);
 
             _walker = _walker.Parent();
-            _visitor.SetScope(_walker.Scope);
+            Visitor.SetScope(_walker.Scope);
         }
     }
 }

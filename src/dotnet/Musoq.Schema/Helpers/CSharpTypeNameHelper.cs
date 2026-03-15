@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -10,6 +11,26 @@ namespace Musoq.Schema.Helpers;
 public static class CSharpTypeNameHelper
 {
     private static readonly ConcurrentDictionary<MethodInfo, string> MethodSignatureCache = new();
+
+    private static readonly Dictionary<Type, string> TypeAliases = new()
+    {
+        [typeof(bool)] = "bool",
+        [typeof(byte)] = "byte",
+        [typeof(sbyte)] = "sbyte",
+        [typeof(char)] = "char",
+        [typeof(decimal)] = "decimal",
+        [typeof(double)] = "double",
+        [typeof(float)] = "float",
+        [typeof(int)] = "int",
+        [typeof(uint)] = "uint",
+        [typeof(long)] = "long",
+        [typeof(ulong)] = "ulong",
+        [typeof(short)] = "short",
+        [typeof(ushort)] = "ushort",
+        [typeof(object)] = "object",
+        [typeof(string)] = "string",
+        [typeof(void)] = "void"
+    };
 
     public static string GetCSharpTypeName(Type type)
     {
@@ -52,24 +73,7 @@ public static class CSharpTypeNameHelper
         if (type == null)
             throw new ArgumentNullException(nameof(type));
 
-        if (type == typeof(bool)) return "bool";
-        if (type == typeof(byte)) return "byte";
-        if (type == typeof(sbyte)) return "sbyte";
-        if (type == typeof(char)) return "char";
-        if (type == typeof(decimal)) return "decimal";
-        if (type == typeof(double)) return "double";
-        if (type == typeof(float)) return "float";
-        if (type == typeof(int)) return "int";
-        if (type == typeof(uint)) return "uint";
-        if (type == typeof(long)) return "long";
-        if (type == typeof(ulong)) return "ulong";
-        if (type == typeof(short)) return "short";
-        if (type == typeof(ushort)) return "ushort";
-        if (type == typeof(object)) return "object";
-        if (type == typeof(string)) return "string";
-        if (type == typeof(void)) return "void";
-
-        return type.Name;
+        return TypeAliases.TryGetValue(type, out var alias) ? alias : type.Name;
     }
 
     public static string FormatMethodSignature(MethodInfo methodInfo)

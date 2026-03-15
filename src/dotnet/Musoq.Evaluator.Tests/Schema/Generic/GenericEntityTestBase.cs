@@ -31,12 +31,7 @@ public class GenericEntityTestBase
         var schema = new GenericSchema<GenericLibrary>(
             new Dictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)>
             {
-                {
-                    "first",
-                    (new GenericEntityTable<TFirstEntity>(),
-                        new GenericRowsSource<TFirstEntity>(first, GenericEntityTable<TFirstEntity>.NameToIndexMap,
-                            GenericEntityTable<TFirstEntity>.IndexToObjectAccessMap, filterFirst))
-                }
+                { "first", CreateEntitySource(first, filterFirst) }
             }, new Dictionary<string, Func<object[], RowSource, RowSource>>
             {
                 { "first", filter }
@@ -54,12 +49,7 @@ public class GenericEntityTestBase
     {
         var schema = new GenericSchema<TLibrary>(new Dictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)>
         {
-            {
-                "first",
-                (new GenericEntityTable<TFirstEntity>(),
-                    new GenericRowsSource<TFirstEntity>(first, GenericEntityTable<TFirstEntity>.NameToIndexMap,
-                        GenericEntityTable<TFirstEntity>.IndexToObjectAccessMap, filterFirst))
-            }
+            { "first", CreateEntitySource(first, filterFirst) }
         }, new Dictionary<string, Func<object[], RowSource, RowSource>>
         {
             { "first", filter }
@@ -81,18 +71,8 @@ public class GenericEntityTestBase
         var schema = new GenericSchema<GenericLibrary>(
             new Dictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)>
             {
-                {
-                    "first",
-                    (new GenericEntityTable<TFirstEntity>(),
-                        new GenericRowsSource<TFirstEntity>(first, GenericEntityTable<TFirstEntity>.NameToIndexMap,
-                            GenericEntityTable<TFirstEntity>.IndexToObjectAccessMap, filterFirst))
-                },
-                {
-                    "second",
-                    (new GenericEntityTable<TSecondEntity>(),
-                        new GenericRowsSource<TSecondEntity>(second, GenericEntityTable<TSecondEntity>.NameToIndexMap,
-                            GenericEntityTable<TSecondEntity>.IndexToObjectAccessMap, filterSecond))
-                }
+                { "first", CreateEntitySource(first, filterFirst) },
+                { "second", CreateEntitySource(second, filterSecond) }
             }, new Dictionary<string, Func<object[], RowSource, RowSource>>
             {
                 { "first", filterFirstRowsSource },
@@ -118,24 +98,9 @@ public class GenericEntityTestBase
         var schema = new GenericSchema<GenericLibrary>(
             new Dictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)>
             {
-                {
-                    "first",
-                    (new GenericEntityTable<TFirstEntity>(),
-                        new GenericRowsSource<TFirstEntity>(first, GenericEntityTable<TFirstEntity>.NameToIndexMap,
-                            GenericEntityTable<TFirstEntity>.IndexToObjectAccessMap, filterFirst))
-                },
-                {
-                    "second",
-                    (new GenericEntityTable<TSecondEntity>(),
-                        new GenericRowsSource<TSecondEntity>(second, GenericEntityTable<TSecondEntity>.NameToIndexMap,
-                            GenericEntityTable<TSecondEntity>.IndexToObjectAccessMap, filterSecond))
-                },
-                {
-                    "third",
-                    (new GenericEntityTable<TThirdEntity>(),
-                        new GenericRowsSource<TThirdEntity>(third, GenericEntityTable<TThirdEntity>.NameToIndexMap,
-                            GenericEntityTable<TThirdEntity>.IndexToObjectAccessMap, filterThird))
-                }
+                { "first", CreateEntitySource(first, filterFirst) },
+                { "second", CreateEntitySource(second, filterSecond) },
+                { "third", CreateEntitySource(third, filterThird) }
             }, new Dictionary<string, Func<object[], RowSource, RowSource>>
             {
                 { "first", filterFirstRowsSource },
@@ -160,6 +125,14 @@ public class GenericEntityTestBase
             }),
             LoggerResolver,
             TestCompilationOptions);
+    }
+
+    private static (ISchemaTable SchemaTable, RowSource RowSource) CreateEntitySource<T>(
+        T[] entities, Func<T, bool> filter = null)
+    {
+        return (new GenericEntityTable<T>(),
+            new GenericRowsSource<T>(entities, GenericEntityTable<T>.NameToIndexMap,
+                GenericEntityTable<T>.IndexToObjectAccessMap, filter));
     }
 
     private static IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> CreateMockedEnvironmentVariables()

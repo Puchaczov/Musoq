@@ -86,17 +86,15 @@ public class TypeConversionNodeFactory
     /// <param name="sourceNode">The node to convert.</param>
     /// <param name="targetType">The target numeric type (int, long, or decimal).</param>
     /// <param name="isObjectType">True if source is System.Object type.</param>
-    /// <param name="isRelationalComparison">
-    ///     True for comparison operators (>, <, >=, <=).</param>
-    /// <param name="isArithmeticOperation">True for arithmetic operators (+, -, *, /, %).</param>
+    /// <param name="operationContext">The semantic context of the binary operation.</param>
     /// <returns>AccessMethodNode wrapping the conversion method call.</returns>
     public AccessMethodNode CreateNumericConversionNode(Node sourceNode, Type targetType, bool isObjectType,
-        bool isRelationalComparison, bool isArithmeticOperation)
+        BinaryOperationContext operationContext)
     {
         string methodName;
 
-        var useNumericOnlyMode = isObjectType && isArithmeticOperation;
-        var useComparisonMode = isObjectType && isRelationalComparison;
+        var useNumericOnlyMode = isObjectType && operationContext == BinaryOperationContext.ArithmeticOperation;
+        var useComparisonMode = isObjectType && operationContext == BinaryOperationContext.RelationalComparison;
 
         if (useNumericOnlyMode)
             methodName = nameof(LibraryBase.TryConvertNumericOnly);

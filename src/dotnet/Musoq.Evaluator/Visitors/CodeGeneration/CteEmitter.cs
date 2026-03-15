@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Musoq.Evaluator.Helpers;
 
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
@@ -24,24 +25,15 @@ public static class CteEmitter
         return SyntaxFactory.ExpressionStatement(
             SyntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
-                CreateTableResultsAccess(tableIndex),
-                CreateMethodInvocation(methodName)));
+                CreateCteReference(tableIndex),
+                CreateQueryMethodInvocation(methodName)));
     }
 
-    private static ElementAccessExpressionSyntax CreateTableResultsAccess(int tableIndex)
-    {
-        return SyntaxFactory.ElementAccessExpression(
-                SyntaxFactory.IdentifierName("_tableResults"))
-            .WithArgumentList(
-                SyntaxFactory.BracketedArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(tableIndex))))));
-    }
-
-    private static InvocationExpressionSyntax CreateMethodInvocation(string methodName)
+    /// <summary>
+    ///     Creates a standard query method invocation with the 5 common parameters:
+    ///     provider, positionalEnvironmentVariables, queriesInformation, logger, token.
+    /// </summary>
+    public static InvocationExpressionSyntax CreateQueryMethodInvocation(string methodName)
     {
         var arguments = new[]
         {
@@ -93,14 +85,6 @@ public static class CteEmitter
     /// <returns>An element access expression for the CTE reference.</returns>
     public static ElementAccessExpressionSyntax CreateCteReference(int tableIndex)
     {
-        return SyntaxFactory.ElementAccessExpression(
-                SyntaxFactory.IdentifierName("_tableResults"))
-            .WithArgumentList(
-                SyntaxFactory.BracketedArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(tableIndex))))));
+        return SyntaxHelper.CreateElementAccess("_tableResults", tableIndex);
     }
 }

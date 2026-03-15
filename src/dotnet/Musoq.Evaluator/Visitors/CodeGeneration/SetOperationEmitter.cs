@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Visitors.Helpers;
 
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
@@ -32,8 +33,8 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
         var a = methodNames.Pop();
         var combinedName = CombineMethodNames(a, b, operationSuffix);
 
-        var aInvocation = CreateSetOperationInvocation(a);
-        var bInvocation = CreateSetOperationInvocation(b);
+        var aInvocation = CteEmitter.CreateQueryMethodInvocation(a);
+        var bInvocation = CteEmitter.CreateQueryMethodInvocation(b);
 
         var method = GenerateSetOperationMethod(
             combinedName,
@@ -47,34 +48,6 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
             CombinedMethodName = combinedName,
             Method = method
         };
-    }
-
-    private InvocationExpressionSyntax CreateSetOperationInvocation(
-        string methodName,
-        string providerIdentifier = "provider",
-        string positionalEnvironmentVariablesIdentifier = "positionalEnvironmentVariables",
-        string queriesInformationIdentifier = "queriesInformation",
-        string loggerIdentifier = "logger",
-        string tokenIdentifier = "token")
-    {
-        return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.IdentifierName(methodName))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList<ArgumentSyntax>(
-                        new SyntaxNodeOrToken[]
-                        {
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(providerIdentifier)),
-                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.IdentifierName(positionalEnvironmentVariablesIdentifier)),
-                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(queriesInformationIdentifier)),
-                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(loggerIdentifier)),
-                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(tokenIdentifier))
-                        })));
     }
 
     private MethodDeclarationSyntax GenerateSetOperationMethod(
@@ -150,23 +123,10 @@ public class SetOperationEmitter(Dictionary<string, int[]> setOperatorFieldIndex
                     SyntaxFactory.SeparatedList<ArgumentSyntax>(
                         new SyntaxNodeOrToken[]
                         {
-                            SyntaxFactory.Argument(CreateElementAccess(first, fieldIndex)),
+                            SyntaxFactory.Argument(SyntaxHelper.CreateElementAccess(first, fieldIndex)),
                             SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.Argument(CreateElementAccess(second, fieldIndex))
+                            SyntaxFactory.Argument(SyntaxHelper.CreateElementAccess(second, fieldIndex))
                         })));
-    }
-
-    private static ElementAccessExpressionSyntax CreateElementAccess(string identifier, int index)
-    {
-        return SyntaxFactory
-            .ElementAccessExpression(SyntaxFactory.IdentifierName(identifier))
-            .WithArgumentList(
-                SyntaxFactory.BracketedArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(index))))));
     }
 
     private static string CombineMethodNames(string leftMethodName, string rightMethodName,

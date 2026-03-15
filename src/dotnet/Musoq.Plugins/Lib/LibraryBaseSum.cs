@@ -39,15 +39,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetSum([InjectGroup] Group group, string name, byte? number, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (!number.HasValue)
-        {
-            parentGroup.GetOrCreateValue<decimal>(name);
-            return;
-        }
-
-        var value = parentGroup.GetOrCreateValue<decimal>(name);
-        parentGroup.SetValue(name, value + number);
+        SetSum(group, name, (decimal?)number, parent);
     }
 
     /// <summary>
@@ -60,15 +52,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetSum([InjectGroup] Group group, string name, sbyte? number, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (!number.HasValue)
-        {
-            parentGroup.GetOrCreateValue<decimal>(name);
-            return;
-        }
-
-        var value = parentGroup.GetOrCreateValue<decimal>(name);
-        parentGroup.SetValue(name, value + number);
+        SetSum(group, name, (decimal?)number, parent);
     }
 
     /// <summary>
@@ -81,15 +65,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetSum([InjectGroup] Group group, string name, short? number, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (!number.HasValue)
-        {
-            parentGroup.GetOrCreateValue<decimal>(name);
-            return;
-        }
-
-        var value = parentGroup.GetOrCreateValue<decimal>(name);
-        parentGroup.SetValue(name, value + number);
+        SetSum(group, name, (decimal?)number, parent);
     }
 
     /// <summary>
@@ -102,15 +78,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetSum([InjectGroup] Group group, string name, ushort? number, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (!number.HasValue)
-        {
-            parentGroup.GetOrCreateValue<decimal>(name);
-            return;
-        }
-
-        var value = parentGroup.GetOrCreateValue<decimal>(name);
-        parentGroup.SetValue(name, value + number);
+        SetSum(group, name, (decimal?)number, parent);
     }
 
     /// <summary>
@@ -123,15 +91,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetSum([InjectGroup] Group group, string name, int? number, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (!number.HasValue)
-        {
-            parentGroup.GetOrCreateValue<decimal>(name);
-            return;
-        }
-
-        var value = parentGroup.GetOrCreateValue<decimal>(name);
-        parentGroup.SetValue(name, value + number);
+        SetSum(group, name, (decimal?)number, parent);
     }
 
     /// <summary>
@@ -144,15 +104,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetSum([InjectGroup] Group group, string name, uint? number, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (!number.HasValue)
-        {
-            parentGroup.GetOrCreateValue<decimal>(name);
-            return;
-        }
-
-        var value = parentGroup.GetOrCreateValue<decimal>(name);
-        parentGroup.SetValue(name, value + number);
+        SetSum(group, name, (decimal?)number, parent);
     }
 
     /// <summary>
@@ -165,15 +117,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetSum([InjectGroup] Group group, string name, long? number, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (!number.HasValue)
-        {
-            parentGroup.GetOrCreateValue<decimal>(name);
-            return;
-        }
-
-        var value = parentGroup.GetOrCreateValue<decimal>(name);
-        parentGroup.SetValue(name, value + number);
+        SetSum(group, name, (decimal?)number, parent);
     }
 
     /// <summary>
@@ -186,15 +130,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetSum([InjectGroup] Group group, string name, ulong? number, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (!number.HasValue)
-        {
-            parentGroup.GetOrCreateValue<decimal>(name);
-            return;
-        }
-
-        var value = parentGroup.GetOrCreateValue<decimal>(name);
-        parentGroup.SetValue(name, value + number);
+        SetSum(group, name, (decimal?)number, parent);
     }
 
     /// <summary>
@@ -207,15 +143,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetSum([InjectGroup] Group group, string name, float? number, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (!number.HasValue)
-        {
-            parentGroup.GetOrCreateValue<decimal>(name);
-            return;
-        }
-
-        var value = parentGroup.GetOrCreateValue<decimal>(name);
-        parentGroup.SetValue(name, value + ToDecimal(number.Value));
+        SetSum(group, name, (decimal?)number, parent);
     }
 
     /// <summary>
@@ -228,15 +156,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetSum([InjectGroup] Group group, string name, double? number, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (!number.HasValue)
-        {
-            parentGroup.GetOrCreateValue<decimal>(name);
-            return;
-        }
-
-        var value = parentGroup.GetOrCreateValue<decimal>(name);
-        parentGroup.SetValue(name, value + ToDecimal(number.Value));
+        SetSum(group, name, (decimal?)number, parent);
     }
 
     /// <summary>

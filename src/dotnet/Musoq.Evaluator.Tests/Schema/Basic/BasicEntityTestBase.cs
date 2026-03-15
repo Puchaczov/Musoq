@@ -99,6 +99,19 @@ public class BasicEntityTestBase
         Assert.AreEqual(score, table[0][0]);
     }
 
+    protected static IDictionary<string, IEnumerable<BasicEntity>> CreateSingleSource(
+        params BasicEntity[] entities)
+    {
+        return new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities } };
+    }
+
+    protected static void AssertColumn(Table table, int index, string expectedName, Type expectedType)
+    {
+        var column = table.Columns.ElementAt(index);
+        Assert.AreEqual(expectedName, column.ColumnName);
+        Assert.AreEqual(expectedType, column.ColumnType);
+    }
+
     protected Table TestResultMethodTemplate(string operation)
     {
         var query = $"select {operation} from #A.Entities()";
