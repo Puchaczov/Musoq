@@ -27,7 +27,7 @@ ORDER BY r.Total DESC
 This query extracts structured data from every receipt image in a folder. The `ai` schema defines what to extract — field names, types, and constraints. The `---` comments guide the LLM on what each field means. The `enum` and `required` constraints are validated after extraction and fed back to the model for correction if they fail. The runtime handles which LLM to call, retries, and rate limiting.
 
 **What makes this different from calling an LLM directly:**
-- The schema compiles to C# via Roslyn — type checking, JSON Schema generation, and validation are all generated code, not runtime reflection
+- The schema compiles to executable code — type checking, JSON Schema generation, and validation are all generated at compile time, not runtime reflection
 - Constraints like `check Total = Subtotal + Tax` catch arithmetic errors that LLMs routinely make
 - `when` clauses enable conditional extraction — fields that only exist under certain conditions don't get hallucinated
 - The result is a SQL row, so it composes with JOINs, CTEs, GROUP BY, and every other SQL operation — including data from completely different sources
@@ -65,11 +65,14 @@ No other structured extraction tool can JOIN AI-extracted data with CSV files, g
 7. [Inference Functions](#7-inference-functions)
 8. [Schema Composition](#8-schema-composition)
 9. [Error Handling](#9-error-handling)
-10. [Code Generation](#10-code-generation)
-11. [Runtime Interface](#11-runtime-interface)
-12. [Grammar Specification](#12-grammar-specification)
-13. [Examples](#13-examples)
-14. [Future Considerations](#14-future-considerations)
+10. [Runtime Contract](#10-runtime-contract)
+11. [Grammar Specification](#11-grammar-specification)
+12. [Examples](#12-examples)
+13. [Future Considerations](#13-future-considerations)
+14. [Appendix A: Reserved Keywords](#appendix-a-reserved-keywords)
+15. [Appendix B: Type Mapping](#appendix-b-type-mapping)
+16. [Appendix C: Error Code Summary](#appendix-c-error-code-summary)
+17. [Appendix D: Comparison with Existing Approaches](#appendix-d-comparison-with-existing-approaches)
 
 ---
 
@@ -79,7 +82,7 @@ No other structured extraction tool can JOIN AI-extracted data with CSV files, g
 
 AI Interpretation Schemas extend Musoq's SQL dialect with declarative structure definitions for extracting typed, validated data from unstructured content using large language models. AI schemas serve triple duty as:
 
-1. **Extraction contracts** — Compiled to C# classes with validation logic via Roslyn, identical to binary/text schemas
+1. **Extraction contracts** — Compiled to typed classes with validation logic, identical in structure to binary/text schemas
 2. **Prompt generators** — Schema definitions automatically produce structured output instructions for LLMs; the schema IS the prompt
 3. **Format documentation** — Human-readable specifications of expected structure that cannot drift from implementation
 
@@ -106,8 +109,8 @@ This specification covers:
 - Integration with existing Musoq syntax (CROSS APPLY, OUTER APPLY, JOINs, CTEs)
 - Schema composition and reuse patterns
 - Error handling and validation semantics
-- Code generation to C# via Roslyn
-- Runtime interface contract (`IAiInferenceRunner`)
+- Code generation and compilation of schema artifacts
+- Runtime interface contract (inference runner)
 
 This specification does **not** cover:
 
@@ -119,6 +122,10 @@ This specification does **not** cover:
 - Prompt engineering strategies (the schema generates prompts automatically)
 - Model fine-tuning or training
 - Embedding-based similarity operations (separate future specification)
+
+This specification is part of the Musoq specification family (see *Musoq Core SQL Language Specification*, §1.6). The notation conventions defined in the core specification (§1.5) apply to this document. In particular, the key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY carry normative weight when capitalized.
+
+An implementation that claims conformance to the AI Interpretation profile MUST implement all features defined in this specification. This profile is optional; see the core specification (§1.7) for the conformance model.
 
 ### 1.4 Terminology
 
@@ -146,7 +153,7 @@ AI schemas are the third member of the interpretation schema family:
 
 All three:
 - Define named structures with typed fields
-- Compile to C# classes via Roslyn
+- Compile to typed classes at query compile time
 - Support conditional fields via `when` clauses
 - Support validation via `check` clauses
 - Compose through schema references
@@ -178,10 +185,10 @@ This specification defines a clear boundary between what the engine compiles and
 │                                                       │
 │  AI Schema Source Text (with annotations)             │
 │       ↓                                               │
-│  Parser + Compiler (Roslyn)                           │
+│  Parser + Compiler                                    │
 │       ↓                                               │
 │  Generated Artifacts:                                 │
-│    • C# class (typed properties)                      │
+│    • Typed class (typed properties)                    │
 │    • JSON Schema (structural contract)                │
 │    • Prompt template (from doc comments + types)      │
 │    • Validator (compiled constraint checks)           │
@@ -189,7 +196,7 @@ This specification defines a clear boundary between what the engine compiles and
 │    • Retry prompt generator (from validation errors)  │
 │    • Annotations dictionary (from [key: 'value'])     │
 │       ↓                                               │
-│  IAiInferenceRunner interface ◄── BOUNDARY            │
+│  Inference runner interface ◄── BOUNDARY            │
 │       ↓                                               │
 └───────┼─────────────────────────────────────────────┘
         │
@@ -209,8 +216,8 @@ This specification defines a clear boundary between what the engine compiles and
 └─────────────────────────────────────────────────────┘
 ```
 
-**Everything above the boundary** is defined by this specification and compiled by Roslyn.  
-**Everything below the boundary** is implementation-defined and provided by the host program via `IAiInferenceRunner`.
+**Everything above the boundary** is defined by this specification and produced at compile time.  
+**Everything below the boundary** is implementation-defined and provided by the host program via the inference runner interface.
 
 ---
 
@@ -240,7 +247,7 @@ AI schema definitions should read as extraction specifications. Doc comments (`-
 
 ### 2.5 Zero Runtime Reflection
 
-Like binary/text schemas, all AI schema definitions compile to static C# code. The generated class, JSON schema, prompt template, and validators are all produced at compile time by Roslyn. No runtime type inspection.
+Like binary/text schemas, all AI schema definitions compile to statically-typed code. The generated class, JSON schema, prompt template, and validators are all produced at compile time. No runtime type inspection.
 
 ---
 
@@ -285,9 +292,9 @@ The function integrates with CROSS APPLY / OUTER APPLY using the same relaxed se
 Identical to binary/text schemas:
 
 - AI schemas are visible only within the query batch where defined
-- Schema names must be unique within a batch (across `binary`, `text`, and `ai` namespaces)
-- Forward references between schemas are NOT permitted
-- Recursive schema definitions are NOT permitted
+- Schema names MUST be unique within a batch (across `binary`, `text`, and `ai` namespaces)
+- Forward references between schemas MUST NOT occur
+- Recursive schema definitions MUST NOT occur
 - `ai` schemas may reference other `ai` schemas (composition)
 
 ---
@@ -406,31 +413,25 @@ ai Invoice [tier: 'premium'] {
 }
 ```
 
-A runtime implementation might handle this as:
+A runtime implementation might handle this as (pseudocode):
 
-```csharp
-public InferenceResult<TOut> Infer<TOut>(InferenceRequest<TOut> request)
-{
-    var tier = request.Annotations.GetValueOrDefault("tier", "standard");
-    var allowFallback = request.Annotations.GetValueOrDefault("fallback", "false") == "true";
+```
+function Infer(request):
+    tier = request.Annotations["tier"] or "standard"
+    allowFallback = request.Annotations["fallback"] == "true"
     
-    var model = tier switch
-    {
-        "economy"  => "gpt-4o-mini",
-        "premium"  => "gpt-4o",
-        "local"    => "ollama:llama3",
-        _          => _defaultModel
-    };
+    model = select model based on tier:
+        "economy"  => "gpt-4o-mini"
+        "premium"  => "gpt-4o"
+        "local"    => "ollama:llama3"
+        _          => defaultModel
     
-    var result = TryWithModel(model, request);
+    result = tryWithModel(model, request)
     
-    if (!result.IsSuccess && allowFallback && tier != "premium")
-    {
-        result = TryWithModel("gpt-4o", request);
-    }
+    if not result.IsSuccess and allowFallback and tier != "premium":
+        result = tryWithModel("gpt-4o", request)
     
-    return result;
-}
+    return result
 ```
 
 The query author expresses intent ("this extraction is cheap and can fall back"). The runtime translates intent to implementation. Neither side knows about the other's internals.
@@ -445,7 +446,7 @@ AI schemas support two distinct comment syntaxes with different semantics:
 | `--` (double dash) | **Code comment** | No | Developer notes, TODOs, maintenance remarks |
 | `/* ... */` | **Block code comment** | No | Multi-line developer notes |
 
-**Rationale:** The triple-dash `---` is visually distinct, easy to type, and doesn't conflict with any existing Musoq syntax. The convention mirrors the distinction between `//` and `///` in C# (code comment vs doc comment).
+**Rationale:** The triple-dash `---` is visually distinct, easy to type, and doesn't conflict with any existing Musoq syntax. The convention mirrors the distinction between single-line and documentation comments in many languages.
 
 **Disambiguation rule:** A line starting with exactly three dashes `---` followed by a space is a doc comment. A line starting with exactly two dashes `--` is a code comment. Four or more dashes are treated as code comments (only `---` is special).
 
@@ -620,6 +621,10 @@ ai Receipt {
 
 When declared, the field is included in the prompt as an additional extraction target. When not declared, no confidence is requested.
 
+**Field name conventions:**
+- The single underscore `_` is a discard field (see §4.5)
+- Field names prefixed with `_` (e.g., `_confidence`) are reserved for specification-defined metadata. Users MUST NOT define custom fields starting with `_`.
+
 ---
 
 ## 5. Type System
@@ -664,7 +669,7 @@ ai Ticket {
 - Enum values are case-sensitive strings
 - The LLM is instructed to return exactly one of the listed values
 - Validation rejects any value not in the enum set
-- Enums compile to `string` in C# but with runtime validation
+- Enums compile to `string` at the type level but with runtime validation
 - At least two values are required
 
 ### 5.3 Array Type
@@ -731,7 +736,7 @@ ai Customer {
 |----------|--------|-------------|
 | Max length | `max(n)` | Maximum character count |
 | Min length | `min(n)` | Minimum character count |
-| Pattern | `pattern 'regex'` | Must match .NET regex |
+| Pattern | `pattern 'regex'` | Must match regex pattern |
 | Required | `required` | Must not be null or empty |
 
 ```sql
@@ -820,7 +825,7 @@ ai MedicalRecord {
 
 **Implementation Note:**
 
-Conditional extraction may use a two-phase approach (extract non-conditional first, then conditional) or a single prompt with conditional instructions. The choice is implementation-defined, but the observable semantics must be: conditional fields are `null` when their condition is false, regardless of what the LLM returns.
+Conditional extraction may use a two-phase approach (extract non-conditional first, then conditional) or a single prompt with conditional instructions. The choice is implementation-defined, but the observable semantics MUST be: conditional fields are `null` when their condition is false, regardless of what the LLM returns.
 
 **Null Propagation:**
 
@@ -885,6 +890,21 @@ TryInfer(content, SchemaType, hint) -> SchemaType?
 ```
 
 Returns `null` instead of throwing on extraction failure.
+
+**Partial inference (debugging):**
+
+```
+PartialInfer(content, SchemaType)
+PartialInfer(content, SchemaType, hint)
+```
+
+Returns a partial result for debugging extraction issues. Like all inference functions, `PartialInfer` MUST be used inside `CROSS APPLY` or `OUTER APPLY` (see §7.3).
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ExtractedFields` | Dictionary | Successfully extracted and validated fields |
+| `ValidationErrors` | List | Validation errors with field names and details |
+| `RawResponse` | `string` | Raw JSON response before parsing |
 
 **Note:** There is no `provider` or `model` parameter. Model selection is a runtime concern. The runtime receives the inference request and decides which model to use. See Section 11.4 for how hosts can implement model selection.
 
@@ -1142,296 +1162,52 @@ CROSS APPLY PartialInfer(f.Base64File(), Invoice) p
 
 ---
 
-## 10. Code Generation
+## 10. Runtime Contract
 
-### 10.1 Generated Class Structure
+### 10.1 Compilation Artifacts
 
-Each AI schema compiles to a C# class, identical in structure to binary/text generated classes:
+Each AI schema compiles to a set of artifacts that the engine uses during query execution:
 
-```csharp
-// Generated from: ai Receipt { StoreName: string, Total: decimal, Currency: enum('USD', 'EUR') }
-public sealed class Receipt : AiInterpreterBase<Receipt>, IAiInterpreter<Receipt>
-{
-    public string? StoreName { get; init; }
-    public decimal? Total { get; init; }
-    public string? Currency { get; init; }
-    
-    public override Receipt Default => new();
-}
-```
+- **JSON Schema** — a structured output constraint document derived deterministically from field names, types, and modifiers. Providers that support structured output mode can use this directly; others receive it as prompt text.
+- **Prompt template** — a natural-language extraction instruction generated from doc comments, field names, types, and constraints. Code comments (`--`) are excluded. The same schema always produces the same prompt.
+- **Validator** — a compiled function that checks an extracted instance against all declared constraints (`required`, `range`, `min`, `max`, `pattern`, `check`, `enum`). Validation is a pure function: same input always produces the same errors.
+- **Retry prompt generator** — a function that produces a corrective prompt from validation errors and the previous response. This is a tool provided to the runtime; the specification does not mandate retry behavior.
+- **Deserializer** — a function that maps JSON to the typed output object.
 
-### 10.2 Generated JSON Schema
+These artifacts are the output of the compilation phase. Query authors never interact with them directly — the engine passes them to the host runtime through the inference contract described below.
 
-Each AI schema compiles to a JSON Schema document for structured output:
+### 10.2 Host Runtime Contract
 
-```json
-{
-  "type": "object",
-  "properties": {
-    "StoreName": { "type": ["string", "null"] },
-    "Total": { "type": ["number", "null"] },
-    "Currency": { "type": ["string", "null"], "enum": ["USD", "EUR", null] }
-  },
-  "required": ["StoreName", "Total", "Currency"],
-  "additionalProperties": false
-}
-```
+The engine delegates all LLM communication to the host program through a single inference entry point. The host is responsible for:
 
-### 10.3 Generated Prompt Template
+- LLM provider selection and communication
+- Authentication and credential management
+- Retry policy (using the compiled validator and retry prompt generator)
+- Rate limiting, timeout management, and backoff
+- Caching, parallelism, and batching (if desired)
+- Logging and telemetry (if desired)
 
-Each AI schema compiles to a prompt template generated deterministically from doc comments, field names, types, and constraints. Code comments are excluded.
+**What the engine provides to the host per inference call:**
 
-Given:
+| Artifact | Description |
+|----------|-------------|
+| Content | The unstructured input to extract from (text or base64 image) |
+| Prompt template | Generated extraction instructions (does NOT include the content itself) |
+| JSON Schema | Structured output constraint document |
+| Schema name | The schema identifier (e.g., "Invoice", "Receipt") |
+| Annotations | Key-value pairs from `[key: 'value']` syntax on the schema declaration |
+| Hint | Optional extraction hint from the query author (null if none) |
+| Deserializer | Converts JSON response to the typed output object |
+| Validator | Checks extracted instance against compiled constraints |
+| Retry prompt generator | Produces corrective prompt from validation errors |
 
-```sql
-ai Receipt {
-    --- Extract receipt data from a photo of a paper receipt.
+**What the host returns:** either a successful typed result or a failure with error details.
 
-    --- Name of the store or business
-    StoreName: string required,
-    --- Total amount including tax
-    Total: decimal required,
-    --- ISO currency code
-    Currency: enum('USD', 'EUR')
-}
-```
+### 10.3 Model Selection Patterns
 
-Generated prompt template:
+The specification does not prescribe how the runtime selects models. Schema annotations (§4.2) provide a transport mechanism for query-author intent. Hosts combine annotations with their own configuration to make routing decisions.
 
-```
-Context: Extract receipt data from a photo of a paper receipt.
-
-Extract the following structured data from the provided content.
-
-Fields:
-- StoreName (string, required): Name of the store or business
-- Total (decimal, required): Total amount including tax
-- Currency (one of: USD, EUR): ISO currency code
-
-Return ONLY valid JSON matching the provided schema. Do not include any explanation.
-```
-
-The same schema always produces the same prompt. Field constraints are included as natural language guidance AND enforced via the JSON Schema.
-
-### 10.4 Generated Validator
-
-Each schema compiles a validation method:
-
-```csharp
-public sealed class ReceiptValidator
-{
-    public ValidationResult Validate(Receipt instance)
-    {
-        var errors = new List<ValidationError>();
-        
-        // Required validation
-        if (string.IsNullOrEmpty(instance.StoreName))
-            errors.Add(new ValidationError("StoreName", "AIE009", "Required field is null or empty"));
-        
-        if (instance.Total == null)
-            errors.Add(new ValidationError("Total", "AIE009", "Required field is null"));
-        
-        // Enum validation
-        if (instance.Currency != null && !_currencyValues.Contains(instance.Currency))
-            errors.Add(new ValidationError("Currency", "AIE005", 
-                $"Value '{instance.Currency}' is not one of: USD, EUR"));
-        
-        return new ValidationResult(errors);
-    }
-    
-    private static readonly HashSet<string> _currencyValues = new() { "USD", "EUR" };
-}
-```
-
-### 10.5 Generated Retry Prompt Builder
-
-Each schema compiles a method that produces a corrective prompt from validation errors:
-
-```csharp
-public string GenerateRetryPrompt(string previousResponse, ValidationResult errors)
-{
-    var sb = new StringBuilder();
-    sb.AppendLine("Your previous response had validation errors:");
-    foreach (var error in errors.Errors)
-    {
-        sb.AppendLine($"  - {error.FieldName}: {error.Message}");
-    }
-    sb.AppendLine();
-    sb.AppendLine("Please correct these specific errors and return valid JSON.");
-    sb.AppendLine($"Previous response: {previousResponse}");
-    return sb.ToString();
-}
-```
-
-This method is a **tool provided to the runtime**. The runtime decides whether and when to call it. The spec does not mandate retry behavior.
-
----
-
-## 11. Runtime Interface
-
-### 11.1 Core Interface
-
-The engine delegates all LLM communication to the host program through a single interface:
-
-```csharp
-/// <summary>
-/// Implemented by the host application to handle LLM communication.
-/// The engine calls this interface; the host decides how to fulfill the request.
-/// 
-/// Responsibilities of the implementor:
-/// - LLM provider selection and communication
-/// - Authentication and credential management
-/// - Retry policy (using request.Validate and request.GenerateRetryPrompt)
-/// - Rate limiting and backoff
-/// - Timeout management
-/// - Caching (if desired)
-/// - Parallelism / batching (if desired)
-/// - Logging and telemetry (if desired)
-/// </summary>
-public interface IAiInferenceRunner
-{
-    /// <summary>
-    /// Perform AI inference for a single extraction request.
-    /// 
-    /// The implementation should:
-    /// 1. Call the LLM with request.PromptTemplate, request.Content, and request.JsonSchema
-    /// 2. Deserialize the response using request.Deserialize(json)
-    /// 3. Validate using request.Validate(result)
-    /// 4. Optionally retry on validation failure using request.GenerateRetryPrompt(...)
-    /// 5. Return success or failure
-    /// </summary>
-    InferenceResult<TOut> Infer<TOut>(InferenceRequest<TOut> request);
-}
-```
-
-### 11.2 Request and Result Types
-
-```csharp
-/// <summary>
-/// Encapsulates everything the runtime needs to perform an inference.
-/// All compiled artifacts are provided as delegates/properties — the runtime
-/// never needs to know about the schema definition or Roslyn compilation.
-/// </summary>
-public sealed class InferenceRequest<TOut>
-{
-    /// <summary>
-    /// The unstructured content to extract from (text or base64 image).
-    /// </summary>
-    public string Content { get; init; }
-    
-    /// <summary>
-    /// Generated prompt template (from doc comments, types, constraints).
-    /// Does NOT include the content itself — the runtime decides how to 
-    /// structure the final LLM message (system prompt vs user prompt, etc.)
-    /// </summary>
-    public string PromptTemplate { get; init; }
-    
-    /// <summary>
-    /// JSON Schema for structured output constraint.
-    /// The runtime MAY pass this to providers that support JSON schema mode.
-    /// </summary>
-    public string JsonSchema { get; init; }
-    
-    /// <summary>
-    /// Optional extraction hint from the query author.
-    /// null if no hint was provided in the query.
-    /// </summary>
-    public string? Hint { get; init; }
-    
-    /// <summary>
-    /// Schema name (e.g., "Invoice", "Receipt"). 
-    /// Useful for logging, caching keys, or routing to different models.
-    /// </summary>
-    public string SchemaName { get; init; }
-    
-    /// <summary>
-    /// Schema-level annotations as key-value pairs.
-    /// Compiled from [key: 'value'] syntax on the ai schema declaration.
-    /// The runtime may use these to make decisions about model selection,
-    /// retry policy, fallback behavior, etc.
-    /// Empty dictionary if no annotations were specified.
-    /// </summary>
-    public IReadOnlyDictionary<string, string> Annotations { get; init; }
-    
-    /// <summary>
-    /// Deserialize JSON to typed object. Provided by compiled schema.
-    /// Throws on malformed JSON (AIE003/AIE004).
-    /// </summary>
-    public Func<string, TOut> Deserialize { get; init; }
-    
-    /// <summary>
-    /// Validate extracted object. Provided by compiled schema.
-    /// Returns structured errors with field-level detail.
-    /// </summary>
-    public Func<TOut, ValidationResult> Validate { get; init; }
-    
-    /// <summary>
-    /// Generate corrective prompt for retry. Provided by compiled schema.
-    /// Takes the previous JSON response and validation errors.
-    /// The runtime MAY use this to implement retry logic.
-    /// </summary>
-    public Func<string, ValidationResult, string> GenerateRetryPrompt { get; init; }
-}
-
-/// <summary>
-/// Result of an inference attempt.
-/// </summary>
-public sealed class InferenceResult<TOut>
-{
-    public bool IsSuccess { get; init; }
-    public TOut? Value { get; init; }
-    public AiInferenceException? Error { get; init; }
-    
-    public static InferenceResult<TOut> Success(TOut value) 
-        => new() { IsSuccess = true, Value = value };
-    
-    public static InferenceResult<TOut> Failure(AiInferenceException error) 
-        => new() { IsSuccess = false, Error = error };
-}
-```
-
-### 11.3 Validation Types
-
-```csharp
-/// <summary>
-/// Structured validation result from compiled constraint checks.
-/// </summary>
-public sealed class ValidationResult
-{
-    public bool IsValid => Errors.Count == 0;
-    public IReadOnlyList<ValidationError> Errors { get; init; }
-}
-
-/// <summary>
-/// Individual field-level validation error.
-/// </summary>
-public sealed class ValidationError
-{
-    /// <summary>Field name that failed validation.</summary>
-    public string FieldName { get; init; }
-    
-    /// <summary>Error code (AIE005-AIE010).</summary>
-    public string ErrorCode { get; init; }
-    
-    /// <summary>
-    /// Human-readable error message.
-    /// Example: "Value 'unknown' is not one of: USD, EUR, GBP"
-    /// </summary>
-    public string Message { get; init; }
-    
-    /// <summary>The constraint expression that failed (for check constraints).</summary>
-    public string? Constraint { get; init; }
-    
-    /// <summary>The actual extracted value.</summary>
-    public object? ActualValue { get; init; }
-}
-```
-
-### 11.4 Model Selection Patterns
-
-The specification does not prescribe how the runtime selects models. Schema annotations (Section 4.2) provide a transport mechanism for query-author intent. Hosts combine annotations with their own configuration to make routing decisions:
-
-**Option A: Annotation-based routing (recommended)**
+**Annotation-based routing (recommended):**
 
 Query authors express intent via annotations; the runtime maps intent to models:
 
@@ -1440,243 +1216,54 @@ ai Receipt [tier: 'economy', fallback: 'true'] { ... }
 ai SecurityAudit [tier: 'premium'] { ... }
 ```
 
-```csharp
-public InferenceResult<TOut> Infer<TOut>(InferenceRequest<TOut> request)
-{
-    var tier = request.Annotations.GetValueOrDefault("tier", "standard");
-    var allowFallback = request.Annotations.GetValueOrDefault("fallback", "false") == "true";
-    
-    var model = SelectModel(tier);
-    var result = TryWithModel(model, request);
-    
-    if (!result.IsSuccess && allowFallback)
-        result = TryWithModel(_premiumModel, request);
-    
-    return result;
-}
-```
+The host reads `tier`, `fallback`, or any custom annotation keys from the request's annotations dictionary and routes accordingly.
 
-**Option B: Runtime configuration (simplest)**
+**Runtime configuration (simplest):**
 
-The host configures a default model. All `Infer()` calls use it. No annotations needed:
+The host configures a single default model. All inference calls use it. No annotations needed.
 
-```csharp
-services.AddSingleton<IAiInferenceRunner>(
-    new OpenAiRunner("gpt-4o", apiKey));
-```
+**Schema-name routing:**
 
-**Option C: Schema-name routing**
+The host inspects the schema name and routes to different models (e.g., "Receipt" → one model, "LogClassification" → another).
 
-The runtime inspects `request.SchemaName` and routes to different models:
+**Content-based routing:**
 
-```csharp
-var model = request.SchemaName switch
-{
-    "Receipt" or "Invoice" => "gpt-4o",
-    "LogClassification"    => "llama3",
-    _                      => _defaultModel
-};
-```
+The host detects whether content is base64 (image) or plain text and selects a vision-capable model accordingly. May combine with a `vision` annotation.
 
-**Option D: Content-based routing**
+The spec takes no position on which approach is correct. All work within the inference contract boundary. Approaches can be combined.
 
-The runtime detects whether content is base64 (image) or plain text and selects a vision-capable model accordingly. May combine with the `vision` annotation:
-
-```csharp
-var needsVision = request.Annotations.GetValueOrDefault("vision", "false") == "required"
-    || LooksLikeBase64(request.Content);
-```
-
-The spec takes no position on which approach is correct. All work within the interface boundary. Approaches can be combined.
-
-### 11.5 Compiled Schema Interface
-
-The interface for artifacts **generated by the engine** (via Roslyn compilation):
-
-```csharp
-/// <summary>
-/// Interface implemented by Roslyn-generated AI schema classes.
-/// Provides all artifacts needed for inference.
-/// This interface is the OUTPUT of compilation.
-/// </summary>
-public interface IAiInterpreter<TOut> : IInterpreter<TOut>
-{
-    /// <summary>
-    /// JSON Schema document constraining the LLM's structured output.
-    /// </summary>
-    string JsonSchema { get; }
-    
-    /// <summary>
-    /// Prompt template generated from doc comments, field names, types, and constraints.
-    /// Does NOT include code comments.
-    /// </summary>
-    string PromptTemplate { get; }
-    
-    /// <summary>
-    /// Schema-level annotations compiled from [key: 'value'] syntax.
-    /// Passed through to the runtime for model selection, routing, etc.
-    /// </summary>
-    IReadOnlyDictionary<string, string> Annotations { get; }
-    
-    /// <summary>
-    /// Deserialize a JSON string into the typed output object.
-    /// </summary>
-    TOut Deserialize(string json);
-    
-    /// <summary>
-    /// Validate an extracted instance against all compiled constraints.
-    /// </summary>
-    ValidationResult Validate(TOut instance);
-    
-    /// <summary>
-    /// Generate a corrective prompt from validation errors.
-    /// </summary>
-    string GenerateRetryPrompt(string previousResponse, ValidationResult errors);
-}
-
-public abstract class AiInterpreterBase<TOut> : IAiInterpreter<TOut>
-{
-    public abstract TOut Default { get; }
-    public abstract string JsonSchema { get; }
-    public abstract string PromptTemplate { get; }
-    public abstract IReadOnlyDictionary<string, string> Annotations { get; }
-    public abstract TOut Deserialize(string json);
-    public abstract ValidationResult Validate(TOut instance);
-    public abstract string GenerateRetryPrompt(string previousResponse, ValidationResult errors);
-}
-```
-
-### 11.6 Engine-Side Invocation
-
-The engine's compiled code bridges `Infer()` calls to the runtime through `IAiInferenceRunner`:
-
-```csharp
-/// <summary>
-/// Generated by the engine. Bridges CROSS APPLY invocation to the runtime.
-/// This is what the compiled query actually calls.
-/// </summary>
-public static class AiInferenceMethods
-{
-    public static TOut Infer<TInterpreter, TOut>(
-        string content,
-        TInterpreter interpreter,
-        RuntimeContext runtimeContext
-    ) where TInterpreter : IAiInterpreter<TOut>
-    {
-        var runner = runtimeContext.GetRequiredService<IAiInferenceRunner>();
-        
-        var request = new InferenceRequest<TOut>
-        {
-            Content = content,
-            PromptTemplate = interpreter.PromptTemplate,
-            JsonSchema = interpreter.JsonSchema,
-            Hint = null,
-            SchemaName = typeof(TOut).Name,
-            Annotations = interpreter.Annotations,
-            Deserialize = interpreter.Deserialize,
-            Validate = interpreter.Validate,
-            GenerateRetryPrompt = interpreter.GenerateRetryPrompt
-        };
-        
-        var result = runner.Infer(request);
-        
-        if (result.IsSuccess)
-            return result.Value!;
-        
-        throw result.Error!;
-    }
-    
-    public static TOut Infer<TInterpreter, TOut>(
-        string content,
-        TInterpreter interpreter,
-        string hint,
-        RuntimeContext runtimeContext
-    ) where TInterpreter : IAiInterpreter<TOut>
-    {
-        var runner = runtimeContext.GetRequiredService<IAiInferenceRunner>();
-        
-        var request = new InferenceRequest<TOut>
-        {
-            Content = content,
-            PromptTemplate = interpreter.PromptTemplate,
-            JsonSchema = interpreter.JsonSchema,
-            Hint = hint,
-            SchemaName = typeof(TOut).Name,
-            Annotations = interpreter.Annotations,
-            Deserialize = interpreter.Deserialize,
-            Validate = interpreter.Validate,
-            GenerateRetryPrompt = interpreter.GenerateRetryPrompt
-        };
-        
-        var result = runner.Infer(request);
-        
-        if (result.IsSuccess)
-            return result.Value!;
-        
-        throw result.Error!;
-    }
-    
-    public static TOut? TryInfer<TInterpreter, TOut>(
-        string content,
-        TInterpreter interpreter,
-        RuntimeContext runtimeContext
-    ) where TInterpreter : IAiInterpreter<TOut>
-              where TOut : class
-    {
-        var runner = runtimeContext.GetRequiredService<IAiInferenceRunner>();
-        
-        var request = new InferenceRequest<TOut>
-        {
-            Content = content,
-            PromptTemplate = interpreter.PromptTemplate,
-            JsonSchema = interpreter.JsonSchema,
-            Hint = null,
-            SchemaName = typeof(TOut).Name,
-            Annotations = interpreter.Annotations,
-            Deserialize = interpreter.Deserialize,
-            Validate = interpreter.Validate,
-            GenerateRetryPrompt = interpreter.GenerateRetryPrompt
-        };
-        
-        var result = runner.Infer(request);
-        
-        return result.IsSuccess ? result.Value : null;
-    }
-}
-```
-
-### 11.7 Specification Guarantees
+### 10.4 Specification Guarantees
 
 The spec guarantees deterministic behavior for everything it controls:
 
 | Aspect | Guarantee |
 |--------|-----------|
-| Schema compilation | Same schema always produces the same C# class, JSON Schema, and prompt template |
-| Validation | `Validate()` is a pure function — same input always produces the same errors |
-| Deserialization | `Deserialize()` deterministically maps JSON to typed objects |
-| Retry prompt generation | `GenerateRetryPrompt()` deterministically produces corrective prompts from errors |
-| Conditional field evaluation | `when` clause conditions are evaluated by compiled C# code |
-| Type mapping | AI types map to .NET types per Appendix B |
+| Schema compilation | Same schema always produces the same JSON Schema, prompt template, and validation logic |
+| Validation | The validator is a pure function — same input always produces the same errors |
+| Deserialization | The deserializer deterministically maps JSON to typed objects |
+| Retry prompt generation | The retry prompt generator deterministically produces corrective prompts from errors |
+| Conditional field evaluation | `when` clause conditions are evaluated by compiled code |
+| Type mapping | AI types map to runtime types per Appendix B |
 
-### 11.8 Implementation Guidance
+### 10.5 Implementation Guidance
 
-For implementors of `IAiInferenceRunner`, the spec recommends (but does not require):
+For implementors of the host inference runner, the spec recommends (but does not require):
 
-1. **Always call `request.Validate()`** after deserialization. The validation encodes constraints that the LLM's JSON schema mode may not fully enforce (e.g., cross-field `check` expressions).
+1. **Always validate after deserialization.** The validation encodes constraints that the LLM's JSON schema mode may not fully enforce (e.g., cross-field `check` expressions).
 
-2. **Use `request.GenerateRetryPrompt()` for retries** rather than constructing custom retry prompts. The generated prompt includes specific constraint violations that improve correction rates.
+2. **Use the retry prompt generator for retries** rather than constructing custom retry prompts. The generated prompt includes specific constraint violations that improve correction rates.
 
-3. **Treat `request.JsonSchema` as a structured output constraint** for providers that support it (OpenAI JSON mode, Anthropic tool use). For providers that don't, include the schema as text in the prompt.
+3. **Treat the JSON Schema as a structured output constraint** for providers that support it (e.g., JSON mode, tool use). For providers that don't, include the schema as text in the prompt.
 
-4. **Handle `request.Hint` by appending to the prompt**, not replacing it. The hint provides additional context; the prompt template provides the extraction structure.
+4. **Handle hints by appending to the prompt**, not replacing it. The hint provides additional context; the prompt template provides the extraction structure.
 
-5. **Read `request.Annotations`** for routing decisions. Ignore annotations you don't recognize — this allows query authors to add annotations for future runtime features without breaking current behavior.
+5. **Read annotations for routing decisions.** Ignore annotations you don't recognize — this allows query authors to add annotations for future runtime features without breaking current behavior.
 
 ---
 
-## 12. Grammar Specification
+## 11. Grammar Specification
 
-### 12.1 AI Schema Definition
+### 11.1 AI Schema Definition
 
 ```ebnf
 ai_schema       ::= 'ai' identifier annotations? '{' schema_body '}'
@@ -1718,7 +1305,7 @@ schema_reference ::= identifier
 inline_schema   ::= '{' ai_field_list '}'
 ```
 
-### 12.2 Comment Grammar
+### 11.2 Comment Grammar
 
 ```ebnf
 doc_comment     ::= '---' ' ' (any character except newline)* newline
@@ -1728,7 +1315,7 @@ code_comment    ::= '--' (any character except newline)* newline
 block_comment   ::= '/*' (any character)* '*/'
 ```
 
-### 12.3 Modifier Grammar
+### 11.3 Modifier Grammar
 
 ```ebnf
 ai_modifiers    ::= ai_modifier+
@@ -1744,7 +1331,7 @@ when_clause     ::= 'when' expression
 check_clause    ::= 'check' expression
 ```
 
-### 12.4 Inference Function Grammar
+### 11.4 Inference Function Grammar
 
 ```ebnf
 infer_call      ::= 'Infer' '(' expression ',' schema_reference (',' expression)? ')'
@@ -1754,9 +1341,9 @@ infer_call      ::= 'Infer' '(' expression ',' schema_reference (',' expression)
 
 ---
 
-## 13. Examples
+## 12. Examples
 
-### 13.1 Invoice Processing (Phase 1 Primary Use Case)
+### 12.1 Invoice Processing (Phase 1 Primary Use Case)
 
 ```sql
 ai Vendor {
@@ -1879,7 +1466,7 @@ INNER JOIN BankData b ON Abs(i.Total - Abs(b.Amount)) < 0.01
 ORDER BY i.InvoiceDate
 ```
 
-### 13.2 Receipt Processing with Hint
+### 12.2 Receipt Processing with Hint
 
 ```sql
 ai ReceiptItem {
@@ -1925,7 +1512,7 @@ WHERE f.Extension IN ('.jpg', '.png')
 ORDER BY r.Date DESC
 ```
 
-### 13.3 Log Analysis (Phase 2)
+### 12.3 Log Analysis (Phase 2)
 
 ```sql
 ai LogClassification {
@@ -1976,7 +1563,7 @@ ORDER BY
     END
 ```
 
-### 13.4 Legacy Data Migration Assessment (Phase 2)
+### 12.4 Legacy Data Migration Assessment (Phase 2)
 
 ```sql
 text CobolRecord {
@@ -2026,7 +1613,7 @@ WHERE bm.MigrationRisk IN ('high', 'needs_human')
 ORDER BY bm.MigrationRisk, r.AccountId
 ```
 
-### 13.5 Code Quality Analysis (Phase 3)
+### 12.5 Code Quality Analysis (Phase 3)
 
 ```sql
 ai CodeSmell {
@@ -2082,7 +1669,7 @@ ORDER BY
     m.CyclomaticComplexity DESC
 ```
 
-### 13.6 Multi-Stage Pipeline (Privacy Pattern)
+### 12.6 Multi-Stage Pipeline (Privacy Pattern)
 
 Combining stages where annotations guide the runtime toward appropriate model selection:
 
@@ -2152,9 +1739,9 @@ The privacy benefit: Stage 1 is annotated `tier: 'local'` — the runtime routes
 
 ---
 
-## 14. Future Considerations
+## 13. Future Considerations
 
-### 14.1 Embedding Integration
+### 13.1 Embedding Integration
 
 AI schemas could be extended with embedding-aware fields:
 
@@ -2167,11 +1754,11 @@ ai EnrichedCommit {
 
 This would enable semantic similarity JOINs between AI-extracted data from different sources.
 
-### 14.2 Streaming Extraction
+### 13.2 Streaming Extraction
 
 For large documents, extraction could be streamed section-by-section rather than processing the entire document at once.
 
-### 14.3 Schema Evolution
+### 13.3 Schema Evolution
 
 Version annotations for schemas that evolve over time:
 
@@ -2183,11 +1770,11 @@ ai Receipt version 2 {
 }
 ```
 
-### 14.4 Feedback Loop
+### 13.4 Feedback Loop
 
 Store human corrections to AI extractions and use them as few-shot examples for future extractions. The runtime could maintain a correction store and inject examples into prompts automatically.
 
-### 14.5 Explanation Mode
+### 13.5 Explanation Mode
 
 A reserved field like `_explanation` could request the LLM's reasoning for each extracted field, useful for auditing in compliance scenarios.
 
@@ -2253,16 +1840,16 @@ Note: `check` and `when` are shared with binary/text schemas. All other AI-speci
 | Feature | TABLE/COUPLE + LlmExtract | Pydantic/Instructor | BAML | AI Schema |
 |---------|--------------------------|---------------------|------|-----------|
 | Language | SQL + manual prompt | Python | Custom DSL | SQL (native) |
-| Validation | Runtime type cast | Pydantic validators | Type system | Compiled C# validators |
+| Validation | Runtime type cast | Pydantic validators | Type system | Compiled validators |
 | Conditional fields | No | No | No | Yes (`when` clause) |
 | Cross-source JOIN | Yes (Musoq) | No | No | Yes (native) |
 | Retry tools | Manual | Built-in | Built-in | Compiled (runtime decides policy) |
 | Schema = prompt | No | Partial | Yes | Yes (doc comments only) |
 | Model routing metadata | No | No | No | Yes (annotations) |
 | Binary/text composition | No | No | No | Yes |
-| Runtime agnostic | No | No | No | Yes (IAiInferenceRunner) |
+| Runtime agnostic | No | No | No | Yes (inference runner interface) |
 | Offline-capable | Yes (Ollama) | No | No | Yes (runtime decides) |
-| Zero reflection | N/A | No | No | Yes (Roslyn compiled) |
+| Zero reflection | N/A | No | No | Yes (compile-time generated) |
 
 ---
 

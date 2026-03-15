@@ -20,6 +20,9 @@
 8. [Grammar Specification](#8-grammar-specification)
 9. [Examples](#9-examples)
 10. [Integration with Other Constructs](#10-integration-with-other-constructs)
+11. [Appendix A: Quick Reference](#appendix-a-quick-reference)
+12. [Appendix B: Comparison with Related Constructs](#appendix-b-comparison-with-related-constructs)
+13. [Appendix C: Type Mapping Table](#appendix-c-type-mapping-table)
 
 ---
 
@@ -42,10 +45,18 @@ This specification covers:
 
 ### 1.3 Relationship to Other Specifications
 
-- **Core Language Specification**: TABLE and COUPLE are part of the utility statements defined in `musoq-core-language-spec.md`
-- **Interpretation Schemas**: Similar in concept but distinct from `binary` and `text` schemas defined in `musoq-binary-text-spec.md`
+This specification is part of the Musoq specification family (see *Musoq Core SQL Language Specification*, §1.6 for the full list).
 
-### 1.4 Terminology
+- **Core Language Specification** (`musoq-core-language-spec.md`): TABLE and COUPLE are utility statements within the core language. This document provides the detailed specification.
+- **Interpretation Schemas** (`musoq-binary-text-spec.md`): Similar in concept but distinct from `binary` and `text` schemas, which define declarative parsing rules rather than explicit type mappings.
+
+The notation conventions defined in the core specification (§1.5) apply to this document. In particular, the key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY carry normative weight when capitalized.
+
+### 1.4 Conformance
+
+An implementation that claims conformance to the TABLE/COUPLE profile MUST implement all features defined in this specification. This profile is optional; see the core specification (§1.7) for the conformance model.
+
+### 1.5 Terminology
 
 | Term | Definition |
 |------|------------|
@@ -87,7 +98,7 @@ This provides:
 
 ### 2.3 Design Philosophy
 
-- **Explicit over implicit**: Schema must be declared before use
+- **Explicit over implicit**: Schema MUST be declared before use
 - **Fail-fast**: Invalid types or missing definitions produce clear errors
 - **SQL-aligned syntax**: Uses familiar SQL-like syntax (`table`, `as`, `with table`)
 - **Separation of concerns**: TABLE defines structure; COUPLE binds it to a source
@@ -157,7 +168,7 @@ Date: datetimeoffset?  -- Explicitly nullable DateTimeOffset
 
 - **Scope**: Table definitions are scoped to the query batch in which they are defined
 - **Visibility**: Visible only after definition; no forward references
-- **Uniqueness**: Table names must be unique within a batch
+- **Uniqueness**: Table names MUST be unique within a batch
 - **Lifetime**: Exists only for the duration of query execution
 
 ### 3.5 Semantics
@@ -415,7 +426,7 @@ table Example {
 | **Undefined Alias** | Query references uncoupled alias | `select * from NonExistent()` |
 | **Constructor Not Found** | Internal adapter type generated for a schema source does not expose the expected constructor | `couple separatedvalues.comma with table CsvRow as Csv` |
 
-### 7.3 Runtime Adapter Diagnostics
+### 7.3 Runtime Adapter Diagnostics [Informative]
 
 When COUPLE is used with dynamic file-based sources (for example separated values), host/runtime internals may route through generated adapter/helper types. In stack traces, names such as `memoryMapped` can appear.
 
@@ -664,7 +675,7 @@ select Id, Name from SourceB();
 
 ### 10.6 Statement Order Requirements
 
-Within a query batch, statements must follow this order:
+Within a query batch, statements MUST follow this order:
 
 1. **TABLE definitions** (one or more)
 2. **COUPLE statements** (referencing previously defined tables)

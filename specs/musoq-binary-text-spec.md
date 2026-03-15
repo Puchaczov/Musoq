@@ -17,10 +17,9 @@
 7. [Interpretation Functions](#7-interpretation-functions)
 8. [Schema Composition](#8-schema-composition)
 9. [Error Handling](#9-error-handling)
-10. [Code Generation](#10-code-generation)
-11. [Grammar Specification](#11-grammar-specification)
-12. [Examples](#12-examples)
-13. [Future Considerations](#13-future-considerations)
+10. [Grammar Specification](#10-grammar-specification)
+11. [Examples](#11-examples)
+12. [Future Considerations](#12-future-considerations)\n13. [Appendix A: Reserved Keywords](#appendix-a-reserved-keywords)\n14. [Appendix B: Type Mapping](#appendix-b-type-mapping)\n15. [Appendix C: Error Codes](#appendix-c-error-codes)\n16. [Appendix D: CROSS APPLY / OUTER APPLY Behavior](#appendix-d-cross-apply--outer-apply-behavior)
 
 ---
 
@@ -30,9 +29,9 @@
 
 Interpretation Schemas extend Musoq's SQL dialect with declarative format definitions for parsing binary and textual data. Schemas serve triple duty as:
 
-1. **Executable parsers** - Compiled to efficient C# parsing code via Roslyn
-2. **Format documentation** - Human-readable specifications that cannot drift from implementation
-3. **Queryable metadata** - Schema definitions are themselves data sources
+1. **Executable parsers** — Compiled to efficient executable parsing code at query compile time
+2. **Format documentation** — Human-readable specifications that cannot drift from implementation
+3. **Queryable metadata** — Schema definitions are themselves data sources
 
 ### 1.2 Motivation
 
@@ -43,7 +42,7 @@ Data investigation frequently requires correlating structured data across hetero
 - Semi-structured logs with custom patterns
 - Mixed binary/text protocols
 
-Current approaches require writing throwaway Python/C# scripts to parse data before analysis. Interpretation Schemas bring parsing into the query itself, enabling single-query workflows that parse AND analyze AND correlate.
+Current approaches require writing throwaway scripts to parse data before analysis. Interpretation Schemas bring parsing into the query itself, enabling single-query workflows that parse AND analyze AND correlate.
 
 ### 1.3 Scope
 
@@ -58,13 +57,17 @@ This specification covers:
 - Introspection capabilities
 - Required modifications to Musoq's CROSS/OUTER APPLY semantics
 
+This specification is part of the Musoq specification family (see *Musoq Core SQL Language Specification*, §1.6). The notation conventions defined in the core specification (§1.5) apply to this document. In particular, the key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY carry normative weight when capitalized.
+
+An implementation that claims conformance to the Binary/Text Interpretation profile MUST implement all features defined in this specification. This profile is optional; see the core specification (§1.7) for the conformance model.
+
 ### 1.4 Terminology
 
 | Term | Definition |
 |------|------------|
 | **Schema** | A named format definition describing how to interpret raw data |
 | **Field** | A named element within a schema with a type and optional modifiers |
-| **Primitive** | Built-in atomic type using .NET type names (int, long, short, etc.) |
+| **Primitive** | Built-in atomic type (`int`, `long`, `short`, etc.) |
 | **Substrate** | The raw data being interpreted (byte array or character sequence) |
 | **Interpretation** | The act of parsing a substrate according to a schema |
 | **Cursor** | Current position within the substrate during parsing |
@@ -73,10 +76,10 @@ This specification covers:
 
 | Aspect | Convention | Rationale |
 |--------|------------|-----------|
-| Types | .NET names (`int`, `short`, `long`, `byte`) | Native integration, familiar to C# developers |
+| Types | Familiar names (`int`, `short`, `long`, `byte`) | Familiar naming, native integration |
 | Operators | SQL operators (`<>`, `AND`, `OR`, `NOT`) | Consistency with Musoq SQL dialect |
 | Keywords | Case-insensitive | SQL convention |
-| Identifiers | Case-sensitive for field names | .NET convention, matches generated code |
+| Identifiers | Case-sensitive for field names | Matches generated code conventions |
 | Schema references | Type name without parentheses | SQL convention for type references |
 
 ### 1.6 Relationship to Existing Musoq Constructs
@@ -165,7 +168,7 @@ Parsing failures should be immediate, specific, and actionable. The error should
 
 ### 2.5 Zero Runtime Reflection
 
-All schema definitions compile to static C# code. No runtime type inspection, no dynamic dispatch, no interpretation overhead.
+All schema definitions compile to statically-typed code. No runtime type inspection, no dynamic dispatch, no interpretation overhead.
 
 ### 2.6 SQL Spirit Alignment
 
@@ -207,9 +210,9 @@ CROSS APPLY InterpretAt(f.GetBytes(), 6, Record) r
 
 **Scope Rules:**
 - Schemas are visible only within the query batch where defined
-- Schema names must be unique within a batch
-- Forward references between schemas are NOT permitted (referenced schema must be defined first)
-- Recursive schema definitions are NOT permitted
+- Schema names MUST be unique within a batch
+- Forward references between schemas MUST NOT occur (referenced schema MUST be defined first)
+- Recursive schema definitions MUST NOT occur
 
 ### 3.2 CROSS APPLY / OUTER APPLY Relaxation
 
@@ -251,17 +254,11 @@ CROSS APPLY c.Records r
 ```
 
 **Implementation:**  
-Single complex objects are wrapped in a single-element array for uniform processing:
-
-```csharp
-// Single object T:      new[] { result }
-// null with CROSS:      Array.Empty<T>()
-// null with OUTER:      new T[] { null }
-```
+Single complex objects are wrapped in a single-element sequence for uniform processing. A `null` result with CROSS APPLY produces no output rows; a `null` result with OUTER APPLY produces one row with NULL columns.
 
 ### 3.3 APPLY-Only Restriction
 
-All interpretation functions — `Interpret()`, `Parse()`, `TryInterpret()`, `TryParse()`, `InterpretAt()`, and `PartialInterpret()` — **must** appear as the right-hand side of a `CROSS APPLY` or `OUTER APPLY` clause. They cannot be used directly in `SELECT`, `WHERE`, `HAVING`, or other expression contexts.
+All interpretation functions — `Interpret()`, `Parse()`, `TryInterpret()`, `TryParse()`, `InterpretAt()`, `PartialInterpret()`, and `PartialParse()` — MUST appear as the right-hand side of a `CROSS APPLY` or `OUTER APPLY` clause. They MUST NOT be used directly in `SELECT`, `WHERE`, `HAVING`, or other expression contexts.
 
 **Valid usage:**
 
@@ -292,9 +289,9 @@ WHERE TryInterpret(f.GetBytes(), Header) IS NOT NULL
 ```
 
 **Rationale:**  
-Interpretation functions return structured objects whose fields must be bound to an alias through APPLY. Without an alias, there is no way to reference individual fields of the parsed result. The APPLY clause provides the necessary scoping and alias binding.
+Interpretation functions return structured objects whose fields MUST be bound to an alias through APPLY. Without an alias, there is no way to reference individual fields of the parsed result. The APPLY clause provides the necessary scoping and alias binding.
 
-**Note:** Inline property access (e.g., `Interpret(data, Header).Magic` in SELECT) is reserved for a future version. See §13.1.
+**Note:** Inline property access (e.g., `Interpret(data, Header).Magic` in SELECT) is reserved for a future version. See §12.1.
 
 ---
 
@@ -371,7 +368,7 @@ SizeExpression ::= IntegerLiteral | FieldReference | Expression
 **Size Expression Evaluation:**
 - Evaluated at parse time using values of previously parsed fields
 - MUST evaluate to a non-negative integer for meaningful data
-- Negative values result in the field being set to null/default (graceful handling)
+- Negative values produce diagnostic ISE007; the field is set to `null` (graceful handling, no exception thrown)
 
 Examples:
 
@@ -756,7 +753,7 @@ CaptureMode ::= 'capture' '(' Identifier (',' Identifier)* ')'
 ```
 
 **Pattern Semantics:**
-- Patterns are .NET regular expressions
+- Patterns are regular expressions. The supported subset includes: character classes (`\d`, `\w`, `\s`, `[...]`), quantifiers (`*`, `+`, `?`, `{n}`, `{n,m}`), alternation (`|`), grouping (`(...)`), named groups (`(?<name>...)`), anchors (`^`, `$`), and standard escape sequences. Lookahead, lookbehind, backreferences, and recursive patterns are not supported.
 - Match MUST occur at current position (implicit `\G` anchor)
 - Cursor advances past the entire match
 - Match failure raises a parse error (ISE003)
@@ -1116,8 +1113,8 @@ Identifier ::= [a-zA-Z_][a-zA-Z0-9_]*
 ```
 
 - Case-sensitive for field names
-- Must not be a reserved keyword
-- Convention: `PascalCase` for fields (matches .NET conventions)
+- MUST NOT be a reserved keyword
+- Convention: `PascalCase` for fields (matches Musoq conventions)
 
 ### 6.2 Comments
 
@@ -1221,9 +1218,11 @@ Within a schema, expressions may reference:
 - Nested fields via dot notation: `Header.Version`
 - Array elements via indexing: `Items[0]`, `Records[-1]` (last element)
 
-**Forward references are NOT permitted.** This ensures single-pass parsing.
+**Forward references MUST NOT occur.** This ensures single-pass parsing.
 
 ### 6.5 Built-in Functions for Schemas
+
+Schema expressions have access to the following built-in functions. These are **not** discoverable via `desc functions` because they are intrinsic to the schema definition language rather than provided by a schema plugin.
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
@@ -1239,31 +1238,20 @@ Within a schema, expressions may reference:
 | `FromHex` | `FromHex(string) -> byte[]` | Convert hex string to bytes |
 | `ToString` | `ToString(byte[], string) -> string` | Decode bytes with encoding |
 
+These functions are available within `check` clauses, computed field expressions, and `when` conditions.
+
 ---
 
 ## 7. Interpretation Functions
 
 ### 7.1 Method Signature Pattern
 
-Interpretation functions are generic methods in the Musoq method library. Schema definitions generate classes that implement interpreter interfaces.
+Interpretation functions are generic methods in the Musoq method library. Each schema definition generates a typed interpreter, and the engine pairs it with the appropriate interpretation function based on schema kind (binary or text).
 
-**Binary Interpretation Signature:**
+- **Binary interpretation**: `Interpret(data, SchemaType)` — the engine passes the byte array and the generated binary interpreter to the underlying generic method.
+- **Text interpretation**: `Parse(text, SchemaType)` — the engine passes the string and the generated text interpreter to the underlying generic method.
 
-```csharp
-TOut Interpret<TInterpreter, TOut>(
-    byte[] bytes, 
-    TInterpreter interpreter
-) where TInterpreter : IBytesInterpreter<TOut>
-```
-
-**Text Interpretation Signature:**
-
-```csharp
-TOut Parse<TInterpreter, TOut>(
-    string text, 
-    TInterpreter interpreter
-) where TInterpreter : ITextInterpreter<TOut>
-```
+The generated interpreter encapsulates all parsing logic derived from the schema definition. Query authors interact only with the SQL-level syntax shown in §7.2–§7.7; the generic dispatch is an engine implementation detail.
 
 ### 7.2 SQL Syntax for Interpretation
 
@@ -1317,7 +1305,7 @@ TryInterpret(data, SchemaType) -> SchemaType?
 TryParse(text, SchemaType) -> SchemaType?
 ```
 
-Returns `null` instead of throwing on parse failure. Like all interpretation functions, `TryInterpret` and `TryParse` must be used inside `CROSS APPLY` or `OUTER APPLY` (see §3.3).
+Returns `null` instead of throwing on parse failure. Like all interpretation functions, `TryInterpret` and `TryParse` MUST be used inside `CROSS APPLY` or `OUTER APPLY` (see §3.3).
 
 ```sql
 -- Use OUTER APPLY so that rows are preserved when parsing fails
@@ -1384,61 +1372,23 @@ CROSS APPLY InterpretAt(f.GetBytes(), o.Offset, Record) r
 WHERE o.Offset < Length(f.GetBytes())
 ```
 
-### 7.8 Generated Interpreter Classes
+---
 
-Each schema definition generates a C# class:
+### 7.8 Partial Interpretation (Debugging)
 
-```csharp
-// Generated from: binary Header { Magic: int le, Version: short le }
-public sealed class Header : BytesInterpreterBase<Header>, IBytesInterpreter<Header>
-{
-    public int Magic { get; init; }
-    public short Version { get; init; }
-    
-    public override Header Default => new Header();
-    
-    public override Header Interpret(ReadOnlySpan<byte> data, ref int offset)
-    {
-        var result = new Header();
-        result.Magic = BinaryPrimitives.ReadInt32LittleEndian(data.Slice(offset));
-        offset += 4;
-        result.Version = BinaryPrimitives.ReadInt16LittleEndian(data.Slice(offset));
-        offset += 2;
-        return result;
-    }
-}
+```
+PartialInterpret(data, SchemaType)
+PartialParse(text, SchemaType)
 ```
 
-### 7.9 Interpreter Interface Hierarchy
+Returns a partial result for debugging malformed or incomplete data. Like all interpretation functions, `PartialInterpret` and `PartialParse` MUST be used inside `CROSS APPLY` or `OUTER APPLY` (see §3.3).
 
-```csharp
-public interface IInterpreter<TOut>
-{
-    TOut Default { get; }
-}
-
-public interface IBytesInterpreter<TOut> : IInterpreter<TOut>
-{
-    TOut Interpret(ReadOnlySpan<byte> data, ref int offset);
-}
-
-public interface ITextInterpreter<TOut> : IInterpreter<TOut>
-{
-    TOut Interpret(ReadOnlySpan<char> text, ref int position);
-}
-
-public abstract class BytesInterpreterBase<TOut> : IBytesInterpreter<TOut>
-{
-    public abstract TOut Default { get; }
-    public abstract TOut Interpret(ReadOnlySpan<byte> data, ref int offset);
-}
-
-public abstract class TextInterpreterBase<TOut> : ITextInterpreter<TOut>
-{
-    public abstract TOut Default { get; }
-    public abstract TOut Interpret(ReadOnlySpan<char> text, ref int position);
-}
-```
+| Field | Type | Description |
+|-------|------|-------------|
+| `ParsedFields` | Dictionary | Successfully parsed field names and values |
+| `ErrorField` | `string?` | Name of field where parsing failed (`null` if successful) |
+| `ErrorMessage` | `string?` | Error description (`null` if successful) |
+| `BytesConsumed` | `int` | Number of bytes/characters successfully processed |
 
 ---
 
@@ -1521,7 +1471,7 @@ binary Message {
 ```
 
 **Constraints:**
-- Generic parameter `T` must be a schema type
+- Generic parameter `T` MUST be a schema type
 - Primitive types cannot be generic parameters
 - Generic schemas are instantiated at compile time
 
@@ -1615,139 +1565,9 @@ CROSS APPLY PartialInterpret(f.GetBytes(), Header) p
 
 ---
 
-## 10. Code Generation
+## 10. Grammar Specification
 
-### 10.1 Generated Class Structure
-
-Each binary schema compiles to:
-
-```csharp
-public sealed class PacketHeader : BytesInterpreterBase<PacketHeader>
-{
-    // Properties
-    public int Magic { get; init; }
-    public short Version { get; init; }
-    public int Length { get; init; }
-    public byte[] Payload { get; init; }
-    
-    // Default instance
-    public override PacketHeader Default => new();
-    
-    // Interpreter implementation
-    public override PacketHeader Interpret(ReadOnlySpan<byte> data, ref int offset)
-    {
-        var result = new PacketHeader();
-        result.Magic = BinaryPrimitives.ReadInt32LittleEndian(data.Slice(offset));
-        offset += 4;
-        result.Version = BinaryPrimitives.ReadInt16LittleEndian(data.Slice(offset));
-        offset += 2;
-        result.Length = BinaryPrimitives.ReadInt32LittleEndian(data.Slice(offset));
-        offset += 4;
-        result.Payload = data.Slice(offset, result.Length).ToArray();
-        offset += result.Length;
-        return result;
-    }
-}
-```
-
-### 10.2 Library Method Implementation
-
-```csharp
-public static class InterpretationMethods
-{
-    public static TOut Interpret<TInterpreter, TOut>(
-        byte[] bytes,
-        TInterpreter interpreter
-    ) where TInterpreter : IBytesInterpreter<TOut>
-    {
-        int offset = 0;
-        return interpreter.Interpret(bytes.AsSpan(), ref offset);
-    }
-    
-    public static TOut InterpretAt<TInterpreter, TOut>(
-        byte[] bytes,
-        int startOffset,
-        TInterpreter interpreter
-    ) where TInterpreter : IBytesInterpreter<TOut>
-    {
-        int offset = startOffset;
-        return interpreter.Interpret(bytes.AsSpan(), ref offset);
-    }
-    
-    public static TOut? TryInterpret<TInterpreter, TOut>(
-        byte[] bytes,
-        TInterpreter interpreter
-    ) where TInterpreter : IBytesInterpreter<TOut>
-              where TOut : class
-    {
-        try
-        {
-            int offset = 0;
-            return interpreter.Interpret(bytes.AsSpan(), ref offset);
-        }
-        catch (ParseException)
-        {
-            return null;
-        }
-    }
-    
-    public static TOut Parse<TInterpreter, TOut>(
-        string text,
-        TInterpreter interpreter
-    ) where TInterpreter : ITextInterpreter<TOut>
-    {
-        int position = 0;
-        return interpreter.Interpret(text.AsSpan(), ref position);
-    }
-}
-```
-
-### 10.3 Optimization Strategies
-
-- **Span-based parsing**: Zero-copy where possible
-- **BinaryPrimitives**: Endian-aware reads without allocation
-- **Computed field inlining**: Expressions compiled inline
-- **Conditional short-circuit**: Skip parsing for false conditions
-- **Static interpreter instances**: Reuse for nested schemas
-
-### 10.4 Text Schema Compilation
-
-Text schemas generate similar structure with span-based character parsing:
-
-```csharp
-public sealed class LogEntry : TextInterpreterBase<LogEntry>
-{
-    public string Timestamp { get; init; }
-    public string Level { get; init; }
-    public string Message { get; init; }
-    
-    public override LogEntry Default => new();
-    
-    public override LogEntry Interpret(ReadOnlySpan<char> text, ref int position)
-    {
-        var result = new LogEntry();
-        
-        // between '[' ']'
-        if (text[position] != '[')
-            throw new ParseException(ISE004, "Expected '['", position);
-        position++;
-        int end = text.Slice(position).IndexOf(']');
-        if (end < 0)
-            throw new ParseException(ISE005, "Expected ']'", position);
-        result.Timestamp = text.Slice(position, end).ToString();
-        position += end + 1;
-        
-        // ... continue
-        return result;
-    }
-}
-```
-
----
-
-## 11. Grammar Specification
-
-### 11.1 Complete Binary Schema Grammar
+### 10.1 Complete Binary Schema Grammar
 
 ```ebnf
 BinarySchema 
@@ -1846,7 +1666,7 @@ SizeExpr
     ::= Expression
 ```
 
-### 11.2 Complete Text Schema Grammar
+### 10.2 Complete Text Schema Grammar
 
 ```ebnf
 TextSchema 
@@ -1938,9 +1758,9 @@ TextModifier
 
 ---
 
-## 12. Examples
+## 11. Examples
 
-### 12.1 PNG File Header
+### 11.1 PNG File Header
 
 ```sql
 binary PngSignature {
@@ -1978,7 +1798,7 @@ CROSS APPLY Interpret(chunk.Data, IhdrData) ihdr
 WHERE chunk.ChunkType = 'IHDR'
 ```
 
-### 12.2 Apache Combined Log Format
+### 11.2 Apache Combined Log Format
 
 ```sql
 text ApacheLog {
@@ -2018,7 +1838,7 @@ ORDER BY ErrorCount DESC
 TAKE 20
 ```
 
-### 12.3 Mixed Binary/Text Protocol
+### 11.3 Mixed Binary/Text Protocol
 
 ```sql
 binary MessageFrame {
@@ -2054,7 +1874,7 @@ CROSS APPLY InterpretAt(f.GetBytes(), 0, MessageFrame) frame
 WHERE frame.MsgType IN (0x01, 0x02)
 ```
 
-### 12.4 COBOL Copybook Record
+### 11.4 COBOL Copybook Record
 
 ```sql
 text CobolCustomerRecord {
@@ -2082,7 +1902,7 @@ CROSS APPLY Parse(line.Value, CobolCustomerRecord) r
 WHERE r.StatusCode = 'A'
 ```
 
-### 12.5 Structured Storage with Mixed Data
+### 11.5 Structured Storage with Mixed Data
 
 ```sql
 binary StorageHeader {
@@ -2133,23 +1953,23 @@ CROSS APPLY InterpretAt(f.GetBytes(), h.DataOffset, StorageRecord) r
 
 ---
 
-## 13. Future Considerations
+## 12. Future Considerations
 
-### 13.1 Potential Extensions
+### 12.1 Potential Extensions
 
 - **Inline property access on Interpret / Parse** — Allow `Interpret(data, Header).Magic` syntax directly in SELECT, WHERE, and CASE expressions without requiring CROSS APPLY. This would let users access a single field from a parsed result inline. When accessing multiple fields, CROSS APPLY would remain preferred to avoid redundant parsing. Currently, all interpretation functions must appear inside CROSS APPLY or OUTER APPLY (see §3.3).
 - Compression/encryption integration
 - Schema versioning annotations
 - Schema imports from external files
 
-### 13.2 Performance Considerations
+### 12.2 Performance Considerations
 
 - Zero-copy span parsing
 - Memory-mapped file support
 - Lazy field evaluation
 - Schema compilation caching
 
-### 13.3 Tooling Support
+### 12.3 Tooling Support
 
 - Schema IntelliSense
 - Hex view integration
@@ -2214,7 +2034,7 @@ upper, ushort, utf16be, utf16le, utf8, WHEN, whitespace
 
 ---
 
-## Appendix D: CROSS APPLY / OUTER APPLY Implementation
+## Appendix D: CROSS APPLY / OUTER APPLY Behavior
 
 ### D.1 Behavior Summary
 
@@ -2224,20 +2044,7 @@ upper, ushort, utf16be, utf16le, utf8, WHEN, whitespace
 | Single object `T` | 1 row | 1 row |
 | `null` | 0 rows | 1 row (NULL) |
 
-### D.2 Implementation
-
-```csharp
-// Detection: Is right-hand side an Interpret/Parse call?
-// If so, wrap result in array:
-
-var result = Interpret(data, schema);
-var wrapped = result != null 
-    ? new[] { result } 
-    : Array.Empty<TSchema>();  // CROSS APPLY
-
-// For OUTER APPLY with null:
-var wrapped = new TSchema[] { result };  // Always 1 element
-```
+When the right-hand side of an APPLY is an `Interpret` or `Parse` call, the engine wraps the single result into a one-element sequence for CROSS APPLY processing. For OUTER APPLY, a `null` result still produces one output row with all aliased columns set to NULL.
 
 ---
 

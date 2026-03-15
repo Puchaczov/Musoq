@@ -24,7 +24,7 @@
 14. [TABLE and COUPLE Statements](#14-table-and-couple-statements)
 15. [DESC Statement](#15-desc-statement)
 16. [Reordered Query Syntax](#16-reordered-query-syntax)
-17. [Built-in Functions Reference](#17-built-in-functions-reference)
+17. [Built-in Functions](#17-built-in-functions)
 18. [NULL Semantics](#18-null-semantics)
 19. [String Comparison Semantics](#19-string-comparison-semantics)
 20. [Array and Property Access](#20-array-and-property-access)
@@ -90,6 +90,33 @@ Musoq implements a subset of SQL with several extensions:
 | **Expression** | Any computation that produces a value (arithmetic, function call, column reference, etc.) |
 | **CTE** | Common Table Expression — a named temporary result set defined with `WITH ... AS (...)` |
 | **Apply** | A correlated join where the right side can reference columns from the left side |
+
+### 1.5 Notation Conventions
+
+The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this specification are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119). When these words appear in uppercase, they carry normative weight. When they appear in lowercase, they are used in their ordinary English sense.
+
+### 1.6 Specification Family
+
+This document is the core specification in a family of related documents:
+
+| Document | Scope |
+|----------|-------|
+| **Musoq Core SQL Language Specification** (this document) | Core SQL dialect: syntax, semantics, type system, built-in functions, error catalog |
+| **Musoq Interpretation Schemas: Language Extension Specification** (`musoq-binary-text-spec.md`) | `binary` and `text` schema extensions for declarative parsing of binary and textual data |
+| **Musoq AI Interpretation Schemas: Language Extension Specification** (`musoq-ai-spec.md`) | `ai` schema extension for structured extraction from unstructured content via LLMs |
+| **Musoq TABLE/COUPLE Statements Specification** (`musoq-table-couple-spec.md`) | `TABLE` and `COUPLE` statements for defining explicit type schemas for untyped data sources |
+
+Satellite specifications extend the core language with new statement types and schema kinds. They inherit the core specification’s lexical rules, type system, expression semantics, and notation conventions.
+
+### 1.7 Conformance
+
+A conforming implementation MUST support all features defined in this core specification. The extension specifications (§1.6) define optional profiles:
+
+- **Binary/Text Interpretation profile**: `binary` and `text` schema definitions, `Interpret()`, `Parse()`, and related functions
+- **AI Interpretation profile**: `ai` schema definitions, `Infer()`, `TryInfer()`, and related functions
+- **TABLE/COUPLE profile**: `TABLE` and `COUPLE` statements for explicit type binding
+
+An implementation MAY support any combination of profiles. An implementation that claims conformance to a profile MUST implement all features defined in the corresponding satellite specification.
 
 ---
 
@@ -535,7 +562,7 @@ When no alias is given, the column name is derived from the expression:
 - Function call: `Count(Name)` → column name `Count(Name)`
 - Literal: `1` → column name `1`
 
-> **Important**: SELECT aliases **cannot** be referenced in WHERE or GROUP BY clauses. Doing so produces an `UnknownColumnOrAliasException`.
+> **Important**: SELECT aliases MUST NOT be referenced in WHERE or GROUP BY clauses. Doing so produces an `UnknownColumnOrAliasException`.
 
 ```sql
 -- ERROR: SELECT alias cannot be used in WHERE
@@ -650,7 +677,7 @@ select Name from A.entities()         -- no alias needed
 select a.Name from A.entities() a     -- alias optional
 ```
 
-In **multi-table queries** (joins, applies), aliases are required to disambiguate columns. For function calls, the engine attempts auto-resolution first — see [§8.7.1](#871-method-auto-resolution-algorithm) for details:
+In **multi-table queries** (joins, applies), aliases MUST be used to disambiguate columns. For function calls, the engine attempts auto-resolution first — see [§8.7.1](#871-method-auto-resolution-algorithm) for details:
 
 ```sql
 select a.Name, b.City
@@ -759,7 +786,7 @@ where Name like '%привет%'      -- Cyrillic
 
 ### 7.6 RLIKE (Regular Expression Matching)
 
-`RLIKE` matches against a .NET regular expression:
+`RLIKE` matches against a regular expression (ECMAScript-compatible subset):
 
 ```sql
 where Name rlike '^\d+'              -- starts with digits
@@ -886,7 +913,7 @@ In queries with multiple data sources (joins, applies), each schema has its own 
 
 When a function is called without an alias prefix in a multi-source query, the engine attempts to resolve the owning schema automatically. It does so by trying to bind the method against **every** schema in scope and then applying three rules in order:
 
-1. **Common method rule.** If **all** candidate schemas resolve the method to the **same underlying implementation** (identical module and metadata token), the engine picks any one of them. This is the typical case for built-in library methods (e.g., `ToDecimal`, `Concat`, `Contains`) that every schema inherits from a shared base.
+1. **Common method rule.** If **all** candidate schemas resolve the method to the **same underlying implementation** (same function identity), the engine picks any one of them. This is the typical case for built-in library methods (e.g., `ToDecimal`, `Concat`, `Contains`) that every schema inherits from a shared base.
 
 2. **Unique method rule.** If **exactly one** candidate schema resolves the method successfully, the engine picks that schema. This applies to methods that are unique to a particular schema's library.
 
@@ -1135,25 +1162,23 @@ SELECT group_column, aggregate_function(column) FROM ... GROUP BY group_column
 
 ### 10.2 Aggregate Functions
 
-| Function | Return Type | Description |
-|----------|-------------|-------------|
-| `Count(column)` | `int` | Count non-null values in group |
-| `Sum(column)` | `decimal` | Sum of values |
-| `Avg(column)` | `decimal` | Average value (Sum / Count) |
-| `Min(column)` | `decimal` | Minimum value |
-| `Max(column)` | `decimal` | Maximum value |
-| `StDev(column)` | `decimal` | Population standard deviation |
-| `SumIncome(column)` | `decimal` | Sum of positive values only |
-| `SumOutcome(column)` | `decimal` | Sum of negative values only |
-| `AggregateValues(column)` | `string` | Comma-separated concatenation |
-| `Window(column)` | `IEnumerable<T>` | All values in group as a collection |
-| `MinDateTimeOffset(column)` | `DateTimeOffset?` | Minimum DateTimeOffset |
-| `MaxDateTimeOffset(column)` | `DateTimeOffset?` | Maximum DateTimeOffset |
-| `SumTimeSpan(column)` | `TimeSpan?` | Sum of TimeSpan values |
-| `MinTimeSpan(column)` | `TimeSpan?` | Minimum TimeSpan |
-| `MaxTimeSpan(column)` | `TimeSpan?` | Maximum TimeSpan |
+Aggregate functions operate on groups of rows and return a single value per group. The following table lists common aggregate functions available across all schema providers. This list is illustrative, not exhaustive — additional aggregates may be available depending on the data source.
 
-All numeric aggregation functions (`Count`, `Sum`, `Avg`, `Min`, `Max`, `StDev`) accept any numeric type (`byte`, `short`, `int`, `long`, `float`, `double`, `decimal`, etc.) as input.
+| Function | Description |
+|----------|-------------|
+| `Count(column)` | Number of non-null values in the group |
+| `Sum(column)` | Sum of numeric values in the group |
+| `Avg(column)` | Arithmetic mean of numeric values in the group |
+| `Min(column)` | Minimum value in the group |
+| `Max(column)` | Maximum value in the group |
+
+To discover all available aggregate functions for a given schema, use the `DESC FUNCTIONS` statement (see [§15.5](#155-describe-schema-functions)):
+
+```sql
+desc functions A.entities()
+```
+
+All numeric aggregation functions accept any numeric type (`byte`, `short`, `int`, `long`, `float`, `double`, `decimal`, etc.) as input. Different data sources may provide additional aggregate functions beyond the common set.
 
 In a query with only one source, aggregates can be written without a source alias:
 
@@ -1276,7 +1301,7 @@ having Sum(Money) >= 400
 
 ### 10.8 Non-Aggregated Column Restrictions
 
-In a SELECT with GROUP BY, every non-aggregated column must appear in the GROUP BY clause:
+In a SELECT with GROUP BY, every non-aggregated column MUST appear in the GROUP BY clause:
 
 ```sql
 -- VALID: Name is in GROUP BY
@@ -1316,7 +1341,7 @@ select Country, City, Count(City) from A.entities() group by Country, City
 
 ### 11.1 Syntax
 
-Musoq requires explicit key columns for set operations:
+Set operations MUST specify explicit key columns:
 
 ```sql
 query1 UNION (key_col1, key_col2) query2
@@ -1640,6 +1665,8 @@ select * from p
 
 ## 14. TABLE and COUPLE Statements
 
+The TABLE and COUPLE statements are summarized here. For the complete specification including all supported types, error handling, and integration patterns, see *Musoq TABLE/COUPLE Statements Specification* (`musoq-table-couple-spec.md`).
+
 ### 14.1 TABLE Definition
 
 Defines a named table structure with typed columns:
@@ -1879,7 +1906,7 @@ select * from cte
 
 ---
 
-## 17. Built-in Functions Reference
+## 17. Built-in Functions
 
 ### 17.1 Conventions
 
@@ -1887,338 +1914,39 @@ select * from cte
 - Function names are **case-sensitive**.
 - Functions can be called standalone or with table alias prefix: `Length(Name)` or `a.Length(a.Name)`.
 
-### 17.2 String Functions
+### 17.2 Discovering Available Functions
 
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `Trim` | `(string?) → string?` | Remove leading/trailing whitespace |
-| `TrimStart` | `(string?) → string?` | Remove leading whitespace |
-| `TrimEnd` | `(string?) → string?` | Remove trailing whitespace |
-| `Substring` | `(string?, int, int?) → string?` | Extract substring (index, length) |
-| `Substr` | `(string?, int, int?) → string?` | Alias for `Substring` |
-| `Concat` | `(params string?[]) → string?` | Concatenate multiple strings |
-| `Contains` | `(string?, string?) → bool?` | Case-insensitive substring check |
-| `IndexOf` | `(string?, string?) → int?` | First occurrence index (case-insensitive) |
-| `NthIndexOf` | `(string?, string?, int) → int?` | Nth occurrence index |
-| `LastIndexOf` | `(string?, string?) → int?` | Last occurrence index |
-| `ToUpper` | `(string?) → string?` | Uppercase (invariant culture) |
-| `ToUpperInvariant` | `(string?) → string?` | Uppercase (invariant) |
-| `ToLower` | `(string?) → string?` | Lowercase (invariant culture) |
-| `ToLowerInvariant` | `(string?) → string?` | Lowercase (invariant) |
-| `Replace` | `(string?, string, string?) → string?` | Replace all occurrences (case-insensitive) |
-| `Reverse` | `(string?) → string?` | Reverse string |
-| `PadLeft` | `(string?, int, char?) → string?` | Left-pad to width |
-| `PadRight` | `(string?, int, char?) → string?` | Right-pad to width |
-| `Head` | `(string?, int?) → string?` | First N characters (default 10) |
-| `Tail` | `(string?, int?) → string?` | Last N characters (default 10) |
-| `Split` | `(string?, params string[]) → string[]` | Split by separators |
-| `StartsWith` | `(string?, string?) → bool?` | Case-insensitive prefix check |
-| `EndsWith` | `(string?, string?) → bool?` | Case-insensitive suffix check |
-| `IsNullOrEmpty` | `(string?) → bool` | Null or empty check |
-| `IsNullOrWhiteSpace` | `(string?) → bool` | Null or whitespace check |
-| `IsNumeric` | `(string?) → bool?` | Only digits |
-| `IsAlpha` | `(string?) → bool?` | Only letters |
-| `IsAlphaNumeric` | `(string?) → bool?` | Letters and digits |
-| `Replicate` | `(string, int) → string` | Repeat string N times |
-| `Repeat` | `(string?, int, string?) → string?` | Repeat with separator |
-| `Translate` | `(string?, string?, string?) → string?` | Character-by-character translation |
-| `ToTitleCase` | `(string?) → string?` | Title case formatting |
-| `Capitalize` | `(string?) → string?` | Capitalize first character |
-| `GetNthWord` | `(string?, int, string?) → string?` | Nth word in string (0-based index) |
-| `GetFirstWord` | `(string, string) → string?` | First word |
-| `GetSecondWord` | `(string, string) → string?` | Second word |
-| `GetThirdWord` | `(string, string) → string?` | Third word |
-| `GetLastWord` | `(string?, string?) → string?` | Last word |
-| `WordCount` | `(string?) → int?` | Count words |
-| `LineCount` | `(string?) → int?` | Count lines |
-| `SentenceCount` | `(string?) → int?` | Count sentences |
-| `CountOccurrences` | `(string?, string?) → int?` | Count substring occurrences |
-| `RemoveWhitespace` | `(string?) → string?` | Strip all whitespace |
-| `Truncate` | `(string?, int, string?) → string?` | Truncate with ellipsis |
-| `Wrap` | `(string?, string?, string?) → string?` | Wrap with prefix/suffix |
-| `RemovePrefix` | `(string?, string?) → string?` | Remove leading prefix |
-| `RemoveSuffix` | `(string?, string?) → string?` | Remove trailing suffix |
-| `ToSnakeCase` | `(string?) → string?` | Convert to snake_case |
-| `ToKebabCase` | `(string?) → string?` | Convert to kebab-case |
-| `ToCamelCase` | `(string?) → string?` | Convert to camelCase |
-| `ToPascalCase` | `(string?) → string?` | Convert to PascalCase |
-| `LevenshteinDistance` | `(string?, string?) → int?` | Edit distance |
-| `LongestCommonSubstring` | `(string, string) → string?` | Longest common substring |
-| `Soundex` | `(string?) → string?` | Phonetic code |
-| `HasFuzzyMatchedWord` | `(string, string, string?) → bool` | Fuzzy word match |
-| `HasWordThatSoundLike` | `(string, string, string?) → bool` | Sound-alike word match |
-| `RemoveDiacritics` | `(string?) → string?` | Remove accents/diacritics |
-| `RegexReplace` | `(string?, string?, string?) → string?` | Regex-based replace |
-| `RegexMatches` | `(string?, string?) → string[]?` | All regex matches |
-| `RegexExtract` | `(string?, string?, int?) → string?` | Extract regex capture group |
-| `RegexExtractAll` | `(string?, string?, int?) → string[]` | All matches of capture group |
-| `IsMatch` | `(string?, string?) → bool?` | Regex match check |
-| `Match` | `(string?, string?) → bool?` | Regex match check |
-| `UrlEncode` | `(string?) → string?` | URL-encode string |
-| `UrlDecode` | `(string?) → string?` | URL-decode string |
-| `HtmlEncode` | `(string?) → string?` | HTML-encode string |
-| `HtmlDecode` | `(string?) → string?` | HTML-decode string |
-| `ExtractBetween` | `(string?, string?, string?) → string?` | Text between delimiters |
-| `ExtractBetweenAll` | `(string?, string?, string?) → string[]` | All texts between delimiters |
-| `ExtractAfter` | `(string?, string?, bool?) → string?` | Text after delimiter |
-| `ExtractBefore` | `(string?, string?, bool?) → string?` | Text before delimiter |
-| `SplitAndTake` | `(string?, string?, int) → string?` | Split and get element by index |
-| `StringsJoin` | `(string?, params string?[]) → string?` | Join with separator |
-| `NewId` | `() → string` | Generate new GUID string |
-| `Diff` | `(string?, string?, string?) → string?` | Character-level text diff |
-| `Rot13` | `(string?) → string?` | ROT13 cipher |
-| `Rot47` | `(string?) → string?` | ROT47 cipher |
-| `ToMorse` | `(string?) → string?` | Convert to Morse code |
-| `FromMorse` | `(string?) → string?` | Convert from Morse code |
-| `ToBinaryString` | `(string?) → string?` | Binary representation |
-| `FromBinaryString` | `(string?) → string?` | Parse binary representation |
-| `ToUnicodeEscape` | `(string?) → string?` | Unicode escape sequences |
-| `FromUnicodeEscape` | `(string?) → string?` | Parse Unicode escapes |
+Musoq provides a rich library of built-in functions covering string manipulation, math, date/time, type conversion, validation, JSON/XML processing, cryptography, compression, bitwise operations, networking utilities, and collections. Additionally, each data source may define its own functions.
 
-### 17.3 Math Functions
+Because the set of available functions depends on which data sources are in use, the authoritative way to discover them is the `DESC FUNCTIONS` statement (see [§15.5](#155-describe-schema-functions)):
 
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `Abs` | `(numeric?) → numeric?` | Absolute value |
-| `Ceil` | `(decimal?) → decimal?` | Ceiling |
-| `Floor` | `(decimal?) → decimal?` | Floor |
-| `Round` | `(decimal?, int) → decimal?` | Round with precision |
-| `Sign` | `(numeric?) → numeric?` | Sign (+1, 0, -1) |
-| `Pow` | `(numeric?, numeric?) → double?` | Power |
-| `Sqrt` | `(numeric?) → double?` | Square root |
-| `Log` | `(numeric?, numeric?) → double?` | Logarithm with base |
-| `Log10` | `(double?) → double?` | Base-10 logarithm |
-| `Log2` | `(double?) → double?` | Base-2 logarithm |
-| `Ln` | `(numeric?) → numeric?` | Natural logarithm |
-| `Sin` | `(numeric?) → numeric?` | Sine |
-| `Cos` | `(numeric?) → numeric?` | Cosine |
-| `Tan` | `(numeric?) → numeric?` | Tangent |
-| `Exp` | `(numeric?) → numeric?` | e^x |
-| `PercentOf` | `(decimal?, decimal?) → decimal?` | Percentage calculation |
-| `PercentRank` | `(IEnumerable<T>?, T?) → double?` | Percent rank in window |
-| `Rand` | `() → int` | Random number |
-| `Rand` | `(int?, int?) → int?` | Random in range |
-| `Clamp` | `(T?, T?, T?) → T?` | Clamp to min/max range |
-| `IsBetween` | `(T?, T?, T?) → bool?` | Inclusive range check |
-| `IsBetweenExclusive` | `(T?, T?, T?) → bool?` | Exclusive range check |
+```sql
+-- List all functions available for a schema
+desc functions A
 
-Where `numeric?` means any of: `int?`, `long?`, `decimal?`, `double?`, `float?`.
+-- List all functions available in the context of a specific method
+desc functions A.entities()
+```
 
-### 17.4 Date and Time Functions
+The result includes the method name, description, category, and source for each function.
 
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `GetDate` | `() → DateTimeOffset?` | Current local date/time |
-| `UtcGetDate` | `() → DateTimeOffset?` | Current UTC date/time |
-| `Year` | `(DateTimeOffset?) → int?` | Extract year |
-| `Month` | `(DateTimeOffset?) → int?` | Extract month |
-| `Day` | `(DateTimeOffset?) → int?` | Extract day |
-| `Hour` | `(DateTimeOffset?) → int?` | Extract hour |
-| `Minute` | `(DateTimeOffset?) → int?` | Extract minute |
-| `Second` | `(DateTimeOffset?) → int?` | Extract second |
-| `Milliseconds` | `(DateTimeOffset?) → int?` | Extract millisecond |
-| `DayOfWeek` | `(DateTimeOffset?) → int?` | Day of week (0=Sunday) |
-| `DayOfYear` | `(DateTimeOffset?) → int?` | Day of year (1-366) |
-| `WeekOfYear` | `(DateTimeOffset?) → int?` | ISO week number |
-| `Quarter` | `(DateTimeOffset?) → int?` | Quarter (1-4) |
-| `IsLeapYear` | `(DateTimeOffset?) → bool?` | Leap year check |
-| `IsWeekend` | `(DateTimeOffset?) → bool?` | Saturday or Sunday |
-| `IsWeekday` | `(DateTimeOffset?) → bool?` | Monday through Friday |
-| `AddDays` | `(date?, int) → date?` | Add days |
-| `AddMonths` | `(date?, int) → date?` | Add months |
-| `AddYears` | `(date?, int) → date?` | Add years |
-| `AddHours` | `(date?, int) → date?` | Add hours |
-| `AddMinutes` | `(date?, int) → date?` | Add minutes |
-| `AddSeconds` | `(date?, int) → date?` | Add seconds |
-| `StartOfDay` | `(date?) → date?` | Midnight of given day |
-| `EndOfDay` | `(date?) → date?` | 23:59:59.9999999 of given day |
-| `DateDiffInDays` | `(date?, date?) → int?` | Day difference |
-| `DateDiffInHours` | `(date?, date?) → int?` | Hour difference |
-| `DateDiffInMinutes` | `(date?, date?) → int?` | Minute difference |
-| `DateDiffInSeconds` | `(date?, date?) → long?` | Second difference |
-| `SubtractDateTimeOffsets` | `(DateTimeOffset?, DateTimeOffset?) → TimeSpan?` | Difference |
-| `ToDateTimeOffset` | `(string, string?) → DateTimeOffset?` | Parse from string |
-| `ToDateTime` | `(string, string?) → DateTime?` | Parse from string |
-| `ExtractFromDate` | `(string?, string) → int` | Extract component from date string |
+### 17.3 Function Categories
 
-Where `date?` means `DateTime?` or `DateTimeOffset?`.
+Built-in functions are organized into the following categories:
 
-### 17.5 TimeSpan Functions
+- **String** — text manipulation, searching, formatting, and encoding operations
+- **Math** — arithmetic, rounding, trigonometry, and numeric utility operations
+- **Date and Time** — component extraction, arithmetic, formatting, and parsing of temporal values
+- **Type Conversion** — converting between numeric types, strings, and encoded representations
+- **Validation** — verifying that values conform to expected formats
+- **JSON/XML** — serialization, deserialization, extraction, and formatting of structured text
+- **Cryptography and Hashing** — hash computation, checksums, and message authentication
+- **Compression** — compressing and decompressing byte data
+- **Binary and Bitwise** — byte-level conversion and bitwise logical operations
+- **Network and Utility** — IP address operations, identifier generation, and encoding utilities
+- **Generic and Collection** — row numbering, null handling, and collection transformation operations
 
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `AddTimeSpans` | `(params TimeSpan?[]) → TimeSpan?` | Sum timespan values |
-| `SubtractTimeSpans` | `(params TimeSpan?[]) → TimeSpan?` | Subtract timespans |
-| `ToTimeSpan` | `(string, string?) → TimeSpan?` | Parse from string |
-
-### 17.6 Type Conversion Functions
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `ToDecimal` | `(value, culture?) → decimal?` | Convert to decimal |
-| `ToInt32` | `(value) → int?` | Convert to int |
-| `ToInt64` | `(value) → long?` | Convert to long |
-| `ToDouble` | `(value) → double?` | Convert to double |
-| `ToFloat` | `(value) → float?` | Convert to float |
-| `ToString` | `(value, format?, culture?) → string?` | Convert to string |
-| `ToChar` | `(value) → char?` | Convert to char |
-| `ToHex` | `(value) → string?` | To hexadecimal string |
-| `ToBin` | `(value) → string` | To binary string |
-| `ToOcta` | `(value) → string` | To octal string |
-| `ToDec` | `(value) → string` | To decimal string |
-| `ToBase64` | `(value) → string?` | Base64 encode |
-| `FromBase64` | `(string?) → byte[]?` | Base64 decode |
-| `FromBase64ToString` | `(string?) → string?` | Base64 decode to string |
-| `FromHex` | `(string?) → long?` | Hex string to long |
-| `FromBin` | `(string?) → long?` | Binary string to long |
-| `FromOct` | `(string?) → long?` | Octal string to long |
-| `ToHexFromString` | `(string?, encoding?) → string?` | String bytes to hex |
-
-All conversion functions accept any numeric type as input. When conversion fails (e.g., `ToInt32('not_a_number')`), the function returns `null` — no exception is thrown.
-
-### 17.7 Validation Functions
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `IsValidEmail` | `(string?) → bool?` | RFC 5322 email validation |
-| `IsValidUrl` | `(string?) → bool?` | URL validation (http/https/ftp) |
-| `IsValidUri` | `(string?) → bool?` | Any absolute URI |
-| `IsValidJson` | `(string?) → bool?` | JSON validation |
-| `IsValidXml` | `(string?) → bool?` | XML validation |
-| `IsValidGuid` | `(string?) → bool?` | GUID/UUID validation |
-| `IsValidInteger` | `(string?) → bool?` | Integer string validation |
-| `IsValidDecimal` | `(string?) → bool?` | Decimal string validation |
-| `IsValidDateTime` | `(string?) → bool?` | DateTime string validation |
-
-### 17.8 JSON Functions
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `ToJson` | `(T?) → string?` | Serialize to JSON |
-| `ExtractFromJson` | `(string?, string?) → string?` | Extract value by JSON path |
-| `ExtractFromJsonToArray` | `(string?, string?) → string[]` | Extract values as array |
-| `FormatJson` | `(string?) → string?` | Pretty-print JSON |
-| `MinifyJson` | `(string?) → string?` | Minify JSON |
-
-### 17.9 Cryptography and Hashing Functions
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `Md5` | `(string/byte[]?) → string?` | MD5 hash |
-| `Sha1` | `(string/byte[]?) → string?` | SHA-1 hash |
-| `Sha256` | `(string/byte[]?) → string?` | SHA-256 hash |
-| `Sha384` | `(string/byte[]?) → string?` | SHA-384 hash |
-| `Sha512` | `(string/byte[]?) → string?` | SHA-512 hash |
-| `Crc32` | `(string/byte[]?) → string?` | CRC32 checksum |
-| `HmacSha256` | `(string?, string?) → string?` | HMAC-SHA256 |
-| `HmacSha512` | `(string?, string?) → string?` | HMAC-SHA512 |
-
-### 17.10 Compression Functions
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `CompressZLib` | `(string/byte[]?) → byte[]?` | ZLib compress |
-| `DecompressZLib` | `(byte[]?, encoding?) → string?` | ZLib decompress |
-| `DecompressZLibToBytes` | `(byte[]?) → byte[]?` | ZLib decompress to bytes |
-| `CompressZLibToBase64` | `(string?) → string?` | ZLib compress to Base64 |
-| `DecompressZLibFromBase64` | `(string?) → string?` | Base64 → ZLib decompress |
-| `CompressGZip` | `(string/byte[]?) → byte[]?` | GZip compress |
-| `DecompressGZip` | `(byte[]?, encoding?) → string?` | GZip decompress |
-| `DecompressGZipToBytes` | `(byte[]?) → byte[]?` | GZip decompress to bytes |
-| `CompressGZipToBase64` | `(string?) → string?` | GZip compress to Base64 |
-| `DecompressGZipFromBase64` | `(string?) → string?` | Base64 → GZip decompress |
-| `CompressDeflate` | `(string/byte[]?) → byte[]?` | Deflate compress |
-| `DecompressDeflate` | `(byte[]?, encoding?) → string?` | Deflate decompress |
-
-### 17.11 Binary and Byte Functions
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `GetBytes` | `(string/char/bool/int/long?) → byte[]?` | Convert to bytes |
-| `FromBytesToInt16` | `(byte[]?) → short?` | Bytes to short |
-| `FromBytesToInt32` | `(byte[]?) → int?` | Bytes to int |
-| `FromBytesToInt64` | `(byte[]?) → long?` | Bytes to long |
-| `FromBytesToFloat` | `(byte[]?) → float?` | Bytes to float |
-| `FromBytesToDouble` | `(byte[]?) → double?` | Bytes to double |
-| `FromBytesToString` | `(byte[]?) → string?` | Bytes to string |
-| `FromBytesToBool` | `(byte[]?) → bool?` | Bytes to bool |
-
-### 17.12 Bitwise Functions
-
-| Function | Types | Description |
-|----------|-------|-------------|
-| `BitwiseAnd` | All integer type pairs | Bitwise AND |
-| `BitwiseOr` | All integer type pairs | Bitwise OR |
-| `BitwiseXor` | All integer type pairs | Bitwise XOR |
-| `BitwiseNot` | All integer types | Bitwise NOT |
-| `ShiftLeft` | All integer types | Left bit shift |
-| `ShiftRight` | All integer types | Right bit shift |
-
-Cross-type operations promote to the wider type (e.g., `byte AND long` → `long?`).
-
-### 17.13 Network and Utility Functions
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `IsPrivateIP` | `(string?) → bool?` | RFC 1918 private IP |
-| `IpToLong` | `(string?) → long?` | IPv4 to numeric |
-| `LongToIp` | `(long?) → string?` | Numeric to IPv4 |
-| `IsInSubnet` | `(string?, string?) → bool?` | CIDR subnet check |
-| `FormatMac` | `(string?, string?) → string?` | Format MAC address |
-| `NewGuid` | `() → string` | New GUID |
-| `NewGuidCompact` | `() → string` | GUID without dashes |
-| `ConvertBase` | `(string?, int, int) → string?` | Number base conversion (2-36) |
-| `UnixToDateTime` | `(long?) → DateTime?` | Unix timestamp to DateTime |
-| `UnixMillisToDateTime` | `(long?) → DateTime?` | Unix millis to DateTime |
-| `DateTimeToUnix` | `(DateTime?) → long?` | DateTime to Unix timestamp |
-| `DateTimeToUnixMillis` | `(DateTime?) → long?` | DateTime to Unix millis |
-| `ToSlug` | `(string?) → string?` | URL-friendly slug |
-| `EscapeRegex` | `(string?) → string?` | Escape regex chars |
-| `EscapeSql` | `(string?) → string?` | Escape single quotes |
-| `ExtractUrls` | `(string?) → string?` | URLs from text |
-| `ExtractEmails` | `(string?) → string?` | Emails from text |
-| `ExtractIPs` | `(string?) → string?` | IPs from text |
-| `CalculateEntropy` | `(string?) → double?` | Shannon entropy |
-| `ToHumanReadableSize` | `(long?) → string?` | Bytes to "1.5 MB" |
-| `ToHumanReadableDuration` | `(long?) → string?` | Seconds to "1h 30m" |
-| `IsBase64` | `(string?) → bool?` | Base64 string check |
-| `IsHex` | `(string?) → bool?` | Hex string check |
-| `IsJwt` | `(string?) → bool?` | JWT token check |
-| `JwtDecode` | `(string?) → string?` | Decode JWT payload |
-| `JwtGetHeader` | `(string?) → string?` | Decode JWT header |
-| `JwtGetClaim` | `(string?, string?) → string?` | Get JWT claim |
-| `GetQueryParam` | `(string?, string?) → string?` | URL query parameter |
-| `ParseKeyValue` | `(string?, string?, string?, string?) → string?` | Parse key-value |
-| `FormatXml` | `(string?) → string?` | Pretty-print XML |
-| `MinifyXml` | `(string?) → string?` | Minify XML |
-
-### 17.14 Generic and Collection Functions
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `RowNumber` | `() → int` | 1-based row counter |
-| `GetTypeName` | `(object?) → string?` | .NET type name |
-| `Coalesce` | `(params T[]) → T?` | First non-null value |
-| `Choose` | `(int, params T[]) → T?` | Value at index from list |
-| `If` | `(bool, T, T) → T` | Ternary conditional |
-| `NullIf` | `(T?, T?) → T?` | Returns null if equal |
-| `IfNull` | `(T?, T?) → T?` | Replace null with default |
-| `DefaultIfNull` | `(T?) → T?` | Type default if null |
-| `IsNull` | `(T?) → bool` | Null check |
-| `IsNotNull` | `(T?) → bool` | Not-null check |
-| `Length` | `(IEnumerable<T>/T[]?) → int?` | Collection length |
-| `Skip` | `(IEnumerable<T>?, int) → IEnumerable<T>?` | Skip N elements |
-| `Take` | `(IEnumerable<T>?, int) → IEnumerable<T>?` | Take N elements |
-| `Distinct` | `(IEnumerable<T>?) → IEnumerable<T>?` | Remove duplicates |
-| `FirstOrDefault` | `(IEnumerable<T>?) → T?` | First element |
-| `LastOrDefault` | `(IEnumerable<T>?) → T?` | Last element |
-| `NthOrDefault` | `(IEnumerable<T>?, int) → T?` | Element at index |
-| `GetElementAtOrDefault` | `(IEnumerable<T>?, int?) → T?` | Element by index |
-| `EnumerableToArray` | `(IEnumerable<T>?) → T[]?` | Convert to array |
-| `MergeArrays` | `(params T[][]) → T[]?` | Merge arrays |
-| `LongestCommonSequence` | `(IEnumerable<T>?, IEnumerable<T>?) → IEnumerable<T>?` | LCS |
-
-`Coalesce` and `IfNull` accept explicit `null` literals and perform generic type inference using the first compatible non-null argument.
+Use `desc functions` to see the full list with signatures and descriptions for any given schema context.
 
 ---
 
@@ -2251,9 +1979,7 @@ where Value is not null
 
 ### 18.2.1 NULL Comparisons Inside `CASE WHEN`
 
-Expected logical model is three-valued logic (`null = null` evaluates to `null`, not `true`).
-
-> **Known deviation:** Some runtime paths may currently treat `null = null` as truthy in `CASE WHEN` evaluation. Query authors should prefer explicit null predicates (`IS NULL` / `IS NOT NULL`) to avoid ambiguity until this behavior is unified.
+`CASE WHEN` MUST use three-valued logic: `null = null` evaluates to `null`, not `true`. Query authors MUST use explicit null predicates (`IS NULL` / `IS NOT NULL`) to test for null values.
 
 ### 18.3 NULL in LIKE, RLIKE, CONTAINS
 
@@ -2288,14 +2014,7 @@ left join B.entities() b on a.City = b.City
 
 ### 18.6 NULL-Related Functions
 
-| Function | Behavior |
-|----------|----------|
-| `Coalesce(a, b, c)` | Returns first non-null value |
-| `IfNull(value, default)` | Returns default when value is null |
-| `NullIf(a, b)` | Returns null when a equals b |
-| `IsNull(value)` | Returns `true` if value is null |
-| `IsNotNull(value)` | Returns `true` if value is not null |
-| `DefaultIfNull(value)` | Returns type's default value if null |
+Musoq provides functions for working with `NULL` values, such as coalescing, null-checking, and replacing nulls with defaults. To discover all available NULL-handling functions and their signatures, use `desc functions` (see [§15.5](#155-describe-schema-functions)).
 
 ### 18.7 NULL in Functions
 
@@ -2383,7 +2102,7 @@ Out-of-bounds access **never throws an exception**. It returns the default value
 |----------|--------|
 | `int_array[100]` (out of bounds) | `0` (default int) |
 | `string_array[100]` | `null` |
-| `Array[-100]` (excessive negative) | Wraps modularly |
+| `Array[-100]` (excessive negative) | Wraps modularly: `effectiveIndex = ((index % length) + length) % length` |
 
 ### 20.2 String Character Access
 
@@ -2485,6 +2204,12 @@ from Events()
 
 Nullable date/time types (`DateTime?`, `DateTimeOffset?`, `TimeSpan?`) behave identically.
 
+**Edge cases:**
+- Unparseable strings (e.g., `"not-a-date"`) simply don't match — no exception thrown
+- `null` strings don't match any date/time comparison
+- Supported formats follow the invariant culture parsing rules (ISO 8601, common date patterns)
+- Supports all comparison operators: `=`, `<>`, `>`, `<`, `>=`, `<=`
+
 ### 21.3 Numeric Type Promotion
 
 In arithmetic and bitwise operations involving different numeric types, values are promoted to the wider type:
@@ -2553,8 +2278,11 @@ These situations are handled gracefully without exceptions:
 - `name` — production rule
 - `[x]` — optional
 - `{x}` — zero or more repetitions
+- `x+` — one or more repetitions
 - `x | y` — alternatives
 - `'symbol'` — literal symbol
+
+Nested brackets (`[ [AS] alias_name ]`) mean the entire group is optional, with `AS` independently optional within it.
 
 ### 23.2 Statement-Level Grammar
 
@@ -2656,6 +2384,7 @@ comparison     ::= add_expr [comp_op add_expr]
                  | add_expr [NOT] IN '(' expression_list ')'
                  | add_expr [NOT] LIKE expression
                  | add_expr [NOT] RLIKE expression
+                 | add_expr [NOT] BETWEEN add_expr AND add_expr
                  | add_expr CONTAINS '(' expression_list ')'
 
 comp_op        ::= '=' | '<>' | '>' | '>=' | '<' | '<='
@@ -2667,7 +2396,7 @@ mul_expr       ::= unary_expr {('*'|'/'|'%') unary_expr}
 unary_expr     ::= ['-'] primary
 
 primary        ::= literal
-                 | identifier ['.' identifier]* ['(' [arg_list] ')']
+                 | identifier {'.' identifier} ['(' [arg_list] ')']
                  | identifier '[' expression ']'
                  | '(' expression ')'
                  | case_expression
@@ -2910,6 +2639,6 @@ select Country, Count(Name) from A.entities() group by Country
 
 **Rules:**
 - `::N` is 1-based — `::1` references the first GROUP BY column.
-- `N` must be a positive integer (no `::0`).
+- `N` MUST be a positive integer (no `::0`).
 - If `N` exceeds the number of GROUP BY columns, a `FieldLinkIndexOutOfRangeException` is thrown.
 - Field links are resolved during query compilation — they are syntactic shorthand, not a runtime feature.
