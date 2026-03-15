@@ -1,5 +1,4 @@
 using System;
-using System.Dynamic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -37,7 +36,7 @@ public static class AccessColumnEmitter
         if (!string.IsNullOrEmpty(node.IntendedTypeName))
             typeIdentifier = SyntaxFactory.ParseTypeName(node.IntendedTypeName);
         else
-            typeIdentifier = GetTypeIdentifier(node.ReturnType);
+            typeIdentifier = TypeNameHelper.GetTypeIdentifier(node.ReturnType);
 
         var castExpression = generator.CastExpression(typeIdentifier, accessExpression);
 
@@ -70,16 +69,6 @@ public static class AccessColumnEmitter
                 SyntaxFactory.LiteralExpression(
                     SyntaxKind.StringLiteralExpression,
                     SyntaxFactory.Literal($"@\"{columnName}\"", columnName))));
-    }
-
-    private static IdentifierNameSyntax GetTypeIdentifier(Type returnType)
-    {
-        if (returnType is NullNode.NullType) return SyntaxFactory.IdentifierName("object");
-
-        if (typeof(IDynamicMetaObjectProvider).IsAssignableFrom(returnType))
-            return SyntaxFactory.IdentifierName("dynamic");
-
-        return SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(returnType));
     }
 
     /// <summary>

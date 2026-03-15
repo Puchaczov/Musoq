@@ -90,7 +90,7 @@ public static class GroupByNodeProcessor
     {
         return SyntaxHelper.CreateAssignment(
             "values",
-            SyntaxHelper.CreateArrayOf(nameof(Object), syntaxList, 2));
+            SyntaxHelper.CreateArrayOf("object", syntaxList, 2));
     }
 
     private static VariableDeclarationSyntax CreateGroupKeys(

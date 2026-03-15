@@ -34,6 +34,22 @@ public partial class LibraryBase
     /// <summary>
     ///     Sets the value of the group.
     /// </summary>
+    /// <param name="group">The group object</param>
+    /// <param name="name">Name of the group</param>
+    /// <param name="hasValue">Whether the value is non-null</param>
+    /// <param name="parent">Which group should be used to store value</param>
+    private void SetCountCore(Group group, string name, bool hasValue, int parent)
+    {
+        var parentGroup = GetParentGroup(group, parent);
+        var current = parentGroup.GetOrCreateValue<int>(name);
+
+        if (hasValue)
+            parentGroup.SetValue(name, current + 1);
+    }
+
+    /// <summary>
+    ///     Sets the value of the group.
+    /// </summary>
     /// <param name="group" injectedByRuntime="true">The group object</param>
     /// <param name="name">Name of the group</param>
     /// <param name="value">Value that should be aggregated</param>
@@ -41,16 +57,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, string? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 
     /// <summary>
@@ -63,16 +70,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, decimal? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 
     /// <summary>
@@ -85,15 +83,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, DateTimeOffset? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 
     /// <summary>
@@ -106,15 +96,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, DateTime? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 
     /// <summary>
@@ -127,15 +109,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, byte? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 
     /// <summary>
@@ -148,15 +122,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, sbyte? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 
     /// <summary>
@@ -169,15 +135,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, short? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 
     /// <summary>
@@ -190,15 +148,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, ushort? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 
     /// <summary>
@@ -211,15 +161,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, int? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 
     /// <summary>
@@ -232,15 +174,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, uint? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 
     /// <summary>
@@ -253,15 +187,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, long? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 
     /// <summary>
@@ -274,15 +200,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, ulong? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 
     /// <summary>
@@ -295,15 +213,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, float? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 
     /// <summary>
@@ -316,15 +226,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, double? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 
     /// <summary>
@@ -337,14 +239,6 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetCount([InjectGroup] Group group, string name, bool? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        if (value == null)
-        {
-            parentGroup.GetOrCreateValue<int>(name);
-            return;
-        }
-
-        var values = parentGroup.GetOrCreateValue<int>(name);
-        parentGroup.SetValue(name, values + 1);
+        SetCountCore(group, name, value != null, parent);
     }
 }

@@ -45,13 +45,7 @@ public partial class LibraryBase
     /// <returns>Converted to double value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? ToDouble(byte? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToDouble(value.Value);
-    }
+    public double? ToDouble(byte? value) => ConvertNullable(value, Convert.ToDouble);
 
     /// <summary>
     ///     Converts given value to double
@@ -60,13 +54,7 @@ public partial class LibraryBase
     /// <returns>Converted to double value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? ToDouble(sbyte? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToDouble(value.Value);
-    }
+    public double? ToDouble(sbyte? value) => ConvertNullable(value, Convert.ToDouble);
 
     /// <summary>
     ///     Converts given value to double
@@ -75,13 +63,7 @@ public partial class LibraryBase
     /// <returns>Converted to double value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? ToDouble(short? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToDouble(value.Value);
-    }
+    public double? ToDouble(short? value) => ConvertNullable(value, Convert.ToDouble);
 
     /// <summary>
     ///     Converts given value to double
@@ -90,13 +72,7 @@ public partial class LibraryBase
     /// <returns>Converted to double value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? ToDouble(ushort? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToDouble(value.Value);
-    }
+    public double? ToDouble(ushort? value) => ConvertNullable(value, Convert.ToDouble);
 
     /// <summary>
     ///     Converts given value to double
@@ -105,13 +81,7 @@ public partial class LibraryBase
     /// <returns>Converted to double value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? ToDouble(int? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToDouble(value.Value);
-    }
+    public double? ToDouble(int? value) => ConvertNullable(value, Convert.ToDouble);
 
     /// <summary>
     ///     Converts given value to double
@@ -120,13 +90,7 @@ public partial class LibraryBase
     /// <returns>Converted to double value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? ToDouble(uint? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToDouble(value.Value);
-    }
+    public double? ToDouble(uint? value) => ConvertNullable(value, Convert.ToDouble);
 
     /// <summary>
     ///     Converts given value to double
@@ -135,13 +99,7 @@ public partial class LibraryBase
     /// <returns>Converted to double value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? ToDouble(long? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToDouble(value.Value);
-    }
+    public double? ToDouble(long? value) => ConvertNullable(value, Convert.ToDouble);
 
     /// <summary>
     ///     Converts given value to double
@@ -150,13 +108,7 @@ public partial class LibraryBase
     /// <returns>Converted to double value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? ToDouble(ulong? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToDouble(value.Value);
-    }
+    public double? ToDouble(ulong? value) => ConvertNullable(value, Convert.ToDouble);
 
     /// <summary>
     ///     Converts given value to double
@@ -165,13 +117,7 @@ public partial class LibraryBase
     /// <returns>Converted to double value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? ToDouble(float? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToDouble(value.Value);
-    }
+    public double? ToDouble(float? value) => ConvertNullable(value, Convert.ToDouble);
 
     /// <summary>
     ///     Converts given value to double
@@ -180,13 +126,7 @@ public partial class LibraryBase
     /// <returns>Converted to double value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? ToDouble(double? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToDouble(value.Value);
-    }
+    public double? ToDouble(double? value) => ConvertNullable(value, Convert.ToDouble);
 
     /// <summary>
     ///     Converts given value to double
@@ -195,11 +135,5 @@ public partial class LibraryBase
     /// <returns>Converted to double value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? ToDouble(decimal? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToDouble(value.Value);
-    }
+    public double? ToDouble(decimal? value) => ConvertNullable(value, Convert.ToDouble);
 }

@@ -10,15 +10,18 @@ namespace Musoq.Evaluator.Visitors.Helpers;
 /// </summary>
 public static class LogicalOperationVisitorHelper
 {
-    /// <summary>
-    ///     Processes an And operation with nullable boolean expression rewriting.
-    /// </summary>
-    /// <param name="nodes">The node stack.</param>
-    /// <param name="rewriteNullableBoolExpressions">Function to rewrite nullable boolean expressions.</param>
-    /// <exception cref="ArgumentNullException">Thrown when nodes or rewriteNullableBoolExpressions is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
-    /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
-    public static void ProcessAndOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions)
+    /// <summary>Processes an And operation with nullable boolean expression rewriting.</summary>
+    public static void ProcessAndOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions) =>
+        ProcessLogicalBinaryOperation(nodes, rewriteNullableBoolExpressions, (left, right) => new AndNode(left, right));
+
+    /// <summary>Processes an Or operation with nullable boolean expression rewriting.</summary>
+    public static void ProcessOrOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions) =>
+        ProcessLogicalBinaryOperation(nodes, rewriteNullableBoolExpressions, (left, right) => new OrNode(left, right));
+
+    private static void ProcessLogicalBinaryOperation(
+        Stack<Node> nodes,
+        Func<Node, Node> rewriteNullableBoolExpressions,
+        Func<Node, Node, Node> nodeFactory)
     {
         ValidateBinaryOperation(nodes);
         if (rewriteNullableBoolExpressions == null)
@@ -31,31 +34,7 @@ public static class LogicalOperationVisitorHelper
 
         var right = rewriteNullableBoolExpressions(rightRaw);
         var left = rewriteNullableBoolExpressions(leftRaw);
-        nodes.Push(new AndNode(left, right));
-    }
-
-    /// <summary>
-    ///     Processes an Or operation with nullable boolean expression rewriting.
-    /// </summary>
-    /// <param name="nodes">The node stack.</param>
-    /// <param name="rewriteNullableBoolExpressions">Function to rewrite nullable boolean expressions.</param>
-    /// <exception cref="ArgumentNullException">Thrown when nodes or rewriteNullableBoolExpressions is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
-    /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
-    public static void ProcessOrOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions)
-    {
-        ValidateBinaryOperation(nodes);
-        if (rewriteNullableBoolExpressions == null)
-            throw new ArgumentNullException(nameof(rewriteNullableBoolExpressions));
-
-        var rightRaw = nodes.Pop();
-        var leftRaw = nodes.Pop();
-
-        ValidateOperands(leftRaw, rightRaw);
-
-        var right = rewriteNullableBoolExpressions(rightRaw);
-        var left = rewriteNullableBoolExpressions(leftRaw);
-        nodes.Push(new OrNode(left, right));
+        nodes.Push(nodeFactory(left, right));
     }
 
     /// <summary>

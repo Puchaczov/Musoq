@@ -74,7 +74,7 @@ internal static class SchemaNodeEmitter
                 SyntaxFactory.SeparatedList([
                     SyntaxHelper.StringLiteralArgument(method),
                     SyntaxFactory.Argument(runtimeContext),
-                    SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf(nameof(Object), args.ToArray()))
+                    SyntaxFactory.Argument(SyntaxHelper.CreateArrayOf("object", args.ToArray()))
                 ])));
     }
 
@@ -98,25 +98,9 @@ internal static class SchemaNodeEmitter
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
                         SyntaxFactory.Argument(originallyInferredColumns),
                         SyntaxFactory.Argument(
-                            SyntaxFactory.ElementAccessExpression(
-                                    SyntaxFactory.IdentifierName("positionalEnvironmentVariables"))
-                                .WithArgumentList(
-                                    SyntaxFactory.BracketedArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Argument(
-                                                SyntaxFactory.LiteralExpression(
-                                                    SyntaxKind.NumericLiteralExpression,
-                                                    SyntaxFactory.Literal(schemaFromIndex))))))),
+                            SyntaxHelper.CreateElementAccess("positionalEnvironmentVariables", schemaFromIndex)),
                         SyntaxFactory.Argument(
-                            SyntaxFactory.ElementAccessExpression(
-                                    SyntaxFactory.IdentifierName("queriesInformation"))
-                                .WithArgumentList(
-                                    SyntaxFactory.BracketedArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Argument(
-                                                SyntaxFactory.LiteralExpression(
-                                                    SyntaxKind.StringLiteralExpression,
-                                                    SyntaxFactory.Literal(nodeId))))))),
+                            SyntaxHelper.CreateElementAccess("queriesInformation", nodeId)),
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("logger")),
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("OnDataSourceProgress"))
                     ])));
@@ -130,15 +114,7 @@ internal static class SchemaNodeEmitter
         int tableIndex)
     {
         var tableArgument = SyntaxFactory.Argument(
-            SyntaxFactory.ElementAccessExpression(
-                    SyntaxFactory.IdentifierName("_tableResults"))
-                .WithArgumentList(
-                    SyntaxFactory.BracketedArgumentList(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.LiteralExpression(
-                                    SyntaxKind.NumericLiteralExpression,
-                                    SyntaxFactory.Literal(tableIndex)))))));
+            SyntaxHelper.CreateElementAccess("_tableResults", tableIndex));
 
         var literalTrueArgument = SyntaxFactory.Argument(
             SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression));
@@ -238,14 +214,7 @@ internal static class SchemaNodeEmitter
         ExpressionSyntax propertyAccess = SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.CastExpression(
                 SyntaxFactory.ParseTypeName(firstPropertyCastType),
-                SyntaxFactory.ElementAccessExpression(
-                    SyntaxFactory.IdentifierName($"{sourceAlias}Row"),
-                    SyntaxFactory.BracketedArgumentList(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(
-                                SyntaxFactory.LiteralExpression(
-                                    SyntaxKind.StringLiteralExpression,
-                                    SyntaxFactory.Literal(propertiesChain[0].PropertyName))))))));
+                SyntaxHelper.CreateElementAccess($"{sourceAlias}Row", propertiesChain[0].PropertyName)));
 
 
         for (var i = 1; i < propertiesChain.Length; i++)

@@ -40,7 +40,7 @@ public static class FieldEmitter
     }
 
     /// <summary>
-    ///     Processes a FieldOrderedNode (always casts).
+    ///     Processes a FieldOrderedNode with the same cast optimization as FieldNode.
     /// </summary>
     /// <param name="returnType">The return type of the field.</param>
     /// <param name="expression">The current expression from the stack.</param>
@@ -49,14 +49,7 @@ public static class FieldEmitter
     public static FieldNodeResult ProcessFieldOrderedNode(Type returnType, SyntaxNode expression,
         SyntaxGenerator generator)
     {
-        var types = EvaluationHelper.GetNestedTypes(returnType);
-        var typeIdentifier = TypeNameHelper.GetTypeIdentifier(returnType);
-
-        return new FieldNodeResult
-        {
-            Expression = generator.CastExpression(typeIdentifier, expression),
-            RequiredTypes = types
-        };
+        return ProcessFieldNode(returnType, expression, generator);
     }
 
     /// <summary>

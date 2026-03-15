@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Musoq.Evaluator.Helpers;
 
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
@@ -133,7 +134,7 @@ internal static class GroupByEmitter
     private static StatementSyntax CreateGroupForStatement()
     {
         var forBody = StatementEmitter.CreateBlock(
-            CreateCancellationCheck(),
+            QueryEmitter.GenerateCancellationCheck(),
             CreateKeyDeclaration(),
             CreateGroupLookupIfStatement(),
             StatementEmitter.CreateAssignment("parent", SyntaxFactory.IdentifierName("group")));
@@ -146,16 +147,6 @@ internal static class GroupByEmitter
                     SyntaxFactory.IdentifierName("i"))));
     }
 
-    private static StatementSyntax CreateCancellationCheck()
-    {
-        return SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName("token"),
-                    SyntaxFactory.IdentifierName(nameof(CancellationToken.ThrowIfCancellationRequested)))));
-    }
-
     private static StatementSyntax CreateKeyDeclaration()
     {
         return SyntaxFactory.LocalDeclarationStatement(
@@ -165,10 +156,7 @@ internal static class GroupByEmitter
                         SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier("key"))
                             .WithInitializer(
                                 SyntaxFactory.EqualsValueClause(
-                                    SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("keys"))
-                                        .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                                            SyntaxFactory.SingletonSeparatedList(
-                                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))))))));
+                                    SyntaxHelper.CreateElementAccess("keys", SyntaxFactory.IdentifierName("i")))))));
     }
 
     private static StatementSyntax CreateGroupLookupIfStatement()
@@ -209,16 +197,10 @@ internal static class GroupByEmitter
                         SyntaxFactory.Argument(SyntaxFactory.IdentifierName("parent")),
                         SyntaxFactory.Token(SyntaxKind.CommaToken),
                         SyntaxFactory.Argument(
-                            SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("groupFieldsNames"))
-                                .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                                    SyntaxFactory.SingletonSeparatedList(
-                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i")))))),
+                            SyntaxHelper.CreateElementAccess("groupFieldsNames", SyntaxFactory.IdentifierName("i"))),
                         SyntaxFactory.Token(SyntaxKind.CommaToken),
                         SyntaxFactory.Argument(
-                            SyntaxFactory.ElementAccessExpression(SyntaxFactory.IdentifierName("values"))
-                                .WithArgumentList(SyntaxFactory.BracketedArgumentList(
-                                    SyntaxFactory.SingletonSeparatedList(
-                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))))
+                            SyntaxHelper.CreateElementAccess("values", SyntaxFactory.IdentifierName("i")))
                     }))));
     }
 

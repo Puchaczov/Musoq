@@ -30,13 +30,7 @@ public partial class LibraryBase
     /// <returns>Converted to float value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public float? ToFloat(byte? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToSingle(value.Value);
-    }
+    public float? ToFloat(byte? value) => ConvertNullable(value, Convert.ToSingle);
 
     /// <summary>
     ///     Converts given value to float
@@ -45,13 +39,7 @@ public partial class LibraryBase
     /// <returns>Converted to float value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public float? ToFloat(sbyte? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToSingle(value.Value);
-    }
+    public float? ToFloat(sbyte? value) => ConvertNullable(value, Convert.ToSingle);
 
     /// <summary>
     ///     Converts given value to float
@@ -60,13 +48,7 @@ public partial class LibraryBase
     /// <returns>Converted to float value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public float? ToFloat(short? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToSingle(value.Value);
-    }
+    public float? ToFloat(short? value) => ConvertNullable(value, Convert.ToSingle);
 
     /// <summary>
     ///     Converts given value to float
@@ -75,13 +57,7 @@ public partial class LibraryBase
     /// <returns>Converted to float value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public float? ToFloat(ushort? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToSingle(value.Value);
-    }
+    public float? ToFloat(ushort? value) => ConvertNullable(value, Convert.ToSingle);
 
     /// <summary>
     ///     Converts given value to float
@@ -90,13 +66,7 @@ public partial class LibraryBase
     /// <returns>Converted to float value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public float? ToFloat(int? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToSingle(value.Value);
-    }
+    public float? ToFloat(int? value) => ConvertNullable(value, Convert.ToSingle);
 
     /// <summary>
     ///     Converts given value to float
@@ -105,13 +75,7 @@ public partial class LibraryBase
     /// <returns>Converted to float value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public float? ToFloat(uint? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToSingle(value.Value);
-    }
+    public float? ToFloat(uint? value) => ConvertNullable(value, Convert.ToSingle);
 
     /// <summary>
     ///     Converts given value to float
@@ -120,13 +84,7 @@ public partial class LibraryBase
     /// <returns>Converted to float value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public float? ToFloat(long? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToSingle(value.Value);
-    }
+    public float? ToFloat(long? value) => ConvertNullable(value, Convert.ToSingle);
 
     /// <summary>
     ///     Converts given value to float
@@ -135,13 +93,7 @@ public partial class LibraryBase
     /// <returns>Converted to float value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public float? ToFloat(ulong? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToSingle(value.Value);
-    }
+    public float? ToFloat(ulong? value) => ConvertNullable(value, Convert.ToSingle);
 
     /// <summary>
     ///     Converts given value to float
@@ -162,11 +114,15 @@ public partial class LibraryBase
     /// <returns>Converted to float value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public float? ToFloat(decimal? value)
+    public float? ToFloat(decimal? value) => ConvertNullable(value, Convert.ToSingle);
+
+    private static TResult? ConvertNullable<TSource, TResult>(TSource? value, Func<TSource, TResult> converter)
+        where TSource : struct
+        where TResult : struct
     {
         if (value == null)
             return null;
 
-        return Convert.ToSingle(value.Value);
+        return converter(value.Value);
     }
 }

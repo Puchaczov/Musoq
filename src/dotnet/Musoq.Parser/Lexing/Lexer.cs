@@ -259,58 +259,32 @@ public sealed class Lexer : ILexer
             return AssignToken(multiWordToken);
 
 
-        var funcMatch = FunctionRegex.Match(Input, Position);
-        if (funcMatch.Success && funcMatch.Index == Position)
-        {
-            Position += funcMatch.Length;
-            return AssignToken(new FunctionToken(funcMatch.Value, new TextSpan(start, funcMatch.Length)));
-        }
+        var funcToken = TryMatchRegex(FunctionRegex, start, (m, span) => new FunctionToken(m.Value, span));
+        if (funcToken != null)
+            return AssignToken(funcToken);
 
 
-        var methodMatch = MethodAccessRegex.Match(Input, Position);
-        if (methodMatch.Success && methodMatch.Index == Position)
-        {
-            Position += methodMatch.Length;
-            return AssignToken(new MethodAccessToken(methodMatch.Groups[1].Value,
-                new TextSpan(start, methodMatch.Length)));
-        }
+        var methodToken = TryMatchRegex(MethodAccessRegex, start, (m, span) => new MethodAccessToken(m.Groups[1].Value, span));
+        if (methodToken != null)
+            return AssignToken(methodToken);
 
 
-        var aliasedStarMatch = AliasedStarRegex.Match(Input, Position);
-        if (aliasedStarMatch.Success && aliasedStarMatch.Index == Position)
-        {
-            Position += aliasedStarMatch.Length;
-            return AssignToken(new AliasedStarToken(aliasedStarMatch.Value,
-                new TextSpan(start, aliasedStarMatch.Length)));
-        }
+        var aliasedStarToken = TryMatchRegex(AliasedStarRegex, start, (m, span) => new AliasedStarToken(m.Value, span));
+        if (aliasedStarToken != null)
+            return AssignToken(aliasedStarToken);
 
 
-        var numAccessMatch = NumericAccessRegex.Match(Input, Position);
-        if (numAccessMatch.Success && numAccessMatch.Index == Position)
-        {
-            Position += numAccessMatch.Length;
-            var name = numAccessMatch.Groups[1].Value;
-            var index = numAccessMatch.Groups[2].Value;
-            return AssignToken(new NumericAccessToken(name, index, new TextSpan(start, numAccessMatch.Length)));
-        }
+        var numAccessToken = TryMatchRegex(NumericAccessRegex, start, (m, span) => new NumericAccessToken(m.Groups[1].Value, m.Groups[2].Value, span));
+        if (numAccessToken != null)
+            return AssignToken(numAccessToken);
 
-        var keyAccessConstMatch = KeyAccessConstRegex.Match(Input, Position);
-        if (keyAccessConstMatch.Success && keyAccessConstMatch.Index == Position)
-        {
-            Position += keyAccessConstMatch.Length;
-            var name = keyAccessConstMatch.Groups[1].Value;
-            var key = keyAccessConstMatch.Groups[2].Value;
-            return AssignToken(new KeyAccessToken(name, key, new TextSpan(start, keyAccessConstMatch.Length)));
-        }
+        var keyAccessConstToken = TryMatchRegex(KeyAccessConstRegex, start, (m, span) => new KeyAccessToken(m.Groups[1].Value, m.Groups[2].Value, span));
+        if (keyAccessConstToken != null)
+            return AssignToken(keyAccessConstToken);
 
-        var keyAccessVarMatch = KeyAccessVarRegex.Match(Input, Position);
-        if (keyAccessVarMatch.Success && keyAccessVarMatch.Index == Position)
-        {
-            Position += keyAccessVarMatch.Length;
-            var name = keyAccessVarMatch.Groups[1].Value;
-            var key = keyAccessVarMatch.Groups[2].Value;
-            return AssignToken(new KeyAccessToken(name, key, new TextSpan(start, keyAccessVarMatch.Length)));
-        }
+        var keyAccessVarToken = TryMatchRegex(KeyAccessVarRegex, start, (m, span) => new KeyAccessToken(m.Groups[1].Value, m.Groups[2].Value, span));
+        if (keyAccessVarToken != null)
+            return AssignToken(keyAccessVarToken);
 
 
         while (Position < Input.Length && FastCharacterClassifier.IsIdentifierContinue(Input[Position]))
@@ -362,115 +336,52 @@ public sealed class Lexer : ILexer
         var start = Position;
         var c = char.ToLowerInvariant(Input[Position]);
 
-
-        switch (c)
+        return c switch
         {
-            case 'n':
-                var notInMatch = NotInRegex.Match(Input, Position);
-                if (notInMatch.Success && notInMatch.Index == Position)
-                {
-                    Position += notInMatch.Length;
-                    return new NotInToken(new TextSpan(start, notInMatch.Length));
-                }
+            'n' => TryMatchRegex(NotInRegex, start, span => new NotInToken(span)) ??
+                   TryMatchRegex(NotLikeRegex, start, span => new NotLikeToken(span)) ??
+                   TryMatchRegex(NotRLikeRegex, start, span => new NotRLikeToken(span)),
 
-                var notLikeMatch = NotLikeRegex.Match(Input, Position);
-                if (notLikeMatch.Success && notLikeMatch.Index == Position)
-                {
-                    Position += notLikeMatch.Length;
-                    return new NotLikeToken(new TextSpan(start, notLikeMatch.Length));
-                }
+            'u' => TryMatchRegex(UnionAllRegex, start, span => new UnionAllToken(span)),
 
-                var notRLikeMatch = NotRLikeRegex.Match(Input, Position);
-                if (notRLikeMatch.Success && notRLikeMatch.Index == Position)
-                {
-                    Position += notRLikeMatch.Length;
-                    return new NotRLikeToken(new TextSpan(start, notRLikeMatch.Length));
-                }
+            'g' => TryMatchRegex(GroupByRegex, start, span => new GroupByToken(span)),
 
-                break;
+            'o' => TryMatchRegex(OrderByRegex, start, span => new OrderByToken(span)) ??
+                   TryMatchRegex(OuterApplyRegex, start, span => new OuterApplyToken(span)),
 
-            case 'u':
-                var unionAllMatch = UnionAllRegex.Match(Input, Position);
-                if (unionAllMatch.Success && unionAllMatch.Index == Position)
-                {
-                    Position += unionAllMatch.Length;
-                    return new UnionAllToken(new TextSpan(start, unionAllMatch.Length));
-                }
+            'j' or 'i' => TryMatchRegex(InnerJoinRegex, start, span => new InnerJoinToken(span)),
 
-                break;
+            'l' or 'r' => TryMatchRegex(OuterJoinRegex, start, span =>
+                new OuterJoinToken(
+                    char.ToLowerInvariant(Input[start]) == 'l' ? OuterJoinType.Left : OuterJoinType.Right,
+                    span)),
 
-            case 'g':
-                var groupByMatch = GroupByRegex.Match(Input, Position);
-                if (groupByMatch.Success && groupByMatch.Index == Position)
-                {
-                    Position += groupByMatch.Length;
-                    return new GroupByToken(new TextSpan(start, groupByMatch.Length));
-                }
+            'c' => TryMatchRegex(CrossApplyRegex, start, span => new CrossApplyToken(span)),
 
-                break;
+            _ => null
+        };
+    }
 
-            case 'o':
-                var orderByMatch = OrderByRegex.Match(Input, Position);
-                if (orderByMatch.Success && orderByMatch.Index == Position)
-                {
-                    Position += orderByMatch.Length;
-                    return new OrderByToken(new TextSpan(start, orderByMatch.Length));
-                }
+    private Token? TryMatchRegex(Regex regex, int start, Func<TextSpan, Token> tokenFactory)
+    {
+        var match = regex.Match(Input, Position);
 
-                var outerApplyMatch = OuterApplyRegex.Match(Input, Position);
-                if (outerApplyMatch.Success && outerApplyMatch.Index == Position)
-                {
-                    Position += outerApplyMatch.Length;
-                    return new OuterApplyToken(new TextSpan(start, outerApplyMatch.Length));
-                }
+        if (!match.Success || match.Index != Position)
+            return null;
 
-                break;
+        Position += match.Length;
+        return tokenFactory(new TextSpan(start, match.Length));
+    }
 
-            case 'j':
-                var innerJoinMatch = InnerJoinRegex.Match(Input, Position);
-                if (innerJoinMatch.Success && innerJoinMatch.Index == Position)
-                {
-                    Position += innerJoinMatch.Length;
-                    return new InnerJoinToken(new TextSpan(start, innerJoinMatch.Length));
-                }
+    private Token? TryMatchRegex(Regex regex, int start, Func<Match, TextSpan, Token> tokenFactory)
+    {
+        var match = regex.Match(Input, Position);
 
-                break;
+        if (!match.Success || match.Index != Position)
+            return null;
 
-            case 'i':
-                var innerJoinMatch2 = InnerJoinRegex.Match(Input, Position);
-                if (innerJoinMatch2.Success && innerJoinMatch2.Index == Position)
-                {
-                    Position += innerJoinMatch2.Length;
-                    return new InnerJoinToken(new TextSpan(start, innerJoinMatch2.Length));
-                }
-
-                break;
-
-            case 'l':
-            case 'r':
-                var outerJoinMatch = OuterJoinRegex.Match(Input, Position);
-                if (outerJoinMatch.Success && outerJoinMatch.Index == Position)
-                {
-                    Position += outerJoinMatch.Length;
-                    var isLeft = char.ToLowerInvariant(Input[start]) == 'l';
-                    return new OuterJoinToken(isLeft ? OuterJoinType.Left : OuterJoinType.Right,
-                        new TextSpan(start, outerJoinMatch.Length));
-                }
-
-                break;
-
-            case 'c':
-                var crossApplyMatch = CrossApplyRegex.Match(Input, Position);
-                if (crossApplyMatch.Success && crossApplyMatch.Index == Position)
-                {
-                    Position += crossApplyMatch.Length;
-                    return new CrossApplyToken(new TextSpan(start, crossApplyMatch.Length));
-                }
-
-                break;
-        }
-
-        return null;
+        Position += match.Length;
+        return tokenFactory(match, new TextSpan(start, match.Length));
     }
 
     private Token ScanNumber()

@@ -227,26 +227,34 @@ public class MethodsMetadata
         RegisterMethod(methodInfo.Name, methodInfo);
     }
 
-    private bool TryGetRawMethod(string name, Type[] methodArgs, out int index, out string actualMethodName)
+    private delegate bool TryGetMethodByExactNameFunc(string exactName, out int index);
+
+    private bool TryGetMethodWithNormalization(string name, out int index, out string actualMethodName,
+        TryGetMethodByExactNameFunc tryExactName)
     {
-        if (TryGetRawMethodByExactName(name, methodArgs, out index))
+        if (tryExactName(name, out index))
         {
             actualMethodName = name;
             return true;
         }
 
-
         var normalizedName = MethodNameNormalizer.Normalize(name);
-        if (_normalizedToOriginalMethodNames.TryGetValue(normalizedName, out var originalName))
-            if (TryGetRawMethodByExactName(originalName, methodArgs, out index))
-            {
-                actualMethodName = originalName;
-                return true;
-            }
+        if (_normalizedToOriginalMethodNames.TryGetValue(normalizedName, out var originalName) &&
+            tryExactName(originalName, out index))
+        {
+            actualMethodName = originalName;
+            return true;
+        }
 
         index = -1;
         actualMethodName = null;
         return false;
+    }
+
+    private bool TryGetRawMethod(string name, Type[] methodArgs, out int index, out string actualMethodName)
+    {
+        return TryGetMethodWithNormalization(name, out index, out actualMethodName,
+            (string exactName, out int idx) => TryGetRawMethodByExactName(exactName, methodArgs, out idx));
     }
 
     private bool TryGetRawMethodByExactName(string name, Type[] methodArgs, out int index)
@@ -290,23 +298,8 @@ public class MethodsMetadata
     private bool TryGetAnnotatedMethod(string name, IReadOnlyList<Type> methodArgs, Type entityType, out int index,
         out string actualMethodName)
     {
-        if (TryGetAnnotatedMethodByExactName(name, methodArgs, entityType, out index))
-        {
-            actualMethodName = name;
-            return true;
-        }
-
-        var normalizedName = MethodNameNormalizer.Normalize(name);
-        if (_normalizedToOriginalMethodNames.TryGetValue(normalizedName, out var originalName))
-            if (TryGetAnnotatedMethodByExactName(originalName, methodArgs, entityType, out index))
-            {
-                actualMethodName = originalName;
-                return true;
-            }
-
-        index = -1;
-        actualMethodName = null;
-        return false;
+        return TryGetMethodWithNormalization(name, out index, out actualMethodName,
+            (string exactName, out int idx) => TryGetAnnotatedMethodByExactName(exactName, methodArgs, entityType, out idx));
     }
 
     private bool TryGetAnnotatedMethodByExactName(string name, IReadOnlyList<Type> methodArgs, Type entityType,
@@ -324,12 +317,11 @@ public class MethodsMetadata
             : new (int, int)[methodCount];
 
         for (var i = 0; i < methodCount; i++)
-            scoredMethods[i] = (MeasureHowCloseTheMethodIsAgainstTheArguments(methods[i]), i);
+            scoredMethods[i] = (MeasureMethodCloseness(methods[i], methodArgs), i);
 
         scoredMethods.Sort(static (a, b) => a.Score.CompareTo(b.Score));
 
         MethodInfo firstMatchMethod = null;
-        MethodInfo secondMatchMethod = null;
 
         for (var i = 0; i < methodCount; i++)
         {
@@ -361,16 +353,7 @@ public class MethodsMetadata
                 var param = rawParam.GetUnderlyingNullable();
                 var arg = methodArgs[f].GetUnderlyingNullable();
 
-                if (IsTypePossibleToConvert(param, arg) ||
-                    CanSafelyPassNull(rawParam, arg) ||
-                    (param.IsGenericParameter && TypeConformsToConstraints(param, arg)) ||
-                    ((arg.IsArray || arg.GetInterface("IEnumerable") != null) && param.IsGenericType &&
-                     param.Name == "IEnumerable`1") ||
-                    (param.IsGenericType && arg.IsGenericType && param.Name == "IEnumerable`1" &&
-                     arg.Name == "IEnumerable`1") ||
-                    (param.IsArray && param.GetElementType().IsGenericParameter && arg.IsArray) ||
-                    (arg.IsArray && arg.GetElementType().IsGenericParameter)
-                   )
+                if (IsParameterTypeCompatible(rawParam, param, arg))
                     continue;
 
                 hasMatchedArgTypes = false;
@@ -393,35 +376,11 @@ public class MethodsMetadata
             if (!hasMatchedArgTypes)
                 continue;
 
+            if (entityType is not null && !IsMethodCompatibleWithEntityType(methodInfo, entityType))
+                continue;
 
-            if (entityType is not null)
-            {
-                var injectTypeAttributes = GetInjectTypeAttribute(methodInfo);
-                var injectTypeAttribute = injectTypeAttributes.SingleOrDefault(f => f is InjectSpecificSourceAttribute,
-                    injectTypeAttributes.FirstOrDefault());
-
-                if (injectTypeAttribute is null)
-                    goto breakAll;
-
-                var isGroupAttribute = injectTypeAttribute is InjectGroupAttribute;
-
-                if (isGroupAttribute)
-                    goto breakAll;
-
-                var isQueryStatsAttribute = injectTypeAttribute is InjectQueryStatsAttribute;
-
-                if (isQueryStatsAttribute)
-                    goto breakAll;
-
-                if (!IsEntityTypeInjectableIntoMethod(entityType, injectTypeAttribute))
-                    continue;
-            }
-
-            breakAll:
-
-            if (firstMatchMethod == null)
-                firstMatchMethod = methodInfo;
-            else if (secondMatchMethod == null) secondMatchMethod = methodInfo;
+            firstMatchMethod = methodInfo;
+            break;
         }
 
         if (firstMatchMethod == null)
@@ -433,49 +392,62 @@ public class MethodsMetadata
 
         index = GetCachedMethodIndex(name, firstMatchMethod);
         return true;
+    }
 
-        int MeasureHowCloseTheMethodIsAgainstTheArguments(MethodInfo registeredMethod)
+    private int MeasureMethodCloseness(MethodInfo registeredMethod, IReadOnlyList<Type> methodArgs)
+    {
+        var parameters = GetCachedParameters(registeredMethod);
+        var howClosePassedTypesAre = 0;
+
+        if (parameters.Length < methodArgs.Count) return int.MaxValue;
+
+        for (int i = methodArgs.Count - 1, j = 0; i >= j; --i)
         {
-            var parameters = GetCachedParameters(registeredMethod);
-            var howClosePassedTypesAre = 0;
+            var param = parameters[i].ParameterType.GetUnderlyingNullable();
+            var arg = methodArgs[i].GetUnderlyingNullable();
 
-            if (parameters.Length < methodArgs.Count) return int.MaxValue;
-
-            for (int i = methodArgs.Count - 1, j = 0; i >= j; --i)
-            {
-                var param = parameters[i].ParameterType.GetUnderlyingNullable();
-                var arg = methodArgs[i].GetUnderlyingNullable();
-
-                if (param == arg)
-                    howClosePassedTypesAre += 0;
-                else if (param.IsAssignableFrom(arg))
-                    howClosePassedTypesAre += GetInheritanceDepth(arg, param);
-                else if (CanImplicitlyConvert(arg, param))
-                    howClosePassedTypesAre += GetNumericConversionCost(arg, param);
-                else if (param.IsGenericParameter)
-                    howClosePassedTypesAre += 999;
-                else
-                    break;
-            }
-
-            return howClosePassedTypesAre;
+            if (param == arg)
+                howClosePassedTypesAre += 0;
+            else if (param.IsAssignableFrom(arg))
+                howClosePassedTypesAre += GetInheritanceDepth(arg, param);
+            else if (CanImplicitlyConvert(arg, param))
+                howClosePassedTypesAre += GetNumericConversionCost(arg, param);
+            else if (param.IsGenericParameter)
+                howClosePassedTypesAre += 999;
+            else
+                break;
         }
 
-        int GetInheritanceDepth(Type derived, Type target)
+        return howClosePassedTypesAre;
+    }
+
+    private static int GetInheritanceDepth(Type derived, Type target)
+    {
+        if (derived == target) return 0;
+
+        var depth = 0;
+        var current = derived;
+
+        while (current != null && current != target)
         {
-            if (derived == target) return 0;
-
-            var depth = 0;
-            var current = derived;
-
-            while (current != null && current != target)
-            {
-                depth++;
-                current = current.BaseType;
-            }
-
-            return current == null ? -1 : depth;
+            depth++;
+            current = current.BaseType;
         }
+
+        return current == null ? -1 : depth;
+    }
+
+    private static bool IsParameterTypeCompatible(Type rawParam, Type param, Type arg)
+    {
+        return IsTypePossibleToConvert(param, arg) ||
+               CanSafelyPassNull(rawParam, arg) ||
+               (param.IsGenericParameter && TypeConformsToConstraints(param, arg)) ||
+               ((arg.IsArray || arg.GetInterface("IEnumerable") != null) && param.IsGenericType &&
+                param.Name == "IEnumerable`1") ||
+               (param.IsGenericType && arg.IsGenericType && param.Name == "IEnumerable`1" &&
+                arg.Name == "IEnumerable`1") ||
+               (param.IsArray && param.GetElementType().IsGenericParameter && arg.IsArray) ||
+               (arg.IsArray && arg.GetElementType().IsGenericParameter);
     }
 
     private static bool CanUseSomeArgumentsAsDefaultParameters(IReadOnlyCollection<Type> methodArgs,
@@ -524,6 +496,19 @@ public class MethodsMetadata
         var isArrayArray = arrayType.IsArray;
 
         return isParamGeneric && isArrayArray;
+    }
+
+    private bool IsMethodCompatibleWithEntityType(MethodInfo methodInfo, Type entityType)
+    {
+        var injectTypeAttributes = GetInjectTypeAttribute(methodInfo);
+        var injectTypeAttribute = injectTypeAttributes.SingleOrDefault(
+            f => f is InjectSpecificSourceAttribute,
+            injectTypeAttributes.FirstOrDefault());
+
+        if (injectTypeAttribute is null or InjectGroupAttribute or InjectQueryStatsAttribute)
+            return true;
+
+        return IsEntityTypeInjectableIntoMethod(entityType, injectTypeAttribute);
     }
 
     private static bool IsEntityTypeInjectableIntoMethod(Type entityType, InjectTypeAttribute injectTypeAttribute)

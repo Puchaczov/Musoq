@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Exceptions;
@@ -28,6 +27,8 @@ using Musoq.Schema;
 using Musoq.Schema.Api;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Helpers;
+using static Musoq.Evaluator.Visitors.BinaryOperatorTypeRules;
+using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 using AliasedFromNode = Musoq.Parser.Nodes.From.AliasedFromNode;
 using ExpressionFromNode = Musoq.Parser.Nodes.From.ExpressionFromNode;
 using InMemoryTableFromNode = Musoq.Parser.Nodes.From.InMemoryTableFromNode;
@@ -42,27 +43,8 @@ namespace Musoq.Evaluator.Visitors;
 
 public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExpressionVisitor
 {
-    private enum BinaryOperatorKind
-    {
-        Add,
-        Subtract,
-        Multiply,
-        Divide,
-        Modulo,
-        BitwiseAnd,
-        BitwiseOr,
-        BitwiseXor,
-        LeftShift,
-        RightShift,
-        Equality,
-        Inequality,
-        Relational
-    }
-
     private static readonly WhereNode AllTrueWhereNode =
         new(new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s")));
-
-    private static readonly Dictionary<Type, DynamicObjectPropertyTypeHintAttribute[]> TypeHintAttributeCache = new();
 
     private readonly IDictionary<string, string> _aliasMapToInMemoryTableMap =
         new Dictionary<string, string>();
@@ -266,19 +248,19 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     public override void Visit(StarNode node)
     {
         VisitBinaryOperatorWithTypeConversion((left, right) => new StarNode(left, right), node,
-            BinaryOperatorKind.Multiply, isArithmeticOperation: true);
+            BinaryOperatorKind.Multiply, BinaryOperationContext.ArithmeticOperation);
     }
 
     public override void Visit(FSlashNode node)
     {
         VisitBinaryOperatorWithTypeConversion((left, right) => new FSlashNode(left, right), node,
-            BinaryOperatorKind.Divide, isArithmeticOperation: true);
+            BinaryOperatorKind.Divide, BinaryOperationContext.ArithmeticOperation);
     }
 
     public override void Visit(ModuloNode node)
     {
         VisitBinaryOperatorWithTypeConversion((left, right) => new ModuloNode(left, right), node,
-            BinaryOperatorKind.Modulo, isArithmeticOperation: true);
+            BinaryOperatorKind.Modulo, BinaryOperationContext.ArithmeticOperation);
     }
 
     public override void Visit(AddNode node)
@@ -300,14 +282,14 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             Nodes.Push(left);
             Nodes.Push(right);
             VisitBinaryOperatorWithTypeConversion((l, r) => new AddNode(l, r), node, BinaryOperatorKind.Add,
-                isArithmeticOperation: true);
+                BinaryOperationContext.ArithmeticOperation);
         }
     }
 
     public override void Visit(HyphenNode node)
     {
         VisitBinaryOperatorWithTypeConversion((left, right) => new HyphenNode(left, right), node,
-            BinaryOperatorKind.Subtract, isArithmeticOperation: true);
+            BinaryOperatorKind.Subtract, BinaryOperationContext.ArithmeticOperation);
     }
 
     public override void Visit(AndNode node)
@@ -337,31 +319,31 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     public override void Visit(BitwiseAndNode node)
     {
         VisitBinaryOperatorWithTypeConversion((left, right) => new BitwiseAndNode(left, right), node,
-            BinaryOperatorKind.BitwiseAnd, isArithmeticOperation: true);
+            BinaryOperatorKind.BitwiseAnd, BinaryOperationContext.ArithmeticOperation);
     }
 
     public override void Visit(BitwiseOrNode node)
     {
         VisitBinaryOperatorWithTypeConversion((left, right) => new BitwiseOrNode(left, right), node,
-            BinaryOperatorKind.BitwiseOr, isArithmeticOperation: true);
+            BinaryOperatorKind.BitwiseOr, BinaryOperationContext.ArithmeticOperation);
     }
 
     public override void Visit(BitwiseXorNode node)
     {
         VisitBinaryOperatorWithTypeConversion((left, right) => new BitwiseXorNode(left, right), node,
-            BinaryOperatorKind.BitwiseXor, isArithmeticOperation: true);
+            BinaryOperatorKind.BitwiseXor, BinaryOperationContext.ArithmeticOperation);
     }
 
     public override void Visit(LeftShiftNode node)
     {
         VisitBinaryOperatorWithTypeConversion((left, right) => new LeftShiftNode(left, right), node,
-            BinaryOperatorKind.LeftShift, isArithmeticOperation: true);
+            BinaryOperatorKind.LeftShift, BinaryOperationContext.ArithmeticOperation);
     }
 
     public override void Visit(RightShiftNode node)
     {
         VisitBinaryOperatorWithTypeConversion((left, right) => new RightShiftNode(left, right), node,
-            BinaryOperatorKind.RightShift, isArithmeticOperation: true);
+            BinaryOperatorKind.RightShift, BinaryOperationContext.ArithmeticOperation);
     }
 
     public override void Visit(ShortCircuitingNodeLeft node)
@@ -385,25 +367,25 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     public override void Visit(GreaterOrEqualNode node)
     {
         VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterOrEqualNode(left, right), node,
-            BinaryOperatorKind.Relational, true);
+            BinaryOperatorKind.Relational, BinaryOperationContext.RelationalComparison);
     }
 
     public override void Visit(LessOrEqualNode node)
     {
         VisitBinaryOperatorWithTypeConversion((left, right) => new LessOrEqualNode(left, right), node,
-            BinaryOperatorKind.Relational, true);
+            BinaryOperatorKind.Relational, BinaryOperationContext.RelationalComparison);
     }
 
     public override void Visit(GreaterNode node)
     {
         VisitBinaryOperatorWithTypeConversion((left, right) => new GreaterNode(left, right), node,
-            BinaryOperatorKind.Relational, true);
+            BinaryOperatorKind.Relational, BinaryOperationContext.RelationalComparison);
     }
 
     public override void Visit(LessNode node)
     {
         VisitBinaryOperatorWithTypeConversion((left, right) => new LessNode(left, right), node,
-            BinaryOperatorKind.Relational, true);
+            BinaryOperatorKind.Relational, BinaryOperationContext.RelationalComparison);
     }
 
     public override void Visit(DiffNode node)
@@ -2401,14 +2383,13 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     }
 
     private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory, Node errorContextNode,
-        BinaryOperatorKind operatorKind, bool isRelationalComparison = false,
-        bool isArithmeticOperation = false) where T : Node
+        BinaryOperatorKind operatorKind, BinaryOperationContext operationContext = BinaryOperationContext.Standard) where T : Node
     {
         var right = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (right)");
         var left = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (left)");
 
 
-        if (isArithmeticOperation)
+        if (operationContext == BinaryOperationContext.ArithmeticOperation)
         {
             var leftIsNull = left.ReturnType is NullNode.NullType;
             var rightIsNull = right.ReturnType is NullNode.NullType;
@@ -2452,10 +2433,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var transformedLeft = TransformStringToDateTimeIfNeeded(left, right);
         var transformedRight = TransformStringToDateTimeIfNeeded(right, left);
 
-        transformedLeft = TransformToNumericTypeIfNeeded(transformedLeft, transformedRight, isRelationalComparison,
-            isArithmeticOperation);
-        transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft, isRelationalComparison,
-            isArithmeticOperation);
+        transformedLeft = TransformToNumericTypeIfNeeded(transformedLeft, transformedRight, operationContext);
+        transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft, operationContext);
 
         ValidateBinaryOperatorOperands(transformedLeft, transformedRight, operatorKind, errorContextNode);
 
@@ -2473,21 +2452,21 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return _nodeFactory.CreateDateTimeConversionNode(otherNode.ReturnType, stringNode.Value);
     }
 
-    private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode, bool isRelationalComparison,
-        bool isArithmeticOperation)
+    private Node TransformToNumericTypeIfNeeded(Node candidateNode, Node otherNode,
+        BinaryOperationContext operationContext)
     {
-        var shouldTransform = isRelationalComparison || isArithmeticOperation
-            ? isArithmeticOperation
-                ? TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType)
-                : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType)
-            : TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType);
+        var shouldTransform = operationContext switch
+        {
+            BinaryOperationContext.ArithmeticOperation => TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType),
+            BinaryOperationContext.RelationalComparison => TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType),
+            _ => TypeConversionNodeFactory.IsStringOrObjectType(candidateNode.ReturnType)
+        };
 
         if (!shouldTransform || !TypeConversionNodeFactory.IsNumericLiteralNode(otherNode, out var targetType))
             return candidateNode;
 
         return _nodeFactory.CreateNumericConversionNode(candidateNode, targetType,
-            TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType), isRelationalComparison,
-            isArithmeticOperation);
+            TypeConversionNodeFactory.IsObjectType(candidateNode.ReturnType), operationContext);
     }
 
     private bool HasAlreadyUsedAlias(string queryAlias)
@@ -2815,11 +2794,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         throw new AmbiguousMethodOwnerException(methodNode.ToString(), candidateAliases, span);
     }
 
-    private static bool AreSameMethod(MethodInfo left, MethodInfo right)
-    {
-        return left.Module.Equals(right.Module) && left.MetadataToken == right.MetadataToken;
-    }
-
     private void ReportAmbiguousAggregateOwner(AccessMethodNode methodNode, IReadOnlyCollection<string> candidateAliases)
     {
         if (DiagnosticContext != null)
@@ -2899,28 +2873,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
             context.EntityType, out setMethod);
     }
 
-    private static Type[] GetArgumentTypes(ArgsListNode args)
-    {
-        var argTypes = new Type[args.Args.Length];
-
-        for (var i = 0; i < args.Args.Length; i++)
-            argTypes[i] = args.Args[i].ReturnType;
-
-        return argTypes;
-    }
-
-    private static Type[] GetGroupArgumentTypes(ArgsListNode args)
-    {
-        var groupArgCount = args.Args.Length > 0 ? args.Args.Length : 1;
-        var groupArgTypes = new Type[groupArgCount];
-        groupArgTypes[0] = typeof(string);
-
-        for (var i = 1; i < args.Args.Length; i++)
-            groupArgTypes[i] = args.Args[i].ReturnType;
-
-        return groupArgTypes;
-    }
-
     private (MethodInfo Method, bool CanSkipInjectSource) ResolveMethod(AccessMethodNode node, ArgsListNode args,
         MethodResolutionContext context)
     {
@@ -2957,16 +2909,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                 node.Span);
 
         throw CreateMethodResolutionExceptionWithSuggestion(methodName, args.Args, context);
-    }
-
-    private static bool IsInterpretOrParseFunction(string methodName)
-    {
-        return methodName.Equals("Interpret", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("Parse", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("TryParse", StringComparison.OrdinalIgnoreCase) ||
-               methodName.Equals("PartialInterpret", StringComparison.OrdinalIgnoreCase);
     }
 
     private static CannotResolveMethodException CreateMethodResolutionExceptionWithSuggestion(
@@ -3253,11 +3195,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertiesChain));
     }
 
-    private static Exception SetOperatorDoesNotHaveKeysException(string setOperator)
-    {
-        return new SetOperatorMustHaveKeyColumnsException(setOperator);
-    }
-
     private void ValidateGroupBySemantics(SelectNode select, GroupByNode groupBy)
     {
         var groupByExpressionStrings = new HashSet<string>(
@@ -3294,147 +3231,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
             throw new NonAggregatedColumnInSelectException(columnName, groupByNames,
                 field.Expression.HasSpan ? field.Expression.Span : TextSpan.Empty);
-        }
-    }
-
-    private static bool IsConstantExpression(Node expression)
-    {
-        return expression is IntegerNode
-            or DecimalNode
-            or WordNode
-            or StringNode
-            or NullNode;
-    }
-
-    private static bool ContainsAggregateFunction(Node expression)
-    {
-        var stack = new Stack<Node>();
-        stack.Push(expression);
-
-        while (stack.Count > 0)
-        {
-            var current = stack.Pop();
-
-            if (current is AccessMethodNode methodNode && methodNode.IsAggregateMethod())
-                return true;
-
-            switch (current)
-            {
-                case AccessMethodNode method:
-                    foreach (var arg in method.Arguments.Args)
-                        stack.Push(arg);
-                    if (method.ExtraAggregateArguments != null)
-                        foreach (var arg in method.ExtraAggregateArguments.Args)
-                            stack.Push(arg);
-                    break;
-                case BinaryNode binary:
-                    stack.Push(binary.Left);
-                    stack.Push(binary.Right);
-                    break;
-                case UnaryNode unary:
-                    stack.Push(unary.Expression);
-                    break;
-                case FieldNode field:
-                    stack.Push(field.Expression);
-                    break;
-                case CaseNode caseNode:
-                    foreach (var whenThen in caseNode.WhenThenPairs)
-                    {
-                        stack.Push(whenThen.When);
-                        stack.Push(whenThen.Then);
-                    }
-
-                    if (caseNode.Else != null)
-                        stack.Push(caseNode.Else);
-                    break;
-            }
-        }
-
-        return false;
-    }
-
-    private static void CollectColumnNames(Node expression, HashSet<string> columnNames)
-    {
-        var stack = new Stack<Node>();
-        stack.Push(expression);
-
-        while (stack.Count > 0)
-        {
-            var current = stack.Pop();
-
-            switch (current)
-            {
-                case AccessColumnNode columnNode:
-                    columnNames.Add(columnNode.Name);
-                    break;
-                case BinaryNode binary:
-                    stack.Push(binary.Left);
-                    stack.Push(binary.Right);
-                    break;
-                case UnaryNode unary:
-                    stack.Push(unary.Expression);
-                    break;
-                case FieldNode field:
-                    stack.Push(field.Expression);
-                    break;
-                case AccessMethodNode method:
-                    foreach (var arg in method.Arguments.Args)
-                        stack.Push(arg);
-                    break;
-            }
-        }
-    }
-
-    private static void FindNonGroupedColumns(
-        Node expression,
-        HashSet<string> groupByExpressions,
-        HashSet<string> groupByColumnNames,
-        List<string> nonGroupedColumns)
-    {
-        var stack = new Stack<Node>();
-        stack.Push(expression);
-
-        while (stack.Count > 0)
-        {
-            var current = stack.Pop();
-
-            if (groupByExpressions.Contains(current.ToString()))
-                continue;
-
-            if (current is AccessMethodNode methodNode && methodNode.IsAggregateMethod())
-                continue;
-
-            switch (current)
-            {
-                case AccessColumnNode columnNode:
-                    if (!groupByColumnNames.Contains(columnNode.Name))
-                        nonGroupedColumns.Add(columnNode.Name);
-                    break;
-                case AccessMethodNode method:
-                    foreach (var arg in method.Arguments.Args)
-                        stack.Push(arg);
-                    break;
-                case BinaryNode binary:
-                    stack.Push(binary.Left);
-                    stack.Push(binary.Right);
-                    break;
-                case UnaryNode unary:
-                    stack.Push(unary.Expression);
-                    break;
-                case FieldNode field:
-                    stack.Push(field.Expression);
-                    break;
-                case CaseNode caseNode:
-                    foreach (var whenThen in caseNode.WhenThenPairs)
-                    {
-                        stack.Push(whenThen.When);
-                        stack.Push(whenThen.Then);
-                    }
-
-                    if (caseNode.Else != null)
-                        stack.Push(caseNode.Else);
-                    break;
-            }
         }
     }
 
@@ -3604,48 +3400,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         }
     }
 
-    private static FieldNode[] ResolveFieldsForCache(FieldNode[] leftFields, FieldNode[] rightFields)
-    {
-        var resolved = new FieldNode[leftFields.Length];
-
-        for (var i = 0; i < leftFields.Length; i++)
-            resolved[i] = leftFields[i].Expression.ReturnType is NullNode.NullType
-                ? rightFields[i]
-                : leftFields[i];
-
-        return resolved;
-    }
-
-    private static void PrepareAndThrowUnknownColumnExceptionMessage(string identifier, ISchemaColumn[] _columns,
-        TextSpan span = default)
-    {
-        var library = new TransitionLibrary();
-        var candidates = new StringBuilder();
-
-        var candidatesColumns = _columns.Where(col =>
-            library.Soundex(col.ColumnName) == library.Soundex(identifier) ||
-            library.LevenshteinDistance(col.ColumnName, identifier) < 3).ToArray();
-
-        for (var i = 0; i < candidatesColumns.Length - 1; i++)
-        {
-            var candidate = candidatesColumns[i];
-            candidates.Append(candidate.ColumnName);
-            candidates.Append(", ");
-        }
-
-        if (candidatesColumns.Length > 0)
-        {
-            candidates.Append(candidatesColumns[^1].ColumnName);
-
-            throw new UnknownColumnOrAliasException(
-                identifier,
-                $"Did you mean to use [{candidates}]?",
-                span);
-        }
-
-        throw new UnknownColumnOrAliasException(identifier, string.Empty, span);
-    }
-
     /// <summary>
     ///     Reports or throws an unknown column exception. If diagnostic context is available,
     ///     reports the error and returns true (to allow continuation). Otherwise throws.
@@ -3691,45 +3445,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         }
 
         return false;
-    }
-
-    private static void PrepareAndThrowUnknownPropertyExceptionMessage(string identifier, PropertyInfo[] properties,
-        TextSpan span = default)
-    {
-        var library = new TransitionLibrary();
-        var candidates = new StringBuilder();
-
-        var candidatesProperties = properties.Where(prop =>
-            library.Soundex(prop.Name) == library.Soundex(identifier) ||
-            library.LevenshteinDistance(prop.Name, identifier) < 3).ToArray();
-
-        for (var i = 0; i < candidatesProperties.Length - 1; i++)
-        {
-            var candidate = candidatesProperties[i];
-            candidates.Append(candidate.Name);
-            candidates.Append(", ");
-        }
-
-        if (candidatesProperties.Length > 0)
-        {
-            candidates.Append(candidatesProperties[^1].Name);
-
-            throw new UnknownPropertyException(
-                identifier,
-                $"Did you mean to use [{candidates}]?",
-                span);
-        }
-
-        throw new UnknownPropertyException(identifier, "unknown", span);
-    }
-
-    private static bool IsInterpretFunction(string functionName)
-    {
-        return functionName.Equals("Interpret", StringComparison.OrdinalIgnoreCase) ||
-               functionName.Equals("Parse", StringComparison.OrdinalIgnoreCase) ||
-               functionName.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase) ||
-               functionName.Equals("TryInterpret", StringComparison.OrdinalIgnoreCase) ||
-               functionName.Equals("TryParse", StringComparison.OrdinalIgnoreCase);
     }
 
     private bool TryResolveAsStandaloneFunction(AliasedFromNode node)
@@ -3791,30 +3506,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, sourceAlias, accessMethodNode, returnType));
         return true;
-    }
-
-    private static string? ExtractSchemaNameFromArgs(ArgsListNode args, string? functionName = null)
-    {
-        var schemaArgIndex = functionName?.Equals("InterpretAt", StringComparison.OrdinalIgnoreCase) == true ? 2 : 1;
-
-        if (args.Args.Length <= schemaArgIndex)
-            throw new InvalidOperationException(
-                $"Interpret function '{functionName ?? "unknown"}' requires at least {schemaArgIndex + 1} arguments, got {args.Args.Length}.");
-
-        var schemaArg = args.Args[schemaArgIndex];
-
-        if (schemaArg is StringNode stringNode)
-            return stringNode.Value;
-
-        if (schemaArg is WordNode wordNode)
-            return wordNode.Value;
-
-        if (schemaArg is IdentifierNode identifierNode)
-            throw new InvalidOperationException(
-                $"Schema name '{identifierNode.Name}' must be quoted. Use '{functionName ?? "Parse"}(source, \'{identifierNode.Name}\')' instead of '{functionName ?? "Parse"}(source, {identifierNode.Name})'.");
-
-        throw new InvalidOperationException(
-            $"Expected schema name as a quoted string at argument index {schemaArgIndex}, got {schemaArg?.GetType().Name ?? "null"}.");
     }
 
     private ISchemaTable CreateInterpretTable(string? schemaName)
@@ -4115,268 +3806,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return ResolveTypeAnnotationClrTypeWithIntendedName(typeAnnotation);
     }
 
-    private static ISchemaTable CreateEmptyTable()
-    {
-        return new DynamicTable([]);
-    }
-
-    private static bool ReferencesConditionalField(Node expression, IReadOnlyList<SchemaFieldNode> contextFields)
-    {
-        return expression switch
-        {
-            IdentifierNode id => contextFields.Any(f =>
-                f.Name.Equals(id.Name, StringComparison.OrdinalIgnoreCase) && f.IsConditional),
-            BinaryNode binary => ReferencesConditionalField(binary.Left, contextFields) ||
-                                 ReferencesConditionalField(binary.Right, contextFields),
-            _ => false
-        };
-    }
-
-    private static Type InferComputedFieldType(Node expression, List<ISchemaColumn> contextColumns)
-    {
-        if (expression is EqualityNode or DiffNode or GreaterNode or GreaterOrEqualNode
-            or LessNode or LessOrEqualNode or AndNode or OrNode)
-            return typeof(bool);
-
-
-        if (expression is WordNode)
-            return typeof(string);
-
-
-        if (expression is AccessMethodNode methodNode)
-            if (methodNode.Name.Equals("ToString", StringComparison.OrdinalIgnoreCase))
-                return typeof(string);
-
-        if (expression is BinaryNode binaryNode)
-        {
-            var leftType = InferOperandType(binaryNode.Left, contextColumns);
-            var rightType = InferOperandType(binaryNode.Right, contextColumns);
-
-
-            if (expression is AddNode && (leftType == typeof(string) || rightType == typeof(string)))
-                return typeof(string);
-
-            if (IsNumericType(leftType) && IsNumericType(rightType)) return GetWiderNumericType(leftType, rightType);
-
-
-            return typeof(int);
-        }
-
-        return typeof(object);
-    }
-
-    private static Type InferOperandType(Node operand, List<ISchemaColumn> contextColumns)
-    {
-        if (operand is BinaryNode binaryOp) return InferComputedFieldType(binaryOp, contextColumns);
-
-        if (operand is IdentifierNode identifier)
-        {
-            var column = contextColumns.FirstOrDefault(c =>
-                c.ColumnName.Equals(identifier.Name, StringComparison.OrdinalIgnoreCase));
-            return column?.ColumnType ?? typeof(object);
-        }
-
-        if (operand is IntegerNode) return typeof(int);
-
-
-        if (operand is WordNode) return typeof(string);
-
-
-        if (operand is AccessMethodNode methodNode)
-            if (methodNode.Name.Equals("ToString", StringComparison.OrdinalIgnoreCase))
-                return typeof(string);
-
-        return typeof(object);
-    }
-
-    private static bool IsNumericType(Type type)
-    {
-        return type == typeof(byte) || type == typeof(sbyte) ||
-               type == typeof(short) || type == typeof(ushort) ||
-               type == typeof(int) || type == typeof(uint) ||
-               type == typeof(long) || type == typeof(ulong) ||
-               type == typeof(float) || type == typeof(double) ||
-               type == typeof(decimal);
-    }
-
-    private static Type GetWiderNumericType(Type left, Type right)
-    {
-        var typeOrder = new[]
-        {
-            typeof(byte), typeof(sbyte), typeof(short), typeof(ushort),
-            typeof(int), typeof(uint), typeof(long), typeof(ulong),
-            typeof(float), typeof(double)
-        };
-
-        var leftIndex = Array.IndexOf(typeOrder, left);
-        var rightIndex = Array.IndexOf(typeOrder, right);
-
-        if (leftIndex < 0 && rightIndex < 0) return typeof(int);
-        if (leftIndex < 0) return right;
-        if (rightIndex < 0) return left;
-
-        return leftIndex > rightIndex ? left : right;
-    }
-
-    private static bool TryReduceDimensions(MethodInfo method, ArgsListNode args, out MethodInfo reducedMethod)
-    {
-        var parameters = method.GetParameters();
-        var paramsParameter = parameters
-            .FirstOrDefault(f => f.GetCustomAttribute<ParamArrayAttribute>() != null);
-
-        if (paramsParameter is null)
-        {
-            reducedMethod = null;
-            return false;
-        }
-
-        var paramsParameterIndex = paramsParameter.Position;
-        var typesToReduce = args.Args.Skip(paramsParameterIndex).Select(f => f.ReturnType).ToArray();
-
-        var nonNullTypes = typesToReduce.Where(t => t is not NullNode.NullType).ToArray();
-
-        Type typeToReduce;
-        if (nonNullTypes.Length > 1)
-            typeToReduce = nonNullTypes.First().MakeArrayType();
-        else if (nonNullTypes.Length == 1)
-            typeToReduce = nonNullTypes.First();
-        else
-            typeToReduce = typeof(object);
-
-        var lastNonNullType = typeToReduce;
-        while (typeToReduce is not null)
-        {
-            lastNonNullType = typeToReduce;
-            typeToReduce = typeToReduce.GetElementType();
-        }
-
-        reducedMethod = method.MakeGenericMethod(lastNonNullType);
-        return true;
-    }
-
-    private static bool TryConstructGenericMethod(MethodInfo methodInfo, ArgsListNode args, Type entity,
-        out MethodInfo constructedMethod)
-    {
-        var genericArguments = methodInfo.GetGenericArguments();
-        var genericArgumentsDistinct = new List<Type>();
-        var parameters = methodInfo.GetParameters();
-
-        foreach (var genericArgument in genericArguments)
-        {
-            var i = 0;
-            var shiftArgsWhenInjectSpecificSourcePresent = 0;
-
-            if (parameters[0].GetCustomAttribute<InjectSpecificSourceAttribute>() != null)
-            {
-                i = 1;
-                shiftArgsWhenInjectSpecificSourcePresent = 1;
-                if ((genericArgument.IsGenericParameter || genericArgument.IsGenericMethodParameter) &&
-                    parameters[0].ParameterType.IsGenericParameter) genericArgumentsDistinct.Add(entity);
-            }
-
-            for (; i < parameters.Length; i++)
-            {
-                var parameter = parameters[i];
-
-                if (parameter.IsOptional &&
-                    args.Args.Length < parameters.Length - shiftArgsWhenInjectSpecificSourcePresent) continue;
-
-                var returnType = args.Args.Where((_, index) => index == i - shiftArgsWhenInjectSpecificSourcePresent)
-                    .Single().ReturnType;
-                var elementType = returnType.GetElementType();
-
-                if (returnType.IsGenericType && parameter.ParameterType.IsGenericType &&
-                    returnType.GetGenericTypeDefinition() == parameter.ParameterType.GetGenericTypeDefinition())
-                {
-                    genericArgumentsDistinct.Add(returnType.GetGenericArguments()[0]);
-                    continue;
-                }
-
-                if (parameter.ParameterType.IsGenericType &&
-                    parameter.ParameterType.IsAssignableTo(typeof(IEnumerable<>).MakeGenericType(genericArgument)) &&
-                    elementType is not null)
-                {
-                    genericArgumentsDistinct.Add(elementType);
-                    continue;
-                }
-
-                if (parameter.ParameterType.IsGenericType)
-                {
-                    var assignableInterfaces = returnType
-                        .GetInterfaces()
-                        .Where(type => type.IsConstructedGenericType)
-                        .Select(type => new { type, definition = type.GetGenericTypeDefinition() })
-                        .ToArray();
-
-                    var firstAssignableInterface =
-                        assignableInterfaces.FirstOrDefault(f => f.definition.IsAssignableFrom(typeof(IEnumerable<>)));
-
-                    if (firstAssignableInterface is null) continue;
-
-                    var elementTypeOfFirstAssignableInterface = firstAssignableInterface.type.GetElementType() ??
-                                                                firstAssignableInterface.type.GetGenericArguments()[0];
-
-                    genericArgumentsDistinct.Add(elementTypeOfFirstAssignableInterface);
-                }
-
-                if (parameter.ParameterType == genericArgument) genericArgumentsDistinct.Add(returnType);
-            }
-        }
-
-        var hasNullType = genericArgumentsDistinct.Any(t => t is NullNode.NullType);
-
-        var genericArgumentsConcreteTypes = genericArgumentsDistinct
-            .Where(t => t is not NullNode.NullType)
-            .Distinct()
-            .ToArray();
-
-        if (genericArgumentsConcreteTypes.Length == 0)
-            genericArgumentsConcreteTypes = [typeof(object)];
-        else if (hasNullType)
-        {
-            for (var i = 0; i < genericArgumentsConcreteTypes.Length; i++)
-            {
-                if (genericArgumentsConcreteTypes[i].IsValueType &&
-                    Nullable.GetUnderlyingType(genericArgumentsConcreteTypes[i]) == null)
-                {
-                    genericArgumentsConcreteTypes[i] =
-                        typeof(Nullable<>).MakeGenericType(genericArgumentsConcreteTypes[i]);
-                }
-            }
-        }
-
-        constructedMethod = methodInfo.MakeGenericMethod(genericArgumentsConcreteTypes);
-        return true;
-    }
-
-    private static ISchemaTable TurnTypeIntoTable(Type type)
-    {
-        var _columns = new List<ISchemaColumn>();
-
-        Type nestedType;
-        if (type.IsArray)
-        {
-            nestedType = type.GetElementType();
-        }
-        else if (IsGenericEnumerable(type, out nestedType))
-        {
-        }
-        else
-        {
-            throw new ColumnMustBeAnArrayOrImplementIEnumerableException();
-        }
-
-        if (nestedType == null) throw new InvalidOperationException("Element type is null.");
-
-        if (nestedType.IsPrimitive || nestedType == typeof(string))
-            return new DynamicTable([new SchemaColumn(nameof(PrimitiveTypeEntity<int>.Value), 0, nestedType)]);
-
-        foreach (var property in nestedType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
-            _columns.Add(new SchemaColumn(property.Name, _columns.Count, property.PropertyType));
-
-        return new DynamicTable(_columns.ToArray(), nestedType);
-    }
-
     private ISchemaTable? TurnTypeIntoTableWithDiagnostics(Type type, Node? node)
     {
         var _columns = new List<ISchemaColumn>();
@@ -4503,51 +3932,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return new DynamicTable(_columns.ToArray(), nestedType);
     }
 
-    private static string GetArrayElementIntendedTypeName(string arrayIntendedTypeName)
-    {
-        if (string.IsNullOrEmpty(arrayIntendedTypeName))
-            return null;
-
-        if (arrayIntendedTypeName.EndsWith("[]"))
-            return arrayIntendedTypeName.Substring(0, arrayIntendedTypeName.Length - 2);
-
-        return arrayIntendedTypeName;
-    }
-
-    private static bool IsGenericEnumerable(Type type, out Type elementType)
-    {
-        elementType = null;
-
-        if (!type.IsGenericType) return false;
-
-        var interfaces = type.GetInterfaces().Concat([type]);
-
-        foreach (var interfaceType in interfaces)
-        {
-            if (!interfaceType.IsGenericType ||
-                interfaceType.GetGenericTypeDefinition() != typeof(IEnumerable<>)) continue;
-
-            elementType = interfaceType.GetGenericArguments()[0];
-            return true;
-        }
-
-        return false;
-    }
-
-    private static void ValidateBindablePropertyAsTable(ISchemaTable table, ISchemaColumn targetColumn)
-    {
-        var propertyInfo = table.Metadata.TableEntityType.GetProperty(targetColumn.ColumnName);
-        var bindablePropertyAsTableAttribute = propertyInfo?.GetCustomAttribute<BindablePropertyAsTableAttribute>();
-
-        if (bindablePropertyAsTableAttribute == null) return;
-
-        var isValid = IsGenericEnumerable(propertyInfo!.PropertyType, out var elementType) ||
-                      IsArray(propertyInfo.PropertyType!, out elementType) ||
-                      (elementType != null && (elementType.IsPrimitive || elementType == typeof(string)));
-
-        if (!isValid) throw new ColumnMustBeMarkedAsBindablePropertyAsTableException();
-    }
-
     private bool ValidateBindablePropertyAsTableWithDiagnostics(ISchemaTable table, ISchemaColumn targetColumn,
         Node? node)
     {
@@ -4568,36 +3952,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         }
 
         return false;
-    }
-
-    private static bool IsArray(Type type, out Type elementType)
-    {
-        elementType = null;
-
-        if (!type.IsArray) return false;
-
-        elementType = type.GetElementType();
-        return true;
-    }
-
-    private static Type FollowProperties(Type type, PropertyFromNode.PropertyNameAndTypePair[] propertiesChain)
-    {
-        var propertiesWithoutColumnType = propertiesChain.Skip(1);
-
-        foreach (var property in propertiesWithoutColumnType)
-        {
-            var propertyInfo = type.GetProperty(property.PropertyName);
-
-            if (propertyInfo == null)
-            {
-                PrepareAndThrowUnknownPropertyExceptionMessage(property.PropertyName, type.GetProperties());
-                return null;
-            }
-
-            type = propertyInfo.PropertyType;
-        }
-
-        return type;
     }
 
     private Type? FollowPropertiesWithDiagnostics(Type type, PropertyFromNode.PropertyNameAndTypePair[] propertiesChain,
@@ -4833,104 +4187,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         }
 
         throw new InvalidOperandTypesException(leftType, rightType);
-    }
-
-    private static Type NormalizeOperandType(Type type)
-    {
-        if (type is NullNode.NullType)
-            return type;
-
-        return BuildMetadataAndInferTypesVisitorUtilities.StripNullable(type);
-    }
-
-    private static bool CanSkipStaticTypeValidation(Type type)
-    {
-        return type == typeof(object) ||
-               type is NullNode.NullType ||
-               !BuildMetadataAndInferTypesVisitorUtilities.IsValidQueryExpressionType(type);
-    }
-
-    private static bool IsIntegralType(Type type)
-    {
-        return type == typeof(byte) || type == typeof(sbyte) || type == typeof(short) || type == typeof(ushort) ||
-               type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong);
-    }
-
-    private static bool CanApplyAddition(Type leftType, Type rightType)
-    {
-        if (leftType == typeof(string) && rightType == typeof(string))
-            return true;
-
-        if (IsNumericType(leftType) && IsNumericType(rightType))
-            return true;
-
-        if (leftType == typeof(DateTime) && rightType == typeof(TimeSpan))
-            return true;
-
-        if (leftType == typeof(TimeSpan) && rightType == typeof(DateTime))
-            return true;
-
-        if (leftType == typeof(DateTimeOffset) && rightType == typeof(TimeSpan))
-            return true;
-
-        if (leftType == typeof(TimeSpan) && rightType == typeof(DateTimeOffset))
-            return true;
-
-        return leftType == typeof(TimeSpan) && rightType == typeof(TimeSpan);
-    }
-
-    private static bool CanApplySubtraction(Type leftType, Type rightType)
-    {
-        if (IsNumericType(leftType) && IsNumericType(rightType))
-            return true;
-
-        if (leftType == typeof(DateTime) && (rightType == typeof(DateTime) || rightType == typeof(TimeSpan)))
-            return true;
-
-        if (leftType == typeof(DateTimeOffset) &&
-            (rightType == typeof(DateTimeOffset) || rightType == typeof(TimeSpan)))
-            return true;
-
-        return leftType == typeof(TimeSpan) && rightType == typeof(TimeSpan);
-    }
-
-    private static bool CanApplyNumericOperator(Type leftType, Type rightType)
-    {
-        return IsNumericType(leftType) && IsNumericType(rightType);
-    }
-
-    private static bool CanApplyBitwiseOperator(Type leftType, Type rightType)
-    {
-        return IsIntegralType(leftType) && IsIntegralType(rightType);
-    }
-
-    private static bool CanApplyShiftOperator(Type leftType, Type rightType)
-    {
-        return IsIntegralType(leftType) && IsIntegralType(rightType);
-    }
-
-    private static bool CanApplyEqualityOperator(Type leftType, Type rightType)
-    {
-        if (leftType == rightType)
-            return true;
-
-        if ((leftType == typeof(char) && rightType == typeof(string)) ||
-            (leftType == typeof(string) && rightType == typeof(char)))
-            return true;
-
-        return IsNumericType(leftType) && IsNumericType(rightType);
-    }
-
-    private static bool CanApplyRelationalOperator(Type leftType, Type rightType)
-    {
-        if (IsNumericType(leftType) && IsNumericType(rightType))
-            return true;
-
-        if (leftType != rightType)
-            return false;
-
-        return leftType == typeof(string) || leftType == typeof(DateTime) || leftType == typeof(DateTimeOffset) ||
-               leftType == typeof(TimeSpan);
     }
 
     private SetOperatorNode CreateSetOperatorNode(string setOperatorName, SetOperatorNode node, Node left, Node right)
@@ -5394,18 +4650,6 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         throw new ColumnMustBeMarkedAsBindablePropertyAsTableException(columnName, span);
     }
 
-    private static readonly Dictionary<string, string> DialectColumnHints =
-        new[] { "TOP", "FIRST", "LIMIT" }.ToDictionary(
-            keyword => keyword,
-            keyword => $"Musoq does not support {keyword}. Use TAKE after the FROM clause instead. " +
-                       "Example: SELECT Name FROM #schema.method() alias TAKE 5",
-            StringComparer.OrdinalIgnoreCase);
-
-    private static string? GetDialectColumnHint(string identifier)
-    {
-        return DialectColumnHints.GetValueOrDefault(identifier);
-    }
-
     /// <summary>
     ///     Reports an unknown property error with suggestions. If diagnostics are enabled, records the error and returns true.
     ///     Otherwise throws the exception.
@@ -5496,17 +4740,4 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     }
 
     #endregion
-
-    private static DynamicObjectPropertyTypeHintAttribute[] GetCachedTypeHintAttributes(Type type)
-    {
-        lock (TypeHintAttributeCache)
-        {
-            if (TypeHintAttributeCache.TryGetValue(type, out var cached))
-                return cached;
-
-            var attributes = type.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray();
-            TypeHintAttributeCache[type] = attributes;
-            return attributes;
-        }
-    }
 }

@@ -41,10 +41,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, byte? value, int parent = 0)
     {
-        SetSum(group, name, value, parent);
-        var parentGroup = GetParentGroup(group, parent);
-        if (value.HasValue)
-            parentGroup.Hit();
+        SetAvg(group, name, (decimal?)value, parent);
     }
 
     /// <summary>
@@ -58,10 +55,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, sbyte? value, int parent = 0)
     {
-        SetSum(group, name, value, parent);
-        var parentGroup = GetParentGroup(group, parent);
-        if (value.HasValue)
-            parentGroup.Hit();
+        SetAvg(group, name, (decimal?)value, parent);
     }
 
     /// <summary>
@@ -75,10 +69,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, short? value, int parent = 0)
     {
-        SetSum(group, name, value, parent);
-        var parentGroup = GetParentGroup(group, parent);
-        if (value.HasValue)
-            parentGroup.Hit();
+        SetAvg(group, name, (decimal?)value, parent);
     }
 
     /// <summary>
@@ -92,10 +83,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, ushort? value, int parent = 0)
     {
-        SetSum(group, name, value, parent);
-        var parentGroup = GetParentGroup(group, parent);
-        if (value.HasValue)
-            parentGroup.Hit();
+        SetAvg(group, name, (decimal?)value, parent);
     }
 
     /// <summary>
@@ -109,10 +97,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, int? value, int parent = 0)
     {
-        SetSum(group, name, value, parent);
-        var parentGroup = GetParentGroup(group, parent);
-        if (value.HasValue)
-            parentGroup.Hit();
+        SetAvg(group, name, (decimal?)value, parent);
     }
 
     /// <summary>
@@ -126,10 +111,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, uint? value, int parent = 0)
     {
-        SetSum(group, name, value, parent);
-        var parentGroup = GetParentGroup(group, parent);
-        if (value.HasValue)
-            parentGroup.Hit();
+        SetAvg(group, name, (decimal?)value, parent);
     }
 
     /// <summary>
@@ -143,10 +125,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, long? value, int parent = 0)
     {
-        SetSum(group, name, value, parent);
-        var parentGroup = GetParentGroup(group, parent);
-        if (value.HasValue)
-            parentGroup.Hit();
+        SetAvg(group, name, (decimal?)value, parent);
     }
 
     /// <summary>
@@ -160,10 +139,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, ulong? value, int parent = 0)
     {
-        SetSum(group, name, value, parent);
-        var parentGroup = GetParentGroup(group, parent);
-        if (value.HasValue)
-            parentGroup.Hit();
+        SetAvg(group, name, (decimal?)value, parent);
     }
 
     /// <summary>
@@ -177,10 +153,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, float? value, int parent = 0)
     {
-        SetSum(group, name, (decimal?)value, parent);
-        var parentGroup = GetParentGroup(group, parent);
-        if (value.HasValue)
-            parentGroup.Hit();
+        SetAvg(group, name, (decimal?)value, parent);
     }
 
     /// <summary>
@@ -194,10 +167,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetAvg([InjectGroup] Group group, string name, double? value, int parent = 0)
     {
-        SetSum(group, name, (decimal?)value, parent);
-        var parentGroup = GetParentGroup(group, parent);
-        if (value.HasValue)
-            parentGroup.Hit();
+        SetAvg(group, name, (decimal?)value, parent);
     }
 
     /// <summary>

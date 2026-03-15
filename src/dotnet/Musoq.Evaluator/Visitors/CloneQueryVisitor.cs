@@ -31,101 +31,41 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new DescNode(fromNode, node.Type, node.Column));
     }
 
-    public override void Visit(StarNode node)
-    {
-        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitStarNode);
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new StarNode(left, right).WithSpan(node.Span));
-    }
+    public override void Visit(StarNode node) =>
+        CloneBinaryNodeWithSpan(node, VisitorOperationNames.VisitStarNode, (l, r) => new StarNode(l, r));
 
-    public override void Visit(FSlashNode node)
-    {
-        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitFSlashNode);
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new FSlashNode(left, right).WithSpan(node.Span));
-    }
+    public override void Visit(FSlashNode node) =>
+        CloneBinaryNodeWithSpan(node, VisitorOperationNames.VisitFSlashNode, (l, r) => new FSlashNode(l, r));
 
-    public override void Visit(ModuloNode node)
-    {
-        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitModuloNode);
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new ModuloNode(left, right).WithSpan(node.Span));
-    }
+    public override void Visit(ModuloNode node) =>
+        CloneBinaryNodeWithSpan(node, VisitorOperationNames.VisitModuloNode, (l, r) => new ModuloNode(l, r));
 
-    public override void Visit(AddNode node)
-    {
-        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitAddNode);
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new AddNode(left, right).WithSpan(node.Span));
-    }
+    public override void Visit(AddNode node) =>
+        CloneBinaryNodeWithSpan(node, VisitorOperationNames.VisitAddNode, (l, r) => new AddNode(l, r));
 
-    public override void Visit(HyphenNode node)
-    {
-        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitHyphenNode);
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new HyphenNode(left, right).WithSpan(node.Span));
-    }
+    public override void Visit(HyphenNode node) =>
+        CloneBinaryNodeWithSpan(node, VisitorOperationNames.VisitHyphenNode, (l, r) => new HyphenNode(l, r));
 
-    public override void Visit(AndNode node)
-    {
-        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitAndNode);
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new AndNode(left, right).WithSpan(node.Span));
-    }
+    public override void Visit(AndNode node) =>
+        CloneBinaryNodeWithSpan(node, VisitorOperationNames.VisitAndNode, (l, r) => new AndNode(l, r));
 
-    public override void Visit(OrNode node)
-    {
-        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitOrNode);
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new OrNode(left, right).WithSpan(node.Span));
-    }
+    public override void Visit(OrNode node) =>
+        CloneBinaryNodeWithSpan(node, VisitorOperationNames.VisitOrNode, (l, r) => new OrNode(l, r));
 
-    public override void Visit(BitwiseAndNode node)
-    {
-        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitBitwiseAndNode);
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new BitwiseAndNode(left, right).WithSpan(node.Span));
-    }
+    public override void Visit(BitwiseAndNode node) =>
+        CloneBinaryNodeWithSpan(node, VisitorOperationNames.VisitBitwiseAndNode, (l, r) => new BitwiseAndNode(l, r));
 
-    public override void Visit(BitwiseOrNode node)
-    {
-        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitBitwiseOrNode);
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new BitwiseOrNode(left, right).WithSpan(node.Span));
-    }
+    public override void Visit(BitwiseOrNode node) =>
+        CloneBinaryNodeWithSpan(node, VisitorOperationNames.VisitBitwiseOrNode, (l, r) => new BitwiseOrNode(l, r));
 
-    public override void Visit(BitwiseXorNode node)
-    {
-        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitBitwiseXorNode);
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new BitwiseXorNode(left, right).WithSpan(node.Span));
-    }
+    public override void Visit(BitwiseXorNode node) =>
+        CloneBinaryNodeWithSpan(node, VisitorOperationNames.VisitBitwiseXorNode, (l, r) => new BitwiseXorNode(l, r));
 
-    public override void Visit(LeftShiftNode node)
-    {
-        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitLeftShiftNode);
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new LeftShiftNode(left, right).WithSpan(node.Span));
-    }
+    public override void Visit(LeftShiftNode node) =>
+        CloneBinaryNodeWithSpan(node, VisitorOperationNames.VisitLeftShiftNode, (l, r) => new LeftShiftNode(l, r));
 
-    public override void Visit(RightShiftNode node)
-    {
-        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitRightShiftNode);
-        var right = nodes[1];
-        var left = nodes[0];
-        Nodes.Push(new RightShiftNode(left, right).WithSpan(node.Span));
-    }
+    public override void Visit(RightShiftNode node) =>
+        CloneBinaryNodeWithSpan(node, VisitorOperationNames.VisitRightShiftNode, (l, r) => new RightShiftNode(l, r));
 
     public override void Visit(ShortCircuitingNodeLeft node)
     {
@@ -137,66 +77,34 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         Nodes.Push(new ShortCircuitingNodeRight(Nodes.Pop(), node.UsedFor));
     }
 
-    public override void Visit(EqualityNode node)
-    {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new EqualityNode(left, right));
-    }
+    public override void Visit(EqualityNode node) =>
+        CloneBinaryNode((l, r) => new EqualityNode(l, r));
 
-    public override void Visit(GreaterOrEqualNode node)
-    {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new GreaterOrEqualNode(left, right));
-    }
+    public override void Visit(GreaterOrEqualNode node) =>
+        CloneBinaryNode((l, r) => new GreaterOrEqualNode(l, r));
 
-    public override void Visit(LessOrEqualNode node)
-    {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new LessOrEqualNode(left, right));
-    }
+    public override void Visit(LessOrEqualNode node) =>
+        CloneBinaryNode((l, r) => new LessOrEqualNode(l, r));
 
-    public override void Visit(GreaterNode node)
-    {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new GreaterNode(left, right));
-    }
+    public override void Visit(GreaterNode node) =>
+        CloneBinaryNode((l, r) => new GreaterNode(l, r));
 
-    public override void Visit(LessNode node)
-    {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new LessNode(left, right));
-    }
+    public override void Visit(LessNode node) =>
+        CloneBinaryNode((l, r) => new LessNode(l, r));
 
-    public override void Visit(DiffNode node)
-    {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new DiffNode(left, right));
-    }
+    public override void Visit(DiffNode node) =>
+        CloneBinaryNode((l, r) => new DiffNode(l, r));
 
     public override void Visit(NotNode node)
     {
         Nodes.Push(new NotNode(Nodes.Pop()));
     }
 
-    public override void Visit(LikeNode node)
-    {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new LikeNode(left, right));
-    }
+    public override void Visit(LikeNode node) =>
+        CloneBinaryNode((l, r) => new LikeNode(l, r));
 
-    public override void Visit(RLikeNode node)
-    {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
-        Nodes.Push(new RLikeNode(left, right));
-    }
+    public override void Visit(RLikeNode node) =>
+        CloneBinaryNode((l, r) => new RLikeNode(l, r));
 
     public override void Visit(InNode node)
     {
@@ -767,5 +675,19 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         var offset = Nodes.Pop();
         var dataSource = Nodes.Pop();
         Nodes.Push(new InterpretAtCallNode(dataSource, offset, node.SchemaName, node.ReturnType));
+    }
+
+    private void CloneBinaryNodeWithSpan<T>(T node, string operationName, Func<Node, Node, Node> factory)
+        where T : BinaryNode
+    {
+        var nodes = SafePopMultiple(Nodes, 2, operationName);
+        Nodes.Push(factory(nodes[0], nodes[1]).WithSpan(node.Span));
+    }
+
+    private void CloneBinaryNode(Func<Node, Node, Node> factory)
+    {
+        var right = Nodes.Pop();
+        var left = Nodes.Pop();
+        Nodes.Push(factory(left, right));
     }
 }

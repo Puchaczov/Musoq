@@ -12,10 +12,7 @@ public partial class LibraryBase
     /// <returns>Bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public byte[] ToBytes(bool value)
-    {
-        return BitConverter.GetBytes(value);
-    }
+    public byte[] ToBytes(bool value) => BitConverter.GetBytes(value);
 
     /// <summary>
     ///     Converts short value to bytes.
@@ -24,10 +21,7 @@ public partial class LibraryBase
     /// <returns>Bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public byte[] ToBytes(short value)
-    {
-        return BitConverter.GetBytes(value);
-    }
+    public byte[] ToBytes(short value) => BitConverter.GetBytes(value);
 
     /// <summary>
     ///     Converts ushort value to bytes.
@@ -36,10 +30,7 @@ public partial class LibraryBase
     /// <returns>Bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public byte[] ToBytes(ushort value)
-    {
-        return BitConverter.GetBytes(value);
-    }
+    public byte[] ToBytes(ushort value) => BitConverter.GetBytes(value);
 
     /// <summary>
     ///     Converts int value to bytes.
@@ -48,11 +39,7 @@ public partial class LibraryBase
     /// <returns>Bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public byte[] ToBytes(int value)
-    {
-        return BitConverter.GetBytes(value);
-    }
-
+    public byte[] ToBytes(int value) => BitConverter.GetBytes(value);
 
     /// <summary>
     ///     Converts uint value to bytes.
@@ -61,10 +48,7 @@ public partial class LibraryBase
     /// <returns>Bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public byte[] ToBytes(uint value)
-    {
-        return BitConverter.GetBytes(value);
-    }
+    public byte[] ToBytes(uint value) => BitConverter.GetBytes(value);
 
     /// <summary>
     ///     Converts long value to bytes.
@@ -73,20 +57,14 @@ public partial class LibraryBase
     /// <returns>Bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public byte[] ToBytes(long value)
-    {
-        return BitConverter.GetBytes(value);
-    }
+    public byte[] ToBytes(long value) => BitConverter.GetBytes(value);
 
     /// <summary>
-    ///     Converts long value to bytes.
+    ///     Converts ulong value to bytes.
     /// </summary>
     /// <param name="value">Value to convert.</param>
     /// <returns>Bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public byte[] ToBytes(ulong value)
-    {
-        return BitConverter.GetBytes(value);
-    }
+    public byte[] ToBytes(ulong value) => BitConverter.GetBytes(value);
 }

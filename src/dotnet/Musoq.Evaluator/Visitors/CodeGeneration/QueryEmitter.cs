@@ -282,7 +282,10 @@ public class QueryEmitter(SyntaxGenerator generator)
             ? SyntaxHelper.ParallelForeach("score", sourceName, executionBlock)
             : SyntaxHelper.Foreach("score", sourceName, executionBlock, orderByFields);
 
-        fullBlock = fullBlock.AddStatements(rowsSource, iterationStatement);
+        if (rowsSource is not EmptyStatementSyntax)
+            fullBlock = fullBlock.AddStatements(rowsSource, iterationStatement);
+        else
+            fullBlock = fullBlock.AddStatements(iterationStatement);
 
 
         if (!string.IsNullOrEmpty(queryId))

@@ -26,6 +26,30 @@ public static class ClassEmitter
     /// <returns>A field declaration for the _tableResults array.</returns>
     public static FieldDeclarationSyntax CreateInMemoryTablesField(int tableCount)
     {
+        ExpressionSyntax initializer;
+
+        if (tableCount == 0)
+        {
+            initializer = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("Array"),
+                    SyntaxFactory.GenericName(SyntaxFactory.Identifier("Empty"))
+                        .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
+                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                SyntaxFactory.IdentifierName(nameof(Table)))))));
+        }
+        else
+        {
+            initializer = SyntaxFactory.ArrayCreationExpression(SyntaxFactory
+                .ArrayType(SyntaxFactory.IdentifierName(nameof(Table))).WithRankSpecifiers(
+                    SyntaxFactory.SingletonList(
+                        SyntaxFactory.ArrayRankSpecifier(
+                            SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal(tableCount)))))));
+        }
+
         return SyntaxFactory
             .FieldDeclaration(SyntaxFactory
                 .VariableDeclaration(SyntaxFactory.ArrayType(SyntaxFactory.IdentifierName(nameof(Table)))
@@ -35,13 +59,7 @@ public static class ClassEmitter
                                 SyntaxFactory.OmittedArraySizeExpression()))))).WithVariables(
                     SyntaxFactory.SingletonSeparatedList(SyntaxFactory
                         .VariableDeclarator(SyntaxFactory.Identifier("_tableResults")).WithInitializer(
-                            SyntaxFactory.EqualsValueClause(SyntaxFactory.ArrayCreationExpression(SyntaxFactory
-                                .ArrayType(SyntaxFactory.IdentifierName(nameof(Table))).WithRankSpecifiers(
-                                    SyntaxFactory.SingletonList(
-                                        SyntaxFactory.ArrayRankSpecifier(
-                                            SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
-                                                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
-                                                    SyntaxFactory.Literal(tableCount))))))))))))
+                            SyntaxFactory.EqualsValueClause(initializer)))))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)));
     }
 
@@ -130,8 +148,10 @@ public static class ClassEmitter
     /// </summary>
     public static SyntaxTree CreateSyntaxTreeDirect(CompilationUnitSyntax compilationUnit)
     {
+        var cleaned = new RedundantParenthesisRewriter().Visit(compilationUnit);
+
         return SyntaxFactory.ParseSyntaxTree(
-            compilationUnit.NormalizeWhitespace().ToFullString(),
+            cleaned.NormalizeWhitespace().ToFullString(),
             new CSharpParseOptions(LanguageVersion.CSharp11));
     }
 

@@ -44,7 +44,7 @@ public abstract class IndexedList<TKey, TValue>
         if (Indexes.TryGetValue(key, out var values))
             foreach (var index in values)
                 if (Rows[index].Equals(value))
-                    break;
+                    return true;
         return false;
     }
 

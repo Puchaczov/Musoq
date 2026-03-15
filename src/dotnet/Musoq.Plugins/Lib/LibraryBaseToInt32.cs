@@ -27,13 +27,7 @@ public partial class LibraryBase
     /// <returns>Converted to int value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public int? ToInt32(byte? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToInt32(value.Value);
-    }
+    public int? ToInt32(byte? value) => ConvertNullable(value, Convert.ToInt32);
 
     /// <summary>
     ///     Converts given value to int
@@ -42,13 +36,7 @@ public partial class LibraryBase
     /// <returns>Converted to int value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public int? ToInt32(sbyte? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToInt32(value.Value);
-    }
+    public int? ToInt32(sbyte? value) => ConvertNullable(value, Convert.ToInt32);
 
     /// <summary>
     ///     Converts given value to int
@@ -57,13 +45,7 @@ public partial class LibraryBase
     /// <returns>Converted to int value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public int? ToInt32(short? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToInt32(value.Value);
-    }
+    public int? ToInt32(short? value) => ConvertNullable(value, Convert.ToInt32);
 
     /// <summary>
     ///     Converts given value to int
@@ -72,13 +54,7 @@ public partial class LibraryBase
     /// <returns>Converted to int value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public int? ToInt32(ushort? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToInt32(value.Value);
-    }
+    public int? ToInt32(ushort? value) => ConvertNullable(value, Convert.ToInt32);
 
     /// <summary>
     ///     Converts given value to int
@@ -87,13 +63,7 @@ public partial class LibraryBase
     /// <returns>Converted to int value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public int? ToInt32(int? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToInt32(value.Value);
-    }
+    public int? ToInt32(int? value) => ConvertNullable(value, Convert.ToInt32);
 
     /// <summary>
     ///     Converts given value to int
@@ -102,13 +72,7 @@ public partial class LibraryBase
     /// <returns>Converted to int value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public int? ToInt32(uint? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToInt32(value.Value);
-    }
+    public int? ToInt32(uint? value) => ConvertNullable(value, Convert.ToInt32);
 
     /// <summary>
     ///     Converts given value to int
@@ -117,13 +81,7 @@ public partial class LibraryBase
     /// <returns>Converted to int value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public int? ToInt32(long? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToInt32(value.Value);
-    }
+    public int? ToInt32(long? value) => ConvertNullable(value, Convert.ToInt32);
 
     /// <summary>
     ///     Converts given value to int
@@ -132,13 +90,7 @@ public partial class LibraryBase
     /// <returns>Converted to int value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public int? ToInt32(ulong? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToInt32(value.Value);
-    }
+    public int? ToInt32(ulong? value) => ConvertNullable(value, Convert.ToInt32);
 
     /// <summary>
     ///     Converts given value to int
@@ -147,13 +99,7 @@ public partial class LibraryBase
     /// <returns>Converted to int value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public int? ToInt32(float? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToInt32(value.Value);
-    }
+    public int? ToInt32(float? value) => ConvertNullable(value, Convert.ToInt32);
 
     /// <summary>
     ///     Converts given value to int
@@ -162,13 +108,7 @@ public partial class LibraryBase
     /// <returns>Converted to int value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public int? ToInt32(double? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToInt32(value.Value);
-    }
+    public int? ToInt32(double? value) => ConvertNullable(value, Convert.ToInt32);
 
     /// <summary>
     ///     Converts given value to int
@@ -177,13 +117,7 @@ public partial class LibraryBase
     /// <returns>Converted to int value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public int? ToInt32(decimal? value)
-    {
-        if (value == null)
-            return null;
-
-        return Convert.ToInt32(value.Value);
-    }
+    public int? ToInt32(decimal? value) => ConvertNullable(value, Convert.ToInt32);
 
     /// <summary>
     ///     Converts given value to int

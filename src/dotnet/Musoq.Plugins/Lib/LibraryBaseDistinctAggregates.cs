@@ -164,6 +164,15 @@ public partial class LibraryBase
 
     #region Set Methods - Universal for all DISTINCT aggregates
 
+    private void SetDistinctAggregateCore(Group group, string name, object? boxedValue, int parent)
+    {
+        var parentGroup = GetParentGroup(group, parent);
+        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
+
+        if (boxedValue != null)
+            hashSet!.Add(boxedValue);
+    }
+
     /// <summary>
     ///     Sets distinct aggregate value for the group (string).
     /// </summary>
@@ -174,11 +183,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, string? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     /// <summary>
@@ -191,11 +196,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, decimal? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value.Value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     /// <summary>
@@ -208,11 +209,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, DateTimeOffset? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value.Value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     /// <summary>
@@ -225,11 +222,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, DateTime? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value.Value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     /// <summary>
@@ -242,11 +235,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, byte? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value.Value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     /// <summary>
@@ -259,11 +248,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, sbyte? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value.Value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     /// <summary>
@@ -276,11 +261,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, short? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value.Value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     /// <summary>
@@ -293,11 +274,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, ushort? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value.Value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     /// <summary>
@@ -310,11 +287,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, int? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value.Value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     /// <summary>
@@ -327,11 +300,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, uint? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value.Value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     /// <summary>
@@ -344,11 +313,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, long? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value.Value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     /// <summary>
@@ -361,11 +326,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, ulong? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value.Value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     /// <summary>
@@ -378,11 +339,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, float? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value.Value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     /// <summary>
@@ -395,11 +352,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, double? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value.Value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     /// <summary>
@@ -412,11 +365,7 @@ public partial class LibraryBase
     [AggregationSetMethod]
     public void SetDistinctAggregate([InjectGroup] Group group, string name, bool? value, int parent = 0)
     {
-        var parentGroup = GetParentGroup(group, parent);
-        var hashSet = parentGroup.GetOrCreateValue(name, () => new HashSet<object>());
-
-        if (value != null)
-            hashSet!.Add(value.Value);
+        SetDistinctAggregateCore(group, name, value, parent);
     }
 
     #endregion
