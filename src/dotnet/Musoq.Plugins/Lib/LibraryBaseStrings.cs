@@ -133,15 +133,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.String)]
     public string? Concat(params string?[]? strings)
     {
-        if (strings == null)
-            return null;
-
-        var concatenatedStrings = new StringBuilder();
-
-        foreach (var value in strings)
-            concatenatedStrings.Append(value);
-
-        return concatenatedStrings.ToString();
+        return strings == null ? null : ConcatCore(strings);
     }
 
     /// <summary>
@@ -153,15 +145,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.String)]
     public string? Concat(params char[]? characters)
     {
-        if (characters == null)
-            return null;
-
-        var concatenatedChars = new StringBuilder();
-
-        foreach (var value in characters)
-            concatenatedChars.Append(value);
-
-        return concatenatedChars.ToString();
+        return characters == null ? null : ConcatCore(characters);
     }
 
     /// <summary>
@@ -177,14 +161,13 @@ public partial class LibraryBase
         if (firstString == null || chars == null)
             return null;
 
-        var concatenatedStrings = new StringBuilder();
-
-        concatenatedStrings.Append(firstString);
+        var sb = new StringBuilder();
+        sb.Append(firstString);
 
         foreach (var value in chars)
-            concatenatedStrings.Append(value);
+            sb.Append(value);
 
-        return concatenatedStrings.ToString();
+        return sb.ToString();
     }
 
     /// <summary>
@@ -198,14 +181,13 @@ public partial class LibraryBase
         if (firstChar == null || strings == null)
             return null;
 
-        var concatenatedStrings = new StringBuilder();
-
-        concatenatedStrings.Append(firstChar);
+        var sb = new StringBuilder();
+        sb.Append(firstChar);
 
         foreach (var value in strings)
-            concatenatedStrings.Append(value);
+            sb.Append(value);
 
-        return concatenatedStrings.ToString();
+        return sb.ToString();
     }
 
     /// <summary>
@@ -217,15 +199,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.String)]
     public string? Concat(params object?[]? objects)
     {
-        if (objects == null)
-            return null;
-
-        var concatenatedStrings = new StringBuilder();
-
-        foreach (var value in objects)
-            concatenatedStrings.Append(value);
-
-        return concatenatedStrings.ToString();
+        return objects == null ? null : ConcatCore(objects);
     }
 
     /// <summary>
@@ -237,15 +211,17 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.String)]
     public string? Concat<T>(params T?[]? objects)
     {
-        if (objects == null)
-            return null;
+        return objects == null ? null : ConcatCore(objects);
+    }
 
-        var concatenatedStrings = new StringBuilder();
+    private static string ConcatCore<T>(T[] values)
+    {
+        var sb = new StringBuilder();
 
-        foreach (var value in objects)
-            concatenatedStrings.Append(value);
+        foreach (var value in values)
+            sb.Append(value);
 
-        return concatenatedStrings.ToString();
+        return sb.ToString();
     }
 
     /// <summary>

@@ -390,4 +390,32 @@ public static class SyntaxHelper
                             SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
                                 SyntaxFactory.IdentifierName("ISchemaColumn"))))));
     }
+
+    public static ElementAccessExpressionSyntax CreateElementAccess(string identifier, int index)
+    {
+        return CreateElementAccess(
+            identifier,
+            SyntaxFactory.LiteralExpression(
+                SyntaxKind.NumericLiteralExpression,
+                SyntaxFactory.Literal(index)));
+    }
+
+    public static ElementAccessExpressionSyntax CreateElementAccess(string identifier, string stringKey)
+    {
+        return CreateElementAccess(
+            identifier,
+            SyntaxFactory.LiteralExpression(
+                SyntaxKind.StringLiteralExpression,
+                SyntaxFactory.Literal(stringKey)));
+    }
+
+    public static ElementAccessExpressionSyntax CreateElementAccess(string identifier, ExpressionSyntax indexExpression)
+    {
+        return SyntaxFactory
+            .ElementAccessExpression(SyntaxFactory.IdentifierName(identifier))
+            .WithArgumentList(
+                SyntaxFactory.BracketedArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(indexExpression))));
+    }
 }

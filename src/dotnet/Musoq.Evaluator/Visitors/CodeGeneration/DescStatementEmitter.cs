@@ -366,41 +366,6 @@ public class DescStatementEmitter(SyntaxGenerator generator)
     private static ObjectCreationExpressionSyntax CreateRuntimeContext(SchemaFromNode node,
         ExpressionSyntax originallyInferredColumns)
     {
-        const int schemaFromIndex = 0;
-
-        return SyntaxFactory.ObjectCreationExpression(
-                SyntaxFactory.IdentifierName(nameof(RuntimeContext)))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList([
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.StringLiteralExpression,
-                                SyntaxFactory.Literal(node.Id))),
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")),
-                        SyntaxFactory.Argument(originallyInferredColumns),
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.ElementAccessExpression(
-                                    SyntaxFactory.IdentifierName("positionalEnvironmentVariables"))
-                                .WithArgumentList(
-                                    SyntaxFactory.BracketedArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Argument(
-                                                SyntaxFactory.LiteralExpression(
-                                                    SyntaxKind.NumericLiteralExpression,
-                                                    SyntaxFactory.Literal(schemaFromIndex))))))),
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.ElementAccessExpression(
-                                    SyntaxFactory.IdentifierName("queriesInformation"))
-                                .WithArgumentList(
-                                    SyntaxFactory.BracketedArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Argument(
-                                                SyntaxFactory.LiteralExpression(
-                                                    SyntaxKind.StringLiteralExpression,
-                                                    SyntaxFactory.Literal(node.Id))))))),
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("logger")),
-                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("OnDataSourceProgress"))
-                    ])));
+        return SchemaNodeEmitter.CreateRuntimeContext(node.Id, 0, originallyInferredColumns);
     }
 }

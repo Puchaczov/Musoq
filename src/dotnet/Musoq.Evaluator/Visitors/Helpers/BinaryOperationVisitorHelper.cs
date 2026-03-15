@@ -12,164 +12,61 @@ namespace Musoq.Evaluator.Visitors.Helpers;
 public static class BinaryOperationVisitorHelper
 {
     /// <summary>
-    ///     Processes a Star operation.
+    ///     Processes a binary operation by popping two nodes, validating, and pushing a new node.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
+    /// <param name="nodeFactory">Factory to create the resulting node from left and right operands.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
     /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
-    public static void ProcessStarOperation(Stack<Node> nodes)
+    public static void ProcessBinaryOperation(Stack<Node> nodes, Func<Node, Node, Node> nodeFactory)
     {
         ValidateBinaryOperation(nodes);
         var right = nodes.Pop();
         var left = nodes.Pop();
         ValidateOperands(left, right);
-        nodes.Push(new StarNode(left, right));
+        nodes.Push(nodeFactory(left, right));
     }
 
-    /// <summary>
-    ///     Processes a FSlash operation.
-    /// </summary>
-    /// <param name="nodes">The node stack.</param>
-    /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
-    /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
-    public static void ProcessFSlashOperation(Stack<Node> nodes)
-    {
-        ValidateBinaryOperation(nodes);
-        var right = nodes.Pop();
-        var left = nodes.Pop();
-        ValidateOperands(left, right);
-        nodes.Push(new FSlashNode(left, right));
-    }
+    /// <summary>Processes a Star operation.</summary>
+    public static void ProcessStarOperation(Stack<Node> nodes) =>
+        ProcessBinaryOperation(nodes, (left, right) => new StarNode(left, right));
 
-    /// <summary>
-    ///     Processes a Modulo operation.
-    /// </summary>
-    /// <param name="nodes">The node stack.</param>
-    /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
-    /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
-    public static void ProcessModuloOperation(Stack<Node> nodes)
-    {
-        ValidateBinaryOperation(nodes);
-        var right = nodes.Pop();
-        var left = nodes.Pop();
-        ValidateOperands(left, right);
-        nodes.Push(new ModuloNode(left, right));
-    }
+    /// <summary>Processes a FSlash operation.</summary>
+    public static void ProcessFSlashOperation(Stack<Node> nodes) =>
+        ProcessBinaryOperation(nodes, (left, right) => new FSlashNode(left, right));
 
-    /// <summary>
-    ///     Processes an Add operation.
-    /// </summary>
-    /// <param name="nodes">The node stack.</param>
-    /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
-    /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
-    public static void ProcessAddOperation(Stack<Node> nodes)
-    {
-        ValidateBinaryOperation(nodes);
-        var right = nodes.Pop();
-        var left = nodes.Pop();
-        ValidateOperands(left, right);
-        nodes.Push(new AddNode(left, right));
-    }
+    /// <summary>Processes a Modulo operation.</summary>
+    public static void ProcessModuloOperation(Stack<Node> nodes) =>
+        ProcessBinaryOperation(nodes, (left, right) => new ModuloNode(left, right));
 
-    /// <summary>
-    ///     Processes a Hyphen operation.
-    /// </summary>
-    /// <param name="nodes">The node stack.</param>
-    /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
-    /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
-    public static void ProcessHyphenOperation(Stack<Node> nodes)
-    {
-        ValidateBinaryOperation(nodes);
-        var right = nodes.Pop();
-        var left = nodes.Pop();
-        ValidateOperands(left, right);
-        nodes.Push(new HyphenNode(left, right));
-    }
+    /// <summary>Processes an Add operation.</summary>
+    public static void ProcessAddOperation(Stack<Node> nodes) =>
+        ProcessBinaryOperation(nodes, (left, right) => new AddNode(left, right));
 
-    /// <summary>
-    ///     Processes a BitwiseAnd operation.
-    /// </summary>
-    /// <param name="nodes">The node stack.</param>
-    /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
-    /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
-    public static void ProcessBitwiseAndOperation(Stack<Node> nodes)
-    {
-        ValidateBinaryOperation(nodes);
-        var right = nodes.Pop();
-        var left = nodes.Pop();
-        ValidateOperands(left, right);
-        nodes.Push(new BitwiseAndNode(left, right));
-    }
+    /// <summary>Processes a Hyphen operation.</summary>
+    public static void ProcessHyphenOperation(Stack<Node> nodes) =>
+        ProcessBinaryOperation(nodes, (left, right) => new HyphenNode(left, right));
 
-    /// <summary>
-    ///     Processes a BitwiseOr operation.
-    /// </summary>
-    /// <param name="nodes">The node stack.</param>
-    /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
-    /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
-    public static void ProcessBitwiseOrOperation(Stack<Node> nodes)
-    {
-        ValidateBinaryOperation(nodes);
-        var right = nodes.Pop();
-        var left = nodes.Pop();
-        ValidateOperands(left, right);
-        nodes.Push(new BitwiseOrNode(left, right));
-    }
+    /// <summary>Processes a BitwiseAnd operation.</summary>
+    public static void ProcessBitwiseAndOperation(Stack<Node> nodes) =>
+        ProcessBinaryOperation(nodes, (left, right) => new BitwiseAndNode(left, right));
 
-    /// <summary>
-    ///     Processes a BitwiseXor operation.
-    /// </summary>
-    /// <param name="nodes">The node stack.</param>
-    /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
-    /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
-    public static void ProcessBitwiseXorOperation(Stack<Node> nodes)
-    {
-        ValidateBinaryOperation(nodes);
-        var right = nodes.Pop();
-        var left = nodes.Pop();
-        ValidateOperands(left, right);
-        nodes.Push(new BitwiseXorNode(left, right));
-    }
+    /// <summary>Processes a BitwiseOr operation.</summary>
+    public static void ProcessBitwiseOrOperation(Stack<Node> nodes) =>
+        ProcessBinaryOperation(nodes, (left, right) => new BitwiseOrNode(left, right));
 
-    /// <summary>
-    ///     Processes a LeftShift operation.
-    /// </summary>
-    /// <param name="nodes">The node stack.</param>
-    /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
-    /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
-    public static void ProcessLeftShiftOperation(Stack<Node> nodes)
-    {
-        ValidateBinaryOperation(nodes);
-        var right = nodes.Pop();
-        var left = nodes.Pop();
-        ValidateOperands(left, right);
-        nodes.Push(new LeftShiftNode(left, right));
-    }
+    /// <summary>Processes a BitwiseXor operation.</summary>
+    public static void ProcessBitwiseXorOperation(Stack<Node> nodes) =>
+        ProcessBinaryOperation(nodes, (left, right) => new BitwiseXorNode(left, right));
 
-    /// <summary>
-    ///     Processes a RightShift operation.
-    /// </summary>
-    /// <param name="nodes">The node stack.</param>
-    /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
-    /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
-    public static void ProcessRightShiftOperation(Stack<Node> nodes)
-    {
-        ValidateBinaryOperation(nodes);
-        var right = nodes.Pop();
-        var left = nodes.Pop();
-        ValidateOperands(left, right);
-        nodes.Push(new RightShiftNode(left, right));
-    }
+    /// <summary>Processes a LeftShift operation.</summary>
+    public static void ProcessLeftShiftOperation(Stack<Node> nodes) =>
+        ProcessBinaryOperation(nodes, (left, right) => new LeftShiftNode(left, right));
+
+    /// <summary>Processes a RightShift operation.</summary>
+    public static void ProcessRightShiftOperation(Stack<Node> nodes) =>
+        ProcessBinaryOperation(nodes, (left, right) => new RightShiftNode(left, right));
 
     private static void ValidateBinaryOperation(Stack<Node> nodes)
     {

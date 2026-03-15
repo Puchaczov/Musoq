@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.From;
-using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -12,7 +10,7 @@ namespace Musoq.Evaluator.Visitors;
 ///     This visitor counts occurrences of each expression and determines which ones
 ///     appear multiple times and are therefore candidates for caching.
 /// </summary>
-public class CommonSubexpressionAnalysisVisitor : IExpressionVisitor
+public class CommonSubexpressionAnalysisVisitor : NoOpExpressionVisitor
 {
     private readonly Dictionary<string, Node> _expressionNodes = new();
 
@@ -48,547 +46,167 @@ public class CommonSubexpressionAnalysisVisitor : IExpressionVisitor
     /// </summary>
     public bool InSeparateScopeContext { get; set; }
 
-    public void Visit(Node node)
-    {
-    }
-
-    public void Visit(DescNode node)
-    {
-    }
-
-    public void Visit(StarNode node)
+    public override void Visit(StarNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(FSlashNode node)
+    public override void Visit(FSlashNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(ModuloNode node)
+    public override void Visit(ModuloNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(AddNode node)
+    public override void Visit(AddNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(HyphenNode node)
+    public override void Visit(HyphenNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(BitwiseAndNode node)
+    public override void Visit(BitwiseAndNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(BitwiseOrNode node)
+    public override void Visit(BitwiseOrNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(BitwiseXorNode node)
+    public override void Visit(BitwiseXorNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(LeftShiftNode node)
+    public override void Visit(LeftShiftNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(RightShiftNode node)
+    public override void Visit(RightShiftNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(ArrayIndexNode node)
+    public override void Visit(ArrayIndexNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(AndNode node)
+    public override void Visit(AndNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(OrNode node)
+    public override void Visit(OrNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(ShortCircuitingNodeLeft node)
-    {
-    }
-
-    public void Visit(ShortCircuitingNodeRight node)
-    {
-    }
-
-    public void Visit(EqualityNode node)
+    public override void Visit(EqualityNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(GreaterOrEqualNode node)
+    public override void Visit(GreaterOrEqualNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(LessOrEqualNode node)
+    public override void Visit(LessOrEqualNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(GreaterNode node)
+    public override void Visit(GreaterNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(LessNode node)
+    public override void Visit(LessNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(DiffNode node)
+    public override void Visit(DiffNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(NotNode node)
+    public override void Visit(NotNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(LikeNode node)
+    public override void Visit(LikeNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(RLikeNode node)
+    public override void Visit(RLikeNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(InNode node)
+    public override void Visit(InNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(BetweenNode node)
+    public override void Visit(BetweenNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(FieldNode node)
-    {
-    }
-
-    public void Visit(FieldOrderedNode node)
-    {
-    }
-
-    public void Visit(StringNode node)
-    {
-    }
-
-    public void Visit(DecimalNode node)
-    {
-    }
-
-    public void Visit(IntegerNode node)
-    {
-    }
-
-    public void Visit(HexIntegerNode node)
-    {
-    }
-
-    public void Visit(BinaryIntegerNode node)
-    {
-    }
-
-    public void Visit(OctalIntegerNode node)
-    {
-    }
-
-    public void Visit(BooleanNode node)
-    {
-    }
-
-    public void Visit(WordNode node)
-    {
-    }
-
-    public void Visit(NullNode node)
-    {
-    }
-
-    public void Visit(ContainsNode node)
+    public override void Visit(ContainsNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(AccessMethodNode node)
+    public override void Visit(AccessMethodNode node)
     {
         TrackExpression(node);
 
         if (IsNonDeterministicFunction(node)) MarkNonCacheable(node.Id);
     }
 
-    public void Visit(AccessRawIdentifierNode node)
-    {
-    }
-
-    public void Visit(IsNullNode node)
+    public override void Visit(IsNullNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(AccessRefreshAggregationScoreNode node)
+    public override void Visit(AccessRefreshAggregationScoreNode node)
     {
         TrackExpression(node);
         MarkNonCacheable(node.Id);
     }
 
-    public void Visit(AccessColumnNode node)
-    {
-    }
-
-    public void Visit(AllColumnsNode node)
-    {
-    }
-
-    public void Visit(IdentifierNode node)
-    {
-    }
-
-    public void Visit(AccessObjectArrayNode node)
-    {
-    }
-
-    public void Visit(AccessObjectKeyNode node)
-    {
-    }
-
-    public void Visit(PropertyValueNode node)
+    public override void Visit(PropertyValueNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(DotNode node)
+    public override void Visit(DotNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(AccessCallChainNode node)
+    public override void Visit(AccessCallChainNode node)
     {
         TrackExpression(node);
     }
 
-    public void Visit(ArgsListNode node)
-    {
-    }
-
-    public void Visit(SelectNode node)
-    {
-    }
-
-    public void Visit(GroupSelectNode node)
-    {
-    }
-
-    public void Visit(WhereNode node)
-    {
-    }
-
-    public void Visit(GroupByNode node)
-    {
-    }
-
-    public void Visit(HavingNode node)
-    {
-    }
-
-    public void Visit(SkipNode node)
-    {
-    }
-
-    public void Visit(TakeNode node)
-    {
-    }
-
-    public void Visit(JoinInMemoryWithSourceTableFromNode node)
-    {
-    }
-
-    public void Visit(ApplyInMemoryWithSourceTableFromNode node)
-    {
-    }
-
-    public void Visit(SchemaFromNode node)
-    {
-    }
-
-    public void Visit(AliasedFromNode node)
-    {
-    }
-
-    public void Visit(JoinSourcesTableFromNode node)
-    {
-    }
-
-    public void Visit(ApplySourcesTableFromNode node)
-    {
-    }
-
-    public void Visit(InMemoryTableFromNode node)
-    {
-    }
-
-    public void Visit(JoinFromNode node)
-    {
-    }
-
-    public void Visit(ApplyFromNode node)
-    {
-    }
-
-    public void Visit(ExpressionFromNode node)
-    {
-    }
-
-    public void Visit(InterpretFromNode node)
-    {
-    }
-
-    public void Visit(SchemaMethodFromNode node)
-    {
-    }
-
-    public void Visit(PropertyFromNode node)
-    {
-    }
-
-    public void Visit(AccessMethodFromNode node)
-    {
-    }
-
-    public void Visit(CreateTransformationTableNode node)
-    {
-    }
-
-    public void Visit(RenameTableNode node)
-    {
-    }
-
-    public void Visit(TranslatedSetTreeNode node)
-    {
-    }
-
-    public void Visit(IntoNode node)
-    {
-    }
-
-    public void Visit(QueryScope node)
-    {
-    }
-
-    public void Visit(ShouldBePresentInTheTable node)
-    {
-    }
-
-    public void Visit(TranslatedSetOperatorNode node)
-    {
-    }
-
-    public void Visit(QueryNode node)
-    {
-    }
-
-    public void Visit(InternalQueryNode node)
-    {
-    }
-
-    public void Visit(RootNode node)
-    {
-    }
-
-    public void Visit(SingleSetNode node)
-    {
-    }
-
-    public void Visit(UnionNode node)
-    {
-    }
-
-    public void Visit(UnionAllNode node)
-    {
-    }
-
-    public void Visit(ExceptNode node)
-    {
-    }
-
-    public void Visit(RefreshNode node)
-    {
-    }
-
-    public void Visit(IntersectNode node)
-    {
-    }
-
-    public void Visit(PutTrueNode node)
-    {
-    }
-
-    public void Visit(MultiStatementNode node)
-    {
-    }
-
-    public void Visit(StatementsArrayNode node)
-    {
-    }
-
-    public void Visit(StatementNode node)
-    {
-    }
-
-    public void Visit(CteExpressionNode node)
-    {
-    }
-
-    public void Visit(CteInnerExpressionNode node)
-    {
-    }
-
-    public void Visit(JoinNode node)
-    {
-    }
-
-    public void Visit(ApplyNode node)
-    {
-    }
-
-    public void Visit(OrderByNode node)
-    {
-    }
-
-    public void Visit(CreateTableNode node)
-    {
-    }
-
-    public void Visit(CoupleNode node)
-    {
-    }
-
-    public void Visit(CaseNode node)
+    public override void Visit(CaseNode node)
     {
         TrackExpression(node);
-    }
-
-    public void Visit(WhenNode node)
-    {
-    }
-
-    public void Visit(ThenNode node)
-    {
-    }
-
-    public void Visit(ElseNode node)
-    {
-    }
-
-    public void Visit(FieldLinkNode node)
-    {
-    }
-
-    public void Visit(InterpretCallNode node)
-    {
-    }
-
-    public void Visit(ParseCallNode node)
-    {
-    }
-
-    public void Visit(InterpretAtCallNode node)
-    {
-    }
-
-    public void Visit(TryInterpretCallNode node)
-    {
-    }
-
-    public void Visit(TryParseCallNode node)
-    {
-    }
-
-    public void Visit(PartialInterpretCallNode node)
-    {
-    }
-
-    public void Visit(BinarySchemaNode node)
-    {
-    }
-
-    public void Visit(TextSchemaNode node)
-    {
-    }
-
-    public void Visit(FieldDefinitionNode node)
-    {
-    }
-
-    public void Visit(ComputedFieldNode node)
-    {
-    }
-
-    public void Visit(TextFieldDefinitionNode node)
-    {
-    }
-
-    public void Visit(FieldConstraintNode node)
-    {
-    }
-
-    public void Visit(PrimitiveTypeNode node)
-    {
-    }
-
-    public void Visit(ByteArrayTypeNode node)
-    {
-    }
-
-    public void Visit(StringTypeNode node)
-    {
-    }
-
-    public void Visit(SchemaReferenceTypeNode node)
-    {
-    }
-
-    public void Visit(ArrayTypeNode node)
-    {
-    }
-
-    public void Visit(BitsTypeNode node)
-    {
-    }
-
-    public void Visit(AlignmentNode node)
-    {
-    }
-
-    public void Visit(RepeatUntilTypeNode node)
-    {
-    }
-
-    public void Visit(InlineSchemaTypeNode node)
-    {
     }
 
     /// <summary>

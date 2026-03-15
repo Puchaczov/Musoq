@@ -17,6 +17,23 @@ public partial class LibraryBase
         return padded;
     }
 
+    private static T? FromBytesCore<T>(byte[] value, bool padIfNeeded, int requiredSize, Func<byte[], int, T> converter)
+        where T : struct
+    {
+        if (value == null)
+            return null;
+
+        if (value.Length < requiredSize)
+        {
+            if (!padIfNeeded)
+                return null;
+
+            value = PadBytes(value, requiredSize);
+        }
+
+        return converter(value, 0);
+    }
+
     /// <summary>
     ///     Converts bytes to boolean value.
     /// </summary>
@@ -24,10 +41,7 @@ public partial class LibraryBase
     /// <returns>Converted boolean value, or null if insufficient bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public bool? FromBytesToBool(byte[] value)
-    {
-        return FromBytesToBool(value, false);
-    }
+    public bool? FromBytesToBool(byte[] value) => FromBytesToBool(value, false);
 
     /// <summary>
     ///     Converts bytes to boolean value.
@@ -37,23 +51,8 @@ public partial class LibraryBase
     /// <returns>Converted boolean value, or null if insufficient bytes and padIfNeeded is false.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public bool? FromBytesToBool(byte[] value, bool padIfNeeded)
-    {
-        if (value == null)
-            return null;
-
-        if (value.Length < sizeof(bool))
-        {
-            if (!padIfNeeded)
-                return null;
-
-            value = PadBytes(value, sizeof(bool));
-            if (value == null)
-                return null;
-        }
-
-        return BitConverter.ToBoolean(value, 0);
-    }
+    public bool? FromBytesToBool(byte[] value, bool padIfNeeded) =>
+        FromBytesCore(value, padIfNeeded, sizeof(bool), BitConverter.ToBoolean);
 
     /// <summary>
     ///     Converts bytes to a character.
@@ -62,10 +61,7 @@ public partial class LibraryBase
     /// <returns>Converted character, or null if insufficient bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public char? FromBytesToChar(byte[] value)
-    {
-        return FromBytesToChar(value, false);
-    }
+    public char? FromBytesToChar(byte[] value) => FromBytesToChar(value, false);
 
     /// <summary>
     ///     Converts bytes to a character.
@@ -75,23 +71,8 @@ public partial class LibraryBase
     /// <returns>Converted character, or null if insufficient bytes and padIfNeeded is false.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public char? FromBytesToChar(byte[] value, bool padIfNeeded)
-    {
-        if (value == null)
-            return null;
-
-        if (value.Length < sizeof(char))
-        {
-            if (!padIfNeeded)
-                return null;
-
-            value = PadBytes(value, sizeof(char));
-            if (value == null)
-                return null;
-        }
-
-        return BitConverter.ToChar(value, 0);
-    }
+    public char? FromBytesToChar(byte[] value, bool padIfNeeded) =>
+        FromBytesCore(value, padIfNeeded, sizeof(char), BitConverter.ToChar);
 
     /// <summary>
     ///     Converts bytes to a 16-bit signed integer.
@@ -100,10 +81,7 @@ public partial class LibraryBase
     /// <returns>Converted 16-bit signed integer, or null if insufficient bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public short? FromBytesToInt16(byte[] value)
-    {
-        return FromBytesToInt16(value, false);
-    }
+    public short? FromBytesToInt16(byte[] value) => FromBytesToInt16(value, false);
 
     /// <summary>
     ///     Converts bytes to a 16-bit signed integer.
@@ -113,23 +91,8 @@ public partial class LibraryBase
     /// <returns>Converted 16-bit signed integer, or null if insufficient bytes and padIfNeeded is false.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public short? FromBytesToInt16(byte[] value, bool padIfNeeded)
-    {
-        if (value == null)
-            return null;
-
-        if (value.Length < sizeof(short))
-        {
-            if (!padIfNeeded)
-                return null;
-
-            value = PadBytes(value, sizeof(short));
-            if (value == null)
-                return null;
-        }
-
-        return BitConverter.ToInt16(value, 0);
-    }
+    public short? FromBytesToInt16(byte[] value, bool padIfNeeded) =>
+        FromBytesCore(value, padIfNeeded, sizeof(short), BitConverter.ToInt16);
 
     /// <summary>
     ///     Converts bytes to a 16-bit unsigned integer.
@@ -138,10 +101,7 @@ public partial class LibraryBase
     /// <returns>Converted 16-bit unsigned integer, or null if insufficient bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public ushort? FromBytesToUInt16(byte[] value)
-    {
-        return FromBytesToUInt16(value, false);
-    }
+    public ushort? FromBytesToUInt16(byte[] value) => FromBytesToUInt16(value, false);
 
     /// <summary>
     ///     Converts bytes to a 16-bit unsigned integer.
@@ -151,23 +111,8 @@ public partial class LibraryBase
     /// <returns>Converted 16-bit unsigned integer, or null if insufficient bytes and padIfNeeded is false.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public ushort? FromBytesToUInt16(byte[] value, bool padIfNeeded)
-    {
-        if (value == null)
-            return null;
-
-        if (value.Length < sizeof(ushort))
-        {
-            if (!padIfNeeded)
-                return null;
-
-            value = PadBytes(value, sizeof(ushort));
-            if (value == null)
-                return null;
-        }
-
-        return BitConverter.ToUInt16(value, 0);
-    }
+    public ushort? FromBytesToUInt16(byte[] value, bool padIfNeeded) =>
+        FromBytesCore(value, padIfNeeded, sizeof(ushort), BitConverter.ToUInt16);
 
     /// <summary>
     ///     Converts bytes to a 32-bit signed integer.
@@ -176,10 +121,7 @@ public partial class LibraryBase
     /// <returns>Converted 32-bit signed integer, or null if insufficient bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public int? FromBytesToInt32(byte[] value)
-    {
-        return FromBytesToInt32(value, false);
-    }
+    public int? FromBytesToInt32(byte[] value) => FromBytesToInt32(value, false);
 
     /// <summary>
     ///     Converts bytes to a 32-bit signed integer.
@@ -189,23 +131,8 @@ public partial class LibraryBase
     /// <returns>Converted 32-bit signed integer, or null if insufficient bytes and padIfNeeded is false.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public int? FromBytesToInt32(byte[] value, bool padIfNeeded)
-    {
-        if (value == null)
-            return null;
-
-        if (value.Length < sizeof(int))
-        {
-            if (!padIfNeeded)
-                return null;
-
-            value = PadBytes(value, sizeof(int));
-            if (value == null)
-                return null;
-        }
-
-        return BitConverter.ToInt32(value, 0);
-    }
+    public int? FromBytesToInt32(byte[] value, bool padIfNeeded) =>
+        FromBytesCore(value, padIfNeeded, sizeof(int), BitConverter.ToInt32);
 
     /// <summary>
     ///     Converts bytes to a 32-bit unsigned integer.
@@ -214,10 +141,7 @@ public partial class LibraryBase
     /// <returns>Converted 32-bit unsigned integer, or null if insufficient bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public uint? FromBytesToUInt32(byte[] value)
-    {
-        return FromBytesToUInt32(value, false);
-    }
+    public uint? FromBytesToUInt32(byte[] value) => FromBytesToUInt32(value, false);
 
     /// <summary>
     ///     Converts bytes to a 32-bit unsigned integer.
@@ -227,23 +151,8 @@ public partial class LibraryBase
     /// <returns>Converted 32-bit unsigned integer, or null if insufficient bytes and padIfNeeded is false.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public uint? FromBytesToUInt32(byte[] value, bool padIfNeeded)
-    {
-        if (value == null)
-            return null;
-
-        if (value.Length < sizeof(uint))
-        {
-            if (!padIfNeeded)
-                return null;
-
-            value = PadBytes(value, sizeof(uint));
-            if (value == null)
-                return null;
-        }
-
-        return BitConverter.ToUInt32(value, 0);
-    }
+    public uint? FromBytesToUInt32(byte[] value, bool padIfNeeded) =>
+        FromBytesCore(value, padIfNeeded, sizeof(uint), BitConverter.ToUInt32);
 
     /// <summary>
     ///     Converts bytes to a 64-bit signed integer.
@@ -252,10 +161,7 @@ public partial class LibraryBase
     /// <returns>Converted 64-bit signed integer, or null if insufficient bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public long? FromBytesToInt64(byte[] value)
-    {
-        return FromBytesToInt64(value, false);
-    }
+    public long? FromBytesToInt64(byte[] value) => FromBytesToInt64(value, false);
 
     /// <summary>
     ///     Converts bytes to a 64-bit signed integer.
@@ -265,23 +171,8 @@ public partial class LibraryBase
     /// <returns>Converted 64-bit signed integer, or null if insufficient bytes and padIfNeeded is false.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public long? FromBytesToInt64(byte[] value, bool padIfNeeded)
-    {
-        if (value == null)
-            return null;
-
-        if (value.Length < sizeof(long))
-        {
-            if (!padIfNeeded)
-                return null;
-
-            value = PadBytes(value, sizeof(long));
-            if (value == null)
-                return null;
-        }
-
-        return BitConverter.ToInt64(value, 0);
-    }
+    public long? FromBytesToInt64(byte[] value, bool padIfNeeded) =>
+        FromBytesCore(value, padIfNeeded, sizeof(long), BitConverter.ToInt64);
 
     /// <summary>
     ///     Converts bytes to a 64-bit unsigned integer.
@@ -290,10 +181,7 @@ public partial class LibraryBase
     /// <returns>Converted 64-bit unsigned integer, or null if insufficient bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public ulong? FromBytesToUInt64(byte[] value)
-    {
-        return FromBytesToUInt64(value, false);
-    }
+    public ulong? FromBytesToUInt64(byte[] value) => FromBytesToUInt64(value, false);
 
     /// <summary>
     ///     Converts bytes to a 64-bit unsigned integer.
@@ -303,23 +191,8 @@ public partial class LibraryBase
     /// <returns>Converted 64-bit unsigned integer, or null if insufficient bytes and padIfNeeded is false.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public ulong? FromBytesToUInt64(byte[] value, bool padIfNeeded)
-    {
-        if (value == null)
-            return null;
-
-        if (value.Length < sizeof(ulong))
-        {
-            if (!padIfNeeded)
-                return null;
-
-            value = PadBytes(value, sizeof(ulong));
-            if (value == null)
-                return null;
-        }
-
-        return BitConverter.ToUInt64(value, 0);
-    }
+    public ulong? FromBytesToUInt64(byte[] value, bool padIfNeeded) =>
+        FromBytesCore(value, padIfNeeded, sizeof(ulong), BitConverter.ToUInt64);
 
     /// <summary>
     ///     Converts bytes to a half-precision floating point value.
@@ -328,10 +201,7 @@ public partial class LibraryBase
     /// <returns>Converted half-precision floating point value, or null if insufficient bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public Half? FromBytesToHalf(byte[] value)
-    {
-        return FromBytesToHalf(value, false);
-    }
+    public Half? FromBytesToHalf(byte[] value) => FromBytesToHalf(value, false);
 
     /// <summary>
     ///     Converts bytes to a half-precision floating point value.
@@ -341,24 +211,8 @@ public partial class LibraryBase
     /// <returns>Converted half-precision floating point value, or null if insufficient bytes and padIfNeeded is false.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public Half? FromBytesToHalf(byte[] value, bool padIfNeeded)
-    {
-        const int halfSize = 2;
-        if (value == null)
-            return null;
-
-        if (value.Length < halfSize)
-        {
-            if (!padIfNeeded)
-                return null;
-
-            value = PadBytes(value, halfSize);
-            if (value == null)
-                return null;
-        }
-
-        return BitConverter.ToHalf(value, 0);
-    }
+    public Half? FromBytesToHalf(byte[] value, bool padIfNeeded) =>
+        FromBytesCore(value, padIfNeeded, 2, BitConverter.ToHalf);
 
     /// <summary>
     ///     Converts bytes to a float value.
@@ -367,10 +221,7 @@ public partial class LibraryBase
     /// <returns>The float value, or null if insufficient bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public float? FromBytesToFloat(byte[] value)
-    {
-        return FromBytesToFloat(value, false);
-    }
+    public float? FromBytesToFloat(byte[] value) => FromBytesToFloat(value, false);
 
     /// <summary>
     ///     Converts bytes to a float value.
@@ -380,23 +231,8 @@ public partial class LibraryBase
     /// <returns>The float value, or null if insufficient bytes and padIfNeeded is false.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public float? FromBytesToFloat(byte[] value, bool padIfNeeded)
-    {
-        if (value == null)
-            return null;
-
-        if (value.Length < sizeof(float))
-        {
-            if (!padIfNeeded)
-                return null;
-
-            value = PadBytes(value, sizeof(float));
-            if (value == null)
-                return null;
-        }
-
-        return BitConverter.ToSingle(value, 0);
-    }
+    public float? FromBytesToFloat(byte[] value, bool padIfNeeded) =>
+        FromBytesCore(value, padIfNeeded, sizeof(float), BitConverter.ToSingle);
 
     /// <summary>
     ///     Converts bytes to a double value.
@@ -405,10 +241,7 @@ public partial class LibraryBase
     /// <returns>The double value, or null if insufficient bytes.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? FromBytesToDouble(byte[] value)
-    {
-        return FromBytesToDouble(value, false);
-    }
+    public double? FromBytesToDouble(byte[] value) => FromBytesToDouble(value, false);
 
     /// <summary>
     ///     Converts bytes to a double value.
@@ -418,23 +251,8 @@ public partial class LibraryBase
     /// <returns>The double value, or null if insufficient bytes and padIfNeeded is false.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Conversion)]
-    public double? FromBytesToDouble(byte[] value, bool padIfNeeded)
-    {
-        if (value == null)
-            return null;
-
-        if (value.Length < sizeof(double))
-        {
-            if (!padIfNeeded)
-                return null;
-
-            value = PadBytes(value, sizeof(double));
-            if (value == null)
-                return null;
-        }
-
-        return BitConverter.ToDouble(value, 0);
-    }
+    public double? FromBytesToDouble(byte[] value, bool padIfNeeded) =>
+        FromBytesCore(value, padIfNeeded, sizeof(double), BitConverter.ToDouble);
 
     /// <summary>
     ///     Converts bytes to a string.

@@ -68,12 +68,14 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
         node.Accept(Visitor);
     }
 
-    public virtual void Visit(ContainsNode node)
+    protected virtual void VisitBinaryNode(BinaryNode node)
     {
         node.Left.Accept(this);
         node.Right.Accept(this);
         node.Accept(Visitor);
     }
+
+    public virtual void Visit(ContainsNode node) => VisitBinaryNode(node);
 
     public virtual void Visit(AccessMethodNode node)
     {
@@ -318,12 +320,7 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
         node.Accept(Visitor);
     }
 
-    public virtual void Visit(OrNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(OrNode node) => VisitBinaryNode(node);
 
     public virtual void Visit(ShortCircuitingNodeLeft node)
     {
@@ -337,61 +334,21 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
         node.Accept(Visitor);
     }
 
-    public virtual void Visit(HyphenNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(HyphenNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(AndNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(AndNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(EqualityNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(EqualityNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(GreaterOrEqualNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(GreaterOrEqualNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(LessOrEqualNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(LessOrEqualNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(GreaterNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(GreaterNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(LessNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(LessNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(DiffNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(DiffNode node) => VisitBinaryNode(node);
 
     public virtual void Visit(NotNode node)
     {
@@ -399,26 +356,11 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
         node.Accept(Visitor);
     }
 
-    public virtual void Visit(LikeNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(LikeNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(RLikeNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(RLikeNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(InNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(InNode node) => VisitBinaryNode(node);
 
     public virtual void Visit(BetweenNode node)
     {
@@ -463,68 +405,23 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
         node.Accept(Visitor);
     }
 
-    public virtual void Visit(StarNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(StarNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(FSlashNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(FSlashNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(ModuloNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(ModuloNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(AddNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(AddNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(BitwiseAndNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(BitwiseAndNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(BitwiseOrNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(BitwiseOrNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(BitwiseXorNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(BitwiseXorNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(LeftShiftNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(LeftShiftNode node) => VisitBinaryNode(node);
 
-    public virtual void Visit(RightShiftNode node)
-    {
-        node.Left.Accept(this);
-        node.Right.Accept(this);
-        node.Accept(Visitor);
-    }
+    public virtual void Visit(RightShiftNode node) => VisitBinaryNode(node);
 
     public virtual void Visit(ArrayIndexNode node)
     {

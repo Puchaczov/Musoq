@@ -13,6 +13,17 @@ public partial class LibraryBase
         @"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
         RegexOptions.Compiled);
 
+    private static bool? ValidateNonEmptyString(string? value, Func<string, bool> validator)
+    {
+        if (value == null)
+            return null;
+
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
+
+        return validator(value);
+    }
+
     /// <summary>
     ///     Determines whether the string is a valid email address format.
     /// </summary>
@@ -22,13 +33,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Validation)]
     public bool? IsValidEmail(string? value)
     {
-        if (value == null)
-            return null;
-
-        if (string.IsNullOrWhiteSpace(value))
-            return false;
-
-        return EmailRegex.IsMatch(value);
+        return ValidateNonEmptyString(value, EmailRegex.IsMatch);
     }
 
     /// <summary>
@@ -41,17 +46,12 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Validation)]
     public bool? IsValidUrl(string? value)
     {
-        if (value == null)
-            return null;
-
-        if (string.IsNullOrWhiteSpace(value))
-            return false;
-
-        return Uri.TryCreate(value, UriKind.Absolute, out var uriResult) &&
-               (uriResult.Scheme == Uri.UriSchemeHttp ||
-                uriResult.Scheme == Uri.UriSchemeHttps ||
-                uriResult.Scheme == Uri.UriSchemeFtp ||
-                uriResult.Scheme == "ftps");
+        return ValidateNonEmptyString(value, v =>
+            Uri.TryCreate(v, UriKind.Absolute, out var uriResult) &&
+            (uriResult.Scheme == Uri.UriSchemeHttp ||
+             uriResult.Scheme == Uri.UriSchemeHttps ||
+             uriResult.Scheme == Uri.UriSchemeFtp ||
+             uriResult.Scheme == "ftps"));
     }
 
     /// <summary>
@@ -64,13 +64,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Validation)]
     public bool? IsValidUri(string? value)
     {
-        if (value == null)
-            return null;
-
-        if (string.IsNullOrWhiteSpace(value))
-            return false;
-
-        return Uri.TryCreate(value, UriKind.Absolute, out _);
+        return ValidateNonEmptyString(value, v => Uri.TryCreate(v, UriKind.Absolute, out _));
     }
 
     /// <summary>
@@ -82,21 +76,18 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Validation)]
     public bool? IsValidJson(string? value)
     {
-        if (value == null)
-            return null;
-
-        if (string.IsNullOrWhiteSpace(value))
-            return false;
-
-        try
+        return ValidateNonEmptyString(value, v =>
         {
-            using var doc = JsonDocument.Parse(value);
-            return true;
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
+            try
+            {
+                using var doc = JsonDocument.Parse(v);
+                return true;
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
+        });
     }
 
     /// <summary>
@@ -108,22 +99,19 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Validation)]
     public bool? IsValidXml(string? value)
     {
-        if (value == null)
-            return null;
-
-        if (string.IsNullOrWhiteSpace(value))
-            return false;
-
-        try
+        return ValidateNonEmptyString(value, v =>
         {
-            var doc = new XmlDocument();
-            doc.LoadXml(value);
-            return true;
-        }
-        catch (XmlException)
-        {
-            return false;
-        }
+            try
+            {
+                var doc = new XmlDocument();
+                doc.LoadXml(v);
+                return true;
+            }
+            catch (XmlException)
+            {
+                return false;
+            }
+        });
     }
 
     /// <summary>
@@ -135,13 +123,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Validation)]
     public bool? IsValidGuid(string? value)
     {
-        if (value == null)
-            return null;
-
-        if (string.IsNullOrWhiteSpace(value))
-            return false;
-
-        return Guid.TryParse(value, out _);
+        return ValidateNonEmptyString(value, v => Guid.TryParse(v, out _));
     }
 
     /// <summary>
@@ -153,13 +135,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Validation)]
     public bool? IsValidInteger(string? value)
     {
-        if (value == null)
-            return null;
-
-        if (string.IsNullOrWhiteSpace(value))
-            return false;
-
-        return long.TryParse(value, out _);
+        return ValidateNonEmptyString(value, v => long.TryParse(v, out _));
     }
 
     /// <summary>
@@ -171,13 +147,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Validation)]
     public bool? IsValidDecimal(string? value)
     {
-        if (value == null)
-            return null;
-
-        if (string.IsNullOrWhiteSpace(value))
-            return false;
-
-        return decimal.TryParse(value, out _);
+        return ValidateNonEmptyString(value, v => decimal.TryParse(v, out _));
     }
 
     /// <summary>
@@ -189,13 +159,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Validation)]
     public bool? IsValidDateTime(string? value)
     {
-        if (value == null)
-            return null;
-
-        if (string.IsNullOrWhiteSpace(value))
-            return false;
-
-        return DateTimeOffset.TryParse(value, out _);
+        return ValidateNonEmptyString(value, v => DateTimeOffset.TryParse(v, out _));
     }
 
     /// <summary>

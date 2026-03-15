@@ -85,15 +85,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Cryptography)]
     public string? HmacSha256(string? message, string? key)
     {
-        if (message == null || key == null)
-            return null;
-
-        var keyBytes = Encoding.UTF8.GetBytes(key);
-        var messageBytes = Encoding.UTF8.GetBytes(message);
-
-        using var hmac = new HMACSHA256(keyBytes);
-        var hash = hmac.ComputeHash(messageBytes);
-        return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+        return ComputeHmac(message, key, keyBytes => new HMACSHA256(keyBytes));
     }
 
     /// <summary>
@@ -106,13 +98,18 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Cryptography)]
     public string? HmacSha512(string? message, string? key)
     {
+        return ComputeHmac(message, key, keyBytes => new HMACSHA512(keyBytes));
+    }
+
+    private static string? ComputeHmac(string? message, string? key, Func<byte[], HMAC> hmacFactory)
+    {
         if (message == null || key == null)
             return null;
 
         var keyBytes = Encoding.UTF8.GetBytes(key);
         var messageBytes = Encoding.UTF8.GetBytes(message);
 
-        using var hmac = new HMACSHA512(keyBytes);
+        using var hmac = hmacFactory(keyBytes);
         var hash = hmac.ComputeHash(messageBytes);
         return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
     }

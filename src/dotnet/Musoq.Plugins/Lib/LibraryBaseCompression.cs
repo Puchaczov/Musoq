@@ -8,6 +8,39 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
+    private static string DecompressToString(byte[] data, Encoding encoding, Func<Stream, Stream> createDecompressionStream)
+    {
+        using var inputStream = new MemoryStream(data);
+        using var decompressionStream = createDecompressionStream(inputStream);
+        using var outputStream = new MemoryStream();
+
+        decompressionStream.CopyTo(outputStream);
+        return encoding.GetString(outputStream.ToArray());
+    }
+
+    private static byte[] DecompressToBytesCore(byte[] data, Func<Stream, Stream> createDecompressionStream)
+    {
+        using var inputStream = new MemoryStream(data);
+        using var decompressionStream = createDecompressionStream(inputStream);
+        using var outputStream = new MemoryStream();
+
+        decompressionStream.CopyTo(outputStream);
+        return outputStream.ToArray();
+    }
+
+    private static byte[] CompressCore(byte[] data, Func<Stream, Stream> createCompressionStream)
+    {
+        using var outputStream = new MemoryStream();
+        using (var compressionStream = createCompressionStream(outputStream))
+        {
+            compressionStream.Write(data, 0, data.Length);
+        }
+
+        return outputStream.ToArray();
+    }
+
+    #region ZLib
+
     /// <summary>
     ///     Decompresses a zlib-compressed byte array and returns it as a UTF-8 string.
     /// </summary>
@@ -20,7 +53,7 @@ public partial class LibraryBase
         if (compressedData == null || compressedData.Length == 0)
             return null;
 
-        return DecompressZLib(compressedData, Encoding.UTF8);
+        return DecompressToString(compressedData, Encoding.UTF8, s => new ZLibStream(s, CompressionMode.Decompress));
     }
 
     /// <summary>
@@ -36,18 +69,7 @@ public partial class LibraryBase
         if (compressedData == null || compressedData.Length == 0)
             return null;
 
-        var encoding = Encoding.GetEncoding(encodingName);
-        return DecompressZLib(compressedData, encoding);
-    }
-
-    private static string DecompressZLib(byte[] compressedData, Encoding encoding)
-    {
-        using var inputStream = new MemoryStream(compressedData);
-        using var zlibStream = new ZLibStream(inputStream, CompressionMode.Decompress);
-        using var outputStream = new MemoryStream();
-
-        zlibStream.CopyTo(outputStream);
-        return encoding.GetString(outputStream.ToArray());
+        return DecompressToString(compressedData, Encoding.GetEncoding(encodingName), s => new ZLibStream(s, CompressionMode.Decompress));
     }
 
     /// <summary>
@@ -62,12 +84,7 @@ public partial class LibraryBase
         if (compressedData == null || compressedData.Length == 0)
             return null;
 
-        using var inputStream = new MemoryStream(compressedData);
-        using var zlibStream = new ZLibStream(inputStream, CompressionMode.Decompress);
-        using var outputStream = new MemoryStream();
-
-        zlibStream.CopyTo(outputStream);
-        return outputStream.ToArray();
+        return DecompressToBytesCore(compressedData, s => new ZLibStream(s, CompressionMode.Decompress));
     }
 
     /// <summary>
@@ -83,8 +100,7 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(base64CompressedData))
             return null;
 
-        var compressedBytes = Convert.FromBase64String(base64CompressedData);
-        return DecompressZLib(compressedBytes);
+        return DecompressZLib(Convert.FromBase64String(base64CompressedData));
     }
 
     /// <summary>
@@ -100,8 +116,7 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(base64CompressedData))
             return null;
 
-        var compressedBytes = Convert.FromBase64String(base64CompressedData);
-        return DecompressZLib(compressedBytes, encodingName);
+        return DecompressZLib(Convert.FromBase64String(base64CompressedData), encodingName);
     }
 
     /// <summary>
@@ -131,13 +146,7 @@ public partial class LibraryBase
         if (data == null || data.Length == 0)
             return null;
 
-        using var outputStream = new MemoryStream();
-        using (var zlibStream = new ZLibStream(outputStream, CompressionLevel.Optimal))
-        {
-            zlibStream.Write(data, 0, data.Length);
-        }
-
-        return outputStream.ToArray();
+        return CompressCore(data, s => new ZLibStream(s, CompressionLevel.Optimal));
     }
 
     /// <summary>
@@ -156,6 +165,10 @@ public partial class LibraryBase
         return compressedBytes != null ? Convert.ToBase64String(compressedBytes) : null;
     }
 
+    #endregion
+
+    #region GZip
+
     /// <summary>
     ///     Decompresses a GZip-compressed byte array and returns it as a UTF-8 string.
     /// </summary>
@@ -168,7 +181,7 @@ public partial class LibraryBase
         if (compressedData == null || compressedData.Length == 0)
             return null;
 
-        return DecompressGZip(compressedData, Encoding.UTF8);
+        return DecompressToString(compressedData, Encoding.UTF8, s => new GZipStream(s, CompressionMode.Decompress));
     }
 
     /// <summary>
@@ -184,18 +197,7 @@ public partial class LibraryBase
         if (compressedData == null || compressedData.Length == 0)
             return null;
 
-        var encoding = Encoding.GetEncoding(encodingName);
-        return DecompressGZip(compressedData, encoding);
-    }
-
-    private static string DecompressGZip(byte[] compressedData, Encoding encoding)
-    {
-        using var inputStream = new MemoryStream(compressedData);
-        using var gzipStream = new GZipStream(inputStream, CompressionMode.Decompress);
-        using var outputStream = new MemoryStream();
-
-        gzipStream.CopyTo(outputStream);
-        return encoding.GetString(outputStream.ToArray());
+        return DecompressToString(compressedData, Encoding.GetEncoding(encodingName), s => new GZipStream(s, CompressionMode.Decompress));
     }
 
     /// <summary>
@@ -210,12 +212,7 @@ public partial class LibraryBase
         if (compressedData == null || compressedData.Length == 0)
             return null;
 
-        using var inputStream = new MemoryStream(compressedData);
-        using var gzipStream = new GZipStream(inputStream, CompressionMode.Decompress);
-        using var outputStream = new MemoryStream();
-
-        gzipStream.CopyTo(outputStream);
-        return outputStream.ToArray();
+        return DecompressToBytesCore(compressedData, s => new GZipStream(s, CompressionMode.Decompress));
     }
 
     /// <summary>
@@ -230,8 +227,7 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(base64CompressedData))
             return null;
 
-        var compressedBytes = Convert.FromBase64String(base64CompressedData);
-        return DecompressGZip(compressedBytes);
+        return DecompressGZip(Convert.FromBase64String(base64CompressedData));
     }
 
     /// <summary>
@@ -247,8 +243,7 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(base64CompressedData))
             return null;
 
-        var compressedBytes = Convert.FromBase64String(base64CompressedData);
-        return DecompressGZip(compressedBytes, encodingName);
+        return DecompressGZip(Convert.FromBase64String(base64CompressedData), encodingName);
     }
 
     /// <summary>
@@ -278,13 +273,7 @@ public partial class LibraryBase
         if (data == null || data.Length == 0)
             return null;
 
-        using var outputStream = new MemoryStream();
-        using (var gzipStream = new GZipStream(outputStream, CompressionLevel.Optimal))
-        {
-            gzipStream.Write(data, 0, data.Length);
-        }
-
-        return outputStream.ToArray();
+        return CompressCore(data, s => new GZipStream(s, CompressionLevel.Optimal));
     }
 
     /// <summary>
@@ -303,6 +292,10 @@ public partial class LibraryBase
         return compressedBytes != null ? Convert.ToBase64String(compressedBytes) : null;
     }
 
+    #endregion
+
+    #region Deflate
+
     /// <summary>
     ///     Decompresses a Deflate-compressed byte array and returns it as a UTF-8 string.
     /// </summary>
@@ -315,7 +308,7 @@ public partial class LibraryBase
         if (compressedData == null || compressedData.Length == 0)
             return null;
 
-        return DecompressDeflate(compressedData, Encoding.UTF8);
+        return DecompressToString(compressedData, Encoding.UTF8, s => new DeflateStream(s, CompressionMode.Decompress));
     }
 
     /// <summary>
@@ -331,18 +324,7 @@ public partial class LibraryBase
         if (compressedData == null || compressedData.Length == 0)
             return null;
 
-        var encoding = Encoding.GetEncoding(encodingName);
-        return DecompressDeflate(compressedData, encoding);
-    }
-
-    private static string DecompressDeflate(byte[] compressedData, Encoding encoding)
-    {
-        using var inputStream = new MemoryStream(compressedData);
-        using var deflateStream = new DeflateStream(inputStream, CompressionMode.Decompress);
-        using var outputStream = new MemoryStream();
-
-        deflateStream.CopyTo(outputStream);
-        return encoding.GetString(outputStream.ToArray());
+        return DecompressToString(compressedData, Encoding.GetEncoding(encodingName), s => new DeflateStream(s, CompressionMode.Decompress));
     }
 
     /// <summary>
@@ -357,12 +339,7 @@ public partial class LibraryBase
         if (compressedData == null || compressedData.Length == 0)
             return null;
 
-        using var inputStream = new MemoryStream(compressedData);
-        using var deflateStream = new DeflateStream(inputStream, CompressionMode.Decompress);
-        using var outputStream = new MemoryStream();
-
-        deflateStream.CopyTo(outputStream);
-        return outputStream.ToArray();
+        return DecompressToBytesCore(compressedData, s => new DeflateStream(s, CompressionMode.Decompress));
     }
 
     /// <summary>
@@ -377,8 +354,7 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(base64CompressedData))
             return null;
 
-        var compressedBytes = Convert.FromBase64String(base64CompressedData);
-        return DecompressDeflate(compressedBytes);
+        return DecompressDeflate(Convert.FromBase64String(base64CompressedData));
     }
 
     /// <summary>
@@ -395,8 +371,7 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(base64CompressedData))
             return null;
 
-        var compressedBytes = Convert.FromBase64String(base64CompressedData);
-        return DecompressDeflate(compressedBytes, encodingName);
+        return DecompressDeflate(Convert.FromBase64String(base64CompressedData), encodingName);
     }
 
     /// <summary>
@@ -426,13 +401,7 @@ public partial class LibraryBase
         if (data == null || data.Length == 0)
             return null;
 
-        using var outputStream = new MemoryStream();
-        using (var deflateStream = new DeflateStream(outputStream, CompressionLevel.Optimal))
-        {
-            deflateStream.Write(data, 0, data.Length);
-        }
-
-        return outputStream.ToArray();
+        return CompressCore(data, s => new DeflateStream(s, CompressionLevel.Optimal));
     }
 
     /// <summary>
@@ -451,7 +420,9 @@ public partial class LibraryBase
         return compressedBytes != null ? Convert.ToBase64String(compressedBytes) : null;
     }
 
-    #region Brotli Compression
+    #endregion
+
+    #region Brotli
 
     /// <summary>
     ///     Decompresses a Brotli-compressed byte array and returns it as a UTF-8 string.
@@ -466,7 +437,7 @@ public partial class LibraryBase
         if (compressedData == null || compressedData.Length == 0)
             return null;
 
-        return DecompressBrotli(compressedData, Encoding.UTF8);
+        return DecompressToString(compressedData, Encoding.UTF8, s => new BrotliStream(s, CompressionMode.Decompress));
     }
 
     /// <summary>
@@ -482,18 +453,7 @@ public partial class LibraryBase
         if (compressedData == null || compressedData.Length == 0)
             return null;
 
-        var encoding = Encoding.GetEncoding(encodingName);
-        return DecompressBrotli(compressedData, encoding);
-    }
-
-    private static string DecompressBrotli(byte[] compressedData, Encoding encoding)
-    {
-        using var inputStream = new MemoryStream(compressedData);
-        using var brotliStream = new BrotliStream(inputStream, CompressionMode.Decompress);
-        using var outputStream = new MemoryStream();
-
-        brotliStream.CopyTo(outputStream);
-        return encoding.GetString(outputStream.ToArray());
+        return DecompressToString(compressedData, Encoding.GetEncoding(encodingName), s => new BrotliStream(s, CompressionMode.Decompress));
     }
 
     /// <summary>
@@ -508,12 +468,7 @@ public partial class LibraryBase
         if (compressedData == null || compressedData.Length == 0)
             return null;
 
-        using var inputStream = new MemoryStream(compressedData);
-        using var brotliStream = new BrotliStream(inputStream, CompressionMode.Decompress);
-        using var outputStream = new MemoryStream();
-
-        brotliStream.CopyTo(outputStream);
-        return outputStream.ToArray();
+        return DecompressToBytesCore(compressedData, s => new BrotliStream(s, CompressionMode.Decompress));
     }
 
     /// <summary>
@@ -528,8 +483,7 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(base64CompressedData))
             return null;
 
-        var compressedBytes = Convert.FromBase64String(base64CompressedData);
-        return DecompressBrotli(compressedBytes);
+        return DecompressBrotli(Convert.FromBase64String(base64CompressedData));
     }
 
     /// <summary>
@@ -545,8 +499,7 @@ public partial class LibraryBase
         if (string.IsNullOrEmpty(base64CompressedData))
             return null;
 
-        var compressedBytes = Convert.FromBase64String(base64CompressedData);
-        return DecompressBrotli(compressedBytes, encodingName);
+        return DecompressBrotli(Convert.FromBase64String(base64CompressedData), encodingName);
     }
 
     /// <summary>
@@ -576,13 +529,7 @@ public partial class LibraryBase
         if (data == null || data.Length == 0)
             return null;
 
-        using var outputStream = new MemoryStream();
-        using (var brotliStream = new BrotliStream(outputStream, CompressionLevel.Optimal))
-        {
-            brotliStream.Write(data, 0, data.Length);
-        }
-
-        return outputStream.ToArray();
+        return CompressCore(data, s => new BrotliStream(s, CompressionLevel.Optimal));
     }
 
     /// <summary>

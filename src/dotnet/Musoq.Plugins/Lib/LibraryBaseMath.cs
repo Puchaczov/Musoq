@@ -9,19 +9,14 @@ public partial class LibraryBase
 {
     private readonly Random _rand = new();
 
-    /// <summary>
-    ///     Gets the absolute value
-    /// </summary>
-    /// <param name="value">The value</param>
-    /// <returns>Absolute value</returns>
-    [BindableMethod]
-    [MethodCategory(MethodCategories.Math)]
-    public decimal? Abs(decimal? value)
+    private static TOut? ApplyNullable<TIn, TOut>(TIn? value, Func<TIn, TOut> operation)
+        where TIn : struct
+        where TOut : struct
     {
         if (!value.HasValue)
             return null;
 
-        return Math.Abs(value.Value);
+        return operation(value.Value);
     }
 
     /// <summary>
@@ -31,13 +26,7 @@ public partial class LibraryBase
     /// <returns>Absolute value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public long? Abs(long? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return Math.Abs(value.Value);
-    }
+    public decimal? Abs(decimal? value) => ApplyNullable(value, Math.Abs);
 
     /// <summary>
     ///     Gets the absolute value
@@ -46,13 +35,16 @@ public partial class LibraryBase
     /// <returns>Absolute value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public int? Abs(int? value)
-    {
-        if (!value.HasValue)
-            return null;
+    public long? Abs(long? value) => ApplyNullable(value, Math.Abs);
 
-        return Math.Abs(value.Value);
-    }
+    /// <summary>
+    ///     Gets the absolute value
+    /// </summary>
+    /// <param name="value">The value</param>
+    /// <returns>Absolute value</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Math)]
+    public int? Abs(int? value) => ApplyNullable(value, Math.Abs);
 
     /// <summary>
     ///     Gets the ceiling value
@@ -61,13 +53,7 @@ public partial class LibraryBase
     /// <returns>Ceiling value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public decimal? Ceil(decimal? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return Math.Ceiling(value.Value);
-    }
+    public decimal? Ceil(decimal? value) => ApplyNullable(value, Math.Ceiling);
 
     /// <summary>
     ///     Gets the floor value
@@ -76,13 +62,7 @@ public partial class LibraryBase
     /// <returns>Floor value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public decimal? Floor(decimal? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return Math.Floor(value.Value);
-    }
+    public decimal? Floor(decimal? value) => ApplyNullable(value, Math.Floor);
 
     /// <summary>
     ///     Determine whether value is greater, equal or less that zero
@@ -93,15 +73,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Math)]
     public decimal? Sign(decimal? value)
     {
-        if (!value.HasValue)
-            return null;
-
-        if (value.Value > 0)
-            return 1;
-        if (value.Value == 0)
-            return 0;
-
-        return -1;
+        return ComputeSign(value);
     }
 
     /// <summary>
@@ -113,15 +85,22 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Math)]
     public long? Sign(long? value)
     {
+        return ComputeSign(value);
+    }
+
+    private static T? ComputeSign<T>(T? value) where T : struct, IComparable<T>
+    {
         if (!value.HasValue)
             return null;
 
-        if (value.Value > 0)
-            return 1;
-        if (value.Value == 0)
-            return 0;
+        var cmp = value.Value.CompareTo(default);
 
-        return -1;
+        if (cmp > 0)
+            return (T)Convert.ChangeType(1, typeof(T));
+        if (cmp == 0)
+            return (T)Convert.ChangeType(0, typeof(T));
+
+        return (T)Convert.ChangeType(-1, typeof(T));
     }
 
     /// <summary>
@@ -227,13 +206,7 @@ public partial class LibraryBase
     /// <returns>Sqrt of a value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public double? Sqrt(decimal? x)
-    {
-        if (x == null)
-            return null;
-
-        return Math.Sqrt(Convert.ToDouble(x.Value));
-    }
+    public double? Sqrt(decimal? x) => ApplyNullable(x, v => Math.Sqrt(Convert.ToDouble(v)));
 
     /// <summary>
     ///     Computes the sqrt of a given value
@@ -242,13 +215,7 @@ public partial class LibraryBase
     /// <returns>Sqrt of a value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public double? Sqrt(double? x)
-    {
-        if (x == null)
-            return null;
-
-        return Math.Sqrt(x.Value);
-    }
+    public double? Sqrt(double? x) => ApplyNullable(x, Math.Sqrt);
 
     /// <summary>
     ///     Computes the sqrt of a given value
@@ -257,13 +224,7 @@ public partial class LibraryBase
     /// <returns>Sqrt of a value</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public double? Sqrt(long? x)
-    {
-        if (x == null)
-            return null;
-
-        return Math.Sqrt(x.Value);
-    }
+    public double? Sqrt(long? x) => ApplyNullable(x, v => Math.Sqrt(v));
 
     /// <summary>
     ///     Computes the percent rank of a given window
@@ -307,78 +268,42 @@ public partial class LibraryBase
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Sine of a value.</returns>
-    public static decimal? Sin(decimal? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return (decimal)Math.Sin((double)value);
-    }
+    public static decimal? Sin(decimal? value) => ApplyNullable(value, v => (decimal)Math.Sin((double)v));
 
     /// <summary>
     ///     Calculates sine of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Sine of a value.</returns>
-    public static double? Sin(double? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return Math.Sin(value.Value);
-    }
+    public static double? Sin(double? value) => ApplyNullable(value, Math.Sin);
 
     /// <summary>
     ///     Calculates sine of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Sine of a value.</returns>
-    public static float? Sin(float? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return (float)Math.Sin(value.Value);
-    }
+    public static float? Sin(float? value) => ApplyNullable(value, v => (float)Math.Sin(v));
 
     /// <summary>
     ///     Calculates cosine of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Cosine of a value.</returns>
-    public static decimal? Cos(decimal? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return (decimal)Math.Cos((double)value);
-    }
+    public static decimal? Cos(decimal? value) => ApplyNullable(value, v => (decimal)Math.Cos((double)v));
 
     /// <summary>
     ///     Calculates cosine of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Cosine of a value.</returns>
-    public static double? Cos(double? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return Math.Cos(value.Value);
-    }
+    public static double? Cos(double? value) => ApplyNullable(value, Math.Cos);
 
     /// <summary>
     ///     Calculates cosine of a value.
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>Cosine of a value.</returns>
-    public static float? Cos(float? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return (float)Math.Cos(value.Value);
-    }
+    public static float? Cos(float? value) => ApplyNullable(value, v => (float)Math.Cos(v));
 
     /// <summary>
     ///     Calculates tangent of a value.
@@ -387,13 +312,7 @@ public partial class LibraryBase
     /// <returns>Tangent of a value.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public static decimal? Tan(decimal? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return (decimal)Math.Tan((double)value);
-    }
+    public static decimal? Tan(decimal? value) => ApplyNullable(value, v => (decimal)Math.Tan((double)v));
 
     /// <summary>
     ///     Calculates tangent of a value.
@@ -402,13 +321,7 @@ public partial class LibraryBase
     /// <returns>Tangent of a value.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public static double? Tan(double? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return Math.Tan(value.Value);
-    }
+    public static double? Tan(double? value) => ApplyNullable(value, Math.Tan);
 
     /// <summary>
     ///     Calculates e raised to the specified power.
@@ -417,13 +330,7 @@ public partial class LibraryBase
     /// <returns>e raised to the power of value.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public static decimal? Exp(decimal? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return (decimal)Math.Exp((double)value);
-    }
+    public static decimal? Exp(decimal? value) => ApplyNullable(value, v => (decimal)Math.Exp((double)v));
 
     /// <summary>
     ///     Calculates e raised to the specified power.
@@ -432,13 +339,7 @@ public partial class LibraryBase
     /// <returns>e raised to the power of value.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public static double? Exp(double? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return Math.Exp(value.Value);
-    }
+    public static double? Exp(double? value) => ApplyNullable(value, Math.Exp);
 
     /// <summary>
     ///     Calculates the natural logarithm (base e) of a value.
@@ -447,13 +348,7 @@ public partial class LibraryBase
     /// <returns>Natural logarithm of a value.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public static decimal? Ln(decimal? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return (decimal)Math.Log((double)value);
-    }
+    public static decimal? Ln(decimal? value) => ApplyNullable(value, v => (decimal)Math.Log((double)v));
 
     /// <summary>
     ///     Calculates the natural logarithm (base e) of a value.
@@ -462,13 +357,7 @@ public partial class LibraryBase
     /// <returns>Natural logarithm of a value.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public static double? Ln(double? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return Math.Log(value.Value);
-    }
+    public static double? Ln(double? value) => ApplyNullable(value, Math.Log);
 
     /// <summary>
     ///     Clamps a value to be within the specified range.
@@ -561,13 +450,7 @@ public partial class LibraryBase
     /// <returns>Base-10 logarithm of a value.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public static double? Log10(double? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return Math.Log10(value.Value);
-    }
+    public static double? Log10(double? value) => ApplyNullable(value, Math.Log10);
 
     /// <summary>
     ///     Calculates the base-2 logarithm of a value.
@@ -576,13 +459,7 @@ public partial class LibraryBase
     /// <returns>Base-2 logarithm of a value.</returns>
     [BindableMethod]
     [MethodCategory(MethodCategories.Math)]
-    public static double? Log2(double? value)
-    {
-        if (!value.HasValue)
-            return null;
-
-        return Math.Log2(value.Value);
-    }
+    public static double? Log2(double? value) => ApplyNullable(value, Math.Log2);
 
     /// <summary>
     ///     Checks if an integer value is between the specified minimum and maximum (inclusive).

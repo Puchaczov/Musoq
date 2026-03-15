@@ -6,6 +6,14 @@ namespace Musoq.Plugins;
 
 public partial class LibraryBase
 {
+    private static byte[]? GetBytesNullable<T>(T? value, Func<T, byte[]> converter) where T : struct
+    {
+        if (value == null)
+            return null;
+
+        return converter(value.Value);
+    }
+
     /// <summary>
     ///     Gets the bytes from the given string.
     /// </summary>
@@ -47,10 +55,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(char? character)
     {
-        if (character == null)
-            return null;
-
-        return BitConverter.GetBytes(character.Value);
+        return GetBytesNullable(character, BitConverter.GetBytes);
     }
 
     /// <summary>
@@ -62,10 +67,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(bool? bit)
     {
-        if (bit == null)
-            return null;
-
-        return BitConverter.GetBytes(bit.Value);
+        return GetBytesNullable(bit, BitConverter.GetBytes);
     }
 
     /// <summary>
@@ -77,10 +79,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(long? value)
     {
-        if (value == null)
-            return null;
-
-        return BitConverter.GetBytes(value.Value);
+        return GetBytesNullable(value, BitConverter.GetBytes);
     }
 
     /// <summary>
@@ -92,10 +91,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(int? value)
     {
-        if (value == null)
-            return null;
-
-        return BitConverter.GetBytes(value.Value);
+        return GetBytesNullable(value, BitConverter.GetBytes);
     }
 
     /// <summary>
@@ -107,10 +103,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(short? value)
     {
-        if (value == null)
-            return null;
-
-        return BitConverter.GetBytes(value.Value);
+        return GetBytesNullable(value, BitConverter.GetBytes);
     }
 
     /// <summary>
@@ -122,10 +115,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(ulong? value)
     {
-        if (value == null)
-            return null;
-
-        return BitConverter.GetBytes(value.Value);
+        return GetBytesNullable(value, BitConverter.GetBytes);
     }
 
     /// <summary>
@@ -137,10 +127,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(ushort? value)
     {
-        if (value == null)
-            return null;
-
-        return BitConverter.GetBytes(value.Value);
+        return GetBytesNullable(value, BitConverter.GetBytes);
     }
 
     /// <summary>
@@ -152,10 +139,7 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(uint? value)
     {
-        if (value == null)
-            return null;
-
-        return BitConverter.GetBytes(value.Value);
+        return GetBytesNullable(value, BitConverter.GetBytes);
     }
 
     /// <summary>
@@ -201,9 +185,6 @@ public partial class LibraryBase
     [MethodCategory(MethodCategories.Binary)]
     public byte[]? GetBytes(float? value)
     {
-        if (value == null)
-            return null;
-
-        return BitConverter.GetBytes(value.Value);
+        return GetBytesNullable(value, BitConverter.GetBytes);
     }
 }
