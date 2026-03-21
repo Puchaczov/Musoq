@@ -8,7 +8,7 @@ namespace Musoq.Plugins.Tests;
 ///     Tests for ToHex, FromHex, FromBytes conversion methods to improve branch coverage.
 /// </summary>
 [TestClass]
-public class ConversionMethodsTests : LibraryBaseBaseTests
+public class ConversionMethodsTests : PluginsTestBase
 {
     #region FromBytesToUInt16 Tests
 

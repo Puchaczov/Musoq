@@ -3,7 +3,7 @@
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class LogicalTests : LibraryBaseBaseTests
+public class LogicalTests : PluginsTestBase
 {
     [TestMethod]
     public void ChooseTest()

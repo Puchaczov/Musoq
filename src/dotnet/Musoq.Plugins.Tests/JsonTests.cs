@@ -4,7 +4,7 @@ using Musoq.Plugins.Helpers;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class JsonTests : LibraryBaseBaseTests
+public class JsonTests : PluginsTestBase
 {
     private static readonly int[] Obj = [1, 2, 3];
 

@@ -6,7 +6,7 @@ namespace Musoq.Plugins.Tests;
 ///     Extended tests for JSON methods to improve branch coverage.
 /// </summary>
 [TestClass]
-public class JsonExtendedTests : LibraryBaseBaseTests
+public class JsonExtendedTests : PluginsTestBase
 {
     #region ToJson Tests
 

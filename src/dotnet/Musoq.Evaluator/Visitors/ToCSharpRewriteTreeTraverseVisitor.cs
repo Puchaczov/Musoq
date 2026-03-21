@@ -222,10 +222,43 @@ public class ToCSharpRewriteTreeTraverseVisitor : RawTraverseVisitor<IToCSharpTr
         node.Take?.Accept(this);
         node.Skip?.Accept(this);
         node.GroupBy?.Accept(this);
+        node.Window?.Accept(this);
         node.OrderBy?.Accept(this);
         node.Accept(Visitor);
 
         _walker = _walker.Parent();
+    }
+
+    public override void Visit(WindowFunctionNode node)
+    {
+        if (node.WindowSpecification != null)
+        {
+            foreach (var field in node.WindowSpecification.PartitionFields)
+                field.Expression.Accept(this);
+
+            foreach (var field in node.WindowSpecification.OrderByFields)
+                field.Expression.Accept(this);
+        }
+
+        if (node.FunctionCall.Arguments != null)
+        {
+            foreach (var arg in node.FunctionCall.Arguments.Args)
+                arg.Accept(this);
+        }
+
+        node.Accept(Visitor);
+    }
+
+    public override void Visit(WindowSpecificationNode node)
+    {
+    }
+
+    public override void Visit(WindowDefinitionNode node)
+    {
+    }
+
+    public override void Visit(WindowNode node)
+    {
     }
 
     public override void Visit(BetweenNode node)

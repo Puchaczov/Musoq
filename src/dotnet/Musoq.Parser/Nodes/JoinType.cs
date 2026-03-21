@@ -4,5 +4,7 @@ public enum JoinType
 {
     Inner,
     OuterLeft,
-    OuterRight
+    OuterRight,
+    AsOf,
+    AsOfLeft
 }

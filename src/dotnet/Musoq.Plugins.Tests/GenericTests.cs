@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class GenericTests : LibraryBaseBaseTests
+public class GenericTests : PluginsTestBase
 {
     #region MergeArrays Tests (existing)
 

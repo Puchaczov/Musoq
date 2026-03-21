@@ -7,7 +7,7 @@ namespace Musoq.Plugins.Tests;
 ///     Extended tests for TimeSpan methods to improve branch coverage.
 /// </summary>
 [TestClass]
-public class TimeSpanExtendedTests : LibraryBaseBaseTests
+public class TimeSpanExtendedTests : PluginsTestBase
 {
     #region AddTimeSpans Tests
 

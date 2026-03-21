@@ -7,7 +7,7 @@ namespace Musoq.Plugins.Tests;
 ///     Ensures methods return safe values instead of throwing exceptions when dealing with nulls.
 /// </summary>
 [TestClass]
-public class LibraryBaseStringsNullHandlingTests : LibraryBaseBaseTests
+public class LibraryBaseStringsNullHandlingTests : PluginsTestBase
 {
     [TestMethod]
     public void Split_WhenValueIsNull_ShouldNotThrow()

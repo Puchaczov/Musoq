@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class LibraryBaseTests : LibraryBaseBaseTests
+public class LibraryBaseTests : PluginsTestBase
 {
     [TestMethod]
     public void RowNumber_ShouldReturnRowNumber()

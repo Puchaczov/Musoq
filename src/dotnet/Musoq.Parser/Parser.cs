@@ -690,10 +690,11 @@ public class Parser
             fromNode = ComposeJoinOrApply(fromNode);
             var whereNode = ComposeWhere(false);
             var groupBy = ComposeGroupByNode();
+            var window = ComposeWindowClause();
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
             var take = ComposeTake();
-            return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
+            return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take, window);
         }
         finally
         {
@@ -711,11 +712,12 @@ public class Parser
             fromNode = ComposeJoinOrApply(fromNode);
             var whereNode = ComposeWhere(false);
             var groupBy = ComposeGroupByNode();
+            var window = ComposeWindowClause();
             var selectNode = ComposeSelectNode();
             var orderBy = ComposeOrderBy();
             var skip = ComposeSkip();
             var take = ComposeTake();
-            return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take);
+            return new QueryNode(selectNode, fromNode, whereNode, groupBy, orderBy, skip, take, window);
         }
         finally
         {
@@ -755,6 +757,16 @@ public class Parser
                     Consume(TokenType.OuterApply);
                     from = new ApplyFromNode(from, Compose(parser => parser.ComposeFrom(false, true)), ApplyType.Outer);
                     break;
+                case TokenType.AsOfJoin:
+                    var asOfToken = (AsOfJoinToken)Current;
+                    Consume(TokenType.AsOfJoin);
+                    from = new JoinFromNode(from,
+                        ComposeAndSkip(parser => parser.ComposeFrom(false), TokenType.On),
+                        ComposeOperations(),
+                        asOfToken.IsLeft
+                            ? JoinType.AsOfLeft
+                            : JoinType.AsOf);
+                    break;
             }
 
         if (from is JoinFromNode joinFrom) from = new JoinNode(joinFrom);
@@ -767,7 +779,7 @@ public class Parser
     private static bool IsJoinOrApplyToken(TokenType currentTokenType)
     {
         return currentTokenType is TokenType.InnerJoin or TokenType.OuterJoin or TokenType.CrossApply
-            or TokenType.OuterApply;
+            or TokenType.OuterApply or TokenType.AsOfJoin;
     }
 
     private OrderByNode ComposeOrderBy()
@@ -854,6 +866,83 @@ public class Parser
         return new GroupByNode(fields, having);
     }
 
+    private WindowNode ComposeWindowClause()
+    {
+        if (Current.TokenType != TokenType.Window) return null;
+
+        Consume(TokenType.Window);
+
+        var definitions = new List<WindowDefinitionNode>();
+
+        do
+        {
+            if (definitions.Count > 0)
+                Consume(TokenType.Comma);
+
+            var nameToken = Current;
+            Consume(Current.TokenType);
+            var windowName = nameToken.Value;
+
+            Consume(TokenType.As);
+
+            var spec = ComposeWindowSpecification();
+            definitions.Add(new WindowDefinitionNode(windowName, spec));
+        } while (Current.TokenType == TokenType.Comma);
+
+        return new WindowNode(definitions.ToArray());
+    }
+
+    private WindowSpecificationNode ComposeWindowSpecification()
+    {
+        Consume(TokenType.LeftParenthesis);
+
+        FieldNode[] partitionFields = null;
+        FieldOrderedNode[] orderByFields = null;
+
+        if (Current.TokenType == TokenType.PartitionBy)
+        {
+            Consume(TokenType.PartitionBy);
+            partitionFields = ComposeFields();
+        }
+
+        if (Current.TokenType == TokenType.OrderBy)
+        {
+            Consume(TokenType.OrderBy);
+            orderByFields = ComposeOrderedFields();
+        }
+
+        Consume(TokenType.RightParenthesis);
+
+        return new WindowSpecificationNode(partitionFields, orderByFields);
+    }
+
+    private Node TryComposeWindowFunction(AccessMethodNode methodNode)
+    {
+        if (Current.TokenType == TokenType.Over)
+        {
+            Consume(TokenType.Over);
+
+            if (Current.TokenType == TokenType.LeftParenthesis)
+            {
+                var spec = ComposeWindowSpecification();
+                return new WindowFunctionNode(methodNode, spec);
+            }
+
+            var windowName = Current.Value;
+            Consume(Current.TokenType);
+            return new WindowFunctionNode(methodNode, windowName);
+        }
+
+        if (Current is FunctionToken { Value: var funcName } && funcName.Equals("over", StringComparison.OrdinalIgnoreCase))
+        {
+            Consume(TokenType.Function);
+            var spec = ComposeWindowSpecification();
+            return new WindowFunctionNode(methodNode, spec);
+        }
+
+        return methodNode;
+    }
+
     private SelectNode ComposeSelectNode()
     {
         Consume(TokenType.Select);
@@ -903,6 +992,7 @@ public class Parser
                  Current.TokenType != TokenType.Skip && Current.TokenType != TokenType.Take &&
                  Current.TokenType != TokenType.Select &&
                  Current.TokenType != TokenType.OrderBy &&
+                 Current.TokenType != TokenType.Window &&
                  ConsumeAndGetToken().TokenType == TokenType.Comma);
 
         return fields.ToArray();
@@ -1480,7 +1570,7 @@ public class Parser
                 ReplaceCurrentToken(new FunctionToken(Current.Value, Current.Span));
                 return ComposeAccessMethod(string.Empty);
             case TokenType.Function:
-                return ComposeAccessMethod(string.Empty);
+                return TryComposeWindowFunction(ComposeAccessMethod(string.Empty));
             case TokenType.Identifier:
 
                 if (Current is not ColumnToken column)
@@ -1502,16 +1592,18 @@ public class Parser
                 var methodAccess = (MethodAccessToken)Current;
                 Consume(TokenType.MethodAccess);
                 Consume(TokenType.Dot);
-                return ComposeAccessMethod(methodAccess.Alias);
+                return TryComposeWindowFunction(ComposeAccessMethod(methodAccess.Alias));
             case TokenType.Property:
                 token = ConsumeAndGetToken(TokenType.Property);
                 return new PropertyValueNode(token.Value).WithSpan(token.Span);
             case TokenType.AliasedStar:
                 token = ConsumeAndGetToken(TokenType.AliasedStar);
-                return new AllColumnsNode(token.Value.Replace(".*", string.Empty)).WithSpan(token.Span);
+                return TryComposeStarModifiers(
+                    new AllColumnsNode(token.Value.Replace(".*", string.Empty)).WithSpan(token.Span));
             case TokenType.Star:
                 token = ConsumeAndGetToken(TokenType.Star);
-                return new AllColumnsNode().WithSpan(token.Span);
+                return TryComposeStarModifiers(
+                    new AllColumnsNode().WithSpan(token.Span));
             case TokenType.True:
                 token = ConsumeAndGetToken(TokenType.True);
                 return new BooleanNode(true, token.Span);
@@ -1542,6 +1634,246 @@ public class Parser
 
         throw new NotSupportedException(
             $"Token {Current.Value}({Current.TokenType}) at position {Current.Span.Start} cannot be used here.");
+    }
+
+    private Node TryComposeStarModifiers(Node node)
+    {
+        if (node is not AllColumnsNode allColumns)
+            return node;
+
+        if (!IsStarModifierStart())
+        {
+            ThrowIfNearMissStarModifier();
+            return node;
+        }
+
+        string likePattern = null;
+        var isNotLike = false;
+        string[] excludeColumns = null;
+        StarReplaceItemNode[] replaceItems = null;
+
+        if (Current.TokenType is TokenType.Like or TokenType.NotLike)
+        {
+            isNotLike = Current.TokenType == TokenType.NotLike;
+            Consume(Current.TokenType);
+
+            if (Current.TokenType != TokenType.Word && Current.TokenType != TokenType.StringLiteral)
+                throw new SyntaxException(
+                    "Expected a string pattern after LIKE in star expression.",
+                    _lexer.AlreadyResolvedQueryPart,
+                    DiagnosticCode.MQ2003_InvalidExpression,
+                    Current.Span);
+
+            likePattern = Current.Value;
+            Consume(Current.TokenType);
+        }
+
+        if (IsContextSensitiveKeyword("exclude"))
+        {
+            Consume(Current.TokenType);
+            excludeColumns = ComposeExcludeList();
+        }
+
+        if (IsContextSensitiveKeyword("replace"))
+        {
+            Consume(Current.TokenType);
+            replaceItems = ComposeReplaceList();
+        }
+
+        if (IsStarModifierStart())
+            throw new SyntaxException(
+                "Duplicate or out-of-order star modifier. Expected order: LIKE/NOT LIKE, EXCLUDE, REPLACE.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2030_UnsupportedSyntax,
+                Current.Span);
+
+        return new AllColumnsNode(
+            allColumns.Alias,
+            likePattern,
+            isNotLike,
+            excludeColumns,
+            replaceItems).WithSpan(allColumns.Span);
+    }
+
+    private bool IsStarModifierStart()
+    {
+        return Current.TokenType is TokenType.Like or TokenType.NotLike
+               || IsContextSensitiveKeyword("exclude")
+               || IsContextSensitiveKeyword("replace");
+    }
+
+    private bool IsContextSensitiveKeyword(string keyword)
+    {
+        return Current.TokenType == TokenType.Identifier
+               && string.Equals(Current.Value, keyword, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void ThrowIfNearMissStarModifier()
+    {
+        if (Current.TokenType != TokenType.Identifier)
+            return;
+
+        var value = Current.Value;
+        if (IsNearMiss(value, "exclude") || IsNearMiss(value, "replace"))
+            throw new SyntaxException(
+                $"Unknown modifier '{value}' after star expression. Did you mean EXCLUDE or REPLACE?",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2001_UnexpectedToken,
+                Current.Span);
+    }
+
+    private static bool IsNearMiss(string input, string target)
+    {
+        if (string.Equals(input, target, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (input.Length < 3)
+            return false;
+
+        if (target.StartsWith(input, StringComparison.OrdinalIgnoreCase) ||
+            input.StartsWith(target, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        var distance = LevenshteinDistance(input.ToLowerInvariant(), target.ToLowerInvariant());
+        return distance <= 2;
+    }
+
+    private static int LevenshteinDistance(string a, string b)
+    {
+        var m = a.Length;
+        var n = b.Length;
+        var dp = new int[m + 1, n + 1];
+
+        for (var i = 0; i <= m; i++) dp[i, 0] = i;
+        for (var j = 0; j <= n; j++) dp[0, j] = j;
+
+        for (var i = 1; i <= m; i++)
+        for (var j = 1; j <= n; j++)
+        {
+            var cost = a[i - 1] == b[j - 1] ? 0 : 1;
+            dp[i, j] = Math.Min(
+                Math.Min(dp[i - 1, j] + 1, dp[i, j - 1] + 1),
+                dp[i - 1, j - 1] + cost);
+        }
+
+        return dp[m, n];
+    }
+
+    private string[] ComposeExcludeList()
+    {
+        if (Current.TokenType != TokenType.LeftParenthesis)
+            throw new SyntaxException(
+                $"EXCLUDE requires a parenthesized column list. Expected '(' but found '{Current.Value}'. Usage: EXCLUDE (Column1, Column2).",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2001_UnexpectedToken,
+                Current.Span);
+
+        Consume(TokenType.LeftParenthesis);
+
+        if (Current.TokenType == TokenType.RightParenthesis)
+            throw new SyntaxException(
+                "EXCLUDE list must contain at least one column name. Usage: EXCLUDE (Column1, Column2).",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2003_InvalidExpression,
+                Current.Span);
+
+        var columns = new List<string>();
+
+        do
+        {
+            if (Current.TokenType == TokenType.Comma)
+                Consume(TokenType.Comma);
+
+            var columnName = ConsumeColumnIdentifier();
+            columns.Add(columnName);
+        } while (Current.TokenType == TokenType.Comma);
+
+        if (Current.TokenType != TokenType.RightParenthesis)
+            throw new SyntaxException(
+                $"Expected ')' to close EXCLUDE list but found '{Current.Value}'. Check for missing commas between column names.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2001_UnexpectedToken,
+                Current.Span);
+
+        Consume(TokenType.RightParenthesis);
+
+        return columns.ToArray();
+    }
+
+    private StarReplaceItemNode[] ComposeReplaceList()
+    {
+        if (Current.TokenType != TokenType.LeftParenthesis)
+            throw new SyntaxException(
+                $"REPLACE requires a parenthesized list. Expected '(' but found '{Current.Value}'. Usage: REPLACE (expression AS Column).",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2001_UnexpectedToken,
+                Current.Span);
+
+        Consume(TokenType.LeftParenthesis);
+
+        if (Current.TokenType == TokenType.RightParenthesis)
+            throw new SyntaxException(
+                "REPLACE list must contain at least one replacement. Usage: REPLACE (expression AS Column).",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2003_InvalidExpression,
+                Current.Span);
+
+        var items = new List<StarReplaceItemNode>();
+
+        do
+        {
+            if (Current.TokenType == TokenType.Comma)
+                Consume(TokenType.Comma);
+
+            var expression = ComposeOperations();
+
+            if (Current.TokenType != TokenType.As)
+                throw new SyntaxException(
+                    $"Expected AS keyword after expression in REPLACE item but found '{Current.Value}'. Usage: REPLACE (expression AS ColumnName).",
+                    _lexer.AlreadyResolvedQueryPart,
+                    DiagnosticCode.MQ2001_UnexpectedToken,
+                    Current.Span);
+
+            Consume(TokenType.As);
+
+            var columnName = ConsumeColumnIdentifier();
+
+            items.Add(new StarReplaceItemNode(expression, columnName));
+        } while (Current.TokenType == TokenType.Comma);
+
+        if (Current.TokenType != TokenType.RightParenthesis)
+            throw new SyntaxException(
+                $"Expected ')' to close REPLACE list but found '{Current.Value}'. Check for missing commas between items.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2001_UnexpectedToken,
+                Current.Span);
+
+        Consume(TokenType.RightParenthesis);
+
+        return items.ToArray();
+    }
+
+    private string ConsumeColumnIdentifier()
+    {
+        if (Current.TokenType is TokenType.Identifier or TokenType.Word)
+        {
+            var name = Current.Value;
+            Consume(Current.TokenType);
+            return name;
+        }
+
+        if (IsSqlKeywordToken(Current.TokenType))
+        {
+            var name = Current.Value;
+            Consume(Current.TokenType);
+            return name;
+        }
+
+        throw new SyntaxException(
+            $"Expected a column name but found '{Current.Value}'.",
+            _lexer.AlreadyResolvedQueryPart,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            Current.Span);
     }
 
     private ((Node When, Node Then)[] WhenThenNodes, Node ElseNode) ComposeCase()

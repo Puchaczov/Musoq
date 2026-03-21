@@ -107,6 +107,10 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
 
     public virtual void Visit(AllColumnsNode node)
     {
+        if (node.ReplaceItems is { Length: > 0 })
+            foreach (var replaceItem in node.ReplaceItems)
+                replaceItem.Expression.Accept(this);
+
         node.Accept(Visitor);
     }
 
@@ -316,6 +320,7 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
         node.Take?.Accept(this);
         node.Skip?.Accept(this);
         node.GroupBy?.Accept(this);
+        node.Window?.Accept(this);
         node.OrderBy?.Accept(this);
         node.Accept(Visitor);
     }
@@ -697,6 +702,35 @@ public class RawTraverseVisitor<TExpressionVisitor> : IExpressionVisitor
     {
         foreach (var field in node.Fields)
             field.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(WindowFunctionNode node)
+    {
+        node.FunctionCall.Accept(this);
+        node.WindowSpecification?.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(WindowSpecificationNode node)
+    {
+        foreach (var field in node.PartitionFields)
+            field.Accept(this);
+        foreach (var field in node.OrderByFields)
+            field.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(WindowDefinitionNode node)
+    {
+        node.Specification.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public virtual void Visit(WindowNode node)
+    {
+        foreach (var definition in node.Definitions)
+            definition.Accept(this);
         node.Accept(Visitor);
     }
 

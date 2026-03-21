@@ -3,7 +3,7 @@
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class MaxTests : LibraryBaseBaseTests
+public class MaxTests : PluginsTestBase
 {
     [TestMethod]
     public void MaxIntTest()

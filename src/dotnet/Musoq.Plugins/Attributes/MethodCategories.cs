@@ -84,4 +84,9 @@ public static class MethodCategories
     ///     Binary and text data interpretation using schema definitions.
     /// </summary>
     public const string Interpretation = "Interpretation";
+
+    /// <summary>
+    ///     Window functions for OVER clause computations.
+    /// </summary>
+    public const string Window = "Window";
 }

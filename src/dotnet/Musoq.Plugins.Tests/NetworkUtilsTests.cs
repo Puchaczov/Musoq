@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class NetworkUtilsTests : LibraryBaseBaseTests
+public class NetworkUtilsTests : PluginsTestBase
 {
     #region IsPrivateIP Tests
 

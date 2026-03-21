@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class CryptoTests : LibraryBaseBaseTests
+public class CryptoTests : PluginsTestBase
 {
     #region SHA384 Tests
 

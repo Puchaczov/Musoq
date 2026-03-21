@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class TimeSpanTests : LibraryBaseBaseTests
+public class TimeSpanTests : PluginsTestBase
 {
     [TestMethod]
     public void SumTimeSpanTest()

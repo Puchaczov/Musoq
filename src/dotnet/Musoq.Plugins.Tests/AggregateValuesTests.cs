@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class AggregateValuesTests : LibraryBaseBaseTests
+public class AggregateValuesTests : PluginsTestBase
 {
     #region String Null Tests
 

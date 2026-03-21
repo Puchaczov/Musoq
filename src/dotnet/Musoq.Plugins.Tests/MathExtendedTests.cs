@@ -7,7 +7,7 @@ namespace Musoq.Plugins.Tests;
 ///     Extended tests for math methods in LibraryBaseMath.cs to improve branch coverage
 /// </summary>
 [TestClass]
-public class MathExtendedTests : LibraryBaseBaseTests
+public class MathExtendedTests : PluginsTestBase
 {
     #region Abs Tests
 

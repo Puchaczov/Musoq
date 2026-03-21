@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class FromBytesMethodsTests : LibraryBaseBaseTests
+public class FromBytesMethodsTests : PluginsTestBase
 {
     [TestMethod]
     public void FromBytesToBool_ShouldReturnBoolean()

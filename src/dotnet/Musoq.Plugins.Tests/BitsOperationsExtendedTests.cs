@@ -7,7 +7,7 @@ namespace Musoq.Plugins.Tests;
 ///     to improve branch coverage.
 /// </summary>
 [TestClass]
-public class BitsOperationsExtendedTests : LibraryBaseBaseTests
+public class BitsOperationsExtendedTests : PluginsTestBase
 {
     #region ShiftLeft Extended Tests
 

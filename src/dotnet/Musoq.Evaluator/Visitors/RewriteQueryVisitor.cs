@@ -295,7 +295,23 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(AllColumnsNode node)
     {
-        Nodes.Push(new AllColumnsNode(node.Alias));
+        StarReplaceItemNode[] rewrittenReplaceItems = null;
+        if (node.ReplaceItems is { Length: > 0 })
+        {
+            rewrittenReplaceItems = new StarReplaceItemNode[node.ReplaceItems.Length];
+            for (var i = node.ReplaceItems.Length - 1; i >= 0; i--)
+            {
+                var rewrittenExpr = Nodes.Pop();
+                rewrittenReplaceItems[i] = new StarReplaceItemNode(rewrittenExpr, node.ReplaceItems[i].ColumnName);
+            }
+        }
+
+        Nodes.Push(new AllColumnsNode(
+            node.Alias,
+            node.LikePattern,
+            node.IsNotLike,
+            node.ExcludeColumns,
+            rewrittenReplaceItems ?? node.ReplaceItems));
     }
 
     public void Visit(IdentifierNode node)
@@ -497,6 +513,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     public void Visit(QueryNode node)
     {
         var orderBy = node.OrderBy != null ? Nodes.Pop() as OrderByNode : null;
+        var window = node.Window != null ? Nodes.Pop() as WindowNode : null;
         var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
 
         var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
@@ -817,10 +834,14 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
             select.Accept(partsTraverser);
             where?.Accept(partsTraverser);
             orderBy?.Accept(partsTraverser);
+            window?.Accept(partsTraverser);
 
             scoreSelect = rewriter.ChangedSelect;
             scoreWhere = rewriter.ChangedWhere;
             scoreOrderBy = rewriter.ChangedOrderBy;
+
+            if (rewriter.ChangedWindow != null)
+                window = rewriter.ChangedWindow;
 
             previousAliases.Pop();
             indexBasedContextsPositionsSymbol.Add(previousAliases.ToArray());
@@ -924,7 +945,8 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
                 modifiedOrderBy,
                 skip,
                 take,
-                returnScore);
+                returnScore,
+                window);
 
             splitNodes.Add(new CreateTransformationTableNode(destination, [], transformingQuery.Select.Fields, true));
             splitNodes.Add(transformingQuery);
@@ -963,7 +985,7 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
             splitNodes.Add(new CreateTransformationTableNode(scopeResultQuery[MetaAttributes.SelectIntoVariableName],
                 [], select.Fields, false));
             splitNodes.Add(new DetailedQueryNode(scoreSelect, newFrom, scoreWhere, null, scoreOrderBy, skip, take,
-                scopeResultQuery[MetaAttributes.SelectIntoVariableName]));
+                scopeResultQuery[MetaAttributes.SelectIntoVariableName], window));
 
             Nodes.Push(
                 new MultiStatementNode(
@@ -1245,6 +1267,30 @@ public sealed class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     public void Visit(InlineSchemaTypeNode node)
     {
+    }
+
+    public void Visit(WindowFunctionNode node)
+    {
+        Nodes.Push(node);
+    }
+
+    public void Visit(WindowSpecificationNode node)
+    {
+        Nodes.Push(node);
+    }
+
+    public void Visit(WindowDefinitionNode node)
+    {
+        Nodes.Push(node);
+    }
+
+    public void Visit(WindowNode node)
+    {
+        var definitions = new WindowDefinitionNode[node.Definitions.Length];
+        for (var i = node.Definitions.Length - 1; i >= 0; i--)
+            definitions[i] = (WindowDefinitionNode)Nodes.Pop();
+
+        Nodes.Push(new WindowNode(definitions));
     }
 
     private void VisitAccessMethod(AccessMethodNode node)

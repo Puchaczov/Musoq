@@ -8,7 +8,7 @@ namespace Musoq.Plugins.Tests;
 ///     Extended tests for FromBytes conversion methods to improve branch coverage
 /// </summary>
 [TestClass]
-public class FromBytesExtendedTests : LibraryBaseBaseTests
+public class FromBytesExtendedTests : PluginsTestBase
 {
     #region FromBytesToUInt64 Tests
 

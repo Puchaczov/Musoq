@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class LibraryBaseStrictConversionsDecimalTests : LibraryBaseBaseTests
+public class LibraryBaseStrictConversionsDecimalTests : PluginsTestBase
 {
     #region TryConvertToDecimalStrict Tests
 

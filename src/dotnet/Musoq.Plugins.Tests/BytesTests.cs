@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class BytesTests : LibraryBaseBaseTests
+public class BytesTests : PluginsTestBase
 {
     #region Existing Tests
 

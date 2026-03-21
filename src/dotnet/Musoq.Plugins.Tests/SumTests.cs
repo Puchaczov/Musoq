@@ -3,7 +3,7 @@
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class SumTests : LibraryBaseBaseTests
+public class SumTests : PluginsTestBase
 {
     #region Existing Tests
 

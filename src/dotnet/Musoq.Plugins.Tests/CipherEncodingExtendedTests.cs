@@ -7,7 +7,7 @@ namespace Musoq.Plugins.Tests;
 ///     Tests Rot13, Rot47, ToMorse, FromMorse, ToUnicodeEscape, FromUnicodeEscape, ToBinaryString, FromBinaryString.
 /// </summary>
 [TestClass]
-public class CipherEncodingExtendedTests : LibraryBaseBaseTests
+public class CipherEncodingExtendedTests : PluginsTestBase
 {
     #region Rot13 Tests
 

@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class ToCharMethodsTests : LibraryBaseBaseTests
+public class ToCharMethodsTests : PluginsTestBase
 {
     #region String ToChar Tests
 

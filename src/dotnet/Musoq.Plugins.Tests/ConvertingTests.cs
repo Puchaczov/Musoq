@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class ConvertingTests : LibraryBaseBaseTests
+public class ConvertingTests : PluginsTestBase
 {
     [TestMethod]
     public void ToDecimalTest()

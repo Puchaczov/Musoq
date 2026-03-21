@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Visitors.CodeGeneration;
 using Musoq.Parser.Nodes;
 using Musoq.Schema.DataSources;
 
@@ -15,6 +16,13 @@ namespace Musoq.Evaluator.Visitors.Helpers;
 public static class CaseNodeProcessor
 {
     /// <summary>
+    ///     Bundles optional context for CASE method parameter generation.
+    /// </summary>
+    public sealed record CaseMethodContext(
+        IReadOnlyList<(string VariableName, Type VariableType, string ExpressionId)> CseVariables = null,
+        IReadOnlyList<(int Index, Type ReturnType)> WindowFunctionResults = null);
+
+    /// <summary>
     ///     Processes a CaseNode by creating a complex if-else chain and generates a method declaration
     /// </summary>
     public static ProcessCaseNodeResult ProcessCaseNode(
@@ -24,7 +32,7 @@ public static class CaseNodeProcessor
         MethodAccessType oldType,
         string queryAlias,
         ref int caseWhenMethodIndex,
-        IReadOnlyList<(string VariableName, Type VariableType, string ExpressionId)> cseVariables = null)
+        CaseMethodContext context = null)
     {
         if (node == null)
             throw new ArgumentNullException(nameof(node));
@@ -38,7 +46,7 @@ public static class CaseNodeProcessor
         var finalIfStatement = ChainIfStatements(ifStatements);
 
         var methodName = $"CaseWhen_{caseWhenMethodIndex++}";
-        var (parameters, callParameters) = BuildMethodParameters(typesToInstantiate, oldType, queryAlias, cseVariables);
+        var (parameters, callParameters) = BuildMethodParameters(typesToInstantiate, oldType, queryAlias, context ?? new CaseMethodContext());
         var method = CreateCaseMethod(methodName, node.ReturnType, parameters, finalIfStatement);
 
         var methodInvocation = SyntaxHelper.CreateMethodInvocation("this", methodName, callParameters.ToArray());
@@ -137,7 +145,7 @@ public static class CaseNodeProcessor
         Dictionary<string, Type> typesToInstantiate,
         MethodAccessType oldType,
         string queryAlias,
-        IReadOnlyList<(string VariableName, Type VariableType, string ExpressionId)> cseVariables
+        CaseMethodContext context
     )
     {
         var parameters = new List<ParameterSyntax>();
@@ -166,17 +174,39 @@ public static class CaseNodeProcessor
                 SyntaxFactory.Argument(SyntaxFactory.IdentifierName(variableNameTypePair.Key)));
         }
 
-        if (cseVariables == null)
-            return (parameters, callParameters);
-
-        foreach (var (variableName, variableType, _) in cseVariables)
+        if (context.CseVariables != null)
         {
+            foreach (var (variableName, variableType, _) in context.CseVariables)
+            {
+                parameters.Add(
+                    SyntaxFactory.Parameter(SyntaxFactory.Identifier(variableName))
+                        .WithType(SyntaxFactory.IdentifierName(GetTypeName(variableType))));
+
+                callParameters.Add(
+                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName(variableName)));
+            }
+        }
+
+        if (context.WindowFunctionResults != null)
+        {
+            foreach (var (index, _) in context.WindowFunctionResults)
+            {
+                var resultArrayName = $"{WindowEmitter.ResultPrefix}{index}";
+
+                parameters.Add(
+                    SyntaxFactory.Parameter(SyntaxFactory.Identifier(resultArrayName))
+                        .WithType(SyntaxFactory.ParseTypeName("object[]")));
+
+                callParameters.Add(
+                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName(resultArrayName)));
+            }
+
             parameters.Add(
-                SyntaxFactory.Parameter(SyntaxFactory.Identifier(variableName))
-                    .WithType(SyntaxFactory.IdentifierName(GetTypeName(variableType))));
+                SyntaxFactory.Parameter(SyntaxFactory.Identifier(WindowEmitter.RowIndex))
+                    .WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword))));
 
             callParameters.Add(
-                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(variableName)));
+                SyntaxFactory.Argument(SyntaxFactory.IdentifierName(WindowEmitter.RowIndex)));
         }
 
         return (parameters, callParameters);

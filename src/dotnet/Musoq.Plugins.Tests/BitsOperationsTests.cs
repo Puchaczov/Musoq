@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class BitsOperationsTests : LibraryBaseBaseTests
+public class BitsOperationsTests : PluginsTestBase
 {
     #region ShiftLeft Tests
 

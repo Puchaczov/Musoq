@@ -389,6 +389,71 @@ public enum DiagnosticCode
     /// </summary>
     MQ3035_AmbiguousMethodOwner = 3035,
 
+    /// <summary>
+    ///     ASOF JOIN requires at least one inequality condition.
+    /// </summary>
+    MQ3036_AsOfJoinMissingInequality = 3036,
+
+    /// <summary>
+    ///     ASOF JOIN supports exactly one inequality condition.
+    /// </summary>
+    MQ3037_AsOfJoinMultipleInequalities = 3037,
+
+    /// <summary>
+    ///     ASOF JOIN ON clause does not support OR.
+    /// </summary>
+    MQ3038_AsOfJoinOrNotSupported = 3038,
+
+    /// <summary>
+    ///     ASOF JOIN inequality must reference columns from both sides.
+    /// </summary>
+    MQ3039_AsOfJoinInequalityMustReferenceBothSides = 3039,
+
+    /// <summary>
+    ///     ASOF JOIN inequality column type is not orderable.
+    /// </summary>
+    MQ3040_AsOfJoinInequalityColumnNotOrderable = 3040,
+
+    /// <summary>
+    ///     Star modifier EXCLUDE references a non-existent column.
+    /// </summary>
+    MQ3041_StarExcludeColumnNotFound = 3041,
+
+    /// <summary>
+    ///     Star modifier REPLACE references a non-existent column.
+    /// </summary>
+    MQ3042_StarReplaceColumnNotFound = 3042,
+
+    /// <summary>
+    ///     Star modifier EXCLUDE would remove all columns.
+    /// </summary>
+    MQ3043_StarExcludeRemovesAllColumns = 3043,
+
+    /// <summary>
+    ///     Star modifier has a column in both EXCLUDE and REPLACE.
+    /// </summary>
+    MQ3044_StarColumnInBothExcludeAndReplace = 3044,
+
+    /// <summary>
+    ///     Star modifier LIKE pattern matched no columns.
+    /// </summary>
+    MQ3045_StarLikeMatchedNoColumns = 3045,
+
+    /// <summary>
+    ///     Star modifier has duplicate column in EXCLUDE list.
+    /// </summary>
+    MQ3046_StarExcludeDuplicateColumn = 3046,
+
+    /// <summary>
+    ///     Star modifier has duplicate column in REPLACE list.
+    /// </summary>
+    MQ3047_StarReplaceDuplicateColumn = 3047,
+
+    /// <summary>
+    ///     Star modifier REPLACE targets a column already removed by EXCLUDE or LIKE.
+    /// </summary>
+    MQ3048_StarReplaceTargetsRemovedColumn = 3048,
+
     // ============================================
     // Schema Definition Errors (MQ4xxx)
     // ============================================

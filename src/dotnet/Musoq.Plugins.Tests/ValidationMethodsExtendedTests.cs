@@ -8,7 +8,7 @@ namespace Musoq.Plugins.Tests;
 ///     IsValidGuid, IsValidInteger, IsValidDecimal, IsValidDateTime, IsValidIPv4, IsValidBoolean.
 /// </summary>
 [TestClass]
-public class ValidationMethodsExtendedTests : LibraryBaseBaseTests
+public class ValidationMethodsExtendedTests : PluginsTestBase
 {
     #region IsValidEmail Tests
 

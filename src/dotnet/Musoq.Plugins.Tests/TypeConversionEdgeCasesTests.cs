@@ -8,7 +8,7 @@ namespace Musoq.Plugins.Tests;
 ///     - ComparisonTypeConverter (currently 65.3%)
 /// </summary>
 [TestClass]
-public class TypeConversionEdgeCasesTests : LibraryBaseBaseTests
+public class TypeConversionEdgeCasesTests : PluginsTestBase
 {
     #region TryConvertToInt32NumericOnly Tests
 

@@ -133,4 +133,8 @@ public interface IExpressionVisitor
     void Visit(AlignmentNode node);
     void Visit(RepeatUntilTypeNode node);
     void Visit(InlineSchemaTypeNode node);
+    void Visit(WindowFunctionNode node);
+    void Visit(WindowSpecificationNode node);
+    void Visit(WindowDefinitionNode node);
+    void Visit(WindowNode node);
 }

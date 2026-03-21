@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class ToDoubleMethodsTests : LibraryBaseBaseTests
+public class ToDoubleMethodsTests : PluginsTestBase
 {
     #region Object ToDouble Tests
 

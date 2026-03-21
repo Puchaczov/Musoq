@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class ToInt32MethodsTests : LibraryBaseBaseTests
+public class ToInt32MethodsTests : PluginsTestBase
 {
     [TestMethod]
     public void ToInt32_FromString_ShouldReturnInteger()

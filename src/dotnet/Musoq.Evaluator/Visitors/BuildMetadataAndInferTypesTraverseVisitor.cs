@@ -163,8 +163,10 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         switch (join.JoinType)
         {
             case JoinType.Inner:
+            case JoinType.AsOf:
                 break;
             case JoinType.OuterLeft:
+            case JoinType.AsOfLeft:
                 secondTableSymbol = secondTableSymbol.MakeNullableIfPossible();
                 Scope.ScopeSymbolTable.UpdateSymbol(Scope[join.With.Id], secondTableSymbol);
                 break;
@@ -195,8 +197,10 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
             switch (join.JoinType)
             {
                 case JoinType.Inner:
+                case JoinType.AsOf:
                     break;
                 case JoinType.OuterLeft:
+                case JoinType.AsOfLeft:
                     currentTableSymbol = currentTableSymbol.MakeNullableIfPossible();
                     Scope.ScopeSymbolTable.UpdateSymbol(Scope[join.With.Id], currentTableSymbol);
                     break;
@@ -285,6 +289,27 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
         }
     }
 
+    public override void Visit(WindowFunctionNode node)
+    {
+        var typedVisitor = (BuildMetadataAndInferTypesVisitor)Visitor;
+        typedVisitor.InsideWindowFunction = true;
+        try
+        {
+            if (node.FunctionCall.Arguments != null)
+            {
+                foreach (var arg in node.FunctionCall.Arguments.Args)
+                    arg.Accept(this);
+            }
+
+            node.WindowSpecification?.Accept(this);
+            node.Accept(Visitor);
+        }
+        finally
+        {
+            typedVisitor.InsideWindowFunction = false;
+        }
+    }
+
     public override void Visit(QueryNode node)
     {
         LoadQueryScope();
@@ -303,6 +328,8 @@ public class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionVisitor v
 
         node.Skip?.Accept(this);
         node.Take?.Accept(this);
+
+        node.Window?.Accept(this);
 
         SetQueryPart(QueryPart.OrderBy);
         node.OrderBy?.Accept(this);

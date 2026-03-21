@@ -18,4 +18,9 @@ public sealed class ConstantFoldingTraverseVisitor : RawTraverseVisitor<Constant
     ///     Gets the transformed root node after folding.
     /// </summary>
     public RootNode Root => Visitor.Root;
+
+    public override void Visit(WindowFunctionNode node)
+    {
+        node.Accept(Visitor);
+    }
 }

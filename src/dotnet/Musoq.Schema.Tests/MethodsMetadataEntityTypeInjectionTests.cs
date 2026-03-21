@@ -1,19 +1,18 @@
-﻿using System.Reflection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema.Managers;
 
 namespace Musoq.Schema.Tests;
 
 [TestClass]
-public class MethodsMetadataEntityTypeInjectionTests
+public class MethodsMetadataEntityTypeInjectionTests : MethodsMetadataTestBase
 {
     private MethodsMetadata _methodsMetadata;
 
     [TestInitialize]
     public void Initialize()
     {
-        _methodsMetadata = new TestMethodsMetadata();
+        _methodsMetadata = CreateMethodsMetadataFor<TestClass>();
     }
 
     [TestMethod]
@@ -189,21 +188,6 @@ public class MethodsMetadataEntityTypeInjectionTests
             IBaseEntity entity,
             int param = 42)
         {
-        }
-    }
-
-    private class TestMethodsMetadata : MethodsMetadata
-    {
-        public TestMethodsMetadata()
-        {
-            var testClass = typeof(TestClass);
-            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance |
-                                                        BindingFlags.DeclaredOnly)) RegisterMethod(method);
-        }
-
-        private new void RegisterMethod(MethodInfo methodInfo)
-        {
-            base.RegisterMethod(methodInfo);
         }
     }
 }

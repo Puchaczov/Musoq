@@ -78,6 +78,11 @@ public static class JoinInMemoryWithSourceTableNodeProcessor
             JoinType.OuterRight => JoinProcessingHelper.ProcessOuterRightJoin(
                 node, ifStatement, emptyBlock, generator, scope, queryAlias, getRowsSourceOrEmpty,
                 generateCancellationExpression),
+            JoinType.AsOf => JoinProcessingHelper.ProcessInnerJoin(
+                node, ifStatement, emptyBlock, generator, getRowsSourceOrEmpty, generateCancellationExpression),
+            JoinType.AsOfLeft => JoinProcessingHelper.ProcessOuterLeftJoin(
+                node, ifStatement, emptyBlock, generator, scope, queryAlias, getRowsSourceOrEmpty,
+                generateCancellationExpression),
             _ => throw new ArgumentException($"Unsupported join type: {node.JoinType}")
         };
 

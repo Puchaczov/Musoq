@@ -61,6 +61,7 @@ public enum TokenType : short
     With,
     InnerJoin,
     OuterJoin,
+    AsOfJoin,
     CrossApply,
     OuterApply,
     On,
@@ -174,6 +175,15 @@ public enum TokenType : short
 
     // Question mark for optional quantifier
     QuestionMark, // ?
+
+    // Star expression modifiers
+    Exclude, // exclude (context-sensitive keyword after *)
+    Replace, // replace (context-sensitive keyword after *)
+
+    // Window function tokens
+    Over, // OVER keyword after function call
+    PartitionBy, // PARTITION BY (multi-word keyword)
+    Window, // WINDOW clause keyword
 
     // Error token for recovery mode
     Error // Invalid/unrecognized token

@@ -7,12 +7,24 @@ public class QueryNode : Node
 {
     public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy,
         SkipNode skip, TakeNode take)
-        : this(select, from, where, groupBy, orderBy, skip, take, default)
+        : this(select, from, where, groupBy, orderBy, skip, take, null, default)
+    {
+    }
+
+    public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy,
+        SkipNode skip, TakeNode take, WindowNode window)
+        : this(select, from, where, groupBy, orderBy, skip, take, window, default)
     {
     }
 
     public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy,
         SkipNode skip, TakeNode take, TextSpan span)
+        : this(select, from, where, groupBy, orderBy, skip, take, null, span)
+    {
+    }
+
+    public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy,
+        SkipNode skip, TakeNode take, WindowNode window, TextSpan span)
     {
         Select = select;
         From = from;
@@ -21,12 +33,13 @@ public class QueryNode : Node
         OrderBy = orderBy;
         Skip = skip;
         Take = take;
-        Id = $"{nameof(QueryNode)}{select.Id}{from.Id}{where?.Id}{groupBy?.Id}{orderBy?.Id}{skip?.Id}{take?.Id}";
+        Window = window;
+        Id = $"{nameof(QueryNode)}{select.Id}{from.Id}{where?.Id}{groupBy?.Id}{orderBy?.Id}{skip?.Id}{take?.Id}{window?.Id}";
 
         // Compute span from first to last clause
         if (span.IsEmpty)
         {
-            var nodes = new Node[] { select, from, where, groupBy, orderBy, skip, take };
+            var nodes = new Node[] { select, from, where, groupBy, orderBy, skip, take, window };
             Span = ComputeSpan(nodes);
             FullSpan = Span;
         }
@@ -51,6 +64,8 @@ public class QueryNode : Node
 
     public TakeNode Take { get; }
 
+    public WindowNode Window { get; }
+
     public override Type ReturnType => null;
 
     public override string Id { get; }
@@ -69,6 +84,7 @@ public class QueryNode : Node
             From,
             Where,
             GroupBy,
+            Window,
             OrderBy,
             Skip
         };

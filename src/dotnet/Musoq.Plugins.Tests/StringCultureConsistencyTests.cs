@@ -13,7 +13,7 @@ namespace Musoq.Plugins.Tests;
 ///     - Soundex now using ToUpperInvariant (was ToUpper with CurrentCulture)
 /// </summary>
 [TestClass]
-public class StringCultureConsistencyTests : LibraryBaseBaseTests
+public class StringCultureConsistencyTests : PluginsTestBase
 {
     #region Contains - Case Insensitivity
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema.Managers;
@@ -7,14 +6,14 @@ using Musoq.Schema.Managers;
 namespace Musoq.Schema.Tests;
 
 [TestClass]
-public class MethodsMetadataExpressionContextTests
+public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
 {
     private MethodsMetadata _methodsMetadata;
 
     [TestInitialize]
     public void Initialize()
     {
-        _methodsMetadata = new TestMethodsMetadata();
+        _methodsMetadata = CreateMethodsMetadataFor<TestClass>();
     }
 
     [TestMethod]
@@ -206,21 +205,6 @@ public class MethodsMetadataExpressionContextTests
         [AggregationMethod]
         public void Overloaded(string name, int value)
         {
-        }
-    }
-
-    private class TestMethodsMetadata : MethodsMetadata
-    {
-        public TestMethodsMetadata()
-        {
-            var testClass = typeof(TestClass);
-            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance |
-                                                        BindingFlags.DeclaredOnly)) RegisterMethod(method);
-        }
-
-        private new void RegisterMethod(MethodInfo methodInfo)
-        {
-            base.RegisterMethod(methodInfo);
         }
     }
 }
