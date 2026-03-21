@@ -56,7 +56,9 @@ public static class KeywordLookup
             { "else", TokenType.Else },
             { "end", TokenType.End },
             { "distinct", TokenType.Distinct },
-            { "between", TokenType.Between }
+            { "between", TokenType.Between },
+            { "over", TokenType.Over },
+            { "window", TokenType.Window }
         };
 
         Keywords = keywords.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);

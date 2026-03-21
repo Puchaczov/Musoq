@@ -193,4 +193,25 @@ public class Library : LibraryBase
     {
         throw new MethodCallThrownException();
     }
+
+    [WindowFunction(Name = "RunningProduct")]
+    public IWindowFunction<object, decimal> WindowRunningProduct()
+    {
+        return new RunningProductWindowFunction();
+    }
+
+    private sealed class RunningProductWindowFunction : IWindowFunction<object, decimal>
+    {
+        private decimal _product;
+
+        public void PartitionStart() => _product = 1;
+
+        public void Accumulate(object value)
+        {
+            if (value is not null)
+                _product *= Convert.ToDecimal(value);
+        }
+
+        public decimal GetValue() => _product;
+    }
 }

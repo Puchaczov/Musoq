@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class CountTests : LibraryBaseBaseTests
+public class CountTests : PluginsTestBase
 {
     [TestMethod]
     public void CountIntTest()

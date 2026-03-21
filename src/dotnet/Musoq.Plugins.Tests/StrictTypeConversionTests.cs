@@ -7,7 +7,7 @@ namespace Musoq.Plugins.Tests;
 ///     Tests cover all switch branches for precision-preserving type conversion.
 /// </summary>
 [TestClass]
-public class StrictTypeConversionTests : LibraryBaseBaseTests
+public class StrictTypeConversionTests : PluginsTestBase
 {
     #region TryConvertToInt32Strict Tests
 

@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class ToInt64MethodsTests : LibraryBaseBaseTests
+public class ToInt64MethodsTests : PluginsTestBase
 {
     [TestMethod]
     public void ToInt64_FromString_ShouldReturnLong()

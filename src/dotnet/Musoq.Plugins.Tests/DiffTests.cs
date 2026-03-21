@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class DiffTests : LibraryBaseBaseTests
+public class DiffTests : PluginsTestBase
 {
     #region Diff String Output Tests - Basic Functionality
 

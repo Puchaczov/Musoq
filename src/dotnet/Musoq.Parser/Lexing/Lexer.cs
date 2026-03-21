@@ -60,6 +60,9 @@ public sealed class Lexer : ILexer
     private static readonly Regex OrderByRegex =
         new(@"\Gorder\s+by(?=\s|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+    private static readonly Regex PartitionByRegex =
+        new(@"\Gpartition\s+by(?=\s|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
     private static readonly Regex InnerJoinRegex =
         new(@"\G(?:inner\s+)?join\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
@@ -71,6 +74,9 @@ public sealed class Lexer : ILexer
 
     private static readonly Regex OuterApplyRegex =
         new(@"\Gouter\s+apply(?=\s|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    private static readonly Regex AsOfJoinRegex =
+        new(@"\Gasof\s+(?:(left)\s+(?:outer\s+)?)?join\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private readonly List<Token> _alreadyResolvedTokens = [];
     private readonly Queue<Token> _pendingSchemaTokens = new();
@@ -349,6 +355,8 @@ public sealed class Lexer : ILexer
             'o' => TryMatchRegex(OrderByRegex, start, span => new OrderByToken(span)) ??
                    TryMatchRegex(OuterApplyRegex, start, span => new OuterApplyToken(span)),
 
+            'p' => TryMatchRegex(PartitionByRegex, start, span => new PartitionByToken(span)),
+
             'j' or 'i' => TryMatchRegex(InnerJoinRegex, start, span => new InnerJoinToken(span)),
 
             'l' or 'r' => TryMatchRegex(OuterJoinRegex, start, span =>
@@ -358,8 +366,22 @@ public sealed class Lexer : ILexer
 
             'c' => TryMatchRegex(CrossApplyRegex, start, span => new CrossApplyToken(span)),
 
+            'a' => TryMatchAsOfJoin(start),
+
             _ => null
         };
+    }
+
+    private Token? TryMatchAsOfJoin(int start)
+    {
+        var match = AsOfJoinRegex.Match(Input, Position);
+
+        if (!match.Success || match.Index != Position)
+            return null;
+
+        Position += match.Length;
+        var isLeft = match.Groups[1].Success;
+        return new AsOfJoinToken(isLeft, new TextSpan(start, match.Length));
     }
 
     private Token? TryMatchRegex(Regex regex, int start, Func<TextSpan, Token> tokenFactory)

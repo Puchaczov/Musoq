@@ -63,6 +63,14 @@ public static class JoinSourcesTableProcessingHelper
 
         var computingBlock = SyntaxFactory.Block();
 
+        if ((node.JoinType == JoinType.AsOf || node.JoinType == JoinType.AsOfLeft) &&
+            TryGetAsOfJoinKeys(node, scope, nodeTranslator, out var asofEqLeftKeys, out var asofEqRightKeys,
+                out var asofEqKeyTypes, out var asofLeftIneqKey, out var asofRightIneqKey, out var asofIneqKeyType,
+                out var asofComparisonKind))
+            return ProcessAsOfJoin(node, generator, scope, queryAlias, asofEqLeftKeys, asofEqRightKeys,
+                asofEqKeyTypes, asofLeftIneqKey, asofRightIneqKey, asofIneqKeyType, asofComparisonKind,
+                ifStatement, emptyBlock, getRowsSourceOrEmpty, block, generateCancellationExpression);
+
         if (compilationOptions?.UseHashJoin == true &&
             (node.JoinType == JoinType.Inner || node.JoinType == JoinType.OuterLeft ||
              node.JoinType == JoinType.OuterRight) &&
@@ -92,6 +100,11 @@ public static class JoinSourcesTableProcessingHelper
             case JoinType.OuterRight:
                 return ProcessOuterRightJoin(node, generator, scope, queryAlias, ifStatement, emptyBlock,
                     getRowsSourceOrEmpty, block, generateCancellationExpression);
+
+            case JoinType.AsOf:
+            case JoinType.AsOfLeft:
+                throw new InvalidOperationException(
+                    "ASOF JOIN could not extract required keys. Ensure ON clause has exactly one inequality condition.");
 
             default:
                 throw new ArgumentException($"Unsupported join type: {node.JoinType}");
@@ -285,9 +298,38 @@ public static class JoinSourcesTableProcessingHelper
     {
         return
         [
-            SyntaxFactory.ParseStatement($"var {alias}RowsEnumerable = {alias}Rows.Rows;"),
-            SyntaxFactory.ParseStatement(
-                $"var {alias}RowsCached = {alias}RowsEnumerable as Musoq.Schema.DataSources.IObjectResolver[] ?? System.Linq.Enumerable.ToArray({alias}RowsEnumerable);")
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier($"{alias}RowsEnumerable"), null,
+                            SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                    SyntaxFactory.IdentifierName($"{alias}Rows"),
+                                    SyntaxFactory.IdentifierName("Rows"))))))),
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier($"{alias}RowsCached"), null,
+                            SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.BinaryExpression(SyntaxKind.CoalesceExpression,
+                                    SyntaxFactory.BinaryExpression(SyntaxKind.AsExpression,
+                                        SyntaxFactory.IdentifierName($"{alias}RowsEnumerable"),
+                                        SyntaxFactory.ArrayType(
+                                            SyntaxFactory.ParseTypeName("Musoq.Schema.DataSources.IObjectResolver"),
+                                            SyntaxFactory.SingletonList(
+                                                SyntaxFactory.ArrayRankSpecifier(
+                                                    SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                                        SyntaxFactory.OmittedArraySizeExpression()))))),
+                                    SyntaxFactory.InvocationExpression(
+                                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                            SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                                    SyntaxFactory.IdentifierName("System"),
+                                                    SyntaxFactory.IdentifierName("Linq")),
+                                                SyntaxFactory.IdentifierName("Enumerable")),
+                                            SyntaxFactory.IdentifierName("ToArray")),
+                                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName($"{alias}RowsEnumerable")))))))))))
         ];
     }
 
@@ -1765,6 +1807,899 @@ public static class JoinSourcesTableProcessingHelper
         return (ExpressionSyntax)rewriter.Visit(expression);
     }
 
+    private static bool TryGetAsOfJoinKeys(
+        JoinSourcesTableFromNode node,
+        Scope scope,
+        Func<Node, ExpressionSyntax> nodeTranslator,
+        out List<ExpressionSyntax> eqLeftKeys,
+        out List<ExpressionSyntax> eqRightKeys,
+        out List<Type> eqKeyTypes,
+        out ExpressionSyntax ineqLeftKey,
+        out ExpressionSyntax ineqRightKey,
+        out Type ineqKeyType,
+        out SyntaxKind comparisonKind)
+    {
+        eqLeftKeys = [];
+        eqRightKeys = [];
+        eqKeyTypes = [];
+        ineqLeftKey = null;
+        ineqRightKey = null;
+        ineqKeyType = null;
+        comparisonKind = SyntaxKind.None;
+
+        var equalities = new List<EqualityNode>();
+        var inequalities = new List<BinaryNode>();
+
+        var stack = new Stack<Node>();
+        stack.Push(node.Expression);
+
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+
+            if (current is AndNode and)
+            {
+                stack.Push(and.Right);
+                stack.Push(and.Left);
+            }
+            else if (current is EqualityNode eq)
+            {
+                equalities.Add(eq);
+            }
+            else if (current is BinaryNode bin && IsInequality(bin))
+            {
+                inequalities.Add(bin);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        if (inequalities.Count != 1)
+            return false;
+
+        var firstAliases = GetComponentAliases(node.First);
+        var secondAliases = GetComponentAliases(node.Second);
+        var allAliases = firstAliases.Concat(secondAliases).ToArray();
+
+        foreach (var eq in equalities)
+        {
+            var leftVisitor = new ExtractAccessColumnFromQueryVisitor();
+            var leftTraverser = new ExtractAccessColumnFromQueryTraverseVisitor(leftVisitor);
+            eq.Left.Accept(leftTraverser);
+            var leftColumns = leftVisitor.GetForAliases(allAliases);
+
+            var rightVisitor = new ExtractAccessColumnFromQueryVisitor();
+            var rightTraverser = new ExtractAccessColumnFromQueryTraverseVisitor(rightVisitor);
+            eq.Right.Accept(rightTraverser);
+            var rightColumns = rightVisitor.GetForAliases(allAliases);
+
+            var leftHasFirst = leftColumns.Any(c => firstAliases.Contains(c.Alias));
+            var leftHasSecond = leftColumns.Any(c => secondAliases.Contains(c.Alias));
+            var rightHasFirst = rightColumns.Any(c => firstAliases.Contains(c.Alias));
+            var rightHasSecond = rightColumns.Any(c => secondAliases.Contains(c.Alias));
+
+            Node firstNode = null;
+            Node secondNode = null;
+
+            if (leftHasFirst && !leftHasSecond && rightHasSecond && !rightHasFirst)
+            {
+                firstNode = eq.Left;
+                secondNode = eq.Right;
+            }
+            else if (leftHasSecond && !leftHasFirst && rightHasFirst && !rightHasSecond)
+            {
+                firstNode = eq.Right;
+                secondNode = eq.Left;
+            }
+
+            if (firstNode == null || secondNode == null)
+                return false;
+
+            var type1 = Nullable.GetUnderlyingType(firstNode.ReturnType) ?? firstNode.ReturnType;
+            var type2 = Nullable.GetUnderlyingType(secondNode.ReturnType) ?? secondNode.ReturnType;
+
+            if (type1 != type2)
+                return false;
+
+            var keyType = firstNode.ReturnType != secondNode.ReturnType
+                ? typeof(Nullable<>).MakeGenericType(type1)
+                : firstNode.ReturnType;
+
+            var leftExpr = nodeTranslator(firstNode);
+            var rightExpr = nodeTranslator(secondNode);
+
+            if (firstNode.ReturnType != keyType)
+                leftExpr = SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName(GetTypeName(keyType)), leftExpr);
+            if (secondNode.ReturnType != keyType)
+                rightExpr = SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName(GetTypeName(keyType)), rightExpr);
+
+            eqLeftKeys.Add(leftExpr);
+            eqRightKeys.Add(rightExpr);
+            eqKeyTypes.Add(keyType);
+        }
+
+        var ineq = inequalities[0];
+
+        var ineqLVisitor = new ExtractAccessColumnFromQueryVisitor();
+        var ineqLTraverser = new ExtractAccessColumnFromQueryTraverseVisitor(ineqLVisitor);
+        ineq.Left.Accept(ineqLTraverser);
+        var ineqLeftCols = ineqLVisitor.GetForAliases(allAliases);
+
+        var ineqRVisitor = new ExtractAccessColumnFromQueryVisitor();
+        var ineqRTraverser = new ExtractAccessColumnFromQueryTraverseVisitor(ineqRVisitor);
+        ineq.Right.Accept(ineqRTraverser);
+        var ineqRightCols = ineqRVisitor.GetForAliases(allAliases);
+
+        var ineqLeftIsFirst = ineqLeftCols.Any(c => firstAliases.Contains(c.Alias)) &&
+                              !ineqLeftCols.Any(c => secondAliases.Contains(c.Alias));
+        var ineqRightIsSecond = ineqRightCols.Any(c => secondAliases.Contains(c.Alias)) &&
+                                !ineqRightCols.Any(c => firstAliases.Contains(c.Alias));
+        var ineqLeftIsSecond = ineqLeftCols.Any(c => secondAliases.Contains(c.Alias)) &&
+                               !ineqLeftCols.Any(c => firstAliases.Contains(c.Alias));
+        var ineqRightIsFirst = ineqRightCols.Any(c => firstAliases.Contains(c.Alias)) &&
+                               !ineqRightCols.Any(c => secondAliases.Contains(c.Alias));
+
+        Node ineqFirstNode;
+        Node ineqSecondNode;
+
+        if (ineqLeftIsFirst && ineqRightIsSecond)
+        {
+            ineqFirstNode = ineq.Left;
+            ineqSecondNode = ineq.Right;
+            comparisonKind = GetSyntaxKind(ineq);
+        }
+        else if (ineqLeftIsSecond && ineqRightIsFirst)
+        {
+            ineqFirstNode = ineq.Right;
+            ineqSecondNode = ineq.Left;
+            comparisonKind = GetSwappedSyntaxKind(ineq);
+        }
+        else
+        {
+            return false;
+        }
+
+        var ineqType1 = Nullable.GetUnderlyingType(ineqFirstNode.ReturnType) ?? ineqFirstNode.ReturnType;
+        var ineqType2 = Nullable.GetUnderlyingType(ineqSecondNode.ReturnType) ?? ineqSecondNode.ReturnType;
+
+        if (ineqType1 != ineqType2 || !IsComparable(ineqType1))
+            return false;
+
+        ineqKeyType = ineqFirstNode.ReturnType != ineqSecondNode.ReturnType
+            ? typeof(Nullable<>).MakeGenericType(ineqType1)
+            : ineqFirstNode.ReturnType;
+
+        ineqLeftKey = nodeTranslator(ineqFirstNode);
+        ineqRightKey = nodeTranslator(ineqSecondNode);
+
+        return true;
+    }
+
+    private static BlockSyntax ProcessAsOfJoin(
+        JoinSourcesTableFromNode node,
+        SyntaxGenerator generator,
+        Scope scope,
+        string queryAlias,
+        List<ExpressionSyntax> eqLeftKeys,
+        List<ExpressionSyntax> eqRightKeys,
+        List<Type> eqKeyTypes,
+        ExpressionSyntax ineqLeftKey,
+        ExpressionSyntax ineqRightKey,
+        Type ineqKeyType,
+        SyntaxKind comparisonKind,
+        SyntaxNode ifStatement,
+        BlockSyntax emptyBlock,
+        Func<string, StatementSyntax> getRowsSourceOrEmpty,
+        Func<StatementSyntax[], BlockSyntax> block,
+        Func<StatementSyntax> generateCancellationExpression)
+    {
+        var computingBlock = SyntaxFactory.Block();
+
+        var isLeftJoin = node.JoinType == JoinType.AsOfLeft;
+        var leftAlias = node.First.Alias;
+        var rightAlias = node.Second.Alias;
+
+        var rightRowsVar = $"{rightAlias}RowsArray";
+        var rightKeysVar = $"{rightAlias}IneqKeys";
+        var ineqKeyTypeSyntax = EvaluationHelper.GetCastableType(ineqKeyType);
+
+        computingBlock = computingBlock.AddStatements(getRowsSourceOrEmpty(rightAlias));
+
+        computingBlock = computingBlock.AddStatements(
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(rightRowsVar), null,
+                            SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.InvocationExpression(
+                                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                            SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                                SyntaxFactory.IdentifierName("System"),
+                                                SyntaxFactory.IdentifierName("Linq")),
+                                            SyntaxFactory.IdentifierName("Enumerable")),
+                                        SyntaxFactory.IdentifierName("ToArray")),
+                                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                                        SyntaxFactory.Argument(
+                                            SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                                SyntaxFactory.IdentifierName($"{rightAlias}Rows"),
+                                                SyntaxFactory.IdentifierName("Rows"))))))))))));
+
+        if (eqLeftKeys.Count > 0)
+        {
+            computingBlock = GenerateAsOfJoinWithEqualityKeys(
+                computingBlock, node, generator, scope, queryAlias,
+                eqLeftKeys, eqRightKeys, eqKeyTypes,
+                ineqLeftKey, ineqRightKey, ineqKeyType, ineqKeyTypeSyntax,
+                comparisonKind, ifStatement, emptyBlock,
+                getRowsSourceOrEmpty, block, generateCancellationExpression,
+                leftAlias, rightAlias, rightRowsVar, rightKeysVar, isLeftJoin);
+        }
+        else
+        {
+            computingBlock = GenerateAsOfJoinWithoutEqualityKeys(
+                computingBlock, node, generator, scope, queryAlias,
+                ineqLeftKey, ineqRightKey, ineqKeyType, ineqKeyTypeSyntax,
+                comparisonKind, ifStatement, emptyBlock,
+                getRowsSourceOrEmpty, block, generateCancellationExpression,
+                leftAlias, rightAlias, rightRowsVar, rightKeysVar, isLeftJoin);
+        }
+
+        return computingBlock;
+    }
+
+    private static BlockSyntax GenerateAsOfJoinWithoutEqualityKeys(
+        BlockSyntax computingBlock,
+        JoinSourcesTableFromNode node,
+        SyntaxGenerator generator,
+        Scope scope,
+        string queryAlias,
+        ExpressionSyntax ineqLeftKey,
+        ExpressionSyntax ineqRightKey,
+        Type ineqKeyType,
+        string ineqKeyTypeSyntax,
+        SyntaxKind comparisonKind,
+        SyntaxNode ifStatement,
+        BlockSyntax emptyBlock,
+        Func<string, StatementSyntax> getRowsSourceOrEmpty,
+        Func<StatementSyntax[], BlockSyntax> block,
+        Func<StatementSyntax> generateCancellationExpression,
+        string leftAlias,
+        string rightAlias,
+        string rightRowsVar,
+        string rightKeysVar,
+        bool isLeftJoin)
+    {
+        computingBlock = computingBlock.AddStatements(
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(rightKeysVar), null,
+                            SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.ArrayCreationExpression(
+                                    SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName(ineqKeyTypeSyntax))
+                                        .WithRankSpecifiers(SyntaxFactory.SingletonList(
+                                            SyntaxFactory.ArrayRankSpecifier(
+                                                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                                        SyntaxFactory.IdentifierName(rightRowsVar),
+                                                        SyntaxFactory.IdentifierName("Length")))))))))))));
+
+        computingBlock = computingBlock.AddStatements(
+            GenerateKeyExtractionLoop(rightRowsVar, rightKeysVar, rightAlias, ineqRightKey));
+
+        computingBlock = computingBlock.AddStatements(
+            SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName("System"),
+                            SyntaxFactory.IdentifierName("Array")),
+                        SyntaxFactory.IdentifierName("Sort")),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                        [
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(rightKeysVar)),
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(rightRowsVar))
+                        ])))));
+
+        computingBlock = computingBlock.AddStatements(getRowsSourceOrEmpty(leftAlias));
+
+        var binarySearchBlock = GenerateBinarySearchAndEmit(
+            generator, scope, queryAlias, node,
+            ineqLeftKey, ineqKeyTypeSyntax, comparisonKind,
+            ifStatement, emptyBlock, generateCancellationExpression,
+            leftAlias, rightAlias, rightRowsVar, rightKeysVar, isLeftJoin);
+
+        computingBlock = computingBlock.AddStatements(
+            SyntaxFactory.ForEachStatement(
+                SyntaxFactory.IdentifierName("var"),
+                SyntaxFactory.Identifier($"{leftAlias}Row"),
+                SyntaxFactory.IdentifierName($"{leftAlias}Rows.Rows"),
+                binarySearchBlock));
+
+        return computingBlock;
+    }
+
+    private static BlockSyntax GenerateAsOfJoinWithEqualityKeys(
+        BlockSyntax computingBlock,
+        JoinSourcesTableFromNode node,
+        SyntaxGenerator generator,
+        Scope scope,
+        string queryAlias,
+        List<ExpressionSyntax> eqLeftKeys,
+        List<ExpressionSyntax> eqRightKeys,
+        List<Type> eqKeyTypes,
+        ExpressionSyntax ineqLeftKey,
+        ExpressionSyntax ineqRightKey,
+        Type ineqKeyType,
+        string ineqKeyTypeSyntax,
+        SyntaxKind comparisonKind,
+        SyntaxNode ifStatement,
+        BlockSyntax emptyBlock,
+        Func<string, StatementSyntax> getRowsSourceOrEmpty,
+        Func<StatementSyntax[], BlockSyntax> block,
+        Func<StatementSyntax> generateCancellationExpression,
+        string leftAlias,
+        string rightAlias,
+        string rightRowsVar,
+        string rightKeysVar,
+        bool isLeftJoin)
+    {
+        string eqKeyTypeName;
+        if (eqKeyTypes.Count == 1)
+        {
+            eqKeyTypeName = EvaluationHelper.GetCastableType(eqKeyTypes[0]);
+        }
+        else
+        {
+            var typeNames = eqKeyTypes.Select(t => EvaluationHelper.GetCastableType(t));
+            eqKeyTypeName = $"({string.Join(", ", typeNames)})";
+        }
+
+        var bucketType =
+            $"System.Collections.Generic.Dictionary<{eqKeyTypeName}, (Musoq.Schema.DataSources.IObjectResolver[] Rows, {ineqKeyTypeSyntax}[] Keys)>";
+        var bucketVar = $"{rightAlias}Buckets";
+
+        computingBlock = computingBlock.AddStatements(
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(bucketVar), null,
+                            SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName(bucketType))
+                                    .WithArgumentList(SyntaxFactory.ArgumentList())))))));
+
+        var groupListType =
+            $"System.Collections.Generic.Dictionary<{eqKeyTypeName}, System.Collections.Generic.List<Musoq.Schema.DataSources.IObjectResolver>>";
+        var groupListVar = $"{rightAlias}Groups";
+
+        computingBlock = computingBlock.AddStatements(
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(groupListVar), null,
+                            SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName(groupListType))
+                                    .WithArgumentList(SyntaxFactory.ArgumentList())))))));
+
+        var buildStatements = new List<StatementSyntax> { generateCancellationExpression() };
+
+        var buildKeyVars = new List<string>();
+        for (var i = 0; i < eqRightKeys.Count; i++)
+        {
+            var varName = $"eqKey{i}";
+            buildKeyVars.Add(varName);
+            buildStatements.Add(
+                SyntaxFactory.LocalDeclarationStatement(
+                    SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(varName), null,
+                                SyntaxFactory.EqualsValueClause(eqRightKeys[i]))))));
+
+            if (!eqKeyTypes[i].IsValueType || Nullable.GetUnderlyingType(eqKeyTypes[i]) != null)
+                buildStatements.Add(
+                    SyntaxFactory.IfStatement(
+                        SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression,
+                            SyntaxFactory.IdentifierName(varName),
+                            SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                        SyntaxFactory.ContinueStatement()));
+        }
+
+        ExpressionSyntax buildKeyExpr = buildKeyVars.Count == 1
+            ? SyntaxFactory.IdentifierName(buildKeyVars[0])
+            : SyntaxFactory.TupleExpression(
+                SyntaxFactory.SeparatedList(
+                    buildKeyVars.Select(v => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(v)))));
+
+        buildStatements.Add(
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier("eqKey"), null,
+                            SyntaxFactory.EqualsValueClause(buildKeyExpr))))));
+
+        buildStatements.Add(
+            SyntaxFactory.IfStatement(
+                SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression,
+                    SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(groupListVar),
+                            SyntaxFactory.IdentifierName("TryGetValue")),
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                            [
+                                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("eqKey")),
+                                SyntaxFactory.Argument(
+                                        SyntaxFactory.DeclarationExpression(
+                                            SyntaxFactory.IdentifierName("var"),
+                                            SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier("existingList"))))
+                                    .WithRefOrOutKeyword(SyntaxFactory.Token(SyntaxKind.OutKeyword))
+                            ])))),
+                SyntaxFactory.Block(
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+                            SyntaxFactory.IdentifierName("existingList"),
+                            SyntaxFactory.ObjectCreationExpression(
+                                    SyntaxFactory.ParseTypeName("System.Collections.Generic.List<Musoq.Schema.DataSources.IObjectResolver>"))
+                                .WithArgumentList(SyntaxFactory.ArgumentList()))),
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+                            SyntaxFactory.ElementAccessExpression(
+                                SyntaxFactory.IdentifierName(groupListVar),
+                                SyntaxFactory.BracketedArgumentList(
+                                    SyntaxFactory.SingletonSeparatedList(
+                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("eqKey"))))),
+                            SyntaxFactory.IdentifierName("existingList"))))));
+
+        buildStatements.Add(
+            SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName("existingList"),
+                        SyntaxFactory.IdentifierName("Add")),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName($"{rightAlias}Row")))))));
+
+        computingBlock = computingBlock.AddStatements(
+            SyntaxFactory.ForEachStatement(
+                SyntaxFactory.IdentifierName("var"),
+                SyntaxFactory.Identifier($"{rightAlias}Row"),
+                SyntaxFactory.IdentifierName(rightRowsVar),
+                SyntaxFactory.Block(buildStatements)));
+
+        var sortStatements = new List<StatementSyntax>
+        {
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier("bucketRows"), null,
+                            SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.InvocationExpression(
+                                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                            SyntaxFactory.IdentifierName("kvp"),
+                                            SyntaxFactory.IdentifierName("Value")),
+                                        SyntaxFactory.IdentifierName("ToArray")))))))),
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier("bucketKeys"), null,
+                            SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.ArrayCreationExpression(
+                                    SyntaxFactory.ArrayType(SyntaxFactory.ParseTypeName(ineqKeyTypeSyntax))
+                                        .WithRankSpecifiers(SyntaxFactory.SingletonList(
+                                            SyntaxFactory.ArrayRankSpecifier(
+                                                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                                        SyntaxFactory.IdentifierName("bucketRows"),
+                                                        SyntaxFactory.IdentifierName("Length")))))))))))),
+            GenerateKeyExtractionLoop("bucketRows", "bucketKeys", rightAlias, ineqRightKey),
+            SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName("System"),
+                            SyntaxFactory.IdentifierName("Array")),
+                        SyntaxFactory.IdentifierName("Sort")),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                        [
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("bucketKeys")),
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("bucketRows"))
+                        ])))),
+            SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+                    SyntaxFactory.ElementAccessExpression(
+                        SyntaxFactory.IdentifierName(bucketVar),
+                        SyntaxFactory.BracketedArgumentList(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.Argument(
+                                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                        SyntaxFactory.IdentifierName("kvp"),
+                                        SyntaxFactory.IdentifierName("Key")))))),
+                    SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(
+                        [
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("bucketRows")),
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("bucketKeys"))
+                        ]))))
+        };
+
+        computingBlock = computingBlock.AddStatements(
+            SyntaxFactory.ForEachStatement(
+                SyntaxFactory.IdentifierName("var"),
+                SyntaxFactory.Identifier("kvp"),
+                SyntaxFactory.IdentifierName(groupListVar),
+                SyntaxFactory.Block(sortStatements)));
+
+        computingBlock = computingBlock.AddStatements(getRowsSourceOrEmpty(leftAlias));
+
+        var probeStatements = new List<StatementSyntax> { generateCancellationExpression() };
+
+        var probeKeyVars = new List<string>();
+        for (var i = 0; i < eqLeftKeys.Count; i++)
+        {
+            var varName = $"eqKey{i}";
+            probeKeyVars.Add(varName);
+            probeStatements.Add(
+                SyntaxFactory.LocalDeclarationStatement(
+                    SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(varName), null,
+                                SyntaxFactory.EqualsValueClause(eqLeftKeys[i]))))));
+        }
+
+        ExpressionSyntax probeKeyExpr = probeKeyVars.Count == 1
+            ? SyntaxFactory.IdentifierName(probeKeyVars[0])
+            : SyntaxFactory.TupleExpression(
+                SyntaxFactory.SeparatedList(
+                    probeKeyVars.Select(v => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(v)))));
+
+        probeStatements.Add(
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier("probeKey"), null,
+                            SyntaxFactory.EqualsValueClause(probeKeyExpr))))));
+
+        var bucketFoundBody = GenerateBinarySearchAndEmit(
+            generator, scope, queryAlias, node,
+            ineqLeftKey, ineqKeyTypeSyntax, comparisonKind,
+            ifStatement, emptyBlock, generateCancellationExpression,
+            leftAlias, rightAlias, "bucket.Rows", "bucket.Keys", isLeftJoin);
+
+        var tryGetBucket = SyntaxFactory.IfStatement(
+            SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(bucketVar),
+                    SyntaxFactory.IdentifierName("TryGetValue")),
+                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
+                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("probeKey")),
+                    SyntaxFactory.Argument(
+                            SyntaxFactory.DeclarationExpression(
+                                SyntaxFactory.IdentifierName("var"),
+                                SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier("bucket"))))
+                        .WithRefOrOutKeyword(SyntaxFactory.Token(SyntaxKind.OutKeyword))
+                ]))),
+            bucketFoundBody,
+            isLeftJoin
+                ? SyntaxFactory.ElseClause(GenerateNullFallback(node, generator, scope, queryAlias, leftAlias))
+                : null);
+
+        probeStatements.Add(tryGetBucket);
+
+        computingBlock = computingBlock.AddStatements(
+            SyntaxFactory.ForEachStatement(
+                SyntaxFactory.IdentifierName("var"),
+                SyntaxFactory.Identifier($"{leftAlias}Row"),
+                SyntaxFactory.IdentifierName($"{leftAlias}Rows.Rows"),
+                SyntaxFactory.Block(probeStatements)));
+
+        return computingBlock;
+    }
+
+    private static BlockSyntax GenerateBinarySearchAndEmit(
+        SyntaxGenerator generator,
+        Scope scope,
+        string queryAlias,
+        JoinSourcesTableFromNode node,
+        ExpressionSyntax ineqLeftKey,
+        string ineqKeyTypeSyntax,
+        SyntaxKind comparisonKind,
+        SyntaxNode ifStatement,
+        BlockSyntax emptyBlock,
+        Func<StatementSyntax> generateCancellationExpression,
+        string leftAlias,
+        string rightAlias,
+        string rightRowsExpr,
+        string rightKeysExpr,
+        bool isLeftJoin)
+    {
+        var statements = new List<StatementSyntax>();
+
+        statements.Add(
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier("probeValue"), null,
+                            SyntaxFactory.EqualsValueClause(ineqLeftKey))))));
+
+        statements.Add(
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier("searchIdx"), null,
+                            SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.InvocationExpression(
+                                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                            SyntaxFactory.IdentifierName("System"),
+                                            SyntaxFactory.IdentifierName("Array")),
+                                        SyntaxFactory.GenericName("BinarySearch")
+                                            .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
+                                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                                    SyntaxFactory.IdentifierName(ineqKeyTypeSyntax))))),
+                                    SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                                        [
+                                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(rightKeysExpr)),
+                                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("probeValue"))
+                                        ])))))))));
+
+        statements.Add(
+            SyntaxFactory.IfStatement(
+                SyntaxFactory.BinaryExpression(SyntaxKind.LessThanExpression,
+                    SyntaxFactory.IdentifierName("searchIdx"),
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))),
+                SyntaxFactory.ExpressionStatement(
+                    SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+                        SyntaxFactory.IdentifierName("searchIdx"),
+                        SyntaxFactory.PrefixUnaryExpression(SyntaxKind.BitwiseNotExpression,
+                            SyntaxFactory.IdentifierName("searchIdx"))))));
+
+        var bestIdxStatements = GenerateBestIndexLogic(comparisonKind, rightKeysExpr, ineqKeyTypeSyntax);
+        statements.AddRange(bestIdxStatements);
+
+        var matchBlock = new List<StatementSyntax>
+        {
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(
+                            SyntaxFactory.Identifier($"{rightAlias}Row"),
+                            null,
+                            SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.ElementAccessExpression(
+                                    SyntaxFactory.IdentifierName(rightRowsExpr),
+                                    SyntaxFactory.BracketedArgumentList(
+                                        SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Argument(
+                                                SyntaxFactory.IdentifierName("bestIdx"))))))))))
+        };
+
+        matchBlock.Add(generateCancellationExpression());
+        matchBlock.Add((StatementSyntax)ifStatement);
+        matchBlock.Add(emptyBlock);
+
+        StatementSyntax elseClause = null;
+        if (isLeftJoin)
+            elseClause = GenerateNullFallback(node, generator, scope, queryAlias, leftAlias);
+
+        statements.Add(
+            SyntaxFactory.IfStatement(
+                SyntaxFactory.BinaryExpression(SyntaxKind.GreaterThanOrEqualExpression,
+                    SyntaxFactory.IdentifierName("bestIdx"),
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))),
+                SyntaxFactory.Block(matchBlock),
+                elseClause != null ? SyntaxFactory.ElseClause(elseClause) : null));
+
+        return SyntaxFactory.Block(statements);
+    }
+
+    private static List<StatementSyntax> GenerateBestIndexLogic(
+        SyntaxKind comparisonKind,
+        string rightKeysExpr,
+        string ineqKeyTypeSyntax)
+    {
+        var rightKeysLength = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+            SyntaxFactory.IdentifierName(rightKeysExpr),
+            SyntaxFactory.IdentifierName("Length"));
+
+        var comparerCompare = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+            SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName("System"),
+                        SyntaxFactory.IdentifierName("Collections")),
+                    SyntaxFactory.IdentifierName("Generic")),
+                SyntaxFactory.GenericName("Comparer")
+                    .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
+                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                            SyntaxFactory.IdentifierName(ineqKeyTypeSyntax))))),
+            SyntaxFactory.IdentifierName("Default"));
+
+        var searchIdx = SyntaxFactory.IdentifierName("searchIdx");
+        var bestIdx = SyntaxFactory.IdentifierName("bestIdx");
+        var probeValue = SyntaxFactory.IdentifierName("probeValue");
+        var zero = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0));
+        var one = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1));
+        var negOne = SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression,
+            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
+
+        InvocationExpressionSyntax ComparerCall(ExpressionSyntax left, ExpressionSyntax right) =>
+            SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                    comparerCompare, SyntaxFactory.IdentifierName("Compare")),
+                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
+                    SyntaxFactory.Argument(left), SyntaxFactory.Argument(right)])));
+
+        ExpressionSyntax RightKeyAt(ExpressionSyntax index) =>
+            SyntaxFactory.ElementAccessExpression(
+                SyntaxFactory.IdentifierName(rightKeysExpr),
+                SyntaxFactory.BracketedArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(index))));
+
+        LocalDeclarationStatementSyntax BestIdxDeclaration(ExpressionSyntax initializer) =>
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier("bestIdx"), null,
+                            SyntaxFactory.EqualsValueClause(initializer)))));
+
+        var statements = new List<StatementSyntax>();
+
+        switch (comparisonKind)
+        {
+            case SyntaxKind.GreaterThanOrEqualExpression:
+                // left >= right: find largest right key <= probeValue
+                // var bestIdx = (searchIdx < keys.Length && Comparer<T>.Default.Compare(keys[searchIdx], probeValue) == 0)
+                //     ? searchIdx : searchIdx - 1;
+                statements.Add(BestIdxDeclaration(
+                    SyntaxFactory.ConditionalExpression(
+                        SyntaxFactory.ParenthesizedExpression(
+                            SyntaxFactory.BinaryExpression(SyntaxKind.LogicalAndExpression,
+                                SyntaxFactory.BinaryExpression(SyntaxKind.LessThanExpression, searchIdx, rightKeysLength),
+                                SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression,
+                                    ComparerCall(RightKeyAt(searchIdx), probeValue), zero))),
+                        searchIdx,
+                        SyntaxFactory.BinaryExpression(SyntaxKind.SubtractExpression, searchIdx, one))));
+                break;
+
+            case SyntaxKind.GreaterThanExpression:
+                // left > right: find largest right key < probeValue
+                // Must scan left past any duplicates equal to probeValue
+                statements.Add(BestIdxDeclaration(
+                    SyntaxFactory.BinaryExpression(SyntaxKind.SubtractExpression, searchIdx, one)));
+                // while (bestIdx >= 0 && Comparer<T>.Default.Compare(keys[bestIdx], probeValue) >= 0) bestIdx--;
+                statements.Add(SyntaxFactory.WhileStatement(
+                    SyntaxFactory.BinaryExpression(SyntaxKind.LogicalAndExpression,
+                        SyntaxFactory.BinaryExpression(SyntaxKind.GreaterThanOrEqualExpression, bestIdx, zero),
+                        SyntaxFactory.BinaryExpression(SyntaxKind.GreaterThanOrEqualExpression,
+                            ComparerCall(RightKeyAt(bestIdx), probeValue), zero)),
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostDecrementExpression, bestIdx))));
+                break;
+
+            case SyntaxKind.LessThanOrEqualExpression:
+                // left <= right: find smallest right key >= probeValue
+                // var bestIdx = (searchIdx < keys.Length) ? searchIdx : -1;
+                statements.Add(BestIdxDeclaration(
+                    SyntaxFactory.ConditionalExpression(
+                        SyntaxFactory.ParenthesizedExpression(
+                            SyntaxFactory.BinaryExpression(SyntaxKind.LessThanExpression, searchIdx, rightKeysLength)),
+                        searchIdx,
+                        negOne)));
+                break;
+
+            case SyntaxKind.LessThanExpression:
+                // left < right: find smallest right key > probeValue
+                // Must scan right past any duplicates equal to probeValue
+                statements.Add(BestIdxDeclaration(searchIdx));
+                // while (bestIdx < keys.Length && Comparer<T>.Default.Compare(keys[bestIdx], probeValue) <= 0) bestIdx++;
+                statements.Add(SyntaxFactory.WhileStatement(
+                    SyntaxFactory.BinaryExpression(SyntaxKind.LogicalAndExpression,
+                        SyntaxFactory.BinaryExpression(SyntaxKind.LessThanExpression, bestIdx, rightKeysLength),
+                        SyntaxFactory.BinaryExpression(SyntaxKind.LessThanOrEqualExpression,
+                            ComparerCall(RightKeyAt(bestIdx), probeValue), zero)),
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, bestIdx))));
+                // if (bestIdx >= keys.Length) bestIdx = -1;
+                statements.Add(SyntaxFactory.IfStatement(
+                    SyntaxFactory.BinaryExpression(SyntaxKind.GreaterThanOrEqualExpression, bestIdx, rightKeysLength),
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+                            bestIdx, negOne))));
+                break;
+
+            default:
+                throw new ArgumentException($"Unsupported comparison kind for ASOF JOIN: {comparisonKind}");
+        }
+
+        return statements;
+    }
+
+    private static StatementSyntax GenerateNullFallback(
+        JoinSourcesTableFromNode node,
+        SyntaxGenerator generator,
+        Scope scope,
+        string queryAlias,
+        string leftAlias)
+    {
+        var fullTransitionTable = scope.ScopeSymbolTable.GetSymbol<TableSymbol>(queryAlias);
+        var expressions = new List<ExpressionSyntax>();
+
+        foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[0]))
+            expressions.Add(
+                SyntaxFactory.ElementAccessExpression(
+                    SyntaxFactory.IdentifierName($"{node.First.Alias}Row"),
+                    SyntaxFactory.BracketedArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(
+                                (LiteralExpressionSyntax)generator.LiteralExpression(column.ColumnName))))));
+
+        foreach (var column in fullTransitionTable.GetColumns(fullTransitionTable.CompoundTables[1]))
+            expressions.Add(
+                SyntaxFactory.CastExpression(
+                    SyntaxFactory.IdentifierName(EvaluationHelper.GetCastableType(column.ColumnType)),
+                    (LiteralExpressionSyntax)generator.NullLiteralExpression()));
+
+        var (_, rewriteSelect, invocation) =
+            CreateSelectAndInvocationForOuterLeft(expressions, generator, scope, leftAlias);
+
+        return SyntaxFactory.Block(
+            SyntaxFactory.LocalDeclarationStatement(rewriteSelect),
+            SyntaxFactory.ExpressionStatement(invocation));
+    }
+
+    private static ForStatementSyntax GenerateKeyExtractionLoop(
+        string rowsVar,
+        string keysVar,
+        string alias,
+        ExpressionSyntax keyExpr)
+    {
+        var rewriter = new IdentifierReplacementRewriter($"{alias}Row", "r");
+        var rewrittenKey = (ExpressionSyntax)rewriter.Visit(keyExpr);
+
+        return SyntaxFactory.ForStatement(
+                SyntaxFactory.Block(
+                    SyntaxFactory.LocalDeclarationStatement(
+                        SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                            .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.VariableDeclarator("r")
+                                    .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                        SyntaxFactory.ElementAccessExpression(
+                                            SyntaxFactory.IdentifierName(rowsVar),
+                                            SyntaxFactory.BracketedArgumentList(
+                                                SyntaxFactory.SingletonSeparatedList(
+                                                    SyntaxFactory.Argument(
+                                                        SyntaxFactory.IdentifierName("i")))))))))),
+                    SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+                            SyntaxFactory.ElementAccessExpression(
+                                SyntaxFactory.IdentifierName(keysVar),
+                                SyntaxFactory.BracketedArgumentList(
+                                    SyntaxFactory.SingletonSeparatedList(
+                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("i"))))),
+                            rewrittenKey))))
+            .WithDeclaration(
+                SyntaxFactory
+                    .VariableDeclaration(
+                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)))
+                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator("i").WithInitializer(
+                            SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal(0)))))))
+            .WithCondition(
+                SyntaxFactory.BinaryExpression(SyntaxKind.LessThanExpression,
+                    SyntaxFactory.IdentifierName("i"),
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(rowsVar),
+                        SyntaxFactory.IdentifierName("Length"))))
+            .WithIncrementors(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression,
+                    SyntaxFactory.IdentifierName("i"))));
+    }
+
     private static bool TryGetSortMergeJoinKeys(
         JoinSourcesTableFromNode node,
         Scope scope,
@@ -1980,9 +2915,7 @@ public static class JoinSourcesTableProcessingHelper
     {
         if (node == null) return;
 
-
         aliases.Add(node.Alias);
-
 
         if (node is JoinSourcesTableFromNode joinNode)
         {

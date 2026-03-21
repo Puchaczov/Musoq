@@ -627,6 +627,16 @@ inner join Right() r on l.Key = r.Key;
 select l.Value1, r.Value2 
 from Left() l 
 left join Right() r on l.Key = r.Key;
+
+-- ASOF JOIN (nearest-match on ordered column)
+table Events { Time: int, Name: string };
+table Snapshots { Time: int, State: string };
+couple data.events with table Events as Events;
+couple data.snapshots with table Snapshots as Snapshots;
+
+select e.Name, s.State
+from Events() e
+asof join Snapshots() s on e.Time >= s.Time;
 ```
 
 ### 10.3 With APPLY

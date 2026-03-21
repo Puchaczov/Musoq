@@ -9,14 +9,14 @@ using Musoq.Schema.Managers;
 namespace Musoq.Schema.Tests;
 
 [TestClass]
-public class MethodsMetadataComplexScenarioTests
+public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
 {
     private MethodsMetadata _methodsMetadata;
 
     [TestInitialize]
     public void Initialize()
     {
-        _methodsMetadata = new TestMethodsMetadata();
+        _methodsMetadata = CreateMethodsMetadataFor<TestClass>();
     }
 
     [TestMethod]
@@ -208,18 +208,4 @@ public class MethodsMetadataComplexScenarioTests
         }
     }
 
-    private class TestMethodsMetadata : MethodsMetadata
-    {
-        public TestMethodsMetadata()
-        {
-            var testClass = typeof(TestClass);
-            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance |
-                                                        BindingFlags.DeclaredOnly)) RegisterMethod(method);
-        }
-
-        private new void RegisterMethod(MethodInfo methodInfo)
-        {
-            base.RegisterMethod(methodInfo);
-        }
-    }
 }

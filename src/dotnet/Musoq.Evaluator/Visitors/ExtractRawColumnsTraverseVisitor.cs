@@ -222,6 +222,7 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
         node.Select.Accept(this);
         node.Skip?.Accept(this);
         node.Take?.Accept(this);
+        node.Window?.Accept(this);
         node.OrderBy?.Accept(this);
         node.Accept(Visitor);
         SetQueryPart(QueryPart.None);

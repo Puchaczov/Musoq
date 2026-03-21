@@ -98,6 +98,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     private readonly IDictionary<SchemaFromNode, WhereNode> _usedWhereNodes =
         new Dictionary<SchemaFromNode, WhereNode>();
 
+    private readonly HashSet<string> _allUsedSchemaNames = new(StringComparer.OrdinalIgnoreCase);
+
     private readonly Dictionary<string, Node> _selectFieldAliases = new(StringComparer.OrdinalIgnoreCase);
 
     protected readonly Dictionary<uint, IReadOnlyDictionary<string, string>> InternalPositionalEnvironmentVariables =
@@ -115,6 +117,8 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     private IdentifierNode _theMostInnerIdentifier;
 
     private int _usedSchemasQuantity;
+
+    internal bool InsideWindowFunction { get; set; }
 
     /// <summary>
     ///     Public constructor for external use (e.g., from Musoq.Converter).
@@ -544,6 +548,68 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
                     default, node.IsDistinct));
     }
 
+    public override void Visit(WindowFunctionNode node)
+    {
+        var spec = node.WindowSpecification != null
+            ? SafePop(Nodes, "Visit(WindowFunctionNode).WindowSpec") as WindowSpecificationNode
+            : null;
+
+        var funcArgCount = node.FunctionCall.Arguments?.Args.Length ?? 0;
+        var funcArgs = new Node[funcArgCount];
+        for (var i = funcArgCount - 1; i >= 0; i--)
+            funcArgs[i] = SafePop(Nodes, "Visit(WindowFunctionNode).FuncArg");
+
+        var (returnType, resolvedFactory) = InferWindowFunctionReturnType(node.FunctionCall.Name, funcArgs);
+        var argsListNode = new ArgsListNode(funcArgs);
+
+        var functionCall = new AccessMethodNode(
+            node.FunctionCall.FunctionToken,
+            argsListNode,
+            null,
+            false,
+            resolvedFactory,
+            node.FunctionCall.Alias,
+            default,
+            node.FunctionCall.IsDistinct);
+
+        WindowFunctionNode result;
+        if (node.IsNamedWindowReference)
+            result = new WindowFunctionNode(functionCall, node.WindowName);
+        else
+            result = new WindowFunctionNode(functionCall, spec);
+
+        result.SetReturnType(returnType);
+        Nodes.Push(result);
+    }
+
+    public override void Visit(WindowSpecificationNode node)
+    {
+        var orderByFields = new FieldOrderedNode[node.OrderByFields.Length];
+        for (var i = node.OrderByFields.Length - 1; i >= 0; i--)
+            orderByFields[i] = (FieldOrderedNode)SafePop(Nodes, "Visit(WindowSpecificationNode).OrderBy");
+
+        var partitionFields = new FieldNode[node.PartitionFields.Length];
+        for (var i = node.PartitionFields.Length - 1; i >= 0; i--)
+            partitionFields[i] = (FieldNode)SafePop(Nodes, "Visit(WindowSpecificationNode).Partition");
+
+        Nodes.Push(new WindowSpecificationNode(partitionFields, orderByFields));
+    }
+
+    public override void Visit(WindowDefinitionNode node)
+    {
+        var spec = (WindowSpecificationNode)SafePop(Nodes, "Visit(WindowDefinitionNode).Spec");
+        Nodes.Push(new WindowDefinitionNode(node.Name, spec));
+    }
+
+    public override void Visit(WindowNode node)
+    {
+        var definitions = new WindowDefinitionNode[node.Definitions.Length];
+        for (var i = node.Definitions.Length - 1; i >= 0; i--)
+            definitions[i] = (WindowDefinitionNode)SafePop(Nodes, "Visit(WindowNode).Definition");
+
+        Nodes.Push(new WindowNode(definitions));
+    }
+
     public override void Visit(InterpretCallNode node)
     {
         var dataSource = SafePop(Nodes, VisitorOperationNames.VisitInterpretCallNode);
@@ -707,10 +773,18 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var identifier = _identifier;
         var tableSymbol = _currentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
 
+        Node[] inferredReplaceExpressions = null;
+        if (node.ReplaceItems is { Length: > 0 })
+        {
+            inferredReplaceExpressions = new Node[node.ReplaceItems.Length];
+            for (var i = node.ReplaceItems.Length - 1; i >= 0; i--)
+                inferredReplaceExpressions[i] = Nodes.Pop();
+        }
+
         if (!string.IsNullOrWhiteSpace(node.Alias) ||
             (!tableSymbol.IsCompoundTable && string.IsNullOrWhiteSpace(node.Alias)))
-            ProcessSingleTable(node, tableSymbol, identifier);
-        else if (tableSymbol.IsCompoundTable) ProcessCompoundTable(tableSymbol);
+            ProcessSingleTable(node, tableSymbol, identifier, inferredReplaceExpressions);
+        else if (tableSymbol.IsCompoundTable) ProcessCompoundTable(node, tableSymbol, inferredReplaceExpressions);
 
         Nodes.Push(node);
     }
@@ -1485,6 +1559,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         _currentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(_queryAlias);
 
         _aliasToSchemaFromNodeMap.Add(_queryAlias, aliasedSchemaFromNode);
+        _allUsedSchemaNames.Add(aliasedSchemaFromNode.Schema);
 
         if (!_inferredColumns.ContainsKey(aliasedSchemaFromNode))
             _inferredColumns.Add(aliasedSchemaFromNode, table.Columns);
@@ -1772,6 +1847,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         _schemaFromInfo.Add(_queryAlias, (_schemaFromKey, _positionalEnvironmentVariablesKey));
         _positionalEnvironmentVariablesKey += 1;
         _aliasToSchemaFromNodeMap.Add(_queryAlias, aliasedSchemaFromNode);
+        _allUsedSchemaNames.Add(aliasedSchemaFromNode.Schema);
 
         Nodes.Push(aliasedSchemaFromNode);
     }
@@ -1838,10 +1914,188 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         var expression = Nodes.Pop();
         var joinedTable = (FromNode)Nodes.Pop();
         var source = (FromNode)Nodes.Pop();
+
+        if (node.JoinType is JoinType.AsOf or JoinType.AsOfLeft)
+            ValidateAsOfJoinCondition(expression, source, joinedTable);
+
         var joinedFrom = new Parser.JoinFromNode(source, joinedTable, expression, node.JoinType);
         _identifier = joinedFrom.Alias;
         _schemaFromArgs.Clear();
         Nodes.Push(joinedFrom);
+    }
+
+    private void ValidateAsOfJoinCondition(Node expression, FromNode source, FromNode joinedTable)
+    {
+        if (ContainsOrNode(expression))
+            throw new VisitorException(
+                nameof(BuildMetadataAndInferTypesVisitor),
+                "ASOF JOIN validation",
+                "ASOF JOIN ON clause does not support OR.",
+                DiagnosticCode.MQ3038_AsOfJoinOrNotSupported,
+                expression.Span);
+
+        var (inequalities, equalityCount) = CollectConditions(expression);
+
+        if (inequalities.Count == 0)
+            throw new VisitorException(
+                nameof(BuildMetadataAndInferTypesVisitor),
+                "ASOF JOIN validation",
+                "ASOF JOIN requires at least one inequality condition (>=, >, <=, <).",
+                DiagnosticCode.MQ3036_AsOfJoinMissingInequality,
+                expression.Span);
+
+        if (inequalities.Count > 1)
+            throw new VisitorException(
+                nameof(BuildMetadataAndInferTypesVisitor),
+                "ASOF JOIN validation",
+                $"ASOF JOIN supports exactly one inequality condition. Found {inequalities.Count}.",
+                DiagnosticCode.MQ3037_AsOfJoinMultipleInequalities,
+                expression.Span);
+
+        var inequality = inequalities[0];
+        var leftAliases = CollectFromNodeAliases(source);
+        var rightAliases = CollectFromNodeAliases(joinedTable);
+        ValidateInequalityReferencesBothSides(inequality, leftAliases, rightAliases);
+        ValidateInequalityColumnIsOrderable(inequality);
+    }
+
+    private static bool ContainsOrNode(Node node)
+    {
+        if (node is OrNode)
+            return true;
+
+        if (node is AndNode and)
+            return ContainsOrNode(and.Left) || ContainsOrNode(and.Right);
+
+        return false;
+    }
+
+    private static (List<BinaryNode> Inequalities, int EqualityCount) CollectConditions(Node node)
+    {
+        var inequalities = new List<BinaryNode>();
+        var equalityCount = 0;
+        var stack = new Stack<Node>();
+        stack.Push(node);
+
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+
+            if (current is AndNode and)
+            {
+                stack.Push(and.Right);
+                stack.Push(and.Left);
+                continue;
+            }
+
+            if (current is BinaryNode binary)
+            {
+                if (IsInequalityNode(binary))
+                    inequalities.Add(binary);
+                else
+                    equalityCount++;
+            }
+        }
+
+        return (inequalities, equalityCount);
+    }
+
+    private static bool IsInequalityNode(BinaryNode node)
+    {
+        return node is GreaterNode or LessNode or GreaterOrEqualNode or LessOrEqualNode;
+    }
+
+    private void ValidateInequalityReferencesBothSides(BinaryNode inequality, HashSet<string> leftAliases, HashSet<string> rightAliases)
+    {
+        var columnAliases = ExtractColumnAliases(inequality.Left);
+        columnAliases.UnionWith(ExtractColumnAliases(inequality.Right));
+
+        var referencesLeft = columnAliases.Overlaps(leftAliases);
+        var referencesRight = columnAliases.Overlaps(rightAliases);
+
+        if (!referencesLeft || !referencesRight)
+            throw new VisitorException(
+                nameof(BuildMetadataAndInferTypesVisitor),
+                "ASOF JOIN validation",
+                "ASOF JOIN inequality must reference columns from both sides.",
+                DiagnosticCode.MQ3039_AsOfJoinInequalityMustReferenceBothSides,
+                inequality.Span);
+    }
+
+    private static HashSet<string> CollectFromNodeAliases(FromNode node)
+    {
+        var aliases = new HashSet<string>();
+        CollectFromNodeAliasesRecursive(node, aliases);
+        return aliases;
+    }
+
+    private static void CollectFromNodeAliasesRecursive(FromNode node, HashSet<string> aliases)
+    {
+        if (node == null) return;
+
+        aliases.Add(node.Alias);
+
+        if (node is JoinFromNode joinNode)
+        {
+            CollectFromNodeAliasesRecursive(joinNode.Source, aliases);
+            CollectFromNodeAliasesRecursive(joinNode.With, aliases);
+        }
+    }
+
+    private static HashSet<string> ExtractColumnAliases(Node node)
+    {
+        var aliases = new HashSet<string>();
+        var stack = new Stack<Node>();
+        stack.Push(node);
+
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+
+            if (current is AccessColumnNode col)
+            {
+                aliases.Add(col.Alias);
+                continue;
+            }
+
+            if (current is BinaryNode binary)
+            {
+                stack.Push(binary.Left);
+                stack.Push(binary.Right);
+            }
+        }
+
+        return aliases;
+    }
+
+    private static void ValidateInequalityColumnIsOrderable(BinaryNode inequality)
+    {
+        ThrowIfNotOrderable(inequality.Left.ReturnType);
+        ThrowIfNotOrderable(inequality.Right.ReturnType);
+    }
+
+    private static void ThrowIfNotOrderable(Type columnType)
+    {
+        var underlying = Nullable.GetUnderlyingType(columnType) ?? columnType;
+
+        if (!IsOrderableType(underlying))
+            throw new VisitorException(
+                nameof(BuildMetadataAndInferTypesVisitor),
+                "ASOF JOIN validation",
+                $"ASOF JOIN inequality column type '{underlying.Name}' is not orderable.",
+                DiagnosticCode.MQ3040_AsOfJoinInequalityColumnNotOrderable,
+                TextSpan.Empty);
+    }
+
+    private static bool IsOrderableType(Type type)
+    {
+        return typeof(IComparable).IsAssignableFrom(type) ||
+               type.IsPrimitive ||
+               type == typeof(string) ||
+               type == typeof(DateTime) ||
+               type == typeof(DateTimeOffset) ||
+               type == typeof(TimeSpan) ||
+               type == typeof(decimal);
     }
 
     public override void Visit(ApplyFromNode node)
@@ -1962,6 +2216,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
     public override void Visit(QueryNode node)
     {
         var orderBy = node.OrderBy != null ? Nodes.Pop() as OrderByNode : null;
+        var window = node.Window != null ? Nodes.Pop() as WindowNode : null;
         var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
         var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
         var select = Nodes.Pop() as SelectNode;
@@ -1987,7 +2242,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         Methods.Push(from.Alias);
 
-        var queryNode = new QueryNode(select, from, where, groupBy, orderBy, skip, take);
+        var queryNode = new QueryNode(select, from, where, groupBy, orderBy, skip, take, window);
 
 
         ValidateSelectFieldsArePrimitive(queryNode.Select.Fields, "SELECT");
@@ -3074,7 +3329,7 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         return (_setKey - 2).ToString().ToSetOperatorKey((_setKey - 2).ToString());
     }
 
-    private void ProcessSingleTable(AllColumnsNode node, TableSymbol tableSymbol, string identifier)
+    private void ProcessSingleTable(AllColumnsNode node, TableSymbol tableSymbol, string identifier, Node[] inferredReplaceExpressions)
     {
         var generatedColumnIdentifier = node.Alias ?? identifier;
         (ISchema Schema, ISchemaTable Table, string TableName) tuple;
@@ -3093,36 +3348,301 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
 
         var table = tuple.Table;
 
+        var eligibleColumns = new List<ISchemaColumn>();
+        for (var i = 0; i < table.Columns.Length; i++)
+            if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(table.Columns[i].ColumnType))
+                eligibleColumns.Add(table.Columns[i]);
+
+        var filteredColumns = node.HasModifiers
+            ? ApplyStarModifiers(node, eligibleColumns, inferredReplaceExpressions)
+            : null;
+
         var generatedColumns = GetOrCreateGeneratedColumns(generatedColumnIdentifier);
 
-        var positionCounter = 0;
-        for (var i = 0; i < table.Columns.Length; i++)
-            if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(table.Columns[i]
-                    .ColumnType))
-                AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], positionCounter++, generatedColumnIdentifier,
+        if (filteredColumns != null)
+        {
+            var positionCounter = 0;
+            foreach (var entry in filteredColumns)
+            {
+                if (entry.ReplacementExpression != null)
+                {
+                    AddAssembly(entry.ReplacementExpression.ReturnType.Assembly);
+                    var fieldName = tableSymbol.HasAlias
+                        ? $"{generatedColumnIdentifier}.{entry.Column.ColumnName}"
+                        : entry.Column.ColumnName;
+                    generatedColumns.Add(new FieldNode(entry.ReplacementExpression, positionCounter++, fieldName));
+                }
+                else
+                {
+                    AddColumnToGeneratedColumns(tableSymbol, entry.Column, positionCounter++,
+                        generatedColumnIdentifier, generatedColumns);
+                }
+            }
+        }
+        else
+        {
+            var positionCounter = 0;
+            foreach (var column in eligibleColumns)
+                AddColumnToGeneratedColumns(tableSymbol, column, positionCounter++, generatedColumnIdentifier,
                     generatedColumns);
+        }
 
         UpdateUsedColumns(generatedColumnIdentifier, table);
     }
 
-    private void ProcessCompoundTable(TableSymbol tableSymbol)
+    private void ProcessCompoundTable(AllColumnsNode node, TableSymbol tableSymbol, Node[] inferredReplaceExpressions)
     {
+        if (!node.HasModifiers)
+        {
+            foreach (var tableIdentifier in tableSymbol.CompoundTables)
+            {
+                var tuple = tableSymbol.GetTableByAlias(tableIdentifier);
+                var table = tuple.Table;
+
+                var generatedColumns = GetOrCreateGeneratedColumns(tableIdentifier);
+
+                var positionCounter = 0;
+                for (var i = 0; i < table.Columns.Length; i++)
+                    if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(table.Columns[i]
+                            .ColumnType))
+                        AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], positionCounter++, tableIdentifier,
+                            generatedColumns, true);
+
+                UpdateUsedColumns(tableIdentifier, table);
+            }
+
+            return;
+        }
+
+        var allEligible = new List<(string TableIdentifier, ISchemaColumn Column)>();
+        var tablesByIdentifier =
+            new Dictionary<string, (ISchemaTable Table, TableSymbol Symbol)>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var tableIdentifier in tableSymbol.CompoundTables)
         {
             var tuple = tableSymbol.GetTableByAlias(tableIdentifier);
             var table = tuple.Table;
+            tablesByIdentifier[tableIdentifier] = (table, tableSymbol);
 
+            for (var i = 0; i < table.Columns.Length; i++)
+                if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(table.Columns[i]
+                        .ColumnType))
+                    allEligible.Add((tableIdentifier, table.Columns[i]));
+        }
+
+        var eligibleAsColumns = allEligible.Select(e => e.Column).ToList();
+        var filtered = ApplyStarModifiers(node, eligibleAsColumns, inferredReplaceExpressions);
+
+        var survivingSet = new HashSet<(string TableId, string ColumnName)>(
+            filtered.Select((entry, idx) => (allEligible[FindOriginalIndex(allEligible, entry.Column)].TableIdentifier,
+                entry.Column.ColumnName)));
+
+        foreach (var tableIdentifier in tableSymbol.CompoundTables)
+        {
+            var (table, _) = tablesByIdentifier[tableIdentifier];
             var generatedColumns = GetOrCreateGeneratedColumns(tableIdentifier);
 
             var positionCounter = 0;
             for (var i = 0; i < table.Columns.Length; i++)
-                if (BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(table.Columns[i]
-                        .ColumnType))
-                    AddColumnToGeneratedColumns(tableSymbol, table.Columns[i], positionCounter++, tableIdentifier,
+            {
+                var column = table.Columns[i];
+                if (!BuildMetadataAndInferTypesVisitorUtilities.ShouldIncludeColumnInStarExpansion(column.ColumnType))
+                    continue;
+
+                if (!survivingSet.Contains((tableIdentifier, column.ColumnName)))
+                    continue;
+
+                var replaceEntry = filtered.FirstOrDefault(e =>
+                    e.Column == column && e.ReplacementExpression != null);
+
+                if (replaceEntry.ReplacementExpression != null)
+                {
+                    AddAssembly(replaceEntry.ReplacementExpression.ReturnType.Assembly);
+                    var fieldName = $"{tableIdentifier}.{column.ColumnName}";
+                    generatedColumns.Add(new FieldNode(replaceEntry.ReplacementExpression, positionCounter++,
+                        fieldName));
+                }
+                else
+                {
+                    AddColumnToGeneratedColumns(tableSymbol, column, positionCounter++, tableIdentifier,
                         generatedColumns, true);
+                }
+            }
 
             UpdateUsedColumns(tableIdentifier, table);
         }
+    }
+
+    private static int FindOriginalIndex(
+        List<(string TableIdentifier, ISchemaColumn Column)> allEligible,
+        ISchemaColumn column)
+    {
+        for (var i = 0; i < allEligible.Count; i++)
+            if (allEligible[i].Column == column)
+                return i;
+
+        return -1;
+    }
+
+    private List<(ISchemaColumn Column, Node ReplacementExpression)> ApplyStarModifiers(
+        AllColumnsNode node,
+        List<ISchemaColumn> eligibleColumns,
+        Node[] inferredReplaceExpressions)
+    {
+        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+
+        var surviving = ApplyLikeFilter(node, eligibleColumns, span);
+        surviving = ApplyExcludeFilter(node, surviving, span);
+        return ApplyReplaceSubstitution(node, surviving, eligibleColumns, inferredReplaceExpressions, span);
+    }
+
+    private static List<ISchemaColumn> ApplyLikeFilter(
+        AllColumnsNode node,
+        List<ISchemaColumn> columns,
+        TextSpan span)
+    {
+        if (node.LikePattern == null)
+            return new List<ISchemaColumn>(columns);
+
+        var matcher = CreateLikeColumnMatcher(node.LikePattern);
+        var filtered = node.IsNotLike
+            ? columns.Where(c => !matcher(c.ColumnName)).ToList()
+            : columns.Where(c => matcher(c.ColumnName)).ToList();
+
+        if (filtered.Count == 0)
+        {
+            var direction = node.IsNotLike ? "NOT LIKE" : "LIKE";
+            throw new StarModifierValidationException(
+                $"Star modifier {direction} '{node.LikePattern}' matched no columns.",
+                DiagnosticCode.MQ3045_StarLikeMatchedNoColumns,
+                span);
+        }
+
+        return filtered;
+    }
+
+    private static List<ISchemaColumn> ApplyExcludeFilter(
+        AllColumnsNode node,
+        List<ISchemaColumn> columns,
+        TextSpan span)
+    {
+        if (node.ExcludeColumns is not { Length: > 0 })
+            return columns;
+
+        var columnNames = new HashSet<string>(columns.Select(c => c.ColumnName), StringComparer.OrdinalIgnoreCase);
+
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var excl in node.ExcludeColumns)
+        {
+            if (!seen.Add(excl))
+                throw new StarModifierValidationException(
+                    $"Duplicate column '{excl}' in EXCLUDE list.",
+                    DiagnosticCode.MQ3046_StarExcludeDuplicateColumn,
+                    span);
+
+            if (!columnNames.Contains(excl))
+                throw new StarModifierValidationException(
+                    $"EXCLUDE references non-existent column '{excl}'.",
+                    DiagnosticCode.MQ3041_StarExcludeColumnNotFound,
+                    span);
+        }
+
+        var excludeSet = new HashSet<string>(node.ExcludeColumns, StringComparer.OrdinalIgnoreCase);
+        var surviving = columns.Where(c => !excludeSet.Contains(c.ColumnName)).ToList();
+
+        if (surviving.Count == 0)
+            throw new StarModifierValidationException(
+                "EXCLUDE would remove all columns from the star expansion.",
+                DiagnosticCode.MQ3043_StarExcludeRemovesAllColumns,
+                span);
+
+        return surviving;
+    }
+
+    private static List<(ISchemaColumn Column, Node ReplacementExpression)> ApplyReplaceSubstitution(
+        AllColumnsNode node,
+        List<ISchemaColumn> surviving,
+        List<ISchemaColumn> eligibleColumns,
+        Node[] inferredReplaceExpressions,
+        TextSpan span)
+    {
+        var result = surviving.Select(c => (Column: c, ReplacementExpression: (Node)null)).ToList();
+
+        if (node.ReplaceItems is not { Length: > 0 })
+            return result;
+
+        var survivingNames = new HashSet<string>(surviving.Select(c => c.ColumnName), StringComparer.OrdinalIgnoreCase);
+        var excludeSet = node.ExcludeColumns != null
+            ? new HashSet<string>(node.ExcludeColumns, StringComparer.OrdinalIgnoreCase)
+            : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < node.ReplaceItems.Length; i++)
+        {
+            var targetColumn = node.ReplaceItems[i].ColumnName;
+
+            if (!seen.Add(targetColumn))
+                throw new StarModifierValidationException(
+                    $"Duplicate column '{targetColumn}' in REPLACE list.",
+                    DiagnosticCode.MQ3047_StarReplaceDuplicateColumn,
+                    span);
+
+            if (excludeSet.Contains(targetColumn))
+                throw new StarModifierValidationException(
+                    $"Column '{targetColumn}' appears in both EXCLUDE and REPLACE.",
+                    DiagnosticCode.MQ3044_StarColumnInBothExcludeAndReplace,
+                    span);
+
+            if (!survivingNames.Contains(targetColumn))
+            {
+                var eligibleNames = new HashSet<string>(eligibleColumns.Select(c => c.ColumnName), StringComparer.OrdinalIgnoreCase);
+                var wasRemoved = eligibleNames.Contains(targetColumn);
+                var code = wasRemoved
+                    ? DiagnosticCode.MQ3048_StarReplaceTargetsRemovedColumn
+                    : DiagnosticCode.MQ3042_StarReplaceColumnNotFound;
+                var reason = wasRemoved
+                    ? "was removed by LIKE filter or EXCLUDE"
+                    : "does not exist in the table";
+                throw new StarModifierValidationException(
+                    $"REPLACE targets column '{targetColumn}' which {reason}.",
+                    code,
+                    span);
+            }
+
+            var replaceExpr = inferredReplaceExpressions[i];
+            var idx = result.FindIndex(e =>
+                string.Equals(e.Column.ColumnName, targetColumn, StringComparison.OrdinalIgnoreCase));
+            result[idx] = (result[idx].Column, replaceExpr);
+        }
+
+        return result;
+    }
+
+    private static Func<string, bool> CreateLikeColumnMatcher(string pattern)
+    {
+        var sb = new System.Text.StringBuilder("^");
+        foreach (var ch in pattern)
+        {
+            switch (ch)
+            {
+                case '%':
+                    sb.Append(".*");
+                    break;
+                case '_':
+                    sb.Append('.');
+                    break;
+                default:
+                    sb.Append(System.Text.RegularExpressions.Regex.Escape(ch.ToString()));
+                    break;
+            }
+        }
+        sb.Append('$');
+
+        var regex = new System.Text.RegularExpressions.Regex(
+            sb.ToString(),
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase |
+            System.Text.RegularExpressions.RegexOptions.Compiled);
+        return input => regex.IsMatch(input);
     }
 
     private List<FieldNode> GetOrCreateGeneratedColumns(string identifier)
@@ -3174,6 +3694,78 @@ public class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, IAwareExp
         );
 
         return schema.GetTableByName(schemaFrom.Method, runtimeContext, schemaFrom.Parameters);
+    }
+
+    private (Type ReturnType, MethodInfo? ResolvedFactory) InferWindowFunctionReturnType(string functionName, Node[] args)
+    {
+        var normalizedName = functionName.ToLowerInvariant().Replace("_", "");
+
+        MethodInfo? resolvedFactory = null;
+        var isBuiltInOffset = normalizedName is "lag" or "lead";
+
+        if (!isBuiltInOffset)
+            TryResolveWindowFunctionFactory(functionName, out resolvedFactory);
+
+        Type returnType;
+        if (resolvedFactory != null)
+        {
+            returnType = ExtractWindowFunctionResultType(resolvedFactory) ?? typeof(object);
+        }
+        else
+        {
+            returnType = normalizedName switch
+            {
+                "lag" or "lead" => MakeNullableIfValueType(
+                    args.Length > 0 ? args[0].ReturnType ?? typeof(object) : typeof(object)),
+                _ => typeof(object)
+            };
+        }
+
+        return (returnType, resolvedFactory);
+    }
+
+    private bool TryResolveWindowFunctionFactory(string functionName, out MethodInfo? factoryMethod)
+    {
+        foreach (var schemaFrom in _aliasToSchemaFromNodeMap.Values)
+        {
+            var schema = _provider.GetSchema(schemaFrom.Schema);
+            if (schema.TryResolveWindowFunction(functionName, out var resolved))
+            {
+                factoryMethod = resolved;
+                return true;
+            }
+        }
+
+        foreach (var schemaName in _allUsedSchemaNames)
+        {
+            var schema = _provider.GetSchema(schemaName);
+            if (schema.TryResolveWindowFunction(functionName, out var resolved))
+            {
+                factoryMethod = resolved;
+                return true;
+            }
+        }
+
+        factoryMethod = null;
+        return false;
+    }
+
+    private static Type? ExtractWindowFunctionResultType(MethodInfo factoryMethod)
+    {
+        var returnType = factoryMethod.ReturnType;
+        var windowFunctionInterface = returnType.GetInterfaces()
+            .Concat([returnType])
+            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IWindowFunction<,>));
+
+        return windowFunctionInterface?.GetGenericArguments()[1];
+    }
+
+    private static Type MakeNullableIfValueType(Type type)
+    {
+        if (type.IsValueType)
+            return typeof(Nullable<>).MakeGenericType(type);
+
+        return type;
     }
 
     private void UpdateQueryAliasAndSymbolTable(PropertyFromNode node, ISchema schema, ISchemaTable table)

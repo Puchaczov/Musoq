@@ -6,7 +6,7 @@ namespace Musoq.Plugins.Tests;
 ///     Extended tests for strict conversions and type conversion methods to improve branch coverage
 /// </summary>
 [TestClass]
-public class StrictConversionExtendedTests : LibraryBaseBaseTests
+public class StrictConversionExtendedTests : PluginsTestBase
 {
     #region TryConvertToInt32Strict Tests
 

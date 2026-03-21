@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class TypeConversionTests : LibraryBaseBaseTests
+public class TypeConversionTests : PluginsTestBase
 {
     #region ToChar Tests
 

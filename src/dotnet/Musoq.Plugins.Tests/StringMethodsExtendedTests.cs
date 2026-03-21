@@ -8,7 +8,7 @@ namespace Musoq.Plugins.Tests;
 ///     WordCount, LineCount, SentenceCount, and other string utilities.
 /// </summary>
 [TestClass]
-public class StringMethodsExtendedTests : LibraryBaseBaseTests
+public class StringMethodsExtendedTests : PluginsTestBase
 {
     #region ToSnakeCase Tests
 

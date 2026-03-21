@@ -8,7 +8,7 @@ namespace Musoq.Plugins.Tests;
 ///     Tests Diff, DiffSegments with various modes and edge cases.
 /// </summary>
 [TestClass]
-public class DiffMethodsExtendedTests : LibraryBaseBaseTests
+public class DiffMethodsExtendedTests : PluginsTestBase
 {
     #region Diff Tests
 

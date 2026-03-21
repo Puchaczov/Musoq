@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class ToFloatMethodsTests : LibraryBaseBaseTests
+public class ToFloatMethodsTests : PluginsTestBase
 {
     #region String ToFloat Tests
 

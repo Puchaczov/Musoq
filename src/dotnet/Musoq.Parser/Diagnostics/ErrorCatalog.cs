@@ -79,6 +79,16 @@ public static class ErrorCatalog
             "Method call '{0}' is ambiguous because multiple source aliases expose different implementations: {1}",
         [DiagnosticCode.MQ3031_SetOperatorMissingKeys] =
             "Set operators require explicit key columns in Musoq; use the operator followed by '(<key_columns>)' instead of bare standard SQL syntax",
+        [DiagnosticCode.MQ3036_AsOfJoinMissingInequality] =
+            "ASOF JOIN requires at least one inequality condition (>=, >, <=, <).",
+        [DiagnosticCode.MQ3037_AsOfJoinMultipleInequalities] =
+            "ASOF JOIN supports exactly one inequality condition. Found {0}.",
+        [DiagnosticCode.MQ3038_AsOfJoinOrNotSupported] =
+            "ASOF JOIN ON clause does not support OR.",
+        [DiagnosticCode.MQ3039_AsOfJoinInequalityMustReferenceBothSides] =
+            "ASOF JOIN inequality must reference columns from both sides.",
+        [DiagnosticCode.MQ3040_AsOfJoinInequalityColumnNotOrderable] =
+            "ASOF JOIN inequality column type '{0}' is not orderable.",
 
         // Schema Definition Errors (MQ4xxx)
         [DiagnosticCode.MQ4001_InvalidBinarySchemaField] = "Invalid binary schema field '{0}'",

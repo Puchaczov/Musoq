@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class DateTimeOffsetTests : LibraryBaseBaseTests
+public class DateTimeOffsetTests : PluginsTestBase
 {
     [TestMethod]
     public void WhenSingleValueAdded_ShouldPass()

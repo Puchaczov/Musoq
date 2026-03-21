@@ -6,7 +6,7 @@ namespace Musoq.Plugins.Tests;
 ///     Tests for DISTINCT aggregate functions: CountDistinct, SumDistinct, AvgDistinct, MinDistinct, MaxDistinct
 /// </summary>
 [TestClass]
-public class DistinctAggregatesTests : LibraryBaseBaseTests
+public class DistinctAggregatesTests : PluginsTestBase
 {
     #region CountDistinct Tests
 

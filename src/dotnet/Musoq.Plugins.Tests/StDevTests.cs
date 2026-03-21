@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class StDevTests : LibraryBaseBaseTests
+public class StDevTests : PluginsTestBase
 {
     [TestMethod]
     public void StdDevTest()

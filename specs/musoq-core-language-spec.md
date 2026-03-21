@@ -1,6 +1,6 @@
 # Musoq Core SQL Language Specification
 
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Status:** Specification  
 **Author:** Jakub Puchała
 
@@ -18,20 +18,21 @@
 8. [JOIN Clause](#8-join-clause)
 9. [APPLY Clause](#9-apply-clause)
 10. [GROUP BY and Aggregation](#10-group-by-and-aggregation)
-11. [Set Operations](#11-set-operations)
-12. [ORDER BY, SKIP, TAKE](#12-order-by-skip-take)
-13. [Common Table Expressions (CTEs)](#13-common-table-expressions-ctes)
-14. [TABLE and COUPLE Statements](#14-table-and-couple-statements)
-15. [DESC Statement](#15-desc-statement)
-16. [Reordered Query Syntax](#16-reordered-query-syntax)
-17. [Built-in Functions](#17-built-in-functions)
-18. [NULL Semantics](#18-null-semantics)
-19. [String Comparison Semantics](#19-string-comparison-semantics)
-20. [Array and Property Access](#20-array-and-property-access)
-21. [Automatic Type Coercion](#21-automatic-type-coercion)
-22. [Error Catalog](#22-error-catalog)
-23. [Formal Grammar](#23-formal-grammar)
-24. [Appendices](#24-appendices)
+11. [Window Functions](#11-window-functions)
+12. [Set Operations](#12-set-operations)
+13. [ORDER BY, SKIP, TAKE](#13-order-by-skip-take)
+14. [Common Table Expressions (CTEs)](#14-common-table-expressions-ctes)
+15. [TABLE and COUPLE Statements](#15-table-and-couple-statements)
+16. [DESC Statement](#16-desc-statement)
+17. [Reordered Query Syntax](#17-reordered-query-syntax)
+18. [Built-in Functions](#18-built-in-functions)
+19. [NULL Semantics](#19-null-semantics)
+20. [String Comparison Semantics](#20-string-comparison-semantics)
+21. [Array and Property Access](#21-array-and-property-access)
+22. [Automatic Type Coercion](#22-automatic-type-coercion)
+23. [Error Catalog](#23-error-catalog)
+24. [Formal Grammar](#24-formal-grammar)
+25. [Appendices](#25-appendices)
 
 ---
 
@@ -78,6 +79,9 @@ Musoq implements a subset of SQL with several extensions:
 | Subqueries in FROM | Supported | **Not supported** — use CTEs instead |
 | `BETWEEN` operator | Supported | Supported — `x BETWEEN a AND b` is equivalent to `x >= a AND x <= b` |
 | `ORDER BY` position | `ORDER BY 1` | **Not supported** — use column names or expressions |
+| ASOF JOIN | Not standard (DuckDB extension) | Supported — nearest-match join on an ordered column |
+| Window functions | `OVER (PARTITION BY ... ORDER BY ...)` with frame specs | Supported without frame specifications (`ROWS BETWEEN`, `RANGE BETWEEN`). Supports `PARTITION BY`, `ORDER BY`, named `WINDOW` clause, ranking (`ROW_NUMBER`, `RANK`, `DENSE_RANK`, `NTILE`), offset (`LAG`, `LEAD`), aggregate (`SUM`, `COUNT`, `AVG`, `MIN`, `MAX`), and value access (`FIRST_VALUE`, `LAST_VALUE`, `NTH_VALUE`) window functions. Data-source plugins can register custom window functions. `QUALIFY` is **not supported** — use a CTE instead. |
+| `ORDER BY` with set operations | Applies to the entire combined result | `ORDER BY` after a set operation (e.g., `UNION`) is parsed per-query, not as a clause over the combined result — see §12.10 |
 
 ### 1.4 Terminology
 
@@ -168,6 +172,9 @@ All keywords are **case-insensitive**. `SELECT`, `select`, and `SeLeCt` are all 
 | `DISTINCT` | Remove duplicate rows |
 | `ASC` | Ascending sort order (default) |
 | `DESC` | Descending sort order / Describe schema |
+| `ASOF` | ASOF JOIN modifier (context-sensitive — only a keyword before `JOIN` or `LEFT`) |
+| `EXCLUDE` | Star modifier — remove columns (context-sensitive — only a keyword after `*` or `alias.*`) |
+| `REPLACE` | Star modifier — substitute column expressions (context-sensitive — only a keyword after `*` or `alias.*`) |
 
 #### Multi-Word Keywords
 
@@ -182,6 +189,8 @@ All keywords are **case-insensitive**. `SELECT`, `select`, and `SeLeCt` are all 
 | `INNER JOIN` or `JOIN` | Inner join (equivalent forms) |
 | `LEFT OUTER JOIN` or `LEFT JOIN` | Left outer join |
 | `RIGHT OUTER JOIN` or `RIGHT JOIN` | Right outer join |
+| `ASOF JOIN` | ASOF inner join (nearest-match on ordered column) |
+| `ASOF LEFT JOIN` or `ASOF LEFT OUTER JOIN` | ASOF left outer join |
 | `CROSS APPLY` | Correlated cross join |
 | `OUTER APPLY` | Correlated outer join |
 
@@ -451,7 +460,7 @@ select Concat(Name, ' - ', City) from schema.method()  -- alternative
 | `DateTimeOffset` | Date and time with timezone | `'2023-03-15T12:00:00+00:00'` |
 | `TimeSpan` | Duration / time interval | `'02:30:00'` |
 
-Date/time types have no literal syntax — they are produced by data sources or conversion functions. However, when compared against string literals, automatic parsing occurs (see §21).
+Date/time types have no literal syntax — they are produced by data sources or conversion functions. However, when compared against string literals, automatic parsing occurs (see §22).
 
 ### 3.3 Nullable Types
 
@@ -478,7 +487,7 @@ select Self.Array[2] from A.entities()           -- array indexing
 ### 3.5 Collections and Arrays
 
 Columns may hold arrays (`T[]`) or enumerables (`IEnumerable<T>`). These can be:
-- Indexed with `[N]` syntax (see §20)
+- Indexed with `[N]` syntax (see §21)
 - Expanded into rows via `CROSS APPLY` (see §9)
 - Processed with collection functions (`Length`, `Skip`, `Take`, `FirstOrDefault`, etc.)
 
@@ -595,6 +604,50 @@ Star works through CTEs:
 with p as (select City, Country from A.entities())
 select * from p       -- expands to City, Country
 ```
+
+#### 5.4.1 Star Modifiers
+
+Star expressions support optional modifiers that filter or transform the expanded columns. Modifiers are applied in a fixed order: **LIKE/NOT LIKE → EXCLUDE → REPLACE**.
+
+**EXCLUDE** removes named columns from the expansion:
+
+```sql
+select * exclude (City) from A.entities() a
+select * exclude (City, Country, Population) from A.entities() a
+select a.* exclude (Id) from A.entities() a inner join B.entities() b on a.Id = b.Id
+```
+
+**REPLACE** substitutes a column's expression while keeping it in the same position:
+
+```sql
+select * replace (Population * 2 as Population) from A.entities() a
+select * replace (Upper(Name) as Name, Round(Money, 0) as Money) from A.entities() a
+```
+
+**LIKE / NOT LIKE** filters columns by a SQL LIKE pattern on column names (case-insensitive):
+
+```sql
+select * like 'C%' from A.entities() a           -- only columns starting with 'C'
+select * not like '%Id' from A.entities() a       -- exclude columns ending with 'Id'
+select * like '_ame' from A.entities() a          -- match single-char wildcard
+```
+
+Modifiers can be composed (all three at once):
+
+```sql
+select * like '%o%' exclude (Country) replace (Population * 3 as Population) from A.entities() a
+```
+
+**Rules:**
+
+- Modifiers are always applied in the order LIKE → EXCLUDE → REPLACE.
+- EXCLUDE and REPLACE column names are matched **case-insensitively**.
+- EXCLUDE must not remove all columns (compile-time error MQ3043).
+- REPLACE targets must exist in the surviving column set (after LIKE and EXCLUDE).
+- A column cannot appear in both EXCLUDE and REPLACE (compile-time error MQ3044).
+- Duplicate entries within EXCLUDE or REPLACE are forbidden (MQ3046, MQ3047).
+- LIKE/NOT LIKE patterns must match at least one column (MQ3045).
+- `EXCLUDE` and `REPLACE` are **context-sensitive keywords** — they are only treated as keywords immediately after `*` or `alias.*`. In all other positions, they are valid identifiers.
 
 ### 5.5 DISTINCT
 
@@ -1029,7 +1082,140 @@ group by j.City
 
 > **Note:** In single-table queries, function calls never need an alias prefix.
 
-### 8.8 Keywords Are Case-Insensitive
+### 8.8 ASOF JOIN
+
+ASOF JOIN matches each left-side row to the **single nearest** right-side row based on an ordered (inequality) column. Unlike a regular inequality join — which returns all matching rows — ASOF JOIN returns **at most one right-side row per left-side row**.
+
+#### 8.8.1 Syntax
+
+```sql
+select <columns>
+from <left_source> <alias>
+asof join <right_source> <alias> on <conditions>
+```
+
+The ON clause consists of:
+- **Zero or more equality conditions** (partition columns) using `=`
+- **Exactly one inequality condition** (the ordering/match column) using `>=`, `>`, `<=`, or `<`
+
+#### 8.8.2 Inequality Operators
+
+The inequality operator determines the match direction:
+
+| Operator | Semantics | Description |
+|----------|-----------|-------------|
+| `>=` | Nearest right-side row where `left.col >= right.col` | Backward lookup ("as of") |
+| `>` | Nearest right-side row where `left.col > right.col` | Strict backward (excludes exact match) |
+| `<=` | Nearest right-side row where `left.col <= right.col` | Forward lookup ("what happened next") |
+| `<` | Nearest right-side row where `left.col < right.col` | Strict forward (excludes exact match) |
+
+#### 8.8.3 Basic Examples
+
+**Backward lookup — find the nearest right-side row at or before:**
+
+```sql
+select a.Name, a.Population, b.Name, b.Population
+from A.entities() a
+asof join B.entities() b on a.Population >= b.Population
+```
+
+For each left-side row, returns the single right-side row whose `Population` is the largest value that is less than or equal to the left-side `Population`.
+
+**With equality partition — match within groups:**
+
+```sql
+select e.ErrorTime, e.Service, c.Sha
+from errors e
+asof join commits c on e.Service = c.Project and e.ErrorTime >= c.AuthorDate
+```
+
+For each error, finds the most recent commit **within the same project/service**.
+
+**Forward lookup — find what happened next:**
+
+```sql
+select c.AuthorDate, c.Sha, e.ErrorTime, e.Message
+from commits c
+asof join errors e on c.AuthorDate <= e.ErrorTime
+```
+
+For each commit, finds the first error that occurred at or after it.
+
+#### 8.8.4 ASOF LEFT JOIN
+
+When no match exists on the right side, `ASOF JOIN` drops the left row (like `INNER JOIN`). To preserve all left rows with NULLs on the right:
+
+```sql
+select c.Sha, c.Message, e.ErrorTime
+from commits c
+asof left join errors e on c.AuthorDate <= e.ErrorTime
+```
+
+`ASOF LEFT OUTER JOIN` is an accepted synonym.
+
+#### 8.8.5 ASOF RIGHT JOIN — Not Supported
+
+`ASOF RIGHT JOIN` is not supported. If attempted, the parser raises an error. The same result can be achieved by swapping table positions.
+
+#### 8.8.6 Match Cardinality and Tie-Breaking
+
+ASOF JOIN produces **at most one right-side row per left-side row**.
+
+When multiple right-side rows have the exact same value on the inequality column (after equality partitioning), the result is **implementation-defined**. Users who need deterministic tie-breaking should add additional equality conditions or pre-filter with CTEs.
+
+#### 8.8.7 NULL Handling
+
+- If the left-side inequality column is `NULL`: **no match** (row dropped for `ASOF JOIN`, NULLs on right for `ASOF LEFT JOIN`)
+- If the right-side inequality column is `NULL`: **that right row is never a match candidate**
+- If an equality column is `NULL` on either side: **no match** (standard SQL `NULL ≠ NULL` semantics)
+
+#### 8.8.8 ON Clause Validation
+
+The ASOF JOIN ON clause has specific requirements beyond normal joins:
+
+1. **At least one inequality condition MUST exist.** All-equality conditions produce error `AsOfJoinRequiresInequality`.
+2. **At most one inequality condition.** Multiple inequalities produce error `AsOfJoinSupportsOnlyOneInequality`.
+3. **No OR in the ON clause.** OR breaks the partition-then-search semantics and produces error `AsOfJoinDoesNotSupportOr`.
+4. **The inequality MUST reference both sides.** A one-sided inequality produces error `AsOfJoinInequalityMustReferenceBothSides`.
+5. **The inequality column type MUST be orderable** (implement `IComparable`). Non-orderable types produce error `AsOfJoinInequalityColumnNotOrderable`.
+
+See [§23](#23-error-catalog) for the full error catalog.
+
+#### 8.8.9 Type Requirements
+
+The inequality column MUST be of a comparable, orderable type. Supported types include:
+
+- All numeric types (`int`, `long`, `decimal`, `double`, `float`, etc.)
+- `DateTime`, `DateTimeOffset`, `TimeSpan`
+- `string` (lexicographic ordering)
+- Any type implementing `IComparable`
+
+#### 8.8.10 Interaction with Other Clauses
+
+| Clause | Behavior |
+|--------|----------|
+| `WHERE` | Applied **after** the ASOF JOIN, filters the joined result |
+| `GROUP BY` | Works normally on the ASOF JOIN result |
+| `ORDER BY` | Works normally on the ASOF JOIN result |
+| `SKIP` / `TAKE` | Works normally on the ASOF JOIN result |
+| CTEs | ASOF JOIN can reference CTE results as either side |
+| Multiple JOINs | ASOF JOIN can be chained with other join types (including other ASOF JOINs) |
+| `CROSS APPLY` | Can appear before or after ASOF JOIN in the query |
+
+#### 8.8.11 Chaining Multiple ASOF JOINs
+
+Multiple ASOF JOINs can be chained in a single query:
+
+```sql
+select a.Name, b.Population, c.Area
+from A.entities() a
+asof join B.entities() b on a.Population >= b.Population
+asof join C.entities() c on a.Population >= c.Area
+```
+
+Each ASOF JOIN independently materializes and sorts its right side.
+
+### 8.9 Keywords Are Case-Insensitive
 
 All forms are valid:
 
@@ -1037,6 +1223,8 @@ All forms are valid:
 INNER JOIN ... ON ...
 inner join ... on ...
 Inner Join ... On ...
+ASOF JOIN ... ON ...
+asof join ... on ...
 ```
 
 ---
@@ -1172,7 +1360,7 @@ Aggregate functions operate on groups of rows and return a single value per grou
 | `Min(column)` | Minimum value in the group |
 | `Max(column)` | Maximum value in the group |
 
-To discover all available aggregate functions for a given schema, use the `DESC FUNCTIONS` statement (see [§15.5](#155-describe-schema-functions)):
+To discover all available aggregate functions for a given schema, use the `DESC FUNCTIONS` statement (see [§16.5](#165-describe-schema-functions)):
 
 ```sql
 desc functions A.entities()
@@ -1337,9 +1525,365 @@ select Country, City, Count(City) from A.entities() group by Country, City
 
 ---
 
-## 11. Set Operations
+## 11. Window Functions
 
-### 11.1 Syntax
+### 11.1 Overview
+
+Window functions perform calculations across a set of rows that are related to the current row, without collapsing the result into a single output row the way aggregate functions with `GROUP BY` do. Every input row produces exactly one output row. Window functions are specified using an aggregate or ranking function followed by an `OVER` clause that defines the window (partitioning, ordering, or both).
+
+Window functions execute **after** `WHERE` filtering and **after** `GROUP BY` / `HAVING`, but **before** `ORDER BY`, `SKIP`, and `TAKE`.
+
+### 11.2 Syntax
+
+```sql
+function_name([arguments]) OVER (
+    [PARTITION BY expression {, expression}]
+    [ORDER BY field [ASC | DESC] {, field [ASC | DESC]}]
+)
+```
+
+Or with a named window reference:
+
+```sql
+function_name([arguments]) OVER window_name
+```
+
+Named windows are declared in a `WINDOW` clause that appears after the `FROM` / `WHERE` / `GROUP BY` clauses:
+
+```sql
+SELECT col, Sum(col2) OVER w
+FROM schema.table()
+WINDOW w AS (PARTITION BY col3 ORDER BY col4)
+```
+
+**Components:**
+
+| Component | Required | Description |
+|-----------|----------|-------------|
+| `PARTITION BY` | No | Divides rows into partitions. The window function is computed independently within each partition. When omitted, all rows form a single partition. |
+| `ORDER BY` | No | Defines the logical ordering of rows within each partition. Required for ranking functions and running aggregates. When omitted for aggregate functions, the function computes over the entire partition as a whole. |
+
+### 11.3 PARTITION BY
+
+`PARTITION BY` divides the result set into groups (partitions). The window function resets and is computed independently for each partition.
+
+```sql
+-- Count employees per department
+select Name, City, Count(Name) over (partition by City) from #a.entities()
+```
+
+Multiple partition columns are supported — rows are grouped by the composite key:
+
+```sql
+select Name, Sum(Population) over (partition by Country, City) from #a.entities()
+```
+
+When `PARTITION BY` is omitted, all rows belong to a single partition:
+
+```sql
+-- Running sum across all rows
+select Name, Sum(Population) over (order by Name) from #a.entities()
+```
+
+### 11.4 ORDER BY within Window Specification
+
+`ORDER BY` inside the `OVER` clause determines the logical row ordering within each partition. Both `ASC` (default) and `DESC` are supported.
+
+- **Ranking functions** (`RowNumber`, `Rank`, `DenseRank`) require `ORDER BY` — it determines the assignment of ranks.
+- **Aggregate functions** (`Sum`, `Count`, `Avg`, `Min`, `Max`) behave differently depending on whether `ORDER BY` is present:
+  - **With `ORDER BY`**: Computes a running (cumulative) result from the first row in the partition up to the current row.
+  - **Without `ORDER BY`**: Computes the result over the entire partition — every row in the partition receives the same value.
+- **Offset functions** (`Lag`, `Lead`) require `ORDER BY` — it defines which row is "previous" or "next".
+
+```sql
+-- Running sum (with ORDER BY)
+select Name, Sum(Population) over (order by Name) from #a.entities()
+
+-- Partition total (without ORDER BY)
+select Name, City, Sum(Population) over (partition by City) from #a.entities()
+
+-- Descending order
+select Name, RowNumber() over (order by Name desc) from #a.entities()
+```
+
+### 11.5 Supported Window Functions
+
+#### 11.5.1 Ranking Functions
+
+Ranking functions assign an ordinal position to each row within its partition based on `ORDER BY`.
+
+| Function | Return Type | Description |
+|----------|-------------|-------------|
+| `RowNumber()` | `long` | Assigns a unique sequential integer to each row within the partition, starting at 1. No ties — every row gets a distinct number. |
+| `Rank()` | `long` | Assigns the same rank to rows with equal `ORDER BY` values. Leaves gaps: if two rows share rank 2, the next rank is 4. |
+| `DenseRank()` | `long` | Like `Rank()`, but without gaps: if two rows share rank 2, the next rank is 3. |
+| `Ntile(n)` | `long` | Distributes rows into `n` roughly equal-sized groups (buckets) within the partition. Assigns a bucket number from 1 to `n`. If the partition size is not evenly divisible, earlier buckets receive one extra row. |
+
+```sql
+-- RowNumber: 1, 2, 3, 4, 5
+select Name, RowNumber() over (order by Name) from #a.entities()
+
+-- Rank with ties: 1, 2, 2, 4
+select Name, Rank() over (order by Population) from #a.entities()
+
+-- DenseRank without gaps: 1, 2, 2, 3
+select Name, DenseRank() over (order by Population) from #a.entities()
+
+-- Ntile: distribute 5 rows into 3 buckets → 1, 1, 2, 2, 3
+select Name, Ntile(3) over (order by Name) from #a.entities()
+```
+
+`RowNumber`, `Rank`, and `DenseRank` take no arguments — the ordering is determined solely by the `ORDER BY` clause. `Ntile` takes a single integer argument specifying the number of buckets.
+
+#### 11.5.2 Offset Functions
+
+Offset functions access values from rows at a fixed distance from the current row within the partition.
+
+| Function | Return Type | Description |
+|----------|-------------|-------------|
+| `Lag(column [, offset [, default]])` | Nullable type of column | Returns the value of `column` from the row that is `offset` rows **before** the current row. Returns `NULL` (or `default` if specified) when no such row exists. Default `offset` is 1. |
+| `Lead(column [, offset [, default]])` | Nullable type of column | Returns the value of `column` from the row that is `offset` rows **after** the current row. Returns `NULL` (or `default` if specified) when no such row exists. Default `offset` is 1. |
+
+```sql
+-- Previous row's Population (NULL for the first row)
+select Name, Lag(Population) over (order by Name) from #a.entities()
+
+-- Next row's Population (NULL for the last row)
+select Name, Lead(Population) over (order by Name) from #a.entities()
+```
+
+**NULL semantics for offset functions:**
+
+- When a value-type column (e.g., `decimal`, `int`, `long`) is accessed via `Lag` or `Lead`, the return type is automatically promoted to its nullable equivalent (e.g., `decimal?`, `int?`, `long?`). This allows `NULL` to represent the absence of a previous or next row without runtime errors.
+- Reference-type columns (e.g., `string`) are already nullable and need no promotion.
+
+#### 11.5.3 Aggregate Window Functions
+
+Standard aggregate functions can be used as window functions when combined with `OVER`:
+
+| Function | Return Type | Description |
+|----------|-------------|-------------|
+| `Sum(column)` | `decimal` | Sum of values. Running sum if `ORDER BY` is present; partition total if not. Numeric inputs are promoted to `decimal`. |
+| `Count(column)` | `int` | Count of non-null values. Running count with `ORDER BY`; partition count without. |
+| `Avg(column)` | `decimal` | Average of values. Running average with `ORDER BY`; partition average without. Numeric inputs are promoted to `decimal`. |
+| `Min(column)` | Same as column type | Minimum value. Running minimum with `ORDER BY`; partition minimum without. |
+| `Max(column)` | Same as column type | Maximum value. Running maximum with `ORDER BY`; partition maximum without. |
+
+```sql
+-- Running sum ordered by Name
+select Name, Sum(Population) over (order by Name) from #a.entities()
+
+-- Count per partition
+select Name, City, Count(Name) over (partition by City) from #a.entities()
+
+-- Running average
+select Name, Avg(Population) over (order by Name) from #a.entities()
+
+-- Partition minimum and maximum
+select Name, City, Min(Population) over (partition by City) from #a.entities()
+select Name, City, Max(Population) over (partition by City) from #a.entities()
+```
+
+#### 11.5.4 Value Access Functions
+
+Value access functions retrieve a specific row's value from within the partition.
+
+| Function | Return Type | Description |
+|----------|-------------|-------------|
+| `FirstValue(column)` | Same as column type | Returns the first value in the partition (determined by `ORDER BY`). All rows in the partition receive the same result. |
+| `LastValue(column)` | Same as column type | Running last with `ORDER BY`: returns the current row's value. Without `ORDER BY`: returns the last value in the partition (all rows same). |
+| `NthValue(column, n)` | Same as column type | Returns the value from the `n`-th row in the partition. Returns `NULL` when fewer than `n` rows have been seen. `n` is 1-based. |
+
+```sql
+-- First value in partition
+select Name, FirstValue(Name) over (order by Name) from #a.entities()
+
+-- Running last value (equals current row's value)
+select Name, LastValue(Name) over (order by Name) from #a.entities()
+
+-- Partition-wide last value (all rows same)
+select Name, LastValue(Population) over () from #a.entities()
+
+-- Second value in partition (NULL for the first row)
+select Name, NthValue(Name, 2) over (order by Name) from #a.entities()
+
+-- NthValue per partition
+select Name, City, NthValue(Name, 2) over (partition by City order by Name)
+from #a.entities()
+```
+
+**NthValue semantics with ORDER BY (running mode):**
+- Before the `n`-th row, `NthValue` returns `NULL`.
+- From the `n`-th row onward, it returns the value seen at position `n`.
+
+**NthValue semantics without ORDER BY:**
+- All rows receive the same value from the `n`-th row in the partition, or `NULL` if the partition has fewer than `n` rows.
+
+### 11.6 Underscore Naming Variants
+
+Function names are case-insensitive and underscore-insensitive. The following pairs are equivalent:
+
+| Camel Case | Underscore Form |
+|------------|-----------------|
+| `RowNumber()` | `ROW_NUMBER()` |
+| `DenseRank()` | `DENSE_RANK()` |
+| `Ntile(n)` | `NTILE(n)` |
+| `FirstValue(column)` | `FIRST_VALUE(column)` |
+| `LastValue(column)` | `LAST_VALUE(column)` |
+| `NthValue(column, n)` | `NTH_VALUE(column, n)` |
+
+Both forms produce identical results:
+
+```sql
+-- These two queries are equivalent
+select Name, RowNumber() over (order by Name) from #a.entities()
+select Name, ROW_NUMBER() over (order by Name) from #a.entities()
+```
+
+### 11.7 WHERE Clause Interaction
+
+`WHERE` filtering occurs **before** window function computation. Rows excluded by `WHERE` are not visible to the window function:
+
+```sql
+-- Only rows with Population > 150 participate in the window
+select Name, RowNumber() over (order by Name)
+from #a.entities()
+where Population > 150
+```
+
+If the original table has 5 rows and 3 satisfy the `WHERE` predicate, the window function operates on 3 rows, and `RowNumber()` produces values 1, 2, 3.
+
+### 11.8 Evaluation Order
+
+Window functions occupy a specific position in the query evaluation pipeline:
+
+1. `FROM` — data source enumeration
+2. `WHERE` — row-level filtering
+3. `GROUP BY` / `HAVING` — aggregation (if present)
+4. **Window functions** — computed over the filtered / grouped result
+5. `ORDER BY` — final ordering of the output
+6. `SKIP` / `TAKE` — pagination
+
+This means window functions cannot appear in `WHERE` or `HAVING` clauses. They can only appear in the `SELECT` list.
+
+### 11.9 Restrictions
+
+The following features are **not** currently supported:
+
+- **Frame specifications** (`ROWS BETWEEN`, `RANGE BETWEEN`) — window functions operate over a fixed implicit frame. See section 11.11 for the exact frame semantics and how they differ from standard SQL.
+- **`QUALIFY`** — there is no `QUALIFY` clause for filtering on window function results. Use a CTE as a workaround:
+  ```sql
+  with ranked as (
+      select Name, RowNumber() over (order by Name) as rn from #a.entities()
+  )
+  select Name, rn from ranked where rn <= 3
+  ```
+- **Recursive or nested window functions** — a window function cannot reference another window function in its arguments.
+- **Window functions in `WHERE` or `HAVING`** — only allowed in the `SELECT` list.
+
+### 11.10 Custom Window Functions
+
+Data-source plugins can register custom window functions beyond the built-in set. Once registered, they are used with the standard `OVER` syntax like any other window function:
+
+```sql
+select Name, RunningProduct(Population) over (partition by City order by Name)
+from #a.entities()
+```
+
+Custom window functions support `PARTITION BY`, `ORDER BY`, and multi-argument signatures — the same capabilities as the built-in functions.
+
+### 11.11 Frame Semantics and Differences from Standard SQL
+
+Musoq window functions use **ROWS semantics**, not the RANGE semantics that PostgreSQL and the SQL standard default to. This section documents the exact behavior and where it diverges from standard SQL.
+
+#### 11.11.1 Implicit Frame
+
+Musoq does not support explicit frame specifications (`ROWS BETWEEN ... AND ...`, `RANGE BETWEEN ... AND ...`). Instead, every window function operates under a fixed implicit frame:
+
+| Condition | Implicit Frame (Musoq) | PostgreSQL Default |
+|-----------|------------------------|--------------------|
+| `ORDER BY` present | `ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` | `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` |
+| `ORDER BY` absent | Entire partition (all rows receive the same value) | Entire partition (same) |
+
+The difference between ROWS and RANGE only matters **when ORDER BY values contain ties** (duplicate values).
+
+#### 11.11.2 ROWS vs RANGE: Behavior with Tied ORDER BY Values
+
+**ROWS mode** (Musoq): Each row is processed individually in sequence. Even when multiple rows share the same ORDER BY value, each row accumulates independently and may produce a different result.
+
+**RANGE mode** (PostgreSQL default): All rows with the same ORDER BY value are treated as *peers*. Peers receive the **same** aggregate result — the value computed as if all peers were included.
+
+Example with `SUM(val) OVER (ORDER BY category)`:
+
+| Row | category | val | Musoq (ROWS) | PostgreSQL (RANGE) |
+|-----|----------|-----|:------------:|:------------------:|
+| 1 | A | 10 | 10 | 10 |
+| 2 | B | 20 | **30** | **50** |
+| 3 | B | 20 | **50** | **50** |
+| 4 | C | 30 | 80 | 80 |
+
+- Rows 2 and 3 both have `category = B`. In RANGE mode, they are peers and both receive 50 (sum of all rows up to and including all B's). In ROWS mode, row 2 gets 30 (A + first B) and row 3 gets 50 (A + both B's).
+- Rows 1 and 4 have unique ORDER BY values, so both modes produce the same result.
+
+**When ORDER BY values are all distinct, ROWS and RANGE produce identical results.** The divergence only appears with duplicate ORDER BY values.
+
+#### 11.11.3 Which Functions Are Affected
+
+| Function Category | Affected by ROWS vs RANGE? | Notes |
+|-------------------|:--------------------------:|-------|
+| `RowNumber()` | No | Always assigns distinct sequential numbers — no tie concept |
+| `Rank()`, `DenseRank()` | No | Tie-aware by definition — identical behavior in both modes |
+| `Ntile(n)` | No | Bucket assignment is position-based in all SQL engines |
+| `Lag()`, `Lead()` | No | Offset functions are position-based (ROWS) by definition in standard SQL |
+| `Sum()`, `Count()`, `Avg()` | **Yes** | Running aggregates differ when ORDER BY has ties |
+| `Min()`, `Max()` | **Yes** | Running min/max differ when ORDER BY has ties |
+| `FirstValue()` | No | Returns the first row in the partition — same in both modes |
+| `LastValue()` | **Yes** | ROWS: current row is last. RANGE: last peer is last |
+| `NthValue()` | **Yes** | ROWS: Nth physical row. RANGE: depends on peer-group boundary |
+
+#### 11.11.4 NULL Ordering
+
+Musoq does not support `NULLS FIRST` / `NULLS LAST` syntax. The NULL ordering is fixed:
+
+| Sort Direction | NULL Position | Matches PostgreSQL Default? |
+|----------------|:------------:|:---------------------------:|
+| `ASC` | First | Yes |
+| `DESC` | Last | No (PostgreSQL puts NULLs first in DESC) |
+
+NULL values in `PARTITION BY` columns are grouped together as their own partition, consistent with standard SQL.
+
+#### 11.11.5 Unsupported Standard SQL Window Features
+
+| Feature | Standard SQL | Musoq |
+|---------|-------------|-------|
+| `ROWS BETWEEN ... AND ...` | Explicit row-based frame | Not supported |
+| `RANGE BETWEEN ... AND ...` | Explicit value-based frame | Not supported |
+| `GROUPS BETWEEN ... AND ...` | Explicit peer-group-based frame | Not supported |
+| `EXCLUDE CURRENT ROW` | Excludes current row from frame | Not supported |
+| `EXCLUDE GROUP` | Excludes current row's peer group | Not supported |
+| `EXCLUDE TIES` | Excludes peers of current row (keeps current) | Not supported |
+| `NULLS FIRST` / `NULLS LAST` | Explicit NULL ordering | Not supported (fixed behavior) |
+| `FILTER (WHERE ...)` | Conditional window aggregation | Not supported |
+| `QUALIFY` | Filter on window function results | Not supported (use CTE workaround) |
+| `PERCENT_RANK()` | Relative rank as fraction | Not implemented |
+| `CUME_DIST()` | Cumulative distribution | Not implemented |
+
+#### 11.11.6 Practical Implications
+
+For most real-world queries, Musoq produces identical results to PostgreSQL because:
+
+1. **Ranking functions** (`RowNumber`, `Rank`, `DenseRank`) are unaffected by frame mode.
+2. **Offset functions** (`Lag`, `Lead`) are inherently position-based in all SQL engines.
+3. **Aggregates without ORDER BY** compute the whole partition — identical in all modes.
+4. **Aggregates with ORDER BY on a unique column** (timestamps, IDs) produce identical results since there are no ties.
+
+The divergence only appears in the specific combination of **running aggregates + non-unique ORDER BY values**. If you need peer-aware behavior, add a tiebreaker column to ORDER BY to make values unique, or use `PARTITION BY` on the grouping column instead.
+
+---
+
+## 12. Set Operations
+
+### 12.1 Syntax
 
 Set operations MUST specify explicit key columns:
 
@@ -1361,7 +1905,7 @@ If you omit the parenthesized key list, Musoq raises an error telling you to rew
 
 The key columns specify which columns are used to determine row identity for deduplication, difference, or intersection.
 
-### 11.2 UNION
+### 12.2 UNION
 
 Combines results from two queries, removing duplicates identified by the key columns:
 
@@ -1371,7 +1915,7 @@ union (Name)
 select Name from B.Entities()
 ```
 
-### 11.3 UNION ALL
+### 12.3 UNION ALL
 
 Combines results preserving all rows including duplicates:
 
@@ -1381,7 +1925,7 @@ union all (Name)
 select Name from B.Entities()
 ```
 
-### 11.4 EXCEPT
+### 12.4 EXCEPT
 
 Returns rows from the first query that do not appear in the second query:
 
@@ -1391,7 +1935,7 @@ except (Name)
 select Name from B.Entities()
 ```
 
-### 11.5 INTERSECT
+### 12.5 INTERSECT
 
 Returns only rows that appear in both queries:
 
@@ -1401,7 +1945,7 @@ intersect (Name)
 select Name from B.Entities()
 ```
 
-### 11.6 Chaining Set Operations
+### 12.6 Chaining Set Operations
 
 Three or more queries can be chained:
 
@@ -1417,7 +1961,7 @@ union all (Name)
 select Name from A.Entities()
 ```
 
-### 11.7 Different Source Columns
+### 12.7 Different Source Columns
 
 Source columns can differ if aliases unify them:
 
@@ -1427,7 +1971,7 @@ union (Name)
 select City as Name from B.Entities()   -- City aliased as Name
 ```
 
-### 11.8 SKIP/TAKE per Subquery
+### 12.8 SKIP/TAKE per Subquery
 
 Each subquery in a set operation can have its own SKIP/TAKE:
 
@@ -1437,7 +1981,7 @@ union (Name)
 select Name from B.Entities() skip 2
 ```
 
-### 11.9 Set Operations in CTEs
+### 12.9 Set Operations in CTEs
 
 ```sql
 with p as (
@@ -1450,11 +1994,50 @@ with p as (
 select Id, Name from p
 ```
 
+### 12.10 ORDER BY with Set Operations (Deviation from Standard SQL)
+
+In standard SQL, an `ORDER BY` clause placed after the last query in a set operation applies to the **entire combined result**:
+
+```sql
+-- Standard SQL interpretation:
+-- ORDER BY sorts the combined UNION result
+SELECT City FROM A WHERE Money > 200
+UNION
+SELECT City FROM A WHERE Money <= 200
+ORDER BY City DESC
+```
+
+Musoq does **not** follow this convention. Because `ORDER BY` is syntactically part of each individual query (not a clause on the set operator), writing `ORDER BY` after a `UNION` attaches it to the **rightmost query**, not to the combined result.
+
+```sql
+-- Musoq interpretation:
+-- ORDER BY applies to the second SELECT only, BEFORE the UNION combines rows
+select City from #A.Entities() where Money > 200
+union (City)
+select City from #A.Entities() where Money <= 200
+order by City desc    -- sorts only the right-hand query
+```
+
+This means the final output order after the UNION is **not guaranteed** to be sorted.
+
+**Workaround** — wrap the set operation in a CTE and apply `ORDER BY` on the outer query:
+
+```sql
+with combined as (
+    select City from #A.Entities() where Money > 200
+    union (City)
+    select City from #A.Entities() where Money <= 200
+)
+select City from combined order by City desc
+```
+
+> **Note:** This is a known deviation. Future versions may support `ORDER BY` as a clause over the combined set operation result.
+
 ---
 
-## 12. ORDER BY, SKIP, TAKE
+## 13. ORDER BY, SKIP, TAKE
 
-### 12.1 ORDER BY
+### 13.1 ORDER BY
 
 Sorts result rows. Default direction is ascending:
 
@@ -1479,7 +2062,9 @@ select Name, Population from A.entities() order by Population * -1
 
 ORDER BY uses **ordinal (case-sensitive) comparison** for strings: uppercase letters sort before lowercase (`'A'` < `'a'`).
 
-### 12.2 ORDER BY with SELECT Aliases
+> **Set operations:** `ORDER BY` placed after a set operation (e.g., `UNION`) applies to the rightmost query only, not the combined result. This is a deviation from standard SQL — see §12.10 for details and the CTE workaround.
+
+### 13.2 ORDER BY with SELECT Aliases
 
 SELECT aliases defined with `AS` can be referenced directly in ORDER BY:
 
@@ -1526,7 +2111,7 @@ select City as CITYNAME, Money as amount from A.entities() order by Amount desc
 
 When an explicit alias is used in `ORDER BY`, ordering applies to the aliased **SELECT expression result**, not to an unrelated source column with the same name.
 
-### 12.3 SKIP
+### 13.3 SKIP
 
 Skip the first N rows of the result:
 
@@ -1536,7 +2121,7 @@ select Name from A.entities() skip 2
 
 If SKIP exceeds the number of rows, zero rows are returned (no error).
 
-### 12.4 TAKE
+### 13.4 TAKE
 
 Take the first N rows of the result:
 
@@ -1546,7 +2131,7 @@ select Name from A.entities() take 3
 
 If TAKE exceeds the number of available rows, all available rows are returned (no error).
 
-### 12.5 SKIP + TAKE (Pagination)
+### 13.5 SKIP + TAKE (Pagination)
 
 Combine for pagination:
 
@@ -1555,7 +2140,7 @@ select Name from A.entities() order by Name skip 10 take 5
 -- Skip first 10, return next 5
 ```
 
-### 12.6 Interaction with GROUP BY and HAVING
+### 13.6 Interaction with GROUP BY and HAVING
 
 ORDER BY, SKIP, and TAKE are applied after GROUP BY and HAVING:
 
@@ -1570,9 +2155,9 @@ take 2
 
 ---
 
-## 13. Common Table Expressions (CTEs)
+## 14. Common Table Expressions (CTEs)
 
-### 13.1 Basic Syntax
+### 14.1 Basic Syntax
 
 ```sql
 WITH cte_name AS (
@@ -1581,7 +2166,7 @@ WITH cte_name AS (
 SELECT ... FROM cte_name
 ```
 
-### 13.2 Simple CTE
+### 14.2 Simple CTE
 
 ```sql
 with p as (
@@ -1590,7 +2175,7 @@ with p as (
 select Country, City from p
 ```
 
-### 13.3 Star Expansion from CTE
+### 14.3 Star Expansion from CTE
 
 ```sql
 with p as (
@@ -1599,7 +2184,7 @@ with p as (
 select * from p    -- expands to City, Country
 ```
 
-### 13.4 CTE with Aggregation
+### 14.4 CTE with Aggregation
 
 ```sql
 with summary as (
@@ -1617,7 +2202,7 @@ with raw as (
 select Country, Sum(Population) from raw group by Country
 ```
 
-### 13.5 Multiple CTEs
+### 14.5 Multiple CTEs
 
 Define multiple CTEs separated by commas:
 
@@ -1628,7 +2213,7 @@ with
 select * from cities
 ```
 
-### 13.6 CTE with Set Operations
+### 14.6 CTE with Set Operations
 
 ```sql
 with combined as (
@@ -1639,7 +2224,7 @@ with combined as (
 select * from combined
 ```
 
-### 13.7 CTE with JOIN
+### 14.7 CTE with JOIN
 
 ```sql
 with p as (select City, Country from A.entities())
@@ -1648,7 +2233,7 @@ from p
 inner join B.entities() b on p.City = b.City
 ```
 
-### 13.8 Limitations
+### 14.8 Limitations
 
 - **No recursive CTEs**: Musoq does not support `WITH RECURSIVE` or self-referencing CTEs.
 - **Duplicate aliases**: Using the same alias for two tables within a CTE inner expression throws `AliasAlreadyUsedException`.
@@ -1663,11 +2248,11 @@ select * from p
 
 ---
 
-## 14. TABLE and COUPLE Statements
+## 15. TABLE and COUPLE Statements
 
 The TABLE and COUPLE statements are summarized here. For the complete specification including all supported types, error handling, and integration patterns, see *Musoq TABLE/COUPLE Statements Specification* (`musoq-table-couple-spec.md`).
 
-### 14.1 TABLE Definition
+### 15.1 TABLE Definition
 
 Defines a named table structure with typed columns:
 
@@ -1716,7 +2301,7 @@ table Invoice {
 };
 ```
 
-### 14.2 COUPLE Statement
+### 15.2 COUPLE Statement
 
 Binds a schema method to a table structure, creating a new data source alias:
 
@@ -1740,7 +2325,7 @@ With parameters:
 select Name from SourceOfDummyRows(true, 'filter');
 ```
 
-### 14.3 Purpose
+### 15.3 Purpose
 
 TABLE and COUPLE are used when:
 - The data source returns untyped or dynamically-typed rows
@@ -1749,10 +2334,10 @@ TABLE and COUPLE are used when:
 
 ---
 
-## 15. DESC Statement
+## 16. DESC Statement
 
 
-### 15.1 Describe a Schema
+### 16.1 Describe a Schema
 
 List available methods exposed by a schema:
 
@@ -1762,7 +2347,7 @@ desc A
 
 Returns a single-column table named `Name`. Each row contains one available schema method (for example `empty`, `entities`).
 
-### 15.2 Describe a Method (Overloads)
+### 16.2 Describe a Method (Overloads)
 
 ```sql
 desc A.entities
@@ -1777,7 +2362,7 @@ The result shape is:
 
 Each parameter cell contains `ParameterName: Full.Type.Name`. Overloads with fewer parameters leave the remaining parameter columns empty.
 
-### 15.3 Describe a Specific Constructor Result
+### 16.3 Describe a Specific Constructor Result
 
 Describe the columns produced by a concrete constructor call:
 
@@ -1795,7 +2380,7 @@ desc dynamic.method(0, 'test', 10.5d)
 
 The argument values are matched against the selected constructor signature. The returned table describes the row shape produced by that constructor.
 
-### 15.4 Describe a Specific Column or Nested Property
+### 16.4 Describe a Specific Column or Nested Property
 
 Inspect the structure behind a complex column, private table, or nested property path:
 
@@ -1822,7 +2407,7 @@ Rules:
 
 For nested descriptions, the `Index` column refers to the original top-level column index from the described table.
 
-### 15.5 Describe Schema Functions
+### 16.5 Describe Schema Functions
 
 ```sql
 desc functions A
@@ -1837,7 +2422,7 @@ This statement lists the query functions available for the schema context. A `.m
 
 Only user-visible query functions are returned. Internal helpers and aggregation-set helpers are excluded.
 
-### 15.6 General DESC Rules
+### 16.6 General DESC Rules
 
 - `DESC`, `FUNCTIONS`, and `COLUMN` are case-insensitive.
 - Optional trailing semicolons are accepted.
@@ -1845,9 +2430,9 @@ Only user-visible query functions are returned. Internal helpers and aggregation
 
 ---
 
-## 16. Reordered Query Syntax
+## 17. Reordered Query Syntax
 
-### 16.1 FROM-First Syntax
+### 17.1 FROM-First Syntax
 
 Musoq supports an alternative query ordering where FROM appears first:
 
@@ -1862,7 +2447,7 @@ SELECT columns
 [TAKE m]
 ```
 
-### 16.2 Standard vs. Reordered Clause Order
+### 17.2 Standard vs. Reordered Clause Order
 
 | Position | Standard Query | Reordered Query |
 |----------|---------------|-----------------|
@@ -1875,7 +2460,7 @@ SELECT columns
 | 7 | `SKIP` | `SKIP` |
 | 8 | `TAKE` | `TAKE` |
 
-### 16.3 Examples
+### 17.3 Examples
 
 ```sql
 -- Simple
@@ -1906,19 +2491,19 @@ select * from cte
 
 ---
 
-## 17. Built-in Functions
+## 18. Built-in Functions
 
-### 17.1 Conventions
+### 18.1 Conventions
 
 - Most functions return `null` when any required parameter is `null` (NULL propagation).
 - Function names are **case-sensitive**.
 - Functions can be called standalone or with table alias prefix: `Length(Name)` or `a.Length(a.Name)`.
 
-### 17.2 Discovering Available Functions
+### 18.2 Discovering Available Functions
 
 Musoq provides a rich library of built-in functions covering string manipulation, math, date/time, type conversion, validation, JSON/XML processing, cryptography, compression, bitwise operations, networking utilities, and collections. Additionally, each data source may define its own functions.
 
-Because the set of available functions depends on which data sources are in use, the authoritative way to discover them is the `DESC FUNCTIONS` statement (see [§15.5](#155-describe-schema-functions)):
+Because the set of available functions depends on which data sources are in use, the authoritative way to discover them is the `DESC FUNCTIONS` statement (see [§16.5](#165-describe-schema-functions)):
 
 ```sql
 -- List all functions available for a schema
@@ -1930,7 +2515,7 @@ desc functions A.entities()
 
 The result includes the method name, description, category, and source for each function.
 
-### 17.3 Function Categories
+### 18.3 Function Categories
 
 Built-in functions are organized into the following categories:
 
@@ -1950,9 +2535,9 @@ Use `desc functions` to see the full list with signatures and descriptions for a
 
 ---
 
-## 18. NULL Semantics
+## 19. NULL Semantics
 
-### 18.1 NULL Propagation
+### 19.1 NULL Propagation
 
 Most expressions involving `null` produce `null`:
 
@@ -1961,7 +2546,7 @@ select null + 1 from system.dual()        -- null
 select null = null from system.dual()      -- null (not true)
 ```
 
-### 18.2 NULL in Comparisons
+### 19.2 NULL in Comparisons
 
 | Expression | Result |
 |------------|--------|
@@ -1977,11 +2562,11 @@ where Value is null
 where Value is not null
 ```
 
-### 18.2.1 NULL Comparisons Inside `CASE WHEN`
+### 19.2.1 NULL Comparisons Inside `CASE WHEN`
 
 `CASE WHEN` MUST use three-valued logic: `null = null` evaluates to `null`, not `true`. Query authors MUST use explicit null predicates (`IS NULL` / `IS NOT NULL`) to test for null values.
 
-### 18.3 NULL in LIKE, RLIKE, CONTAINS
+### 19.3 NULL in LIKE, RLIKE, CONTAINS
 
 | Expression | Result |
 |------------|--------|
@@ -1991,7 +2576,7 @@ where Value is not null
 | `CONTAINS(null, 'a', 'b')` | `false` |
 | `CONTAINS(null, null, 'a')` | `true` (null found in list) |
 
-### 18.4 NULL in GROUP BY
+### 19.4 NULL in GROUP BY
 
 `NULL` values form their own distinct group:
 
@@ -2001,9 +2586,9 @@ select Country, City, Count(1) from A.entities() group by Country, City
 -- Groups: (POLAND, WARSAW), (POLAND, null), (GERMANY, BERLIN)
 ```
 
-### 18.5 NULL from OUTER Joins
+### 19.5 NULL from OUTER Joins
 
-When `LEFT JOIN` or `OUTER APPLY` produces no match for a left-side row, right-side columns are `null`. Value types are automatically promoted to nullable:
+When `LEFT JOIN`, `OUTER APPLY`, or `ASOF LEFT JOIN` produces no match for a left-side row, right-side columns are `null`. Value types are automatically promoted to nullable:
 
 ```sql
 -- If no match, b.Population becomes decimal? with value null
@@ -2012,11 +2597,27 @@ from A.entities() a
 left join B.entities() b on a.City = b.City
 ```
 
-### 18.6 NULL-Related Functions
+### 19.6 NULL in ASOF JOIN
 
-Musoq provides functions for working with `NULL` values, such as coalescing, null-checking, and replacing nulls with defaults. To discover all available NULL-handling functions and their signatures, use `desc functions` (see [§15.5](#155-describe-schema-functions)).
+ASOF JOIN has specific NULL behavior for inequality and equality columns:
 
-### 18.7 NULL in Functions
+- If the **left-side inequality column** is `NULL`: no match (row dropped for `ASOF JOIN`, NULLs on right for `ASOF LEFT JOIN`)
+- If the **right-side inequality column** is `NULL`: that right row is never a match candidate
+- If an **equality (partition) column** is `NULL` on either side: no match (standard SQL `NULL ≠ NULL`)
+
+```sql
+-- Left row with NULL inequality key produces no match
+select a.Name, b.Name
+from A.entities() a
+asof left join B.entities() b on a.Population >= b.Population
+-- If a.Population is NULL, b columns are NULL
+```
+
+### 19.7 NULL-Related Functions
+
+Musoq provides functions for working with `NULL` values, such as coalescing, null-checking, and replacing nulls with defaults. To discover all available NULL-handling functions and their signatures, use `desc functions` (see [§16.5](#165-describe-schema-functions)).
+
+### 19.8 NULL in Functions
 
 Most built-in functions return `null` when any required parameter is `null`:
 
@@ -2029,11 +2630,11 @@ select Concat(null, 'text') from system.dual()  -- null
 
 ---
 
-## 19. String Comparison Semantics
+## 20. String Comparison Semantics
 
 Musoq uses different comparison strategies depending on context:
 
-### 19.1 Case-Insensitive Contexts
+### 20.1 Case-Insensitive Contexts
 
 These operations are **case-insensitive**:
 
@@ -2047,7 +2648,7 @@ These operations are **case-insensitive**:
 | `Replace()` | `Replace('Hello', 'hello', 'Hi')` → 'Hi' |
 | `IndexOf()` | `IndexOf('Hello', 'HELLO')` → 0 |
 
-### 19.2 Case-Sensitive (Ordinal) Contexts
+### 20.2 Case-Sensitive (Ordinal) Contexts
 
 These operations use **ordinal (case-sensitive)** comparison:
 
@@ -2059,7 +2660,7 @@ These operations use **ordinal (case-sensitive)** comparison:
 | `GROUP BY` | `'Hello'` and `'hello'` are different groups |
 | `DISTINCT` | `'Hello'` and `'hello'` are different values |
 
-### 19.3 Achieving Case-Insensitive Grouping
+### 20.3 Achieving Case-Insensitive Grouping
 
 To group or deduplicate case-insensitively, normalize with `ToLower()` or `ToUpper()`:
 
@@ -2068,15 +2669,15 @@ select ToLower(Name), Count(Name) from A.entities() group by ToLower(Name)
 select distinct ToLower(Name) from A.entities()
 ```
 
-### 19.4 Unicode Support
+### 20.4 Unicode Support
 
 Full Unicode support across all operations including LIKE, GROUP BY, ORDER BY, and all string functions. Tested with: Polish, Russian, French, Japanese (Hiragana/Katakana/Kanji), Chinese (Simplified/Traditional), Korean, Arabic, German, Thai, Hebrew, Hindi, Turkish, Greek, Ukrainian, Vietnamese, and emoji.
 
 ---
 
-## 20. Array and Property Access
+## 21. Array and Property Access
 
-### 20.1 Array Indexing
+### 21.1 Array Indexing
 
 Array elements are accessed with bracket notation (0-based):
 
@@ -2104,7 +2705,7 @@ Out-of-bounds access **never throws an exception**. It returns the default value
 | `string_array[100]` | `null` |
 | `Array[-100]` (excessive negative) | Wraps modularly: `effectiveIndex = ((index % length) + length) % length` |
 
-### 20.2 String Character Access
+### 21.2 String Character Access
 
 Strings support bracket indexing to access individual characters:
 
@@ -2115,7 +2716,7 @@ select Name[-1] from A.entities()     -- last character
 
 Out-of-bounds on strings returns `'\0'` (null character). Null strings return `'\0'`.
 
-### 20.3 Dictionary Key Access
+### 21.3 Dictionary Key Access
 
 Access dictionary values by key:
 
@@ -2125,7 +2726,7 @@ select Dict['key_name'] from A.entities()
 
 Missing keys return `null` (no exception).
 
-### 20.4 Property Navigation
+### 21.4 Property Navigation
 
 Access nested object properties with dot notation:
 
@@ -2139,7 +2740,7 @@ select Inc(Self.Array[2]) from A.entities()      -- function on indexed property
 
 Accessing a non-existing property throws `UnknownPropertyException` at compile time.
 
-### 20.5 Method Calls on Entities
+### 21.5 Method Calls on Entities
 
 Entity methods can be called with dot notation:
 
@@ -2150,9 +2751,9 @@ select a.ToUpperInvariant(a.City) from A.entities() a
 
 ---
 
-## 21. Automatic Type Coercion
+## 22. Automatic Type Coercion
 
-### 21.1 String-to-Numeric Coercion
+### 22.1 String-to-Numeric Coercion
 
 When a `string` column is compared to a numeric literal, the engine automatically attempts to parse the string as a number at runtime:
 
@@ -2169,7 +2770,7 @@ select Name from Items() where 1000 < Size       -- bidirectional: literal on le
 - Supports all comparison operators: `=`, `<>`, `>`, `<`, `>=`, `<=`
 - Works with hex (`0xFF`), binary (`0b1010`), and long (`9223372036854775807l`) literals
 
-### 21.2 String-to-DateTime Coercion
+### 22.2 String-to-DateTime Coercion
 
 When a `DateTime`, `DateTimeOffset`, or `TimeSpan` column is compared to a string literal, automatic parsing occurs:
 
@@ -2210,7 +2811,7 @@ Nullable date/time types (`DateTime?`, `DateTimeOffset?`, `TimeSpan?`) behave id
 - Supported formats follow the invariant culture parsing rules (ISO 8601, common date patterns)
 - Supports all comparison operators: `=`, `<>`, `>`, `<`, `>=`, `<=`
 
-### 21.3 Numeric Type Promotion
+### 22.3 Numeric Type Promotion
 
 In arithmetic and bitwise operations involving different numeric types, values are promoted to the wider type:
 
@@ -2222,15 +2823,15 @@ In arithmetic and bitwise operations involving different numeric types, values a
 | `sbyte AND byte` | `int?` |
 | `byte AND ulong` | `ulong?` |
 
-### 21.4 Object Column Coercion
+### 22.4 Object Column Coercion
 
 When an `object`-typed column is compared to a numeric literal, runtime conversion is attempted. Same graceful failure as string coercion — no exception on failure.
 
 ---
 
-## 22. Error Catalog
+## 23. Error Catalog
 
-### 22.1 Compile-Time Errors
+### 23.1 Compile-Time Errors
 
 | Error | Cause | Message/Exception |
 |-------|-------|-------------------|
@@ -2246,8 +2847,21 @@ When an `object`-typed column is compared to a numeric literal, runtime conversi
 | SELECT * with GROUP BY | Star expands to non-aggregated columns | `NonAggregatedColumnInSelectException` |
 | Missing alias in multi-table | Column without table qualifier in join | `AliasMissingException` |
 | Ambiguous method owner (MQ3035) | Unqualified function call resolves to different implementations across schemas — see [§8.7.1](#871-method-auto-resolution-algorithm) | `AmbiguousMethodOwnerException` |
+| ASOF JOIN: no inequality | ASOF JOIN ON clause contains only equality conditions | `AsOfJoinRequiresInequality` |
+| ASOF JOIN: multiple inequalities | ASOF JOIN ON clause contains more than one inequality condition | `AsOfJoinSupportsOnlyOneInequality` |
+| ASOF JOIN: OR in ON clause | ASOF JOIN ON clause contains OR | `AsOfJoinDoesNotSupportOr` |
+| ASOF JOIN: one-sided inequality | ASOF JOIN inequality condition does not reference columns from both sides | `AsOfJoinInequalityMustReferenceBothSides` |
+| ASOF JOIN: non-orderable type | ASOF JOIN inequality column type does not implement `IComparable` | `AsOfJoinInequalityColumnNotOrderable` |
+| Star EXCLUDE non-existent column (MQ3041) | EXCLUDE references a column not in the star expansion | `StarModifierValidationException` |
+| Star REPLACE non-existent column (MQ3042) | REPLACE targets a column not in the table | `StarModifierValidationException` |
+| Star EXCLUDE removes all columns (MQ3043) | EXCLUDE would leave zero columns | `StarModifierValidationException` |
+| Star column in both EXCLUDE and REPLACE (MQ3044) | Same column appears in both EXCLUDE and REPLACE lists | `StarModifierValidationException` |
+| Star LIKE matches no columns (MQ3045) | LIKE/NOT LIKE pattern matched zero columns | `StarModifierValidationException` |
+| Star EXCLUDE duplicate column (MQ3046) | Same column listed twice in EXCLUDE | `StarModifierValidationException` |
+| Star REPLACE duplicate column (MQ3047) | Same column listed twice in REPLACE | `StarModifierValidationException` |
+| Star REPLACE targets removed column (MQ3048) | REPLACE targets a column already removed by LIKE or EXCLUDE | `StarModifierValidationException` |
 
-### 22.2 Runtime Errors
+### 23.2 Runtime Errors
 
 | Error | Cause | Behavior |
 |-------|-------|----------|
@@ -2255,7 +2869,7 @@ When an `object`-typed column is compared to a numeric literal, runtime conversi
 | Invalid regex in RLIKE | `Name RLIKE '[invalid('` | Exception thrown |
 | Non-numeric string comparison | String `"abc"` compared to number | No match, no exception |
 
-### 22.3 Graceful Failures
+### 23.3 Graceful Failures
 
 These situations are handled gracefully without exceptions:
 
@@ -2270,9 +2884,9 @@ These situations are handled gracefully without exceptions:
 
 ---
 
-## 23. Formal Grammar
+## 24. Formal Grammar
 
-### 23.1 Notation
+### 24.1 Notation
 
 - `KEYWORD` — literal keyword (case-insensitive)
 - `name` — production rule
@@ -2284,7 +2898,7 @@ These situations are handled gracefully without exceptions:
 
 Nested brackets (`[ [AS] alias_name ]`) mean the entire group is optional, with `AS` independently optional within it.
 
-### 23.2 Statement-Level Grammar
+### 24.2 Statement-Level Grammar
 
 ```ebnf
 root           ::= statement { ';' statement } [';']
@@ -2300,7 +2914,7 @@ cte_expression ::= WITH cte_def {',' cte_def} set_operators
 cte_def        ::= identifier AS '(' set_operators ')'
 ```
 
-### 23.3 Query Grammar
+### 24.3 Query Grammar
 
 ```ebnf
 set_operators  ::= query { set_operator query }
@@ -2319,6 +2933,7 @@ regular_query  ::= SELECT [DISTINCT] select_list
                    {join_or_apply}
                    [WHERE expression]
                    [GROUP BY expression_list [HAVING expression]]
+                   [WINDOW window_def {',' window_def}]
                    [ORDER BY order_list]
                    [SKIP integer]
                    [TAKE integer]
@@ -2327,13 +2942,14 @@ reordered_query ::= FROM from_clause
                     {join_or_apply}
                     [WHERE expression]
                     [GROUP BY expression_list [HAVING expression]]
+                    [WINDOW window_def {',' window_def}]
                     SELECT [DISTINCT] select_list
                     [ORDER BY order_list]
                     [SKIP integer]
                     [TAKE integer]
 ```
 
-### 23.4 FROM Clause Grammar
+### 24.4 FROM Clause Grammar
 
 ```ebnf
 from_clause    ::= schema_source [alias]
@@ -2348,6 +2964,15 @@ join_or_apply  ::= join_clause | apply_clause
 join_clause    ::= [INNER] JOIN from_clause ON expression
                  | LEFT [OUTER] JOIN from_clause ON expression
                  | RIGHT [OUTER] JOIN from_clause ON expression
+                 | ASOF JOIN from_clause ON asof_condition
+                 | ASOF LEFT [OUTER] JOIN from_clause ON asof_condition
+
+asof_condition ::= asof_expr { AND asof_expr }
+
+asof_expr      ::= expression '=' expression
+                 | expression inequality_op expression
+
+inequality_op  ::= '>=' | '>' | '<=' | '<'
 
 apply_clause   ::= CROSS APPLY apply_source AS identifier
                  | OUTER APPLY apply_source AS identifier
@@ -2357,21 +2982,33 @@ apply_source   ::= schema_source
                  | identifier '.' property_path
 ```
 
-### 23.5 SELECT List Grammar
+### 24.5 SELECT List Grammar
 
 ```ebnf
 select_list    ::= select_item {',' select_item}
 
-select_item    ::= '*'
-                 | identifier '.' '*'
+select_item    ::= star_expr
                  | expression [[AS] alias_name]
+
+star_expr      ::= ('*' | identifier '.' '*') [star_modifiers]
+
+star_modifiers ::= [like_modifier] [exclude_modifier] [replace_modifier]
+
+like_modifier  ::= LIKE string_literal
+                 | NOT LIKE string_literal
+
+exclude_modifier ::= EXCLUDE '(' identifier {',' identifier} ')'
+
+replace_modifier ::= REPLACE '(' replace_item {',' replace_item} ')'
+
+replace_item   ::= expression AS identifier
 
 alias_name     ::= identifier
                  | string_literal
                  | '[' any_text ']'
 ```
 
-### 23.6 Expression Grammar (by precedence, lowest to highest)
+### 24.6 Expression Grammar (by precedence, lowest to highest)
 
 ```ebnf
 expression     ::= or_expr
@@ -2396,7 +3033,7 @@ mul_expr       ::= unary_expr {('*'|'/'|'%') unary_expr}
 unary_expr     ::= ['-'] primary
 
 primary        ::= literal
-                 | identifier {'.' identifier} ['(' [arg_list] ')']
+                 | identifier {'.' identifier} ['(' [arg_list] ')'] [window_over]
                  | identifier '[' expression ']'
                  | '(' expression ')'
                  | case_expression
@@ -2414,7 +3051,7 @@ when_clause ::= WHEN expression THEN expression
 simple_when_clause ::= WHEN expression THEN expression
 ```
 
-### 23.7 Literal Grammar
+### 24.7 Literal Grammar
 
 ```ebnf
 literal        ::= string_literal
@@ -2442,7 +3079,7 @@ octal_literal   ::= '0' ('o'|'O') octal_digit {octal_digit}
 type_suffix    ::= 'b' | 'ub' | 's' | 'us' | 'i' | 'ui' | 'l' | 'ul' | 'd' | 'D'
 ```
 
-### 23.8 Utility Statement Grammar
+### 24.8 Utility Statement Grammar
 
 ```ebnf
 table_definition ::= TABLE identifier '{' column_def_list '}'
@@ -2474,19 +3111,52 @@ column_clause ::= COLUMN column_path
 column_path ::= identifier { '.' identifier }
 ```
 
+### 24.9 Window Function Grammar
+
+```ebnf
+window_over    ::= OVER '(' window_spec ')'
+                 | OVER identifier
+
+window_spec    ::= [partition_clause] [order_clause]
+
+partition_clause ::= PARTITION BY expression {',' expression}
+
+order_clause   ::= ORDER BY ordered_field {',' ordered_field}
+
+ordered_field  ::= expression [ASC | DESC]
+
+window_clause  ::= WINDOW window_def {',' window_def}
+
+window_def     ::= identifier AS '(' window_spec ')'
+```
+
+Window functions are recognized at the expression level — when a function call is followed by the `OVER` keyword, the parser wraps it as a `WindowFunctionNode`.
+
+**Supported function names** (case-insensitive, underscores ignored):
+
+| Ranking | Offset | Aggregate |
+|---------|--------|-----------|
+| `RowNumber()` / `ROW_NUMBER()` | `Lag(expr [, offset [, default]])` | `Sum(expr)` |
+| `Rank()` / `RANK()` | `Lead(expr [, offset [, default]])` | `Count(expr)` |
+| `DenseRank()` / `DENSE_RANK()` | | `Avg(expr)` |
+| | | `Min(expr)` |
+| | | `Max(expr)` |
+
 ---
 
-## 24. Appendices
+## 25. Appendices
 
 ### Appendix A: Complete Keyword List
 
 ```
-AND, AS, ASC, CASE, CONTAINS, COUPLE, CROSS APPLY, DESC, DISTINCT,
+AND, AS, ASC, ASOF, ASOF JOIN, ASOF LEFT JOIN, ASOF LEFT OUTER JOIN,
+CASE, CONTAINS, COUPLE, CROSS APPLY, DESC, DISTINCT,
 ELSE, END, EXCEPT, FALSE, FROM, FUNCTIONS, GROUP BY, HAVING, IN,
 INNER JOIN, INTERSECT, IS, JOIN, LEFT JOIN, LEFT OUTER JOIN, LIKE,
-NOT, NOT IN, NOT LIKE, NOT RLIKE, NULL, ON, OR, ORDER BY,
-OUTER APPLY, RIGHT JOIN, RIGHT OUTER JOIN, RLIKE, SELECT, SKIP,
-TABLE, TAKE, THEN, TRUE, UNION, UNION ALL, WHEN, WHERE, WITH
+NOT, NOT IN, NOT LIKE, NOT RLIKE, NULL, ON, OR, ORDER BY, OVER,
+OUTER APPLY, PARTITION BY, RIGHT JOIN, RIGHT OUTER JOIN, RLIKE,
+SELECT, SKIP, TABLE, TAKE, THEN, TRUE, UNION, UNION ALL,
+WHEN, WHERE, WINDOW, WITH
 ```
 
 ### Appendix B: Operator Precedence Table
@@ -2557,6 +3227,7 @@ From **lowest** to **highest** precedence:
 | Window functions | `ROW_NUMBER() OVER (...)` | `RowNumber()` (no OVER clause, sequential) |
 | String comparison | Implementation-defined | LIKE is case-insensitive; `=` is ordinal |
 | Cross/Outer Apply | T-SQL only | Fully supported with method/property expansion |
+| ASOF JOIN | Not standard (DuckDB extension) | Supported — nearest-match join on an ordered column |
 | Array indexing | Not standard | `column[n]`, negative indexing, safe OOB |
 | Property navigation | Not standard | `column.property.subproperty` |
 | Type suffixes | Not standard | `42l`, `255ub`, `3.14d` |

@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class DataUtilsTests : LibraryBaseBaseTests
+public class DataUtilsTests : PluginsTestBase
 {
     #region JwtDecode Tests
 

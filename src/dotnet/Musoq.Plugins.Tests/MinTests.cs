@@ -3,7 +3,7 @@
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class MinTests : LibraryBaseBaseTests
+public class MinTests : PluginsTestBase
 {
     [TestMethod]
     public void MinIntTest()

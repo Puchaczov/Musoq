@@ -8,7 +8,7 @@ namespace Musoq.Plugins.Tests;
 ///     CalculateEntropy, IsBase64, IsHex, FormatJson, MinifyJson, FormatXml, MinifyXml, etc.
 /// </summary>
 [TestClass]
-public class DataUtilsExtendedTests : LibraryBaseBaseTests
+public class DataUtilsExtendedTests : PluginsTestBase
 {
     // Sample JWT token for testing (not a real token, just for testing structure)
     private const string ValidJwtToken =

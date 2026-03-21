@@ -42,8 +42,14 @@ public class JoinSourcesTableFromNode : FromNode
 
     public override string ToString()
     {
-        var joinType = JoinType == JoinType.Inner ? "inner join" :
-            JoinType == JoinType.OuterLeft ? "left outer join" : "right outer join";
+        var joinType = JoinType switch
+        {
+            JoinType.Inner => "inner join",
+            JoinType.OuterLeft => "left outer join",
+            JoinType.AsOf => "asof join",
+            JoinType.AsOfLeft => "asof left join",
+            _ => "right outer join"
+        };
 
         return $"{First.ToString()} {joinType} {Second.ToString()} on {Expression.ToString()}";
     }

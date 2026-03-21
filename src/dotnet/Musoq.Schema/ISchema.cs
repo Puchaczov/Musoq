@@ -24,5 +24,7 @@ public interface ISchema
 
     bool TryResolveAggregationMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo);
 
+    bool TryResolveWindowFunction(string method, out MethodInfo methodInfo);
+
     IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllLibraryMethods();
 }

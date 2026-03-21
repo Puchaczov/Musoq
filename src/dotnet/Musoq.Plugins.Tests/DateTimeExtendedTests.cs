@@ -7,7 +7,7 @@ namespace Musoq.Plugins.Tests;
 ///     Extended tests for DateTime methods in LibraryBaseDate.cs to improve branch coverage
 /// </summary>
 [TestClass]
-public class DateTimeExtendedTests : LibraryBaseBaseTests
+public class DateTimeExtendedTests : PluginsTestBase
 {
     #region Month/Year/Day/Hour/Minute/Second Tests
 

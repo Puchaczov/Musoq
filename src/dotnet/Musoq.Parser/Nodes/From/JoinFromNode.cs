@@ -33,6 +33,8 @@ public class JoinFromNode : BinaryFromNode
         {
             JoinType.Inner => "inner join",
             JoinType.OuterLeft => "left outer join",
+            JoinType.AsOf => "asof join",
+            JoinType.AsOfLeft => "asof left join",
             _ => "right outer join"
         };
 

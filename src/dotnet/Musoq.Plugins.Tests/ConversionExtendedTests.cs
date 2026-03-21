@@ -7,7 +7,7 @@ namespace Musoq.Plugins.Tests;
 ///     Extended tests for conversion methods in LibraryBaseConverting.cs to improve branch coverage
 /// </summary>
 [TestClass]
-public class ConversionExtendedTests : LibraryBaseBaseTests
+public class ConversionExtendedTests : PluginsTestBase
 {
     #region ToBin (bytes) Tests
 

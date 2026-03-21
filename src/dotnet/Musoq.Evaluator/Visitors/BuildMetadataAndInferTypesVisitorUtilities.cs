@@ -268,6 +268,9 @@ public static class BuildMetadataAndInferTypesVisitorUtilities
         {
             var current = stack.Pop();
 
+            if (current is WindowFunctionNode)
+                return true;
+
             if (current is AccessMethodNode methodNode && methodNode.IsAggregateMethod())
                 return true;
 

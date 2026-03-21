@@ -9,7 +9,7 @@ namespace Musoq.Plugins.Tests;
 ///     Unix timestamps, ToSlug, EscapeRegex, EscapeSql, ExtractUrls, ExtractEmails, ExtractIPs.
 /// </summary>
 [TestClass]
-public class NetworkUtilsExtendedTests : LibraryBaseBaseTests
+public class NetworkUtilsExtendedTests : PluginsTestBase
 {
     #region IsPrivateIP Tests
 

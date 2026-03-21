@@ -701,4 +701,36 @@ public class MethodsMetadata
             kvp => kvp.Key, IReadOnlyList<MethodInfo> (kvp) => kvp.Value.AsReadOnly()
         );
     }
+
+    /// <summary>
+    ///     Finds a window function factory method by its SQL-level name.
+    ///     Checks <see cref="WindowFunctionAttribute.Name"/> first, then falls back to the method name.
+    ///     Supports name normalization (case-insensitive, underscore-insensitive).
+    /// </summary>
+    public bool TryGetWindowFunction(string sqlName, out MethodInfo result)
+    {
+        var normalizedSqlName = MethodNameNormalizer.Normalize(sqlName);
+
+        foreach (var kvp in _methods)
+        {
+            foreach (var method in kvp.Value)
+            {
+                var attr = method.GetCustomAttribute<WindowFunctionAttribute>();
+                if (attr is null)
+                    continue;
+
+                var effectiveName = attr.Name ?? method.Name;
+                var normalizedEffectiveName = MethodNameNormalizer.Normalize(effectiveName);
+
+                if (normalizedEffectiveName == normalizedSqlName)
+                {
+                    result = method;
+                    return true;
+                }
+            }
+        }
+
+        result = null;
+        return false;
+    }
 }

@@ -70,6 +70,11 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
         Nodes.Push(new AccessColumnNode(node.ToString(), string.Empty, node.ReturnType, TextSpan.Empty));
     }
 
+    public override void Visit(WindowFunctionNode node)
+    {
+        Nodes.Push(node);
+    }
+
     public override void Visit(CaseNode node)
     {
         if (fields.Select(f => f.Expression.ToString()).Contains(node.ToString()))

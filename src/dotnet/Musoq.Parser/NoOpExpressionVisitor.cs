@@ -520,4 +520,20 @@ public abstract class NoOpExpressionVisitor : IExpressionVisitor
     public virtual void Visit(InlineSchemaTypeNode node)
     {
     }
+
+    public virtual void Visit(WindowFunctionNode node)
+    {
+    }
+
+    public virtual void Visit(WindowSpecificationNode node)
+    {
+    }
+
+    public virtual void Visit(WindowDefinitionNode node)
+    {
+    }
+
+    public virtual void Visit(WindowNode node)
+    {
+    }
 }

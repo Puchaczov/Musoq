@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class DateTests : LibraryBaseBaseTests
+public class DateTests : PluginsTestBase
 {
     [TestMethod]
     public void ExtractFromDateTest()

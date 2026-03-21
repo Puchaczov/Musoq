@@ -10,14 +10,14 @@ using Musoq.Schema.Managers;
 namespace Musoq.Schema.Tests;
 
 [TestClass]
-public class MethodsMetadataEdgeCasesMethodResolutionTests
+public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTestBase
 {
     private MethodsMetadata _methodsMetadata;
 
     [TestInitialize]
     public void Initialize()
     {
-        _methodsMetadata = new TestMethodsMetadata();
+        _methodsMetadata = CreateMethodsMetadataFor<TestClass>();
     }
 
     [TestMethod]
@@ -283,21 +283,6 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests
         }
     }
 
-    private class TestMethodsMetadata : MethodsMetadata
-    {
-        public TestMethodsMetadata()
-        {
-            var testClass = typeof(TestClass);
-            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance |
-                                                        BindingFlags.DeclaredOnly)) RegisterMethod(method);
-        }
-
-        private new void RegisterMethod(MethodInfo methodInfo)
-        {
-            base.RegisterMethod(methodInfo);
-        }
-    }
-
     private class ManyOverloadsClass
     {
         public void OverloadedMethod(byte value)
@@ -441,27 +426,14 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests
         }
     }
 
-    private class ManyOverloadsTestMetadata : MethodsMetadata
-    {
-        public ManyOverloadsTestMetadata()
-        {
-            var testClass = typeof(ManyOverloadsClass);
-            foreach (var method in testClass.GetMethods(BindingFlags.Public | BindingFlags.Instance |
-                                                        BindingFlags.DeclaredOnly)) RegisterMethod(method);
-        }
 
-        private new void RegisterMethod(MethodInfo methodInfo)
-        {
-            base.RegisterMethod(methodInfo);
-        }
-    }
 
     #region Stack-Allocated Sorting Boundary Tests
 
     [TestMethod]
     public void TryGetMethod_WhenManyOverloads_AtStackAllocBoundary_ShouldResolveSuccessfully()
     {
-        var metadata = new ManyOverloadsTestMetadata();
+        var metadata = CreateMethodsMetadataFor<ManyOverloadsClass>();
 
         Assert.IsTrue(
             metadata.TryGetMethod("OverloadedMethod", [typeof(DateTime)], null, out var method),
@@ -489,7 +461,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_WhenManyOverloads_ExceedsStackAllocBoundary_ShouldResolveSuccessfully()
     {
-        var metadata = new ManyOverloadsTestMetadata();
+        var metadata = CreateMethodsMetadataFor<ManyOverloadsClass>();
 
         Assert.IsTrue(
             metadata.TryGetMethod("OverloadedMethod", [typeof(TimeSpan)], null, out var method),
@@ -510,7 +482,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_WhenManyOverloads_ShouldReturnConsistentResults()
     {
-        var metadata = new ManyOverloadsTestMetadata();
+        var metadata = CreateMethodsMetadataFor<ManyOverloadsClass>();
 
         Assert.IsTrue(metadata.TryGetMethod("OverloadedMethod", [typeof(bool)], null, out var method1));
         Assert.IsTrue(metadata.TryGetMethod("OverloadedMethod", [typeof(bool)], null, out var method2));

@@ -8,7 +8,7 @@ namespace Musoq.Plugins.Tests;
 ///     Tests SHA384, CRC32, HMAC methods.
 /// </summary>
 [TestClass]
-public class CryptoExtendedTests : LibraryBaseBaseTests
+public class CryptoExtendedTests : PluginsTestBase
 {
     #region SHA384 Tests
 

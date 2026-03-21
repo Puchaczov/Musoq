@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class ToStringMethodsTests : LibraryBaseBaseTests
+public class ToStringMethodsTests : PluginsTestBase
 {
     #region Char ToString Tests
 

@@ -10,7 +10,7 @@ namespace Musoq.Plugins.Tests;
 ///     Tests NullIf, IfNull, DefaultIfNull, IsNull, IsNotNull, NthFromEndOrDefault, Coalesce, etc.
 /// </summary>
 [TestClass]
-public class GenericMethodsExtendedTests : LibraryBaseBaseTests
+public class GenericMethodsExtendedTests : PluginsTestBase
 {
     #region NullIf Tests
 

@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class HashFunctionsTests : LibraryBaseBaseTests
+public class HashFunctionsTests : PluginsTestBase
 {
     #region MD5 Tests
 

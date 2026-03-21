@@ -3,7 +3,7 @@
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class SumIncomeTests : LibraryBaseBaseTests
+public class SumIncomeTests : PluginsTestBase
 {
     [TestMethod]
     public void SumIncomeIntTest()

@@ -9,7 +9,7 @@ namespace Musoq.Plugins.Tests;
 ///     Tests ZLib, GZip, Deflate, Brotli compression and decompression.
 /// </summary>
 [TestClass]
-public class CompressionExtendedTests : LibraryBaseBaseTests
+public class CompressionExtendedTests : PluginsTestBase
 {
     #region ZLib Tests
 

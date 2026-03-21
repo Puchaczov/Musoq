@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class CompressionTests : LibraryBaseBaseTests
+public class CompressionTests : PluginsTestBase
 {
     private const string TestXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root><item>Hello World</item></root>";
     private const string TestText = "Hello, World! This is a test string for compression.";

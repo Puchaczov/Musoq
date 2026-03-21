@@ -202,6 +202,8 @@ public static class FieldProcessingHelper
 
                 switch (subNode)
                 {
+                    case WindowFunctionNode:
+                        break;
                     case AccessMethodNode aggregateMethod when aggregateMethod.IsAggregateMethod():
                     {
                         var subNodeStr = subNode.ToString();

@@ -223,11 +223,34 @@ public class RewriteQueryTraverseVisitor : RawTraverseVisitor<IScopeAwareExpress
         node.Take?.Accept(this);
         node.Skip?.Accept(this);
         node.GroupBy?.Accept(this);
+        node.Window?.Accept(this);
         node.OrderBy?.Accept(this);
         node.Accept(Visitor);
 
         _walker = _walker.Parent();
         Visitor.SetScope(_walker.Scope);
+    }
+
+    public override void Visit(WindowFunctionNode node)
+    {
+        node.Accept(Visitor);
+    }
+
+    public override void Visit(WindowSpecificationNode node)
+    {
+        node.Accept(Visitor);
+    }
+
+    public override void Visit(WindowDefinitionNode node)
+    {
+        node.Accept(Visitor);
+    }
+
+    public override void Visit(WindowNode node)
+    {
+        foreach (var definition in node.Definitions)
+            definition.Accept(this);
+        node.Accept(Visitor);
     }
 
     public override void Visit(InternalQueryNode node)

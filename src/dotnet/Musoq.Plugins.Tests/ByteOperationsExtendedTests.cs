@@ -8,7 +8,7 @@ namespace Musoq.Plugins.Tests;
 ///     Extended tests for byte conversion methods in LibraryBaseBytes.cs to improve branch coverage
 /// </summary>
 [TestClass]
-public class ByteOperationsExtendedTests : LibraryBaseBaseTests
+public class ByteOperationsExtendedTests : PluginsTestBase
 {
     #region GetBytes (string) Tests
 

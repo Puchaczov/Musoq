@@ -101,7 +101,12 @@ public static class TokenFactory
             { TokenType.LeftShift, (pos, text, _) => new LeftShiftToken(new TextSpan(pos, text.Length)) },
             { TokenType.RightShift, (pos, text, _) => new RightShiftToken(new TextSpan(pos, text.Length)) },
             { TokenType.FatArrow, (pos, text, _) => new FatArrowToken(new TextSpan(pos, text.Length)) },
-            { TokenType.QuestionMark, (pos, text, _) => new QuestionMarkToken(new TextSpan(pos, text.Length)) }
+            { TokenType.QuestionMark, (pos, text, _) => new QuestionMarkToken(new TextSpan(pos, text.Length)) },
+            { TokenType.Exclude, (pos, text, _) => new ExcludeToken(new TextSpan(pos, text.Length)) },
+            { TokenType.Replace, (pos, text, _) => new ReplaceToken(new TextSpan(pos, text.Length)) },
+            { TokenType.Over, (pos, text, _) => new OverToken(new TextSpan(pos, text.Length)) },
+            { TokenType.PartitionBy, (pos, text, _) => new PartitionByToken(new TextSpan(pos, text.Length)) },
+            { TokenType.Window, (pos, text, _) => new WindowToken(new TextSpan(pos, text.Length)) }
         };
 
         // Complex tokens that need additional processing

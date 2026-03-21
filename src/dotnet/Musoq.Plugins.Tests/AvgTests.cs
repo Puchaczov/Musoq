@@ -3,7 +3,7 @@
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class AvgTests : LibraryBaseBaseTests
+public class AvgTests : PluginsTestBase
 {
     #region Existing Tests
 
@@ -76,7 +76,7 @@ public class AvgTests : LibraryBaseBaseTests
     }
 
     [TestMethod]
-    public void SumIncomeDecimalParentTest()
+    public void AvgDecimalParentTest()
     {
         Library.SetAvg(Group, "test", 9m, 1);
         Library.SetAvg(Group, "test", 4m, 1);

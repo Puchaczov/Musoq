@@ -6,7 +6,7 @@ namespace Musoq.Plugins.Tests;
 ///     Extended tests for fuzzy matching, soundex, and Levenshtein distance methods to improve branch coverage.
 /// </summary>
 [TestClass]
-public class FuzzyMatchingExtendedTests : LibraryBaseBaseTests
+public class FuzzyMatchingExtendedTests : PluginsTestBase
 {
     #region Soundex Tests
 

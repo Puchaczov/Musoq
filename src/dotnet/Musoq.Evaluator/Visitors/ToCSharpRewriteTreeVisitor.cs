@@ -17,6 +17,7 @@ using Musoq.Evaluator.Visitors.Helpers;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Plugins;
 using Musoq.Schema;
 using ExpressionFromNode = Musoq.Parser.Nodes.From.ExpressionFromNode;
 using InMemoryTableFromNode = Musoq.Parser.Nodes.From.InMemoryTableFromNode;
@@ -82,6 +83,7 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private BlockSyntax _selectBlock = StatementEmitter.CreateEmptyBlock();
     private int _setOperatorMethodIdentifier;
     private MethodAccessType _type;
+    private readonly List<WindowEmitter.WindowRegistration> _windowFunctions = [];
 
     public ToCSharpRewriteTreeVisitor(
         IEnumerable<Assembly> assemblies,
@@ -662,6 +664,54 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
             SchemaNodeEmitter.CreateInterpretRowsSource(node.Alias, wrappedExpression));
     }
 
+    public override void Visit(WindowFunctionNode node)
+    {
+        var funcArgCount = node.FunctionCall.Arguments?.Args.Length ?? 0;
+        var funcArgExprs = new ExpressionSyntax[funcArgCount];
+        for (var i = funcArgCount - 1; i >= 0; i--)
+            funcArgExprs[i] = (ExpressionSyntax)Nodes.Pop();
+
+        var orderCount = node.WindowSpecification?.OrderByFields.Length ?? 0;
+        var orderExprs = new ExpressionSyntax[orderCount];
+        for (var i = orderCount - 1; i >= 0; i--)
+            orderExprs[i] = (ExpressionSyntax)Nodes.Pop();
+
+        var partitionCount = node.WindowSpecification?.PartitionFields.Length ?? 0;
+        var partitionExprs = new ExpressionSyntax[partitionCount];
+        for (var i = partitionCount - 1; i >= 0; i--)
+            partitionExprs[i] = (ExpressionSyntax)Nodes.Pop();
+
+        var index = _windowFunctions.Count;
+        _windowFunctions.Add(new WindowEmitter.WindowRegistration
+        {
+            Index = index,
+            FunctionName = node.FunctionCall.Name,
+            PartitionExpressions = partitionExprs,
+            OrderExpressions = orderExprs,
+            OrderByFields = node.WindowSpecification?.OrderByFields ?? [],
+            FunctionArgExpressions = funcArgExprs,
+            ReturnType = node.ReturnType ?? typeof(object),
+            FactoryMethod = node.FunctionCall.Method
+        });
+
+        var returnType = node.ReturnType ?? typeof(object);
+        var castType = EvaluationHelper.GetCastableType(returnType);
+        AddNamespace(returnType);
+        Nodes.Push(WindowEmitter.CreateResultAccess(index, castType));
+    }
+
+    public override void Visit(WindowSpecificationNode node)
+    {
+    }
+
+    public override void Visit(WindowDefinitionNode node)
+    {
+    }
+
+    public override void Visit(WindowNode node)
+    {
+    }
+
     public override void Visit(AccessMethodFromNode node)
     {
         var returnType = node.ReturnType ?? typeof(object);
@@ -695,6 +745,12 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public override void Visit(QueryNode node)
     {
+        if (_windowFunctions.Count > 0)
+        {
+            ProcessWindowQuery(node);
+            return;
+        }
+
         var result = QueryNodeProcessor.ProcessQueryNode(
             node,
             Nodes,
@@ -889,9 +945,15 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
 
     public override void Visit(CaseNode node)
     {
+        var context = _windowFunctions.Count > 0
+            ? new CaseNodeProcessor.CaseMethodContext(
+                _cseManager.GetDeclarations(),
+                _windowFunctions.Select(w => (w.Index, w.ReturnType)).ToList())
+            : new CaseNodeProcessor.CaseMethodContext(_cseManager.GetDeclarations());
+
         ApplyCaseNodeResult(CaseNodeProcessor.ProcessCaseNode(
             node, Nodes, _typesToInstantiate, _oldType, _queryAlias, ref _caseWhenMethodIndex,
-            _cseManager.GetDeclarations()));
+            context));
     }
 
     public override void Visit(FieldLinkNode node)
@@ -1009,5 +1071,100 @@ public class ToCSharpRewriteTreeVisitor : DefensiveVisitorBase, IToCSharpTransla
     private IEnumerable<StatementSyntax> GenerateCseVariableDeclarations()
     {
         return _cseManager.GenerateDeclarations();
+    }
+
+    private void ProcessWindowQuery(QueryNode node)
+    {
+        var detailedQuery = (DetailedQueryNode)node;
+
+        var orderByFields = detailedQuery.OrderBy is not null
+            ? new (FieldOrderedNode Field, ExpressionSyntax Syntax)[detailedQuery.OrderBy.Fields.Length]
+            : [];
+
+        for (var i = orderByFields.Length - 1; i >= 0; i--)
+        {
+            var field = detailedQuery.OrderBy!.Fields[i];
+            var syntax = (ExpressionSyntax)Nodes.Pop();
+            orderByFields[i] = (field, syntax);
+        }
+
+        var skip = node.Skip != null ? Nodes.Pop() as StatementSyntax : null;
+        var take = node.Take != null ? Nodes.Pop() as BlockSyntax : null;
+        var where = node.Where != null ? Nodes.Pop() as StatementSyntax : null;
+        var block = (BlockSyntax)Nodes.Pop();
+
+        var sourceName = _scope[MetaAttributes.SourceName];
+        var rowsSource = GetRowsSourceOrEmpty(node.From.Alias);
+
+        AddNamespace("System.Collections.Generic");
+        AddNamespace("Musoq.Evaluator.Helpers");
+        AddNamespace("Musoq.Schema.DataSources");
+
+        if (_windowFunctions.Any(w => w.FactoryMethod != null))
+        {
+            AddNamespace("Musoq.Plugins");
+            AddReference(typeof(IWindowFunction));
+            foreach (var wf in _windowFunctions.Where(w => w.FactoryMethod != null))
+                AddReference(wf.FactoryMethod!.ReflectedType!);
+        }
+
+        var fullBlock = StatementEmitter.CreateEmptyBlock();
+
+        if (!string.IsNullOrEmpty(_queryAlias))
+            fullBlock = fullBlock.AddStatements(
+                QueryEmitter.GeneratePhaseChangeStatement(_queryAlias, QueryPhase.Begin));
+
+        if (!string.IsNullOrEmpty(_queryAlias))
+            fullBlock = fullBlock.AddStatements(
+                QueryEmitter.GeneratePhaseChangeStatement(_queryAlias, QueryPhase.From));
+
+        if (rowsSource is not EmptyStatementSyntax)
+            fullBlock = fullBlock.AddStatements(rowsSource);
+
+        fullBlock = fullBlock.AddStatements(WindowEmitter.CreateBufferDeclaration());
+
+        var bufferBody = StatementEmitter.CreateEmptyBlock();
+        bufferBody = bufferBody.AddStatements(QueryEmitter.GenerateCancellationCheck());
+
+        if (where != null)
+            bufferBody = bufferBody.AddStatements(WindowEmitter.ReplaceReturnWithContinue(where));
+
+        bufferBody = bufferBody.AddStatements(WindowEmitter.CreateBufferAdd());
+
+        fullBlock = fullBlock.AddStatements(
+            SyntaxHelper.Foreach("score", sourceName, bufferBody, []));
+
+        var windowMapping = WindowEmitter.BuildKeyMapping(_windowFunctions);
+        fullBlock = WindowEmitter.GenerateKeyExtraction(fullBlock, windowMapping);
+        fullBlock = WindowEmitter.GeneratePartitionResolution(fullBlock, windowMapping);
+        fullBlock = WindowEmitter.GenerateComputation(fullBlock, _windowFunctions, windowMapping);
+        fullBlock = WindowEmitter.GenerateOutput(fullBlock, _selectBlock, skip, take, orderByFields, _queryAlias);
+
+        if (!string.IsNullOrEmpty(_queryAlias))
+            fullBlock = fullBlock.AddStatements(
+                QueryEmitter.GeneratePhaseChangeStatement(_queryAlias, QueryPhase.End));
+
+        ExpressionSyntax returnExpression = SyntaxFactory.IdentifierName(detailedQuery.ReturnVariableName);
+
+        if (detailedQuery.Select.IsDistinct)
+            returnExpression = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
+                        SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ToDistinctTable))))
+                .WithArgumentList(
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.IdentifierName(detailedQuery.ReturnVariableName)))));
+
+        fullBlock = fullBlock.AddStatements(
+            (StatementSyntax)Generator.ReturnStatement(returnExpression));
+
+        Statements.AddRange(fullBlock.Statements);
+
+        _windowFunctions.Clear();
+        _getRowsSourceStatement.Clear();
+        _isResultParallelizationImpossible = false;
     }
 }

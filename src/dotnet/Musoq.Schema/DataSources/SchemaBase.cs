@@ -134,6 +134,11 @@ public abstract class SchemaBase : ISchema
         return false;
     }
 
+    public bool TryResolveWindowFunction(string method, out MethodInfo methodInfo)
+    {
+        return _aggregator.TryResolveWindowFunction(method, out methodInfo);
+    }
+
     public bool TryResolveMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo)
     {
         return _aggregator.TryResolveMethod(method, parameters, entityType, out methodInfo);

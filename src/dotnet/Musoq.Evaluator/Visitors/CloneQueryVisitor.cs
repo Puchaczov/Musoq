@@ -230,7 +230,23 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
 
     public override void Visit(AllColumnsNode node)
     {
-        Nodes.Push(new AllColumnsNode(node.Alias).WithSpan(node.Span));
+        StarReplaceItemNode[] clonedReplaceItems = null;
+        if (node.ReplaceItems is { Length: > 0 })
+        {
+            clonedReplaceItems = new StarReplaceItemNode[node.ReplaceItems.Length];
+            for (var i = node.ReplaceItems.Length - 1; i >= 0; i--)
+            {
+                var clonedExpr = Nodes.Pop();
+                clonedReplaceItems[i] = new StarReplaceItemNode(clonedExpr, node.ReplaceItems[i].ColumnName);
+            }
+        }
+
+        Nodes.Push(new AllColumnsNode(
+            node.Alias,
+            node.LikePattern,
+            node.IsNotLike,
+            node.ExcludeColumns,
+            clonedReplaceItems ?? node.ReplaceItems).WithSpan(node.Span));
     }
 
     public override void Visit(IdentifierNode node)
@@ -441,9 +457,43 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
     {
     }
 
+    public override void Visit(WindowFunctionNode node)
+    {
+        Nodes.Push(node);
+    }
+
+    public override void Visit(WindowSpecificationNode node)
+    {
+        var orderByFields = new FieldOrderedNode[node.OrderByFields.Length];
+        for (var i = node.OrderByFields.Length - 1; i >= 0; i--)
+            orderByFields[i] = (FieldOrderedNode)Nodes.Pop();
+
+        var partitionFields = new FieldNode[node.PartitionFields.Length];
+        for (var i = node.PartitionFields.Length - 1; i >= 0; i--)
+            partitionFields[i] = (FieldNode)Nodes.Pop();
+
+        Nodes.Push(new WindowSpecificationNode(partitionFields, orderByFields));
+    }
+
+    public override void Visit(WindowDefinitionNode node)
+    {
+        var spec = (WindowSpecificationNode)Nodes.Pop();
+        Nodes.Push(new WindowDefinitionNode(node.Name, spec));
+    }
+
+    public override void Visit(WindowNode node)
+    {
+        var definitions = new WindowDefinitionNode[node.Definitions.Length];
+        for (var i = node.Definitions.Length - 1; i >= 0; i--)
+            definitions[i] = (WindowDefinitionNode)Nodes.Pop();
+
+        Nodes.Push(new WindowNode(definitions));
+    }
+
     public override void Visit(QueryNode node)
     {
         var orderBy = node.OrderBy != null ? Nodes.Pop() as OrderByNode : null;
+        var window = node.Window != null ? Nodes.Pop() as WindowNode : null;
         var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
 
         var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
@@ -453,7 +503,7 @@ public class CloneQueryVisitor : DefensiveVisitorBase, IExpressionVisitor
         var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
         var from = Nodes.Pop() as FromNode;
 
-        Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take));
+        Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take, window));
     }
 
     public override void Visit(JoinInMemoryWithSourceTableFromNode node)

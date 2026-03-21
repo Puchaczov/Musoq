@@ -108,6 +108,7 @@ public class CommonSubexpressionAnalysisTraverseVisitor(CommonSubexpressionAnaly
         node.Where?.Accept(this);
         node.Select.Accept(this);
         node.GroupBy?.Accept(this);
+        node.Window?.Accept(this);
         node.OrderBy?.Accept(this);
         node.Skip?.Accept(this);
         node.Take?.Accept(this);
