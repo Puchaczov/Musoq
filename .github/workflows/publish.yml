@@ -88,13 +88,13 @@ jobs:
         shell: pwsh
         env:
           RELEASE_TAG: ${{ steps.release.outputs.release_tag }}
-        run: pwsh scripts/release/Pack-Release.ps1 -Tag $env:RELEASE_TAG -OutputPath artifacts/nupkgs
+        run: ./scripts/release/Pack-Release.ps1 -Tag $env:RELEASE_TAG -OutputPath artifacts/nupkgs
 
       - name: Smoke test selected packages
         shell: pwsh
         env:
           RELEASE_TAG: ${{ steps.release.outputs.release_tag }}
-        run: pwsh scripts/release/Test-PackageSmoke.ps1 -Tag $env:RELEASE_TAG -PackageDirectory artifacts/nupkgs
+        run: ./scripts/release/Test-PackageSmoke.ps1 -Tag $env:RELEASE_TAG -PackageDirectory artifacts/nupkgs
 
       # actions/upload-artifact@v4.6.2
       - name: Upload package artifacts

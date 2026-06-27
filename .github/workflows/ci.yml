@@ -82,7 +82,7 @@ jobs:
       - name: Pack release packages
         if: matrix.warning_ratchet == true
         shell: pwsh
-        run: pwsh scripts/release/Pack-Release.ps1 -AllPackages -OutputPath artifacts/ci-nupkgs
+        run: ./scripts/release/Pack-Release.ps1 -AllPackages -OutputPath artifacts/ci-nupkgs
 
       - name: Publish TRX artifacts
         if: always()
