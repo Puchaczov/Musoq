@@ -1,0 +1,39 @@
+{
+  "packages": [
+    {
+      "slug": "parser",
+      "packageId": "Musoq.Parser",
+      "projectPath": "src/dotnet/Musoq.Parser/Musoq.Parser.csproj",
+      "versionProperty": "MusoqParserVersion",
+      "smokeTestMode": "assembly-load"
+    },
+    {
+      "slug": "plugins",
+      "packageId": "Musoq.Plugins",
+      "projectPath": "src/dotnet/Musoq.Plugins/Musoq.Plugins.csproj",
+      "versionProperty": "MusoqPluginsVersion",
+      "smokeTestMode": "assembly-load"
+    },
+    {
+      "slug": "schema",
+      "packageId": "Musoq.Schema",
+      "projectPath": "src/dotnet/Musoq.Schema/Musoq.Schema.csproj",
+      "versionProperty": "MusoqSchemaVersion",
+      "smokeTestMode": "assembly-load"
+    },
+    {
+      "slug": "evaluator",
+      "packageId": "Musoq.Evaluator",
+      "projectPath": "src/dotnet/Musoq.Evaluator/Musoq.Evaluator.csproj",
+      "versionProperty": "MusoqEvaluatorVersion",
+      "smokeTestMode": "assembly-load"
+    },
+    {
+      "slug": "converter",
+      "packageId": "Musoq.Converter",
+      "projectPath": "src/dotnet/Musoq.Converter/Musoq.Converter.csproj",
+      "versionProperty": "MusoqConverterVersion",
+      "smokeTestMode": "typed-query"
+    }
+  ]
+}
