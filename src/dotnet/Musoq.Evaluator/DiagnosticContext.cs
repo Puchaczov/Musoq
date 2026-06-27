@@ -1,7 +1,6 @@
-#nullable enable
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
@@ -15,7 +14,7 @@ namespace Musoq.Evaluator;
 public sealed class DiagnosticContext
 {
     private readonly DiagnosticBag _diagnostics;
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private readonly Stack<string> _scopeStack;
 
     /// <summary>
@@ -67,7 +66,7 @@ public sealed class DiagnosticContext
         {
             lock (_lock)
             {
-                return _scopeStack.Count > 0 ? string.Join(".", _scopeStack.Reverse()) : "";
+                return _scopeStack.Count > 0 ? string.Join(".", _scopeStack.Reverse()) : string.Empty;
             }
         }
     }
@@ -105,10 +104,9 @@ public sealed class DiagnosticContext
     /// <summary>
     ///     Reports an error diagnostic from a node.
     /// </summary>
-    public void ReportError(DiagnosticCode code, string message, Node node)
+    public void ReportError(DiagnosticCode code, string message, Node? node)
     {
-        var span = node.HasSpan ? node.Span : TextSpan.Empty;
-        ReportError(code, message, span);
+        ReportError(code, message, node.SpanOrEmpty());
     }
 
     /// <summary>
@@ -124,8 +122,8 @@ public sealed class DiagnosticContext
     /// </summary>
     public void ReportWarning(DiagnosticCode code, string message, Node node)
     {
-        var span = node.HasSpan ? node.Span : TextSpan.Empty;
-        ReportWarning(code, message, span);
+        ArgumentNullException.ThrowIfNull(node);
+        ReportWarning(code, message, node.SpanOrEmpty());
     }
 
     /// <summary>
@@ -167,7 +165,8 @@ public sealed class DiagnosticContext
     /// </summary>
     public void ReportUnknownAlias(string alias, IEnumerable<string> availableAliases, Node node)
     {
-        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        ArgumentNullException.ThrowIfNull(node);
+        var span = node.SpanOrEmpty();
         var message = $"Unknown alias '{alias}'.";
 
         var suggestion = ErrorCatalog.GetDidYouMeanSuggestion(alias, availableAliases);
@@ -180,9 +179,9 @@ public sealed class DiagnosticContext
     /// <summary>
     ///     Reports an unknown column error with suggestions.
     /// </summary>
-    public void ReportUnknownColumn(string columnName, IEnumerable<string> availableColumns, Node node)
+    public void ReportUnknownColumn(string columnName, IEnumerable<string> availableColumns, Node? node)
     {
-        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        var span = node.SpanOrEmpty();
         var message = $"Unknown column '{columnName}'.";
 
         var suggestion = ErrorCatalog.GetDidYouMeanSuggestion(columnName, availableColumns);
@@ -195,9 +194,9 @@ public sealed class DiagnosticContext
     /// <summary>
     ///     Reports an unknown property error with suggestions.
     /// </summary>
-    public void ReportUnknownProperty(string propertyName, IEnumerable<string> availableProperties, Node node)
+    public void ReportUnknownProperty(string propertyName, IEnumerable<string> availableProperties, Node? node)
     {
-        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        var span = node.SpanOrEmpty();
         var message = $"Unknown property '{propertyName}'.";
 
         var suggestion = ErrorCatalog.GetDidYouMeanSuggestion(propertyName, availableProperties);
@@ -212,7 +211,8 @@ public sealed class DiagnosticContext
     /// </summary>
     public void ReportUnknownFunction(string functionName, IEnumerable<string> availableFunctions, Node node)
     {
-        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        ArgumentNullException.ThrowIfNull(node);
+        var span = node.SpanOrEmpty();
         var message = $"Unknown function '{functionName}'.";
 
         var suggestion = ErrorCatalog.GetDidYouMeanSuggestion(functionName, availableFunctions);
@@ -227,7 +227,8 @@ public sealed class DiagnosticContext
     /// </summary>
     public void ReportTypeMismatch(string expected, string actual, Node node)
     {
-        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        ArgumentNullException.ThrowIfNull(node);
+        var span = node.SpanOrEmpty();
         var message = $"Type mismatch: expected '{expected}' but got '{actual}'.";
         ReportError(DiagnosticCode.MQ3005_TypeMismatch, message, span);
     }
@@ -235,9 +236,9 @@ public sealed class DiagnosticContext
     /// <summary>
     ///     Reports an ambiguous column reference.
     /// </summary>
-    public void ReportAmbiguousColumn(string columnName, string alias1, string alias2, Node node)
+    public void ReportAmbiguousColumn(string columnName, string alias1, string alias2, Node? node)
     {
-        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        var span = node.SpanOrEmpty();
         var message = $"Ambiguous column name '{columnName}' between '{alias1}' and '{alias2}'.";
         ReportError(DiagnosticCode.MQ3002_AmbiguousColumn, message, span);
     }
@@ -247,7 +248,8 @@ public sealed class DiagnosticContext
     /// </summary>
     public void ReportAmbiguousAggregateOwner(string methodCall, IEnumerable<string> candidateAliases, Node node)
     {
-        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        ArgumentNullException.ThrowIfNull(node);
+        var span = node.SpanOrEmpty();
         var aliases = string.Join(", ", candidateAliases.Select(alias => $"'{alias}'"));
         var message = $"Aggregate call '{methodCall}' is ambiguous because multiple source aliases expose different implementations: {aliases}.";
         ReportError(DiagnosticCode.MQ3034_AmbiguousAggregateOwner, message, span);
@@ -258,7 +260,8 @@ public sealed class DiagnosticContext
     /// </summary>
     public void ReportAmbiguousMethodOwner(string methodCall, IEnumerable<string> candidateAliases, Node node)
     {
-        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        ArgumentNullException.ThrowIfNull(node);
+        var span = node.SpanOrEmpty();
         var aliases = string.Join(", ", candidateAliases.Select(alias => $"'{alias}'"));
         var message = $"Method call '{methodCall}' is ambiguous because multiple source aliases expose different implementations: {aliases}.";
         ReportError(DiagnosticCode.MQ3035_AmbiguousMethodOwner, message, span);
@@ -269,7 +272,8 @@ public sealed class DiagnosticContext
     /// </summary>
     public void ReportInvalidArgumentCount(string functionName, int expected, int actual, Node node)
     {
-        var span = node.HasSpan ? node.Span : TextSpan.Empty;
+        ArgumentNullException.ThrowIfNull(node);
+        var span = node.SpanOrEmpty();
         var message = $"Function '{functionName}' expects {expected} argument(s) but got {actual}.";
         ReportError(DiagnosticCode.MQ3006_InvalidArgumentCount, message, span);
     }
@@ -299,21 +303,15 @@ public sealed class DiagnosticContext
         return $" Did you mean '{suggestion}'?";
     }
 
-    private sealed class ScopeGuard : IDisposable
+    private sealed class ScopeGuard(DiagnosticContext context) : IDisposable
     {
-        private readonly DiagnosticContext _context;
         private bool _disposed;
-
-        public ScopeGuard(DiagnosticContext context)
-        {
-            _context = context;
-        }
 
         public void Dispose()
         {
             if (!_disposed)
             {
-                _context.ExitScope();
+                context.ExitScope();
                 _disposed = true;
             }
         }

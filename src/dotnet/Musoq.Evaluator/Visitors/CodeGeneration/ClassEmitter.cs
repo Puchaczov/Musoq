@@ -1,21 +1,23 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.Extensions.Logging;
+using Musoq.Evaluator.IR.CodeGeneration;
+using Musoq.Evaluator.IR.Execution;
+using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Visitors.Helpers;
 using Musoq.Schema;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
-///     Emitter for generating the final C# class that implements IRunnable.
+///     Emitter for generating the final C# class that implements ITableRunnable.
 /// </summary>
 public static class ClassEmitter
 {
@@ -64,24 +66,161 @@ public static class ClassEmitter
     }
 
     /// <summary>
+    ///     Creates the CTE sidecar index results field declaration.
+    /// </summary>
+    public static FieldDeclarationSyntax CreateCteIndexResultsField(int indexCount)
+    {
+        ExpressionSyntax initializer;
+
+        if (indexCount == 0)
+        {
+            initializer = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("Array"),
+                    SyntaxFactory.GenericName(SyntaxFactory.Identifier("Empty"))
+                        .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
+                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))))));
+        }
+        else
+        {
+            initializer = SyntaxFactory.ArrayCreationExpression(SyntaxFactory
+                .ArrayType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))).WithRankSpecifiers(
+                    SyntaxFactory.SingletonList(
+                        SyntaxFactory.ArrayRankSpecifier(
+                            SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal(indexCount)))))));
+        }
+
+        return SyntaxFactory
+            .FieldDeclaration(SyntaxFactory
+                .VariableDeclaration(SyntaxFactory.ArrayType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
+                    .WithRankSpecifiers(SyntaxFactory.SingletonList(
+                        SyntaxFactory.ArrayRankSpecifier(
+                            SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                SyntaxFactory.OmittedArraySizeExpression()))))).WithVariables(
+                    SyntaxFactory.SingletonSeparatedList(SyntaxFactory
+                        .VariableDeclarator(SyntaxFactory.Identifier("_cteIndexResults")).WithInitializer(
+                            SyntaxFactory.EqualsValueClause(initializer)))))
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)));
+    }
+
+    /// <summary>
     ///     Creates the class declaration with all members and base types.
+    ///     Members are reordered by generated-code readability groups.
     /// </summary>
     public static SyntaxNode CreateClassDeclaration(
         SyntaxGenerator generator,
         string className,
-        IList<SyntaxNode> members)
+        IList<SyntaxNode> members,
+        bool implementsProfiledRunnable = false)
     {
+        ArgumentNullException.ThrowIfNull(generator);
+        var orderedMembers = ReorderMembers(members);
+        var baseTypes = new List<SyntaxNode>
+        {
+            SyntaxFactory.IdentifierName(nameof(BaseOperations)),
+            SyntaxFactory.IdentifierName(nameof(ITableRunnable)),
+            SyntaxFactory.IdentifierName(nameof(IParameterizedRunnable))
+        };
+
+        if (implementsProfiledRunnable)
+            baseTypes.Add(SyntaxFactory.IdentifierName(nameof(IProfiledRunnable)));
+
         return generator.ClassDeclaration(
             className,
             [],
             Accessibility.Public,
-            DeclarationModifiers.None,
+            DeclarationModifiers.Sealed,
             null,
-            [
-                SyntaxFactory.IdentifierName(nameof(BaseOperations)),
-                SyntaxFactory.IdentifierName(nameof(IRunnable))
-            ],
-            members);
+            baseTypes,
+            orderedMembers);
+    }
+
+    public static SyntaxNode CreateTypedClassDeclaration(
+        SyntaxGenerator generator,
+        string className,
+        Type outputType,
+        IList<SyntaxNode> members)
+    {
+        ArgumentNullException.ThrowIfNull(generator);
+        ArgumentNullException.ThrowIfNull(outputType);
+        var orderedMembers = ReorderMembers(members);
+        var baseTypes = new List<SyntaxNode>
+        {
+            SyntaxFactory.IdentifierName(nameof(BaseOperations)),
+            SyntaxFactory.GenericName(nameof(ITypedRunnable<object>))
+                .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
+                    SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                        ExecutionSyntaxFactory.CreateTypeSyntax(outputType)))),
+            SyntaxFactory.IdentifierName(nameof(IParameterizedRunnable))
+        };
+
+        return generator.ClassDeclaration(
+            className,
+            [],
+            Accessibility.Public,
+            DeclarationModifiers.Sealed,
+            null,
+            baseTypes,
+            orderedMembers);
+    }
+
+    private static List<SyntaxNode> ReorderMembers(IList<SyntaxNode> members)
+    {
+        return members.OrderBy(GetMemberSortOrder).ToList();
+    }
+
+    private static int GetMemberSortOrder(SyntaxNode member)
+    {
+        return member switch
+        {
+            FieldDeclarationSyntax => 0,
+            ConstructorDeclarationSyntax => 1,
+            PropertyDeclarationSyntax property when HasModifier(property.Modifiers, SyntaxKind.PublicKeyword) => 2,
+            EventFieldDeclarationSyntax eventField when HasModifier(eventField.Modifiers, SyntaxKind.PublicKeyword) => 3,
+            EventDeclarationSyntax eventDeclaration when HasModifier(eventDeclaration.Modifiers, SyntaxKind.PublicKeyword) => 3,
+            MethodDeclarationSyntax method => GetMethodSortOrder(method.Modifiers),
+            PropertyDeclarationSyntax property => GetNonPublicMemberSortOrder(property.Modifiers),
+            EventFieldDeclarationSyntax eventField => GetNonPublicMemberSortOrder(eventField.Modifiers),
+            EventDeclarationSyntax eventDeclaration => GetNonPublicMemberSortOrder(eventDeclaration.Modifiers),
+            ClassDeclarationSyntax => 8,
+            StructDeclarationSyntax => 8,
+            RecordDeclarationSyntax => 8,
+            _ => 9
+        };
+    }
+
+    private static int GetMethodSortOrder(SyntaxTokenList modifiers)
+    {
+        if (HasModifier(modifiers, SyntaxKind.PublicKeyword))
+            return 4;
+
+        if (HasModifier(modifiers, SyntaxKind.ProtectedKeyword))
+            return 5;
+
+        if (HasModifier(modifiers, SyntaxKind.StaticKeyword))
+            return 7;
+
+        return 6;
+    }
+
+    private static int GetNonPublicMemberSortOrder(SyntaxTokenList modifiers)
+    {
+        if (HasModifier(modifiers, SyntaxKind.ProtectedKeyword))
+            return 5;
+
+        if (HasModifier(modifiers, SyntaxKind.StaticKeyword))
+            return 7;
+
+        return 6;
+    }
+
+    private static bool HasModifier(SyntaxTokenList modifiers, SyntaxKind kind)
+    {
+        return modifiers.Any(kind);
     }
 
     /// <summary>
@@ -93,10 +232,10 @@ public static class ClassEmitter
         ClassDeclarationSyntax classDeclaration)
     {
         return SyntaxFactory.NamespaceDeclaration(
-            SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(namespaceName)),
+            SyntaxFactory.ParseName(namespaceName),
             SyntaxFactory.List<ExternAliasDirectiveSyntax>(),
             SyntaxFactory.List(
-                namespaces.Select(n => SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName(n)))),
+                namespaces.Select(n => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(n)))),
             SyntaxFactory.List<MemberDeclarationSyntax>([classDeclaration]));
     }
 
@@ -113,34 +252,6 @@ public static class ClassEmitter
     }
 
     /// <summary>
-    ///     Formats the compilation unit with standard C# formatting options.
-    ///     Used only for debug/diagnostic output — not needed for Roslyn compilation.
-    /// </summary>
-    public static SyntaxNode FormatCompilationUnit(CompilationUnitSyntax compilationUnit, Workspace workspace)
-    {
-        var options = workspace.Options;
-        options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInMethods, true);
-        options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInProperties, true);
-        options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInControlBlocks, true);
-        options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, true);
-        options = options.WithChangedOption(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, true);
-
-        return Formatter.Format(compilationUnit, workspace, options);
-    }
-
-    /// <summary>
-    ///     Creates a syntax tree from the formatted code by re-parsing — expensive, for diagnostics only.
-    /// </summary>
-    public static SyntaxTree CreateSyntaxTree(SyntaxNode formattedCode)
-    {
-        return SyntaxFactory.ParseSyntaxTree(
-            formattedCode.ToFullString(),
-            new CSharpParseOptions(LanguageVersion.CSharp11),
-            null,
-            Encoding.ASCII);
-    }
-
-    /// <summary>
     ///     Creates a syntax tree directly from the compilation unit without the expensive Formatter.Format() step.
     ///     Uses NormalizeWhitespace() instead, which is an O(n) pass that adds standard whitespace trivia —
     ///     much faster than the full Roslyn Formatter which requires a Workspace and formatting options.
@@ -149,39 +260,364 @@ public static class ClassEmitter
     public static SyntaxTree CreateSyntaxTreeDirect(CompilationUnitSyntax compilationUnit)
     {
         var cleaned = new RedundantParenthesisRewriter().Visit(compilationUnit);
+        var source = GeneratedCSharpCodeFormatter.Normalize(cleaned.NormalizeWhitespace().ToFullString());
 
         return SyntaxFactory.ParseSyntaxTree(
-            cleaned.NormalizeWhitespace().ToFullString(),
+            source,
             new CSharpParseOptions(LanguageVersion.CSharp11));
     }
 
     /// <summary>
-    ///     Adds the standard IRunnable members (properties and Run method).
+    ///     Adds the standard table runnable members (properties and Run method).
     /// </summary>
     public static void AddRunnableMembers(
         IList<SyntaxNode> members,
-        string methodCallExpression)
+        string methodCallExpression,
+        IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions = null)
     {
+        ArgumentNullException.ThrowIfNull(members);
         var method = MethodDeclarationHelper.CreateRunMethod(methodCallExpression);
+        AddRunnableMembersCore(members, method, parameterDefinitions);
+    }
+
+    public static void AddProfiledRunnableMembers(
+        IList<SyntaxNode> members,
+        string methodCallExpression,
+        string profiledMethodCallExpression,
+        IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions = null)
+    {
+        ArgumentNullException.ThrowIfNull(members);
+        var method = MethodDeclarationHelper.CreateRunMethod(methodCallExpression);
+        AddRunnableMembersCore(members, method, parameterDefinitions);
+        members.Add(MethodDeclarationHelper.CreateProfiledRunMethod(profiledMethodCallExpression));
+    }
+
+    /// <summary>
+    ///     Adds the standard table runnable members (properties and Run method) with a custom run body.
+    /// </summary>
+    public static void AddRunnableMembers(
+        IList<SyntaxNode> members,
+        BlockSyntax runBody,
+        IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions = null)
+    {
+        ArgumentNullException.ThrowIfNull(members);
+        var method = MethodDeclarationHelper.CreateRunMethodWithBody(runBody);
+        AddRunnableMembersCore(members, method, parameterDefinitions);
+    }
+
+    public static void AddTableViaRowsRunnableMembers(
+        IList<SyntaxNode> members,
+        string rowsMethodName,
+        TableViaRowsResultInfo resultInfo,
+        IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions = null,
+        bool useLifecycleWrapper = true,
+        bool forceTableResultMaterialization = false)
+    {
+        ArgumentNullException.ThrowIfNull(members);
+        ArgumentException.ThrowIfNullOrWhiteSpace(rowsMethodName);
+        ArgumentNullException.ThrowIfNull(resultInfo);
+
+        var method = MethodDeclarationHelper.CreateRunMethodWithBody(
+            CreateTableViaRowsRunBody(rowsMethodName, resultInfo, null, forceTableResultMaterialization));
+
+        AddRunnableMembersCore(members, method, parameterDefinitions);
+    }
+
+    public static void AddProfiledTableViaRowsRunnableMembers(
+        IList<SyntaxNode> members,
+        string rowsMethodName,
+        TableViaRowsResultInfo resultInfo,
+        IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions = null,
+        bool forceTableResultMaterialization = false)
+    {
+        ArgumentNullException.ThrowIfNull(members);
+        ArgumentException.ThrowIfNullOrWhiteSpace(rowsMethodName);
+        ArgumentNullException.ThrowIfNull(resultInfo);
+
+        var method = MethodDeclarationHelper.CreateRunMethodWithBody(
+            CreateTableViaRowsRunBody(
+                rowsMethodName,
+                resultInfo,
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression),
+                forceTableResultMaterialization));
+        AddRunnableMembersCore(members, method, parameterDefinitions);
+
+        members.Add(CreateProfiledTableViaRowsRunMethod(rowsMethodName, resultInfo, forceTableResultMaterialization));
+    }
+
+    private static MethodDeclarationSyntax CreateProfiledTableViaRowsRunMethod(
+        string rowsMethodName,
+        TableViaRowsResultInfo resultInfo,
+        bool forceTableResultMaterialization)
+    {
+        var statements = new List<StatementSyntax>
+        {
+            SyntaxFactory.ParseStatement("ArgumentNullException.ThrowIfNull(profileRecorder);")
+        };
+        statements.AddRange(CreateTableViaRowsRunBody(
+            rowsMethodName,
+            resultInfo,
+            SyntaxFactory.IdentifierName("profileRecorder"),
+            forceTableResultMaterialization).Statements);
+
+        return SyntaxFactory.MethodDeclaration(
+                SyntaxFactory.IdentifierName(nameof(Table)),
+                SyntaxFactory.Identifier(nameof(IProfiledRunnable.RunWithProfile)))
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+            .WithParameterList(
+                SyntaxFactory.ParameterList(
+                    SyntaxFactory.SeparatedList(
+                    [
+                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("token"))
+                            .WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken))),
+                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("profileRecorder"))
+                            .WithType(SyntaxFactory.IdentifierName("QueryProfileRecorder"))
+                    ])))
+            .WithBody(SyntaxFactory.Block(statements));
+    }
+
+    private static BlockSyntax CreateTableViaRowsRunBody(
+        string rowsMethodName,
+        TableViaRowsResultInfo resultInfo,
+        ExpressionSyntax? profileRecorderArgument,
+        bool forceTableResultMaterialization)
+    {
+        var tableExpression = CreateDeferredTableExpression(rowsMethodName, resultInfo, profileRecorderArgument);
+        if (!forceTableResultMaterialization)
+            return SyntaxFactory.Block(SyntaxFactory.ReturnStatement(tableExpression));
+
+        const string materializedTableName = "__musoqMaterializedTable";
+        return SyntaxFactory.Block(
+            SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                    .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(materializedTableName))
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(tableExpression))))),
+            SyntaxFactory.ParseStatement($"_ = {materializedTableName}.Count;"),
+            SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(materializedTableName)));
+    }
+
+    private static InvocationExpressionSyntax CreateDeferredTableExpression(
+        string rowsMethodName,
+        TableViaRowsResultInfo resultInfo,
+        ExpressionSyntax? profileRecorderArgument)
+    {
+        ExpressionSyntax columns = resultInfo.ColumnsFieldName != null
+            ? SyntaxFactory.IdentifierName(resultInfo.ColumnsFieldName)
+            : ExecutionSyntaxFactory.CreateArrayCreation(
+                nameof(Column),
+                resultInfo.Columns.Select(ExecutionSyntaxFactory.CreateColumnCreation));
+        var rowsArguments = new List<ArgumentSyntax>
+        {
+            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.Provider))),
+            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.SourceRuntimeSettingsBySourceContextId))),
+            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.SourceExecutionPlans))),
+            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.Logger))),
+            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("queryToken"))
+        };
+        if (profileRecorderArgument != null)
+            rowsArguments.Add(SyntaxFactory.Argument(profileRecorderArgument));
+
+        var rowsCall = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(rowsMethodName))
+            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(rowsArguments)));
+        var rowsFactory = SyntaxFactory.ParenthesizedLambdaExpression()
+            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.Parameter(SyntaxFactory.Identifier("queryToken")))))
+            .WithExpressionBody(rowsCall);
+
+        return SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(nameof(QueryRows)),
+                    SyntaxFactory.GenericName(nameof(QueryRows.DeferredTable))
+                        .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
+                            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                SyntaxFactory.ParseTypeName(resultInfo.RowTypeName))))))
+            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+            [
+                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                    SyntaxKind.StringLiteralExpression,
+                    SyntaxFactory.Literal(resultInfo.TableName))),
+                SyntaxFactory.Argument(columns),
+                SyntaxFactory.Argument(rowsFactory),
+                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token"))
+            ])));
+    }
+
+    public static void AddTypedRunnableMembers(
+        IList<SyntaxNode> members,
+        string rowsMethodName,
+        Type outputType,
+        IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions = null)
+    {
+        ArgumentNullException.ThrowIfNull(members);
+        ArgumentException.ThrowIfNullOrWhiteSpace(rowsMethodName);
+        ArgumentNullException.ThrowIfNull(outputType);
+
+        const string initialContextName = "__musoqInitialRunContext";
+        var rowsFactory = SyntaxFactory.ParenthesizedLambdaExpression()
+            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.Parameter(SyntaxFactory.Identifier("queryToken")))))
+            .WithExpressionBody(SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(rowsMethodName))
+                .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                [
+                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.Provider))),
+                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.SourceRuntimeSettingsBySourceContextId))),
+                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.SourceExecutionPlans))),
+                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.Logger))),
+                    SyntaxFactory.Argument(CreatePerEnumerationRunContext(initialContextName))
+                ]))));
+        var rowEnumerable = SyntaxFactory.ObjectCreationExpression(
+                SyntaxFactory.GenericName(nameof(QueryEnumerable<object>))
+                    .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
+                        SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                            ExecutionSyntaxFactory.CreateTypeSyntax(outputType)))))
+            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+            [
+                SyntaxFactory.Argument(rowsFactory),
+                SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("options"),
+                    SyntaxFactory.IdentifierName(nameof(TypedQueryRunOptions.CancellationToken))))
+            ])));
+        var body = SyntaxFactory.Block(
+            SyntaxFactory.ParseStatement("ArgumentNullException.ThrowIfNull(options);"),
+            CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                initialContextName,
+                SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(nameof(QueryRunContext)),
+                            SyntaxFactory.IdentifierName(nameof(QueryRunContext.Capture))))
+                    .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                    [
+                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("options")),
+                        SyntaxFactory.Argument(SyntaxFactory.ThisExpression())
+                    ])))),
+            SyntaxFactory.ReturnStatement(rowEnumerable));
+        var runOptionsMethod = MethodDeclarationHelper.CreateTypedRunOptionsMethodWithBody(outputType, body);
+        var runTokenMethod = MethodDeclarationHelper.CreateTypedRunTokenShim(outputType);
+
+        AddRunnableMembersCore(members, [runOptionsMethod, runTokenMethod], parameterDefinitions);
+    }
+
+    private static void AddRunnableMembersCore(
+        IList<SyntaxNode> members,
+        MethodDeclarationSyntax runMethod,
+        IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions)
+    {
+        AddRunnableMembersCore(members, [runMethod], parameterDefinitions);
+    }
+
+    private static void AddRunnableMembersCore(
+        IList<SyntaxNode> members,
+        IReadOnlyList<MethodDeclarationSyntax> runMethods,
+        IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions)
+    {
         var providerParam =
-            MethodDeclarationHelper.CreatePublicProperty(nameof(ISchemaProvider), nameof(IRunnable.Provider));
-        var positionalEnvironmentVariablesParam =
-            MethodDeclarationHelper.CreatePositionalEnvironmentVariablesProperty();
-        var queriesInformationParam = MethodDeclarationHelper.CreateQueriesInformationProperty();
-        var loggerParam = MethodDeclarationHelper.CreatePublicProperty(nameof(ILogger), nameof(IRunnable.Logger));
+            MethodDeclarationHelper.CreatePublicProperty(nameof(ISchemaProvider), nameof(IQueryRunnable.Provider));
+        var sourceRuntimeSettingsParam =
+            MethodDeclarationHelper.CreateSourceRuntimeSettingsBySourceContextIdProperty();
+        var sourceRuntimeSettingDescriptionsParam =
+            MethodDeclarationHelper.CreateSourceRuntimeSettingDescriptionsBySourceContextIdProperty();
+        var sourceExecutionPlansParam = MethodDeclarationHelper.CreateSourceExecutionPlansProperty();
+        var loggerParam = MethodDeclarationHelper.CreatePublicProperty(nameof(ILogger), nameof(IQueryRunnable.Logger));
+        var parametersParam = CreateParametersProperty();
+        var parameterDefinitionsParam = CreateParameterDefinitionsProperty(parameterDefinitions);
         var phaseChangedEvent = MethodDeclarationHelper.CreatePhaseChangedEvent();
         var onPhaseChangedMethod = MethodDeclarationHelper.CreateOnPhaseChangedMethod();
         var dataSourceProgressEvent = MethodDeclarationHelper.CreateDataSourceProgressEvent();
         var onDataSourceProgressMethod = MethodDeclarationHelper.CreateOnDataSourceProgressMethod();
 
-        members.Add(method);
+        foreach (var runMethod in runMethods)
+            members.Add(runMethod);
         members.Add(providerParam);
-        members.Add(positionalEnvironmentVariablesParam);
-        members.Add(queriesInformationParam);
+        members.Add(sourceRuntimeSettingsParam);
+        members.Add(sourceRuntimeSettingDescriptionsParam);
+        members.Add(sourceExecutionPlansParam);
         members.Add(loggerParam);
+        members.Add(parametersParam);
+        members.Add(parameterDefinitionsParam);
         members.Add(phaseChangedEvent);
         members.Add(onPhaseChangedMethod);
         members.Add(dataSourceProgressEvent);
         members.Add(onDataSourceProgressMethod);
+    }
+
+    private static ObjectCreationExpressionSyntax CreatePerEnumerationRunContext(string initialContextName)
+    {
+        return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.IdentifierName(nameof(QueryRunContext)))
+            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+            [
+                SyntaxFactory.Argument(SyntaxFactory.IdentifierName("queryToken")),
+                SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(initialContextName),
+                    SyntaxFactory.IdentifierName(nameof(QueryRunContext.RuntimeParameters)))),
+                SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(initialContextName),
+                    SyntaxFactory.IdentifierName(nameof(QueryRunContext.PhaseChanged)))),
+                SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(initialContextName),
+                    SyntaxFactory.IdentifierName(nameof(QueryRunContext.DataSourceProgress)))),
+                SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(initialContextName),
+                    SyntaxFactory.IdentifierName(nameof(QueryRunContext.Sender)))),
+                SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(initialContextName),
+                    SyntaxFactory.IdentifierName(nameof(QueryRunContext.QueryId))))
+            ])));
+    }
+
+    private static LocalDeclarationStatementSyntax CreateLocalDeclaration(
+        TypeSyntax type,
+        string name,
+        ExpressionSyntax initializer)
+    {
+        return SyntaxFactory.LocalDeclarationStatement(
+            SyntaxFactory.VariableDeclaration(type)
+                .WithVariables(SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.VariableDeclarator(SyntaxFactory.Identifier(name))
+                        .WithInitializer(SyntaxFactory.EqualsValueClause(initializer)))));
+    }
+
+    private static PropertyDeclarationSyntax CreateParametersProperty()
+    {
+        return SyntaxFactory.PropertyDeclaration(
+                SyntaxFactory.ParseTypeName("IDictionary<string, System.Object>"),
+                nameof(IParameterizedRunnable.Parameters))
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+            .WithAccessorList(
+                SyntaxFactory.AccessorList(
+                    SyntaxFactory.SingletonList(
+                        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))))
+            .WithInitializer(
+                SyntaxFactory.EqualsValueClause(
+                    SyntaxFactory.ParseExpression("new Dictionary<string, System.Object>(StringComparer.Ordinal)")))
+            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+    }
+
+    private static PropertyDeclarationSyntax CreateParameterDefinitionsProperty(
+        IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions)
+    {
+        return SyntaxFactory.PropertyDeclaration(
+                SyntaxFactory.ParseTypeName("IReadOnlyList<ScriptParameterDefinition>"),
+                nameof(IParameterizedRunnable.ParameterDefinitions))
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+            .WithAccessorList(
+                SyntaxFactory.AccessorList(
+                    SyntaxFactory.SingletonList(
+                        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))))
+            .WithInitializer(
+                SyntaxFactory.EqualsValueClause(
+                    ScriptParameterSyntaxFactory.CreateDefinitionsInitializer(parameterDefinitions)))
+            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 }

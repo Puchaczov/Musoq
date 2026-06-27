@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class LikeToken : Token
+public class LikeToken(TextSpan span) : Token(TokenText, TokenType.Like, span)
 {
     public const string TokenText = "like";
-
-    public LikeToken(TextSpan span)
-        : base(TokenText, TokenType.Like, span)
-    {
-    }
 }

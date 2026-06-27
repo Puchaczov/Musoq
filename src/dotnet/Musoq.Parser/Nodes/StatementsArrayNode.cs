@@ -1,25 +1,18 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 namespace Musoq.Parser.Nodes;
 
-public class StatementsArrayNode : Node
+public class StatementsArrayNode(StatementNode[] nodes) : Node
 {
-    public StatementsArrayNode(StatementNode[] nodes)
-    {
-        ReturnType = typeof(void);
-        Statements = nodes;
-        Id = null;
-    }
+    public StatementNode[] Statements { get; } = nodes;
 
-    public StatementNode[] Statements { get; }
+    public override Type ReturnType { get; } = typeof(void);
 
-    public override Type ReturnType { get; }
-
-    public override string Id { get; }
+    public override string Id { get; } = $"{nameof(StatementsArrayNode)}{string.Concat(nodes.Select(node => node.Id))}";
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

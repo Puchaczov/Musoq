@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Musoq.Parser.Diagnostics;
 
@@ -13,6 +11,23 @@ namespace Musoq.Converter.Exceptions;
 /// </summary>
 public sealed class MusoqQueryException : Exception
 {
+    public MusoqQueryException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+        Envelopes = [];
+    }
+
+    public MusoqQueryException(string message)
+        : base(message)
+    {
+        Envelopes = [];
+    }
+
+    public MusoqQueryException()
+    {
+        Envelopes = [];
+    }
+
     /// <summary>
     ///     Creates a new MusoqQueryException with a single envelope.
     /// </summary>
@@ -37,7 +52,7 @@ public sealed class MusoqQueryException : Exception
     public MusoqQueryException(IReadOnlyList<MusoqErrorEnvelope> envelopes)
         : base(BuildMessage(envelopes))
     {
-        Envelopes = envelopes ?? throw new ArgumentNullException(nameof(envelopes));
+        Envelopes = envelopes;
     }
 
     /// <summary>
@@ -46,7 +61,7 @@ public sealed class MusoqQueryException : Exception
     public MusoqQueryException(IReadOnlyList<MusoqErrorEnvelope> envelopes, Exception innerException)
         : base(BuildMessage(envelopes), innerException)
     {
-        Envelopes = envelopes ?? throw new ArgumentNullException(nameof(envelopes));
+        Envelopes = envelopes;
     }
 
     /// <summary>
@@ -95,8 +110,7 @@ public sealed class MusoqQueryException : Exception
 
     private static string BuildMessage(IReadOnlyList<MusoqErrorEnvelope> envelopes)
     {
-        if (envelopes == null)
-            throw new ArgumentNullException(nameof(envelopes));
+        ArgumentNullException.ThrowIfNull(envelopes);
 
         if (envelopes.Count == 0)
             return "Query compilation failed.";

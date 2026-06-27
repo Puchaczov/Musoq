@@ -1,4 +1,4 @@
-﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Musoq.Schema.DataSources;
@@ -11,6 +11,17 @@ public class SchemaColumn : ISchemaColumn
         ColumnName = columnName;
         ColumnIndex = columnIndex;
         ColumnType = columnType;
+        ReadModifiers = ColumnReadModifiers.Empty;
+    }
+
+    public SchemaColumn(
+        string columnName,
+        int columnIndex,
+        Type columnType,
+        IReadOnlyDictionary<string, string>? readModifiers)
+        : this(columnName, columnIndex, columnType)
+    {
+        ReadModifiers = ColumnReadModifiers.Create(readModifiers);
     }
 
     public SchemaColumn(string columnName, int columnIndex, Type columnType, string? intendedTypeName)
@@ -19,9 +30,22 @@ public class SchemaColumn : ISchemaColumn
         IntendedTypeName = intendedTypeName;
     }
 
+    public SchemaColumn(
+        string columnName,
+        int columnIndex,
+        Type columnType,
+        string? intendedTypeName,
+        IReadOnlyDictionary<string, string>? readModifiers)
+        : this(columnName, columnIndex, columnType, readModifiers)
+    {
+        IntendedTypeName = intendedTypeName;
+    }
+
     public string ColumnName { get; }
     public int ColumnIndex { get; }
     public Type ColumnType { get; }
+
+    public IReadOnlyDictionary<string, string> ReadModifiers { get; }
 
     /// <summary>
     ///     Gets the intended fully-qualified type name for this column.

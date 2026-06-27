@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace Musoq.Parser.Diagnostics;
@@ -32,10 +31,10 @@ public sealed class Diagnostic
         Location = location;
         EndLocation = endLocation ?? location;
         ContextSnippet = contextSnippet;
-        _relatedInfo = relatedInfo != null ? new List<string>(relatedInfo) : new List<string>();
+        _relatedInfo = relatedInfo != null ? [..relatedInfo] : [];
         _suggestedFixes = suggestedFixes != null
-            ? new List<DiagnosticAction>(suggestedFixes)
-            : new List<DiagnosticAction>();
+            ? [..suggestedFixes]
+            : [];
         Explanation = explanation;
         DocsReference = docsReference;
     }
@@ -158,7 +157,7 @@ public sealed class Diagnostic
     /// </summary>
     public override string ToString()
     {
-        var severityStr = Severity.ToString().ToLowerInvariant();
+        var severityStr = FormatSeverity(Severity);
         return $"{severityStr} {CodeString}: {Message} at {Location}";
     }
 
@@ -169,7 +168,7 @@ public sealed class Diagnostic
     {
         var lines = new List<string>
         {
-            $"{Severity.ToString().ToLowerInvariant()} {CodeString}: {Message}",
+            $"{FormatSeverity(Severity)} {CodeString}: {Message}",
             $"  --> {Location}"
         };
 
@@ -184,6 +183,18 @@ public sealed class Diagnostic
         foreach (var fix in _suggestedFixes) lines.Add($"  = help: {fix.Title}");
 
         return string.Join(Environment.NewLine, lines);
+    }
+
+    private static string FormatSeverity(DiagnosticSeverity severity)
+    {
+        return severity switch
+        {
+            DiagnosticSeverity.Error => "error",
+            DiagnosticSeverity.Warning => "warning",
+            DiagnosticSeverity.Info => "info",
+            DiagnosticSeverity.Hint => "hint",
+            _ => severity.ToString()
+        };
     }
 
     // Factory methods for common diagnostics

@@ -1,9 +1,7 @@
-#nullable enable annotations
-
-using System;
-using System.Linq;
+﻿using System.Linq;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Visitors;
+using Musoq.Evaluator.Visitors.Helpers.InterpretationSchemaDependencyGraph;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -17,30 +15,26 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
 {
     public override void Build(BuildItems items)
     {
-        if (items == null)
-            throw new ArgumentNullException(nameof(items));
+        ArgumentNullException.ThrowIfNull(items);
 
         var queryTree = items.RawQueryTree;
-        if (queryTree == null)
-        {
-            Successor?.Build(items);
-            return;
-        }
-
 
         var registry = ExtractSchemaDefinitions(queryTree);
+        var eliminationResult = DeadInterpretationSchemaEliminator.Eliminate(queryTree, registry);
+        var usedRegistry = eliminationResult.ResultRegistry;
 
 
-        if (registry.Schemas.Any())
+        if (usedRegistry.Schemas.Any())
         {
-            var sourceCode = GenerateInterpreterSourceCode(registry);
+            var sourceCode = GenerateInterpreterSourceCode(usedRegistry);
             items.InterpreterSourceCode = sourceCode;
-
-            items.RawQueryTree = RemoveSchemaDefinitions(queryTree);
         }
 
+        if (registry.Schemas.Any())
+            items.RawQueryTree = RemoveSchemaDefinitions(queryTree);
 
-        items.SchemaRegistry = registry;
+
+        items.SchemaRegistry = usedRegistry;
 
         Successor?.Build(items);
     }
@@ -88,7 +82,7 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
         var visitor = new SchemaDefinitionVisitor(registry);
         var traverseVisitor = new SchemaDefinitionTraverseVisitor(visitor);
 
-        queryTree.Accept(traverseVisitor);
+        traverseVisitor.Walk(queryTree);
 
         return registry;
     }
@@ -100,7 +94,7 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
         var codeGenerator = new InterpreterCodeGenerator(registry);
         var sourceCode = codeGenerator.GenerateAll();
 
-        if (string.IsNullOrWhiteSpace(sourceCode) || !sourceCode.Contains("class"))
+        if (string.IsNullOrWhiteSpace(sourceCode) || !sourceCode.Contains("class", StringComparison.Ordinal))
             return null;
 
 

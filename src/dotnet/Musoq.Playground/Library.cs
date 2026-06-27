@@ -1,7 +1,5 @@
-﻿using Musoq.Plugins;
+using Musoq.Plugins;
 
 namespace Musoq.Playground;
 
-public class Library : LibraryBase
-{
-}
+internal sealed class Library : LibraryBase;

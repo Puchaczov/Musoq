@@ -1,4 +1,4 @@
-﻿namespace Musoq.Parser.Nodes;
+namespace Musoq.Parser.Nodes;
 
 public abstract class UnaryNode : Node
 {
@@ -29,6 +29,7 @@ public abstract class UnaryNode : Node
     protected static string CalculateId<T>(T node)
         where T : UnaryNode
     {
-        return $"{typeof(T).Name}{node.Expression.Id}{node.ReturnType.Name}";
+        ArgumentNullException.ThrowIfNull(node);
+        return $"{typeof(T).Name}{node.Expression.Id}{node.ReturnType?.Name}";
     }
 }

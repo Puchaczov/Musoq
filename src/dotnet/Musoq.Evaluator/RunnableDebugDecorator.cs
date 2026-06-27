@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Loader;
@@ -7,14 +6,15 @@ using System.Threading;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Tables;
 using Musoq.Schema;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator;
 
 public class RunnableDebugDecorator(
-    IRunnable runnable,
+    ITableRunnable runnable,
     AssemblyLoadContext assemblyLoadContext,
     params string[] filesToDelete)
-    : IRunnable
+    : ITableRunnable
 {
     public ISchemaProvider Provider
     {
@@ -22,16 +22,22 @@ public class RunnableDebugDecorator(
         set => runnable.Provider = value;
     }
 
-    public IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> PositionalEnvironmentVariables
+    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId
     {
-        get => runnable.PositionalEnvironmentVariables;
-        set => runnable.PositionalEnvironmentVariables = value;
+        get => runnable.SourceRuntimeSettingsBySourceContextId;
+        set => runnable.SourceRuntimeSettingsBySourceContextId = value;
     }
 
-    public IReadOnlyDictionary<string, QuerySourceInfo> QueriesInformation
+    public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId
     {
-        get => runnable.QueriesInformation;
-        set => runnable.QueriesInformation = value;
+        get => runnable.SourceRuntimeSettingDescriptionsBySourceContextId;
+        set => runnable.SourceRuntimeSettingDescriptionsBySourceContextId = value;
+    }
+
+    public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans
+    {
+        get => runnable.SourceExecutionPlans;
+        set => runnable.SourceExecutionPlans = value;
     }
 
     public ILogger Logger

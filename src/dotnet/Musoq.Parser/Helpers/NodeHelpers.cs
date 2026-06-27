@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Musoq.Parser.Exceptions;
 
 namespace Musoq.Parser.Helpers;
@@ -146,7 +145,7 @@ public static class NodeHelpers
         BinaryTypes = binaryTypes;
     }
 
-    private static IReadOnlyDictionary<(Type, Type), Type> BinaryTypes { get; }
+    private static Dictionary<(Type, Type), Type> BinaryTypes { get; }
 
     public static Type GetReturnTypeMap(Type left, Type right)
     {
@@ -163,8 +162,6 @@ public static class NodeHelpers
     {
         var nullableType = Nullable.GetUnderlyingType(type);
 
-        var isNullableType = nullableType != null;
-
-        return isNullableType ? nullableType : type;
+        return nullableType ?? type;
     }
 }

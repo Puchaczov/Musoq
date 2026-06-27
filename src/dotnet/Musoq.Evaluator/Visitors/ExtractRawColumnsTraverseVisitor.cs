@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -10,19 +10,62 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
 {
     public override void Visit(SelectNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         SetQueryPart(QueryPart.Select);
         foreach (var field in node.Fields)
             field.Accept(this);
         node.Accept(Visitor);
     }
 
+    public override void Visit(CoalesceNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+
+        if (IsNullLiteral(node.Left))
+        {
+            node.Right.Accept(this);
+            node.Accept(Visitor);
+            return;
+        }
+
+        if (IsStaticallyNonNullableLiteralValue(node.Left))
+        {
+            node.Left.Accept(this);
+            node.Accept(Visitor);
+            return;
+        }
+
+        VisitBinaryNode(node);
+    }
+
     public override void Visit(GroupSelectNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         node.Accept(Visitor);
+    }
+
+    private static bool IsStaticallyNonNullableLiteralValue(Node node)
+    {
+        if (node is not ConstantValueNode)
+            return false;
+
+        var type = node.ReturnType;
+        return type is { IsValueType: true } && Nullable.GetUnderlyingType(type) == null && !IsNullType(type);
+    }
+
+    private static bool IsNullLiteral(Node node)
+    {
+        return node is NullNode || IsNullType(node.ReturnType);
+    }
+
+    private static bool IsNullType(Type? type)
+    {
+        return type is NullNode.NullType;
     }
 
     public override void Visit(DotNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var self = node;
         var theMostOuter = self;
         while (self is not null)
@@ -34,7 +77,7 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
         var ident = theMostOuter.Root as IdentifierNode;
         if (ident != null && node == theMostOuter)
         {
-            IdentifierNode column;
+            IdentifierNode? column;
             if (theMostOuter.Expression is DotNode dotNode)
                 column = dotNode.Root as IdentifierNode;
             else
@@ -61,6 +104,7 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
 
     public override void Visit(WhereNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         SetQueryPart(QueryPart.Where);
         node.Expression.Accept(this);
         node.Accept(Visitor);
@@ -68,6 +112,7 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
 
     public override void Visit(GroupByNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         SetQueryPart(QueryPart.GroupBy);
 
         foreach (var field in node.Fields)
@@ -79,21 +124,33 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
 
     public override void Visit(HavingNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         SetQueryPart(QueryPart.Having);
+        node.Expression.Accept(this);
+        node.Accept(Visitor);
+    }
+
+    public override void Visit(QualifyNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        SetQueryPart(QueryPart.Qualify);
         node.Expression.Accept(this);
         node.Accept(Visitor);
     }
 
     public override void Visit(JoinInMemoryWithSourceTableFromNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         SetQueryPart(QueryPart.From);
         node.SourceTable.Accept(this);
         node.Expression.Accept(this);
+        node.TieBreak?.Accept(this);
         node.Accept(Visitor);
     }
 
     public override void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         SetQueryPart(QueryPart.From);
         node.SourceTable.Accept(this);
         node.Accept(Visitor);
@@ -101,6 +158,7 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
 
     public override void Visit(SchemaFromNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         SetQueryPart(QueryPart.From);
         node.Parameters.Accept(this);
         node.Accept(Visitor);
@@ -108,8 +166,10 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
 
     public override void Visit(JoinSourcesTableFromNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         SetQueryPart(QueryPart.From);
         node.Expression.Accept(this);
+        node.TieBreak?.Accept(this);
         node.First.Accept(this);
         node.Second.Accept(this);
 
@@ -118,6 +178,7 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
 
     public override void Visit(ApplySourcesTableFromNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         SetQueryPart(QueryPart.From);
         node.First.Accept(this);
         node.Second.Accept(this);
@@ -127,7 +188,30 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
 
     public override void Visit(InMemoryTableFromNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         SetQueryPart(QueryPart.From);
+        node.Accept(Visitor);
+    }
+
+    public override void Visit(ValuesFromNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        SetQueryPart(QueryPart.From);
+        node.Accept(Visitor);
+    }
+
+    public override void Visit(UnpivotFromNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        SetQueryPart(QueryPart.From);
+        node.Source.Accept(this);
+
+        foreach (var entry in node.Entries)
+            entry.Expression.Accept(this);
+
+        foreach (var keepField in node.KeepFields)
+            keepField.Accept(this);
+
         node.Accept(Visitor);
     }
 
@@ -148,6 +232,7 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
         join.With.Accept(this);
 
         join.Expression.Accept(this);
+        join.TieBreak?.Accept(this);
         join.Accept(Visitor);
 
         while (joins.Count > 0)
@@ -155,6 +240,7 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
             join = joins.Pop();
             join.With.Accept(this);
             join.Expression.Accept(this);
+            join.TieBreak?.Accept(this);
             join.Accept(Visitor);
         }
     }
@@ -187,6 +273,7 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
 
     public override void Visit(ExpressionFromNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         SetQueryPart(QueryPart.From);
         node.Expression.Accept(this);
         node.Accept(Visitor);
@@ -194,6 +281,7 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
 
     public override void Visit(InterpretFromNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         SetQueryPart(QueryPart.From);
         node.InterpretCall.Accept(this);
         node.Accept(Visitor);
@@ -201,11 +289,13 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
 
     public override void Visit(AliasedFromNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         node.Accept(Visitor);
     }
 
     public override void Visit(CreateTransformationTableNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         SetQueryPart(QueryPart.None);
         foreach (var item in node.Fields)
             item.Accept(this);
@@ -215,6 +305,7 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
 
     public override void Visit(QueryNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         Visitor.QueryBegins();
         node.From.Accept(this);
         node.Where?.Accept(this);
@@ -223,6 +314,7 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
         node.Skip?.Accept(this);
         node.Take?.Accept(this);
         node.Window?.Accept(this);
+        node.Qualify?.Accept(this);
         node.OrderBy?.Accept(this);
         node.Accept(Visitor);
         SetQueryPart(QueryPart.None);
@@ -231,6 +323,7 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
 
     public override void Visit(CteExpressionNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         foreach (var exp in node.InnerExpression) exp.Accept(this);
         node.OuterExpression.Accept(this);
         node.Accept(Visitor);

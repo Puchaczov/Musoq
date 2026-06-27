@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Plugins.Attributes;
 
 /// <summary>
@@ -17,4 +15,10 @@ public sealed class WindowFunctionAttribute : BindableMethodAttribute
     ///     (e.g., when the desired SQL name collides with an existing aggregate method).
     /// </summary>
     public string? Name { get; set; }
+
+    /// <summary>
+    ///     Optional provider type that advertises engine-level aggregate capabilities
+    ///     for this window function. Existing plugin functions do not need to set it.
+    /// </summary>
+    public Type? CapabilityProviderType { get; set; }
 }

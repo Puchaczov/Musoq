@@ -1,18 +1,10 @@
-﻿using System;
+﻿namespace Musoq.Parser.Nodes;
 
-namespace Musoq.Parser.Nodes;
-
-public class RenameTableNode : Node
+public class RenameTableNode(string tableSourceName, string tableDestinationName) : Node
 {
-    public RenameTableNode(string tableSourceName, string tableDestinationName)
-    {
-        TableSourceName = tableSourceName;
-        TableDestinationName = tableDestinationName;
-    }
+    public string TableSourceName { get; } = tableSourceName;
 
-    public string TableSourceName { get; }
-
-    public string TableDestinationName { get; }
+    public string TableDestinationName { get; } = tableDestinationName;
 
     public override Type ReturnType => typeof(void);
 
@@ -20,6 +12,7 @@ public class RenameTableNode : Node
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

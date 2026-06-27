@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 
 namespace Musoq.Parser.Diagnostics;
@@ -25,6 +24,7 @@ public static class MusoqErrorEnvelopeFormatter
     /// </summary>
     public static string FormatText(MusoqErrorEnvelope envelope)
     {
+        ArgumentNullException.ThrowIfNull(envelope);
         var sb = new StringBuilder();
 
         var severity = envelope.Severity switch
@@ -38,13 +38,13 @@ public static class MusoqErrorEnvelopeFormatter
 
         var phase = DiagnosticPhaseMapping.ToDisplayString(envelope.Phase);
 
-        sb.AppendLine($"{envelope.CodeString} [{severity}] [{phase}]");
-        sb.AppendLine($"Message: {envelope.Message}");
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"{envelope.CodeString} [{severity}] [{phase}]");
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Message: {envelope.Message}");
 
-        if (envelope.Line.HasValue && envelope.Column.HasValue)
-            sb.AppendLine($"At: line {envelope.Line.Value}, column {envelope.Column.Value}");
+        if (envelope is { Line: not null, Column: not null })
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"At: line {envelope.Line.Value}, column {envelope.Column.Value}");
         else if (envelope.Line.HasValue)
-            sb.AppendLine($"At: line {envelope.Line.Value}");
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"At: line {envelope.Line.Value}");
         else
             sb.AppendLine("At: runtime");
 
@@ -52,24 +52,24 @@ public static class MusoqErrorEnvelopeFormatter
         {
             sb.AppendLine("Snippet:");
             foreach (var line in envelope.Snippet.Split('\n'))
-                sb.AppendLine($"  {line.TrimEnd('\r')}");
+                sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"  {line.TrimEnd('\r')}");
         }
 
         if (!string.IsNullOrEmpty(envelope.Explanation))
-            sb.AppendLine($"Why: {envelope.Explanation}");
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Why: {envelope.Explanation}");
 
         if (envelope.SuggestedFixes.Count > 0)
         {
             sb.AppendLine("Try:");
             for (var i = 0; i < envelope.SuggestedFixes.Count; i++)
-                sb.AppendLine($"  {i + 1}) {envelope.SuggestedFixes[i]}");
+                sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"  {i + 1}) {envelope.SuggestedFixes[i]}");
         }
 
         if (!string.IsNullOrEmpty(envelope.DocsReference))
-            sb.AppendLine($"Docs: {envelope.DocsReference}");
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Docs: {envelope.DocsReference}");
 
         if (!string.IsNullOrEmpty(envelope.Details))
-            sb.AppendLine($"Details: {envelope.Details}");
+            sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Details: {envelope.Details}");
 
         return sb.ToString().TrimEnd('\r', '\n');
     }
@@ -79,10 +79,11 @@ public static class MusoqErrorEnvelopeFormatter
     /// </summary>
     public static string FormatJson(MusoqErrorEnvelope envelope)
     {
+        ArgumentNullException.ThrowIfNull(envelope);
         var sb = new StringBuilder();
         sb.Append('{');
 
-        sb.Append($"\"code\":\"{envelope.CodeString}\"");
+        sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"code\":\"{envelope.CodeString}\"");
 
         var severity = envelope.Severity switch
         {
@@ -92,12 +93,12 @@ public static class MusoqErrorEnvelopeFormatter
             DiagnosticSeverity.Hint => "hint",
             _ => "error"
         };
-        sb.Append($",\"severity\":\"{EscapeJson(severity)}\"");
+        sb.Append(System.Globalization.CultureInfo.InvariantCulture, $",\"severity\":\"{EscapeJson(severity)}\"");
 
         var phase = DiagnosticPhaseMapping.ToDisplayString(envelope.Phase);
-        sb.Append($",\"phase\":\"{EscapeJson(phase)}\"");
+        sb.Append(System.Globalization.CultureInfo.InvariantCulture, $",\"phase\":\"{EscapeJson(phase)}\"");
 
-        sb.Append($",\"message\":\"{EscapeJson(envelope.Message)}\"");
+        sb.Append(System.Globalization.CultureInfo.InvariantCulture, $",\"message\":\"{EscapeJson(envelope.Message)}\"");
 
         if (envelope.Line.HasValue || envelope.Column.HasValue || envelope.Length.HasValue)
         {
@@ -105,28 +106,28 @@ public static class MusoqErrorEnvelopeFormatter
             var first = true;
             if (envelope.Line.HasValue)
             {
-                sb.Append($"\"line\":{envelope.Line.Value}");
+                sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"line\":{envelope.Line.Value}");
                 first = false;
             }
 
             if (envelope.Column.HasValue)
             {
                 if (!first) sb.Append(',');
-                sb.Append($"\"column\":{envelope.Column.Value}");
+                sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"column\":{envelope.Column.Value}");
                 first = false;
             }
 
             if (envelope.Length.HasValue)
             {
                 if (!first) sb.Append(',');
-                sb.Append($"\"length\":{envelope.Length.Value}");
+                sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"length\":{envelope.Length.Value}");
             }
 
             sb.Append('}');
         }
 
         if (!string.IsNullOrEmpty(envelope.Explanation))
-            sb.Append($",\"why\":\"{EscapeJson(envelope.Explanation)}\"");
+            sb.Append(System.Globalization.CultureInfo.InvariantCulture, $",\"why\":\"{EscapeJson(envelope.Explanation)}\"");
 
         if (envelope.SuggestedFixes.Count > 0)
         {
@@ -134,17 +135,17 @@ public static class MusoqErrorEnvelopeFormatter
             for (var i = 0; i < envelope.SuggestedFixes.Count; i++)
             {
                 if (i > 0) sb.Append(',');
-                sb.Append($"\"{EscapeJson(envelope.SuggestedFixes[i])}\"");
+                sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"{EscapeJson(envelope.SuggestedFixes[i])}\"");
             }
 
             sb.Append(']');
         }
 
         if (!string.IsNullOrEmpty(envelope.DocsReference))
-            sb.Append($",\"docs\":\"{EscapeJson(envelope.DocsReference)}\"");
+            sb.Append(System.Globalization.CultureInfo.InvariantCulture, $",\"docs\":\"{EscapeJson(envelope.DocsReference)}\"");
 
         if (!string.IsNullOrEmpty(envelope.Details))
-            sb.Append($",\"details\":\"{EscapeJson(envelope.Details)}\"");
+            sb.Append(System.Globalization.CultureInfo.InvariantCulture, $",\"details\":\"{EscapeJson(envelope.Details)}\"");
 
         sb.Append('}');
         return sb.ToString();
@@ -153,10 +154,10 @@ public static class MusoqErrorEnvelopeFormatter
     private static string EscapeJson(string text)
     {
         return text
-            .Replace("\\", "\\\\")
-            .Replace("\"", "\\\"")
-            .Replace("\n", "\\n")
-            .Replace("\r", "\\r")
-            .Replace("\t", "\\t");
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("\"", "\\\"", StringComparison.Ordinal)
+            .Replace("\n", "\\n", StringComparison.Ordinal)
+            .Replace("\r", "\\r", StringComparison.Ordinal)
+            .Replace("\t", "\\t", StringComparison.Ordinal);
     }
 }

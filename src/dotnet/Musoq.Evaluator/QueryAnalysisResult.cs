@@ -1,6 +1,4 @@
-﻿#nullable enable annotations
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;

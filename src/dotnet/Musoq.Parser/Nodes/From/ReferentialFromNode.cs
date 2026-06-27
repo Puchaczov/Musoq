@@ -1,5 +1,3 @@
-﻿using System;
-
 namespace Musoq.Parser.Nodes.From;
 
 public class ReferentialFromNode : FromNode
@@ -22,6 +20,7 @@ public class ReferentialFromNode : FromNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

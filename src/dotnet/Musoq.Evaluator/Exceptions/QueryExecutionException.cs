@@ -1,4 +1,4 @@
-using System;
+using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Exceptions;
 
@@ -8,6 +8,19 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class QueryExecutionException : InvalidOperationException
 {
+    public QueryExecutionException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public QueryExecutionException(string message)
+        : base(message)
+    {
+    }
+
+    public QueryExecutionException()
+    {
+    }
     public QueryExecutionException(string queryContext, string executionPhase, string message)
         : base(message)
     {
@@ -22,8 +35,35 @@ public class QueryExecutionException : InvalidOperationException
         ExecutionPhase = executionPhase;
     }
 
-    public string QueryContext { get; }
-    public string ExecutionPhase { get; }
+    private QueryExecutionException(
+        string queryContext,
+        string executionPhase,
+        MusoqErrorEnvelope envelope,
+        Exception innerException)
+        : base(MusoqErrorEnvelopeFormatter.FormatText(envelope), innerException)
+    {
+        QueryContext = queryContext;
+        ExecutionPhase = executionPhase;
+        Envelope = envelope;
+    }
+
+    public string QueryContext { get; } = string.Empty;
+    public string ExecutionPhase { get; } = string.Empty;
+    public MusoqErrorEnvelope? Envelope { get; }
+
+    public string FormatText()
+    {
+        return Envelope != null
+            ? MusoqErrorEnvelopeFormatter.FormatText(Envelope)
+            : Message;
+    }
+
+    public string FormatJson()
+    {
+        return Envelope != null
+            ? MusoqErrorEnvelopeFormatter.FormatJson(Envelope)
+            : MusoqErrorEnvelopeFormatter.FormatJson(MusoqErrorEnvelope.FromException(this));
+    }
 
     public static QueryExecutionException ForNullRunnable()
     {
@@ -36,6 +76,7 @@ public class QueryExecutionException : InvalidOperationException
 
     public static QueryExecutionException ForExecutionFailure(string phase, Exception innerException)
     {
+        ArgumentNullException.ThrowIfNull(innerException);
         return new QueryExecutionException(
             "CompiledQuery",
             phase,
@@ -44,8 +85,20 @@ public class QueryExecutionException : InvalidOperationException
         );
     }
 
+    public static QueryExecutionException ForScriptParameterBinding(ScriptParameterBindingException innerException)
+    {
+        ArgumentNullException.ThrowIfNull(innerException);
+        var envelope = MusoqErrorEnvelope.FromDiagnostic(innerException.ToDiagnostic());
+        return new QueryExecutionException(
+            "CompiledQuery",
+            "ScriptParameterBinding",
+            envelope,
+            innerException);
+    }
+
     public static QueryExecutionException ForCancellationFailure(string phase, Exception innerException)
     {
+        ArgumentNullException.ThrowIfNull(innerException);
         return new QueryExecutionException(
             "CompiledQuery",
             phase,

@@ -1,4 +1,4 @@
-﻿namespace Musoq.Benchmarks;
+namespace Musoq.Benchmarks;
 
 /// <summary>
 ///     Entity with text content for benchmarks.
@@ -11,8 +11,8 @@ public class BenchmarkTextEntity
         { nameof(Text), 1 }
     };
 
-    public static readonly IReadOnlyDictionary<int, Func<BenchmarkTextEntity, object>> IndexToObjectAccessMap =
-        new Dictionary<int, Func<BenchmarkTextEntity, object>>
+    public static readonly IReadOnlyDictionary<int, Func<BenchmarkTextEntity, object?>> IndexToObjectAccessMap =
+        new Dictionary<int, Func<BenchmarkTextEntity, object?>>
         {
             { 0, e => e.Name },
             { 1, e => e.Text }

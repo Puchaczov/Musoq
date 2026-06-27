@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Musoq.Parser.Nodes;
+﻿namespace Musoq.Parser.Nodes;
 
 /// <summary>
 ///     Represents a call to the PartialInterpret function for debugging malformed data.
@@ -25,7 +23,7 @@ public class PartialInterpretCallNode : Node
     /// <param name="dataSource">The expression providing the binary data.</param>
     /// <param name="schemaName">The name of the interpretation schema to use.</param>
     /// <param name="returnType">The return type of the partial interpretation.</param>
-    public PartialInterpretCallNode(Node dataSource, string schemaName, Type returnType)
+    public PartialInterpretCallNode(Node dataSource, string schemaName, Type? returnType)
     {
         DataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
         SchemaName = schemaName ?? throw new ArgumentNullException(nameof(schemaName));
@@ -45,18 +43,19 @@ public class PartialInterpretCallNode : Node
     /// <summary>
     ///     Gets the return type of the partial interpretation.
     /// </summary>
-    public override Type ReturnType { get; }
+    public override Type? ReturnType { get; }
 
     /// <summary>
     ///     Gets the unique identifier for this node.
     /// </summary>
-    public override string Id => $"{nameof(PartialInterpretCallNode)}({DataSource.Id},{SchemaName})";
+    public override string Id => $"{nameof(PartialInterpretCallNode)}<{SchemaName}>({DataSource.Id})";
 
     /// <summary>
     ///     Accepts a visitor for this node.
     /// </summary>
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -65,6 +64,6 @@ public class PartialInterpretCallNode : Node
     /// </summary>
     public override string ToString()
     {
-        return $"PartialInterpret({DataSource.ToString()}, {SchemaName})";
+        return $"PartialInterpret<{SchemaName}>({DataSource.ToString()})";
     }
 }

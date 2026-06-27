@@ -1,22 +1,16 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
 namespace Musoq.Evaluator.Tables;
 
 [DebuggerDisplay("{ToString()}")]
-public class Key : IEquatable<Key>
+public class Key(object?[] values, int[] columns) : IEquatable<Key>
 {
-    public readonly int[] Columns;
-    public readonly object[] Values;
+    public readonly int[] Columns = columns;
+    public readonly object?[] Values = values;
 
-    public Key(object[] values, int[] columns)
-    {
-        Values = values;
-        Columns = columns;
-    }
-
-    public bool Equals(Key other)
+    public bool Equals(Key? other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
@@ -65,10 +59,11 @@ public class Key : IEquatable<Key>
 
     public bool DoesRowMatchKey(Row row)
     {
+        ArgumentNullException.ThrowIfNull(row);
         return row.CheckWithKey(this);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (ReferenceEquals(null, obj)) return false;
         if (ReferenceEquals(this, obj)) return true;
@@ -98,7 +93,7 @@ public class Key : IEquatable<Key>
 
         var areEqual = true;
 
-        for (var i = 0; i < first.Length; i++) areEqual &= first[i].Equals(second[i]);
+        for (var i = 0; i < first.Length; i++) areEqual &= EqualityComparer<T>.Default.Equals(first[i], second[i]);
 
         return areEqual;
     }

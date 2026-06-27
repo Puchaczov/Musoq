@@ -1,0 +1,189 @@
+using System.Text;
+using Musoq.Plugins.Attributes;
+
+namespace Musoq.Plugins;
+
+public partial class LibraryBase
+{
+    private static byte[]? GetBytesNullable<T>(T? value, Func<T, byte[]> converter) where T : struct
+    {
+        if (value == null)
+            return null;
+
+        return converter(value.Value);
+    }
+
+    /// <summary>
+    ///     Gets the bytes from the given string.
+    /// </summary>
+    /// <param name="content">The string</param>
+    /// <returns>Bytes of a given content</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
+    public byte[]? GetBytes(string? content)
+    {
+        if (content == null)
+            return null;
+
+        return Encoding.UTF8.GetBytes(content);
+    }
+
+    /// <summary>
+    ///     Gets the bytes from the given string within given offset and length.
+    /// </summary>
+    /// <param name="content">The string</param>
+    /// <param name="length">The length of substring</param>
+    /// <param name="offset">The offset of substring</param>
+    /// <returns>Bytes of a given content</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
+    public byte[]? GetBytes(string? content, int length, int offset)
+    {
+        if (content == null)
+            return null;
+
+        return Encoding.UTF8.GetBytes(content.Substring(offset, length));
+    }
+
+    /// <summary>
+    ///     Gets the bytes from the given character.
+    /// </summary>
+    /// <param name="character">The character to convert to bytes</param>
+    /// <returns>Bytes of a given content</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
+    public byte[]? GetBytes(char? character)
+    {
+        return GetBytesNullable(character, BitConverter.GetBytes);
+    }
+
+    /// <summary>
+    ///     Gets the bytes from the given boolean.
+    /// </summary>
+    /// <param name="bit">The boolean to convert to bytes</param>
+    /// <returns>Bytes of a given content</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
+    public byte[]? GetBytes(bool? bit)
+    {
+        return GetBytesNullable(bit, BitConverter.GetBytes);
+    }
+
+    /// <summary>
+    ///     Gets the bytes from the given long.
+    /// </summary>
+    /// <param name="value">The long to convert to bytes</param>
+    /// <returns>Bytes of a given content</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
+    public byte[]? GetBytes(long? value)
+    {
+        return GetBytesNullable(value, BitConverter.GetBytes);
+    }
+
+    /// <summary>
+    ///     Gets the bytes from the given int.
+    /// </summary>
+    /// <param name="value">The int to convert to bytes</param>
+    /// <returns>Bytes of a given content</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
+    public byte[]? GetBytes(int? value)
+    {
+        return GetBytesNullable(value, BitConverter.GetBytes);
+    }
+
+    /// <summary>
+    ///     Gets the bytes from the given short.
+    /// </summary>
+    /// <param name="value">The short to convert to bytes</param>
+    /// <returns>Bytes of a given content</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
+    public byte[]? GetBytes(short? value)
+    {
+        return GetBytesNullable(value, BitConverter.GetBytes);
+    }
+
+    /// <summary>
+    ///     Gets the bytes from the given ulong.
+    /// </summary>
+    /// <param name="value">The ulong to convert to bytes</param>
+    /// <returns>Bytes of a given content</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
+    public byte[]? GetBytes(ulong? value)
+    {
+        return GetBytesNullable(value, BitConverter.GetBytes);
+    }
+
+    /// <summary>
+    ///     Gets the bytes from the given ushort.
+    /// </summary>
+    /// <param name="value">The ushort to convert to bytes</param>
+    /// <returns>Bytes of a given content</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
+    public byte[]? GetBytes(ushort? value)
+    {
+        return GetBytesNullable(value, BitConverter.GetBytes);
+    }
+
+    /// <summary>
+    ///     Gets the bytes from the given uint.
+    /// </summary>
+    /// <param name="value">The uint to convert to bytes</param>
+    /// <returns>Bytes of a given content</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
+    public byte[]? GetBytes(uint? value)
+    {
+        return GetBytesNullable(value, BitConverter.GetBytes);
+    }
+
+    /// <summary>
+    ///     Gets the bytes from the given decimal.
+    /// </summary>
+    /// <param name="value">The decimal to convert to bytes</param>
+    /// <returns>Bytes of a given content</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
+    public byte[]? GetBytes(decimal? value)
+    {
+        if (value == null)
+            return null;
+
+        var bits = decimal.GetBits(value.Value);
+        var result = new byte[16];
+        for (var i = 0; i < 4; i++)
+            BitConverter.TryWriteBytes(result.AsSpan(i * 4, 4), bits[i]);
+        return result;
+    }
+
+    /// <summary>
+    ///     Gets the bytes from the given double.
+    /// </summary>
+    /// <param name="value">The double to convert to bytes</param>
+    /// <returns>Bytes of a given content</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
+    public byte[]? GetBytes(double? value)
+    {
+        if (value == null)
+            return null;
+
+        return GetBytes(BitConverter.DoubleToInt64Bits(value.Value));
+    }
+
+    /// <summary>
+    ///     Gets the bytes from the given float.
+    /// </summary>
+    /// <param name="value">The float to convert to bytes</param>
+    /// <returns>Bytes of a given content</returns>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
+    public byte[]? GetBytes(float? value)
+    {
+        return GetBytesNullable(value, BitConverter.GetBytes);
+    }
+}

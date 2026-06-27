@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class NullToken : Token
+public class NullToken(TextSpan span) : Token(TokenText, TokenType.Null, span)
 {
     public const string TokenText = "null";
-
-    public NullToken(TextSpan span)
-        : base(TokenText, TokenType.Null, span)
-    {
-    }
 }

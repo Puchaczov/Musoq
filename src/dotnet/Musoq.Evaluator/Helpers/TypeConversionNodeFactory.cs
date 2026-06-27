@@ -1,4 +1,4 @@
-using System;
+using System.Diagnostics.CodeAnalysis;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
@@ -67,6 +67,7 @@ public class TypeConversionNodeFactory
     /// <returns>AccessMethodNode representing the runtime operator method call.</returns>
     public Node CreateRuntimeOperatorCall(string methodName, Node left, Node right)
     {
+        ArgumentNullException.ThrowIfNull(methodName);
         var functionToken = new FunctionToken(methodName, new TextSpan(0, methodName.Length));
         var args = new ArgsListNode([left, right]);
         var method = _methodResolver.ResolveMethod(methodName, [typeof(object), typeof(object)]);
@@ -91,6 +92,7 @@ public class TypeConversionNodeFactory
     public AccessMethodNode CreateNumericConversionNode(Node sourceNode, Type targetType, bool isObjectType,
         BinaryOperationContext operationContext)
     {
+        ArgumentNullException.ThrowIfNull(sourceNode);
         string methodName;
 
         var useNumericOnlyMode = isObjectType && operationContext == BinaryOperationContext.ArithmeticOperation;
@@ -111,7 +113,7 @@ public class TypeConversionNodeFactory
                 ? nameof(LibraryBase.TryConvertToInt32Comparison)
                 : nameof(LibraryBase.TryConvertToInt32Strict);
 
-        Type[] parameterTypes = [sourceNode.ReturnType];
+        Type[] parameterTypes = [sourceNode.ReturnType ?? typeof(object)];
 
         var functionToken = new FunctionToken(methodName, new TextSpan(0, methodName.Length));
         var args = new ArgsListNode([sourceNode]);
@@ -132,8 +134,9 @@ public class TypeConversionNodeFactory
     /// <typeparam name="T">Type of binary operator node.</typeparam>
     /// <param name="nodeFactory">Factory function that creates the operator node.</param>
     /// <returns>Name of the runtime operator method (e.g., "InternalApplyMultiplyOperator"), or null if not supported.</returns>
-    public string GetRuntimeOperatorMethodName<T>(Func<Node, Node, T> nodeFactory) where T : Node
+    public string? GetRuntimeOperatorMethodName<T>(Func<Node, Node, T> nodeFactory) where T : Node
     {
+        ArgumentNullException.ThrowIfNull(nodeFactory);
         var dummyLeft = new IntegerNode("0", "s");
         var dummyRight = new IntegerNode("0", "s");
         var resultNode = nodeFactory(dummyLeft, dummyRight);
@@ -151,6 +154,9 @@ public class TypeConversionNodeFactory
             LessOrEqualNode => nameof(LibraryBase.InternalLessThanOrEqualOperator),
             EqualityNode => nameof(LibraryBase.InternalEqualOperator),
             DiffNode => nameof(LibraryBase.InternalNotEqualOperator),
+            IsDistinctFromNode node => node.IsNegated
+                ? nameof(LibraryBase.InternalIsNotDistinctFromOperator)
+                : nameof(LibraryBase.InternalIsDistinctFromOperator),
             _ => null
         };
     }
@@ -160,7 +166,7 @@ public class TypeConversionNodeFactory
     /// </summary>
     /// <param name="type">Type to check.</param>
     /// <returns>True if type is DateTime, DateTimeOffset, TimeSpan, or their nullable versions.</returns>
-    public static bool IsDateTimeType(Type type)
+    public static bool IsDateTimeType(Type? type)
     {
         return type == typeof(DateTime) || type == typeof(DateTime?) ||
                type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?) ||
@@ -172,7 +178,7 @@ public class TypeConversionNodeFactory
     /// </summary>
     /// <param name="type">Type to check.</param>
     /// <returns>True if the type is System.Object, false otherwise.</returns>
-    public static bool IsObjectType(Type type)
+    public static bool IsObjectType(Type? type)
     {
         return type == typeof(object);
     }
@@ -182,7 +188,7 @@ public class TypeConversionNodeFactory
     /// </summary>
     /// <param name="type">Type to check.</param>
     /// <returns>True if type is string or object.</returns>
-    public static bool IsStringOrObjectType(Type type)
+    public static bool IsStringOrObjectType(Type? type)
     {
         return type == typeof(string) || type == typeof(object);
     }
@@ -193,7 +199,7 @@ public class TypeConversionNodeFactory
     /// <param name="node">Node to check.</param>
     /// <param name="numericType">Output parameter for the numeric type if successful.</param>
     /// <returns>True if node is a numeric literal, false otherwise.</returns>
-    public static bool IsNumericLiteralNode(Node node, out Type numericType)
+    public static bool IsNumericLiteralNode(Node node, [NotNullWhen(true)] out Type? numericType)
     {
         switch (node)
         {

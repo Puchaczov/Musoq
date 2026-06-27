@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 
 namespace Musoq.Parser.Nodes;
@@ -9,6 +8,8 @@ public class TranslatedSetOperatorNode : Node
     public TranslatedSetOperatorNode(CreateTransformationTableNode[] createTableNode, InternalQueryNode fQuery,
         InternalQueryNode sQuery, string resultTableName, string[] keys)
     {
+        ArgumentNullException.ThrowIfNull(fQuery);
+        ArgumentNullException.ThrowIfNull(sQuery);
         CreateTableNodes = createTableNode;
         FQuery = fQuery;
         SQuery = sQuery;
@@ -18,7 +19,7 @@ public class TranslatedSetOperatorNode : Node
             $"{nameof(TranslatedSetOperatorNode)}{string.Concat(createTableNode.Select(f => f.Id))}{fQuery.Id}{sQuery.Id}{resultTableName}{string.Concat(keys)}";
     }
 
-    public override Type ReturnType => null;
+    public override Type? ReturnType => null;
 
     public CreateTransformationTableNode[] CreateTableNodes { get; }
     public InternalQueryNode FQuery { get; }
@@ -31,6 +32,7 @@ public class TranslatedSetOperatorNode : Node
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

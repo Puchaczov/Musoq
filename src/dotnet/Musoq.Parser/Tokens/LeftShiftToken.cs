@@ -1,11 +1,6 @@
 namespace Musoq.Parser.Tokens;
 
-public class LeftShiftToken : Token
+public class LeftShiftToken(TextSpan span) : Token(TokenText, TokenType.LeftShift, span)
 {
     public const string TokenText = "<<";
-
-    public LeftShiftToken(TextSpan span)
-        : base(TokenText, TokenType.LeftShift, span)
-    {
-    }
 }

@@ -2,10 +2,5 @@
 
 namespace Musoq.Evaluator.Visitors;
 
-public class RewritePartsWithProperNullHandlingTraverseVisitor : CloneTraverseVisitor
-{
-    public RewritePartsWithProperNullHandlingTraverseVisitor(IExpressionVisitor visitor)
-        : base(visitor)
-    {
-    }
-}
+public class RewritePartsWithProperNullHandlingTraverseVisitor(IExpressionVisitor visitor)
+    : CloneTraverseVisitor(visitor);

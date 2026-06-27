@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Musoq.Schema.DataSources;
 
-public abstract class RowSource
+public abstract class RowSource<T>
 {
-    public abstract IEnumerable<IObjectResolver> Rows { get; }
+    public abstract IEnumerable<IReadOnlyList<T>> Chunks { get; }
 }

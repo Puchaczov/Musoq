@@ -1,18 +1,10 @@
-﻿using System;
+﻿namespace Musoq.Parser.Nodes;
 
-namespace Musoq.Parser.Nodes;
-
-public class CteInnerExpressionNode : Node
+public class CteInnerExpressionNode(Node value, string name) : Node
 {
-    public CteInnerExpressionNode(Node value, string name)
-    {
-        Value = value;
-        Name = name;
-    }
+    public Node Value { get; } = value;
 
-    public Node Value { get; }
-
-    public string Name { get; }
+    public string Name { get; } = name;
 
     public override Type ReturnType => typeof(void);
 
@@ -20,6 +12,7 @@ public class CteInnerExpressionNode : Node
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

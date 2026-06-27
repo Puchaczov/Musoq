@@ -3,7 +3,7 @@ using Musoq.Converter;
 
 namespace Musoq.Playground;
 
-public class MyLoggerResolver : ILoggerResolver
+internal sealed class MyLoggerResolver : ILoggerResolver
 {
     public ILogger ResolveLogger()
     {

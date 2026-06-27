@@ -1,9 +1,7 @@
-#nullable enable
-
-using System;
 using System.Collections.Generic;
 using Musoq.Parser;
 using Musoq.Parser.Nodes.InterpretationSchema;
+using Musoq.Evaluator.Visitors.Helpers;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -32,6 +30,7 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
     /// </summary>
     public override void Visit(BinarySchemaNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         Registry.Register(node.Name, node);
 
 
@@ -47,6 +46,7 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
     /// </summary>
     public override void Visit(TextSchemaNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         Registry.Register(node.Name, node);
     }
 
@@ -59,6 +59,12 @@ public class SchemaDefinitionVisitor : NoOpExpressionVisitor
 
                 if (!typeParameters.Contains(refNode.SchemaName))
                     Registry.ValidateReference(refNode.SchemaName, currentSchemaName);
+
+                foreach (var typeArgument in refNode.TypeArguments)
+                    foreach (var dependency in InterpretationSchemaTypeDependencyExtractor.Extract(
+                                 typeArgument,
+                                 typeParameters))
+                        Registry.ValidateReference(dependency, currentSchemaName);
                 break;
 
             case ArrayTypeNode arrayNode:

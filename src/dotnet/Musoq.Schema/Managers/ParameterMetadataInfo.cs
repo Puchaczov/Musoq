@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Plugins.Attributes;
@@ -28,8 +27,8 @@ internal readonly struct ParameterMetadataInfo
     private static int CountOptional(ParameterInfo[] parameters)
     {
         var count = 0;
-        for (var i = 0; i < parameters.Length; i++)
-            if (parameters[i].IsOptional)
+        foreach (var parameter in parameters)
+            if (parameter.IsOptional)
                 count++;
         return count;
     }
@@ -37,8 +36,8 @@ internal readonly struct ParameterMetadataInfo
     private static int CountWithoutInjectType(ParameterInfo[] parameters)
     {
         var count = 0;
-        for (var i = 0; i < parameters.Length; i++)
-            if (parameters[i].GetCustomAttribute<InjectTypeAttribute>() == null)
+        foreach (var parameter in parameters)
+            if (parameter.GetCustomAttribute<InjectTypeAttribute>() == null)
                 count++;
         return count;
     }

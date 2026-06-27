@@ -1,5 +1,3 @@
-#nullable enable
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -10,6 +8,15 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class ObjectIsNotAnArrayException : Exception, IDiagnosticException
 {
+
+    public ObjectIsNotAnArrayException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public ObjectIsNotAnArrayException()
+    {
+    }
     /// <summary>
     ///     Initializes a new instance of ObjectIsNotAnArrayException.
     /// </summary>

@@ -1,25 +1,18 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 namespace Musoq.Parser.Nodes;
 
-public class MultiStatementNode : Node
+public class MultiStatementNode(Node[] nodes, Type? returnType) : Node
 {
-    public MultiStatementNode(Node[] nodes, Type returnType)
-    {
-        ReturnType = returnType;
-        Nodes = nodes;
-        Id = null;
-    }
+    public Node[] Nodes { get; } = nodes;
 
-    public Node[] Nodes { get; }
+    public override Type? ReturnType { get; } = returnType;
 
-    public override Type ReturnType { get; }
-
-    public override string Id { get; }
+    public override string Id { get; } = $"{nameof(MultiStatementNode)}{string.Concat(nodes.Select(node => node.Id))}";
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

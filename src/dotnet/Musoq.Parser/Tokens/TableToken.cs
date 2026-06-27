@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class TableToken : Token
+public class TableToken(TextSpan textSpan) : Token(TokenText, TokenType.Table, textSpan)
 {
     public const string TokenText = "table";
-
-    public TableToken(TextSpan textSpan)
-        : base(TokenText, TokenType.Table, textSpan)
-    {
-    }
 }

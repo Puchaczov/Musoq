@@ -4,13 +4,13 @@ namespace Musoq.Benchmarks;
 
 public class TableTestTable : ISchemaTable
 {
-    public ISchemaColumn[] Columns => new ISchemaColumn[]
-    {
+    public ISchemaColumn[] Columns =>
+    [
         new TableTestColumn("Id", 0, typeof(int)),
         new TableTestColumn("Name", 1, typeof(string)),
         new TableTestColumn("Value", 2, typeof(int)),
         new TableTestColumn("Category", 3, typeof(string))
-    };
+    ];
 
     public SchemaTableMetadata Metadata => new(typeof(TableTestEntity));
 

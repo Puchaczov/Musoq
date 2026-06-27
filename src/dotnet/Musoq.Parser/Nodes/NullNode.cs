@@ -1,5 +1,4 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Reflection;
 
 namespace Musoq.Parser.Nodes;
@@ -38,6 +37,7 @@ public class NullNode : Node
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -52,12 +52,12 @@ public class NullNode : Node
         public static NullType Instance { get; } = new();
 
         public override Assembly Assembly => typeof(NullNode).Assembly;
-        public override string AssemblyQualifiedName => _underlyingType.AssemblyQualifiedName;
-        public override Type BaseType => _underlyingType.BaseType;
-        public override string FullName => typeof(NullType).FullName;
+        public override string? AssemblyQualifiedName => _underlyingType.AssemblyQualifiedName;
+        public override Type? BaseType => _underlyingType.BaseType;
+        public override string? FullName => typeof(NullType).FullName;
         public override Guid GUID => typeof(NullType).GUID;
         public override Module Module => typeof(NullType).Module;
-        public override string Namespace => typeof(NullType).Namespace;
+        public override string? Namespace => typeof(NullType).Namespace;
         public override string Name => "Null";
 
         public override Type UnderlyingSystemType => _underlyingType.UnderlyingSystemType;
@@ -92,11 +92,11 @@ public class NullNode : Node
             return _underlyingType.Attributes;
         }
 
-        protected override ConstructorInfo GetConstructorImpl(BindingFlags bindingAttr, Binder binder,
+        protected override ConstructorInfo? GetConstructorImpl(BindingFlags bindingAttr, Binder? binder,
             CallingConventions callConvention,
-            Type[] types, ParameterModifier[] modifiers)
+            Type[]? types, ParameterModifier[]? modifiers)
         {
-            return _underlyingType.GetConstructor(bindingAttr, binder, callConvention, types, modifiers);
+            return _underlyingType.GetConstructor(bindingAttr, binder, callConvention, types ?? EmptyTypes, modifiers);
         }
 
         public override ConstructorInfo[] GetConstructors(BindingFlags bindingAttr)
@@ -104,12 +104,12 @@ public class NullNode : Node
             return _underlyingType.GetConstructors(bindingAttr);
         }
 
-        public override Type GetElementType()
+        public override Type? GetElementType()
         {
             return _underlyingType.GetElementType();
         }
 
-        public override EventInfo GetEvent(string name, BindingFlags bindingAttr)
+        public override EventInfo? GetEvent(string name, BindingFlags bindingAttr)
         {
             return _underlyingType.GetEvent(name, bindingAttr);
         }
@@ -119,7 +119,7 @@ public class NullNode : Node
             return _underlyingType.GetEvents(bindingAttr);
         }
 
-        public override FieldInfo GetField(string name, BindingFlags bindingAttr)
+        public override FieldInfo? GetField(string name, BindingFlags bindingAttr)
         {
             return _underlyingType.GetField(name, bindingAttr);
         }
@@ -134,11 +134,11 @@ public class NullNode : Node
             return _underlyingType.GetMembers(bindingAttr);
         }
 
-        protected override MethodInfo GetMethodImpl(string name, BindingFlags bindingAttr, Binder binder,
+        protected override MethodInfo? GetMethodImpl(string name, BindingFlags bindingAttr, Binder? binder,
             CallingConventions callConvention,
-            Type[] types, ParameterModifier[] modifiers)
+            Type[]? types, ParameterModifier[]? modifiers)
         {
-            return _underlyingType.GetMethod(name, bindingAttr, binder, callConvention, types, modifiers);
+            return _underlyingType.GetMethod(name, bindingAttr, binder, callConvention, types ?? EmptyTypes, modifiers);
         }
 
         public override MethodInfo[] GetMethods(BindingFlags bindingAttr)
@@ -151,19 +151,19 @@ public class NullNode : Node
             return _underlyingType.GetProperties(bindingAttr);
         }
 
-        public override object InvokeMember(string name, BindingFlags invokeAttr, Binder binder, object target,
-            object[] args,
-            ParameterModifier[] modifiers, CultureInfo culture, string[] namedParameters)
+        public override object? InvokeMember(string name, BindingFlags invokeAttr, Binder? binder, object? target,
+            object?[]? args,
+            ParameterModifier[]? modifiers, CultureInfo? culture, string[]? namedParameters)
         {
             return _underlyingType.InvokeMember(name, invokeAttr, binder, target, args, modifiers, culture,
                 namedParameters);
         }
 
-        protected override PropertyInfo GetPropertyImpl(string name, BindingFlags bindingAttr, Binder binder,
-            Type returnType, Type[] types,
-            ParameterModifier[] modifiers)
+        protected override PropertyInfo? GetPropertyImpl(string name, BindingFlags bindingAttr, Binder? binder,
+            Type? returnType, Type[]? types,
+            ParameterModifier[]? modifiers)
         {
-            return _underlyingType.GetProperty(name, bindingAttr, binder, returnType, types, modifiers);
+            return _underlyingType.GetProperty(name, bindingAttr, binder, returnType, types ?? EmptyTypes, modifiers);
         }
 
         protected override bool HasElementTypeImpl()
@@ -171,7 +171,7 @@ public class NullNode : Node
             return _underlyingType.HasElementType;
         }
 
-        public override Type GetNestedType(string name, BindingFlags bindingAttr)
+        public override Type? GetNestedType(string name, BindingFlags bindingAttr)
         {
             return _underlyingType.GetNestedType(name, bindingAttr);
         }
@@ -181,7 +181,7 @@ public class NullNode : Node
             return _underlyingType.GetNestedTypes(bindingAttr);
         }
 
-        public override Type GetInterface(string name, bool ignoreCase)
+        public override Type? GetInterface(string name, bool ignoreCase)
         {
             return _underlyingType.GetInterface(name, ignoreCase);
         }

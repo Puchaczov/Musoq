@@ -1,14 +1,13 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tables;
 
-internal class VariableTable(ISchemaColumn[] columns, Type metadata = null) : ISchemaTable
+internal class VariableTable(ISchemaColumn[] columns, Type? metadata = null) : ISchemaTable
 {
     public ISchemaColumn[] Columns { get; } = columns;
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(column => column.ColumnName == name);
     }

@@ -1,4 +1,3 @@
-using System;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Parser.Lexing;
@@ -9,6 +8,20 @@ namespace Musoq.Parser.Lexing;
 /// </summary>
 public class LexerException : Exception, IDiagnosticException
 {
+
+    public LexerException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public LexerException(string message)
+        : base(message)
+    {
+    }
+
+    public LexerException()
+    {
+    }
     /// <summary>
     ///     Initializes a new instance of the <see cref="LexerException" /> class.
     /// </summary>

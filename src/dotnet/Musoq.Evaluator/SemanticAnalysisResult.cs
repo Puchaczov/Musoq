@@ -1,5 +1,3 @@
-#nullable enable
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser;
@@ -24,7 +22,7 @@ public sealed class SemanticAnalysisResult
         IEnumerable<Diagnostic>? diagnostics = null)
     {
         RootNode = rootNode ?? throw new ArgumentNullException(nameof(rootNode));
-        _diagnostics = diagnostics?.ToList() ?? new List<Diagnostic>();
+        _diagnostics = diagnostics?.ToList() ?? [];
     }
 
     /// <summary>
@@ -132,6 +130,6 @@ public sealed class SemanticAnalysisResult
     public static SemanticAnalysisResult FromException(Node rootNode, Exception exception)
     {
         var diagnostic = exception.ToDiagnosticOrGeneric();
-        return new SemanticAnalysisResult(rootNode, new[] { diagnostic });
+        return new SemanticAnalysisResult(rootNode, [diagnostic]);
     }
 }

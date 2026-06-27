@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 
 namespace Musoq.Parser.Nodes.InterpretationSchema;
@@ -122,6 +121,7 @@ public class TextFieldDefinitionNode : Node
     /// <inheritdoc />
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -135,25 +135,25 @@ public class TextFieldDefinitionNode : Node
         switch (FieldType)
         {
             case TextFieldType.Pattern:
-                builder.Append($"pattern '{PrimaryValue}'");
-                if (CaptureGroups.Length > 0) builder.Append($" capture ({string.Join(", ", CaptureGroups)})");
+                builder.Append(System.Globalization.CultureInfo.InvariantCulture, $"pattern '{PrimaryValue}'");
+                if (CaptureGroups.Length > 0) builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" capture ({string.Join(", ", CaptureGroups)})");
                 break;
 
             case TextFieldType.Literal:
-                builder.Append($"literal '{EscapeString(PrimaryValue ?? string.Empty)}'");
+                builder.Append(System.Globalization.CultureInfo.InvariantCulture, $"literal '{EscapeString(PrimaryValue ?? string.Empty)}'");
                 break;
 
             case TextFieldType.Until:
-                builder.Append($"until '{EscapeString(PrimaryValue ?? string.Empty)}'");
+                builder.Append(System.Globalization.CultureInfo.InvariantCulture, $"until '{EscapeString(PrimaryValue ?? string.Empty)}'");
                 break;
 
             case TextFieldType.Between:
-                builder.Append(
+                builder.Append(System.Globalization.CultureInfo.InvariantCulture,
                     $"between '{EscapeString(PrimaryValue ?? string.Empty)}' '{EscapeString(SecondaryValue ?? string.Empty)}'");
                 break;
 
             case TextFieldType.Chars:
-                builder.Append($"chars[{PrimaryValue}]");
+                builder.Append(System.Globalization.CultureInfo.InvariantCulture, $"chars[{PrimaryValue}]");
                 break;
 
             case TextFieldType.Token:
@@ -169,9 +169,9 @@ public class TextFieldDefinitionNode : Node
                 break;
 
             case TextFieldType.Repeat:
-                builder.Append($"repeat {PrimaryValue}");
+                builder.Append(System.Globalization.CultureInfo.InvariantCulture, $"repeat {PrimaryValue}");
                 if (SecondaryValue != null)
-                    builder.Append($" until '{EscapeString(SecondaryValue)}'");
+                    builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" until '{EscapeString(SecondaryValue)}'");
                 else
                     builder.Append(" until end");
                 break;
@@ -206,7 +206,7 @@ public class TextFieldDefinitionNode : Node
         if ((Modifiers & TextFieldModifier.Escaped) != 0)
         {
             builder.Append(" escaped");
-            if (!string.IsNullOrEmpty(EscapeCharacter)) builder.Append($" '{EscapeString(EscapeCharacter)}'");
+            if (!string.IsNullOrEmpty(EscapeCharacter)) builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" '{EscapeString(EscapeCharacter)}'");
         }
 
         if ((Modifiers & TextFieldModifier.Greedy) != 0)
@@ -224,10 +224,10 @@ public class TextFieldDefinitionNode : Node
     private static string EscapeString(string value)
     {
         return value
-            .Replace("\\", "\\\\")
-            .Replace("'", "\\'")
-            .Replace("\r", "\\r")
-            .Replace("\n", "\\n")
-            .Replace("\t", "\\t");
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("'", "\\'", StringComparison.Ordinal)
+            .Replace("\r", "\\r", StringComparison.Ordinal)
+            .Replace("\n", "\\n", StringComparison.Ordinal)
+            .Replace("\t", "\\t", StringComparison.Ordinal);
     }
 }

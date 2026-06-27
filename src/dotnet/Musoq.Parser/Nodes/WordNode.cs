@@ -1,5 +1,3 @@
-﻿using System;
-
 namespace Musoq.Parser.Nodes;
 
 public class WordNode : ConstantValueNode
@@ -27,6 +25,7 @@ public class WordNode : ConstantValueNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

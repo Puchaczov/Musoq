@@ -5,24 +5,21 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class RewriteFieldOrderedWithGroupMethodCall
-    : RewriteFieldWithGroupMethodCallBase<FieldOrderedNode, FieldNode>
+public class RewriteFieldOrderedWithGroupMethodCall(FieldNode[] nodes)
+    : RewriteFieldWithGroupMethodCallBase<FieldOrderedNode, FieldNode>(nodes)
 {
-    private readonly FieldNode[] _groupByFields;
-
-    public RewriteFieldOrderedWithGroupMethodCall(FieldNode[] nodes) : base(nodes)
-    {
-        _groupByFields = nodes;
-    }
+    private readonly FieldNode[] _groupByFields = nodes;
 
     public override void Visit(FieldOrderedNode node)
     {
         base.Visit(node);
-        Expression = Nodes.Pop() as FieldOrderedNode;
+        Expression = Nodes.Pop() as FieldOrderedNode
+                     ?? throw new InvalidOperationException("Expected a rewritten ordered field node.");
     }
 
     public override void Visit(AccessMethodNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         if (node.IsAggregateMethod())
         {
             base.Visit(node);
@@ -43,6 +40,7 @@ public class RewriteFieldOrderedWithGroupMethodCall
 
     protected override string ExtractOriginalExpression(FieldNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         return node.FieldName;
     }
 

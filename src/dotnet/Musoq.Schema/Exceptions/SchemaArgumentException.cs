@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Schema.Exceptions;
 
 /// <summary>
@@ -8,6 +6,20 @@ namespace Musoq.Schema.Exceptions;
 /// </summary>
 public class SchemaArgumentException : ArgumentException
 {
+
+    public SchemaArgumentException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public SchemaArgumentException(string message)
+        : base(message)
+    {
+    }
+
+    public SchemaArgumentException()
+    {
+    }
     public SchemaArgumentException(string argumentName, string message)
         : base(message, argumentName)
     {

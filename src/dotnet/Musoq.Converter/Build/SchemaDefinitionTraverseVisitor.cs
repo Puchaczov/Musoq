@@ -1,15 +1,16 @@
-﻿using System;
 using Musoq.Evaluator.Visitors;
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
+using Musoq.Parser.Traversal;
 
 namespace Musoq.Converter.Build;
 
 /// <summary>
-///     Traverse visitor for extracting schema definitions from the AST.
+///     Walks the AST and dispatches schema definition nodes to a <see cref="SchemaDefinitionVisitor"/>.
+///     Traversal is delegated to the centralized <see cref="AstWalker"/> so node descent is shared
+///     with the rest of the parser traversal infrastructure.
 /// </summary>
-public class SchemaDefinitionTraverseVisitor : NoOpExpressionVisitor
+public sealed class SchemaDefinitionTraverseVisitor
 {
     private readonly SchemaDefinitionVisitor _visitor;
 
@@ -18,33 +19,27 @@ public class SchemaDefinitionTraverseVisitor : NoOpExpressionVisitor
         _visitor = visitor ?? throw new ArgumentNullException(nameof(visitor));
     }
 
-    public override void Visit(BinarySchemaNode node)
+    public void Walk(Node node)
     {
-        _visitor.Visit(node);
+        ArgumentNullException.ThrowIfNull(node);
+        new SchemaDefinitionWalker(_visitor).Walk(node);
     }
 
-    public override void Visit(TextSchemaNode node)
+    private sealed class SchemaDefinitionWalker(SchemaDefinitionVisitor visitor) : AstWalker
     {
-        _visitor.Visit(node);
-    }
-
-    public override void Visit(RootNode node)
-    {
-        node.Expression?.Accept(this);
-    }
-
-    public override void Visit(StatementsArrayNode node)
-    {
-        foreach (var statement in node.Statements) statement.Accept(this);
-    }
-
-    public override void Visit(StatementNode node)
-    {
-        node.Node?.Accept(this);
-    }
-
-    public override void Visit(MultiStatementNode node)
-    {
-        foreach (var statement in node.Nodes) statement.Accept(this);
+        protected override bool Enter(Node node)
+        {
+            switch (node)
+            {
+                case BinarySchemaNode binarySchema:
+                    visitor.Visit(binarySchema);
+                    return false;
+                case TextSchemaNode textSchema:
+                    visitor.Visit(textSchema);
+                    return false;
+                default:
+                    return true;
+            }
+        }
     }
 }

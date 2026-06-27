@@ -2,27 +2,19 @@
 
 namespace Musoq.Playground;
 
-public class ExpensiveRowSource : RowSource
+internal sealed class ExpensiveRowSource(IReadOnlyList<NonEquiEntity> entities, int simulatedWorkIterations)
+    : RowSource<NonEquiEntity>
 {
-    private readonly IEnumerable<NonEquiEntity> _entities;
-    private readonly int _simulatedWorkIterations;
-
-    public ExpensiveRowSource(IEnumerable<NonEquiEntity> entities, int simulatedWorkIterations)
-    {
-        _entities = entities;
-        _simulatedWorkIterations = simulatedWorkIterations;
-    }
-
-    public override IEnumerable<IObjectResolver> Rows
+    public override IEnumerable<IReadOnlyList<NonEquiEntity>> Chunks
     {
         get
         {
             var enumId = ExpensiveCteCounter.Increment();
-            Console.WriteLine($"  [Enum {enumId}] Thread {Thread.CurrentThread.ManagedThreadId} starting enumeration");
+            Console.WriteLine($"  [Enum {enumId}] Thread {Environment.CurrentManagedThreadId} starting enumeration");
 
-            if (_simulatedWorkIterations > 0) SimulateWork(_simulatedWorkIterations);
+            if (simulatedWorkIterations > 0) SimulateWork(simulatedWorkIterations);
 
-            foreach (var entity in _entities) yield return new EntityResolver(entity);
+            yield return entities;
         }
     }
 

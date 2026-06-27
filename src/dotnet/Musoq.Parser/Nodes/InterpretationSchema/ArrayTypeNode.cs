@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Parser.Nodes.InterpretationSchema;
 
 /// <summary>
@@ -43,7 +41,7 @@ public class ArrayTypeNode : TypeAnnotationNode
         {
             if (!IsFixedSize) return null;
 
-            var count = int.Parse(((IntegerNode)SizeExpression).ObjValue.ToString()!);
+            var count = int.Parse(((IntegerNode)SizeExpression).ObjValue.ToString()!, System.Globalization.CultureInfo.InvariantCulture);
             var elementSize = ElementType.FixedSizeBytes;
 
             return elementSize.HasValue ? count * elementSize.Value : null;
@@ -59,6 +57,7 @@ public class ArrayTypeNode : TypeAnnotationNode
     /// <inheritdoc />
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

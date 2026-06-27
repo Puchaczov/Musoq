@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
@@ -141,11 +140,7 @@ internal class JsonExtractorHelper
                     break;
                 case JsonValueKind.Object:
                 case JsonValueKind.Array:
-                    var options = new JsonSerializerOptions
-                    {
-                        WriteIndented = false
-                    };
-                    results.Add(JsonSerializer.Serialize(element, options));
+                    results.Add(JsonSerializer.Serialize(element));
                     break;
                 default:
                     results.Add(element.ToString());

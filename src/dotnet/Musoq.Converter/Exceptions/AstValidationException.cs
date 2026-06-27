@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Converter.Exceptions;
 
 /// <summary>
@@ -8,6 +6,26 @@ namespace Musoq.Converter.Exceptions;
 /// </summary>
 public class AstValidationException : InvalidOperationException
 {
+    public AstValidationException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+        NodeType = string.Empty;
+        ValidationContext = string.Empty;
+    }
+
+    public AstValidationException(string message)
+        : base(message)
+    {
+        NodeType = string.Empty;
+        ValidationContext = string.Empty;
+    }
+
+    public AstValidationException()
+    {
+        NodeType = string.Empty;
+        ValidationContext = string.Empty;
+    }
+
     public AstValidationException(string nodeType, string validationContext, string message)
         : base(message)
     {

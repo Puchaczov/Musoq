@@ -1,11 +1,6 @@
 namespace Musoq.Parser.Tokens;
 
-public class WindowToken : Token
+public class WindowToken(TextSpan span) : Token(TokenText, TokenType.Window, span)
 {
     public const string TokenText = "window";
-
-    public WindowToken(TextSpan span)
-        : base(TokenText, TokenType.Window, span)
-    {
-    }
 }

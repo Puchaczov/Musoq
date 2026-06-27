@@ -1,25 +1,20 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Musoq.Schema.DataSources;
 
-public class EntitySource<T> : RowSource
+public class EntitySource<T> : RowSource<T>
 {
-    private readonly IEnumerable<T> _entities;
-    private readonly IReadOnlyDictionary<int, Func<T, object>> _indexToObjectAccessMap;
-    private readonly IReadOnlyDictionary<string, int> _nameToIndexMap;
+    private readonly IEnumerable<IReadOnlyList<T>> _chunks;
 
-    public EntitySource(IEnumerable<T> entities, IReadOnlyDictionary<string, int> nameToIndexMap,
-        IReadOnlyDictionary<int, Func<T, object>> indexToObjectAccessMap)
+    public EntitySource(IEnumerable<IReadOnlyList<T>> chunks, IReadOnlyDictionary<string, int> nameToIndexMap,
+        IReadOnlyDictionary<int, Func<T, object?>> indexToObjectAccessMap)
     {
-        _entities = entities;
-        _nameToIndexMap = nameToIndexMap;
-        _indexToObjectAccessMap = indexToObjectAccessMap;
+        _ = nameToIndexMap;
+        _ = indexToObjectAccessMap;
+
+        _chunks = RowChunking.NormalizeSourceChunks(chunks ?? throw new ArgumentNullException(nameof(chunks)));
     }
 
-    public override IEnumerable<IObjectResolver> Rows
-    {
-        get { return _entities.Select(item => new EntityResolver<T>(item, _nameToIndexMap, _indexToObjectAccessMap)); }
-    }
+    public override IEnumerable<IReadOnlyList<T>> Chunks => _chunks;
 }

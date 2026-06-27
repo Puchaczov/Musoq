@@ -1,13 +1,12 @@
-﻿using System;
-
 namespace Musoq.Parser.Nodes;
 
 public class TakeNode : UnaryNode
 {
     public TakeNode(IntegerNode expression) : base(expression)
     {
+        ArgumentNullException.ThrowIfNull(expression);
         Id = $"{nameof(TakeNode)}{ReturnType.Name}{Expression.Id}";
-        Value = Convert.ToInt64(expression.ObjValue);
+        Value = Convert.ToInt64(expression.ObjValue, System.Globalization.CultureInfo.InvariantCulture);
     }
 
     public override Type ReturnType => typeof(long);
@@ -18,6 +17,7 @@ public class TakeNode : UnaryNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

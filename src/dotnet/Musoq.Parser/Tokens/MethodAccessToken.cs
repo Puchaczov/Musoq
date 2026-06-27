@@ -1,12 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class MethodAccessToken : Token
+public class MethodAccessToken(string value, TextSpan span) : Token(value, TokenType.MethodAccess, span)
 {
-    public MethodAccessToken(string value, TextSpan span)
-        : base(value, TokenType.MethodAccess, span)
-    {
-        Alias = value;
-    }
-
-    public string Alias { get; }
+    public string Alias { get; } = value;
 }

@@ -11,6 +11,7 @@ public class BitwiseAndNode : BinaryNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

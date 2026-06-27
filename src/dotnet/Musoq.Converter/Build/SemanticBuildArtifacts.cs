@@ -1,0 +1,53 @@
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp;
+using Musoq.Evaluator;
+using Musoq.Evaluator.IR.Execution;
+using Musoq.Evaluator.IR.Logical;
+using Musoq.Evaluator.IR.Physical;
+using Musoq.Evaluator.IR.Planning;
+using Musoq.Evaluator.Utils;
+using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
+using Musoq.Parser.Nodes;
+using Musoq.Schema;
+using Musoq.Schema.Optimization;
+using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
+
+namespace Musoq.Converter.Build;
+
+/// <summary>
+/// Typed view of the semantic stage output: the normalized query tree and the
+/// metadata derived from binding methods and inferring types.
+/// </summary>
+internal sealed record SemanticBuildArtifacts
+{
+    public required RootNode TransformedQueryTree { get; init; }
+
+    public required IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> UsedColumns { get; init; }
+
+    public required IReadOnlyDictionary<SchemaFromNode, WhereNode> UsedWhereNodes { get; init; }
+
+    public required IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest> SourcePlanRequestsPerSchema { get; init; }
+
+    public IReadOnlyDictionary<SchemaFromNode, SourceContractDiagnosticLocationMap> SourceContractDiagnosticLocationsPerSchema { get; init; } =
+        new Dictionary<SchemaFromNode, SourceContractDiagnosticLocationMap>();
+
+    public required IReadOnlyList<ScriptParameterDefinition> ScriptParameterDefinitions { get; init; }
+
+    public required IReadOnlyList<ScriptVariableDefinition> ScriptVariableDefinitions { get; init; }
+
+    public required IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; init; }
+
+    public required IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; init; }
+
+    public required bool HasDeclaredSourceRuntimeSettings { get; init; }
+
+    public required bool HasSourceRuntimeSettingValues { get; init; }
+
+    public Scope? PipelineScope { get; init; }
+
+    public IReadOnlyDictionary<string, ISchemaColumn[]>? PipelineInferredColumns { get; init; }
+
+    public IReadOnlyDictionary<string, IReadOnlySet<string>>? PipelineUsedColumns { get; init; }
+
+    public CteExecutionPlan? CteExecutionPlan { get; init; }
+}

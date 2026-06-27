@@ -1,5 +1,3 @@
-﻿#nullable enable
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -10,6 +8,16 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class SetOperatorMustHaveSameQuantityOfColumnsException : Exception, IDiagnosticException
 {
+
+    public SetOperatorMustHaveSameQuantityOfColumnsException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public SetOperatorMustHaveSameQuantityOfColumnsException(string message)
+        : base(message)
+    {
+    }
     /// <summary>
     ///     Initializes a new instance of SetOperatorMustHaveSameQuantityOfColumnsException.
     /// </summary>

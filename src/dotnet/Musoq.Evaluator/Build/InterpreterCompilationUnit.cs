@@ -1,6 +1,3 @@
-#nullable enable
-
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -143,7 +140,7 @@ public class InterpreterCompilationUnit
             .Select(d => d.ToString());
     }
 
-    private static IEnumerable<MetadataReference> GetInterpreterReferences()
+    private static List<MetadataReference> GetInterpreterReferences()
     {
         var references = new List<MetadataReference>();
 

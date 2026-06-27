@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 namespace Musoq.Parser.Nodes;
 
@@ -7,6 +6,7 @@ public class RefreshNode : Node
 {
     public RefreshNode(AccessMethodNode[] nodes)
     {
+        ArgumentNullException.ThrowIfNull(nodes);
         Nodes = nodes;
         var nodesId = nodes.Length == 0 ? string.Empty : string.Concat(nodes.Select(f => f.Id));
         Id = $"{nameof(RefreshNode)}{nodesId}";
@@ -14,12 +14,13 @@ public class RefreshNode : Node
 
     public AccessMethodNode[] Nodes { get; }
 
-    public override Type ReturnType => null;
+    public override Type? ReturnType => null;
 
     public override string Id { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

@@ -2,20 +2,9 @@
 
 namespace Musoq.Benchmarks;
 
-public class TestRowSource : RowSource
+public class TestRowSource(List<TestEntity> entities) : RowSource<TestEntity>
 {
-    private readonly List<TestEntity> _entities;
+    private readonly IReadOnlyList<IReadOnlyList<TestEntity>> _chunks = BenchmarkSourceChunks.Create(entities);
 
-    public TestRowSource(List<TestEntity> entities)
-    {
-        _entities = entities;
-    }
-
-    public override IEnumerable<IObjectResolver> Rows
-    {
-        get
-        {
-            foreach (var entity in _entities) yield return new TestObjectResolver(entity);
-        }
-    }
+    public override IEnumerable<IReadOnlyList<TestEntity>> Chunks => _chunks;
 }

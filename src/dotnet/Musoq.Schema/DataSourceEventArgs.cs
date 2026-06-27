@@ -1,26 +1,20 @@
-using System;
-
 namespace Musoq.Schema;
 
-public class DataSourceEventArgs : EventArgs
+public class DataSourceEventArgs(
+    string queryId,
+    string dataSourceName,
+    DataSourcePhase phase,
+    long? totalRows = null,
+    long? rowsProcessed = null)
+    : EventArgs
 {
-    public DataSourceEventArgs(string queryId, string dataSourceName, DataSourcePhase phase, long? totalRows = null,
-        long? rowsProcessed = null)
-    {
-        QueryId = queryId;
-        DataSourceName = dataSourceName;
-        Phase = phase;
-        TotalRows = totalRows;
-        RowsProcessed = rowsProcessed;
-    }
+    public string QueryId { get; } = queryId;
 
-    public string QueryId { get; }
+    public string DataSourceName { get; } = dataSourceName;
 
-    public string DataSourceName { get; }
+    public DataSourcePhase Phase { get; } = phase;
 
-    public DataSourcePhase Phase { get; }
+    public long? TotalRows { get; } = totalRows;
 
-    public long? TotalRows { get; }
-
-    public long? RowsProcessed { get; }
+    public long? RowsProcessed { get; } = rowsProcessed;
 }

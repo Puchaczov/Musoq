@@ -1,11 +1,6 @@
 namespace Musoq.Parser.Tokens;
 
-public class ColumnKeywordToken : Token
+public class ColumnKeywordToken(TextSpan span) : Token(TokenText, TokenType.ColumnKeyword, span)
 {
     public const string TokenText = "column";
-
-    public ColumnKeywordToken(TextSpan span)
-        : base(TokenText, TokenType.ColumnKeyword, span)
-    {
-    }
 }

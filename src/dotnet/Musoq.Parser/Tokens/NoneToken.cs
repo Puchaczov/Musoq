@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class NoneToken : Token
+public class NoneToken() : Token(string.Empty, TokenType.None, new TextSpan(0, 0))
 {
     public const string TokenText = "none";
-
-    public NoneToken()
-        : base(string.Empty, TokenType.None, new TextSpan(0, 0))
-    {
-    }
 }

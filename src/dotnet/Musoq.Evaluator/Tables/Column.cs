@@ -1,21 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tables;
 
 [DebuggerDisplay("{ColumnIndex}. {ColumnName}: {ColumnType.Name}")]
-public class Column : IEquatable<Column>, ISchemaColumn
+public class Column(string name, Type columnType, int columnOrder) : IEquatable<Column>, ISchemaColumn
 {
-    public Column(string name, Type columnType, int columnOrder)
-    {
-        ColumnName = name;
-        ColumnType = columnType;
-        ColumnIndex = columnOrder;
-    }
-
-    public bool Equals(Column other)
+    public bool Equals(Column? other)
     {
         return other != null &&
                ColumnName == other.ColumnName &&
@@ -23,13 +15,13 @@ public class Column : IEquatable<Column>, ISchemaColumn
                ColumnIndex == other.ColumnIndex;
     }
 
-    public string ColumnName { get; }
+    public string ColumnName { get; } = name;
 
-    public Type ColumnType { get; }
+    public Type ColumnType { get; } = columnType;
 
-    public int ColumnIndex { get; }
+    public int ColumnIndex { get; } = columnOrder;
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return Equals(obj as Column);
     }

@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Parser.Nodes;
 
 /// <summary>
@@ -25,7 +23,7 @@ public class InterpretCallNode : Node
     /// <param name="dataSource">The expression providing the binary data.</param>
     /// <param name="schemaName">The name of the interpretation schema to use.</param>
     /// <param name="returnType">The return type of the interpretation.</param>
-    public InterpretCallNode(Node dataSource, string schemaName, Type returnType)
+    public InterpretCallNode(Node dataSource, string schemaName, Type? returnType)
     {
         DataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
         SchemaName = schemaName ?? throw new ArgumentNullException(nameof(schemaName));
@@ -45,18 +43,19 @@ public class InterpretCallNode : Node
     /// <summary>
     ///     Gets the return type of the interpretation.
     /// </summary>
-    public override Type ReturnType { get; }
+    public override Type? ReturnType { get; }
 
     /// <summary>
     ///     Gets the unique identifier for this node.
     /// </summary>
-    public override string Id => $"{nameof(InterpretCallNode)}({DataSource.Id},{SchemaName})";
+    public override string Id => $"{nameof(InterpretCallNode)}<{SchemaName}>({DataSource.Id})";
 
     /// <summary>
     ///     Accepts a visitor for this node.
     /// </summary>
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -65,6 +64,6 @@ public class InterpretCallNode : Node
     /// </summary>
     public override string ToString()
     {
-        return $"Interpret({DataSource.ToString()}, {SchemaName})";
+        return $"Interpret<{SchemaName}>({DataSource.ToString()})";
     }
 }

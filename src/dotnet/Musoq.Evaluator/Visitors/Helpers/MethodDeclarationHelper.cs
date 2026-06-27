@@ -1,31 +1,29 @@
-using System;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.Extensions.Logging;
+using Musoq.Evaluator.Diagnostics;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Tables;
-using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors.Helpers;
 
 /// <summary>
 ///     Helper class for creating complex method and property declarations with standardized parameter lists
 /// </summary>
-public static class MethodDeclarationHelper
+public static partial class MethodDeclarationHelper
 {
     /// <summary>
     ///     Creates a standard parameter list for query execution methods
     /// </summary>
-    /// <returns>Parameter list with Provider, PositionalEnvironmentVariables, QueriesInformation, Logger, and Token parameters</returns>
+    /// <returns>Parameter list with Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, and Token parameters</returns>
     public static ParameterListSyntax CreateStandardParameterList()
     {
         return SyntaxFactory.ParameterList(
             SyntaxFactory.SeparatedList([
                 CreateProviderParameter(),
-                CreatePositionalEnvironmentVariablesParameter(),
-                CreateQueriesInformationParameter(),
+                CreateSourceRuntimeSettingsBySourceContextIdParameter(),
+                CreateSourceExecutionPlansParameter(),
                 CreateLoggerParameter(),
                 CreateTokenParameter()
             ]));
@@ -41,8 +39,7 @@ public static class MethodDeclarationHelper
     {
         if (string.IsNullOrWhiteSpace(methodName))
             throw new ArgumentException("Method name cannot be null or whitespace", nameof(methodName));
-        if (body == null)
-            throw new ArgumentNullException(nameof(body));
+        ArgumentNullException.ThrowIfNull(body);
 
         return SyntaxFactory.MethodDeclaration(
             [],
@@ -90,39 +87,14 @@ public static class MethodDeclarationHelper
     }
 
     /// <summary>
-    ///     Creates the complex generic property for PositionalEnvironmentVariables
+    ///     Creates the complex generic property for SourceExecutionPlans
     /// </summary>
-    /// <returns>PositionalEnvironmentVariables property declaration</returns>
-    public static PropertyDeclarationSyntax CreatePositionalEnvironmentVariablesProperty()
+    /// <returns>SourceExecutionPlans property declaration</returns>
+    public static PropertyDeclarationSyntax CreateSourceExecutionPlansProperty()
     {
         return SyntaxFactory.PropertyDeclaration(
-            [],
-            SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
-            CreatePositionalEnvironmentVariablesType()
-                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            null,
-            SyntaxFactory.Identifier(nameof(IRunnable.PositionalEnvironmentVariables)),
-            SyntaxFactory.AccessorList(
-                SyntaxFactory.List([
-                    SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
-                    SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                ])),
-            null,
-            null);
-    }
-
-    /// <summary>
-    ///     Creates the complex generic property for QueriesInformation
-    /// </summary>
-    /// <returns>QueriesInformation property declaration</returns>
-    public static PropertyDeclarationSyntax CreateQueriesInformationProperty()
-    {
-        return SyntaxFactory.PropertyDeclaration(
-                CreateQueriesInformationType(),
-                SyntaxFactory.Identifier("QueriesInformation"))
+                CreateSourceExecutionPlansType(),
+                SyntaxFactory.Identifier(nameof(IQueryRunnable.SourceExecutionPlans)))
             .WithModifiers(
                 SyntaxFactory.TokenList(
                     SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
@@ -147,13 +119,20 @@ public static class MethodDeclarationHelper
             throw new ArgumentException("Method call expression cannot be null or whitespace",
                 nameof(methodCallExpression));
 
+        return CreateRunMethodWithBody(
+            SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {methodCallExpression};")));
+    }
+
+    public static MethodDeclarationSyntax CreateRunMethodWithBody(BlockSyntax body)
+    {
+        ArgumentNullException.ThrowIfNull(body);
         return SyntaxFactory.MethodDeclaration(
             [],
             SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxHelper.WhiteSpace)),
             SyntaxFactory.IdentifierName(nameof(Table)).WithTrailingTrivia(SyntaxHelper.WhiteSpace),
             null,
-            SyntaxFactory.Identifier(nameof(IRunnable.Run)),
+            SyntaxFactory.Identifier(nameof(ITableRunnable.Run)),
             null,
             SyntaxFactory.ParameterList(
                 SyntaxFactory.SeparatedList([
@@ -165,234 +144,32 @@ public static class MethodDeclarationHelper
                         SyntaxFactory.Identifier("token"), null)
                 ])),
             [],
-            SyntaxFactory.Block(SyntaxFactory.ParseStatement($"return {methodCallExpression};")),
+            body,
             null);
     }
 
-    #region Private Helper Methods
-
-    private static ParameterSyntax CreateProviderParameter()
+    internal static MethodDeclarationSyntax CreateProfiledRunMethod(string methodCallExpression)
     {
-        return SyntaxFactory.Parameter(
-            [],
-            SyntaxTokenList.Create(new SyntaxToken()),
-            SyntaxFactory.IdentifierName(nameof(ISchemaProvider))
-                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            SyntaxFactory.Identifier("provider"), null);
-    }
+        if (string.IsNullOrWhiteSpace(methodCallExpression))
+            throw new ArgumentException("Method call expression cannot be null or whitespace", nameof(methodCallExpression));
 
-    private static ParameterSyntax CreatePositionalEnvironmentVariablesParameter()
-    {
-        return SyntaxFactory.Parameter(
-            [],
-            SyntaxTokenList.Create(new SyntaxToken()),
-            CreatePositionalEnvironmentVariablesType()
-                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            SyntaxFactory.Identifier("positionalEnvironmentVariables"), null);
-    }
-
-    private static ParameterSyntax CreateQueriesInformationParameter()
-    {
-        return SyntaxFactory.Parameter(
-                SyntaxFactory.Identifier("queriesInformation"))
-            .WithType(CreateQueriesInformationType());
-    }
-
-    private static ParameterSyntax CreateLoggerParameter()
-    {
-        return SyntaxFactory.Parameter(
-            [],
-            SyntaxTokenList.Create(new SyntaxToken()),
-            SyntaxFactory.IdentifierName(nameof(ILogger))
-                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            SyntaxFactory.Identifier("logger"), null);
-    }
-
-    private static ParameterSyntax CreateTokenParameter()
-    {
-        return SyntaxFactory.Parameter(
-            [],
-            SyntaxTokenList.Create(new SyntaxToken()),
-            SyntaxFactory.IdentifierName(nameof(CancellationToken))
-                .WithTrailingTrivia(SyntaxHelper.WhiteSpace),
-            SyntaxFactory.Identifier("token"), null);
-    }
-
-    private static TypeSyntax CreatePositionalEnvironmentVariablesType()
-    {
-        return SyntaxFactory.GenericName(
-                SyntaxFactory.Identifier("IReadOnlyDictionary"))
-            .WithTypeArgumentList(
-                SyntaxFactory.TypeArgumentList(
-                    SyntaxFactory.SeparatedList<TypeSyntax>(
-                        new SyntaxNodeOrToken[]
-                        {
-                            SyntaxFactory.PredefinedType(
-                                SyntaxFactory.Token(SyntaxKind.UIntKeyword)),
-                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.GenericName(
-                                    SyntaxFactory.Identifier("IReadOnlyDictionary"))
-                                .WithTypeArgumentList(
-                                    SyntaxFactory.TypeArgumentList(
-                                        SyntaxFactory.SeparatedList<TypeSyntax>(
-                                            new SyntaxNodeOrToken[]
-                                            {
-                                                SyntaxFactory.PredefinedType(
-                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                                                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                                SyntaxFactory.PredefinedType(
-                                                    SyntaxFactory.Token(SyntaxKind.StringKeyword))
-                                            })))
-                        })));
-    }
-
-    private static TypeSyntax CreateQueriesInformationType()
-    {
-        return SyntaxFactory.GenericName(
-                SyntaxFactory.Identifier("IReadOnlyDictionary"))
-            .WithTypeArgumentList(
-                SyntaxFactory.TypeArgumentList(
-                    SyntaxFactory.SeparatedList<TypeSyntax>(
-                        new SyntaxNodeOrToken[]
-                        {
-                            SyntaxFactory.PredefinedType(
-                                SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                            SyntaxFactory.IdentifierName("QuerySourceInfo")
-                        })));
-    }
-
-    #endregion
-
-    #region Phase Tracking Members
-
-    /// <summary>
-    ///     Creates the PhaseChanged event declaration for the IRunnable interface implementation.
-    /// </summary>
-    /// <returns>Event field declaration for PhaseChanged</returns>
-    public static EventFieldDeclarationSyntax CreatePhaseChangedEvent()
-    {
-        return SyntaxFactory.EventFieldDeclaration(
-                SyntaxFactory.VariableDeclaration(
-                        SyntaxFactory.IdentifierName(nameof(QueryPhaseEventHandler)))
-                    .WithVariables(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator(
-                                SyntaxFactory.Identifier("PhaseChanged")))))
-            .WithModifiers(
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
-    }
-
-    /// <summary>
-    ///     Creates the OnPhaseChanged helper method that safely invokes the PhaseChanged event.
-    /// </summary>
-    /// <returns>Method declaration for OnPhaseChanged</returns>
-    public static MethodDeclarationSyntax CreateOnPhaseChangedMethod()
-    {
         var body = SyntaxFactory.Block(
-            SyntaxFactory.ExpressionStatement(
-                SyntaxFactory.ConditionalAccessExpression(
-                    SyntaxFactory.IdentifierName("PhaseChanged"),
-                    SyntaxFactory.InvocationExpression(
-                            SyntaxFactory.MemberBindingExpression(
-                                SyntaxFactory.IdentifierName("Invoke")))
-                        .WithArgumentList(
-                            SyntaxFactory.ArgumentList(
-                                SyntaxFactory.SeparatedList(
-                                [
-                                    SyntaxFactory.Argument(SyntaxFactory.ThisExpression()),
-                                    SyntaxFactory.Argument(
-                                        SyntaxFactory.ObjectCreationExpression(
-                                                SyntaxFactory.IdentifierName(nameof(QueryPhaseEventArgs)))
-                                            .WithArgumentList(
-                                                SyntaxFactory.ArgumentList(
-                                                    SyntaxFactory.SeparatedList(
-                                                    [
-                                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("queryId")),
-                                                        SyntaxFactory.Argument(SyntaxFactory.IdentifierName("phase"))
-                                                    ]))))
-                                ]))))));
+            SyntaxFactory.ParseStatement("ArgumentNullException.ThrowIfNull(profileRecorder);"),
+            SyntaxFactory.ParseStatement($"return {methodCallExpression};"));
 
         return SyntaxFactory.MethodDeclaration(
-                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                SyntaxFactory.Identifier("OnPhaseChanged"))
-            .WithModifiers(
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
+                SyntaxFactory.IdentifierName(nameof(Table)),
+                SyntaxFactory.Identifier(nameof(IProfiledRunnable.RunWithProfile)))
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(
                 SyntaxFactory.ParameterList(
                     SyntaxFactory.SeparatedList(
                     [
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("queryId"))
-                            .WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))),
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("phase"))
-                            .WithType(SyntaxFactory.IdentifierName(nameof(QueryPhase)))
+                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("token"))
+                            .WithType(SyntaxFactory.IdentifierName(nameof(CancellationToken))),
+                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("profileRecorder"))
+                            .WithType(SyntaxFactory.IdentifierName(nameof(QueryProfileRecorder)))
                     ])))
             .WithBody(body);
     }
-
-    #endregion
-
-    #region DataSource Progress Members
-
-    /// <summary>
-    ///     Creates the DataSourceProgress event declaration for the IRunnable interface implementation.
-    /// </summary>
-    /// <returns>Event field declaration for DataSourceProgress</returns>
-    public static EventFieldDeclarationSyntax CreateDataSourceProgressEvent()
-    {
-        return SyntaxFactory.EventFieldDeclaration(
-                SyntaxFactory.VariableDeclaration(
-                        SyntaxFactory.IdentifierName(nameof(DataSourceEventHandler)))
-                    .WithVariables(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator(
-                                SyntaxFactory.Identifier("DataSourceProgress")))))
-            .WithModifiers(
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
-    }
-
-    /// <summary>
-    ///     Creates the OnDataSourceProgress helper method that safely invokes the DataSourceProgress event.
-    ///     This method is passed to RuntimeContext as a callback.
-    /// </summary>
-    /// <returns>Method declaration for OnDataSourceProgress</returns>
-    public static MethodDeclarationSyntax CreateOnDataSourceProgressMethod()
-    {
-        var body = SyntaxFactory.Block(
-            SyntaxFactory.ExpressionStatement(
-                SyntaxFactory.ConditionalAccessExpression(
-                    SyntaxFactory.IdentifierName("DataSourceProgress"),
-                    SyntaxFactory.InvocationExpression(
-                            SyntaxFactory.MemberBindingExpression(
-                                SyntaxFactory.IdentifierName("Invoke")))
-                        .WithArgumentList(
-                            SyntaxFactory.ArgumentList(
-                                SyntaxFactory.SeparatedList(
-                                [
-                                    SyntaxFactory.Argument(SyntaxFactory.ThisExpression()),
-                                    SyntaxFactory.Argument(SyntaxFactory.IdentifierName("e"))
-                                ]))))));
-
-        return SyntaxFactory.MethodDeclaration(
-                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                SyntaxFactory.Identifier("OnDataSourceProgress"))
-            .WithModifiers(
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
-            .WithParameterList(
-                SyntaxFactory.ParameterList(
-                    SyntaxFactory.SeparatedList(
-                    [
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("sender"))
-                            .WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))),
-                        SyntaxFactory.Parameter(SyntaxFactory.Identifier("e"))
-                            .WithType(SyntaxFactory.IdentifierName(nameof(DataSourceEventArgs)))
-                    ])))
-            .WithBody(body);
-    }
-
-    #endregion
 }

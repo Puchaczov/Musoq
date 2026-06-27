@@ -6,7 +6,7 @@ public interface ISchemaTable
 
     SchemaTableMetadata Metadata { get; }
 
-    ISchemaColumn GetColumnByName(string name);
+    ISchemaColumn? GetColumnByName(string name);
 
     ISchemaColumn[] GetColumnsByName(string name);
 }

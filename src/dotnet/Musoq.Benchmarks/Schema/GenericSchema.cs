@@ -1,15 +1,15 @@
-﻿using Musoq.Schema.DataSources;
+using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 
 namespace Musoq.Benchmarks.Schema;
 
 public class GenericSchema<T, TTable> : SchemaBase
 {
-    public GenericSchema(IEnumerable<T> sources, IDictionary<string, int> testNameToIndexMap,
-        IDictionary<int, Func<T, object>> testIndexToObjectAccessMap)
+    public GenericSchema(IEnumerable<IReadOnlyList<T>> chunks, IDictionary<string, int> testNameToIndexMap,
+        IDictionary<int, Func<T, object?>> testIndexToObjectAccessMap)
         : base("test", CreateLibrary())
     {
-        AddSource<EntitySource<T>>("entities", sources, testNameToIndexMap, testIndexToObjectAccessMap);
+        AddSource<EntitySource<T>>("entities", chunks, testNameToIndexMap, testIndexToObjectAccessMap);
         AddTable<TTable>("entities");
     }
 

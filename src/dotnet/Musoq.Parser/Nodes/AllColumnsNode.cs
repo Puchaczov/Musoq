@@ -1,41 +1,35 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 namespace Musoq.Parser.Nodes;
 
-public class AllColumnsNode : Node
+public class AllColumnsNode(
+    string? alias,
+    string? likePattern,
+    bool isNotLike,
+    string[]? excludeColumns,
+    StarReplaceItemNode[]? replaceItems,
+    StarRenameItemNode[]? renameItems)
+    : Node
 {
-    public AllColumnsNode(string alias = null)
+    public AllColumnsNode(string? alias = null) : this(alias, null, false, null, null, null)
     {
-        Alias = alias;
     }
 
-    public AllColumnsNode(
-        string alias,
-        string likePattern,
-        bool isNotLike,
-        string[] excludeColumns,
-        StarReplaceItemNode[] replaceItems)
-    {
-        Alias = alias;
-        LikePattern = likePattern;
-        IsNotLike = isNotLike;
-        ExcludeColumns = excludeColumns;
-        ReplaceItems = replaceItems;
-    }
+    public string? Alias { get; } = alias;
 
-    public string Alias { get; }
+    public string? LikePattern { get; } = likePattern;
 
-    public string LikePattern { get; }
+    public bool IsNotLike { get; } = isNotLike;
 
-    public bool IsNotLike { get; }
+    public string[]? ExcludeColumns { get; } = excludeColumns;
 
-    public string[] ExcludeColumns { get; }
+    public StarReplaceItemNode[]? ReplaceItems { get; } = replaceItems;
 
-    public StarReplaceItemNode[] ReplaceItems { get; }
+    public StarRenameItemNode[]? RenameItems { get; } = renameItems;
 
     public bool HasModifiers =>
-        LikePattern != null || ExcludeColumns is { Length: > 0 } || ReplaceItems is { Length: > 0 };
+        LikePattern != null || ExcludeColumns is { Length: > 0 } ||
+        ReplaceItems is { Length: > 0 } || RenameItems is { Length: > 0 };
 
     public override Type ReturnType => typeof(object[]);
 
@@ -55,13 +49,17 @@ public class AllColumnsNode : Node
             var replacePart = ReplaceItems is { Length: > 0 }
                 ? $"Replace({string.Join(",", ReplaceItems.Select(r => r.ColumnName))})"
                 : string.Empty;
+            var renamePart = RenameItems is { Length: > 0 }
+                ? $"Rename({string.Join(",", RenameItems.Select(r => $"{r.SourceName}->{r.TargetName}"))})"
+                : string.Empty;
 
-            return $"{baseId}{likePart}{excludePart}{replacePart}";
+            return $"{baseId}{likePart}{excludePart}{replacePart}{renamePart}";
         }
     }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -79,6 +77,8 @@ public class AllColumnsNode : Node
             parts += $" exclude ({string.Join(", ", ExcludeColumns)})";
         if (ReplaceItems is { Length: > 0 })
             parts += $" replace ({string.Join(", ", ReplaceItems.Select(r => r.ToString()))})";
+        if (RenameItems is { Length: > 0 })
+            parts += $" rename ({string.Join(", ", RenameItems.Select(r => r.ToString()))})";
 
         return parts;
     }

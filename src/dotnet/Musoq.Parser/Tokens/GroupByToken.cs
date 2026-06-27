@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class GroupByToken : Token
+public class GroupByToken(TextSpan span) : Token(TokenText, TokenType.GroupBy, span)
 {
-    public static string TokenText = "group by";
-
-    public GroupByToken(TextSpan span)
-        : base(TokenText, TokenType.GroupBy, span)
-    {
-    }
+    public const string TokenText = "group by";
 }

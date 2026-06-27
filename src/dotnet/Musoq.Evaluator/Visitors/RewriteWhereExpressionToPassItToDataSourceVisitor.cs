@@ -32,6 +32,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
     public RewriteWhereExpressionToPassItToDataSourceVisitor(SchemaFromNode schemaFromNode)
     {
+        ArgumentNullException.ThrowIfNull(schemaFromNode);
         _schemaFromNode = schemaFromNode;
         _equalityNode = new EqualityNode(new IntegerNode("1", "s"), new IntegerNode("1", "s"));
         _isComplexVisitor = new IsComplexVisitor(schemaFromNode.Alias);
@@ -49,6 +50,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
     /// </summary>
     public override void Visit(OrNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
@@ -64,6 +66,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
     public override void Visit(GreaterNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
@@ -72,6 +75,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
     public override void Visit(GreaterOrEqualNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
@@ -80,6 +84,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
     public override void Visit(LessNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
@@ -88,6 +93,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
     public override void Visit(LessOrEqualNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
@@ -96,14 +102,25 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
     public override void Visit(EqualityNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
         if (!VisitForBinaryNode(node)) Nodes.Push(new EqualityNode(left, right));
     }
 
+    public override void Visit(IsDistinctFromNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        var right = Nodes.Pop();
+        var left = Nodes.Pop();
+
+        if (!VisitForBinaryNode(node)) Nodes.Push(new IsDistinctFromNode(left, right, node.IsNegated));
+    }
+
     public override void Visit(DiffNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
@@ -128,6 +145,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
     public override void Visit(ContainsNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var right = Nodes.Pop();
         var left = Nodes.Pop();
 
@@ -136,9 +154,22 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
     public override void Visit(InNode node)
     {
-        var clonedNode = Nodes.Pop();
+        ArgumentNullException.ThrowIfNull(node);
+        var right = Nodes.Pop();
+        var left = Nodes.Pop();
 
-        if (!VisitForArgsListNode((ArgsListNode)node.Right)) Nodes.Push(clonedNode);
+        if (!VisitForArgsListNode((ArgsListNode)node.Right))
+            Nodes.Push(new InNode(left, (ArgsListNode)right));
+    }
+
+    public override void Visit(CollectionInNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        var right = Nodes.Pop();
+        var left = Nodes.Pop();
+
+        if (!VisitForBinaryNode(node))
+            Nodes.Push(new CollectionInNode(left, right));
     }
 
     public override void Visit(BetweenNode node)
@@ -192,23 +223,10 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
         return false;
     }
 
-    private class IsComplexTraverseVisitor : CloneTraverseVisitor
+    private class IsComplexTraverseVisitor(IExpressionVisitor visitor) : CloneTraverseVisitor(visitor);
+
+    private class IsComplexVisitor(string rootAlias) : CloneQueryVisitor
     {
-        public IsComplexTraverseVisitor(IExpressionVisitor visitor)
-            : base(visitor)
-        {
-        }
-    }
-
-    private class IsComplexVisitor : CloneQueryVisitor
-    {
-        private readonly string _rootAlias;
-
-        public IsComplexVisitor(string rootAlias)
-        {
-            _rootAlias = rootAlias;
-        }
-
         public bool IsComplex { get; private set; }
 
         public void Reset()
@@ -237,7 +255,7 @@ public class RewriteWhereExpressionToPassItToDataSourceVisitor : CloneQueryVisit
 
         public override void Visit(AccessColumnNode node)
         {
-            if (node.Alias != _rootAlias)
+            if (node.Alias != rootAlias)
                 IsComplex = true;
 
             base.Visit(node);

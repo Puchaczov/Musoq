@@ -3,7 +3,7 @@ namespace Musoq.Evaluator;
 /// <summary>
 ///     Event arguments for query phase change events.
 /// </summary>
-public class QueryPhaseEventArgs
+public class QueryPhaseEventArgs : EventArgs
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="QueryPhaseEventArgs" /> class.

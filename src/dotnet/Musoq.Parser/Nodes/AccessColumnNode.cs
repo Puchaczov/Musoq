@@ -1,23 +1,14 @@
-﻿using System;
+﻿namespace Musoq.Parser.Nodes;
 
-namespace Musoq.Parser.Nodes;
-
-public class AccessColumnNode : IdentifierNode
+public class AccessColumnNode(string column, string alias, Type type, TextSpan span)
+    : IdentifierNode(column, null, span)
 {
-    private readonly string _column;
-    private Type _type;
+    private readonly string _column = column;
+    private Type _type = type;
 
     public AccessColumnNode(string column, string alias, TextSpan span)
         : this(column, alias, typeof(void), span)
     {
-    }
-
-    public AccessColumnNode(string column, string alias, Type type, TextSpan span)
-        : base(column, null, span)
-    {
-        _column = column;
-        _type = type;
-        Alias = alias;
     }
 
     public AccessColumnNode(string column, string alias, Type type, TextSpan span, string? intendedTypeName)
@@ -26,7 +17,7 @@ public class AccessColumnNode : IdentifierNode
         IntendedTypeName = intendedTypeName;
     }
 
-    public string Alias { get; }
+    public string Alias { get; } = alias;
 
     public override Type ReturnType => _type;
 
@@ -41,6 +32,7 @@ public class AccessColumnNode : IdentifierNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

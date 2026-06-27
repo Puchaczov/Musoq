@@ -1,4 +1,3 @@
-using System;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Parser.Exceptions;
@@ -9,23 +8,49 @@ namespace Musoq.Parser.Exceptions;
 public class InvalidOperandTypesException : Exception, IDiagnosticException
 {
     public InvalidOperandTypesException(Type leftType, Type rightType)
-        : base($"Invalid operand types for operator: '{leftType.Name}' and '{rightType.Name}'.")
+        : base(CreateMessage(leftType, rightType))
     {
-        LeftType = leftType ?? throw new ArgumentNullException(nameof(leftType));
-        RightType = rightType ?? throw new ArgumentNullException(nameof(rightType));
-        Code = DiagnosticCode.MQ3007_InvalidOperandTypes;
+        LeftType = leftType;
+        RightType = rightType;
+    }
+
+    public InvalidOperandTypesException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+        LeftType = typeof(object);
+        RightType = typeof(object);
+    }
+
+    public InvalidOperandTypesException(string message)
+        : base(message)
+    {
+        LeftType = typeof(object);
+        RightType = typeof(object);
+    }
+
+    public InvalidOperandTypesException()
+    {
+        LeftType = typeof(object);
+        RightType = typeof(object);
     }
 
     public Type LeftType { get; }
 
     public Type RightType { get; }
 
-    public DiagnosticCode Code { get; }
+    public DiagnosticCode Code { get; } = DiagnosticCode.MQ3007_InvalidOperandTypes;
 
     public TextSpan? Span { get; }
 
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
         return Diagnostic.Error(Code, Message, Span ?? TextSpan.Empty);
+    }
+
+    private static string CreateMessage(Type leftType, Type rightType)
+    {
+        ArgumentNullException.ThrowIfNull(leftType);
+        ArgumentNullException.ThrowIfNull(rightType);
+        return $"Invalid operand types for operator: '{leftType.Name}' and '{rightType.Name}'.";
     }
 }

@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Parser.Nodes.InterpretationSchema;
 
 /// <summary>
@@ -57,6 +55,7 @@ public class BitsTypeNode : TypeAnnotationNode
     /// <inheritdoc />
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

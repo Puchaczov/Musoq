@@ -1,11 +1,6 @@
 namespace Musoq.Parser.Tokens;
 
-public class QuestionMarkToken : Token
+public class QuestionMarkToken(TextSpan textSpan) : Token(TokenText, TokenType.QuestionMark, textSpan)
 {
     public const string TokenText = "?";
-
-    public QuestionMarkToken(TextSpan textSpan)
-        : base(TokenText, TokenType.QuestionMark, textSpan)
-    {
-    }
 }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
@@ -10,7 +9,7 @@ namespace Musoq.Evaluator.Visitors;
 public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpressionVisitor
 {
     private readonly List<ISchemaColumn> _collectedFieldNames = [];
-    private ISchemaColumn[] _cachedFieldNames;
+    private ISchemaColumn[] _cachedFieldNames = [];
     private bool _fieldNamesCacheValid;
     private QueryPart _queryPart;
 
@@ -47,7 +46,38 @@ public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpr
 
     public override void Visit(FieldNode node)
     {
-        if (_queryPart == QueryPart.Select && _collectedFieldNames.All(field => field.ColumnName != node.FieldName))
-            _collectedFieldNames.Add(new SchemaColumn(node.FieldName, _collectedFieldNames.Count, node.ReturnType));
+        ArgumentNullException.ThrowIfNull(node);
+        if (_queryPart != QueryPart.Select)
+            return;
+
+        if (HasCollectedFieldAtPosition(node.FieldOrder))
+            return;
+
+        _collectedFieldNames.Add(new SchemaColumn(
+            GetCteOutputColumnName(node),
+            node.FieldOrder,
+            node.ReturnType ?? throw new InvalidOperationException($"Select field '{node.FieldName}' has no inferred return type.")));
+        _fieldNamesCacheValid = false;
+    }
+
+    private static string GetCteOutputColumnName(FieldNode node)
+    {
+        if (node.HasExplicitFieldName)
+            return node.FieldName;
+
+        return node.Expression is AccessColumnNode accessColumn
+            ? accessColumn.Name
+            : node.FieldName;
+    }
+
+    private bool HasCollectedFieldAtPosition(int position)
+    {
+        foreach (var field in _collectedFieldNames)
+        {
+            if (field.ColumnIndex == position)
+                return true;
+        }
+
+        return false;
     }
 }

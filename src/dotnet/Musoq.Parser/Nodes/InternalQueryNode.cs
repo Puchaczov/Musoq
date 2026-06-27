@@ -1,22 +1,23 @@
-﻿using System;
+﻿namespace Musoq.Parser.Nodes;
 
-namespace Musoq.Parser.Nodes;
-
-public class InternalQueryNode : QueryNode
+public class InternalQueryNode(
+    SelectNode select,
+    FromNode from,
+    WhereNode? where,
+    GroupByNode? groupBy,
+    OrderByNode? orderBy,
+    SkipNode? skip,
+    TakeNode? take,
+    RefreshNode refresh)
+    : QueryNode(select, from, where, groupBy, orderBy, skip, take)
 {
-    public InternalQueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy,
-        OrderByNode orderBy, SkipNode skip, TakeNode take, RefreshNode refresh)
-        : base(select, from, where, groupBy, orderBy, skip, take)
-    {
-        Refresh = refresh;
-    }
+    public RefreshNode Refresh { get; } = refresh;
 
-    public RefreshNode Refresh { get; }
-
-    public override Type ReturnType => null;
+    public override Type? ReturnType => null;
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

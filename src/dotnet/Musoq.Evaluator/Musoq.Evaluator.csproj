@@ -1,69 +1,1938 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Version>16.0.0</Version>
-        <Authors>Jakub Puchała</Authors>
-        <Product>Musoq</Product>
-        <PackageProjectUrl>https://github.com/Puchaczov/Musoq</PackageProjectUrl>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageTags>sql, dotnet-core</PackageTags>
-        <PublishRepositoryUrl>true</PublishRepositoryUrl>
-        <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.CodeAnalysis" Version="4.14.0"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.14.0"/>
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj"/>
-        <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj"/>
-        <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <InternalsVisibleTo Include="Musoq.Evaluator.Tests"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Compile Update="Resources\Compilation.Designer.cs">
-            <DesignTime>True</DesignTime>
-            <AutoGen>True</AutoGen>
-            <DependentUpon>Compilation.resx</DependentUpon>
-        </Compile>
-        <Compile Update="Resources\MetaAttributes.Designer.cs">
-            <DesignTime>True</DesignTime>
-            <AutoGen>True</AutoGen>
-            <DependentUpon>MetaAttributes.resx</DependentUpon>
-        </Compile>
-        <Compile Update="Visitors\RewriteFieldWithGroupMethodCall.cs">
-            <DependentUpon>RewriteFieldWithGroupMethodCallBase.cs</DependentUpon>
-        </Compile>
-        <Compile Update="Visitors\RewriteFieldOrderedWithGroupMethodCall.cs">
-            <DependentUpon>RewriteFieldWithGroupMethodCallBase.cs</DependentUpon>
-        </Compile>
-    </ItemGroup>
-
-    <ItemGroup>
-        <EmbeddedResource Update="Resources\Compilation.resx">
-            <Generator>ResXFileCodeGenerator</Generator>
-            <LastGenOutput>Compilation.Designer.cs</LastGenOutput>
-        </EmbeddedResource>
-        <EmbeddedResource Update="Resources\MetaAttributes.resx">
-            <Generator>ResXFileCodeGenerator</Generator>
-            <LastGenOutput>MetaAttributes.Designer.cs</LastGenOutput>
-        </EmbeddedResource>
-    </ItemGroup>
-
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Version>$(MusoqEvaluatorVersion)</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
+    <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
+    <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Musoq.Evaluator.Tests" />
+    <InternalsVisibleTo Include="Musoq.Converter" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Resources\Compilation.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Compilation.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\MetaAttributes.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MetaAttributes.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteFieldWithGroupMethodCall.cs">
+      <DependentUpon>RewriteFieldWithGroupMethodCallBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteFieldOrderedWithGroupMethodCall.cs">
+      <DependentUpon>RewriteFieldWithGroupMethodCallBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesTraverseVisitor.InterpretationSchemas.cs">
+      <DependentUpon>BuildMetadataAndInferTypesTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesTraverseVisitor.JoinSymbols.cs">
+      <DependentUpon>BuildMetadataAndInferTypesTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesTraverseVisitor.QuerySetAndCte.cs">
+      <DependentUpon>BuildMetadataAndInferTypesTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesTraverseVisitor.ScriptVariables.cs">
+      <DependentUpon>BuildMetadataAndInferTypesTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesTraverseVisitor.Sources.cs">
+      <DependentUpon>BuildMetadataAndInferTypesTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesTraverseVisitor.Windows.cs">
+      <DependentUpon>BuildMetadataAndInferTypesTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ColumnAccess.Arrays.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ColumnAccess.Columns.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ColumnAccess.DotAndCalls.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ColumnAccess.Keys.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ColumnAccess.Properties.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Diagnostics.CoreAndSymbols.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Diagnostics.ExpressionAndSet.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Diagnostics.TableShape.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ExpressionFields.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ExpressionLiterals.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ExpressionOperators.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ExpressionOperators.ArithmeticAndBoolean.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ExpressionOperators.Comparisons.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ExpressionOperators.Predicates.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.InlineSchemas.FieldLookup.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.InlineSchemas.Materialization.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.InlineSchemas.PropertyChains.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.InlineSchemas.TypeReferences.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.InterpretationSources.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Joins.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.MethodCallNodes.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Methods.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Methods.Aggregates.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Methods.Creation.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Methods.Diagnostics.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Methods.Resolution.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Methods.Types.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Parameters.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.QueryState.CaseAndContext.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.QueryState.Filters.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.QueryState.QueryNodes.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.QueryState.SetAndCte.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.QueryState.TableStatements.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.QueryValidation.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ResultShape.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ResultShape.AllColumns.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ResultShape.StarModifiers.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ScriptSymbols.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SetOperators.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SourceBinding.Aliased.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SourceBinding.FromNodes.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SourceBinding.Helpers.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SourceBinding.PropertyAccess.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SourceBinding.Schema.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Values.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Values.Spans.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Values.Types.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Values.Validation.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.WindowMetadata.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitorUtilities.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitorUtilities.Diagnostics.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitorUtilities.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitorUtilities.ExpressionAnalysis.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitorUtilities.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitorUtilities.MethodConstruction.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitorUtilities.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitorUtilities.SetOperators.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitorUtilities.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitorUtilities.TypeHints.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitorUtilities.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\CloneQueryVisitor.InterpretationCalls.cs">
+      <DependentUpon>CloneQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\CloneQueryVisitor.InterpretationSchemas.cs">
+      <DependentUpon>CloneQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\CloneQueryVisitor.LiteralsAndAccess.cs">
+      <DependentUpon>CloneQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\CloneQueryVisitor.QueryClauses.cs">
+      <DependentUpon>CloneQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\CloneQueryVisitor.QueryNodes.cs">
+      <DependentUpon>CloneQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\CloneQueryVisitor.ScriptVariables.cs">
+      <DependentUpon>CloneQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\CloneQueryVisitor.Subqueries.cs">
+      <DependentUpon>CloneQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.BinarySchema.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.BinarySchema.CompositeTypes.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.BinarySchema.FieldDispatch.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.BinarySchema.Inheritance.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.BinarySchema.Primitives.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.Expressions.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.InlineSchemas.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.TextSchema.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.TextSchema.Escaping.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.TextSchema.FieldDispatch.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.TextSchema.ReadModes.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.TextSchema.RepeatAndSwitch.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.TypeNames.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RawTraverseVisitor.Expressions.cs">
+      <DependentUpon>RawTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RawTraverseVisitor.InterpretationSchemas.cs">
+      <DependentUpon>RawTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RawTraverseVisitor.QueryAndSchemas.cs">
+      <DependentUpon>RawTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RawTraverseVisitor.QuerySources.cs">
+      <DependentUpon>RawTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RawTraverseVisitor.ScriptVariables.cs">
+      <DependentUpon>RawTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryTraverseVisitor.InterpretationSchemas.cs">
+      <DependentUpon>RewriteQueryTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryTraverseVisitor.QuerySetAndCte.cs">
+      <DependentUpon>RewriteQueryTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryTraverseVisitor.Windows.cs">
+      <DependentUpon>RewriteQueryTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryVisitor.Clauses.cs">
+      <DependentUpon>RewriteQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryVisitor.DirectApply.cs">
+      <DependentUpon>RewriteQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryVisitor.Expressions.cs">
+      <DependentUpon>RewriteQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryVisitor.Interpretation.cs">
+      <DependentUpon>RewriteQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryVisitor.Query.cs">
+      <DependentUpon>RewriteQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryVisitor.Query.GroupedSplit.cs">
+      <DependentUpon>RewriteQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryVisitor.Query.JoinSplit.cs">
+      <DependentUpon>RewriteQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryVisitor.Query.ResultSplit.cs">
+      <DependentUpon>RewriteQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryVisitor.QuerySupport.cs">
+      <DependentUpon>RewriteQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryVisitor.SchemaAndWindow.cs">
+      <DependentUpon>RewriteQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryVisitor.ScriptVariables.cs">
+      <DependentUpon>RewriteQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryVisitor.Sources.cs">
+      <DependentUpon>RewriteQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\ScriptVariableInitializerEvaluator.ArithmeticAndBitwise.cs">
+      <DependentUpon>ScriptVariableInitializerEvaluator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\ScriptVariableInitializerEvaluator.Diagnostics.cs">
+      <DependentUpon>ScriptVariableInitializerEvaluator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\ScriptVariableInitializerEvaluator.NumericHelpers.cs">
+      <DependentUpon>ScriptVariableInitializerEvaluator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\ScriptVariableInitializerEvaluator.Predicates.cs">
+      <DependentUpon>ScriptVariableInitializerEvaluator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\ScriptVariableInitializerEvaluator.References.cs">
+      <DependentUpon>ScriptVariableInitializerEvaluator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.Correlation.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.CteExpressions.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.CteFlattening.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.DerivedTables.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.DerivedTables.CorrelationRewrite.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.DerivedTables.Helpers.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.ExpressionContext.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.ExpressionReplacement.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.InQueryExtraction.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.JoinRewrite.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.JoinRewrite.Helpers.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.NestedRewrite.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.PredicateSubqueries.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.Query.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.ScalarSubqueries.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.ScalarSubqueries.ExpressionRewriter.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.ScalarSubqueries.Types.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.SelectHelpers.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.Types.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesTraverseVisitor.ApplySymbols.cs">
+      <DependentUpon>BuildMetadataAndInferTypesTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesTraverseVisitor.Coalesce.cs">
+      <DependentUpon>BuildMetadataAndInferTypesTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesTraverseVisitor.Desc.cs">
+      <DependentUpon>BuildMetadataAndInferTypesTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesTraverseVisitor.JoinNullability.cs">
+      <DependentUpon>BuildMetadataAndInferTypesTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.DescContext.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.ExpressionOperators.Coalesce.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\CloneQueryVisitor.Desc.cs">
+      <DependentUpon>CloneQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\CloneQueryVisitor.RowPresence.cs">
+      <DependentUpon>CloneQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.BinarySchema.Substream.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.BinarySchema.Switch.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.BinarySchema.Validation.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteToUpdatedColumnAccessTraverser.cs">
+      <DependentUpon>RewriteToUpdatedColumnAccess.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\EvaluationHelper.Descriptions.Constructors.cs">
+      <DependentUpon>EvaluationHelper.Descriptions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\EvaluationHelper.Descriptions.RuntimeSettings.cs">
+      <DependentUpon>EvaluationHelper.Descriptions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\EvaluationHelper.Descriptions.SchemaMethods.cs">
+      <DependentUpon>EvaluationHelper.Descriptions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\EvaluationHelper.Descriptions.TypeComplexity.cs">
+      <DependentUpon>EvaluationHelper.Descriptions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\EvaluationHelper.Descriptions.XmlDocs.cs">
+      <DependentUpon>EvaluationHelper.Descriptions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\EvaluationHelper.TableRows.Contexts.cs">
+      <DependentUpon>EvaluationHelper.TableRows.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\EvaluationHelper.TableRows.TopOffset.cs">
+      <DependentUpon>EvaluationHelper.TableRows.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\EvaluationHelper.TableRows.TopOffsetTypes.cs">
+      <DependentUpon>EvaluationHelper.TableRows.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.Aggregates.Conversions.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.Aggregates.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.Aggregates.Running.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.Aggregates.WholePartition.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.DenseRanking.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.LagLead.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.Partitioning.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.PartitionIteration.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.PluginWindows.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.PluginWindows.Framed.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.PluginWindows.OrderedAdapters.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.Ranking.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.Sorting.Comparers.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.Sorting.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.Sorting.ListPartitions.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.Sorting.PartitionSet.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.Sorting.PooledSortKeys.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.Sorting.StructKeys.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowFunctionHelpers.Sorting.TypeDispatch.cs">
+      <DependentUpon>WindowFunctionHelpers.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowPartitionCountBuilder.ReferenceCache.cs">
+      <DependentUpon>WindowPartitionCountBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Helpers\WindowPartitionCountBuilder.StructuralStorage.cs">
+      <DependentUpon>WindowPartitionCountBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\CodeGeneration\CSharpRenderer.FinalProjectionInvocations.cs">
+      <DependentUpon>CSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\CodeGeneration\CSharpRenderer.FinalSinkRows.cs">
+      <DependentUpon>CSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\CodeGeneration\CSharpRenderer.FinalSinkSetup.cs">
+      <DependentUpon>CSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\CodeGeneration\CSharpRenderer.Metadata.cs">
+      <DependentUpon>CSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\CodeGeneration\CSharpRenderer.TableDirectProjection.cs">
+      <DependentUpon>CSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\CodeGeneration\CSharpRenderer.TypedDirectProjection.cs">
+      <DependentUpon>CSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\CodeGeneration\CSharpRenderer.TypedPostOperations.cs">
+      <DependentUpon>CSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.AggregateContexts.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.AggregateGenerationSignatures.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.AggregateGenerationState.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.AggregateGroupClasses.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.AggregateHelperCollection.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.AggregateInlining.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.AggregateParallel.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Aggregates.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.AggregateValueTupleGroups.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Capability.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Captures.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.ClassMembers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Construction.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.ContextNormalization.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.CteFusedProducers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.CteIndexResults.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.CteRowResults.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.DerivedTablesAndCapacity.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.DescRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.EntryPoints.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.EntryPoints.MethodCallCaches.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.EntryPoints.MethodStatements.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.EntryPoints.Phases.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.EntryPoints.RuntimeHelpers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.EntryPoints.ScriptParameters.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.EntryPoints.ScriptVariables.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.ExecutionState.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Expressions.CachedMethodCalls.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Expressions.Dispatch.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Expressions.FieldReads.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Expressions.InjectedMethodArguments.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Expressions.InPatternCase.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Expressions.LiteralsAndSetHelpers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Expressions.MethodCalls.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Expressions.MethodInvocationArguments.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Expressions.MethodTargets.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Expressions.Operators.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Flow.AppendRows.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Flow.Loops.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Flow.Materialization.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Flow.Parallel.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Flow.StateAndDynamic.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Flow.Tables.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.GeneratedRowClassConstructors.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.GeneratedRowClasses.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.GeneratedRowClassMembers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.GeneratedRowConstructors.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.GeneratedRowContexts.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.HashJoinCaptures.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.HashJoinDiscovery.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.HashJoinHelpers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.JoinIndexes.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Joins.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.NodeDispatch.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.OrderedRows.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.OrderRecords.Comparers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.OrderRecords.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.OrderRecords.GeneratedComparers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.OrderRecords.Materialization.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.OrderRecords.ShapeDiscovery.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.ParallelAggregates.Captures.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.ParallelAggregates.FunctionBody.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.ParallelAggregates.Helpers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.ParallelAggregates.Merge.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.ParallelAggregates.Shards.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.ParallelAggregateWorkers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.QueryRunContext.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.ReflectedMemberAccessors.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.RowCarrierClasses.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.RowsAndShapes.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.SerialAggregates.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.SetOperations.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.SingleKeyAggregateHelpers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Sources.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Sources.Enumerables.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Sources.ScalarWrappers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Sources.SchemaDeclarations.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.StaticMetadata.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.StoredTableHelpers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Syntax.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Syntax.Hashing.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.TableOperations.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.TableOrdering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Traversal.Constants.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Traversal.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Types.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Validation.Blocks.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Validation.Collectors.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Validation.Expressions.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Validation.Methods.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Validation.NodeCapabilities.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Validation.NodeCapabilityHelpers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Validation.Nodes.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Validation.NodeSearch.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Validation.QueryStats.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.Validation.Windows.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.ValueTupleAggregateHelpers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.VariableUse.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowAggregateFrames.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowAggregateLoops.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowAggregateMinMax.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowAggregateRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowAggregateValues.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowAppendRowsHelpers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowArrayPool.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowBuiltInValueKernels.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowCommonHelpers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowGeneratedKeys.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowGeneratedKeyStructs.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowHelperRecords.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowHelperTypes.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowKernelPlans.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowKeys.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowNtileKernels.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowOffset.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowOffsetInvocations.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowOffsetKernels.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowPartitionHelpers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowPartitionHelpers.Declarations.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowPartitionHelpers.KeyExtraction.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowPartitionHelpers.Loops.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowPluginInvocations.Arguments.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowPluginInvocations.Types.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowPluginRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowPluginStreaming.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowRanking.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowRankingExtractionHelpers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowRankingFastPaths.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowRankingInvocations.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowRankingKernels.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.WindowSortedCopyHelpers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionExpressionConverter.ConstantInSets.cs">
+      <DependentUpon>ExecutionExpressionConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionExpressionConverter.FieldResolution.cs">
+      <DependentUpon>ExecutionExpressionConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionExpressionConverter.InjectedSources.cs">
+      <DependentUpon>ExecutionExpressionConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionExpressionConverter.MethodTargets.cs">
+      <DependentUpon>ExecutionExpressionConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionExpressionConverter.RowPresence.cs">
+      <DependentUpon>ExecutionExpressionConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionIrRewriter.Expressions.cs">
+      <DependentUpon>ExecutionIrRewriter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionIrRewriter.Helpers.cs">
+      <DependentUpon>ExecutionIrRewriter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionIrRewriter.Nodes.cs">
+      <DependentUpon>ExecutionIrRewriter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionPlanPrinter.Nodes.Formatting.cs">
+      <DependentUpon>ExecutionPlanPrinter.Nodes.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionShapeResolver.BinarySchemas.cs">
+      <DependentUpon>ExecutionShapeResolver.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionShapeResolver.BinarySchemas.NestedColumns.cs">
+      <DependentUpon>ExecutionShapeResolver.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionShapeResolver.Columns.cs">
+      <DependentUpon>ExecutionShapeResolver.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionShapeResolver.EntityTypes.cs">
+      <DependentUpon>ExecutionShapeResolver.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionShapeResolver.ShapeCreation.cs">
+      <DependentUpon>ExecutionShapeResolver.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionShapeResolver.Sources.cs">
+      <DependentUpon>ExecutionShapeResolver.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionShapeResolver.TextSchemas.cs">
+      <DependentUpon>ExecutionShapeResolver.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.HashJoinKeyRendering.Conditional.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.HashJoinKeyRendering.KeyLocals.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.KeySetHelperRendering.Functions.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AggregateAccumulators.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AggregateAppendRows.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AggregateBlockVariableNames.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AggregateCaptures.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AggregateFinalization.AppendRows.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AggregateFinalization.BindingResolution.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AggregateFinalization.Expressions.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AggregateFinalization.TransitionReads.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AggregateHelpers.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AggregateLibraries.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AggregateLoweringResources.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AggregateOnly.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Aggregates.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.ApplyAndWindows.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.ApplyLowering.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.ApplyOrdinality.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AsOfJoinAliases.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AsOfJoinPredicates.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.AsOfJoins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.BlocksAndHoisting.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CapacityHints.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CrossApplyChains.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CteMetadata.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CtePruning.ColumnUsage.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CtePruning.Contexts.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CtePruning.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CtePruning.InputSources.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Ctes.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Ctes.ParallelLevels.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CteSiblingFusion.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CteSiblingFusion.Rewrite.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CteSidecarCapacityHints.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CteSidecarIndexAppends.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CteSidecarIndexes.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Desc.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.FinalProjection.AggregateFinalization.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.FinalProjection.Aggregates.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.FinalProjection.ExpressionRewrite.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.FinalProjection.Joins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.FinalSideEffectApplyProjection.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.FullOuterHashJoins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.FullOuterNestedLoopJoins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.GeneratedShapes.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.HashJoinKeys.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.HashJoins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.HashJoinTableLowering.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.HashJoinTables.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.IndexedHashRows.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.InterpretSourceValidation.Binary.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.InterpretSourceValidation.Text.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.InterpretSourceValidation.Types.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Joins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.JoinSources.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.LeanDistinct.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.MultiStatements.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.NestedLoopJoins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.NullExtendedProjection.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.OrderRecords.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.OuterApplyNullSubstitution.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.OuterApplyNullSubstitution.Expressions.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.OuterApplyNullSubstitution.Predicates.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.ParallelAggregateLoops.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.PipelineDecomposition.Aggregates.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.PipelineDecomposition.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.PipelineDecomposition.SetOperations.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.PipelineDecomposition.Sources.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.PostOperationProjection.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.PostOperations.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.PostOperations.Diagnostics.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.PostOperations.Ordering.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.PostOperations.StreamingSlice.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.PredicateHelpers.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.RawAggregatePipelines.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.ReadOnceCtes.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.ReadOnceCtes.Prefix.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.RowPresenceSubstitution.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.RowWidthPruning.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SemiJoins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SetOperations.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SidecarJoinPipeline.Rewrite.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SidecarJoinPipeline.Scheduling.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SidecarJoinPipeline.Steps.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SidecarJoinPipeline.Table.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SingleKeyAggregates.Core.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SingleKeyAggregates.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SingleKeyAggregates.Joins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SingleUseSidecarJoinChains.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SortMergeJoins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SourceSetup.Binding.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SourceSetup.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SourceSetup.InterpreterType.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SourceSetup.Rows.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SourceSetup.SourceKinds.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SourceShapes.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SourceShapes.Ctes.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SourceShapes.Materialized.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SourceShapes.NestedProjections.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SourceShapes.Values.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.TableDispatch.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.TableMetadata.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.TablePipeline.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.TypedRows.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Types.Aggregates.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Types.Common.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Types.CtesAndSources.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Types.PipelinesAndWindows.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Types.PostOperations.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Types.ProjectionAndApply.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Types.Results.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Types.SourcesAndJoins.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.ValueTupleAggregates.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.ValueTupleGroupDictionaries.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowAggregateKernels.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowAggregateSources.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowAndAggregateResultTypes.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowAppend.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowArguments.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowComputationSignatures.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowKernelPlans.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowMetadata.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowPluginContracts.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowProjectionConversion.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowQualify.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowReferences.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowRegistrationKeys.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowRegistrations.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.WindowRegistrationValidation.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Windows.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Windows.Materialization.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Windows.Source.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SingleUseHashBuildFusion.AliasDiscovery.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SingleUseHashBuildFusion.ExpressionRewrite.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SingleUseHashBuildFusion.HashBuildNodes.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SingleUseHashBuildFusion.Payload.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SingleUseHashBuildFusion.PayloadPruning.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SingleUseHashBuildFusion.Sources.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\SingleUseMaterializationPlanner.Consumers.cs">
+      <DependentUpon>SingleUseMaterializationPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Expressions\AggregateRefRewriter.BindingResolution.cs">
+      <DependentUpon>AggregateRefRewriter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Expressions\AggregateRefRewriter.Visits.cs">
+      <DependentUpon>AggregateRefRewriter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Expressions\ExpressionConverter.Coalesce.cs">
+      <DependentUpon>ExpressionConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Expressions\ExpressionConverter.ColumnAccess.cs">
+      <DependentUpon>ExpressionConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Expressions\ExpressionConverter.ReturnTypes.cs">
+      <DependentUpon>ExpressionConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Expressions\ExpressionConverter.RowPresence.cs">
+      <DependentUpon>ExpressionConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Expressions\ExpressionConverter.SourceSpans.cs">
+      <DependentUpon>ExpressionConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\LogicalPlanBuilder.AggregateBindingCollection.cs">
+      <DependentUpon>LogicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\LogicalPlanBuilder.AggregateKernels.cs">
+      <DependentUpon>LogicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\LogicalPlanBuilder.AggregateReferenceRewrites.cs">
+      <DependentUpon>LogicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\LogicalPlanBuilder.AggregateRefreshLookup.cs">
+      <DependentUpon>LogicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\LogicalPlanBuilder.Aggregates.cs">
+      <DependentUpon>LogicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\LogicalPlanBuilder.NoOpVisits.cs">
+      <DependentUpon>LogicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\LogicalPlanBuilder.Projection.cs">
+      <DependentUpon>LogicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\LogicalPlanBuilder.Query.cs">
+      <DependentUpon>LogicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\LogicalPlanBuilder.Sources.cs">
+      <DependentUpon>LogicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\LogicalPlanBuilder.Windows.cs">
+      <DependentUpon>LogicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\Rewriting\LogicalPlanRewriter.Expressions.cs">
+      <DependentUpon>LogicalPlanRewriter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Optimization\LogicalConstantExpressionFolder.Binary.cs">
+      <DependentUpon>LogicalConstantExpressionFolder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Optimization\LogicalConstantExpressionFolder.Unary.cs">
+      <DependentUpon>LogicalConstantExpressionFolder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Physical\PhysicalPlanBuilder.CteStatements.cs">
+      <DependentUpon>PhysicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Physical\PhysicalPlanBuilder.SetOperationKeys.cs">
+      <DependentUpon>PhysicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Physical\PhysicalPlanBuilder.SourceContracts.cs">
+      <DependentUpon>PhysicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Physical\PhysicalPlanBuilder.StrategyLowering.cs">
+      <DependentUpon>PhysicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Physical\PhysicalPlanBuilder.WindowAndSetOperations.cs">
+      <DependentUpon>PhysicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Physical\PhysicalPlanPrinter.Aggregates.cs">
+      <DependentUpon>PhysicalPlanPrinter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Physical\PhysicalPlanPrinter.Desc.cs">
+      <DependentUpon>PhysicalPlanPrinter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Physical\PhysicalPlanPrinter.Helpers.cs">
+      <DependentUpon>PhysicalPlanPrinter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Physical\PhysicalPlanPrinter.Joins.cs">
+      <DependentUpon>PhysicalPlanPrinter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Physical\PhysicalPlanPrinter.Projects.cs">
+      <DependentUpon>PhysicalPlanPrinter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\BoundaryRowShapePlanner.AliasFiltering.cs">
+      <DependentUpon>BoundaryRowShapePlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\BoundaryRowShapePlanner.HashJoins.cs">
+      <DependentUpon>BoundaryRowShapePlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\BoundaryRowShapePlanner.Helpers.cs">
+      <DependentUpon>BoundaryRowShapePlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\CteSidecarIndexPlanner.Specs.cs">
+      <DependentUpon>CteSidecarIndexPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\CteStrategyPlanner.Determinism.cs">
+      <DependentUpon>CteStrategyPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\CteStrategyPlanner.Formatting.cs">
+      <DependentUpon>CteStrategyPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\ParallelStrategyPlanner.CteLevels.cs">
+      <DependentUpon>ParallelStrategyPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\ParallelStrategyPlanner.Eligibility.cs">
+      <DependentUpon>ParallelStrategyPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\ParallelStrategyPlanner.Helpers.cs">
+      <DependentUpon>ParallelStrategyPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PhysicalStrategyRules.AliasClassification.cs">
+      <DependentUpon>PhysicalStrategyRules.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PhysicalStrategyRules.HashJoins.cs">
+      <DependentUpon>PhysicalStrategyRules.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PhysicalStrategyRules.JoinStrategy.cs">
+      <DependentUpon>PhysicalStrategyRules.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PhysicalStrategyRules.SortMergeJoins.cs">
+      <DependentUpon>PhysicalStrategyRules.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PlanningPropertyDeriver.RequiredColumnMappings.cs">
+      <DependentUpon>PlanningPropertyDeriver.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PredicateMovementPlanner.ExpressionSafety.cs">
+      <DependentUpon>PredicateMovementPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PredicateMovementPlanner.FormattingAndRecords.cs">
+      <DependentUpon>PredicateMovementPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PredicateMovementPlanner.SideResolution.cs">
+      <DependentUpon>PredicateMovementPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PredicateMovementPlanner.State.cs">
+      <DependentUpon>PredicateMovementPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PredicatePlacementPlanner.AliasDiscovery.cs">
+      <DependentUpon>PredicatePlacementPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PredicatePlacementPlanner.Determinism.cs">
+      <DependentUpon>PredicatePlacementPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PredicatePlacementPlanner.Facts.cs">
+      <DependentUpon>PredicatePlacementPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PredicatePlacementPlanner.FilterClassification.cs">
+      <DependentUpon>PredicatePlacementPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PredicatePlacementPlanner.Formatting.cs">
+      <DependentUpon>PredicatePlacementPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\PredicatePlacementPlanner.JoinClassification.cs">
+      <DependentUpon>PredicatePlacementPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\Printing\PlanningTextPrinter.SourcePlanning.cs">
+      <DependentUpon>PlanningTextPrinter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\RequiredColumnBoundaryPlanner.Helpers.cs">
+      <DependentUpon>RequiredColumnBoundaryPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\RequiredColumnBoundaryPlanner.JoinEdges.cs">
+      <DependentUpon>RequiredColumnBoundaryPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\RequiredColumnUsagePlanner.CollectorResults.cs">
+      <DependentUpon>RequiredColumnUsagePlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\RequiredColumnUsagePlanner.CollectorSetOperations.cs">
+      <DependentUpon>RequiredColumnUsagePlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\RequiredColumnUsagePlanner.CollectorTraversal.cs">
+      <DependentUpon>RequiredColumnUsagePlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\SourceBoundaryPlanner.AliasCollection.cs">
+      <DependentUpon>SourceBoundaryPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\SourceBoundaryPlanner.Boundaries.cs">
+      <DependentUpon>SourceBoundaryPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\SourceBoundaryPlanner.ReasonsAndFormatting.cs">
+      <DependentUpon>SourceBoundaryPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\SourceBoundaryPlanner.ShapeAndCacheability.cs">
+      <DependentUpon>SourceBoundaryPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\SourceInteractionPlanner.Arguments.cs">
+      <DependentUpon>SourceInteractionPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\SourceInteractionPlanner.ContextLookup.cs">
+      <DependentUpon>SourceInteractionPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\SourceInteractionPlanner.Records.cs">
+      <DependentUpon>SourceInteractionPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\SourceInteractionPlanner.ShapeAndColumns.cs">
+      <DependentUpon>SourceInteractionPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\SourcePlanning\SourcePlanningPlanner.SourceLocalFilters.cs">
+      <DependentUpon>SourcePlanningPlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Planning\SourcePredicatePlanner.MovementExpansion.cs">
+      <DependentUpon>SourcePredicatePlanner.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\SourcePlanning\SourcePredicateConjunctMatcher.SourceConjuncts.cs">
+      <DependentUpon>SourcePredicateConjunctMatcher.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\SourcePlanning\SourcePredicateConjunctMatcher.WholePredicate.cs">
+      <DependentUpon>SourcePredicateConjunctMatcher.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Tables\Table.PendingRows.cs">
+      <DependentUpon>Table.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.Methods.Context.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\Helpers\MethodDeclarationHelper.DataSourceProgress.cs">
+      <DependentUpon>MethodDeclarationHelper.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\Helpers\MethodDeclarationHelper.Parameters.cs">
+      <DependentUpon>MethodDeclarationHelper.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\Helpers\MethodDeclarationHelper.PhaseTracking.cs">
+      <DependentUpon>MethodDeclarationHelper.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\Helpers\MethodDeclarationHelper.RuntimeSettings.cs">
+      <DependentUpon>MethodDeclarationHelper.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\Helpers\MethodDeclarationHelper.Typed.cs">
+      <DependentUpon>MethodDeclarationHelper.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\Helpers\Subqueries\SubqueryCorrelationAnalyzer.AliasCollection.cs">
+      <DependentUpon>SubqueryCorrelationAnalyzer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\Helpers\Subqueries\SubqueryCorrelationAnalyzer.CteScopes.cs">
+      <DependentUpon>SubqueryCorrelationAnalyzer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\Helpers\Subqueries\SubqueryCorrelationAnalyzer.ExistsProjection.cs">
+      <DependentUpon>SubqueryCorrelationAnalyzer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\Helpers\Subqueries\SubqueryCorrelationAnalyzer.QueryScopes.cs">
+      <DependentUpon>SubqueryCorrelationAnalyzer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\Helpers\Subqueries\SubqueryCorrelationAnalyzer.ScopeTypes.cs">
+      <DependentUpon>SubqueryCorrelationAnalyzer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\Helpers\Subqueries\SubqueryCorrelationFactBuilder.Cardinality.cs">
+      <DependentUpon>SubqueryCorrelationFactBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RawTraverseVisitor.RowPresence.cs">
+      <DependentUpon>RawTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryVisitor.Query.Context.cs">
+      <DependentUpon>RewriteQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.CollectionParameterClassMembers.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.CollectionParameterInRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.CollectionParameterScriptBinding.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.GeneratedRowCreationRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.HashJoinHelperRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.HashJoinKeyRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.HashPayloadClasses.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.HashPayloadCreationRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.InterpretSourceCSharpRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.KeySetHelperFunctions.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.KeySetHelperProfiling.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.KeySetHelperRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.KeySetSyntaxRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.NullOrderingRecordComparerRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.NullOrderingRowOrderingRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.OperatorProfilingExceptionBoundaryRenderer.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.OperatorProfilingRenderer.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.ParallelRunnerRuntimeMembersRenderer.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.ProfiledQueryMethodRenderer.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.RendererMethodTargetGuard.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.ScriptParameterLocalNames.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.SerialAggregateHelperUtilities.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.SourceBoundaryProfilingRenderer.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.StrictCastExpressionRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionCSharpRenderer.TypedSinkRendering.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\Rendering\ExecutionCSharpRenderer.AggregateRenderer.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\Rendering\ExecutionCSharpRenderer.ExpressionRenderer.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\Rendering\ExecutionCSharpRenderer.JoinRenderer.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\Rendering\ExecutionCSharpRenderer.TableControlFlowRenderer.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\Rendering\ExecutionCSharpRenderer.WindowRenderer.cs">
+      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionExpressionConverter.CollectionParameterExecutionConversion.cs">
+      <DependentUpon>ExecutionExpressionConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionIrRewriter.CollectionParameterExecutionRewriting.cs">
+      <DependentUpon>ExecutionIrRewriter.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CollectionParameterWindowLowering.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CteCapacityHints.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CteIndexOnlySidecarStorage.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.CteSidecarHashPayloads.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.ExecutionStrategyResolution.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.GeneratedRowContextAccesses.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\ExecutionShapeResolver.InterpretationSchemaShapeResolver.cs">
+      <DependentUpon>ExecutionShapeResolver.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.InterpretSourceValidation.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SemiJoinKeySetPlanning.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SingleUseHashBuildFusion.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.SingleUseProjectionChainFusion.cs">
+      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\LogicalPlanBuilder.CastLogicalPlanBuilder.cs">
+      <DependentUpon>LogicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\LogicalPlanBuilder.InterpretSourceLogicalPlanBuilder.cs">
+      <DependentUpon>LogicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\LogicalPlanBuilder.OrderingNullMapping.cs">
+      <DependentUpon>LogicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="IR\Logical\LogicalPlanBuilder.UnpivotLogicalPlanBuilder.cs">
+      <DependentUpon>LogicalPlanBuilder.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.BinaryInterpretationPlanBuilder.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.CastBindingVisitor.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\CloneQueryVisitor.CastCloneQueryVisitor.cs">
+      <DependentUpon>CloneQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RawTraverseVisitor.CastRawTraverseVisitor.cs">
+      <DependentUpon>RawTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RewriteQueryVisitor.CastRewriteQueryVisitor.cs">
+      <DependentUpon>RewriteQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\CloneQueryVisitor.CollectionPredicateCloneVisitor.cs">
+      <DependentUpon>CloneQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.CreateTableSchemaColumnFactory.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SelectAliasBinding.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesTraverseVisitor.SelectAliasTraversal.cs">
+      <DependentUpon>BuildMetadataAndInferTypesTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.GroupByAllSemanticExpansion.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.GroupByOrdinalReferences.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\CloneQueryVisitor.PartialParseCloneQueryVisitor.cs">
+      <DependentUpon>CloneQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.PartialParseMetadataVisitor.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RawTraverseVisitor.PartialParseRawTraverseVisitor.cs">
+      <DependentUpon>RawTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.PartialResultInterpretFunctionBinding.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.PredicateSubqueryExpressionTraverser.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\SubqueryToCteRewriteVisitor.ScalarSubqueryMaterializationRewrite.cs">
+      <DependentUpon>SubqueryToCteRewriteVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\ScriptVariableInitializerEvaluator.ScriptVariableNullSafeComparisonEvaluator.cs">
+      <DependentUpon>ScriptVariableInitializerEvaluator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SemanticDiagnosticReporter.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SemanticMethodBindingService.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SemanticQueryValidationService.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SemanticResultShapeBindingService.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SemanticSourceBindingService.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SemanticVisitorServices.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SourceContractDiagnosticMetadataBindings.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SourceRuntimeSettingsInference.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.StarRenameProjection.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.TableContractMetadataBinding.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\InterpreterCodeGenerator.TextInterpretationPlanBuilder.cs">
+      <DependentUpon>InterpreterCodeGenerator.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\CloneQueryVisitor.UnpivotCloneSupport.cs">
+      <DependentUpon>CloneQueryVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.UnpivotMetadataBinding.cs">
+      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\BuildMetadataAndInferTypesTraverseVisitor.UnpivotMetadataTraversal.cs">
+      <DependentUpon>BuildMetadataAndInferTypesTraverseVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\ExtractRawColumnsVisitor.UnpivotRawColumnExtraction.cs">
+      <DependentUpon>ExtractRawColumnsVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Visitors\RawTraverseVisitor.UnpivotRawTraverseSupport.cs">
+      <DependentUpon>RawTraverseVisitor.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\Compilation.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Compilation.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\MetaAttributes.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>MetaAttributes.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

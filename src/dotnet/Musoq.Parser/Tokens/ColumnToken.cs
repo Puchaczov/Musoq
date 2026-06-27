@@ -1,4 +1,4 @@
-﻿namespace Musoq.Parser.Tokens;
+namespace Musoq.Parser.Tokens;
 
 public class ColumnToken : Token
 {
@@ -7,7 +7,7 @@ public class ColumnToken : Token
     public ColumnToken(string value, TextSpan span) : base(ReplaceLeadingAndTrailingColumnMarkers(value),
         TokenType.Identifier, span)
     {
-        if (value.StartsWith("[") && value.EndsWith("]"))
+        if (value.StartsWith('[') && value.EndsWith(']'))
             _hasColumnMarkers = true;
     }
 
@@ -21,7 +21,8 @@ public class ColumnToken : Token
 
     private static string ReplaceLeadingAndTrailingColumnMarkers(string value)
     {
-        if (value.StartsWith("[") && value.EndsWith("]"))
+        ArgumentNullException.ThrowIfNull(value);
+        if (value.StartsWith('[') && value.EndsWith(']'))
             return value.Substring(1, value.Length - 2);
 
         return value;

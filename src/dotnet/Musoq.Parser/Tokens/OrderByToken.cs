@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class OrderByToken : Token
+public class OrderByToken(TextSpan span) : Token(TokenText, TokenType.OrderBy, span)
 {
-    public static string TokenText = "order by";
-
-    public OrderByToken(TextSpan span)
-        : base(TokenText, TokenType.OrderBy, span)
-    {
-    }
+    public const string TokenText = "order by";
 }

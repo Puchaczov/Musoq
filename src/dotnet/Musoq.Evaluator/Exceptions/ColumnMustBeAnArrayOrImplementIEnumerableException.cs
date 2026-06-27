@@ -1,5 +1,3 @@
-﻿#nullable enable
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -10,6 +8,16 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class ColumnMustBeAnArrayOrImplementIEnumerableException : Exception, IDiagnosticException
 {
+
+    public ColumnMustBeAnArrayOrImplementIEnumerableException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public ColumnMustBeAnArrayOrImplementIEnumerableException(string message)
+        : base(message)
+    {
+    }
     /// <summary>
     ///     Initializes a new instance.
     /// </summary>

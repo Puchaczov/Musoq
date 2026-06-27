@@ -1,10 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class SkipToken : Token
+public class SkipToken(string value, TextSpan span) : Token(value, TokenType.Skip, span)
 {
     public const string TokenText = "skip";
-
-    public SkipToken(string value, TextSpan span) : base(value, TokenType.Skip, span)
-    {
-    }
 }

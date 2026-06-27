@@ -1,13 +1,11 @@
-﻿using System;
-
-namespace Musoq.Schema.Reflection;
+﻿namespace Musoq.Schema.Reflection;
 
 public class ConstructorInfo(
-    System.Reflection.ConstructorInfo originConstructorInfo,
+    System.Reflection.ConstructorInfo? originConstructorInfo,
     bool supportsInterCommunicator,
     params (string Name, Type Type)[] arguments)
 {
-    public System.Reflection.ConstructorInfo OriginConstructor { get; } = originConstructorInfo;
+    public System.Reflection.ConstructorInfo? OriginConstructor { get; } = originConstructorInfo;
 
     public (string Name, Type Type)[] Arguments { get; } = arguments;
 

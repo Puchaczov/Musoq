@@ -53,11 +53,13 @@ internal static class VisitorOperationNames
 
     // Other nodes
     public const string VisitIsNullNode = "VisitIsNullNode";
+    public const string VisitRowPresenceNode = "VisitRowPresenceNode";
     public const string VisitInterpretCallNode = "VisitInterpretCallNode";
     public const string VisitParseCallNode = "VisitParseCallNode";
     public const string VisitTryInterpretCallNode = "VisitTryInterpretCallNode";
     public const string VisitTryParseCallNode = "VisitTryParseCallNode";
     public const string VisitPartialInterpretCallNode = "VisitPartialInterpretCallNode";
+    public const string VisitPartialParseCallNode = "VisitPartialParseCallNode";
     public const string VisitArgsListNode = "VisitArgsListNode";
 
     // Root operations

@@ -9,7 +9,7 @@ namespace Musoq.Plugins;
 [BindableClass]
 [SuppressMessage("ReSharper", "UnusedMember.Global")]
 [SuppressMessage("ReSharper", "UnusedParameter.Global")]
-public partial class LibraryBase : UserMethodsLibrary
+public partial class LibraryBase
 {
     /// <summary>
     ///     Gets the row number of the current row.
@@ -20,6 +20,7 @@ public partial class LibraryBase : UserMethodsLibrary
     [MethodCategory(MethodCategories.Utility)]
     public int RowNumber([InjectQueryStats] QueryStats info)
     {
+        ArgumentNullException.ThrowIfNull(info);
         return info.RowNumber;
     }
 
@@ -32,6 +33,7 @@ public partial class LibraryBase : UserMethodsLibrary
     [MethodCategory(MethodCategories.Utility)]
     public int RowNumber([InjectQueryStats] IQueryStats info)
     {
+        ArgumentNullException.ThrowIfNull(info);
         return info.RowNumber;
     }
 

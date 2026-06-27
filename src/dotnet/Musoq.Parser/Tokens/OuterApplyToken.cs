@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class OuterApplyToken : Token
+public class OuterApplyToken(TextSpan span) : Token(TokenText, TokenType.OuterApply, span)
 {
     public const string TokenText = "outer apply";
-
-    public OuterApplyToken(TextSpan span)
-        : base(TokenText, TokenType.OuterApply, span)
-    {
-    }
 }

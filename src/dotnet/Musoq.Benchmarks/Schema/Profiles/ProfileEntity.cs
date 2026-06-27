@@ -1,26 +1,22 @@
-﻿namespace Musoq.Benchmarks.Schema.Profiles;
+namespace Musoq.Benchmarks.Schema.Profiles;
 
 public class ProfileEntity
 {
-    public static readonly IDictionary<string, int> KNameToIndexMap;
-    public static readonly IDictionary<int, Func<ProfileEntity, object>> KIndexToObjectAccessMap;
-
-    static ProfileEntity()
+    public static readonly IDictionary<string, int> KNameToIndexMap = new Dictionary<string, int>
     {
-        KNameToIndexMap = new Dictionary<string, int>
-        {
-            { nameof(FirstName), 11 },
-            { nameof(LastName), 12 },
-            { nameof(Email), 13 },
-            { nameof(Gender), 14 },
-            { nameof(IpAddress), 15 },
-            { nameof(Date), 16 },
-            { nameof(Image), 17 },
-            { nameof(Animal), 18 },
-            { nameof(Avatar), 19 }
-        };
+        { nameof(FirstName), 11 },
+        { nameof(LastName), 12 },
+        { nameof(Email), 13 },
+        { nameof(Gender), 14 },
+        { nameof(IpAddress), 15 },
+        { nameof(Date), 16 },
+        { nameof(Image), 17 },
+        { nameof(Animal), 18 },
+        { nameof(Avatar), 19 }
+    };
 
-        KIndexToObjectAccessMap = new Dictionary<int, Func<ProfileEntity, object>>
+    public static readonly IDictionary<int, Func<ProfileEntity, object?>> KIndexToObjectAccessMap =
+        new Dictionary<int, Func<ProfileEntity, object?>>
         {
             { 11, arg => arg.FirstName },
             { 12, arg => arg.LastName },
@@ -32,7 +28,6 @@ public class ProfileEntity
             { 18, arg => arg.Animal },
             { 19, arg => arg.Avatar }
         };
-    }
 
     public ProfileEntity(string firstName,
         string lastName,

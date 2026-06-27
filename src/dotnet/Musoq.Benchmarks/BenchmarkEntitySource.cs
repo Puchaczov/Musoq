@@ -1,32 +1,24 @@
-﻿using Musoq.Schema.DataSources;
+using Musoq.Schema.DataSources;
 
 namespace Musoq.Benchmarks;
 
 /// <summary>
 ///     Generic entity source for benchmarks.
 /// </summary>
-public class BenchmarkEntitySource<T> : RowSource
+public class BenchmarkEntitySource<T> : RowSource<T>
 {
-    private readonly IEnumerable<T> _entities;
-    private readonly IReadOnlyDictionary<int, Func<T, object>> _indexToObjectAccessMap;
-    private readonly IReadOnlyDictionary<string, int> _nameToIndexMap;
+    private readonly IEnumerable<IReadOnlyList<T>> _chunks;
 
     public BenchmarkEntitySource(
-        IEnumerable<T> entities,
+        IEnumerable<IReadOnlyList<T>> chunks,
         IReadOnlyDictionary<string, int> nameToIndexMap,
-        IReadOnlyDictionary<int, Func<T, object>> indexToObjectAccessMap)
+        IReadOnlyDictionary<int, Func<T, object?>> indexToObjectAccessMap)
     {
-        _entities = entities;
-        _nameToIndexMap = nameToIndexMap;
-        _indexToObjectAccessMap = indexToObjectAccessMap;
+        _ = nameToIndexMap;
+        _ = indexToObjectAccessMap;
+
+        _chunks = chunks;
     }
 
-    public override IEnumerable<IObjectResolver> Rows
-    {
-        get
-        {
-            foreach (var entity in _entities)
-                yield return new BenchmarkEntityResolver<T>(entity, _nameToIndexMap, _indexToObjectAccessMap);
-        }
-    }
+    public override IEnumerable<IReadOnlyList<T>> Chunks => _chunks;
 }

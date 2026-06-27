@@ -1,14 +1,10 @@
-﻿namespace Musoq.Parser.Nodes;
+namespace Musoq.Parser.Nodes;
 
-public class GroupSelectNode : SelectNode
+public class GroupSelectNode(FieldNode[] fields) : SelectNode(fields)
 {
-    public GroupSelectNode(FieldNode[] fields)
-        : base(fields)
-    {
-    }
-
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 }

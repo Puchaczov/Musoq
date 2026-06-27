@@ -1,5 +1,3 @@
-#nullable enable
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -11,6 +9,19 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class VisitorException : Exception, IDiagnosticException
 {
+    public VisitorException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public VisitorException(string message)
+        : base(message)
+    {
+    }
+
+    public VisitorException()
+    {
+    }
     /// <summary>
     ///     Initializes a new instance of the VisitorException class.
     /// </summary>
@@ -64,12 +75,12 @@ public class VisitorException : Exception, IDiagnosticException
     /// <summary>
     ///     The name of the visitor that encountered the error.
     /// </summary>
-    public string VisitorName { get; }
+    public string VisitorName { get; } = "Unknown";
 
     /// <summary>
     ///     The operation that was being performed when the error occurred.
     /// </summary>
-    public string Operation { get; }
+    public string Operation { get; } = "Unknown";
 
     /// <summary>
     ///     Gets the diagnostic code for this exception.

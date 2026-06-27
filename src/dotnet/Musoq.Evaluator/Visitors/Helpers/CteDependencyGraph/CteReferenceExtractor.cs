@@ -32,6 +32,7 @@ public class CteReferenceExtractor : NoOpExpressionVisitor
     /// </summary>
     public override void Visit(InMemoryTableFromNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         if (_knownCteNames.Contains(node.VariableName)) _foundReferences.Add(node.VariableName);
     }
 
@@ -40,6 +41,7 @@ public class CteReferenceExtractor : NoOpExpressionVisitor
     /// </summary>
     public override void Visit(JoinInMemoryWithSourceTableFromNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         if (_knownCteNames.Contains(node.InMemoryTableAlias)) _foundReferences.Add(node.InMemoryTableAlias);
     }
 
@@ -48,6 +50,7 @@ public class CteReferenceExtractor : NoOpExpressionVisitor
     /// </summary>
     public override void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         if (_knownCteNames.Contains(node.InMemoryTableAlias)) _foundReferences.Add(node.InMemoryTableAlias);
     }
 

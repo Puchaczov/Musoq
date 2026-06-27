@@ -14,7 +14,7 @@ public static class DataHelpers
         var jsonContent = File.ReadAllText(jsonFilePath);
         var countriesDictionary = JsonSerializer.Deserialize<Dictionary<string, string[]>>(jsonContent);
 
-        if (countriesDictionary == null) throw new Exception("Failed to parse the JSON content.");
+        if (countriesDictionary == null) throw new InvalidDataException("Failed to parse the JSON content.");
 
         var countryEntities = new List<CountryEntity>();
         var random = new Random(345);

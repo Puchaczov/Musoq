@@ -1,11 +1,6 @@
 namespace Musoq.Parser.Tokens;
 
-public class ModuloToken : Token
+public class ModuloToken(TextSpan span) : Token(TokenText, TokenType.Mod, span)
 {
     public const string TokenText = "%";
-
-    public ModuloToken(TextSpan span)
-        : base(TokenText, TokenType.Mod, span)
-    {
-    }
 }

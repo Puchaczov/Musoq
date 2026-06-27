@@ -1,13 +1,12 @@
-﻿using System;
-
 namespace Musoq.Parser.Nodes;
 
 public class SkipNode : UnaryNode
 {
     public SkipNode(IntegerNode expression) : base(expression)
     {
+        ArgumentNullException.ThrowIfNull(expression);
         Id = $"{nameof(SkipNode)}{ReturnType.Name}{Expression.Id}";
-        Value = Convert.ToInt64(expression.ObjValue);
+        Value = Convert.ToInt64(expression.ObjValue, System.Globalization.CultureInfo.InvariantCulture);
     }
 
     public long Value { get; }
@@ -18,6 +17,7 @@ public class SkipNode : UnaryNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

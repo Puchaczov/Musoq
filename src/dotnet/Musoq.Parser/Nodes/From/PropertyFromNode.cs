@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 namespace Musoq.Parser.Nodes.From;
 
@@ -29,6 +28,7 @@ public class PropertyFromNode : FromNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -49,5 +49,5 @@ public class PropertyFromNode : FromNode
         return string.Join(".", propertiesChain.Select(f => f.PropertyName));
     }
 
-    public record PropertyNameAndTypePair(string PropertyName, Type PropertyType, string IntendedTypeName = null);
+    public record PropertyNameAndTypePair(string PropertyName, Type? PropertyType, string? IntendedTypeName = null);
 }

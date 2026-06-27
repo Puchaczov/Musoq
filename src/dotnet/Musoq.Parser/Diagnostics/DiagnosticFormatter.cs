@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 
 namespace Musoq.Parser.Diagnostics;
@@ -16,7 +15,7 @@ public sealed class DiagnosticFormatter
     /// <summary>
     ///     Gets or sets whether to use ANSI color codes.
     /// </summary>
-    public bool UseColor { get; set; } = false;
+    public bool UseColor { get; set; }
 
     /// <summary>
     ///     Gets or sets the number of context lines to show around the error.
@@ -28,6 +27,7 @@ public sealed class DiagnosticFormatter
     /// </summary>
     public string Format(Diagnostic diagnostic)
     {
+        ArgumentNullException.ThrowIfNull(diagnostic);
         var sb = new StringBuilder();
 
 
@@ -42,7 +42,7 @@ public sealed class DiagnosticFormatter
         }
         else
         {
-            sb.Append($"({diagnostic.Location.Line},{diagnostic.Location.Column}): ");
+            sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"({diagnostic.Location.Line},{diagnostic.Location.Column}): ");
         }
 
 
@@ -104,7 +104,7 @@ public sealed class DiagnosticFormatter
             var isErrorLine = lineNum == errorLine;
 
 
-            var lineNumStr = lineNum.ToString().PadLeft(5);
+            var lineNumStr = lineNum.ToString(System.Globalization.CultureInfo.InvariantCulture).PadLeft(5);
             if (UseColor && isErrorLine) sb.Append(GetColorCode(diagnostic.Severity));
 
             sb.Append(isErrorLine ? " --> " : "     ");
@@ -168,19 +168,20 @@ public sealed class DiagnosticFormatter
     /// </summary>
     public string FormatAsJson(Diagnostic diagnostic)
     {
+        ArgumentNullException.ThrowIfNull(diagnostic);
         var sb = new StringBuilder();
         sb.Append('{');
-        sb.Append(
+        sb.Append(System.Globalization.CultureInfo.InvariantCulture,
             $"\"range\":{{\"start\":{{\"line\":{diagnostic.Location.Line0},\"character\":{diagnostic.Location.Column0}}}");
 
 
-        sb.Append(
+        sb.Append(System.Globalization.CultureInfo.InvariantCulture,
             $",\"end\":{{\"line\":{diagnostic.EndLocation.Line0},\"character\":{diagnostic.EndLocation.Column0}}}");
 
         sb.Append("},");
-        sb.Append($"\"severity\":{(int)diagnostic.Severity},");
-        sb.Append($"\"code\":\"{diagnostic.Code}\",");
-        sb.Append($"\"message\":\"{EscapeJson(diagnostic.Message)}\"");
+        sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"severity\":{(int)diagnostic.Severity},");
+        sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"code\":\"{diagnostic.Code}\",");
+        sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"\"message\":\"{EscapeJson(diagnostic.Message)}\"");
         sb.Append('}');
 
         return sb.ToString();
@@ -189,10 +190,10 @@ public sealed class DiagnosticFormatter
     private static string EscapeJson(string text)
     {
         return text
-            .Replace("\\", "\\\\")
-            .Replace("\"", "\\\"")
-            .Replace("\n", "\\n")
-            .Replace("\r", "\\r")
-            .Replace("\t", "\\t");
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("\"", "\\\"", StringComparison.Ordinal)
+            .Replace("\n", "\\n", StringComparison.Ordinal)
+            .Replace("\r", "\\r", StringComparison.Ordinal)
+            .Replace("\t", "\\t", StringComparison.Ordinal);
     }
 }

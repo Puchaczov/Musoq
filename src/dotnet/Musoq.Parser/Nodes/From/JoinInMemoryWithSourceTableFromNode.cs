@@ -1,50 +1,38 @@
-﻿using System;
-
 namespace Musoq.Parser.Nodes.From;
 
-public class JoinInMemoryWithSourceTableFromNode : FromNode
+public class JoinInMemoryWithSourceTableFromNode(
+    string inMemoryTableAlias,
+    FromNode sourceTable,
+    Node expression,
+    JoinType joinType,
+    Type returnType,
+    FieldOrderedNode? tieBreak = null)
+    : FromNode($"{inMemoryTableAlias}{sourceTable.Alias}", returnType)
 {
-    internal JoinInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, Node expression,
-        JoinType joinType)
-        : base($"{inMemoryTableAlias}{sourceTable.Alias}")
-    {
-        Id =
-            $"{nameof(JoinInMemoryWithSourceTableFromNode)}{inMemoryTableAlias}{sourceTable.Alias}{expression.ToString()}";
-        InMemoryTableAlias = inMemoryTableAlias;
-        SourceTable = sourceTable;
-        Expression = expression;
-        JoinType = joinType;
-    }
+    public string InMemoryTableAlias { get; } = inMemoryTableAlias;
 
-    public JoinInMemoryWithSourceTableFromNode(string inMemoryTableAlias, FromNode sourceTable, Node expression,
-        JoinType joinType, Type returnType)
-        : base($"{inMemoryTableAlias}{sourceTable.Alias}", returnType)
-    {
-        Id =
-            $"{nameof(JoinInMemoryWithSourceTableFromNode)}{inMemoryTableAlias}{sourceTable.Alias}{expression.ToString()}";
-        InMemoryTableAlias = inMemoryTableAlias;
-        SourceTable = sourceTable;
-        Expression = expression;
-        JoinType = joinType;
-    }
+    public FromNode SourceTable { get; } = sourceTable;
 
-    public string InMemoryTableAlias { get; }
+    public Node Expression { get; } = expression;
 
-    public FromNode SourceTable { get; }
+    public FieldOrderedNode? TieBreak { get; } = tieBreak;
 
-    public Node Expression { get; }
+    public override string Id { get; } = $"{nameof(JoinInMemoryWithSourceTableFromNode)}{inMemoryTableAlias}{sourceTable.Alias}{expression.ToString()}{tieBreak?.Id}";
 
-    public override string Id { get; }
-
-    public JoinType JoinType { get; }
+    public JoinType JoinType { get; } = joinType;
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
     public override string ToString()
     {
-        return $"join {InMemoryTableAlias} with {SourceTable.Alias} on {Expression.ToString()}";
+        var tieBreakClause = TieBreak == null
+            ? string.Empty
+            : $" tie break by {TieBreak.ToString()}";
+
+        return $"join {InMemoryTableAlias} with {SourceTable.Alias} on {Expression.ToString()}{tieBreakClause}";
     }
 }

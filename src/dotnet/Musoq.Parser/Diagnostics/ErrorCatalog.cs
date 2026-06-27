@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 
 namespace Musoq.Parser.Diagnostics;
@@ -9,7 +9,7 @@ namespace Musoq.Parser.Diagnostics;
 /// </summary>
 public static class ErrorCatalog
 {
-    private static readonly Dictionary<DiagnosticCode, string> MessageTemplates = new()
+    private static readonly FrozenDictionary<DiagnosticCode, string> MessageTemplates = new Dictionary<DiagnosticCode, string>()
     {
         // Lexer Errors (MQ1xxx)
         [DiagnosticCode.MQ1001_UnknownToken] = "Unknown token '{0}'",
@@ -78,7 +78,7 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ3035_AmbiguousMethodOwner] =
             "Method call '{0}' is ambiguous because multiple source aliases expose different implementations: {1}",
         [DiagnosticCode.MQ3031_SetOperatorMissingKeys] =
-            "Set operators require explicit key columns in Musoq; use the operator followed by '(<key_columns>)' instead of bare standard SQL syntax",
+            "Legacy set-operator missing-key diagnostic; omitted keys now compare all projected values, and explicit keys are optional",
         [DiagnosticCode.MQ3036_AsOfJoinMissingInequality] =
             "ASOF JOIN requires at least one inequality condition (>=, >, <=, <).",
         [DiagnosticCode.MQ3037_AsOfJoinMultipleInequalities] =
@@ -89,6 +89,11 @@ public static class ErrorCatalog
             "ASOF JOIN inequality must reference columns from both sides.",
         [DiagnosticCode.MQ3040_AsOfJoinInequalityColumnNotOrderable] =
             "ASOF JOIN inequality column type '{0}' is not orderable.",
+        [DiagnosticCode.MQ3055_InvalidValuesSource] = "Invalid VALUES source: {0}",
+        [DiagnosticCode.MQ3068_StarRenameDuplicateSource] = "Duplicate source column '{0}' in RENAME list.",
+        [DiagnosticCode.MQ3069_StarRenameDuplicateTarget] = "Duplicate target column '{0}' in RENAME list.",
+        [DiagnosticCode.MQ3070_StarRenameColumnNotFound] = "RENAME references non-existent output column '{0}'.",
+        [DiagnosticCode.MQ3071_SourceContractError] = "Source contract error: {0}",
 
         // Schema Definition Errors (MQ4xxx)
         [DiagnosticCode.MQ4001_InvalidBinarySchemaField] = "Invalid binary schema field '{0}'",
@@ -101,6 +106,15 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ4008_DuplicateSchemaField] = "Duplicate field name '{0}' in schema",
         [DiagnosticCode.MQ4009_InvalidSchemaName] = "Invalid schema name '{0}'",
         [DiagnosticCode.MQ4010_MissingRequiredField] = "Missing required field '{0}' in schema",
+        [DiagnosticCode.MQ4011_SwitchSelectorNotPreviousField] =
+            "Switch selector '{0}' must reference a field declared before the switch field",
+        [DiagnosticCode.MQ4012_DuplicateSwitchBranchAlias] = "Duplicate switch branch alias '{0}'",
+        [DiagnosticCode.MQ4013_InvalidSwitchCaseLabel] =
+            "Switch case label must be a constant scalar literal",
+        [DiagnosticCode.MQ4014_InvalidSubstreamModifier] =
+            "Substream requires a 'raw' or 'as <type>' modifier with an optional 'exact' or 'lax' mode",
+        [DiagnosticCode.MQ4015_InvalidSubstreamTarget] =
+            "Substream 'as' requires a valid target type",
 
         // Warnings (MQ5xxx)
         [DiagnosticCode.MQ5001_UnusedAlias] = "Alias '{0}' is defined but never used",
@@ -113,6 +127,8 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ5008_UnreachableCode] = "Unreachable code detected",
         [DiagnosticCode.MQ5009_OrderByAliasBehavior] =
             "ORDER BY alias '{0}' may not resolve to the computed expression in this version",
+        [DiagnosticCode.MQ5012_OptimizationFallback] = "Optimization fallback: {0}",
+        [DiagnosticCode.MQ5013_SourceContractWarning] = "Source contract warning: {0}",
 
         // Feature-Gate Errors (MQ6xxx)
         [DiagnosticCode.MQ6001_CteUnavailable] =
@@ -136,7 +152,7 @@ public static class ErrorCatalog
 
         // Unknown
         [DiagnosticCode.MQ9999_Unknown] = "An unknown error occurred: {0}"
-    };
+    }.ToFrozenDictionary();
 
     /// <summary>
     ///     Gets the message template for a diagnostic code.
@@ -153,11 +169,12 @@ public static class ErrorCatalog
     /// </summary>
     public static string GetMessage(DiagnosticCode code, params object[] args)
     {
+        ArgumentNullException.ThrowIfNull(args);
         var template = GetTemplate(code);
 
         try
         {
-            return args.Length > 0 ? string.Format(template, args) : template;
+            return args.Length > 0 ? string.Format(System.Globalization.CultureInfo.InvariantCulture, template, args) : template;
         }
         catch (FormatException)
         {
@@ -207,12 +224,14 @@ public static class ErrorCatalog
     /// </summary>
     public static string? GetDidYouMeanSuggestion(string input, IEnumerable<string> candidates, int maxDistance = 3)
     {
+        ArgumentNullException.ThrowIfNull(input);
+        ArgumentNullException.ThrowIfNull(candidates);
         string? bestMatch = null;
         var bestDistance = int.MaxValue;
 
         foreach (var candidate in candidates)
         {
-            var distance = ComputeLevenshteinDistance(input.ToLowerInvariant(), candidate.ToLowerInvariant());
+            var distance = ComputeLevenshteinDistance(input.ToUpperInvariant(), candidate.ToUpperInvariant());
             if (distance < bestDistance && distance <= maxDistance)
             {
                 bestDistance = distance;
@@ -223,27 +242,30 @@ public static class ErrorCatalog
         return bestMatch;
     }
 
-    private static int ComputeLevenshteinDistance(string s1, string s2)
+    private static int ComputeLevenshteinDistance(string source, string candidate)
     {
-        var n = s1.Length;
-        var m = s2.Length;
-        var d = new int[n + 1, m + 1];
+        var sourceLength = source.Length;
+        var candidateLength = candidate.Length;
+        var distances = new int[sourceLength + 1][];
 
-        if (n == 0) return m;
-        if (m == 0) return n;
+        if (sourceLength == 0) return candidateLength;
+        if (candidateLength == 0) return sourceLength;
 
-        for (var i = 0; i <= n; i++) d[i, 0] = i;
-        for (var j = 0; j <= m; j++) d[0, j] = j;
+        for (var i = 0; i <= sourceLength; i++)
+            distances[i] = new int[candidateLength + 1];
 
-        for (var i = 1; i <= n; i++)
-        for (var j = 1; j <= m; j++)
+        for (var i = 0; i <= sourceLength; i++) distances[i][0] = i;
+        for (var j = 0; j <= candidateLength; j++) distances[0][j] = j;
+
+        for (var i = 1; i <= sourceLength; i++)
+        for (var j = 1; j <= candidateLength; j++)
         {
-            var cost = s1[i - 1] == s2[j - 1] ? 0 : 1;
-            d[i, j] = Math.Min(
-                Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
-                d[i - 1, j - 1] + cost);
+            var cost = source[i - 1] == candidate[j - 1] ? 0 : 1;
+            distances[i][j] = Math.Min(
+                Math.Min(distances[i - 1][j] + 1, distances[i][j - 1] + 1),
+                distances[i - 1][j - 1] + cost);
         }
 
-        return d[n, m];
+        return distances[sourceLength][candidateLength];
     }
 }

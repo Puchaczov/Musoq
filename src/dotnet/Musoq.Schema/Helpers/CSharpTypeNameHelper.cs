@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Frozen;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +12,7 @@ public static class CSharpTypeNameHelper
 {
     private static readonly ConcurrentDictionary<MethodInfo, string> MethodSignatureCache = new();
 
-    private static readonly Dictionary<Type, string> TypeAliases = new()
+    private static readonly FrozenDictionary<Type, string> TypeAliases = new Dictionary<Type, string>()
     {
         [typeof(bool)] = "bool",
         [typeof(byte)] = "byte",
@@ -30,24 +30,25 @@ public static class CSharpTypeNameHelper
         [typeof(object)] = "object",
         [typeof(string)] = "string",
         [typeof(void)] = "void"
-    };
+    }.ToFrozenDictionary();
 
     public static string GetCSharpTypeName(Type type)
     {
-        if (type == null)
-            throw new ArgumentNullException(nameof(type));
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.IsGenericParameter) return type.Name;
 
         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
         {
-            var underlyingType = Nullable.GetUnderlyingType(type);
+            var underlyingType = Nullable.GetUnderlyingType(type) ??
+                throw new InvalidOperationException($"Nullable type '{type}' has no underlying type.");
             return GetCSharpTypeName(underlyingType) + "?";
         }
 
         if (type.IsArray)
         {
-            var elementType = type.GetElementType();
+            var elementType = type.GetElementType() ??
+                throw new InvalidOperationException($"Array type '{type}' has no element type.");
             var rank = type.GetArrayRank();
             var brackets = rank == 1 ? "[]" : $"[{new string(',', rank - 1)}]";
             return GetCSharpTypeName(elementType) + brackets;
@@ -59,7 +60,7 @@ public static class CSharpTypeNameHelper
         var genericTypeDefinition = type.GetGenericTypeDefinition();
         var genericTypeName = genericTypeDefinition.Name;
 
-        var tickIndex = genericTypeName.IndexOf('`');
+        var tickIndex = genericTypeName.IndexOf('`', StringComparison.Ordinal);
         if (tickIndex > 0) genericTypeName = genericTypeName.Substring(0, tickIndex);
 
         var genericArgs = type.GetGenericArguments();
@@ -70,16 +71,14 @@ public static class CSharpTypeNameHelper
 
     public static string GetCSharpTypeAlias(Type type)
     {
-        if (type == null)
-            throw new ArgumentNullException(nameof(type));
+        ArgumentNullException.ThrowIfNull(type);
 
         return TypeAliases.TryGetValue(type, out var alias) ? alias : type.Name;
     }
 
     public static string FormatMethodSignature(MethodInfo methodInfo)
     {
-        if (methodInfo == null)
-            throw new ArgumentNullException(nameof(methodInfo));
+        ArgumentNullException.ThrowIfNull(methodInfo);
 
         return MethodSignatureCache.GetOrAdd(methodInfo, static mi => FormatMethodSignatureCore(mi));
     }
@@ -95,7 +94,7 @@ public static class CSharpTypeNameHelper
         if (methodInfo.IsGenericMethodDefinition)
         {
             var genericParams = methodInfo.GetGenericArguments();
-            signature.Append($"{returnTypeName} {methodName}<");
+            signature.Append(System.Globalization.CultureInfo.InvariantCulture, $"{returnTypeName} {methodName}<");
             for (var i = 0; i < genericParams.Length; i++)
             {
                 if (i > 0)
@@ -107,7 +106,7 @@ public static class CSharpTypeNameHelper
         }
         else
         {
-            signature.Append($"{returnTypeName} {methodName}(");
+            signature.Append(System.Globalization.CultureInfo.InvariantCulture, $"{returnTypeName} {methodName}(");
         }
 
         var paramIndex = 0;
@@ -120,7 +119,7 @@ public static class CSharpTypeNameHelper
             if (paramIndex > 0)
                 signature.Append(", ");
 
-            signature.Append($"{GetCSharpTypeName(parameter.ParameterType)} {parameter.Name}");
+            signature.Append(System.Globalization.CultureInfo.InvariantCulture, $"{GetCSharpTypeName(parameter.ParameterType)} {parameter.Name}");
             paramIndex++;
         }
 

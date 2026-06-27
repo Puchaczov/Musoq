@@ -15,13 +15,15 @@ namespace Musoq.Benchmarks;
 [MemoryDiagnoser]
 public class ConstantFoldingBenchmark
 {
-    private static readonly CompilationOptions FoldingEnabled = new(
-        ParallelizationMode.Full,
-        useConstantFolding: true);
+    private static readonly CompilationOptions FoldingEnabled = BenchmarkCompilationOptions.Materialized(
+        new CompilationOptions(
+            ParallelizationMode.Full,
+            useConstantFolding: true));
 
-    private static readonly CompilationOptions FoldingDisabled = new(
-        ParallelizationMode.Full,
-        useConstantFolding: false);
+    private static readonly CompilationOptions FoldingDisabled = BenchmarkCompilationOptions.Materialized(
+        new CompilationOptions(
+            ParallelizationMode.Full,
+            useConstantFolding: false));
 
     private readonly ILoggerResolver _loggerResolver = new BenchmarkLoggerResolver();
     private CompiledQuery _arithmeticFoldingDisabled = null!;

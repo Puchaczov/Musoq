@@ -1,4 +1,4 @@
-﻿using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -18,6 +18,7 @@ public interface IExpressionVisitor
     void Visit(ShortCircuitingNodeLeft node);
     void Visit(ShortCircuitingNodeRight node);
     void Visit(EqualityNode node);
+    void Visit(IsDistinctFromNode node);
     void Visit(GreaterOrEqualNode node);
     void Visit(LessOrEqualNode node);
     void Visit(GreaterNode node);
@@ -27,6 +28,10 @@ public interface IExpressionVisitor
     void Visit(LikeNode node);
     void Visit(RLikeNode node);
     void Visit(InNode node);
+    void Visit(CollectionInNode node);
+    void Visit(InQueryNode node);
+    void Visit(ExistsQueryNode node);
+    void Visit(ScalarSubqueryNode node);
     void Visit(BetweenNode node);
     void Visit(FieldNode node);
     void Visit(FieldOrderedNode node);
@@ -39,10 +44,16 @@ public interface IExpressionVisitor
     void Visit(BooleanNode node);
     void Visit(WordNode node);
     void Visit(NullNode node);
+    void Visit(ParameterBlockNode node);
+    void Visit(ParameterDeclarationNode node);
+    void Visit(ParameterReferenceNode node);
+    void Visit(ScriptVariableDeclarationNode node);
+    void Visit(ScriptVariableReferenceNode node);
     void Visit(ContainsNode node);
     void Visit(AccessMethodNode node);
     void Visit(AccessRawIdentifierNode node);
     void Visit(IsNullNode node);
+    void Visit(RowPresenceNode node);
     void Visit(AccessRefreshAggregationScoreNode node);
     void Visit(AccessColumnNode node);
     void Visit(AllColumnsNode node);
@@ -67,6 +78,8 @@ public interface IExpressionVisitor
     void Visit(JoinSourcesTableFromNode node);
     void Visit(ApplySourcesTableFromNode node);
     void Visit(InMemoryTableFromNode node);
+    void Visit(ValuesFromNode node);
+    void Visit(UnpivotFromNode node);
     void Visit(JoinFromNode node);
     void Visit(ApplyFromNode node);
     void Visit(ExpressionFromNode node);
@@ -105,12 +118,13 @@ public interface IExpressionVisitor
     void Visit(WhenNode node);
     void Visit(ThenNode node);
     void Visit(ElseNode node);
-    void Visit(FieldLinkNode node);
+    void Visit(CastNode node);
     void Visit(BitwiseAndNode node);
     void Visit(BitwiseOrNode node);
     void Visit(BitwiseXorNode node);
     void Visit(LeftShiftNode node);
     void Visit(RightShiftNode node);
+    void Visit(CoalesceNode node);
     void Visit(ArrayIndexNode node);
     void Visit(InterpretCallNode node);
     void Visit(ParseCallNode node);
@@ -118,14 +132,17 @@ public interface IExpressionVisitor
     void Visit(TryInterpretCallNode node);
     void Visit(TryParseCallNode node);
     void Visit(PartialInterpretCallNode node);
+    void Visit(PartialParseCallNode node);
     void Visit(BinarySchemaNode node);
     void Visit(TextSchemaNode node);
     void Visit(FieldDefinitionNode node);
     void Visit(TextFieldDefinitionNode node);
     void Visit(ComputedFieldNode node);
     void Visit(FieldConstraintNode node);
+    void Visit(FieldValueValidationNode node);
     void Visit(PrimitiveTypeNode node);
     void Visit(ByteArrayTypeNode node);
+    void Visit(BinarySwitchTypeNode node);
     void Visit(StringTypeNode node);
     void Visit(SchemaReferenceTypeNode node);
     void Visit(ArrayTypeNode node);
@@ -133,8 +150,12 @@ public interface IExpressionVisitor
     void Visit(AlignmentNode node);
     void Visit(RepeatUntilTypeNode node);
     void Visit(InlineSchemaTypeNode node);
+    void Visit(SubstreamTypeNode node);
     void Visit(WindowFunctionNode node);
     void Visit(WindowSpecificationNode node);
+    void Visit(WindowFrameNode node);
+    void Visit(WindowFrameBoundNode node);
     void Visit(WindowDefinitionNode node);
     void Visit(WindowNode node);
+    void Visit(QualifyNode node);
 }

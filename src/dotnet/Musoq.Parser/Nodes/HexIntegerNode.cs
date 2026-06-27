@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Parser.Nodes;
 
 public class HexIntegerNode : ConstantValueNode
@@ -11,6 +9,7 @@ public class HexIntegerNode : ConstantValueNode
 
     public HexIntegerNode(string value, TextSpan span)
     {
+        ArgumentNullException.ThrowIfNull(value);
         var hexValue = value.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
             ? value.Substring(2)
             : value;
@@ -42,15 +41,16 @@ public class HexIntegerNode : ConstantValueNode
 
     public override string ToString()
     {
-        return ObjValue.ToString();
+        return ObjValue.ToString() ?? string.Empty;
     }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
-    private static object ParseHexValue(string hexValue, string originalValue)
+    private static long ParseHexValue(string hexValue, string originalValue)
     {
         try
         {

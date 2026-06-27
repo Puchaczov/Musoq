@@ -1,5 +1,5 @@
-﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tables;
@@ -14,9 +14,12 @@ public class TableSymbol : Symbol
     private readonly List<string> _orders = [];
 
     private readonly Dictionary<string, (ISchema Schema, ISchemaTable SchemaTable)> _tables = new();
-    private ISchema _fullSchema;
+    private readonly HashSet<string> _maybeMissingAliases = new(StringComparer.OrdinalIgnoreCase);
+    private ISchema? _fullSchema;
 
-    private string _fullTableName;
+    private ISchemaTable? _fullTable;
+
+    private string? _fullTableName;
 
     public TableSymbol(string alias, ISchema schema, ISchemaTable table, bool hasAlias)
     {
@@ -26,15 +29,19 @@ public class TableSymbol : Symbol
         _fullTableName = alias;
 
         _fullSchema = schema;
-        FullTable = table;
+        _fullTable = table;
     }
 
-    private TableSymbol()
+    private TableSymbol(bool hasAlias = true)
     {
-        HasAlias = true;
+        HasAlias = hasAlias;
     }
 
-    public ISchemaTable FullTable { get; private set; }
+    public ISchemaTable FullTable => _fullTable ?? throw new InvalidOperationException("Table symbol is incomplete.");
+
+    private ISchema FullSchema => _fullSchema ?? throw new InvalidOperationException("Table symbol is incomplete.");
+
+    private string FullTableName => _fullTableName ?? throw new InvalidOperationException("Table symbol is incomplete.");
 
     public bool HasAlias { get; }
 
@@ -42,9 +49,9 @@ public class TableSymbol : Symbol
 
     public bool IsCompoundTable => _tables.Count > 1;
 
-    public (ISchema Schema, ISchemaTable Table, string TableName) GetTableByColumnName(string column)
+    public (ISchema? Schema, ISchemaTable? Table, string? TableName) GetTableByColumnName(string column)
     {
-        (ISchema Schema, ISchemaTable Table, string Alias) score = (null, null, null);
+        (ISchema? Schema, ISchemaTable? Table, string? Alias) score = (null, null, null);
 
         foreach (var table in _tables)
         {
@@ -61,7 +68,7 @@ public class TableSymbol : Symbol
 
             if (score is not (null, null, null))
                 if (score.Schema != table.Value.Schema || score.Table != table.Value.SchemaTable)
-                    throw new AmbiguousColumnException(column, score.Alias, table.Key);
+                    throw new AmbiguousColumnException(column, score.Alias ?? string.Empty, table.Key);
 
             score = (table.Value.Schema, table.Value.SchemaTable, table.Key);
         }
@@ -74,14 +81,33 @@ public class TableSymbol : Symbol
         return _fullTableName == alias || _tables.ContainsKey(alias);
     }
 
+    public bool CanAliasBeMissing(string alias)
+    {
+        return _maybeMissingAliases.Contains(alias);
+    }
+
+    public TableSymbol MarkAliasesAsMaybeMissing(IEnumerable<string> aliases)
+    {
+        ArgumentNullException.ThrowIfNull(aliases);
+
+        var symbol = WithFullTableName(FullTableName);
+        foreach (var alias in aliases)
+        {
+            if (symbol.ContainsAlias(alias))
+                symbol._maybeMissingAliases.Add(alias);
+        }
+
+        return symbol;
+    }
+
     public (ISchema Schema, ISchemaTable Table, string TableName) GetTableByAlias(string alias)
     {
-        if (_fullTableName == alias)
-            return (_fullSchema, FullTable, alias);
+        if (FullTableName == alias)
+            return (FullSchema, FullTable, alias);
         return (_tables[alias].Item1, _tables[alias].Item2, alias);
     }
 
-    public ISchemaColumn GetColumnByAliasAndName(string alias, string columnName)
+    public ISchemaColumn? GetColumnByAliasAndName(string alias, string columnName)
     {
         var columns = _fullTableName == alias
             ? FullTable.GetColumnsByName(columnName)
@@ -98,7 +124,16 @@ public class TableSymbol : Symbol
         return _tables[alias].Item2.Columns;
     }
 
-    public bool TryGetColumns(string alias, out ISchemaColumn[] columns)
+    public bool AliasContainsColumn(string alias, string columnName)
+    {
+        if (!_tables.TryGetValue(alias, out var table))
+            return false;
+
+        return table.Item2.Columns.Any(column =>
+            string.Equals(column.ColumnName, columnName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public bool TryGetColumns(string alias, [NotNullWhen(true)] out ISchemaColumn[]? columns)
     {
         if (_tables.TryGetValue(alias, out var table))
         {
@@ -120,6 +155,7 @@ public class TableSymbol : Symbol
 
     public TableSymbol MergeSymbols(TableSymbol other)
     {
+        ArgumentNullException.ThrowIfNull(other);
         var symbol = new TableSymbol();
 
         var compoundTableColumns = new List<ISchemaColumn>();
@@ -132,14 +168,75 @@ public class TableSymbol : Symbol
             compoundTableColumns.AddRange(item.Value.Item2.Columns);
         }
 
-        symbol._tables.Add(other._fullTableName, (other._fullSchema, other.FullTable));
-        symbol._orders.Add(other._fullTableName);
+        symbol._tables.Add(other.FullTableName, (other.FullSchema, other.FullTable));
+        symbol._orders.Add(other.FullTableName);
 
         compoundTableColumns.AddRange(other.FullTable.Columns);
 
         symbol._fullTableName = string.Concat(symbol._orders);
-        symbol.FullTable = new DynamicTable(compoundTableColumns.ToArray());
+        symbol._fullTable = new DynamicTable(compoundTableColumns.ToArray());
         symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol.FullTable);
+        CopyMaybeMissingAliasesTo(symbol);
+        other.CopyMaybeMissingAliasesTo(symbol);
+
+        return symbol;
+    }
+
+    public TableSymbol WithAdditionalColumn(string alias, ISchemaColumn column)
+    {
+        ArgumentNullException.ThrowIfNull(alias);
+        ArgumentNullException.ThrowIfNull(column);
+
+        if (!_tables.ContainsKey(alias))
+            throw new InvalidOperationException($"Table alias '{alias}' was not found.");
+
+        if (AliasContainsColumn(alias, column.ColumnName))
+            throw new InvalidOperationException($"Table alias '{alias}' already exposes column '{column.ColumnName}'.");
+
+        var symbol = new TableSymbol(HasAlias);
+        var compoundTableColumns = new List<ISchemaColumn>();
+
+        Type? singleEntityType = null;
+        foreach (var tableName in _orders)
+        {
+            var table = _tables[tableName];
+            var entityType = table.SchemaTable.Metadata?.TableEntityType;
+            if (_tables.Count == 1)
+                singleEntityType = entityType;
+
+            ISchemaTable schemaTable = table.SchemaTable;
+            if (string.Equals(tableName, alias, StringComparison.OrdinalIgnoreCase))
+            {
+                schemaTable = new DynamicTable([..table.SchemaTable.Columns, column], entityType);
+            }
+
+            symbol._tables.Add(tableName, (table.Schema, schemaTable));
+            symbol._orders.Add(tableName);
+            compoundTableColumns.AddRange(schemaTable.Columns);
+        }
+
+        symbol._fullTableName = string.Concat(symbol._orders);
+        symbol._fullTable = new DynamicTable(compoundTableColumns.ToArray(), singleEntityType);
+        symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol.FullTable);
+        CopyMaybeMissingAliasesTo(symbol);
+
+        return symbol;
+    }
+
+    public TableSymbol WithFullTableName(string fullTableName)
+    {
+        var symbol = new TableSymbol(HasAlias);
+
+        foreach (var tableName in _orders)
+        {
+            symbol._tables.Add(tableName, _tables[tableName]);
+            symbol._orders.Add(tableName);
+        }
+
+        symbol._fullTableName = fullTableName;
+        symbol._fullTable = FullTable;
+        symbol._fullSchema = new TransitionSchema(fullTableName, FullTable);
+        CopyMaybeMissingAliasesTo(symbol);
 
         return symbol;
     }
@@ -151,16 +248,23 @@ public class TableSymbol : Symbol
 
         foreach (var column in FullTable.Columns) compoundTableColumns.Add(ConvertColumnToNullable(column));
 
+        Type? singleEntityType = null;
         foreach (var item in _tables)
         {
-            var dynamicTable = new DynamicTable(item.Value.Item2.Columns.Select(ConvertColumnToNullable).ToArray());
+            var entityType = item.Value.SchemaTable.Metadata?.TableEntityType;
+            if (_tables.Count == 1)
+                singleEntityType = entityType;
+            var dynamicTable = new DynamicTable(
+                item.Value.Item2.Columns.Select(ConvertColumnToNullable).ToArray(),
+                entityType);
             symbol._tables.Add(item.Key, (item.Value.Item1, dynamicTable));
             symbol._orders.Add(item.Key);
         }
 
         symbol._fullTableName = string.Concat(symbol._orders);
-        symbol.FullTable = new DynamicTable(compoundTableColumns.ToArray());
+        symbol._fullTable = new DynamicTable(compoundTableColumns.ToArray(), singleEntityType);
         symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol.FullTable);
+        CopyMaybeMissingAliasesTo(symbol);
 
         return symbol;
     }
@@ -170,7 +274,7 @@ public class TableSymbol : Symbol
         return new SchemaColumn(column.ColumnName, column.ColumnIndex, ConvertToNullable(column.ColumnType));
     }
 
-    private Type ConvertToNullable(Type columnType)
+    private static Type ConvertToNullable(Type columnType)
     {
         if (Nullable.GetUnderlyingType(columnType) == null && columnType.IsValueType)
             return typeof(Nullable<>).MakeGenericType(columnType);
@@ -184,10 +288,18 @@ public class TableSymbol : Symbol
 
         var compoundTableColumns = new List<ISchemaColumn>();
 
+        Type? singleEntityType = null;
         foreach (var item in _tables)
         {
-            var dynamicTable = new DynamicTable(item.Value.Item2.Columns.Where(c =>
-                columnLimits.ContainsKey(item.Key) && columnLimits[item.Key].Contains(c.ColumnName)).ToArray());
+            var entityType = item.Value.SchemaTable.Metadata?.TableEntityType;
+            if (_tables.Count == 1)
+                singleEntityType = entityType;
+            var columns = columnLimits.TryGetValue(item.Key, out var allowedColumns)
+                ? item.Value.Item2.Columns.Where(c => allowedColumns.Contains(c.ColumnName)).ToArray()
+                : [];
+            var dynamicTable = new DynamicTable(
+                columns,
+                entityType);
             symbol._tables.Add(item.Key, (item.Value.Item1, dynamicTable));
             symbol._orders.Add(item.Key);
 
@@ -195,9 +307,19 @@ public class TableSymbol : Symbol
         }
 
         symbol._fullTableName = string.Concat(symbol._orders);
-        symbol.FullTable = new DynamicTable(compoundTableColumns.ToArray());
+        symbol._fullTable = new DynamicTable(compoundTableColumns.ToArray(), singleEntityType);
         symbol._fullSchema = new TransitionSchema(symbol._fullTableName, symbol.FullTable);
+        CopyMaybeMissingAliasesTo(symbol);
 
         return symbol;
+    }
+
+    private void CopyMaybeMissingAliasesTo(TableSymbol symbol)
+    {
+        foreach (var alias in _maybeMissingAliases)
+        {
+            if (symbol.ContainsAlias(alias))
+                symbol._maybeMissingAliases.Add(alias);
+        }
     }
 }

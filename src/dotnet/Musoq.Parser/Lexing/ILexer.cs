@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Tokens;
 

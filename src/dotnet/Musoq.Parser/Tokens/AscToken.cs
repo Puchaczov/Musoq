@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class AscToken : Token
+public class AscToken(TextSpan span) : Token(TokenText, TokenType.Asc, span)
 {
     public const string TokenText = "asc";
-
-    public AscToken(TextSpan span)
-        : base(TokenText, TokenType.Asc, span)
-    {
-    }
 }

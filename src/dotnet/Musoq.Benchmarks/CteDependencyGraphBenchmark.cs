@@ -26,31 +26,29 @@ namespace Musoq.Benchmarks;
 [MemoryDiagnoser]
 public class CteDependencyGraphBenchmark
 {
-    private static readonly CompilationOptions SequentialOptions = new(
-        ParallelizationMode.Full);
+    private static readonly CompilationOptions SequentialOptions = BenchmarkCompilationOptions.Materialized(
+        new CompilationOptions(parallelizationMode: ParallelizationMode.Full));
 
-    private static readonly CompilationOptions ParallelOptions = new(
-        ParallelizationMode.Full,
-        true,
-        true,
-        true,
-        true,
-        true);
+    private static readonly CompilationOptions ParallelOptions = BenchmarkCompilationOptions.Materialized(
+        new CompilationOptions(
+            parallelizationMode: ParallelizationMode.Full,
+            useCteParallelization: true));
 
     private readonly ILoggerResolver _loggerResolver = new BenchmarkLoggerResolver();
-    private CompiledQuery _eightIndependentCtes_Parallel = null!;
-    private CompiledQuery _eightIndependentCtes_Sequential = null!;
-    private CompiledQuery _fourExpensiveCtes_Parallel = null!;
+    private CompiledQuery _eightIndependentCtesParallel = null!;
+    private CompiledQuery _eightIndependentCtesSequential = null!;
+    private CompiledQuery _fourExpensiveCtesParallel = null!;
 
     // Parallelization benchmarks - EXPENSIVE CTEs (simulated heavy work - WILL show speedup)
-    private CompiledQuery _fourExpensiveCtes_Sequential = null!;
-    private CompiledQuery _fourIndependentCtes_Parallel = null!;
+    private CompiledQuery _fourExpensiveCtesSequential = null!;
+    private CompiledQuery _fourIndependentCtesParallel = null!;
 
     // Parallelization benchmarks - simple CTEs (trivial work - may not show speedup)
-    private CompiledQuery _fourIndependentCtes_Sequential = null!;
+    private CompiledQuery _fourIndependentCtesSequential = null!;
     private CompiledQuery _multipleDeadCtes = null!; // 3 dead CTEs eliminated
     private CompiledQuery _multipleUsedCtes = null!; // Same CTEs but all used (baseline)
     private CompiledQuery _noCtes = null!; // No CTEs at all (cleanest baseline)
+    private CompiledQuery _repeatedCteSelfJoin = null!;
 
     // Dead CTE benchmarks - comparing eliminated vs used
     private CompiledQuery _singleDeadCte = null!; // 1 dead CTE eliminated
@@ -68,6 +66,7 @@ public class CteDependencyGraphBenchmark
         var expensiveSchemaProvider = new CteBenchSchemaProvider(testData, 10_000_000);
 
         SetupDeadCteEliminationBenchmarks(schemaProvider);
+        SetupRepeatedCteReferenceBenchmarks(schemaProvider);
         SetupParallelizationBenchmarks(schemaProvider);
         SetupExpensiveParallelizationBenchmarks(expensiveSchemaProvider);
     }
@@ -216,6 +215,26 @@ public class CteDependencyGraphBenchmark
             SequentialOptions);
     }
 
+    private void SetupRepeatedCteReferenceBenchmarks(CteBenchSchemaProvider schemaProvider)
+    {
+        const string repeatedCteSelfJoinQuery = @"
+            with filtered as (
+                select Id, Name, Value
+                from #test.entities()
+                where Value > 500
+            )
+            select l.Id, r.Name
+            from filtered l
+            inner join filtered r on l.Id = r.Id";
+
+        _repeatedCteSelfJoin = InstanceCreator.CompileForExecution(
+            repeatedCteSelfJoinQuery,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            _loggerResolver,
+            SequentialOptions);
+    }
+
     private void SetupParallelizationBenchmarks(CteBenchSchemaProvider schemaProvider)
     {
         const string fourIndependentCtesQuery = @"
@@ -237,14 +256,14 @@ public class CteDependencyGraphBenchmark
             inner join cte3 c on a.Id = c.Id
             inner join cte4 d on a.Id = d.Id";
 
-        _fourIndependentCtes_Sequential = InstanceCreator.CompileForExecution(
+        _fourIndependentCtesSequential = InstanceCreator.CompileForExecution(
             fourIndependentCtesQuery,
             Guid.NewGuid().ToString(),
             schemaProvider,
             _loggerResolver,
             SequentialOptions);
 
-        _fourIndependentCtes_Parallel = InstanceCreator.CompileForExecution(
+        _fourIndependentCtesParallel = InstanceCreator.CompileForExecution(
             fourIndependentCtesQuery,
             Guid.NewGuid().ToString(),
             schemaProvider,
@@ -287,14 +306,14 @@ public class CteDependencyGraphBenchmark
             inner join cte7 g on a.Id = g.Id
             inner join cte8 h on a.Id = h.Id";
 
-        _eightIndependentCtes_Sequential = InstanceCreator.CompileForExecution(
+        _eightIndependentCtesSequential = InstanceCreator.CompileForExecution(
             eightIndependentCtesQuery,
             Guid.NewGuid().ToString(),
             schemaProvider,
             _loggerResolver,
             SequentialOptions);
 
-        _eightIndependentCtes_Parallel = InstanceCreator.CompileForExecution(
+        _eightIndependentCtesParallel = InstanceCreator.CompileForExecution(
             eightIndependentCtesQuery,
             Guid.NewGuid().ToString(),
             schemaProvider,
@@ -323,14 +342,14 @@ public class CteDependencyGraphBenchmark
             inner join cte3 c on a.Id = c.Id
             inner join cte4 d on a.Id = d.Id";
 
-        _fourExpensiveCtes_Sequential = InstanceCreator.CompileForExecution(
+        _fourExpensiveCtesSequential = InstanceCreator.CompileForExecution(
             fourExpensiveCtesQuery,
             Guid.NewGuid().ToString(),
             expensiveSchemaProvider,
             _loggerResolver,
             SequentialOptions);
 
-        _fourExpensiveCtes_Parallel = InstanceCreator.CompileForExecution(
+        _fourExpensiveCtesParallel = InstanceCreator.CompileForExecution(
             fourExpensiveCtesQuery,
             Guid.NewGuid().ToString(),
             expensiveSchemaProvider,
@@ -397,6 +416,16 @@ public class CteDependencyGraphBenchmark
         return _multipleUsedCtes.Run();
     }
 
+    /// <summary>
+    ///     Query that reads the same materialized CTE twice in one self-join.
+    /// </summary>
+    [Benchmark]
+    [BenchmarkCategory("RepeatedCTE")]
+    public object RepeatedCte_SelfJoin()
+    {
+        return _repeatedCteSelfJoin.Run();
+    }
+
     #endregion
 
     #region Parallelization Benchmarks
@@ -408,7 +437,7 @@ public class CteDependencyGraphBenchmark
     [BenchmarkCategory("Parallel")]
     public object FourIndependentCtes_Sequential()
     {
-        return _fourIndependentCtes_Sequential.Run();
+        return _fourIndependentCtesSequential.Run();
     }
 
     /// <summary>
@@ -419,7 +448,7 @@ public class CteDependencyGraphBenchmark
     [BenchmarkCategory("Parallel")]
     public object FourIndependentCtes_Parallel()
     {
-        return _fourIndependentCtes_Parallel.Run();
+        return _fourIndependentCtesParallel.Run();
     }
 
     /// <summary>
@@ -429,7 +458,7 @@ public class CteDependencyGraphBenchmark
     [BenchmarkCategory("Parallel")]
     public object EightIndependentCtes_Sequential()
     {
-        return _eightIndependentCtes_Sequential.Run();
+        return _eightIndependentCtesSequential.Run();
     }
 
     /// <summary>
@@ -440,7 +469,7 @@ public class CteDependencyGraphBenchmark
     [BenchmarkCategory("Parallel")]
     public object EightIndependentCtes_Parallel()
     {
-        return _eightIndependentCtes_Parallel.Run();
+        return _eightIndependentCtesParallel.Run();
     }
 
     #endregion
@@ -455,7 +484,7 @@ public class CteDependencyGraphBenchmark
     [BenchmarkCategory("ExpensiveParallel")]
     public object FourExpensiveCtes_Sequential()
     {
-        return _fourExpensiveCtes_Sequential.Run();
+        return _fourExpensiveCtesSequential.Run();
     }
 
     /// <summary>
@@ -466,7 +495,7 @@ public class CteDependencyGraphBenchmark
     [BenchmarkCategory("ExpensiveParallel")]
     public object FourExpensiveCtes_Parallel()
     {
-        return _fourExpensiveCtes_Parallel.Run();
+        return _fourExpensiveCtesParallel.Run();
     }
 
     #endregion

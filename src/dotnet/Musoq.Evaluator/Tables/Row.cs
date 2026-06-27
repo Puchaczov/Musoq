@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
 using Musoq.Schema;
 
@@ -10,11 +9,38 @@ public abstract class Row : IEquatable<Row>, IValue<Key>, IReadOnlyRow
 {
     public abstract int Count { get; }
 
-    public abstract object[] Values { get; }
+    public virtual object[] Values
+    {
+        get
+        {
+            if (Count == 0)
+                return Array.Empty<object>();
 
-    public virtual object[] Contexts => null;
+            var values = new object[Count];
+            for (var index = 0; index < values.Length; index++)
+                values[index] = this[index];
 
-    public bool Equals(Row other)
+            return values;
+        }
+    }
+
+    /// <summary>
+    /// Source objects retained for operators that need source-row context. Final query output rows may return null when no
+    /// downstream semantics require those contexts.
+    /// </summary>
+    public virtual object?[]? Contexts => null;
+
+    public virtual object this[string name] =>
+        throw new NotSupportedException("String-keyed access is not supported on Row. Use integer indexing instead.");
+
+    public virtual bool HasColumn(string name) => false;
+
+    public virtual void AssignValue(int columnNumber, object value)
+    {
+        throw new NotSupportedException("Column value assignment is not supported on this Row.");
+    }
+
+    public bool Equals(Row? other)
     {
         if (other == null)
             return false;
@@ -48,10 +74,11 @@ public abstract class Row : IEquatable<Row>, IValue<Key>, IReadOnlyRow
 
     public bool FitsTheIndex(Key key)
     {
+        ArgumentNullException.ThrowIfNull(key);
         return key.DoesRowMatchKey(this);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return Equals(obj as Row);
     }
@@ -68,6 +95,7 @@ public abstract class Row : IEquatable<Row>, IValue<Key>, IReadOnlyRow
 
     public bool CheckWithKey(Key key)
     {
+        ArgumentNullException.ThrowIfNull(key);
         var isMatch = true;
 
         for (var i = 0; i < key.Columns.Length; i++)

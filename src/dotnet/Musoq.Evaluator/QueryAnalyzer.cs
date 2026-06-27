@@ -1,8 +1,7 @@
-#nullable enable
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
@@ -60,11 +59,7 @@ public sealed class QueryAnalyzer
         }
         catch (Exception ex)
         {
-            var diagnostic = ex.ToDiagnosticOrGeneric(sourceText);
-            diagnosticBag.AddError(
-                diagnostic.Code,
-                diagnostic.Message,
-                diagnostic.Span);
+            diagnosticBag.AddError(ex, sourceText);
         }
 
         if (rootNode == null)
@@ -74,6 +69,21 @@ public sealed class QueryAnalyzer
                 Diagnostics = diagnosticBag.ToSortedList()
             };
 
+        try
+        {
+            rootNode = new PreLogicalNormalizer().Normalize(rootNode).NormalizedRoot;
+        }
+        catch (Exception ex)
+        {
+            diagnosticBag.AddError(ex, sourceText);
+        }
+
+        if (diagnosticBag.HasErrors)
+            return new QueryAnalysisResult
+            {
+                Root = rootNode,
+                Diagnostics = diagnosticBag.ToSortedList()
+            };
 
         var diagnosticContext = new DiagnosticContext(sourceText);
 
@@ -132,11 +142,7 @@ public sealed class QueryAnalyzer
         }
         catch (Exception ex)
         {
-            var diagnostic = ex.ToDiagnosticOrGeneric(sourceText);
-            diagnosticBag.AddError(
-                diagnostic.Code,
-                diagnostic.Message,
-                diagnostic.Span);
+            diagnosticBag.AddError(ex, sourceText);
         }
 
         return new QueryAnalysisResult

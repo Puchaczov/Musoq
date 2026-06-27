@@ -66,7 +66,8 @@ public class AsOfJoinBenchmark
             script,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            _loggerResolver);
+            _loggerResolver,
+            BenchmarkCompilationOptions.Materialized());
     }
 
     [Benchmark]

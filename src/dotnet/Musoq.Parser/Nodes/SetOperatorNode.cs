@@ -1,5 +1,4 @@
-﻿using System;
-using Musoq.Parser.Tokens;
+﻿using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Nodes;
 
@@ -9,6 +8,8 @@ public abstract class SetOperatorNode : BinaryNode
         bool isTheLastOne)
         : base(left, right)
     {
+        _ = type;
+
         Keys = keys;
         IsNested = isNested;
         IsTheLastOne = isTheLastOne;
@@ -21,7 +22,7 @@ public abstract class SetOperatorNode : BinaryNode
 
     public override string Id { get; }
 
-    public string ResultTableName { get; protected set; }
+    public string ResultTableName { get; protected set; } = string.Empty;
 
     public bool IsNested { get; }
 

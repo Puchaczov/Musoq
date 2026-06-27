@@ -302,7 +302,7 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select h.Magic, h.Version, h.Flags
             from #test.files() f
-            cross apply Interpret(f.Content, 'Header') h";
+            cross apply Interpret<Header>(f.Content) h";
 
         var testData = new byte[7];
         BitConverter.GetBytes(0x12345678).CopyTo(testData, 0);
@@ -311,7 +311,7 @@ public class InterpretationBenchmark : BenchmarkBase
 
         var entities = new[] { new BenchmarkBinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -324,7 +324,7 @@ public class InterpretationBenchmark : BenchmarkBase
                 Values: int[Count] le
             };
             select v.Value from #test.files() f
-            cross apply Interpret(f.Content, 'DataPacket') d
+            cross apply Interpret<DataPacket>(f.Content) d
             cross apply d.Values v";
 
         var count = 100;
@@ -334,7 +334,7 @@ public class InterpretationBenchmark : BenchmarkBase
 
         var entities = new[] { new BenchmarkBinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -347,7 +347,7 @@ public class InterpretationBenchmark : BenchmarkBase
             binary Shape { Outline: Segment };
             select s.Outline.Start.X, s.Outline.Start.Y, s.Outline.Finish.X, s.Outline.Finish.Y
             from #test.files() f
-            cross apply Interpret(f.Content, 'Shape') s";
+            cross apply Interpret<Shape>(f.Content) s";
 
         var testData = new byte[16];
         BitConverter.GetBytes(10).CopyTo(testData, 0);
@@ -357,7 +357,7 @@ public class InterpretationBenchmark : BenchmarkBase
 
         var entities = new[] { new BenchmarkBinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -372,16 +372,16 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select r.Id, r.Name, r.Code
             from #test.files() f
-            cross apply Interpret(f.Content, 'Record') r";
+            cross apply Interpret<Record>(f.Content) r";
 
         var testData = new byte[44];
         BitConverter.GetBytes(12345).CopyTo(testData, 0);
-        Encoding.UTF8.GetBytes("John Doe".PadRight(32)).CopyTo(testData, 4);
-        Encoding.ASCII.GetBytes("ABCD1234").CopyTo(testData, 36);
+        "John Doe                        "u8.ToArray().CopyTo(testData, 4);
+        "ABCD1234"u8.ToArray().CopyTo(testData, 36);
 
         var entities = new[] { new BenchmarkBinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -400,7 +400,7 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select p.Version, p.Config.Key, p.Config.Value, p.Checksum
             from #test.files() f
-            cross apply Interpret(f.Content, 'ConfigPacket') p";
+            cross apply Interpret<ConfigPacket>(f.Content) p";
 
         var testData = new byte[32];
         testData[0] = 1;
@@ -410,7 +410,7 @@ public class InterpretationBenchmark : BenchmarkBase
 
         var entities = new[] { new BenchmarkBinaryEntity { Name = "config.bin", Content = testData } };
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -424,14 +424,14 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select l.Timestamp, l.Message
             from #test.lines() f
-            cross apply Parse(f.Text, 'LogEntry') l";
+            cross apply Parse<LogEntry>(f.Text) l";
 
         var entities = new[]
         {
             new BenchmarkTextEntity { Name = "log.txt", Text = "2024-01-15T10:30:00 Application started successfully" }
         };
         var schemaProvider = new BenchmarkTextSchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkTextEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -448,12 +448,12 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select r.Field1, r.Field2, r.Field3, r.Field4, r.Field5
             from #test.lines() f
-            cross apply Parse(f.Text, 'CsvRow') r";
+            cross apply Parse<CsvRow>(f.Text) r";
 
         var entities = new[]
             { new BenchmarkTextEntity { Name = "data.csv", Text = "value1,value2,value3,value4,value5" } };
         var schemaProvider = new BenchmarkTextSchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkTextEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -472,11 +472,11 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select ip.Octet1, ip.Octet2, ip.Octet3, ip.Octet4
             from #test.lines() f
-            cross apply Parse(f.Text, 'IpAddress') ip";
+            cross apply Parse<IpAddress>(f.Text) ip";
 
         var entities = new[] { new BenchmarkTextEntity { Name = "ip.txt", Text = "192.168.1.100" } };
         var schemaProvider = new BenchmarkTextSchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkTextEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -489,7 +489,7 @@ public class InterpretationBenchmark : BenchmarkBase
                 Values: int[Count] le
             };
             select v.Value from #test.files() f
-            cross apply Interpret(f.Content, 'LargePacket') d
+            cross apply Interpret<LargePacket>(f.Content) d
             cross apply d.Values v";
 
         var count = 1000;
@@ -499,7 +499,7 @@ public class InterpretationBenchmark : BenchmarkBase
 
         var entities = new[] { new BenchmarkBinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -513,7 +513,7 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select h.Id, h.Value
             from #test.files() f
-            cross apply Interpret(f.Content, 'SimpleHeader') h";
+            cross apply Interpret<SimpleHeader>(f.Content) h";
 
         var entities = new List<BenchmarkBinaryEntity>();
         for (var i = 0; i < 100; i++)
@@ -525,7 +525,7 @@ public class InterpretationBenchmark : BenchmarkBase
         }
 
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -540,13 +540,13 @@ public class InterpretationBenchmark : BenchmarkBase
             binary Level5 { L4: Level4 };
             select d.L4.L3.L2.L1.Value
             from #test.files() f
-            cross apply Interpret(f.Content, 'Level5') d";
+            cross apply Interpret<Level5>(f.Content) d";
 
         var testData = BitConverter.GetBytes(42);
 
         var entities = new[] { new BenchmarkBinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -562,7 +562,7 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select c.Type, c.HasPayload, c.PayloadLength
             from #test.files() f
-            cross apply Interpret(f.Content, 'ConditionalPacket') c";
+            cross apply Interpret<ConditionalPacket>(f.Content) c";
 
         var testData = new byte[10];
         testData[0] = 0x01;
@@ -575,7 +575,7 @@ public class InterpretationBenchmark : BenchmarkBase
 
         var entities = new[] { new BenchmarkBinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -591,7 +591,7 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select n.SignedLong, n.UnsignedLong, n.AnotherLong, n.FinalLong
             from #test.files() f
-            cross apply Interpret(f.Content, 'LargeNumbers') n";
+            cross apply Interpret<LargeNumbers>(f.Content) n";
 
         var testData = new byte[32];
         BitConverter.GetBytes(long.MaxValue / 2).CopyTo(testData, 0);
@@ -602,7 +602,7 @@ public class InterpretationBenchmark : BenchmarkBase
 
         var entities = new[] { new BenchmarkBinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -618,7 +618,7 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select fp.SingleLE, fp.SingleBE, fp.DoubleLE, fp.DoubleBE
             from #test.files() f
-            cross apply Interpret(f.Content, 'FloatingPoint') fp";
+            cross apply Interpret<FloatingPoint>(f.Content) fp";
 
         var testData = new byte[24];
         BitConverter.GetBytes(3.14159f).CopyTo(testData, 0);
@@ -628,7 +628,7 @@ public class InterpretationBenchmark : BenchmarkBase
 
         var entities = new[] { new BenchmarkBinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -643,7 +643,7 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select fl.RawFlags, fl.Id, fl.Status
             from #test.files() f
-            cross apply Interpret(f.Content, 'Flags') fl";
+            cross apply Interpret<Flags>(f.Content) fl";
 
         var testData = new byte[4];
         testData[0] = 0b10101010;
@@ -652,7 +652,7 @@ public class InterpretationBenchmark : BenchmarkBase
 
         var entities = new[] { new BenchmarkBinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -673,12 +673,12 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select l.Date, l.Time, l.Level, l.Code, l.Message
             from #test.lines() f
-            cross apply Parse(f.Text, 'LogLine') l";
+            cross apply Parse<LogLine>(f.Text) l";
 
         var entities = new[]
             { new BenchmarkTextEntity { Name = "log.txt", Text = "2024-01-15 10:30:45 ERROR 500 Connection timeout" } };
         var schemaProvider = new BenchmarkTextSchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkTextEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -693,7 +693,7 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select x.Tag1, x.Tag2, x.Tag3
             from #test.lines() f
-            cross apply Parse(f.Text, 'XmlLike') x";
+            cross apply Parse<XmlLike>(f.Text) x";
 
         var entities = new[]
         {
@@ -701,7 +701,7 @@ public class InterpretationBenchmark : BenchmarkBase
                 { Name = "data.xml", Text = "<tag1>value1</tag1><tag2>value2</tag2><tag3>value3</tag3>" }
         };
         var schemaProvider = new BenchmarkTextSchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkTextEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -719,7 +719,7 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select p.VersionLE, p.LengthBE, p.ChecksumLE, p.FlagsBE, p.SequenceLE, p.TimestampBE
             from #test.files() f
-            cross apply Interpret(f.Content, 'NetworkPacket') p";
+            cross apply Interpret<NetworkPacket>(f.Content) p";
 
         var testData = new byte[30];
         BitConverter.GetBytes((short)1).CopyTo(testData, 0);
@@ -731,7 +731,7 @@ public class InterpretationBenchmark : BenchmarkBase
 
         var entities = new[] { new BenchmarkBinaryEntity { Name = "packet.bin", Content = testData } };
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -746,7 +746,7 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select r.Field1, r.Field2, r.Field3
             from #test.lines() f
-            cross apply Parse(f.Text, 'LargeRecord') r";
+            cross apply Parse<LargeRecord>(f.Text) r";
 
 
         var field1 = new string('A', 1024);
@@ -754,7 +754,7 @@ public class InterpretationBenchmark : BenchmarkBase
         var field3 = new string('C', 1024);
         var entities = new[] { new BenchmarkTextEntity { Name = "data.txt", Text = $"{field1}|{field2}|{field3}" } };
         var schemaProvider = new BenchmarkTextSchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkTextEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -767,7 +767,7 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select h.Id
             from #test.files() f
-            cross apply Interpret(f.Content, 'TinyHeader') h";
+            cross apply Interpret<TinyHeader>(f.Content) h";
 
         var entities = new List<BenchmarkBinaryEntity>();
         for (var i = 0; i < 1000; i++)
@@ -777,7 +777,7 @@ public class InterpretationBenchmark : BenchmarkBase
         }
 
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -796,12 +796,12 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select c.Command, c.Arg1, c.Arg2, c.Arg3
             from #test.lines() f
-            cross apply Parse(f.Text, 'CommandLine') c";
+            cross apply Parse<CommandLine>(f.Text) c";
 
         var entities = new[]
             { new BenchmarkTextEntity { Name = "cmd.txt", Text = "git commit -m \"Initial commit message\"" } };
         var schemaProvider = new BenchmarkTextSchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkTextEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
@@ -816,26 +816,26 @@ public class InterpretationBenchmark : BenchmarkBase
             };
             select r.Name, r.Description, r.Tag
             from #test.files() f
-            cross apply Interpret(f.Content, 'StringRecord') r";
+            cross apply Interpret<StringRecord>(f.Content) r";
 
         var testData = new byte[112];
-        var name = Encoding.UTF8.GetBytes("TestName\0");
-        var desc = Encoding.UTF8.GetBytes("This is a test description\0");
-        var tag = Encoding.ASCII.GetBytes("TAG001\0");
+        var name = "TestName\0"u8.ToArray();
+        var desc = "This is a test description\0"u8.ToArray();
+        var tag = "TAG001\0"u8.ToArray();
         name.CopyTo(testData, 0);
         desc.CopyTo(testData, 32);
         tag.CopyTo(testData, 96);
 
         var entities = new[] { new BenchmarkBinaryEntity { Name = "strings.bin", Content = testData } };
         var schemaProvider = new BenchmarkBinarySchemaProvider(
-            new Dictionary<string, IEnumerable<BenchmarkBinaryEntity>> { { "#test", entities } });
+            BenchmarkSourceChunks.Single("#test", entities));
 
         return CompileQuery(query, schemaProvider);
     }
 
     private CompiledQuery CompileQuery(string query, ISchemaProvider schemaProvider)
     {
-        var options = new CompilationOptions(usePrimitiveTypeValidation: false);
+        var options = BenchmarkCompilationOptions.Materialized(new CompilationOptions(usePrimitiveTypeValidation: false));
         return InstanceCreator.CompileForExecution(
             query,
             Guid.NewGuid().ToString(),

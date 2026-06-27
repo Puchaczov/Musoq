@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Generic;
 
 namespace Musoq.Evaluator.Tables;
@@ -9,8 +8,8 @@ public abstract class IndexedList<TKey, TValue>
 {
     private static readonly IReadOnlyList<TValue> EmptyList = Array.Empty<TValue>();
 
-    protected readonly Dictionary<TKey, List<int>> Indexes = new();
-    protected internal readonly List<TValue> Rows = [];
+    protected Dictionary<TKey, List<int>> Indexes { get; } = new();
+    protected internal List<TValue> Rows { get; } = [];
 
     public virtual TValue this[int index] => Rows[index];
 
@@ -21,8 +20,8 @@ public abstract class IndexedList<TKey, TValue>
         get
         {
             var indexes = Indexes[key];
-            for (var i = 0; i < indexes.Count; i++)
-                yield return Rows[indexes[i]];
+            foreach (var index in indexes)
+                yield return Rows[index];
         }
     }
 
@@ -33,8 +32,9 @@ public abstract class IndexedList<TKey, TValue>
 
     public virtual bool Contains(TValue value, Func<TValue, TValue, bool> comparer)
     {
-        for (var i = 0; i < Rows.Count; i++)
-            if (comparer(Rows[i], value))
+        ArgumentNullException.ThrowIfNull(comparer);
+        foreach (var row in Rows)
+            if (comparer(row, value))
                 return true;
         return false;
     }

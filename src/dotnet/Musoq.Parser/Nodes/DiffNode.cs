@@ -1,5 +1,3 @@
-﻿using System;
-
 namespace Musoq.Parser.Nodes;
 
 public class DiffNode : BinaryNode
@@ -15,6 +13,7 @@ public class DiffNode : BinaryNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

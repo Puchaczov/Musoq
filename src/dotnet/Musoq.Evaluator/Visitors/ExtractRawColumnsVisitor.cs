@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Utils;
@@ -8,13 +8,14 @@ using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExpressionVisitor
+public partial class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExpressionVisitor
 {
     private readonly Dictionary<string, List<string>> _columns = new();
+    private readonly Dictionary<string, string> _aliasToColumnKey = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<string> _generatedAliases = [];
-    private IReadOnlyDictionary<string, string[]> _cachedColumns;
+    private IReadOnlyDictionary<string, string[]> _cachedColumns = new Dictionary<string, string[]>();
     private bool _columnsCacheValid;
-    private string _queryAlias;
+    private string _queryAlias = string.Empty;
     private int _schemaFromKey;
 
     public IReadOnlyDictionary<string, string[]> Columns
@@ -32,32 +33,60 @@ public class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExpressionV
 
     public override void Visit(AccessColumnNode node)
     {
-        _columns[_queryAlias].Add(node.Name);
+        ArgumentNullException.ThrowIfNull(node);
+        _columns[ResolveColumnKey(node.Alias)].Add(node.Name);
     }
 
     public override void Visit(IdentifierNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         _columns[_queryAlias].Add(node.Name);
     }
 
     public override void Visit(SchemaFromNode node)
     {
-        _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString()) +
-                      _schemaFromKey;
+        ArgumentNullException.ThrowIfNull(node);
+        var alias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        _queryAlias = alias + _schemaFromKey;
 
         if (_columns.ContainsKey(_queryAlias))
             throw new AliasAlreadyUsedException(node, _queryAlias);
 
         _generatedAliases.Add(_queryAlias);
         _columns.Add(_queryAlias, []);
+        _aliasToColumnKey[alias] = _queryAlias;
     }
 
     public override void Visit(AliasedFromNode node)
     {
-        _queryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString()) +
-                      _schemaFromKey;
+        ArgumentNullException.ThrowIfNull(node);
+        var alias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        _queryAlias = alias + _schemaFromKey;
         _generatedAliases.Add(_queryAlias);
         _columns.Add(_queryAlias, []);
+        _aliasToColumnKey[alias] = _queryAlias;
+    }
+
+    public override void Visit(ValuesFromNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        var alias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _generatedAliases, _schemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        _queryAlias = alias + _schemaFromKey;
+
+        if (_columns.ContainsKey(_queryAlias))
+            throw new AliasAlreadyUsedException(_queryAlias, node.HasSpan ? node.Span : TextSpan.Empty);
+
+        _generatedAliases.Add(_queryAlias);
+        _columns.Add(_queryAlias, []);
+        _aliasToColumnKey[alias] = _queryAlias;
+    }
+
+    private string ResolveColumnKey(string? alias)
+    {
+        if (!string.IsNullOrEmpty(alias) && _aliasToColumnKey.TryGetValue(alias, out var columnKey))
+            return columnKey;
+
+        return _queryAlias;
     }
 
     public void SetScope(Scope scope)
@@ -77,7 +106,7 @@ public class ExtractRawColumnsVisitor : NoOpExpressionVisitor, IAwareExpressionV
     {
     }
 
-    public void SetTheMostInnerIdentifierOfDotNode(IdentifierNode node)
+    public void SetTheMostInnerIdentifierOfDotNode(IdentifierNode? node)
     {
     }
 

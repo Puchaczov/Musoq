@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Musoq.Parser.Nodes.From;
+﻿namespace Musoq.Parser.Nodes.From;
 
 public class InMemoryGroupedFromNode : FromNode
 {
@@ -20,6 +18,7 @@ public class InMemoryGroupedFromNode : FromNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

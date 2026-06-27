@@ -1,6 +1,6 @@
-using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Linq;
+using System.Text;
 
 namespace Musoq.Schema.Helpers;
 
@@ -22,8 +22,7 @@ public static class MethodNameNormalizer
     /// <exception cref="ArgumentException">Thrown when methodName is empty or whitespace.</exception>
     public static string Normalize(string methodName)
     {
-        if (methodName == null)
-            throw new ArgumentNullException(nameof(methodName));
+        ArgumentNullException.ThrowIfNull(methodName);
 
         if (string.IsNullOrWhiteSpace(methodName))
             throw new ArgumentException("Method name cannot be empty or whitespace.", nameof(methodName));
@@ -35,7 +34,21 @@ public static class MethodNameNormalizer
             if (!needsNormalization)
                 return name;
 
-            return name.ToLowerInvariant().Replace("_", "");
+            return RemoveUnderscoresAndLower(name);
         });
+    }
+
+    private static string RemoveUnderscoresAndLower(string name)
+    {
+        var builder = new StringBuilder(name.Length);
+        foreach (var character in name)
+        {
+            if (character == '_')
+                continue;
+
+            builder.Append(char.ToLowerInvariant(character));
+        }
+
+        return builder.ToString();
     }
 }

@@ -1,29 +1,27 @@
-﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tables;
 
-public class Table : IndexedList<Key, Row>, IEnumerable<Row>, IReadOnlyTable
+public partial class Table : IndexedList<Key, Row>, IReadOnlyCollection<Row>, IReadOnlyTable
 {
     private readonly Dictionary<int, Column> _columnsByIndex;
     private readonly Dictionary<string, List<Column>> _columnsByName;
-    private readonly object _guard;
-    private readonly ConcurrentQueue<Row> _pendingRows;
-    private volatile bool _hasPendingRows;
 
     public Table(string name, Column[] columns)
     {
+        ArgumentNullException.ThrowIfNull(columns);
         Name = name;
 
         _columnsByIndex = new Dictionary<int, Column>();
         _columnsByName = new Dictionary<string, List<Column>>();
         _guard = new object();
         _pendingRows = new ConcurrentQueue<Row>();
+        _pendingDirectRowShards = null;
+        _pendingDirectRowCount = 0;
         _hasPendingRows = false;
 
         AddColumns(columns);
@@ -51,10 +49,19 @@ public class Table : IndexedList<Key, Row>, IEnumerable<Row>, IReadOnlyTable
         }
     }
 
+    public new IReadOnlyList<Row> Rows
+    {
+        get
+        {
+            FlushPendingRows();
+            return base.Rows;
+        }
+    }
+
     public IEnumerator<Row> GetEnumerator()
     {
         FlushPendingRows();
-        return Rows.GetEnumerator();
+        return base.Rows.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -67,7 +74,7 @@ public class Table : IndexedList<Key, Row>, IEnumerable<Row>, IReadOnlyTable
         get
         {
             FlushPendingRows();
-            return Rows;
+            return base.Rows;
         }
     }
 
@@ -108,49 +115,6 @@ public class Table : IndexedList<Key, Row>, IEnumerable<Row>, IReadOnlyTable
     {
         FlushPendingRows();
         return base.TryGetIndexedValues(key, out values);
-    }
-
-    public void Add(Row value)
-    {
-        if (value.Count != _columnsByIndex.Count)
-            throw new NotSupportedException(
-                $"({nameof(Add)}) Current row has {value.Count} values but {_columnsByIndex.Count} required.");
-
-        for (var i = 0; i < value.Count; i++)
-        {
-            if (value[i] == null)
-                continue;
-
-            var t1 = value[i].GetType();
-            var t2 = _columnsByIndex[i].ColumnType;
-            if (!t2.IsAssignableFrom(t1))
-                throw new NotSupportedException(
-                    $"({nameof(Add)}) Mismatched types. {t2.Name} is not assignable from {t1.Name}");
-        }
-
-        _pendingRows.Enqueue(value);
-        _hasPendingRows = true;
-    }
-
-    public void AddRange(IEnumerable<Row> values)
-    {
-        foreach (var value in values) Add(value);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void FlushPendingRows()
-    {
-        if (!_hasPendingRows)
-            return;
-
-        lock (_guard)
-        {
-            if (!_hasPendingRows)
-                return;
-
-            while (_pendingRows.TryDequeue(out var row)) Rows.Add(row);
-            _hasPendingRows = false;
-        }
     }
 
     private void AddColumns(params Column[] columns)

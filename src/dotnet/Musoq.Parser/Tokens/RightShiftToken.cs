@@ -1,11 +1,6 @@
 namespace Musoq.Parser.Tokens;
 
-public class RightShiftToken : Token
+public class RightShiftToken(TextSpan span) : Token(TokenText, TokenType.RightShift, span)
 {
     public const string TokenText = ">>";
-
-    public RightShiftToken(TextSpan span)
-        : base(TokenText, TokenType.RightShift, span)
-    {
-    }
 }

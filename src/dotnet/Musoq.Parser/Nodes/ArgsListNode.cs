@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 namespace Musoq.Parser.Nodes;
 
@@ -12,6 +11,7 @@ public class ArgsListNode : Node
 
     public ArgsListNode(Node[] args, TextSpan span)
     {
+        ArgumentNullException.ThrowIfNull(args);
         Args = args;
 
         var argsId = args.Length == 0 ? string.Empty : string.Concat(args.Select(f => f.Id));
@@ -34,12 +34,13 @@ public class ArgsListNode : Node
 
     public Node[] Args { get; }
 
-    public override Type ReturnType => Args[0].ReturnType;
+    public override Type? ReturnType => Args.Length == 0 ? null : Args[0].ReturnType;
 
     public override string Id { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

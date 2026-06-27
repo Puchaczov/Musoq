@@ -1,4 +1,3 @@
-﻿using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -47,8 +46,9 @@ public static class HashHelper
     public static string ComputeHash<THashProvider>(Stream stream, Func<THashProvider> create)
         where THashProvider : HashAlgorithm
     {
+        ArgumentNullException.ThrowIfNull(create);
         using var hashProvider = create();
         var hash = hashProvider.ComputeHash(stream);
-        return BitConverter.ToString(hash).Replace("-", string.Empty);
+        return Convert.ToHexString(hash);
     }
 }

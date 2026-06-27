@@ -1,4 +1,3 @@
-﻿using System;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Parser.Lexing;
@@ -8,6 +7,23 @@ namespace Musoq.Parser.Lexing;
 /// </summary>
 public class UnknownTokenException : LexerException
 {
+    public UnknownTokenException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+        RemainingInput = string.Empty;
+    }
+
+    public UnknownTokenException(string message)
+        : base(message)
+    {
+        RemainingInput = string.Empty;
+    }
+
+    public UnknownTokenException()
+    {
+        RemainingInput = string.Empty;
+    }
+
     /// <summary>
     ///     Initializes a new instance of the <see cref="UnknownTokenException" /> class.
     /// </summary>

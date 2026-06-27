@@ -1,11 +1,6 @@
 namespace Musoq.Parser.Tokens;
 
-public class NotToken : Token
+public class NotToken(TextSpan span) : Token(TokenText, TokenType.Not, span)
 {
     public const string TokenText = "not";
-
-    public NotToken(TextSpan span)
-        : base(TokenText, TokenType.Not, span)
-    {
-    }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace Musoq.Parser.Diagnostics;
@@ -213,12 +212,12 @@ public sealed class SourceText
         var endLine = Math.Min(LineCount, location.Line + maxContextLines);
 
 
-        var lineNumWidth = endLine.ToString().Length;
+        var lineNumWidth = endLine.ToString(System.Globalization.CultureInfo.InvariantCulture).Length;
 
         for (var line = startLine; line <= endLine; line++)
         {
             var lineText = GetLineText(line);
-            var lineNum = line.ToString().PadLeft(lineNumWidth);
+            var lineNum = line.ToString(System.Globalization.CultureInfo.InvariantCulture).PadLeft(lineNumWidth);
 
             if (line == location.Line)
             {

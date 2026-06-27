@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using Musoq.Schema.Attributes;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Optimization;
 using Musoq.Schema.Reflection;
 using ConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 
@@ -19,6 +19,7 @@ public static class TypeHelper
     /// <returns>The type.</returns>
     public static Type GetUnderlyingNullable(this Type type)
     {
+        ArgumentNullException.ThrowIfNull(type);
         if (type.IsArray)
         {
             var elementType = type.GetElementType();
@@ -41,6 +42,7 @@ public static class TypeHelper
     /// <returns>True if is pure value type. False if is Nullable[T] type or is reference type.</returns>
     public static bool IsTrueValueType(this Type type)
     {
+        ArgumentNullException.ThrowIfNull(type);
         var isValueType = type.IsValueType;
 
         if (!isValueType)
@@ -68,7 +70,7 @@ public static class TypeHelper
     /// <returns>True if has parameters, otherwise false.</returns>
     public static bool HasParameters(this ParameterInfo[] paramsParameters)
     {
-        return paramsParameters != null && paramsParameters.Length > 0;
+        return paramsParameters is { Length: > 0 };
     }
 
     /// <summary>
@@ -117,12 +119,12 @@ public static class TypeHelper
     /// <param name="parameterInfo">Parameter that attributes will be filtered.</param>
     /// <typeparam name="TAttribute">Base type.</typeparam>
     /// <returns>Attribute that specify condition.</returns>
-    public static TAttribute GetCustomAttributeThatInherits<TAttribute>(this ParameterInfo parameterInfo)
+    public static TAttribute? GetCustomAttributeThatInherits<TAttribute>(this ParameterInfo parameterInfo)
         where TAttribute : Attribute
     {
         var attributes = parameterInfo.GetCustomAttributes();
         var foundAttribute = attributes.FirstOrDefault(g => g.GetType().IsAssignableTo(typeof(TAttribute)));
-        return (TAttribute)foundAttribute;
+        return (TAttribute?)foundAttribute;
     }
 
     /// <summary>
@@ -218,11 +220,18 @@ public static class TypeHelper
         var supportsInterCommunicator = false;
 
         foreach (var param in parameters)
-            if (param.ParameterType != typeof(RuntimeContext))
-                filteredConstructors.Add((param.Name, param.ParameterType));
+            if (param.ParameterType != typeof(SourceExecutionContext))
+                filteredConstructors.Add((GetRequiredParameterName(param), param.ParameterType));
             else
                 supportsInterCommunicator = true;
 
         return (supportsInterCommunicator, filteredConstructors.ToArray());
+    }
+
+    private static string GetRequiredParameterName(ParameterInfo parameter)
+    {
+        return parameter.Name ??
+               throw new InvalidOperationException(
+                   $"Constructor parameter at position {parameter.Position} on '{parameter.Member.DeclaringType}' has no metadata name.");
     }
 }

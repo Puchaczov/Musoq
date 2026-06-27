@@ -1,15 +1,8 @@
-﻿using System;
+﻿namespace Musoq.Parser.Nodes;
 
-namespace Musoq.Parser.Nodes;
-
-public class SingleSetNode : Node
+public class SingleSetNode(QueryNode query) : Node
 {
-    public SingleSetNode(QueryNode query)
-    {
-        Query = query;
-    }
-
-    public QueryNode Query { get; }
+    public QueryNode Query { get; } = query;
 
     public override Type ReturnType => typeof(void);
 
@@ -17,6 +10,7 @@ public class SingleSetNode : Node
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

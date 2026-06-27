@@ -8,5 +8,6 @@ public enum QueryPart
     Where,
     GroupBy,
     Having,
+    Qualify,
     OrderBy
 }

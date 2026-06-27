@@ -1,4 +1,4 @@
-﻿namespace Musoq.Parser.Tokens;
+namespace Musoq.Parser.Tokens;
 
 public class AccessPropertyToken : Token
 {
@@ -7,7 +7,7 @@ public class AccessPropertyToken : Token
     public AccessPropertyToken(string value, TextSpan span)
         : base(ReplaceLeadingAndTrailingColumnMarkers(value), TokenType.Property, span)
     {
-        if (value.StartsWith("[") && value.EndsWith("]"))
+        if (value.StartsWith('[') && value.EndsWith(']'))
             _hasColumnMarkers = true;
     }
 
@@ -21,7 +21,8 @@ public class AccessPropertyToken : Token
 
     private static string ReplaceLeadingAndTrailingColumnMarkers(string value)
     {
-        if (value.StartsWith("[") && value.EndsWith("]"))
+        ArgumentNullException.ThrowIfNull(value);
+        if (value.StartsWith('[') && value.EndsWith(']'))
             return value.Substring(1, value.Length - 2);
 
         return value;

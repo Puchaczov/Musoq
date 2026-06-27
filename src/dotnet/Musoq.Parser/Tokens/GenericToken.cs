@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Musoq.Parser.Tokens;
+﻿namespace Musoq.Parser.Tokens;
 
 public abstract class GenericToken<TTokenType>
     where TTokenType : struct, IComparable, IFormattable

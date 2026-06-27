@@ -1,12 +1,10 @@
-using System;
-
 namespace Musoq.Plugins.Attributes;
 
 /// <summary>
 ///     Specifies the category of a bindable method for documentation and discoverability.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method)]
-public class MethodCategoryAttribute : Attribute
+public sealed class MethodCategoryAttribute : Attribute
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="MethodCategoryAttribute" /> class.

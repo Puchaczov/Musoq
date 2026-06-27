@@ -48,7 +48,7 @@ public class LowSelectivityJoinBenchmark
             Guid.NewGuid().ToString(),
             schemaProvider,
             _loggerResolver,
-            new CompilationOptions(useSortMergeJoin: UseSortMergeJoin)
+            BenchmarkCompilationOptions.Materialized(new CompilationOptions(useSortMergeJoin: UseSortMergeJoin))
         );
     }
 

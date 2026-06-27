@@ -1,40 +1,18 @@
-﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
 namespace Musoq.Schema.DataSources;
 
-public abstract class RowSourceBase<T> : RowSource
+public abstract class RowSourceBase<T> : RowSource<T>
 {
-    public override IEnumerable<IObjectResolver> Rows
-    {
-        get
-        {
-            var chunkedSource = new BlockingCollection<IReadOnlyList<IObjectResolver>>();
-            var workFinishedSignalizer = new CancellationTokenSource();
+    private const int DefaultCapacityInChunks = 4;
 
-            var thread = new Thread(() =>
-            {
-                try
-                {
-                    CollectChunks(chunkedSource);
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                finally
-                {
-                    chunkedSource.Add(new List<EntityResolver<T>>());
-                    workFinishedSignalizer.Cancel();
-                }
-            });
+    public override IEnumerable<IReadOnlyList<T>> Chunks =>
+        new ProducerChunkedEnumerable<T, IChunkWriter<T>>(
+            DefaultCapacityInChunks,
+            static _ => new CancellationTokenSource(),
+            static (chunks, token) => new ChunkWriter<T>(chunks, token),
+            CollectChunks);
 
-            thread.Start();
-
-            return new ChunkedSource<T>(chunkedSource, workFinishedSignalizer.Token);
-        }
-    }
-
-    protected abstract void CollectChunks(BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource);
+    protected abstract void CollectChunks(IChunkWriter<T> writer);
 }

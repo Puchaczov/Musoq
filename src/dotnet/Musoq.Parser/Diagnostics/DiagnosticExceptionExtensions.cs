@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace Musoq.Parser.Diagnostics;
@@ -50,6 +49,19 @@ public static class DiagnosticExceptionExtensions
             TextSpan.Empty);
     }
 
+    /// <summary>
+    ///     Converts an exception to a diagnostic and records it as an error in the bag.
+    /// </summary>
+    /// <param name="bag">The diagnostic bag to add to.</param>
+    /// <param name="exception">The exception to convert and record.</param>
+    /// <param name="sourceText">Optional source text for line/column information.</param>
+    /// <returns>True if the error was added; otherwise false.</returns>
+    public static bool AddError(this DiagnosticBag bag, Exception exception, SourceText? sourceText)
+    {
+        var diagnostic = exception.ToDiagnosticOrGeneric(sourceText);
+        return bag.AddError(diagnostic.Code, diagnostic.Message, diagnostic.Span);
+    }
+
     private static DiagnosticCode GetFallbackDiagnosticCode(Exception exception)
     {
         if (exception.Message.Contains("Unterminated string literal", StringComparison.OrdinalIgnoreCase))
@@ -92,8 +104,7 @@ public static class DiagnosticExceptionExtensions
 
     private static bool TryGetDiagnosticException(Exception exception, out IDiagnosticException diagnosticException)
     {
-        if (exception is null)
-            throw new ArgumentNullException(nameof(exception));
+        ArgumentNullException.ThrowIfNull(exception);
 
         var current = exception;
         var visited = new HashSet<Exception>();
@@ -130,7 +141,7 @@ public static class DiagnosticExceptionExtensions
             case KeyNotFoundException:
 
 
-                if (originalMessage.Contains("was not present in the dictionary"))
+                if (originalMessage.Contains("was not present in the dictionary", StringComparison.Ordinal))
                 {
                     var keyMatch = Regex.Match(originalMessage, @"'([^']+)'");
                     if (keyMatch.Success)
@@ -148,7 +159,7 @@ public static class DiagnosticExceptionExtensions
                 return $"Required value '{argNull.ParamName}' was not provided. " +
                        "Please verify your query is complete.";
 
-            case ArgumentException arg when arg.ParamName != null:
+            case ArgumentException { ParamName: not null } arg:
                 return $"Invalid argument '{arg.ParamName}': {originalMessage}";
 
             case InvalidOperationException:

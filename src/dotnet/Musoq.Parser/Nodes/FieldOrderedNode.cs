@@ -1,27 +1,36 @@
-﻿namespace Musoq.Parser.Nodes;
+namespace Musoq.Parser.Nodes;
 
-public class FieldOrderedNode : FieldNode
+public class FieldOrderedNode(Node expression, int fieldOrder, string? fieldName, bool hasExplicitFieldName, Order order, NullOrdering nullOrdering = NullOrdering.Default)
+    : FieldNode(expression,
+        fieldOrder, fieldName, hasExplicitFieldName)
 {
-    public FieldOrderedNode(Node expression, int fieldOrder, string fieldName, Order order) : base(expression,
-        fieldOrder, fieldName)
+    public FieldOrderedNode(Node expression, int fieldOrder, string? fieldName, Order order, NullOrdering nullOrdering = NullOrdering.Default) : this(expression,
+        fieldOrder, fieldName, !string.IsNullOrEmpty(fieldName), order, nullOrdering)
     {
-        Order = order;
     }
 
-    public Order Order { get; }
+    public Order Order { get; } = order;
 
-    public override string Id => $"{nameof(FieldOrderedNode)}{Expression.Id}{Order}";
+    public NullOrdering NullOrdering { get; } = nullOrdering;
+
+    public override string Id => $"{nameof(FieldOrderedNode)}{Expression.Id}{Order}{NullOrdering}";
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
     public override string ToString()
     {
-        if (Order == Order.Descending)
-            return $"{Expression.ToString()} desc";
+        var order = Order == Order.Descending ? " desc" : string.Empty;
+        var nulls = NullOrdering switch
+        {
+            NullOrdering.First => " nulls first",
+            NullOrdering.Last => " nulls last",
+            _ => string.Empty
+        };
 
-        return Expression.ToString();
+        return $"{Expression.ToString()}{order}{nulls}";
     }
 }

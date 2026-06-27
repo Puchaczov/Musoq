@@ -1,23 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using Musoq.Plugins.Attributes;
 
 namespace Musoq.Schema.Managers;
 
 public class MethodsAggregator(MethodsManager methodsManager)
 {
-    public bool TryResolveMethod(string name, Type[] types, Type entityType, out MethodInfo method)
+    public bool TryResolveMethod(string name, Type[] types, Type? entityType, [NotNullWhen(true)] out MethodInfo? method)
     {
         return methodsManager.TryGetMethod(name, types, entityType, out method);
     }
 
-    public bool TryResolveRawMethod(string name, Type[] types, out MethodInfo method)
+    public bool TryResolveAggregationMethod(string name, Type[] types, Type? entityType, [NotNullWhen(true)] out MethodInfo? method)
+    {
+        return methodsManager.TryGetAggregationMethod(name, types, entityType, out method);
+    }
+
+    public bool TryResolveAggregationMethod(
+        string name,
+        Type[] types,
+        Type? entityType,
+        Func<MethodInfo, bool> methodFilter,
+        [NotNullWhen(true)] out MethodInfo? method)
+    {
+        return methodsManager.TryGetAggregationMethod(name, types, entityType, methodFilter, out method);
+    }
+
+    public bool TryResolveRawMethod(string name, Type[] types, [NotNullWhen(true)] out MethodInfo? method)
     {
         return methodsManager.TryGetRawMethod(name, types, out method);
     }
 
-    public bool TryResolveWindowFunction(string sqlName, out MethodInfo method)
+    public bool TryResolveWindowFunction(string sqlName, [NotNullWhen(true)] out MethodInfo? method)
     {
         return methodsManager.TryGetWindowFunction(sqlName, out method);
     }

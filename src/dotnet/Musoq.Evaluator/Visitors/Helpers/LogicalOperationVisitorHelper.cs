@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Musoq.Parser.Nodes;
 
@@ -11,12 +10,20 @@ namespace Musoq.Evaluator.Visitors.Helpers;
 public static class LogicalOperationVisitorHelper
 {
     /// <summary>Processes an And operation with nullable boolean expression rewriting.</summary>
-    public static void ProcessAndOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions) =>
+    public static void ProcessAndOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions)
+    {
+        ArgumentNullException.ThrowIfNull(nodes);
+        ArgumentNullException.ThrowIfNull(rewriteNullableBoolExpressions);
         ProcessLogicalBinaryOperation(nodes, rewriteNullableBoolExpressions, (left, right) => new AndNode(left, right));
+    }
 
     /// <summary>Processes an Or operation with nullable boolean expression rewriting.</summary>
-    public static void ProcessOrOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions) =>
+    public static void ProcessOrOperation(Stack<Node> nodes, Func<Node, Node> rewriteNullableBoolExpressions)
+    {
+        ArgumentNullException.ThrowIfNull(nodes);
+        ArgumentNullException.ThrowIfNull(rewriteNullableBoolExpressions);
         ProcessLogicalBinaryOperation(nodes, rewriteNullableBoolExpressions, (left, right) => new OrNode(left, right));
+    }
 
     private static void ProcessLogicalBinaryOperation(
         Stack<Node> nodes,
@@ -24,8 +31,7 @@ public static class LogicalOperationVisitorHelper
         Func<Node, Node, Node> nodeFactory)
     {
         ValidateBinaryOperation(nodes);
-        if (rewriteNullableBoolExpressions == null)
-            throw new ArgumentNullException(nameof(rewriteNullableBoolExpressions));
+        ArgumentNullException.ThrowIfNull(rewriteNullableBoolExpressions);
 
         var rightRaw = nodes.Pop();
         var leftRaw = nodes.Pop();
@@ -95,8 +101,13 @@ public static class LogicalOperationVisitorHelper
         nodes.Push(new IsNullNode(operand, isNegated));
     }
 
+    internal const int ContainsThreshold = 5;
+
     /// <summary>
-    ///     Processes an In operation by converting it to a series of equality checks.
+    ///     Processes an In operation. Small value lists (fewer than <see cref="ContainsThreshold"/>)
+    ///     are converted to a series of OR-ed equality checks for efficient short-circuit evaluation.
+    ///     Larger value lists are converted to a <see cref="ContainsNode"/> which generates an
+    ///     array-based Contains call, avoiding deeply nested expressions that hinder JIT optimization.
     /// </summary>
     /// <param name="nodes">The node stack.</param>
     /// <exception cref="ArgumentNullException">Thrown when nodes is null.</exception>
@@ -110,7 +121,7 @@ public static class LogicalOperationVisitorHelper
 
         ValidateOperands(left, rightRaw);
 
-        if (!(rightRaw is ArgsListNode right))
+        if (rightRaw is not ArgsListNode right)
             throw new ArgumentException("Right operand must be an ArgsListNode for In operation");
 
         if (right.Args == null)
@@ -119,6 +130,12 @@ public static class LogicalOperationVisitorHelper
         if (right.Args.Length == 0)
         {
             nodes.Push(new BooleanNode(false));
+            return;
+        }
+
+        if (right.Args.Length >= ContainsThreshold)
+        {
+            nodes.Push(new ContainsNode(left, right));
             return;
         }
 
@@ -140,8 +157,7 @@ public static class LogicalOperationVisitorHelper
 
     private static void ValidateBinaryOperation(Stack<Node> nodes)
     {
-        if (nodes == null)
-            throw new ArgumentNullException(nameof(nodes));
+        ArgumentNullException.ThrowIfNull(nodes);
 
         if (nodes.Count < 2)
             throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");
@@ -149,8 +165,7 @@ public static class LogicalOperationVisitorHelper
 
     private static void ValidateUnaryOperation(Stack<Node> nodes)
     {
-        if (nodes == null)
-            throw new ArgumentNullException(nameof(nodes));
+        ArgumentNullException.ThrowIfNull(nodes);
 
         if (nodes.Count < 1)
             throw new InvalidOperationException("Stack must contain at least 1 node for unary operation");

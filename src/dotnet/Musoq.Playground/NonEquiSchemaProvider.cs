@@ -2,19 +2,13 @@
 
 namespace Musoq.Playground;
 
-public class NonEquiSchemaProvider : ISchemaProvider
+internal sealed class NonEquiSchemaProvider(IEnumerable<NonEquiEntity> entities, int simulatedWorkIterations = 0)
+    : ISchemaProvider
 {
-    private readonly IEnumerable<NonEquiEntity> _entities;
-    private readonly int _simulatedWorkIterations;
-
-    public NonEquiSchemaProvider(IEnumerable<NonEquiEntity> entities, int simulatedWorkIterations = 0)
-    {
-        _entities = entities;
-        _simulatedWorkIterations = simulatedWorkIterations;
-    }
+    private readonly IReadOnlyList<NonEquiEntity> _entities = entities as IReadOnlyList<NonEquiEntity> ?? entities.ToArray();
 
     public ISchema GetSchema(string schema)
     {
-        return new NonEquiSchema(_entities, _simulatedWorkIterations);
+        return new NonEquiSchema(_entities, simulatedWorkIterations);
     }
 }

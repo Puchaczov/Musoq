@@ -2,17 +2,10 @@
 
 namespace Musoq.Benchmarks;
 
-public class TableTestSchemaProvider : ISchemaProvider
+public class TableTestSchemaProvider(List<TableTestEntity> entities) : ISchemaProvider
 {
-    private readonly List<TableTestEntity> _entities;
-
-    public TableTestSchemaProvider(List<TableTestEntity> entities)
-    {
-        _entities = entities;
-    }
-
     public ISchema GetSchema(string schema)
     {
-        return new TableTestSchema(_entities);
+        return new TableTestSchema(entities);
     }
 }

@@ -1,24 +1,16 @@
-﻿using System;
+﻿namespace Musoq.Parser.Nodes;
 
-namespace Musoq.Parser.Nodes;
-
-public class StatementNode : Node
+public class StatementNode(Node node) : Node
 {
-    public StatementNode(Node node)
-    {
-        ReturnType = typeof(void);
-        Node = node;
-        Id = null;
-    }
+    public Node Node { get; } = node;
 
-    public Node Node { get; }
+    public override Type ReturnType { get; } = typeof(void);
 
-    public override Type ReturnType { get; }
-
-    public override string Id { get; }
+    public override string Id { get; } = $"{nameof(StatementNode)}{node.Id}";
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

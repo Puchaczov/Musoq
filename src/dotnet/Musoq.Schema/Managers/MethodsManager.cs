@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +13,7 @@ public class MethodsManager : MethodsMetadata
 
     public void RegisterLibraries(LibraryBase library)
     {
+        ArgumentNullException.ThrowIfNull(library);
         var type = library.GetType();
 
         var methods = BindableMethodsCache.GetOrAdd(type, static t =>

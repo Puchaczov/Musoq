@@ -1,31 +1,38 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
 namespace Musoq.Parser.Nodes;
 
 public class QueryNode : Node
 {
-    public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy,
-        SkipNode skip, TakeNode take)
-        : this(select, from, where, groupBy, orderBy, skip, take, null, default)
+    public QueryNode(SelectNode select, FromNode from, WhereNode? where, GroupByNode? groupBy, OrderByNode? orderBy,
+        SkipNode? skip, TakeNode? take)
+        : this(select, from, where, groupBy, orderBy, skip, take, null, null, default)
     {
     }
 
-    public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy,
-        SkipNode skip, TakeNode take, WindowNode window)
-        : this(select, from, where, groupBy, orderBy, skip, take, window, default)
+    public QueryNode(SelectNode select, FromNode from, WhereNode? where, GroupByNode? groupBy, OrderByNode? orderBy,
+        SkipNode? skip, TakeNode? take, WindowNode? window)
+        : this(select, from, where, groupBy, orderBy, skip, take, window, null, default)
     {
     }
 
-    public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy,
-        SkipNode skip, TakeNode take, TextSpan span)
-        : this(select, from, where, groupBy, orderBy, skip, take, null, span)
+    public QueryNode(SelectNode select, FromNode from, WhereNode? where, GroupByNode? groupBy, OrderByNode? orderBy,
+        SkipNode? skip, TakeNode? take, TextSpan span)
+        : this(select, from, where, groupBy, orderBy, skip, take, null, null, span)
     {
     }
 
-    public QueryNode(SelectNode select, FromNode from, WhereNode where, GroupByNode groupBy, OrderByNode orderBy,
-        SkipNode skip, TakeNode take, WindowNode window, TextSpan span)
+    public QueryNode(SelectNode select, FromNode from, WhereNode? where, GroupByNode? groupBy, OrderByNode? orderBy,
+        SkipNode? skip, TakeNode? take, WindowNode? window, TextSpan span)
+        : this(select, from, where, groupBy, orderBy, skip, take, window, null, span)
     {
+    }
+
+    public QueryNode(SelectNode select, FromNode from, WhereNode? where, GroupByNode? groupBy, OrderByNode? orderBy,
+        SkipNode? skip, TakeNode? take, WindowNode? window, QualifyNode? qualify, TextSpan span)
+    {
+        ArgumentNullException.ThrowIfNull(select);
+        ArgumentNullException.ThrowIfNull(from);
         Select = select;
         From = from;
         Where = where;
@@ -34,12 +41,13 @@ public class QueryNode : Node
         Skip = skip;
         Take = take;
         Window = window;
-        Id = $"{nameof(QueryNode)}{select.Id}{from.Id}{where?.Id}{groupBy?.Id}{orderBy?.Id}{skip?.Id}{take?.Id}{window?.Id}";
+        Qualify = qualify;
+        Id = $"{nameof(QueryNode)}{select.Id}{from.Id}{where?.Id}{groupBy?.Id}{orderBy?.Id}{skip?.Id}{take?.Id}{window?.Id}{qualify?.Id}";
 
         // Compute span from first to last clause
         if (span.IsEmpty)
         {
-            var nodes = new Node[] { select, from, where, groupBy, orderBy, skip, take, window };
+            var nodes = new Node?[] { select, from, where, groupBy, orderBy, skip, take, window, qualify };
             Span = ComputeSpan(nodes);
             FullSpan = Span;
         }
@@ -54,24 +62,27 @@ public class QueryNode : Node
 
     public FromNode From { get; }
 
-    public WhereNode Where { get; }
+    public WhereNode? Where { get; }
 
-    public GroupByNode GroupBy { get; }
+    public GroupByNode? GroupBy { get; }
 
-    public OrderByNode OrderBy { get; }
+    public OrderByNode? OrderBy { get; }
 
-    public SkipNode Skip { get; }
+    public SkipNode? Skip { get; }
 
-    public TakeNode Take { get; }
+    public TakeNode? Take { get; }
 
-    public WindowNode Window { get; }
+    public WindowNode? Window { get; }
 
-    public override Type ReturnType => null;
+    public QualifyNode? Qualify { get; }
+
+    public override Type? ReturnType => null;
 
     public override string Id { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -79,12 +90,13 @@ public class QueryNode : Node
     {
         var builder = new StringBuilder();
 
-        var otherClauses = new Node[]
+        var otherClauses = new Node?[]
         {
             From,
             Where,
             GroupBy,
             Window,
+            Qualify,
             OrderBy,
             Skip
         };

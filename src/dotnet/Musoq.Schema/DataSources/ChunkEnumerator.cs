@@ -1,72 +1,79 @@
-﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 
 namespace Musoq.Schema.DataSources;
 
-public class ChunkEnumerator<T> : IEnumerator<IObjectResolver>
+public class ChunkEnumerator<T> : IEnumerator<IReadOnlyList<T>>
 {
-    private readonly BlockingCollection<IReadOnlyList<IObjectResolver>> _readRows;
+    private readonly BlockingCollection<IReadOnlyList<T>> _readRows;
     private readonly CancellationToken _token;
+    private readonly Action? _disposeResources;
+    private readonly Action? _throwIfProducerFailed;
+    private readonly IChunkPipelineMetrics? _metrics;
+    private IReadOnlyList<T>? _currentChunk;
+    private bool _completed;
+    private int _disposed;
 
-    private IReadOnlyList<IObjectResolver> _currentChunk;
-    private int _currentIndex = -1;
+    public ChunkEnumerator(
+        BlockingCollection<IReadOnlyList<T>> readRows,
+        CancellationToken token,
+        Action? disposeResources = null,
+        Action? throwIfProducerFailed = null)
+        : this(readRows, token, disposeResources, throwIfProducerFailed, null)
+    {
+    }
 
-    public ChunkEnumerator(BlockingCollection<IReadOnlyList<IObjectResolver>> readRows, CancellationToken token)
+    internal ChunkEnumerator(
+        BlockingCollection<IReadOnlyList<T>> readRows,
+        CancellationToken token,
+        Action? disposeResources,
+        Action? throwIfProducerFailed,
+        IChunkPipelineMetrics? metrics)
     {
         _readRows = readRows;
         _token = token;
+        _disposeResources = disposeResources;
+        _throwIfProducerFailed = throwIfProducerFailed;
+        _metrics = metrics;
     }
 
     public bool MoveNext()
     {
-        if (_currentChunk != null && _currentIndex++ < _currentChunk.Count - 1)
-            return true;
-
         try
         {
-            var wasTaken = false;
-            for (var i = 0; i < 10; i++)
+            while (true)
             {
-                if (!_readRows.TryTake(out _currentChunk) || _currentChunk == null ||
-                    _currentChunk.Count == 0) continue;
+                if (_readRows.IsCompleted)
+                {
+                    _completed = true;
+                    _currentChunk = null;
+                    _throwIfProducerFailed?.Invoke();
+                    return false;
+                }
 
-                wasTaken = true;
-                break;
+                if (!TryTakeNextChunk(out var currentChunk))
+                    return Complete();
+
+                if (currentChunk is not { Count: > 0 })
+                    continue;
+
+                _currentChunk = currentChunk;
+                _metrics?.RecordChunkConsumed(currentChunk.Count, _readRows.Count);
+                return true;
             }
-
-            if (!wasTaken)
-            {
-                IReadOnlyList<IObjectResolver> newChunk = null;
-                while (newChunk == null || newChunk.Count == 0)
-                    newChunk = _readRows.Count > 0 ? _readRows.Take() : _readRows.Take(_token);
-
-                _currentChunk = newChunk;
-            }
-
-            _currentIndex = 0;
-            return true;
         }
         catch (OperationCanceledException)
         {
-            if (_readRows.Count <= 0) return false;
-
-            _currentChunk = _readRows.Take();
-            while (_readRows.Count > 0 && _currentChunk.Count == 0)
-                _currentChunk = _readRows.Take();
-
-            _currentIndex = 0;
-            return _currentChunk.Count > 0;
+            _completed = true;
+            _currentChunk = null;
+            throw;
         }
-        catch (NullReferenceException)
+        catch (InvalidOperationException)
         {
-            return false;
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            return false;
+            return Complete();
         }
     }
 
@@ -75,11 +82,71 @@ public class ChunkEnumerator<T> : IEnumerator<IObjectResolver>
         throw new NotSupportedException("Chunk enumerator does not support reset.");
     }
 
-    public IObjectResolver Current => _currentChunk[_currentIndex];
+    public IReadOnlyList<T> Current =>
+        _currentChunk != null
+            ? _currentChunk
+            : throw new InvalidOperationException("Enumeration has not started or has already finished.");
 
-    object IEnumerator.Current => Current;
+    object? IEnumerator.Current => Current;
 
     public void Dispose()
     {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposing || Interlocked.Exchange(ref _disposed, 1) != 0)
+            return;
+
+        if (!_completed)
+            _completed = true;
+
+        _currentChunk = null;
+        _disposeResources?.Invoke();
+    }
+
+    private bool TryTakeNextChunk(out IReadOnlyList<T> chunk)
+    {
+        if (_token.IsCancellationRequested)
+            _token.ThrowIfCancellationRequested();
+
+        if (_readRows.TryTake(out chunk!))
+            return true;
+
+        if (_readRows.IsCompleted)
+            return false;
+
+        _metrics?.RecordConsumerWaitOnEmpty();
+        var startedTimestamp = Stopwatch.GetTimestamp();
+        try
+        {
+            if (_metrics == null)
+            {
+                chunk = _token.CanBeCanceled ? _readRows.Take(_token) : _readRows.Take();
+            }
+            else
+            {
+                using (_metrics.MeasureConsumerWaitOnEmpty())
+                {
+                    chunk = _token.CanBeCanceled ? _readRows.Take(_token) : _readRows.Take();
+                }
+            }
+        }
+        finally
+        {
+            _metrics?.RecordConsumerWaitOnEmptyElapsed(Stopwatch.GetElapsedTime(startedTimestamp));
+        }
+
+        return true;
+    }
+
+    private bool Complete()
+    {
+        _completed = true;
+        _currentChunk = null;
+        _throwIfProducerFailed?.Invoke();
+        return false;
     }
 }

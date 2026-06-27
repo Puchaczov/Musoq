@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Musoq.Parser.Nodes;
+﻿namespace Musoq.Parser.Nodes;
 
 /// <summary>
 ///     Represents a call to the InterpretAt function for binary data interpretation at a specific offset.
@@ -27,7 +25,7 @@ public class InterpretAtCallNode : Node
     /// <param name="offset">The byte offset to start interpretation from.</param>
     /// <param name="schemaName">The name of the interpretation schema to use.</param>
     /// <param name="returnType">The return type of the interpretation.</param>
-    public InterpretAtCallNode(Node dataSource, Node offset, string schemaName, Type returnType)
+    public InterpretAtCallNode(Node dataSource, Node offset, string schemaName, Type? returnType)
     {
         DataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
         Offset = offset ?? throw new ArgumentNullException(nameof(offset));
@@ -53,18 +51,19 @@ public class InterpretAtCallNode : Node
     /// <summary>
     ///     Gets the return type of the interpretation.
     /// </summary>
-    public override Type ReturnType { get; }
+    public override Type? ReturnType { get; }
 
     /// <summary>
     ///     Gets the unique identifier for this node.
     /// </summary>
-    public override string Id => $"{nameof(InterpretAtCallNode)}({DataSource.Id},{Offset.Id},{SchemaName})";
+    public override string Id => $"{nameof(InterpretAtCallNode)}<{SchemaName}>({DataSource.Id},{Offset.Id})";
 
     /// <summary>
     ///     Accepts a visitor for this node.
     /// </summary>
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -73,6 +72,6 @@ public class InterpretAtCallNode : Node
     /// </summary>
     public override string ToString()
     {
-        return $"InterpretAt({DataSource.ToString()}, {Offset.ToString()}, {SchemaName})";
+        return $"InterpretAt<{SchemaName}>({DataSource.ToString()}, {Offset.ToString()})";
     }
 }

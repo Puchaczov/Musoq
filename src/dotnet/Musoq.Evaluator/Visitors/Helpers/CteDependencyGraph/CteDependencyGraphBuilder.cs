@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser.Nodes;
@@ -19,6 +18,7 @@ public class CteDependencyGraphBuilder
     /// <returns>A dependency graph representing CTE relationships.</returns>
     public CteDependencyGraph Build(CteExpressionNode cteExpression)
     {
+        ArgumentNullException.ThrowIfNull(cteExpression);
         var cteNames = cteExpression.InnerExpression
             .Select(inner => inner.Name)
             .ToHashSet();

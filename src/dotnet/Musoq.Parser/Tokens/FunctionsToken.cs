@@ -1,11 +1,6 @@
 namespace Musoq.Parser.Tokens;
 
-public class FunctionsToken : Token
+public class FunctionsToken(TextSpan span) : Token(TokenText, TokenType.Functions, span)
 {
     public const string TokenText = "functions";
-
-    public FunctionsToken(TextSpan span)
-        : base(TokenText, TokenType.Functions, span)
-    {
-    }
 }

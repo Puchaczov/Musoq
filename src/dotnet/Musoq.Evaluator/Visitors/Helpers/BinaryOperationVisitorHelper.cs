@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors.Helpers;
@@ -21,57 +21,62 @@ public static class BinaryOperationVisitorHelper
     /// <exception cref="ArgumentException">Thrown when popped nodes are null.</exception>
     public static void ProcessBinaryOperation(Stack<Node> nodes, Func<Node, Node, Node> nodeFactory)
     {
+        ProcessBinaryOperation(nodes, nodeFactory, TextSpan.Empty);
+    }
+
+    public static void ProcessBinaryOperation(Stack<Node> nodes, Func<Node, Node, Node> nodeFactory, TextSpan span)
+    {
+        ArgumentNullException.ThrowIfNull(nodeFactory);
         ValidateBinaryOperation(nodes);
         var right = nodes.Pop();
         var left = nodes.Pop();
         ValidateOperands(left, right);
-        nodes.Push(nodeFactory(left, right));
+        nodes.Push(nodeFactory(left, right).WithSpan(span));
     }
 
     /// <summary>Processes a Star operation.</summary>
-    public static void ProcessStarOperation(Stack<Node> nodes) =>
-        ProcessBinaryOperation(nodes, (left, right) => new StarNode(left, right));
+    public static void ProcessStarOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessBinaryOperation(nodes, (left, right) => new StarNode(left, right), span);
 
     /// <summary>Processes a FSlash operation.</summary>
-    public static void ProcessFSlashOperation(Stack<Node> nodes) =>
-        ProcessBinaryOperation(nodes, (left, right) => new FSlashNode(left, right));
+    public static void ProcessFSlashOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessBinaryOperation(nodes, (left, right) => new FSlashNode(left, right), span);
 
     /// <summary>Processes a Modulo operation.</summary>
-    public static void ProcessModuloOperation(Stack<Node> nodes) =>
-        ProcessBinaryOperation(nodes, (left, right) => new ModuloNode(left, right));
+    public static void ProcessModuloOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessBinaryOperation(nodes, (left, right) => new ModuloNode(left, right), span);
 
     /// <summary>Processes an Add operation.</summary>
-    public static void ProcessAddOperation(Stack<Node> nodes) =>
-        ProcessBinaryOperation(nodes, (left, right) => new AddNode(left, right));
+    public static void ProcessAddOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessBinaryOperation(nodes, (left, right) => new AddNode(left, right), span);
 
     /// <summary>Processes a Hyphen operation.</summary>
-    public static void ProcessHyphenOperation(Stack<Node> nodes) =>
-        ProcessBinaryOperation(nodes, (left, right) => new HyphenNode(left, right));
+    public static void ProcessHyphenOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessBinaryOperation(nodes, (left, right) => new HyphenNode(left, right), span);
 
     /// <summary>Processes a BitwiseAnd operation.</summary>
-    public static void ProcessBitwiseAndOperation(Stack<Node> nodes) =>
-        ProcessBinaryOperation(nodes, (left, right) => new BitwiseAndNode(left, right));
+    public static void ProcessBitwiseAndOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessBinaryOperation(nodes, (left, right) => new BitwiseAndNode(left, right), span);
 
     /// <summary>Processes a BitwiseOr operation.</summary>
-    public static void ProcessBitwiseOrOperation(Stack<Node> nodes) =>
-        ProcessBinaryOperation(nodes, (left, right) => new BitwiseOrNode(left, right));
+    public static void ProcessBitwiseOrOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessBinaryOperation(nodes, (left, right) => new BitwiseOrNode(left, right), span);
 
     /// <summary>Processes a BitwiseXor operation.</summary>
-    public static void ProcessBitwiseXorOperation(Stack<Node> nodes) =>
-        ProcessBinaryOperation(nodes, (left, right) => new BitwiseXorNode(left, right));
+    public static void ProcessBitwiseXorOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessBinaryOperation(nodes, (left, right) => new BitwiseXorNode(left, right), span);
 
     /// <summary>Processes a LeftShift operation.</summary>
-    public static void ProcessLeftShiftOperation(Stack<Node> nodes) =>
-        ProcessBinaryOperation(nodes, (left, right) => new LeftShiftNode(left, right));
+    public static void ProcessLeftShiftOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessBinaryOperation(nodes, (left, right) => new LeftShiftNode(left, right), span);
 
     /// <summary>Processes a RightShift operation.</summary>
-    public static void ProcessRightShiftOperation(Stack<Node> nodes) =>
-        ProcessBinaryOperation(nodes, (left, right) => new RightShiftNode(left, right));
+    public static void ProcessRightShiftOperation(Stack<Node> nodes, TextSpan span = default) =>
+        ProcessBinaryOperation(nodes, (left, right) => new RightShiftNode(left, right), span);
 
     private static void ValidateBinaryOperation(Stack<Node> nodes)
     {
-        if (nodes == null)
-            throw new ArgumentNullException(nameof(nodes));
+        ArgumentNullException.ThrowIfNull(nodes);
 
         if (nodes.Count < 2)
             throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");

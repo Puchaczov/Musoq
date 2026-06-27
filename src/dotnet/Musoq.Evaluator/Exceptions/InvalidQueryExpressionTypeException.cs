@@ -1,5 +1,3 @@
-#nullable enable
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
@@ -11,6 +9,27 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class InvalidQueryExpressionTypeException : Exception, IDiagnosticException
 {
+    private static string CreateFieldMessage(FieldNode field, Type? invalidType, string context)
+    {
+        ArgumentNullException.ThrowIfNull(field);
+        return $"Query output column '{field.FieldName}' has invalid type '{invalidType?.FullName ?? "null"}' in {context}. " +
+            "Only primitive types (numeric, string, bool, char, DateTime, DateTimeOffset, Guid, TimeSpan, decimal, null) are allowed in query outputs.";
+    }
+
+    public InvalidQueryExpressionTypeException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public InvalidQueryExpressionTypeException(string message)
+        : base(message)
+    {
+    }
+
+    public InvalidQueryExpressionTypeException()
+    {
+    }
+
     /// <summary>
     ///     Initializes a new instance with expression description, type, and context.
     /// </summary>
@@ -26,9 +45,7 @@ public class InvalidQueryExpressionTypeException : Exception, IDiagnosticExcepti
     ///     Initializes a new instance with field node, type, and context.
     /// </summary>
     public InvalidQueryExpressionTypeException(FieldNode field, Type? invalidType, string context)
-        : base(
-            $"Query output column '{field.FieldName}' has invalid type '{invalidType?.FullName ?? "null"}' in {context}. " +
-            "Only primitive types (numeric, string, bool, char, DateTime, DateTimeOffset, Guid, TimeSpan, decimal, null) are allowed in query outputs.")
+        : base(CreateFieldMessage(field, invalidType, context))
     {
         Code = DiagnosticCode.MQ3027_InvalidExpressionType;
     }

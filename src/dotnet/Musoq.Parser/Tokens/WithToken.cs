@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class WithToken : Token
+public class WithToken(TextSpan span) : Token(TokenText, TokenType.With, span)
 {
     public const string TokenText = "with";
-
-    public WithToken(TextSpan span)
-        : base(TokenText, TokenType.With, span)
-    {
-    }
 }

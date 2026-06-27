@@ -1,12 +1,7 @@
-﻿using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Parser;
 
-public class ApplySourcesTableFromNode : Musoq.Parser.Nodes.From.ApplySourcesTableFromNode
-{
-    public ApplySourcesTableFromNode(FromNode first, FromNode second, ApplyType applyType)
-        : base(first, second, applyType, typeof(RowSource))
-    {
-    }
-}
+public class ApplySourcesTableFromNode(FromNode first, FromNode second, ApplyType applyType, bool withOrdinality = false)
+    : Musoq.Parser.Nodes.From.ApplySourcesTableFromNode(first, second, applyType, typeof(RowSource<>), withOrdinality);

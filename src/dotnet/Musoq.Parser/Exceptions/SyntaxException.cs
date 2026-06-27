@@ -1,4 +1,3 @@
-﻿using System;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 
@@ -10,6 +9,26 @@ namespace Musoq.Parser.Exceptions;
 /// </summary>
 public class SyntaxException : Exception, IDiagnosticException
 {
+    public SyntaxException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+        QueryPart = string.Empty;
+        Code = DiagnosticCode.MQ2001_UnexpectedToken;
+    }
+
+    public SyntaxException(string message)
+        : base(message)
+    {
+        QueryPart = string.Empty;
+        Code = DiagnosticCode.MQ2001_UnexpectedToken;
+    }
+
+    public SyntaxException()
+    {
+        QueryPart = string.Empty;
+        Code = DiagnosticCode.MQ2001_UnexpectedToken;
+    }
+
     /// <summary>
     ///     Initializes a new instance of SyntaxException with the specified message and query part.
     /// </summary>

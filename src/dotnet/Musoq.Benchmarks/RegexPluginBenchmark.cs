@@ -32,34 +32,39 @@ public class RegexPluginBenchmark
         }).ToList();
 
         var schemaProvider = new TestSchemaProvider(testData);
+        var options = BenchmarkCompilationOptions.Materialized();
 
 
         _baselineQuery = InstanceCreator.CompileForExecution(
             @"select Name from #test.entities() where Name = 'User500'",
             Guid.NewGuid().ToString(),
             schemaProvider,
-            _loggerResolver);
+            _loggerResolver,
+            options);
 
 
         _matchQuery = InstanceCreator.CompileForExecution(
             @"select Name from #test.entities() where Match('\d{3}', Description)",
             Guid.NewGuid().ToString(),
             schemaProvider,
-            _loggerResolver);
+            _loggerResolver,
+            options);
 
 
         _regexReplaceQuery = InstanceCreator.CompileForExecution(
             @"select RegexReplace(Description, 'ABC-\d{4}', 'CODE-XXXX') from #test.entities()",
             Guid.NewGuid().ToString(),
             schemaProvider,
-            _loggerResolver);
+            _loggerResolver,
+            options);
 
 
         _regexMatchesQuery = InstanceCreator.CompileForExecution(
-            @"select RegexMatches('\d+', Description) from #test.entities()",
+            @"select Length(RegexMatches('\d+', Description)) from #test.entities()",
             Guid.NewGuid().ToString(),
             schemaProvider,
-            _loggerResolver);
+            _loggerResolver,
+            options);
     }
 
     [Benchmark(Baseline = true)]

@@ -4,12 +4,7 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Utils.Symbols;
 
-public class RefreshMethodsSymbol : Symbol
+public class RefreshMethodsSymbol(IEnumerable<AccessMethodNode> refreshMethods) : Symbol
 {
-    public RefreshMethodsSymbol(IEnumerable<AccessMethodNode> refreshMethods)
-    {
-        RefreshMethods = refreshMethods.ToArray();
-    }
-
-    public IReadOnlyList<AccessMethodNode> RefreshMethods { get; }
+    public IReadOnlyList<AccessMethodNode> RefreshMethods { get; } = refreshMethods.ToArray();
 }

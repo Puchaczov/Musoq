@@ -1,5 +1,3 @@
-﻿using System;
-
 namespace Musoq.Parser.Nodes;
 
 public class OrNode : BinaryNode
@@ -16,6 +14,7 @@ public class OrNode : BinaryNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

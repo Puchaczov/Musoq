@@ -1,12 +1,12 @@
-﻿using System;
-
-namespace Musoq.Parser.Nodes;
+﻿namespace Musoq.Parser.Nodes;
 
 public class DotNode : UnaryNode
 {
-    public DotNode(Node root, Node expression, string name, Type returnType = null, string intendedTypeName = null)
+    public DotNode(Node root, Node expression, string name, Type? returnType = null, string? intendedTypeName = null)
         : base(expression)
     {
+        ArgumentNullException.ThrowIfNull(root);
+        ArgumentNullException.ThrowIfNull(expression);
         Root = root;
         Name = name;
         IsTheMostInner = false;
@@ -15,10 +15,12 @@ public class DotNode : UnaryNode
         IntendedTypeName = intendedTypeName;
     }
 
-    public DotNode(Node root, Node expression, bool isTheMostInner, string name, Type returnType = null,
-        string intendedTypeName = null)
+    public DotNode(Node root, Node expression, bool isTheMostInner, string name, Type? returnType = null,
+        string? intendedTypeName = null)
         : base(expression)
     {
+        ArgumentNullException.ThrowIfNull(root);
+        ArgumentNullException.ThrowIfNull(expression);
         Root = root;
         Name = name;
         IsTheMostInner = isTheMostInner;
@@ -33,18 +35,19 @@ public class DotNode : UnaryNode
 
     public string Name { get; }
 
-    public override Type ReturnType { get; }
+    public override Type? ReturnType { get; }
 
     /// <summary>
     ///     For schema reference access, the intended type name of the result (e.g., "Musoq.Generated.Interpreters.Point").
     ///     This is used for code generation when the CLR ReturnType is object but we need to cast to a generated type.
     /// </summary>
-    public string IntendedTypeName { get; }
+    public string? IntendedTypeName { get; }
 
     public override string Id { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

@@ -1,12 +1,12 @@
-﻿using System;
-
-namespace Musoq.Schema;
+﻿namespace Musoq.Schema;
 
 public interface ISchemaColumn
 {
     string ColumnName { get; }
     int ColumnIndex { get; }
     Type ColumnType { get; }
+
+    System.Collections.Generic.IReadOnlyDictionary<string, string> ReadModifiers => ColumnReadModifiers.Empty;
 
     /// <summary>
     ///     Gets the intended fully-qualified type name for this column.

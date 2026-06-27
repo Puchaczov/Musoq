@@ -1,5 +1,4 @@
-﻿using System;
-using Musoq.Converter.Exceptions;
+﻿using Musoq.Converter.Exceptions;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 
@@ -28,7 +27,7 @@ public class CreateTree(BuildChain successor) : BuildChain(successor)
             items.RawQueryTree = rootNode;
             items.SourceText = new SourceText(items.RawQuery);
         }
-        catch (Exception ex) when (!(ex is AstValidationException))
+        catch (Exception ex) when (ex is not AstValidationException)
         {
             throw new AstValidationException("Query", "CreateTree", $"Failed to parse SQL query: {ex.Message}", ex);
         }

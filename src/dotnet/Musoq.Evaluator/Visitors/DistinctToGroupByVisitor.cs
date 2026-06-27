@@ -9,16 +9,20 @@ public class DistinctToGroupByVisitor : CloneQueryVisitor
 
     public override void Visit(QueryNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var orderBy = node.OrderBy != null ? Nodes.Pop() as OrderByNode : null;
+        var qualify = node.Qualify != null ? Nodes.Pop() as QualifyNode : null;
         var window = node.Window != null ? Nodes.Pop() as WindowNode : null;
         var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
 
         var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
         var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
 
-        var select = Nodes.Pop() as SelectNode;
+        var select = Nodes.Pop() as SelectNode ??
+                     throw new InvalidOperationException("Distinct rewrite requires a SELECT node.");
         var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
-        var from = Nodes.Pop() as FromNode;
+        var from = Nodes.Pop() as FromNode ??
+                   throw new InvalidOperationException("Distinct rewrite requires a FROM node.");
 
         if (select is { IsDistinct: true } && groupBy == null && !ContainsWindowFunction(select))
         {
@@ -31,7 +35,7 @@ public class DistinctToGroupByVisitor : CloneQueryVisitor
             select = new SelectNode(newSelectFields, true);
         }
 
-        Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take, window));
+        Nodes.Push(new QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify, default));
     }
 
     private static FieldNode[] CreateGroupByFieldsFromSelect(SelectNode select)
@@ -65,7 +69,7 @@ public class DistinctToGroupByVisitor : CloneQueryVisitor
     private sealed class WindowFunctionTraverser(IExpressionVisitor visitor)
         : RawTraverseVisitor<IExpressionVisitor>(visitor);
 
-    private sealed class WindowFunctionDetector : Musoq.Parser.NoOpExpressionVisitor
+    private sealed class WindowFunctionDetector : NoOpExpressionVisitor
     {
         public bool Found { get; private set; }
 

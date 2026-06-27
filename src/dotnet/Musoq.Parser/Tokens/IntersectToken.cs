@@ -1,9 +1,3 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class IntersectToken : SetOperatorToken
-{
-    public IntersectToken(TextSpan span)
-        : base(IntersectOperatorText, TokenType.Intersect, span)
-    {
-    }
-}
+public class IntersectToken(TextSpan span) : SetOperatorToken(IntersectOperatorText, TokenType.Intersect, span);

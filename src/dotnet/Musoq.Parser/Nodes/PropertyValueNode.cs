@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Musoq.Parser.Nodes;
 
@@ -11,21 +10,22 @@ public class PropertyValueNode : IdentifierNode
         Id = $"{nameof(PropertyValueNode)}{name}";
     }
 
-    public PropertyValueNode(string name, PropertyInfo propertyInfo)
+    public PropertyValueNode(string name, PropertyInfo? propertyInfo)
         : base(name)
     {
         Id = $"{nameof(PropertyValueNode)}{name}";
         PropertyInfo = propertyInfo;
     }
 
-    public override Type ReturnType => PropertyInfo?.PropertyType;
+    public override Type? ReturnType => PropertyInfo?.PropertyType;
 
     public override string Id { get; }
 
-    public PropertyInfo PropertyInfo { get; }
+    public PropertyInfo? PropertyInfo { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

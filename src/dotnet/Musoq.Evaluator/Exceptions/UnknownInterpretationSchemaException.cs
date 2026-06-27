@@ -1,5 +1,3 @@
-#nullable enable
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -12,6 +10,14 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class UnknownInterpretationSchemaException : Exception, IDiagnosticException
 {
+    public UnknownInterpretationSchemaException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public UnknownInterpretationSchemaException()
+    {
+    }
     /// <summary>
     ///     Initializes a new instance of the <see cref="UnknownInterpretationSchemaException" /> class.
     /// </summary>
@@ -50,7 +56,7 @@ public class UnknownInterpretationSchemaException : Exception, IDiagnosticExcept
     /// <summary>
     ///     Gets the name of the schema that could not be resolved.
     /// </summary>
-    public string SchemaName { get; }
+    public string SchemaName { get; } = string.Empty;
 
     /// <summary>
     ///     Gets the diagnostic code for this exception.

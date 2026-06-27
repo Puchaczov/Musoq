@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class SemicolonToken : Token
+public class SemicolonToken(TextSpan textSpan) : Token(TokenText, TokenType.Semicolon, textSpan)
 {
     public const string TokenText = ";";
-
-    public SemicolonToken(TextSpan textSpan)
-        : base(TokenText, TokenType.Semicolon, textSpan)
-    {
-    }
 }

@@ -1,5 +1,3 @@
-﻿#nullable enable
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
@@ -11,6 +9,20 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class SetOperatorMustHaveSameTypesOfColumnsException : Exception, IDiagnosticException
 {
+
+    public SetOperatorMustHaveSameTypesOfColumnsException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public SetOperatorMustHaveSameTypesOfColumnsException(string message)
+        : base(message)
+    {
+    }
+
+    public SetOperatorMustHaveSameTypesOfColumnsException()
+    {
+    }
     /// <summary>
     ///     Initializes a new instance with left and right field nodes.
     /// </summary>

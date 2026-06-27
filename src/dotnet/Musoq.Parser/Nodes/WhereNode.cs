@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Musoq.Parser.Nodes;
+﻿namespace Musoq.Parser.Nodes;
 
 public class WhereNode : Node
 {
@@ -11,6 +9,7 @@ public class WhereNode : Node
 
     public WhereNode(Node expression, TextSpan span)
     {
+        ArgumentNullException.ThrowIfNull(expression);
         Expression = expression;
         Id = $"{nameof(WhereNode)}{expression.Id}";
 
@@ -29,12 +28,13 @@ public class WhereNode : Node
 
     public Node Expression { get; }
 
-    public override Type ReturnType => Expression.ReturnType;
+    public override Type? ReturnType => Expression.ReturnType;
 
     public override string Id { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

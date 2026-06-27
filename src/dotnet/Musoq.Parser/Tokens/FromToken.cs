@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class FromToken : Token
+public class FromToken(TextSpan span) : Token(TokenText, TokenType.From, span)
 {
     public const string TokenText = "from";
-
-    public FromToken(TextSpan span)
-        : base(TokenText, TokenType.From, span)
-    {
-    }
 }

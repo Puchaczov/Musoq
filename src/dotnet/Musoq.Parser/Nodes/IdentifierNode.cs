@@ -1,15 +1,13 @@
-﻿using System;
-
-namespace Musoq.Parser.Nodes;
+﻿namespace Musoq.Parser.Nodes;
 
 public class IdentifierNode : Node
 {
-    public IdentifierNode(string name, Type returnType = null)
+    public IdentifierNode(string name, Type? returnType = null)
         : this(name, returnType, default)
     {
     }
 
-    public IdentifierNode(string name, Type returnType, TextSpan span)
+    public IdentifierNode(string name, Type? returnType, TextSpan span)
     {
         Name = name;
         ReturnType = returnType;
@@ -19,12 +17,13 @@ public class IdentifierNode : Node
     }
 
     public string Name { get; }
-    public override Type ReturnType { get; }
+    public override Type? ReturnType { get; }
 
     public override string Id { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

@@ -66,8 +66,8 @@ public class CteExecutionPlan
     public override string ToString()
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"CteExecutionPlan: {TotalCteCount} CTEs, {LevelCount} levels, CanParallelize={CanParallelize}");
-        foreach (var level in _levels) sb.AppendLine($"  {level}");
+        sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"CteExecutionPlan: {TotalCteCount} CTEs, {LevelCount} levels, CanParallelize={CanParallelize}");
+        foreach (var level in _levels) sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"  {level}");
         return sb.ToString();
     }
 }

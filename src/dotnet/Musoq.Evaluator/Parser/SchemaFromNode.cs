@@ -11,7 +11,7 @@ public class SchemaFromNode(
     int inSourcePosition,
     bool hasExternallyProvidedTypes
 )
-    : Musoq.Parser.Nodes.From.SchemaFromNode(schema, method, parameters, alias, typeof(RowSource), inSourcePosition)
+    : Musoq.Parser.Nodes.From.SchemaFromNode(schema, method, parameters, alias, typeof(RowSource<>), inSourcePosition)
 {
     private readonly string _positionalId = $"{alias}:{inSourcePosition}";
 
@@ -21,10 +21,10 @@ public class SchemaFromNode(
 
     public override int GetHashCode()
     {
-        return _positionalId.GetHashCode();
+        return _positionalId.GetHashCode(StringComparison.Ordinal);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj is SchemaFromNode schemaFromNode)
             return _positionalId == schemaFromNode._positionalId;

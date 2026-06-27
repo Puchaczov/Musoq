@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Parser.Nodes;
 
 public class ElseNode : UnaryNode
@@ -10,12 +8,13 @@ public class ElseNode : UnaryNode
         Id = $"{nameof(ElseNode)}{Expression.Id}";
     }
 
-    public override Type ReturnType => Expression.ReturnType;
+    public override Type? ReturnType => Expression.ReturnType;
 
     public override string Id { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

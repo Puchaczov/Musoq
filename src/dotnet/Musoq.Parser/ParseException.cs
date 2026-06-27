@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser.Diagnostics;
@@ -10,6 +9,23 @@ namespace Musoq.Parser;
 /// </summary>
 public sealed class ParseException : Exception
 {
+    public ParseException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+        Diagnostics = [];
+    }
+
+    public ParseException(string message)
+        : base(message)
+    {
+        Diagnostics = [];
+    }
+
+    public ParseException()
+    {
+        Diagnostics = [];
+    }
+
     /// <summary>
     ///     Creates a new parse exception.
     /// </summary>

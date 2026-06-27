@@ -1,4 +1,4 @@
-﻿using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Helpers;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
@@ -7,30 +7,32 @@ namespace Musoq.Evaluator.Visitors;
 
 public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQueryVisitor
 {
-    public SelectNode ChangedSelect { get; private set; }
+    public SelectNode? ChangedSelect { get; private set; }
 
-    public GroupByNode ChangedGroupBy { get; private set; }
+    public GroupByNode? ChangedGroupBy { get; private set; }
 
-    public WhereNode ChangedWhere { get; private set; }
+    public WhereNode? ChangedWhere { get; private set; }
 
-    public OrderByNode ChangedOrderBy { get; private set; }
+    public OrderByNode? ChangedOrderBy { get; private set; }
 
-    public WindowNode ChangedWindow { get; private set; }
+    public WindowNode? ChangedWindow { get; private set; }
 
     public Node RewrittenNode => Nodes.Pop();
 
     public override void Visit(AccessColumnNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         base.Visit(new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), alias, node.ReturnType,
             node.Span, node.IntendedTypeName));
     }
 
     public override void Visit(AccessObjectArrayNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         if (node.IsColumnAccess)
         {
             var newColumnName = NamingHelper.ToColumnName(node.TableAlias, node.Token.Name);
-            var newToken = new NumericAccessToken(newColumnName, node.Token.Index.ToString(), TextSpan.Empty);
+            var newToken = new NumericAccessToken(newColumnName, node.Token.Index.ToString(System.Globalization.CultureInfo.InvariantCulture), TextSpan.Empty);
             Nodes.Push(new AccessObjectArrayNode(newToken, node.ColumnType, alias, node.IntendedTypeName));
         }
         else
@@ -41,6 +43,7 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
 
     public override void Visit(WindowFunctionNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         if (node.WindowSpecification == null)
         {
             Nodes.Push(node);
@@ -51,7 +54,7 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
         var newOrderFields = RewriteOrderedFieldNodes(node.WindowSpecification.OrderByFields);
         var newFuncCall = RewriteFunctionCall(node.FunctionCall);
 
-        var newSpec = new WindowSpecificationNode(newPartitionFields, newOrderFields);
+        var newSpec = new WindowSpecificationNode(newPartitionFields, newOrderFields, node.WindowSpecification.Frame);
         var newNode = new WindowFunctionNode(newFuncCall, newSpec);
 
         if (node.ReturnType != null)
@@ -62,6 +65,7 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
 
     public override void Visit(SelectNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var fields = new FieldNode[node.Fields.Length];
 
         for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldNode)Nodes.Pop();
@@ -71,15 +75,16 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
 
     public override void Visit(GroupByNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var fields = new FieldNode[node.Fields.Length];
 
-        HavingNode having = null;
+        HavingNode? having = null;
         if (node.Having != null)
             having = (HavingNode)Nodes.Pop();
 
         for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldNode)Nodes.Pop();
 
-        ChangedGroupBy = new GroupByNode(fields, having);
+        ChangedGroupBy = new GroupByNode(fields, having, node.IsAll, node.Span);
     }
 
     public override void Visit(WhereNode node)
@@ -89,6 +94,7 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
 
     public override void Visit(OrderByNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var fields = new FieldOrderedNode[node.Fields.Length];
 
         for (int i = 0, j = fields.Length - 1; i < fields.Length; i++, j--) fields[j] = (FieldOrderedNode)Nodes.Pop();
@@ -98,6 +104,7 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
 
     public override void Visit(WindowNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         var definitions = new WindowDefinitionNode[node.Definitions.Length];
         for (var i = node.Definitions.Length - 1; i >= 0; i--)
             definitions[i] = (WindowDefinitionNode)Nodes.Pop();
@@ -112,7 +119,7 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
         for (var i = 0; i < fields.Length; i++)
         {
             var rewritten = RewriteExpressionNode(fields[i].Expression);
-            result[i] = new FieldNode(rewritten, fields[i].FieldOrder, fields[i].FieldName);
+            result[i] = new FieldNode(rewritten, fields[i].FieldOrder, fields[i].FieldName, fields[i].HasExplicitFieldName);
         }
 
         return result;
@@ -125,7 +132,7 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
         for (var i = 0; i < fields.Length; i++)
         {
             var rewritten = RewriteExpressionNode(fields[i].Expression);
-            result[i] = new FieldOrderedNode(rewritten, fields[i].FieldOrder, fields[i].FieldName, fields[i].Order);
+            result[i] = new FieldOrderedNode(rewritten, fields[i].FieldOrder, fields[i].FieldName, fields[i].HasExplicitFieldName, fields[i].Order, fields[i].NullOrdering);
         }
 
         return result;
@@ -148,7 +155,11 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
             funcCall.Method,
             funcCall.Alias,
             funcCall.Span,
-            funcCall.IsDistinct);
+            funcCall.IsDistinct)
+        {
+            HasFilter = funcCall.HasFilter,
+            IsPivotGenerated = funcCall.IsPivotGenerated
+        };
     }
 
     private Node RewriteExpressionNode(Node expression)

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Musoq.Plugins.Attributes;
+﻿namespace Musoq.Plugins.Attributes;
 
 /// <summary>
 ///     Attribute that allows to specify the name of the property and its type.

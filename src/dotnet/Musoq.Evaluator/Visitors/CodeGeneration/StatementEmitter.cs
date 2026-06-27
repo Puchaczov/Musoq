@@ -1,7 +1,4 @@
-#nullable enable
-
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -11,7 +8,7 @@ namespace Musoq.Evaluator.Visitors.CodeGeneration;
 ///     Emitter for common statement patterns in code generation.
 ///     Handles if/else, loops, variable declarations, and other control flow statements.
 /// </summary>
-public class StatementEmitter
+public static class StatementEmitter
 {
     /// <summary>
     ///     Creates an if statement.
@@ -73,17 +70,6 @@ public class StatementEmitter
     }
 
     /// <summary>
-    ///     Creates an assignment statement by variable name.
-    /// </summary>
-    /// <param name="variableName">The variable name</param>
-    /// <param name="value">The value to assign</param>
-    /// <returns>An expression statement with assignment</returns>
-    public static ExpressionStatementSyntax CreateAssignment(string variableName, ExpressionSyntax value)
-    {
-        return CreateAssignment(SyntaxFactory.IdentifierName(variableName), value);
-    }
-
-    /// <summary>
     ///     Creates a for loop.
     /// </summary>
     /// <param name="variableName">The loop variable name</param>
@@ -126,11 +112,13 @@ public class StatementEmitter
         ExpressionSyntax collectionExpression,
         StatementSyntax body)
     {
+        var blockBody = body is BlockSyntax block ? block : SyntaxFactory.Block(body);
+
         return SyntaxFactory.ForEachStatement(
             SyntaxFactory.IdentifierName("var"),
             variableName,
             collectionExpression,
-            body);
+            blockBody);
     }
 
     /// <summary>
@@ -162,35 +150,4 @@ public class StatementEmitter
         return SyntaxFactory.Block();
     }
 
-    /// <summary>
-    ///     Creates an argument list from expressions popped from a stack, reversing the order.
-    ///     Used for processing ArgsListNode where arguments are popped in reverse.
-    /// </summary>
-    /// <param name="nodes">The stack of syntax nodes.</param>
-    /// <param name="count">The number of arguments to pop.</param>
-    /// <returns>An argument list with arguments in correct order.</returns>
-    public static ArgumentListSyntax CreateArgumentListFromStack(Stack<SyntaxNode> nodes, int count)
-    {
-        var args = SyntaxFactory.SeparatedList<ArgumentSyntax>();
-
-        for (var i = 0; i < count; i++)
-            args = args.Add(SyntaxFactory.Argument((ExpressionSyntax)nodes.Pop()));
-
-        var rArgs = SyntaxFactory.SeparatedList<ArgumentSyntax>();
-        for (var i = args.Count - 1; i >= 0; i--)
-            rArgs = rArgs.Add(args[i]);
-
-        return SyntaxFactory.ArgumentList(rArgs);
-    }
-
-    private static ExpressionStatementSyntax CreateAssignment(
-        ExpressionSyntax target,
-        ExpressionSyntax value)
-    {
-        return SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                target,
-                value));
-    }
 }

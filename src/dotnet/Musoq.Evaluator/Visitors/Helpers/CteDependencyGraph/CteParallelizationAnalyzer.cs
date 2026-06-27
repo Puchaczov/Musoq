@@ -31,6 +31,7 @@ public static class CteParallelizationAnalyzer
     /// <returns>An execution plan for parallel CTE execution.</returns>
     public static CteExecutionPlan CreatePlan(CteDependencyGraph graph)
     {
+        ArgumentNullException.ThrowIfNull(graph);
         var levels = new List<CteExecutionLevel>();
 
 
@@ -63,6 +64,7 @@ public static class CteParallelizationAnalyzer
     /// <returns>True if parallelization is possible and beneficial.</returns>
     public static bool CanBenefitFromParallelization(CteDependencyGraph graph)
     {
+        ArgumentNullException.ThrowIfNull(graph);
         return graph.CanParallelize;
     }
 
@@ -76,7 +78,7 @@ public static class CteParallelizationAnalyzer
     {
         var plan = CreatePlan(cteExpression);
         return plan.Levels
-            .Select(l => l.Ctes.Select(c => c.Name).ToList() as IReadOnlyList<string>)
+            .Select(IReadOnlyList<string> (l) => l.Ctes.Select(c => c.Name).ToList())
             .ToList();
     }
 }

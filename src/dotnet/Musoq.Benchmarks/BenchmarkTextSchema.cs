@@ -1,4 +1,4 @@
-﻿using Musoq.Schema;
+using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 
@@ -7,27 +7,19 @@ namespace Musoq.Benchmarks;
 /// <summary>
 ///     Text schema for benchmarks.
 /// </summary>
-public class BenchmarkTextSchema : SchemaBase
+public class BenchmarkTextSchema(IEnumerable<IReadOnlyList<BenchmarkTextEntity>> chunks) : SchemaBase("test", CreateLibrary())
 {
-    private readonly IEnumerable<BenchmarkTextEntity> _entities;
-
-    public BenchmarkTextSchema(IEnumerable<BenchmarkTextEntity> entities)
-        : base("test", CreateLibrary())
-    {
-        _entities = entities;
-    }
-
-    public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
     {
         return new BenchmarkTextEntityTable();
     }
 
-    public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
     {
-        return new BenchmarkEntitySource<BenchmarkTextEntity>(
-            _entities,
+        return EnsureSourceType<T, BenchmarkTextEntity>(name, new BenchmarkEntitySource<BenchmarkTextEntity>(
+            chunks,
             BenchmarkTextEntity.NameToIndexMap,
-            BenchmarkTextEntity.IndexToObjectAccessMap);
+            BenchmarkTextEntity.IndexToObjectAccessMap));
     }
 
     private static MethodsAggregator CreateLibrary()

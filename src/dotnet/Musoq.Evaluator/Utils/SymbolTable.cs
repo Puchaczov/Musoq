@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Musoq.Evaluator.Utils.Symbols;
 
 namespace Musoq.Evaluator.Utils;
@@ -36,7 +37,7 @@ public class SymbolTable
         return (TSymbol)GetSymbol(key);
     }
 
-    public bool TryGetSymbol<TSymbol>(object key, out TSymbol symbol)
+    public bool TryGetSymbol<TSymbol>(object key, [NotNullWhen(true)] out TSymbol? symbol)
     {
         if (_symbols.TryGetValue(key, out var plainSymbol) && plainSymbol is TSymbol castedSymbol)
         {
@@ -62,6 +63,6 @@ public class SymbolTable
 
     public bool SymbolIsOfType<TType>(object key) where TType : Symbol
     {
-        return _symbols.ContainsKey(key) && _symbols[key].GetType() == typeof(TType);
+        return _symbols.TryGetValue(key, out var symbol) && symbol.GetType() == typeof(TType);
     }
 }

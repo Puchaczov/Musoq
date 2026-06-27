@@ -1,4 +1,3 @@
-﻿using System;
 using System.Linq;
 
 namespace Musoq.Parser.Nodes;
@@ -12,6 +11,7 @@ public class OrderByNode : Node
 
     public OrderByNode(FieldOrderedNode[] fields, TextSpan span)
     {
+        ArgumentNullException.ThrowIfNull(fields);
         Fields = fields;
         var fieldsId = fields.Length == 0 ? string.Empty : string.Concat(fields.Select(f => f.Id));
         Id = $"{nameof(OrderByNode)}{fieldsId}";
@@ -37,6 +37,7 @@ public class OrderByNode : Node
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

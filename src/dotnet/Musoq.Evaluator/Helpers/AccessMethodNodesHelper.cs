@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins.Attributes;
 
@@ -8,6 +8,7 @@ public static class AccessMethodNodesHelper
 {
     public static bool IsAggregateMethod(this AccessMethodNode node)
     {
-        return node.Method != null && node.Method.GetCustomAttribute<AggregationMethodAttribute>() != null;
+        ArgumentNullException.ThrowIfNull(node);
+        return node.Method != null && node.Method.GetCustomAttribute<AggregateFunctionAttribute>() != null;
     }
 }

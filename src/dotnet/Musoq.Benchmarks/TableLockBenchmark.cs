@@ -38,7 +38,7 @@ public class TableLockBenchmark
             Guid.NewGuid().ToString(),
             schemaProvider,
             _loggerResolver,
-            new CompilationOptions(ParallelizationMode.None));
+            BenchmarkCompilationOptions.Materialized(new CompilationOptions(ParallelizationMode.None)));
 
 
         _parallelQuery = InstanceCreator.CompileForExecution(
@@ -46,7 +46,7 @@ public class TableLockBenchmark
             Guid.NewGuid().ToString(),
             schemaProvider,
             _loggerResolver,
-            new CompilationOptions(ParallelizationMode.Full));
+            BenchmarkCompilationOptions.Materialized(new CompilationOptions(ParallelizationMode.Full)));
     }
 
     [Benchmark(Baseline = true)]

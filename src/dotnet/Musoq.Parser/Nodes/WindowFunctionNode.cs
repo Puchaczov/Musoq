@@ -1,13 +1,13 @@
-using System;
-
 namespace Musoq.Parser.Nodes;
 
 public class WindowFunctionNode : Node
 {
-    private Type _returnTypeOverride;
+    private Type? _returnTypeOverride;
 
     public WindowFunctionNode(AccessMethodNode functionCall, WindowSpecificationNode windowSpecification)
     {
+        ArgumentNullException.ThrowIfNull(functionCall);
+        ArgumentNullException.ThrowIfNull(windowSpecification);
         FunctionCall = functionCall;
         WindowSpecification = windowSpecification;
         WindowName = null;
@@ -16,6 +16,7 @@ public class WindowFunctionNode : Node
 
     public WindowFunctionNode(AccessMethodNode functionCall, string windowName)
     {
+        ArgumentNullException.ThrowIfNull(functionCall);
         FunctionCall = functionCall;
         WindowSpecification = null;
         WindowName = windowName;
@@ -24,13 +25,13 @@ public class WindowFunctionNode : Node
 
     public AccessMethodNode FunctionCall { get; }
 
-    public WindowSpecificationNode WindowSpecification { get; }
+    public WindowSpecificationNode? WindowSpecification { get; }
 
-    public string WindowName { get; }
+    public string? WindowName { get; }
 
     public bool IsNamedWindowReference => WindowName != null;
 
-    public override Type ReturnType => _returnTypeOverride ?? FunctionCall.ReturnType;
+    public override Type? ReturnType => _returnTypeOverride ?? FunctionCall.ReturnType;
 
     public override string Id { get; }
 
@@ -41,6 +42,7 @@ public class WindowFunctionNode : Node
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

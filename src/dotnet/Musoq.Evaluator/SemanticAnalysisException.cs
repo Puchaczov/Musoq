@@ -1,4 +1,4 @@
-﻿using System;
+using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator;
@@ -8,6 +8,19 @@ namespace Musoq.Evaluator;
 /// </summary>
 public sealed class SemanticAnalysisException : Exception
 {
+    public SemanticAnalysisException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public SemanticAnalysisException(string message)
+        : base(message)
+    {
+    }
+
+    public SemanticAnalysisException()
+    {
+    }
     /// <summary>
     ///     Creates a new SemanticAnalysisException.
     /// </summary>
@@ -29,7 +42,10 @@ public sealed class SemanticAnalysisException : Exception
     /// <summary>
     ///     Gets the primary diagnostic that caused this exception.
     /// </summary>
-    public Diagnostic PrimaryDiagnostic { get; }
+    public Diagnostic PrimaryDiagnostic { get; } = Diagnostic.Error(
+        DiagnosticCode.MQ3001_UnknownColumn,
+        string.Empty,
+        TextSpan.Empty);
 
     /// <summary>
     ///     Gets the diagnostic code.

@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Musoq.Schema.DataSources;
+using Musoq.Schema.Optimization;
 using Musoq.Schema.Reflection;
 
 namespace Musoq.Schema;
@@ -10,21 +11,37 @@ public interface ISchema
 {
     string Name { get; }
 
-    ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters);
+    ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters);
 
-    RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters);
+    SourceDescriptor DescribeSource(string name, SourceDescribeContext context, params object?[] parameters);
 
-    SchemaMethodInfo[] GetRawConstructors(RuntimeContext runtimeContext);
+    IReadOnlyList<SourceRuntimeSettingRequirement> DescribeSourceRuntimeSettings(
+        string name,
+        SourceRuntimeSettingsDescribeContext context,
+        params object?[] parameters);
 
-    SchemaMethodInfo[] GetRawConstructors(string methodName, RuntimeContext runtimeContext);
+    SourcePlanResult TryPlanSource(string name, SourcePlanRequest request, params object?[] parameters);
 
-    bool TryResolveMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo);
+    RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters);
 
-    bool TryResolveRawMethod(string method, Type[] parameters, out MethodInfo methodInfo);
+    SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext);
 
-    bool TryResolveAggregationMethod(string method, Type[] parameters, Type entityType, out MethodInfo methodInfo);
+    SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext);
 
-    bool TryResolveWindowFunction(string method, out MethodInfo methodInfo);
+    bool TryResolveMethod(string method, Type[] parameters, Type? entityType, [NotNullWhen(true)] out MethodInfo? methodInfo);
+
+    bool TryResolveRawMethod(string method, Type[] parameters, [NotNullWhen(true)] out MethodInfo? methodInfo);
+
+    bool TryResolveAggregationMethod(string method, Type[] parameters, Type? entityType, [NotNullWhen(true)] out MethodInfo? methodInfo);
+
+    bool TryResolveAggregationMethod(
+        string method,
+        Type[] parameters,
+        Type? entityType,
+        Func<MethodInfo, bool> methodFilter,
+        [NotNullWhen(true)] out MethodInfo? methodInfo);
+
+    bool TryResolveWindowFunction(string method, [NotNullWhen(true)] out MethodInfo? methodInfo);
 
     IReadOnlyDictionary<string, IReadOnlyList<MethodInfo>> GetAllLibraryMethods();
 }

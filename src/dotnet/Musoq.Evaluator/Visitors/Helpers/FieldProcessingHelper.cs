@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Helpers;
@@ -24,10 +23,8 @@ public static class FieldProcessingHelper
     /// <exception cref="InvalidOperationException">Thrown when stack has insufficient nodes.</exception>
     public static FieldNode[] CreateFields(FieldNode[] oldFields, Stack<Node> nodes)
     {
-        if (oldFields == null)
-            throw new ArgumentNullException(nameof(oldFields));
-        if (nodes == null)
-            throw new ArgumentNullException(nameof(nodes));
+        ArgumentNullException.ThrowIfNull(oldFields);
+        ArgumentNullException.ThrowIfNull(nodes);
 
         if (nodes.Count < oldFields.Length)
             throw new InvalidOperationException(
@@ -59,7 +56,7 @@ public static class FieldProcessingHelper
             if (field.Expression == null)
                 throw new ArgumentException($"Field expression at index {i} cannot be null", nameof(oldFields));
 
-            fields.Add(new FieldNode(field.Expression, p++, field.FieldName));
+            fields.Add(new FieldNode(field.Expression, p++, field.FieldName, field.HasExplicitFieldName));
         }
 
         return fields.ToArray();
@@ -83,15 +80,12 @@ public static class FieldProcessingHelper
         TableSymbol right,
         string rAlias,
         Func<string, string, string> createLeftAndRightFieldName,
-        Func<AccessColumnNode, bool> includeKnownColumn = null,
+        Func<AccessColumnNode, bool>? includeKnownColumn = null,
         int startAt = 0)
     {
-        if (left == null)
-            throw new ArgumentNullException(nameof(left));
-        if (right == null)
-            throw new ArgumentNullException(nameof(right));
-        if (createLeftAndRightFieldName == null)
-            throw new ArgumentNullException(nameof(createLeftAndRightFieldName));
+        ArgumentNullException.ThrowIfNull(left);
+        ArgumentNullException.ThrowIfNull(right);
+        ArgumentNullException.ThrowIfNull(createLeftAndRightFieldName);
 
         return CreateAndConcatFields(
             left,
@@ -100,8 +94,8 @@ public static class FieldProcessingHelper
             rAlias,
             createLeftAndRightFieldName,
             createLeftAndRightFieldName,
-            (name, alias) => name,
-            (name, alias) => name,
+            (name, _) => name,
+            (name, _) => name,
             includeKnownColumn,
             startAt);
     }
@@ -130,9 +124,15 @@ public static class FieldProcessingHelper
         Func<string, string, string> createRightFieldName,
         Func<string, string, string> createLeftColumnName,
         Func<string, string, string> createRightColumnName,
-        Func<AccessColumnNode, bool> isKnownColumn = null,
+        Func<AccessColumnNode, bool>? isKnownColumn = null,
         int startAt = 0)
     {
+        ArgumentNullException.ThrowIfNull(left);
+        ArgumentNullException.ThrowIfNull(right);
+        ArgumentNullException.ThrowIfNull(createLeftFieldName);
+        ArgumentNullException.ThrowIfNull(createRightFieldName);
+        ArgumentNullException.ThrowIfNull(createLeftColumnName);
+        ArgumentNullException.ThrowIfNull(createRightColumnName);
         var fields = new List<FieldNode>();
 
         var i = startAt;
@@ -184,6 +184,7 @@ public static class FieldProcessingHelper
     public static FieldNode[][] SplitBetweenAggregateAndNonAggregate(FieldNode[] fieldsToSplit,
         FieldNode[] groupByFields, bool useOuterFields)
     {
+        ArgumentNullException.ThrowIfNull(fieldsToSplit);
         var nestedFields = new List<FieldNode>();
         var outerFields = new List<FieldNode>();
         var rawNestedFields = new List<FieldNode>();
@@ -210,8 +211,8 @@ public static class FieldProcessingHelper
                         if (nestedFields.Select(f => f.Expression.ToString()).Contains(subNodeStr))
                             continue;
 
-                        var nameArg = (WordNode)aggregateMethod.Arguments.Args[0];
-                        nestedFields.Add(new FieldNode(subNode, fieldOrder, nameArg.Value));
+                        var aggregateFieldName = GetAggregateFieldName(aggregateMethod);
+                        nestedFields.Add(new FieldNode(subNode, fieldOrder, aggregateFieldName));
                         rawNestedFields.Add(new FieldNode(subNode, fieldOrder, string.Empty));
                         fieldOrder += 1;
                         break;
@@ -225,6 +226,19 @@ public static class FieldProcessingHelper
                     case BinaryNode binary:
                         subNodes.Push(binary.Left);
                         subNodes.Push(binary.Right);
+                        break;
+                    case CaseNode caseNode:
+                        foreach (var (whenNode, thenNode) in caseNode.WhenThenPairs)
+                        {
+                            subNodes.Push(whenNode);
+                            subNodes.Push(thenNode);
+                        }
+                        if (caseNode.Else is not null)
+                            subNodes.Push(caseNode.Else);
+                        break;
+                    case UnaryNode unary:
+                        if (unary.Expression is not null)
+                            subNodes.Push(unary.Expression);
                         break;
                 }
             }
@@ -249,6 +263,15 @@ public static class FieldProcessingHelper
         return retFields;
     }
 
+    private static string GetAggregateFieldName(AccessMethodNode aggregateMethod)
+    {
+        if (aggregateMethod.Arguments.Args.Length > 0 &&
+            aggregateMethod.Arguments.Args[0] is WordNode nameArg)
+            return nameArg.Value;
+
+        return aggregateMethod.ToString();
+    }
+
     /// <summary>
     ///     Creates ORDER BY access fields after GROUP BY processing.
     /// </summary>
@@ -259,6 +282,7 @@ public static class FieldProcessingHelper
     public static FieldOrderedNode[] CreateAfterGroupByOrderByAccessFields(FieldOrderedNode[] fieldsToSplit,
         FieldNode[] groupByFields)
     {
+        ArgumentNullException.ThrowIfNull(fieldsToSplit);
         var outerFields = new List<FieldOrderedNode>();
 
         foreach (var root in fieldsToSplit)

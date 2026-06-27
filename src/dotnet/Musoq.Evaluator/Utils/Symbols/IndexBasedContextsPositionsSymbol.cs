@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace Musoq.Evaluator.Utils.Symbols;
@@ -18,6 +17,7 @@ public class IndexBasedContextsPositionsSymbol : Symbol
 
     public void Add(IReadOnlyCollection<string> lines)
     {
+        ArgumentNullException.ThrowIfNull(lines);
         var i = lines.Count - 1;
         foreach (var line in lines)
         {

@@ -11,6 +11,8 @@ namespace Musoq.Parser.Lexing;
 /// </summary>
 public static class FastCharacterClassifier
 {
+    private const int AsciiCharacterCount = 128;
+
     /// <summary>
     ///     Token categories for fast dispatch.
     /// </summary>
@@ -52,81 +54,95 @@ public static class FastCharacterClassifier
         /// <summary>Square bracket - array access or column reference.</summary>
         SquareBracket = 11,
 
-        /// <summary>Colon - could be single : or field link ::.</summary>
-        Colon = 12
+        /// <summary>Colon - could be single : or postfix cast ::.</summary>
+        Colon = 12,
+
+        /// <summary>Dollar - start of a script parameter reference.</summary>
+        Dollar = 13,
+
+        /// <summary>Question mark - could be ? or ??.</summary>
+        QuestionMark = 14
     }
 
     // Lookup table for ASCII characters (0-127)
-    private static readonly CharCategory[] AsciiCategories = new CharCategory[128];
+    private static readonly CharCategory[] AsciiCategories = CreateAsciiCategories();
 
     // Single-character operators that can be resolved immediately
-    private static readonly FrozenDictionary<char, TokenType> SingleCharOperators;
+    private static readonly FrozenDictionary<char, TokenType> SingleCharOperators = CreateSingleCharOperators();
 
     // Cached single-character strings for ASCII chars to avoid ToString() allocations
-    private static readonly string[] CharToStringCache = new string[128];
+    private static readonly string[] CharToStringCache = CreateCharToStringCache();
 
-    static FastCharacterClassifier()
+    private static string[] CreateCharToStringCache()
     {
-        // Initialize char-to-string cache for all ASCII characters
-        for (var i = 0; i < 128; i++)
-            CharToStringCache[i] = ((char)i).ToString();
+        var cache = new string[AsciiCharacterCount];
+        for (var i = 0; i < AsciiCharacterCount; i++)
+            cache[i] = ((char)i).ToString();
 
-        // Initialize all as Unknown
-        for (var i = 0; i < 128; i++)
-            AsciiCategories[i] = CharCategory.Unknown;
+        return cache;
+    }
+
+    private static CharCategory[] CreateAsciiCategories()
+    {
+        var categories = new CharCategory[AsciiCharacterCount];
 
         // Whitespace
-        AsciiCategories[' '] = CharCategory.Whitespace;
-        AsciiCategories['\t'] = CharCategory.Whitespace;
-        AsciiCategories['\n'] = CharCategory.Whitespace;
-        AsciiCategories['\r'] = CharCategory.Whitespace;
+        categories[' '] = CharCategory.Whitespace;
+        categories['\t'] = CharCategory.Whitespace;
+        categories['\n'] = CharCategory.Whitespace;
+        categories['\r'] = CharCategory.Whitespace;
 
         // Identifiers (letters and underscore)
         for (var c = 'a'; c <= 'z'; c++)
-            AsciiCategories[c] = CharCategory.Identifier;
+            categories[c] = CharCategory.Identifier;
         for (var c = 'A'; c <= 'Z'; c++)
-            AsciiCategories[c] = CharCategory.Identifier;
-        AsciiCategories['_'] = CharCategory.Identifier;
+            categories[c] = CharCategory.Identifier;
+        categories['_'] = CharCategory.Identifier;
 
         // Digits
         for (var c = '0'; c <= '9'; c++)
-            AsciiCategories[c] = CharCategory.Digit;
+            categories[c] = CharCategory.Digit;
 
         // String literal
-        AsciiCategories['\''] = CharCategory.Quote;
+        categories['\''] = CharCategory.Quote;
 
         // Single-character operators
-        AsciiCategories[','] = CharCategory.SingleCharOperator;
-        AsciiCategories['+'] = CharCategory.SingleCharOperator;
-        AsciiCategories['*'] = CharCategory.SingleCharOperator;
-        AsciiCategories['%'] = CharCategory.SingleCharOperator;
-        AsciiCategories['('] = CharCategory.SingleCharOperator;
-        AsciiCategories[')'] = CharCategory.SingleCharOperator;
-        AsciiCategories['{'] = CharCategory.SingleCharOperator;
-        AsciiCategories['}'] = CharCategory.SingleCharOperator;
-        AsciiCategories[';'] = CharCategory.SingleCharOperator;
-        AsciiCategories['?'] = CharCategory.SingleCharOperator;
+        categories[','] = CharCategory.SingleCharOperator;
+        categories['+'] = CharCategory.SingleCharOperator;
+        categories['*'] = CharCategory.SingleCharOperator;
+        categories['%'] = CharCategory.SingleCharOperator;
+        categories['('] = CharCategory.SingleCharOperator;
+        categories[')'] = CharCategory.SingleCharOperator;
+        categories['{'] = CharCategory.SingleCharOperator;
+        categories['}'] = CharCategory.SingleCharOperator;
+        categories[';'] = CharCategory.SingleCharOperator;
+        categories['?'] = CharCategory.QuestionMark;
 
         // Multi-character operator starts
-        AsciiCategories['<'] = CharCategory.MultiCharOperator;
-        AsciiCategories['>'] = CharCategory.MultiCharOperator;
-        AsciiCategories['='] = CharCategory.MultiCharOperator;
-        AsciiCategories['!'] = CharCategory.MultiCharOperator;
-        AsciiCategories['&'] = CharCategory.MultiCharOperator;
-        AsciiCategories['|'] = CharCategory.MultiCharOperator;
-        AsciiCategories['^'] = CharCategory.MultiCharOperator;
+        categories['<'] = CharCategory.MultiCharOperator;
+        categories['>'] = CharCategory.MultiCharOperator;
+        categories['='] = CharCategory.MultiCharOperator;
+        categories['!'] = CharCategory.MultiCharOperator;
+        categories['&'] = CharCategory.MultiCharOperator;
+        categories['|'] = CharCategory.MultiCharOperator;
+        categories['^'] = CharCategory.MultiCharOperator;
 
         // Special cases
-        AsciiCategories['#'] = CharCategory.Hash;
-        AsciiCategories['-'] = CharCategory.Dash;
-        AsciiCategories['/'] = CharCategory.Slash;
-        AsciiCategories['.'] = CharCategory.Dot;
-        AsciiCategories['['] = CharCategory.SquareBracket;
-        AsciiCategories[']'] = CharCategory.SingleCharOperator; // ] is always single
-        AsciiCategories[':'] = CharCategory.Colon;
+        categories['#'] = CharCategory.Hash;
+        categories['-'] = CharCategory.Dash;
+        categories['/'] = CharCategory.Slash;
+        categories['.'] = CharCategory.Dot;
+        categories['['] = CharCategory.SquareBracket;
+        categories[']'] = CharCategory.SingleCharOperator; // ] is always single
+        categories[':'] = CharCategory.Colon;
+        categories['$'] = CharCategory.Dollar;
 
-        // Build single-char operator lookup
-        SingleCharOperators = new Dictionary<char, TokenType>
+        return categories;
+    }
+
+    private static FrozenDictionary<char, TokenType> CreateSingleCharOperators()
+    {
+        return new Dictionary<char, TokenType>
         {
             [','] = TokenType.Comma,
             ['+'] = TokenType.Plus,

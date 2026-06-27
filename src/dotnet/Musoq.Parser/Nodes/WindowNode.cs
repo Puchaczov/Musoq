@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 
 namespace Musoq.Parser.Nodes;
@@ -7,6 +6,7 @@ public class WindowNode : Node
 {
     public WindowNode(WindowDefinitionNode[] definitions)
     {
+        ArgumentNullException.ThrowIfNull(definitions);
         Definitions = definitions;
         var defsId = definitions.Length == 0
             ? string.Empty
@@ -22,6 +22,7 @@ public class WindowNode : Node
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

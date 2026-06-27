@@ -43,7 +43,7 @@ public class NonEquiJoinBenchmark
             Guid.NewGuid().ToString(),
             schemaProvider,
             _loggerResolver,
-            new CompilationOptions(useSortMergeJoin: UseSortMergeJoin));
+            BenchmarkCompilationOptions.Materialized(new CompilationOptions(useSortMergeJoin: UseSortMergeJoin)));
     }
 
     [Benchmark]
@@ -52,49 +52,35 @@ public class NonEquiJoinBenchmark
         return _query.Run();
     }
 
-    private class NonEquiSchemaProvider : ISchemaProvider
+    private sealed class NonEquiSchemaProvider(IReadOnlyList<NonEquiEntity> entities) : ISchemaProvider
     {
-        private readonly IEnumerable<NonEquiEntity> _entities;
-
-        public NonEquiSchemaProvider(IEnumerable<NonEquiEntity> entities)
-        {
-            _entities = entities;
-        }
-
         public ISchema GetSchema(string schema)
         {
-            return new NonEquiSchema(_entities);
+            return new NonEquiSchema(entities);
         }
     }
 
-    private class NonEquiSchema : SchemaBase
+    private sealed class NonEquiSchema(IReadOnlyList<NonEquiEntity> entities) : SchemaBase("test", CreateLibrary())
     {
-        private readonly IEnumerable<NonEquiEntity> _entities;
-
-        public NonEquiSchema(IEnumerable<NonEquiEntity> entities) : base("test", CreateLibrary())
-        {
-            _entities = entities;
-        }
-
-        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext,
-            params object[] parameters)
+        public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
+            params object?[] parameters)
         {
             return new NonEquiTable();
         }
 
-        public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
         {
-            return new EntitySource<NonEquiEntity>(_entities, new Dictionary<string, int>
+            return EnsureSourceType<T, NonEquiEntity>(name, new EntitySource<NonEquiEntity>(BenchmarkSourceChunks.Create(entities), new Dictionary<string, int>
             {
                 { nameof(NonEquiEntity.Id), 0 },
                 { nameof(NonEquiEntity.Name), 1 },
                 { nameof(NonEquiEntity.Population), 2 }
-            }, new Dictionary<int, Func<NonEquiEntity, object>>
+            }, new Dictionary<int, Func<NonEquiEntity, object?>>
             {
                 { 0, e => e.Id },
                 { 1, e => e.Name },
                 { 2, e => e.Population }
-            });
+            }));
         }
 
         private static MethodsAggregator CreateLibrary()

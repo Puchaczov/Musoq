@@ -1,5 +1,3 @@
-#nullable enable
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -11,6 +9,19 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class NonAggregatedColumnInSelectException : Exception, IDiagnosticException
 {
+    public NonAggregatedColumnInSelectException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public NonAggregatedColumnInSelectException(string message)
+        : base(message)
+    {
+    }
+
+    public NonAggregatedColumnInSelectException()
+    {
+    }
     /// <summary>
     ///     Initializes a new instance with column name and available GROUP BY columns.
     /// </summary>
@@ -37,12 +48,12 @@ public class NonAggregatedColumnInSelectException : Exception, IDiagnosticExcept
     /// <summary>
     ///     Gets the name of the non-aggregated column.
     /// </summary>
-    public string ColumnName { get; }
+    public string ColumnName { get; } = string.Empty;
 
     /// <summary>
     ///     Gets the columns that are in the GROUP BY clause.
     /// </summary>
-    public string[] GroupByColumns { get; }
+    public string[] GroupByColumns { get; } = [];
 
     /// <summary>
     ///     Gets the diagnostic code for this exception.

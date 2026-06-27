@@ -1,31 +1,55 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Version>15.0.0</Version>
-        <Authors>Jakub Puchała</Authors>
-        <Product>Musoq</Product>
-        <PackageProjectUrl>https://github.com/Puchaczov/Musoq</PackageProjectUrl>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageTags>sql, dotnet-core</PackageTags>
-        <PublishRepositoryUrl>true</PublishRepositoryUrl>
-        <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.10"/>
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
-        <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj"/>
-        <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj">
-            <ExcludeAssets>runtime</ExcludeAssets>
-            <Private>false</Private>
-        </ProjectReference>
-    </ItemGroup>
-
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Version>$(MusoqSchemaVersion)</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
+    <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj">
+      <ExcludeAssets>runtime</ExcludeAssets>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Interpreters\BytesInterpreterBase.BuffersAndBits.cs">
+      <DependentUpon>BytesInterpreterBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Interpreters\BytesInterpreterBase.NumericReads.cs">
+      <DependentUpon>BytesInterpreterBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Interpreters\TextInterpreterBase.PatternsAndWhitespace.cs">
+      <DependentUpon>TextInterpreterBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Interpreters\TextInterpreterBase.ReadDelimited.cs">
+      <DependentUpon>TextInterpreterBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Interpreters\TextInterpreterBase.ValidationAndLookahead.cs">
+      <DependentUpon>TextInterpreterBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Managers\MethodsMetadata.Core.cs">
+      <DependentUpon>MethodsMetadata.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Managers\MethodsMetadata.Lookup.cs">
+      <DependentUpon>MethodsMetadata.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Managers\MethodsMetadata.PublicLookup.cs">
+      <DependentUpon>MethodsMetadata.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Managers\MethodsMetadata.Registration.cs">
+      <DependentUpon>MethodsMetadata.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Managers\MethodsMetadata.Scoring.cs">
+      <DependentUpon>MethodsMetadata.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Managers\MethodsMetadata.TypeCompatibility.cs">
+      <DependentUpon>MethodsMetadata.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Interpreters\TextInterpreterBase.TextPartialParseRuntime.cs">
+      <DependentUpon>TextInterpreterBase.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>

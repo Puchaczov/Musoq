@@ -19,23 +19,9 @@ public static class SafeArrayAccess
     /// <param name="array">The array to access</param>
     /// <param name="index">The index to access (negative indices supported)</param>
     /// <returns>Array element if valid index, default(T) if out-of-bounds or array is null</returns>
-    public static T GetArrayElement<T>(T[] array, int index)
+    public static T? GetArrayElement<T>(T[]? array, int index)
     {
-        if (array == null || array.Length == 0)
-            return default;
-
-
-        if (index < 0)
-        {
-            var positiveIndex = (index % array.Length + array.Length) % array.Length;
-            return array[positiveIndex];
-        }
-
-
-        if (index >= array.Length)
-            return default;
-
-        return array[index];
+        return GetListElement(array, index);
     }
 
     /// <summary>
@@ -45,18 +31,13 @@ public static class SafeArrayAccess
     /// <param name="str">The string to access</param>
     /// <param name="index">The character index to access (negative indices supported)</param>
     /// <returns>Character if valid index, '\0' if out-of-bounds or string is null</returns>
-    public static char GetStringCharacter(string str, int index)
+    public static char GetStringCharacter(string? str, int index)
     {
         if (str == null || str.Length == 0)
             return '\0';
 
-
         if (index < 0)
-        {
-            var positiveIndex = (index % str.Length + str.Length) % str.Length;
-            return str[positiveIndex];
-        }
-
+            return str[NormalizeIndex(index, str.Length)];
 
         if (index >= str.Length)
             return '\0';
@@ -72,7 +53,8 @@ public static class SafeArrayAccess
     /// <param name="dictionary">The dictionary to access</param>
     /// <param name="key">The key to look up</param>
     /// <returns>Value if key exists, default(TValue) if key missing or dictionary is null</returns>
-    public static TValue GetDictionaryValue<TKey, TValue>(Dictionary<TKey, TValue> dictionary, TKey key)
+    public static TValue? GetDictionaryValue<TKey, TValue>(Dictionary<TKey, TValue>? dictionary, TKey key)
+        where TKey : notnull
     {
         if (dictionary == null || key == null)
             return default;
@@ -88,18 +70,13 @@ public static class SafeArrayAccess
     /// <param name="list">The list to access</param>
     /// <param name="index">The index to access (negative indices supported)</param>
     /// <returns>List element if valid index, default(T) if out-of-bounds or list is null</returns>
-    public static T GetListElement<T>(IList<T> list, int index)
+    public static T? GetListElement<T>(IList<T>? list, int index)
     {
         if (list == null || list.Count == 0)
             return default;
 
-
         if (index < 0)
-        {
-            var positiveIndex = (index % list.Count + list.Count) % list.Count;
-            return list[positiveIndex];
-        }
-
+            return list[NormalizeIndex(index, list.Count)];
 
         if (index >= list.Count)
             return default;
@@ -114,105 +91,109 @@ public static class SafeArrayAccess
     /// <param name="index">The index to access (int for arrays, string for dictionaries, etc.)</param>
     /// <param name="elementType">The expected element type</param>
     /// <returns>Element if valid, default value if out-of-bounds or error</returns>
-    public static object GetIndexedElement(object indexable, object index, Type elementType)
+    public static object? GetIndexedElement(object? indexable, object? index, Type? elementType)
     {
         if (indexable == null || index == null)
             return GetDefaultValue(elementType);
 
         try
         {
-            if (indexable is string str && index is int intIndex) return GetStringCharacter(str, intIndex);
-
-
-            if (indexable.GetType().IsArray && index is int arrayIndex)
-            {
-                var array = (Array)indexable;
-                if (array.Length == 0)
-                    return GetDefaultValue(elementType);
-
-
-                if (arrayIndex < 0)
-                {
-                    var positiveIndex = (arrayIndex % array.Length + array.Length) % array.Length;
-                    return array.GetValue(positiveIndex);
-                }
-
-                if (arrayIndex >= array.Length)
-                    return GetDefaultValue(elementType);
-
-                return array.GetValue(arrayIndex);
-            }
-
-
-            if (index is string stringKey)
-            {
-                var dictType = indexable.GetType();
-
-
-                if (dictType.IsGenericType)
-                {
-                    var genericDef = dictType.GetGenericTypeDefinition();
-                    if (genericDef == typeof(Dictionary<,>) ||
-                        genericDef == typeof(IDictionary<,>) ||
-                        dictType.GetInterfaces().Any(i => i.IsGenericType &&
-                                                          i.GetGenericTypeDefinition() == typeof(IDictionary<,>)))
-                    {
-                        var tryGetValueMethod = dictType.GetMethod("TryGetValue");
-                        if (tryGetValueMethod != null)
-                        {
-                            var parameters = new object[] { stringKey, null };
-                            var found = (bool)tryGetValueMethod.Invoke(indexable, parameters);
-                            return found ? parameters[1] : GetDefaultValue(elementType);
-                        }
-                    }
-                }
-            }
-
-
-            var indexerProperty = indexable.GetType().GetProperty("Item");
-            if (indexerProperty != null)
-                try
-                {
-                    return indexerProperty.GetValue(indexable, [index]);
-                }
-                catch (TargetInvocationException ex)
-                {
-                    if (ex.InnerException is ArgumentOutOfRangeException ||
-                        ex.InnerException is IndexOutOfRangeException ||
-                        ex.InnerException is KeyNotFoundException)
-                        return GetDefaultValue(elementType);
-                    throw;
-                }
-
-            return GetDefaultValue(elementType);
+            return ResolveIndexedElement(indexable, index, elementType);
         }
-        catch (ArgumentOutOfRangeException)
-        {
-            return GetDefaultValue(elementType);
-        }
-        catch (IndexOutOfRangeException)
-        {
-            return GetDefaultValue(elementType);
-        }
-        catch (KeyNotFoundException)
+        catch (Exception ex) when (ex is ArgumentOutOfRangeException or IndexOutOfRangeException or KeyNotFoundException)
         {
             return GetDefaultValue(elementType);
         }
     }
 
-    private static object GetDefaultValue(Type type)
+    private static object? ResolveIndexedElement(object indexable, object index, Type? elementType)
+    {
+        if (indexable is string str && index is int charIndex)
+            return GetStringCharacter(str, charIndex);
+
+        if (indexable is Array array && index is int arrayIndex)
+            return GetArrayValue(array, arrayIndex, elementType);
+
+        if (index is string dictKey)
+        {
+            var (matched, value) = TryGetDictionaryValue(indexable, dictKey, elementType);
+            if (matched)
+                return value;
+        }
+
+        return GetViaIndexer(indexable, index, elementType);
+    }
+
+    private static object? GetArrayValue(Array array, int index, Type? elementType)
+    {
+        if (array.Length == 0)
+            return GetDefaultValue(elementType);
+
+        if (index < 0)
+            return array.GetValue(NormalizeIndex(index, array.Length));
+
+        if (index >= array.Length)
+            return GetDefaultValue(elementType);
+
+        return array.GetValue(index);
+    }
+
+    private static (bool Matched, object? Value) TryGetDictionaryValue(object indexable, string key, Type? elementType)
+    {
+        var dictType = indexable.GetType();
+
+        if (!dictType.IsGenericType)
+            return (false, null);
+
+        var genericDef = dictType.GetGenericTypeDefinition();
+        var isDictionary = genericDef == typeof(Dictionary<,>) ||
+                           genericDef == typeof(IDictionary<,>) ||
+                           dictType.GetInterfaces().Any(i => i.IsGenericType &&
+                                                             i.GetGenericTypeDefinition() == typeof(IDictionary<,>));
+        if (!isDictionary)
+            return (false, null);
+
+        var tryGetValueMethod = dictType.GetMethod("TryGetValue");
+        if (tryGetValueMethod == null)
+            return (false, null);
+
+        var parameters = new object?[] { key, null };
+        var found = (bool)(tryGetValueMethod.Invoke(indexable, parameters) ?? false);
+        return (true, found ? parameters[1] : GetDefaultValue(elementType));
+    }
+
+    private static object? GetViaIndexer(object indexable, object index, Type? elementType)
+    {
+        var indexerProperty = indexable.GetType().GetProperty("Item");
+        if (indexerProperty == null)
+            return GetDefaultValue(elementType);
+
+        try
+        {
+            return indexerProperty.GetValue(indexable, [index]);
+        }
+        catch (TargetInvocationException ex) when (ex.InnerException is ArgumentOutOfRangeException
+                                                       or IndexOutOfRangeException or KeyNotFoundException)
+        {
+            return GetDefaultValue(elementType);
+        }
+    }
+
+    private static int NormalizeIndex(int index, int length)
+    {
+        return (index % length + length) % length;
+    }
+
+    private static object? GetDefaultValue(Type? type)
     {
         if (type == null)
             return null;
 
-
         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
             return null;
 
-
         if (!type.IsValueType)
             return null;
-
 
         return Activator.CreateInstance(type);
     }

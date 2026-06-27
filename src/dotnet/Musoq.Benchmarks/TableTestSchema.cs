@@ -1,27 +1,20 @@
-﻿using Musoq.Plugins;
+using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 
 namespace Musoq.Benchmarks;
 
-public class TableTestSchema : SchemaBase
+public class TableTestSchema(List<TableTestEntity> entities) : SchemaBase("test", CreateMethods())
 {
-    private readonly List<TableTestEntity> _entities;
-
-    public TableTestSchema(List<TableTestEntity> entities) : base("test", CreateMethods())
-    {
-        _entities = entities;
-    }
-
-    public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
     {
         return new TableTestTable();
     }
 
-    public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
     {
-        return new TableTestRowSource(_entities);
+        return EnsureSourceType<T, TableTestEntity>(name, new TableTestRowSource(entities));
     }
 
     private static MethodsAggregator CreateMethods()

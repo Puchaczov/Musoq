@@ -1,5 +1,5 @@
-﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -43,7 +43,7 @@ public static class AliasGenerator
 
         using (var hasher = new HMACSHA256(Encoding.UTF8.GetBytes(seed)))
         {
-            hashBytes = hasher.ComputeHash(Encoding.UTF8.GetBytes(counter.ToString()));
+            hashBytes = hasher.ComputeHash(Encoding.UTF8.GetBytes(counter.ToString(CultureInfo.InvariantCulture)));
         }
 
         for (var i = 0; i < hashBytes.Length && result.Length < length; ++i)

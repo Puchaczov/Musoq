@@ -3,624 +3,170 @@ namespace Musoq.Parser.Diagnostics;
 
 /// <summary>
 ///     Enumeration of all diagnostic codes used in Musoq.
-///     Codes are organized by category:
-///     - MQ1xxx: Lexer errors
-///     - MQ2xxx: Parser/Syntax errors
-///     - MQ3xxx: Semantic errors
-///     - MQ4xxx: Schema definition errors
-///     - MQ5xxx: Warnings
 /// </summary>
 public enum DiagnosticCode
 {
-    // ============================================
     // Lexer Errors (MQ1xxx)
-    // ============================================
-
-    /// <summary>
-    ///     An unrecognized token was encountered.
-    /// </summary>
     MQ1001_UnknownToken = 1001,
-
-    /// <summary>
-    ///     A string literal was not properly terminated.
-    /// </summary>
     MQ1002_UnterminatedString = 1002,
-
-    /// <summary>
-    ///     An invalid numeric literal format.
-    /// </summary>
     MQ1003_InvalidNumericLiteral = 1003,
-
-    /// <summary>
-    ///     An invalid escape sequence in a string.
-    /// </summary>
     MQ1004_InvalidEscapeSequence = 1004,
-
-    /// <summary>
-    ///     A block comment was not properly terminated.
-    /// </summary>
     MQ1005_UnterminatedBlockComment = 1005,
-
-    /// <summary>
-    ///     Invalid hexadecimal number format.
-    /// </summary>
     MQ1006_InvalidHexNumber = 1006,
-
-    /// <summary>
-    ///     Invalid binary number format.
-    /// </summary>
     MQ1007_InvalidBinaryNumber = 1007,
-
-    /// <summary>
-    ///     Invalid octal number format.
-    /// </summary>
     MQ1008_InvalidOctalNumber = 1008,
 
-    // ============================================
     // Parser/Syntax Errors (MQ2xxx)
-    // ============================================
-
-    /// <summary>
-    ///     An unexpected token was encountered.
-    /// </summary>
     MQ2001_UnexpectedToken = 2001,
-
-    /// <summary>
-    ///     A required token is missing.
-    /// </summary>
     MQ2002_MissingToken = 2002,
-
-    /// <summary>
-    ///     An invalid expression was encountered.
-    /// </summary>
     MQ2003_InvalidExpression = 2003,
-
-    /// <summary>
-    ///     The FROM clause is missing.
-    /// </summary>
     MQ2004_MissingFromClause = 2004,
-
-    /// <summary>
-    ///     The SELECT list is invalid or empty.
-    /// </summary>
     MQ2005_InvalidSelectList = 2005,
-
-    /// <summary>
-    ///     A column is missing in GROUP BY clause.
-    /// </summary>
     MQ2006_MissingGroupByColumn = 2006,
-
-    /// <summary>
-    ///     The JOIN condition is invalid.
-    /// </summary>
     MQ2007_InvalidJoinCondition = 2007,
-
-    /// <summary>
-    ///     A duplicate alias was found.
-    /// </summary>
     MQ2008_DuplicateAlias = 2008,
-
-    /// <summary>
-    ///     The ORDER BY expression is invalid.
-    /// </summary>
     MQ2009_InvalidOrderByExpression = 2009,
-
-    /// <summary>
-    ///     A closing parenthesis is missing.
-    /// </summary>
     MQ2010_MissingClosingParenthesis = 2010,
-
-    /// <summary>
-    ///     A closing bracket is missing.
-    /// </summary>
     MQ2011_MissingClosingBracket = 2011,
-
-    /// <summary>
-    ///     The schema definition is invalid.
-    /// </summary>
     MQ2012_InvalidSchemaDefinition = 2012,
-
-    /// <summary>
-    ///     The CTE (Common Table Expression) is invalid.
-    /// </summary>
     MQ2013_InvalidCTE = 2013,
-
-    /// <summary>
-    ///     A trailing comma was found.
-    /// </summary>
     MQ2014_TrailingComma = 2014,
-
-    /// <summary>
-    ///     A leading comma was found where not expected.
-    /// </summary>
     MQ2015_LeadingComma = 2015,
-
-    /// <summary>
-    ///     The statement is incomplete.
-    /// </summary>
     MQ2016_IncompleteStatement = 2016,
-
-    /// <summary>
-    ///     An unexpected end of file was encountered.
-    /// </summary>
     MQ2017_UnexpectedEndOfFile = 2017,
-
-    /// <summary>
-    ///     Missing operator between expressions.
-    /// </summary>
     MQ2018_MissingOperator = 2018,
-
-    /// <summary>
-    ///     Invalid operator usage.
-    /// </summary>
     MQ2019_InvalidOperator = 2019,
-
-    /// <summary>
-    ///     Missing operand for operator.
-    /// </summary>
     MQ2020_MissingOperand = 2020,
-
-    /// <summary>
-    ///     Unclosed function call.
-    /// </summary>
     MQ2021_UnclosedFunctionCall = 2021,
-
-    /// <summary>
-    ///     Invalid alias syntax.
-    /// </summary>
     MQ2022_InvalidAlias = 2022,
-
-    /// <summary>
-    ///     Missing AS keyword (when required).
-    /// </summary>
     MQ2023_MissingAsKeyword = 2023,
-
-    /// <summary>
-    ///     Invalid subquery.
-    /// </summary>
     MQ2024_InvalidSubquery = 2024,
-
-    /// <summary>
-    ///     Missing SELECT keyword.
-    /// </summary>
     MQ2025_MissingSelectKeyword = 2025,
-
-    /// <summary>
-    ///     Invalid CASE expression.
-    /// </summary>
     MQ2026_InvalidCaseExpression = 2026,
-
-    /// <summary>
-    ///     Missing WHEN clause in CASE.
-    /// </summary>
     MQ2027_MissingWhenClause = 2027,
-
-    /// <summary>
-    ///     Missing THEN clause in CASE.
-    /// </summary>
     MQ2028_MissingThenClause = 2028,
-
-    /// <summary>
-    ///     Missing END keyword in CASE.
-    /// </summary>
     MQ2029_MissingEndKeyword = 2029,
-
-    /// <summary>
-    ///     Unsupported syntax or feature.
-    /// </summary>
     MQ2030_UnsupportedSyntax = 2030,
+    MQ2031_InvalidScriptParameterDeclaration = 2031,
+    MQ2032_UnsupportedScriptParameterSyntax = 2032,
+    MQ2033_InvalidScriptVariableDeclaration = 2033,
 
-    // ============================================
     // Semantic Errors (MQ3xxx)
-    // ============================================
-
-    /// <summary>
-    ///     Reference to an unknown column.
-    /// </summary>
     MQ3001_UnknownColumn = 3001,
-
-    /// <summary>
-    ///     Ambiguous column reference.
-    /// </summary>
     MQ3002_AmbiguousColumn = 3002,
-
-    /// <summary>
-    ///     Reference to an unknown table or alias.
-    /// </summary>
     MQ3003_UnknownTable = 3003,
-
-    /// <summary>
-    ///     Reference to an unknown function.
-    /// </summary>
     MQ3004_UnknownFunction = 3004,
-
-    /// <summary>
-    ///     Type mismatch in expression.
-    /// </summary>
     MQ3005_TypeMismatch = 3005,
-
-    /// <summary>
-    ///     Invalid number of arguments for function.
-    /// </summary>
     MQ3006_InvalidArgumentCount = 3006,
-
-    /// <summary>
-    ///     Invalid operand types for operator.
-    /// </summary>
     MQ3007_InvalidOperandTypes = 3007,
-
-    /// <summary>
-    ///     Division by zero.
-    /// </summary>
     MQ3008_DivisionByZero = 3008,
-
-    /// <summary>
-    ///     Potential null reference.
-    /// </summary>
     MQ3009_NullReference = 3009,
-
-    /// <summary>
-    ///     Unknown schema reference.
-    /// </summary>
     MQ3010_UnknownSchema = 3010,
-
-    /// <summary>
-    ///     Aggregate function not allowed in this context.
-    /// </summary>
     MQ3011_AggregateNotAllowed = 3011,
-
-    /// <summary>
-    ///     Non-aggregate expression in SELECT with GROUP BY.
-    /// </summary>
     MQ3012_NonAggregateInSelect = 3012,
-
-    /// <summary>
-    ///     Cannot resolve method overload.
-    /// </summary>
     MQ3013_CannotResolveMethod = 3013,
-
-    /// <summary>
-    ///     Invalid property access.
-    /// </summary>
     MQ3014_InvalidPropertyAccess = 3014,
-
-    /// <summary>
-    ///     Unknown alias reference.
-    /// </summary>
     MQ3015_UnknownAlias = 3015,
-
-    /// <summary>
-    ///     Circular reference detected.
-    /// </summary>
     MQ3016_CircularReference = 3016,
-
-    /// <summary>
-    ///     Object is not an array when array access was attempted.
-    /// </summary>
     MQ3017_ObjectNotArray = 3017,
-
-    /// <summary>
-    ///     Object does not implement an indexer.
-    /// </summary>
     MQ3018_NoIndexer = 3018,
-
-    /// <summary>
-    ///     Set operator (UNION, EXCEPT, INTERSECT) has mismatched column count.
-    /// </summary>
     MQ3019_SetOperatorColumnCount = 3019,
-
-    /// <summary>
-    ///     Set operator (UNION, EXCEPT, INTERSECT) has mismatched column types.
-    /// </summary>
     MQ3020_SetOperatorColumnTypes = 3020,
-
-    /// <summary>
-    ///     Duplicate alias - an alias with this name was already defined.
-    /// </summary>
     MQ3021_DuplicateAlias = 3021,
-
-    /// <summary>
-    ///     Required alias is missing.
-    /// </summary>
     MQ3022_MissingAlias = 3022,
-
-    /// <summary>
-    ///     Table or data source is not defined.
-    /// </summary>
     MQ3023_TableNotDefined = 3023,
-
-    /// <summary>
-    ///     GROUP BY index is out of range.
-    /// </summary>
     MQ3024_GroupByIndexOutOfRange = 3024,
-
-    /// <summary>
-    ///     Column must be an array or implement IEnumerable.
-    /// </summary>
     MQ3025_ColumnMustBeArray = 3025,
-
-    /// <summary>
-    ///     Column must be marked as bindable property as table.
-    /// </summary>
     MQ3026_ColumnNotBindable = 3026,
-
-    /// <summary>
-    ///     Invalid query expression type - expression returns unexpected type.
-    /// </summary>
     MQ3027_InvalidExpressionType = 3027,
-
-    /// <summary>
-    ///     Unknown property on object.
-    /// </summary>
     MQ3028_UnknownProperty = 3028,
-
-    /// <summary>
-    ///     Method cannot be resolved with the given arguments.
-    /// </summary>
     MQ3029_UnresolvableMethod = 3029,
-
-    /// <summary>
-    ///     Construction or syntax is not yet supported.
-    /// </summary>
     MQ3030_ConstructionNotSupported = 3030,
-
-    /// <summary>
-    ///     Set operator (UNION, EXCEPT, INTERSECT) is missing required key columns.
-    /// </summary>
     MQ3031_SetOperatorMissingKeys = 3031,
-
-    /// <summary>
-    ///     Arithmetic overflow in constant expression.
-    /// </summary>
     MQ3032_ArithmeticOverflow = 3032,
-
-    /// <summary>
-    ///     Parse/Interpret function used outside CROSS APPLY or OUTER APPLY.
-    /// </summary>
     MQ3033_InterpretFunctionOutsideApply = 3033,
-
-    /// <summary>
-    ///     Aggregate owner is ambiguous across multiple source aliases.
-    /// </summary>
     MQ3034_AmbiguousAggregateOwner = 3034,
-
-    /// <summary>
-    ///     Method owner is ambiguous across multiple source aliases.
-    /// </summary>
     MQ3035_AmbiguousMethodOwner = 3035,
-
-    /// <summary>
-    ///     ASOF JOIN requires at least one inequality condition.
-    /// </summary>
     MQ3036_AsOfJoinMissingInequality = 3036,
-
-    /// <summary>
-    ///     ASOF JOIN supports exactly one inequality condition.
-    /// </summary>
     MQ3037_AsOfJoinMultipleInequalities = 3037,
-
-    /// <summary>
-    ///     ASOF JOIN ON clause does not support OR.
-    /// </summary>
     MQ3038_AsOfJoinOrNotSupported = 3038,
-
-    /// <summary>
-    ///     ASOF JOIN inequality must reference columns from both sides.
-    /// </summary>
     MQ3039_AsOfJoinInequalityMustReferenceBothSides = 3039,
-
-    /// <summary>
-    ///     ASOF JOIN inequality column type is not orderable.
-    /// </summary>
     MQ3040_AsOfJoinInequalityColumnNotOrderable = 3040,
-
-    /// <summary>
-    ///     Star modifier EXCLUDE references a non-existent column.
-    /// </summary>
     MQ3041_StarExcludeColumnNotFound = 3041,
-
-    /// <summary>
-    ///     Star modifier REPLACE references a non-existent column.
-    /// </summary>
     MQ3042_StarReplaceColumnNotFound = 3042,
-
-    /// <summary>
-    ///     Star modifier EXCLUDE would remove all columns.
-    /// </summary>
     MQ3043_StarExcludeRemovesAllColumns = 3043,
-
-    /// <summary>
-    ///     Star modifier has a column in both EXCLUDE and REPLACE.
-    /// </summary>
     MQ3044_StarColumnInBothExcludeAndReplace = 3044,
-
-    /// <summary>
-    ///     Star modifier LIKE pattern matched no columns.
-    /// </summary>
     MQ3045_StarLikeMatchedNoColumns = 3045,
-
-    /// <summary>
-    ///     Star modifier has duplicate column in EXCLUDE list.
-    /// </summary>
     MQ3046_StarExcludeDuplicateColumn = 3046,
-
-    /// <summary>
-    ///     Star modifier has duplicate column in REPLACE list.
-    /// </summary>
     MQ3047_StarReplaceDuplicateColumn = 3047,
-
-    /// <summary>
-    ///     Star modifier REPLACE targets a column already removed by EXCLUDE or LIKE.
-    /// </summary>
     MQ3048_StarReplaceTargetsRemovedColumn = 3048,
+    MQ3049_InSubqueryMultipleColumns = 3049,
+    MQ3050_QualifyRequiresWindowFunction = 3050,
+    MQ3051_FilterOnNonAggregate = 3051,
+    MQ3052_RangeFrameRequiresOrderBy = 3052,
+    MQ3053_InvalidWindowFrameBounds = 3053,
+    MQ3054_StarModifierInInSubquery = 3054,
+    MQ3055_InvalidValuesSource = 3055,
+    MQ3056_DuplicateScriptParameterBlock = 3056,
+    MQ3057_ScriptParameterBlockAfterStatement = 3057,
+    MQ3058_DuplicateScriptParameterName = 3058,
+    MQ3059_UndeclaredScriptParameter = 3059,
+    MQ3060_UnsupportedScriptParameterType = 3060,
+    MQ3061_InvalidScriptParameterDefault = 3061,
+    MQ3062_InvalidScriptParameterSourceArgument = 3062,
+    MQ3063_DuplicateScriptSymbolName = 3063,
+    MQ3064_UnsupportedScriptVariableType = 3064,
+    MQ3065_InvalidScriptVariableInitializer = 3065,
+    MQ3066_ScriptVariableUsedBeforeDeclaration = 3066,
+    MQ3067_MissingSourceRuntimeSetting = 3067,
+    MQ3068_StarRenameDuplicateSource = 3068, MQ3069_StarRenameDuplicateTarget = 3069, MQ3070_StarRenameColumnNotFound = 3070, MQ3071_SourceContractError = 3071,
 
-    // ============================================
     // Schema Definition Errors (MQ4xxx)
-    // ============================================
-
-    /// <summary>
-    ///     Invalid binary schema field definition.
-    /// </summary>
     MQ4001_InvalidBinarySchemaField = 4001,
-
-    /// <summary>
-    ///     Invalid text schema field definition.
-    /// </summary>
     MQ4002_InvalidTextSchemaField = 4002,
-
-    /// <summary>
-    ///     Reference to an undefined schema.
-    /// </summary>
     MQ4003_UndefinedSchemaReference = 4003,
-
-    /// <summary>
-    ///     Circular schema reference detected.
-    /// </summary>
     MQ4004_CircularSchemaReference = 4004,
-
-    /// <summary>
-    ///     Invalid endianness specification.
-    /// </summary>
     MQ4005_InvalidEndianness = 4005,
-
-    /// <summary>
-    ///     Invalid field constraint.
-    /// </summary>
     MQ4006_InvalidFieldConstraint = 4006,
-
-    /// <summary>
-    ///     Invalid type in schema field.
-    /// </summary>
     MQ4007_InvalidSchemaFieldType = 4007,
-
-    /// <summary>
-    ///     Duplicate field name in schema.
-    /// </summary>
     MQ4008_DuplicateSchemaField = 4008,
-
-    /// <summary>
-    ///     Invalid schema name.
-    /// </summary>
     MQ4009_InvalidSchemaName = 4009,
-
-    /// <summary>
-    ///     Missing required field in schema.
-    /// </summary>
     MQ4010_MissingRequiredField = 4010,
+    MQ4011_SwitchSelectorNotPreviousField = 4011,
+    MQ4012_DuplicateSwitchBranchAlias = 4012,
+    MQ4013_InvalidSwitchCaseLabel = 4013,
+    MQ4014_InvalidSubstreamModifier = 4014,
+    MQ4015_InvalidSubstreamTarget = 4015,
 
-    // ============================================
     // Warnings (MQ5xxx)
-    // ============================================
-
-    /// <summary>
-    ///     An alias is defined but never used.
-    /// </summary>
     MQ5001_UnusedAlias = 5001,
-
-    /// <summary>
-    ///     SELECT * is used (consider explicit columns).
-    /// </summary>
     MQ5002_SelectStar = 5002,
-
-    /// <summary>
-    ///     Implicit type conversion occurring.
-    /// </summary>
     MQ5003_ImplicitTypeConversion = 5003,
-
-    /// <summary>
-    ///     Potential null reference in expression.
-    /// </summary>
     MQ5004_PotentialNullReference = 5004,
-
-    /// <summary>
-    ///     Redundant parentheses.
-    /// </summary>
     MQ5005_RedundantParentheses = 5005,
-
-    /// <summary>
-    ///     Deprecated syntax used.
-    /// </summary>
     MQ5006_DeprecatedSyntax = 5006,
-
-    /// <summary>
-    ///     Performance warning.
-    /// </summary>
     MQ5007_PerformanceWarning = 5007,
-
-    /// <summary>
-    ///     Unreachable code detected.
-    /// </summary>
     MQ5008_UnreachableCode = 5008,
-
-    /// <summary>
-    ///     ORDER BY alias may not resolve to the computed expression.
-    /// </summary>
     MQ5009_OrderByAliasBehavior = 5009,
+    MQ5010_TautologicalCondition = 5010, MQ5011_ContradictoryCondition = 5011, MQ5012_OptimizationFallback = 5012, MQ5013_SourceContractWarning = 5013,
 
-    /// <summary>
-    ///     Condition always evaluates to true (redundant filter).
-    /// </summary>
-    MQ5010_TautologicalCondition = 5010,
-
-    /// <summary>
-    ///     Condition always evaluates to false (no rows will be returned).
-    /// </summary>
-    MQ5011_ContradictoryCondition = 5011,
-
-    // ============================================
     // Feature-Gate Errors (MQ6xxx)
     // Known limitations flagged explicitly.
-    // ============================================
-
-    /// <summary>
-    ///     CTE syntax is unavailable in this parser/CLI path.
-    /// </summary>
     MQ6001_CteUnavailable = 6001,
-
-    /// <summary>
-    ///     DESC introspection is unavailable due to alias-validator conflict.
-    /// </summary>
     MQ6002_DescUnavailable = 6002,
-
-    /// <summary>
-    ///     Simple CASE syntax is not supported (only searched CASE).
-    /// </summary>
     MQ6003_SimpleCaseNotSupported = 6003,
-
-    /// <summary>
-    ///     Coalesce/IfNull with literal NULL is not supported.
-    /// </summary>
     MQ6004_CoalesceWithLiteralNull = 6004,
 
-    // ============================================
     // Runtime Errors (MQ7xxx)
-    // ============================================
-
-    /// <summary>
-    ///     Data source constructor binding failed at runtime.
-    /// </summary>
     MQ7001_DataSourceBindingFailed = 7001,
-
-    /// <summary>
-    ///     Data source iterator entered an invalid state.
-    /// </summary>
     MQ7002_DataSourceIteratorError = 7002,
+    MQ7003_RequiredScriptParameterMissing = 7003,
+    MQ7004_ScriptParameterTypeMismatch = 7004,
+    MQ7005_ScriptParameterNullNotAllowed = 7005,
 
-    // ============================================
     // Code Generation Errors (MQ8xxx)
-    // ============================================
-
-    /// <summary>
-    ///     Roslyn compilation of the generated C# code failed.
-    /// </summary>
     MQ8001_CodeGenerationFailed = 8001,
 
-    // ============================================
     // Internal/Unknown (MQ9xxx)
-    // ============================================
-
-    /// <summary>
-    ///     Unknown or unclassified error.
-    /// </summary>
     MQ9999_Unknown = 9999
 }

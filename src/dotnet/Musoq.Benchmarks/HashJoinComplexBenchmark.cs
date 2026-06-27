@@ -46,7 +46,7 @@ public class HashJoinComplexBenchmark
             Guid.NewGuid().ToString(),
             schemaProvider,
             _loggerResolver,
-            new CompilationOptions(useHashJoin: UseHashJoin, useSortMergeJoin: false)
+            BenchmarkCompilationOptions.Materialized(new CompilationOptions(useHashJoin: UseHashJoin, useSortMergeJoin: false))
         );
     }
 

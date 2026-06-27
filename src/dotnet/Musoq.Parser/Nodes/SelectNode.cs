@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 namespace Musoq.Parser.Nodes;
 
@@ -12,6 +11,7 @@ public class SelectNode : Node
 
     public SelectNode(FieldNode[] fields, bool isDistinct, TextSpan span)
     {
+        ArgumentNullException.ThrowIfNull(fields);
         Fields = fields;
         IsDistinct = isDistinct;
         var fieldsId = fields.Length == 0 ? string.Empty : string.Concat(fields.Select(f => f.Id));
@@ -35,12 +35,13 @@ public class SelectNode : Node
 
     public bool IsDistinct { get; }
 
-    public override Type ReturnType { get; }
+    public override Type? ReturnType => null;
 
     public override string Id { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

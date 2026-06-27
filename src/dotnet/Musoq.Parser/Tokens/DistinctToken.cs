@@ -1,11 +1,6 @@
 namespace Musoq.Parser.Tokens;
 
-public class DistinctToken : Token
+public class DistinctToken(TextSpan span) : Token(TokenText, TokenType.Distinct, span)
 {
     public const string TokenText = "distinct";
-
-    public DistinctToken(TextSpan span)
-        : base(TokenText, TokenType.Distinct, span)
-    {
-    }
 }

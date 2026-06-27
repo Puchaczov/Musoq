@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace Musoq.Parser.Nodes.InterpretationSchema;
@@ -55,7 +54,7 @@ public class StringTypeNode : TypeAnnotationNode
 
     /// <inheritdoc />
     public override int? FixedSizeBytes => SizeExpression is IntegerNode intNode
-        ? int.Parse(intNode.ObjValue.ToString()!)
+        ? int.Parse(intNode.ObjValue.ToString()!, System.Globalization.CultureInfo.InvariantCulture)
         : null;
 
     /// <inheritdoc />
@@ -67,13 +66,14 @@ public class StringTypeNode : TypeAnnotationNode
     /// <inheritdoc />
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        var encodingStr = Encoding.ToString().ToLowerInvariant();
+        var encodingStr = FormatEncoding(Encoding);
         var modifierStr = GetModifierString();
         var asClause = AsTextSchemaName != null ? $" as {AsTextSchemaName}" : "";
 
@@ -96,5 +96,19 @@ public class StringTypeNode : TypeAnnotationNode
             parts.Add("nullterm");
 
         return string.Join(" ", parts);
+    }
+
+    private static string FormatEncoding(StringEncoding encoding)
+    {
+        return encoding switch
+        {
+            StringEncoding.Utf8 => "utf8",
+            StringEncoding.Utf16Le => "utf16le",
+            StringEncoding.Utf16Be => "utf16be",
+            StringEncoding.Ascii => "ascii",
+            StringEncoding.Latin1 => "latin1",
+            StringEncoding.Ebcdic => "ebcdic",
+            _ => encoding.ToString()
+        };
     }
 }

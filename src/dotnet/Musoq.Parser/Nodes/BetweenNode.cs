@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Parser.Nodes;
 
 /// <summary>
@@ -45,6 +43,7 @@ public class BetweenNode : Node
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

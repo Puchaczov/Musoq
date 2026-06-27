@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Musoq.Parser.Nodes;
 
@@ -45,8 +44,7 @@ public static class ComparisonOperationVisitorHelper
 
     private static void ProcessComparisonOperation(Stack<Node> nodes, Func<Node, Node, Node> nodeFactory)
     {
-        if (nodes == null)
-            throw new ArgumentNullException(nameof(nodes));
+        ArgumentNullException.ThrowIfNull(nodes);
 
         if (nodes.Count < 2)
             throw new InvalidOperationException("Stack must contain at least 2 nodes for binary operation");

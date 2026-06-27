@@ -1,5 +1,3 @@
-﻿using System;
-
 namespace Musoq.Parser.Nodes.From;
 
 public class SchemaMethodFromNode : FromNode
@@ -28,6 +26,7 @@ public class SchemaMethodFromNode : FromNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

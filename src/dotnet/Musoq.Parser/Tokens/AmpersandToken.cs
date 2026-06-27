@@ -1,11 +1,6 @@
 namespace Musoq.Parser.Tokens;
 
-public class AmpersandToken : Token
+public class AmpersandToken(TextSpan span) : Token(TokenText, TokenType.Ampersand, span)
 {
     public const string TokenText = "&";
-
-    public AmpersandToken(TextSpan span)
-        : base(TokenText, TokenType.Ampersand, span)
-    {
-    }
 }

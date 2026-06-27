@@ -1,6 +1,6 @@
 ﻿namespace Musoq.Playground;
 
-public static class ExpensiveCteCounter
+internal static class ExpensiveCteCounter
 {
     private static int _counter;
 

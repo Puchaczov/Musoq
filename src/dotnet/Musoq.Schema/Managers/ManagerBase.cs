@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using Musoq.Plugins.Attributes;
 
@@ -7,15 +6,11 @@ namespace Musoq.Schema.Managers;
 
 public abstract class ManagerBase<TReflectedType>
 {
-    protected readonly List<TReflectedType> Parts;
-
-    protected ManagerBase()
-    {
-        Parts = [];
-    }
+    protected List<TReflectedType> Parts { get; } = [];
 
     protected bool TryAddLibraryParts(object library)
     {
+        ArgumentNullException.ThrowIfNull(library);
         var type = library.GetType();
 
         if (type.GetCustomAttribute<BindableClassAttribute>() == null)

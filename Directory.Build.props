@@ -1,1 +1,22 @@
-<Project/>
+<Project>
+    <Import Project="$(MSBuildThisFileDirectory)scripts\Versions.props" Condition="Exists('$(MSBuildThisFileDirectory)scripts\Versions.props')" />
+    <PropertyGroup>
+        <Authors>Jakub Puchała</Authors>
+        <Product>Musoq</Product>
+        <PackageProjectUrl>https://github.com/Puchaczov/Musoq</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageTags>sql, dotnet-core</PackageTags>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <PackageReadmeFile Condition="'$(IsPackable)' != 'false'">README.md</PackageReadmeFile>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <Deterministic>true</Deterministic>
+        <Nullable>enable</Nullable>
+        <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(IsPackable)' != 'false'">
+        <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="" />
+    </ItemGroup>
+</Project>

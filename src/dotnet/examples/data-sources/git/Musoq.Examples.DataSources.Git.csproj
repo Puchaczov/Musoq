@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Musoq.Examples.DataSources.Git.Tests"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Remove="tests\**\*.cs"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\Musoq.Plugins\Musoq.Plugins.csproj"/>
+        <ProjectReference Include="..\..\..\Musoq.Schema\Musoq.Schema.csproj"/>
+    </ItemGroup>
+
+</Project>

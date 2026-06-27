@@ -1,11 +1,6 @@
 namespace Musoq.Parser.Tokens;
 
-public class OverToken : Token
+public class OverToken(TextSpan span) : Token(TokenText, TokenType.Over, span)
 {
     public const string TokenText = "over";
-
-    public OverToken(TextSpan span)
-        : base(TokenText, TokenType.Over, span)
-    {
-    }
 }

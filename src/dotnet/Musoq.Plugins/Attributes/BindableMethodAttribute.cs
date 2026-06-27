@@ -1,10 +1,9 @@
-﻿using System;
-
-namespace Musoq.Plugins.Attributes;
+﻿namespace Musoq.Plugins.Attributes;
 
 /// <summary>
 ///     Represents a method that can be bound to the query.
 /// </summary>
+[AttributeUsage(AttributeTargets.Method)]
 public class BindableMethodAttribute : Attribute
 {
     /// <summary>

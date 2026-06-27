@@ -1,4 +1,3 @@
-using System;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Parser.Exceptions;
@@ -9,6 +8,10 @@ namespace Musoq.Parser.Exceptions;
 /// </summary>
 public class ParserValidationException : ArgumentException, IDiagnosticException
 {
+
+    public ParserValidationException()
+    {
+    }
     /// <summary>
     ///     Initializes a new instance of ParserValidationException.
     /// </summary>

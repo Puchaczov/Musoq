@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class RightParenthesisToken : Token
+public class RightParenthesisToken(TextSpan textSpan) : Token(TokenText, TokenType.RightParenthesis, textSpan)
 {
     public const string TokenText = ")";
-
-    public RightParenthesisToken(TextSpan textSpan)
-        : base(TokenText, TokenType.RightParenthesis, textSpan)
-    {
-    }
 }

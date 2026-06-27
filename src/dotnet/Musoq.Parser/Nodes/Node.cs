@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace Musoq.Parser.Nodes;
 
@@ -22,7 +21,7 @@ public abstract class Node
     /// </summary>
     public bool HasSpan => !Span.IsEmpty;
 
-    public abstract Type ReturnType { get; }
+    public abstract Type? ReturnType { get; }
 
     public abstract string Id { get; }
 
@@ -58,7 +57,7 @@ public abstract class Node
     /// <summary>
     ///     Computes the combined span from start of first node to end of last node.
     /// </summary>
-    protected static TextSpan ComputeSpan(Node first, Node last)
+    protected static TextSpan ComputeSpan(Node? first, Node? last)
     {
         if (first == null || last == null)
             return default;
@@ -70,7 +69,7 @@ public abstract class Node
     /// <summary>
     ///     Computes the combined span from a collection of nodes.
     /// </summary>
-    protected static TextSpan ComputeSpan(params Node[] nodes)
+    protected static TextSpan ComputeSpan(params Node?[] nodes)
     {
         if (nodes == null || nodes.Length == 0)
             return default;
@@ -78,10 +77,10 @@ public abstract class Node
         var first = nodes[0];
         var last = nodes[^1];
 
-        for (var i = 0; i < nodes.Length; i++)
-            if (nodes[i]?.HasSpan == true)
+        foreach (var node in nodes)
+            if (node?.HasSpan == true)
             {
-                first = nodes[i];
+                first = node;
                 break;
             }
 

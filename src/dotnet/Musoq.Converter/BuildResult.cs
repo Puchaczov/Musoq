@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Musoq.Converter.Build;
 using Musoq.Evaluator;
 using Musoq.Parser.Diagnostics;
-
-#nullable enable
 
 namespace Musoq.Converter;
 
@@ -20,12 +19,14 @@ public sealed class BuildResult
         CompiledQuery? compiledQuery,
         IReadOnlyList<Diagnostic> diagnostics,
         string? queryText,
-        Exception? caughtException)
+        Exception? caughtException,
+        BuildItems? buildItems)
     {
         CompiledQuery = compiledQuery;
         Diagnostics = diagnostics;
         _queryText = queryText;
         CaughtException = caughtException;
+        BuildItems = buildItems;
         Errors = diagnostics.Where(d => d.IsError).ToList();
         Warnings = diagnostics.Where(d => d.IsWarning).ToList();
     }
@@ -48,6 +49,7 @@ public sealed class BuildResult
     /// <summary>
     ///     Returns true if compilation succeeded and a runnable query is available.
     /// </summary>
+    [MemberNotNullWhen(true, nameof(CompiledQuery))]
     public bool Succeeded => CompiledQuery != null && !HasErrors;
 
     /// <summary>
@@ -66,6 +68,8 @@ public sealed class BuildResult
     /// </summary>
     public Exception? CaughtException { get; }
 
+    internal BuildItems? BuildItems { get; }
+
     /// <summary>
     ///     Converts error diagnostics into spec-compliant error envelopes.
     /// </summary>
@@ -80,17 +84,18 @@ public sealed class BuildResult
     ///     Creates a successful result with optional warnings/info diagnostics.
     /// </summary>
     internal static BuildResult Success(CompiledQuery query, IReadOnlyList<Diagnostic> diagnostics,
-        string? queryText)
+        string? queryText, BuildItems? buildItems = null)
     {
-        return new BuildResult(query, diagnostics, queryText, caughtException: null);
+        return new BuildResult(query, diagnostics, queryText, caughtException: null, buildItems);
     }
 
     /// <summary>
     ///     Creates a failed result with collected error diagnostics.
     /// </summary>
     internal static BuildResult Failure(IReadOnlyList<Diagnostic> diagnostics, string? queryText,
-        Exception? caughtException = null)
+        Exception? caughtException = null,
+        BuildItems? buildItems = null)
     {
-        return new BuildResult(null, diagnostics, queryText, caughtException);
+        return new BuildResult(null, diagnostics, queryText, caughtException, buildItems);
     }
 }

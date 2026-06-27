@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Plugins.Attributes;
 
 /// <summary>
@@ -15,4 +13,4 @@ namespace Musoq.Plugins.Attributes;
 ///     - Should produce a new value on each invocation even if called with same arguments
 /// </remarks>
 [AttributeUsage(AttributeTargets.Method)]
-public class NonDeterministicAttribute : Attribute;
+public sealed class NonDeterministicAttribute : Attribute;

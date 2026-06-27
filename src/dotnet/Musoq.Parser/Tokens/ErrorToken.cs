@@ -25,6 +25,7 @@ public sealed class ErrorToken : Token
     public ErrorToken(string value, TextSpan span)
         : base(value, TokenType.Error, span)
     {
+        ArgumentNullException.ThrowIfNull(value);
         Character = value.Length > 0 ? value[0] : '\0';
     }
 

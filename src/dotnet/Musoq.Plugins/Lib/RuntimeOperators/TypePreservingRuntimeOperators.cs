@@ -1,4 +1,3 @@
-using System;
 using Musoq.Plugins.Lib.TypeConversion;
 
 namespace Musoq.Plugins.Lib.RuntimeOperators;
@@ -135,7 +134,7 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
         };
     }
 
-    private ArithmeticType DetermineArithmeticTargetType(object left, object right)
+    private static ArithmeticType DetermineArithmeticTargetType(object left, object right)
     {
         if (left is decimal || right is decimal)
             return ArithmeticType.Decimal;
@@ -146,7 +145,7 @@ internal class TypePreservingRuntimeOperators : IRuntimeOperators
         return ArithmeticType.Long;
     }
 
-    private T? ConvertAndApply<T>(object? left, object? right, Func<T, T, T> operation, Func<object?, T?> converter)
+    private static T? ConvertAndApply<T>(object? left, object? right, Func<T, T, T> operation, Func<object?, T?> converter)
         where T : struct
     {
         var leftConverted = converter(left);

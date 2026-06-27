@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Musoq.Parser.Nodes;
+﻿namespace Musoq.Parser.Nodes;
 
 /// <summary>
 ///     Represents a call to the Parse function for text data interpretation.
@@ -25,7 +23,7 @@ public class ParseCallNode : Node
     /// <param name="dataSource">The expression providing the text data.</param>
     /// <param name="schemaName">The name of the text schema to use.</param>
     /// <param name="returnType">The return type of the parsing.</param>
-    public ParseCallNode(Node dataSource, string schemaName, Type returnType)
+    public ParseCallNode(Node dataSource, string schemaName, Type? returnType)
     {
         DataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
         SchemaName = schemaName ?? throw new ArgumentNullException(nameof(schemaName));
@@ -45,18 +43,19 @@ public class ParseCallNode : Node
     /// <summary>
     ///     Gets the return type of the parsing.
     /// </summary>
-    public override Type ReturnType { get; }
+    public override Type? ReturnType { get; }
 
     /// <summary>
     ///     Gets the unique identifier for this node.
     /// </summary>
-    public override string Id => $"{nameof(ParseCallNode)}({DataSource.Id},{SchemaName})";
+    public override string Id => $"{nameof(ParseCallNode)}<{SchemaName}>({DataSource.Id})";
 
     /// <summary>
     ///     Accepts a visitor for this node.
     /// </summary>
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -65,6 +64,6 @@ public class ParseCallNode : Node
     /// </summary>
     public override string ToString()
     {
-        return $"Parse({DataSource.ToString()}, {SchemaName})";
+        return $"Parse<{SchemaName}>({DataSource.ToString()})";
     }
 }

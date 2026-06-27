@@ -1,5 +1,3 @@
-﻿#nullable enable
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes.From;
@@ -11,6 +9,20 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class AliasAlreadyUsedException : Exception, IDiagnosticException
 {
+
+    public AliasAlreadyUsedException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public AliasAlreadyUsedException(string message)
+        : base(message)
+    {
+    }
+
+    public AliasAlreadyUsedException()
+    {
+    }
     /// <summary>
     ///     Initializes a new instance with node and alias.
     /// </summary>
@@ -18,6 +30,7 @@ public class AliasAlreadyUsedException : Exception, IDiagnosticException
         : base(
             $"Alias {alias} is already used in query. Please, use different alias. Problem occurred in schema from node {node}")
     {
+        ArgumentNullException.ThrowIfNull(node);
         Alias = alias;
         Code = DiagnosticCode.MQ3021_DuplicateAlias;
         Span = node.HasSpan ? node.Span : null;

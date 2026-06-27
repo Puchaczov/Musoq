@@ -1,29 +1,14 @@
-using System;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
 
-internal enum BinaryOperatorKind
-{
-    Add,
-    Subtract,
-    Multiply,
-    Divide,
-    Modulo,
-    BitwiseAnd,
-    BitwiseOr,
-    BitwiseXor,
-    LeftShift,
-    RightShift,
-    Equality,
-    Inequality,
-    Relational
-}
-
 internal static class BinaryOperatorTypeRules
 {
-    internal static Type NormalizeOperandType(Type type)
+    internal static Type NormalizeOperandType(Type? type)
     {
+        if (type == null)
+            return typeof(object);
+
         if (type is NullNode.NullType)
             return type;
 

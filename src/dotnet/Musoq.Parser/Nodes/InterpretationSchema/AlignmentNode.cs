@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Parser.Nodes.InterpretationSchema;
 
 /// <summary>
@@ -47,6 +45,7 @@ public class AlignmentNode : TypeAnnotationNode
     /// <inheritdoc />
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

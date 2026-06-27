@@ -1,23 +1,15 @@
-﻿using System;
-using Musoq.Parser.Tokens;
+﻿using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Nodes;
 
-public class ShortCircuitingNodeLeft : Node
+public class ShortCircuitingNodeLeft(Node expression, TokenType usedFor) : Node
 {
-    public ShortCircuitingNodeLeft(Node expression, TokenType usedFor)
-    {
-        Expression = expression;
-        UsedFor = usedFor;
-        Id = $"{nameof(ShortCircuitingNodeLeft)}{expression.Id}";
-    }
+    public TokenType UsedFor { get; } = usedFor;
 
-    public TokenType UsedFor { get; }
+    public Node Expression { get; } = expression;
+    public override Type? ReturnType => Expression.ReturnType;
 
-    public Node Expression { get; }
-    public override Type ReturnType => Expression.ReturnType;
-
-    public override string Id { get; }
+    public override string Id { get; } = $"{nameof(ShortCircuitingNodeLeft)}{expression.Id}";
 
     public override string ToString()
     {
@@ -26,6 +18,7 @@ public class ShortCircuitingNodeLeft : Node
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 }

@@ -1,4 +1,3 @@
-﻿using System;
 using System.Globalization;
 
 namespace Musoq.Parser.Nodes;
@@ -49,6 +48,7 @@ public class DecimalNode : ConstantValueNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 }

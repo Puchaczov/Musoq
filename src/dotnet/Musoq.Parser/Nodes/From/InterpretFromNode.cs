@@ -1,10 +1,8 @@
-using System;
-
 namespace Musoq.Parser.Nodes.From;
 
 /// <summary>
 ///     Represents an Interpret/Parse call used in a FROM clause context (e.g., CROSS APPLY).
-///     This node wraps the scalar result of Interpret() in an array for enumerable processing.
+///     This node wraps scalar interpretation results in an array for enumerable processing.
 /// </summary>
 public class InterpretFromNode : FromNode
 {
@@ -12,7 +10,7 @@ public class InterpretFromNode : FromNode
     ///     Creates a new InterpretFromNode.
     /// </summary>
     /// <param name="alias">The alias for the FROM clause.</param>
-    /// <param name="interpretCall">The interpret call node (InterpretCallNode, InterpretAtCallNode, or ParseCallNode).</param>
+    /// <param name="interpretCall">The interpret call node.</param>
     /// <param name="applyType">The type of apply (Cross or Outer) which affects null handling.</param>
     public InterpretFromNode(string alias, Node interpretCall, ApplyType applyType)
         : base(alias)
@@ -40,7 +38,7 @@ public class InterpretFromNode : FromNode
     }
 
     /// <summary>
-    ///     Gets the interpret call node (InterpretCallNode, InterpretAtCallNode, or ParseCallNode).
+    ///     Gets the interpret call node.
     /// </summary>
     public Node InterpretCall { get; }
 
@@ -68,6 +66,8 @@ public class InterpretFromNode : FromNode
                 ParseCallNode parse => parse.SchemaName,
                 TryInterpretCallNode tryInterpret => tryInterpret.SchemaName,
                 TryParseCallNode tryParse => tryParse.SchemaName,
+                PartialInterpretCallNode partialInterpret => partialInterpret.SchemaName,
+                PartialParseCallNode partialParse => partialParse.SchemaName,
                 _ => throw new InvalidOperationException(
                     $"Unexpected interpret call type: {InterpretCall.GetType().Name}")
             };
@@ -84,6 +84,7 @@ public class InterpretFromNode : FromNode
     /// </summary>
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -102,9 +103,11 @@ public class InterpretFromNode : FromNode
             && interpretCall is not InterpretAtCallNode
             && interpretCall is not ParseCallNode
             && interpretCall is not TryInterpretCallNode
-            && interpretCall is not TryParseCallNode)
+            && interpretCall is not TryParseCallNode
+            && interpretCall is not PartialInterpretCallNode
+            && interpretCall is not PartialParseCallNode)
             throw new ArgumentException(
-                $"Expected InterpretCallNode, InterpretAtCallNode, ParseCallNode, TryInterpretCallNode, or TryParseCallNode but got {interpretCall.GetType().Name}",
+                $"Expected InterpretCallNode, InterpretAtCallNode, ParseCallNode, TryInterpretCallNode, TryParseCallNode, PartialInterpretCallNode, or PartialParseCallNode but got {interpretCall.GetType().Name}",
                 nameof(interpretCall));
     }
 }

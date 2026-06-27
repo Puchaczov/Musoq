@@ -1,23 +1,16 @@
-﻿using System;
+﻿namespace Musoq.Parser.Nodes;
 
-namespace Musoq.Parser.Nodes;
-
-public class IntoNode : Node
+public class IntoNode(string name) : Node
 {
-    public IntoNode(string name)
-    {
-        Name = name;
-        Id = $"{nameof(IntoNode)}{name}";
-    }
+    public string Name { get; } = name;
 
-    public string Name { get; }
+    public override Type? ReturnType => null;
 
-    public override Type ReturnType => null;
-
-    public override string Id { get; }
+    public override string Id { get; } = $"{nameof(IntoNode)}{name}";
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

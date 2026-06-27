@@ -1,6 +1,4 @@
-using System;
-
-namespace Musoq.Parser.Nodes.InterpretationSchema;
+﻿namespace Musoq.Parser.Nodes.InterpretationSchema;
 
 /// <summary>
 ///     Represents a single case in a text switch field.
@@ -47,7 +45,7 @@ public class TextSwitchCaseNode
     private static string EscapeString(string value)
     {
         return value
-            .Replace("\\", "\\\\")
-            .Replace("'", "\\'");
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("'", "\\'", StringComparison.Ordinal);
     }
 }

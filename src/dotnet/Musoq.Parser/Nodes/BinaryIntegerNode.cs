@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Parser.Nodes;
 
 public class BinaryIntegerNode : ConstantValueNode
@@ -11,6 +9,7 @@ public class BinaryIntegerNode : ConstantValueNode
 
     public BinaryIntegerNode(string value, TextSpan span)
     {
+        ArgumentNullException.ThrowIfNull(value);
         var binaryValue = value.StartsWith("0b", StringComparison.OrdinalIgnoreCase)
             ? value.Substring(2)
             : value;
@@ -42,15 +41,16 @@ public class BinaryIntegerNode : ConstantValueNode
 
     public override string ToString()
     {
-        return ObjValue.ToString();
+        return ObjValue.ToString() ?? string.Empty;
     }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
-    private static object ParseBinaryValue(string binaryValue, string originalValue)
+    private static long ParseBinaryValue(string binaryValue, string originalValue)
     {
         try
         {

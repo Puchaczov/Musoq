@@ -1,22 +1,268 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Version>10.0.0</Version>
-        <Authors>Jakub Puchała</Authors>
-        <Product>Musoq</Product>
-        <PackageProjectUrl>https://github.com/Puchaczov/Musoq</PackageProjectUrl>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageTags>sql, dotnet-core</PackageTags>
-        <PublishRepositoryUrl>true</PublishRepositoryUrl>
-        <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
-    </ItemGroup>
-
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Version>$(MusoqParserVersion)</Version>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Musoq.Parser.Tests" />
+    <InternalsVisibleTo Include="Musoq.Converter" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Diagnostics\ErrorMetadataCatalog.Semantic.AsOfJoin.cs">
+      <DependentUpon>ErrorMetadataCatalog.Semantic.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Diagnostics\ErrorMetadataCatalog.Semantic.Core.cs">
+      <DependentUpon>ErrorMetadataCatalog.Semantic.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Diagnostics\ErrorMetadataCatalog.Semantic.QueryFeatures.cs">
+      <DependentUpon>ErrorMetadataCatalog.Semantic.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Diagnostics\ErrorMetadataCatalog.Semantic.StarModifiers.cs">
+      <DependentUpon>ErrorMetadataCatalog.Semantic.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Diagnostics\SyntaxDiagnosticEnhancer.KeywordSuggestions.cs">
+      <DependentUpon>SyntaxDiagnosticEnhancer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Diagnostics\SyntaxDiagnosticEnhancer.Messages.cs">
+      <DependentUpon>SyntaxDiagnosticEnhancer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Diagnostics\SyntaxDiagnosticEnhancer.TextHelpers.cs">
+      <DependentUpon>SyntaxDiagnosticEnhancer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lexing\KeywordLookup.Operators.cs">
+      <DependentUpon>KeywordLookup.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lexing\KeywordLookup.Schema.cs">
+      <DependentUpon>KeywordLookup.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lexing\Lexer.Dispatch.cs">
+      <DependentUpon>Lexer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lexing\Lexer.Identifiers.Access.cs">
+      <DependentUpon>Lexer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lexing\Lexer.Identifiers.Keywords.cs">
+      <DependentUpon>Lexer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lexing\Lexer.IdentifiersAndKeywords.cs">
+      <DependentUpon>Lexer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lexing\Lexer.NumericAndString.cs">
+      <DependentUpon>Lexer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lexing\Lexer.Operators.cs">
+      <DependentUpon>Lexer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lexing\Lexer.QuestionMark.cs">
+      <DependentUpon>Lexer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lexing\Lexer.Recovery.cs">
+      <DependentUpon>Lexer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lexing\Lexer.SchemaAndParameters.cs">
+      <DependentUpon>Lexer.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitor.Coalesce.cs">
+      <DependentUpon>NoOpExpressionVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitor.ExpressionExtras.cs">
+      <DependentUpon>NoOpExpressionVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitor.InterpretationAndWindows.cs">
+      <DependentUpon>NoOpExpressionVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitor.QueryAndSources.cs">
+      <DependentUpon>NoOpExpressionVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitor.ScriptVariables.cs">
+      <DependentUpon>NoOpExpressionVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitor.SetOperatorsAndCtes.cs">
+      <DependentUpon>NoOpExpressionVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitor.Subqueries.cs">
+      <DependentUpon>NoOpExpressionVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitor.Unpivot.cs">
+      <DependentUpon>NoOpExpressionVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitor.Windows.cs">
+      <DependentUpon>NoOpExpressionVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.Case.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.Describe.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.Expressions.Arguments.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.Expressions.BaseTypes.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.Expressions.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.Expressions.Operators.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.Expressions.Predicates.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.From.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.From.Joins.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.From.Values.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.Helpers.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.Methods.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.Parameters.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.Pivot.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.QueryClauses.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.QueryClauses.OrderingAndWhere.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.QueryClauses.SelectFields.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.QueryClauses.Windows.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.ScriptVariables.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.SetOperators.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.StarModifiers.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.Statements.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.BinarySchema.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.BinarySchema.FieldValidation.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.BinarySchema.FieldValidationLiterals.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.BinarySchema.Substream.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.BinarySchema.Switch.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.EmbeddedExpressions.Access.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.EmbeddedExpressions.Arithmetic.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.EmbeddedExpressions.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.EmbeddedExpressions.Logical.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.TextSchema.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.TextSchema.Fields.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.TextSchema.RepeatSwitch.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.TokenUtilities.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.TypeAnnotations.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.TypeAnnotations.Primitives.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.TypeAnnotations.SchemaReferences.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.TypeAnnotations.SizedTypes.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SchemaParser.TypeAnnotations.Strings.cs">
+      <DependentUpon>SchemaParser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitor.CastNoOpExpressionVisitor.cs">
+      <DependentUpon>NoOpExpressionVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.CoupleSyntaxComposition.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.DerivedTableParsing.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.DescSettingsComposition.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.DiagnosticCommandParsing.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.GroupByAllClauseParsing.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitor.NoOpCollectionPredicateVisitor.cs">
+      <DependentUpon>NoOpExpressionVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitor.NullSafeComparisonNoOpVisitor.cs">
+      <DependentUpon>NoOpExpressionVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.NullSafeComparisonParsing.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.OrderingParsing.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitor.PartialParseNoOpExpressionVisitor.cs">
+      <DependentUpon>NoOpExpressionVisitor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.PostfixCastParsing.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.QuantifiedSubqueryParsing.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.StarRenameParsing.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.TableColumnReadModifierComposer.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.TableStatementComposition.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Parser.UnpivotParsing.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>

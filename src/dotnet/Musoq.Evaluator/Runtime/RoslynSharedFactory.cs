@@ -1,8 +1,15 @@
-using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.Extensions.Logging;
+using Musoq.Evaluator.Tables;
+using Musoq.Parser.Nodes.From;
+using Musoq.Plugins;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.Runtime;
 
@@ -31,15 +38,32 @@ public static class RoslynSharedFactory
     /// </summary>
     private static readonly Lazy<CSharpCompilation> TemplateCompilation = new(CreateTemplateCompilation);
 
+    private static readonly HashSet<string> PreloadedPaths = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    ///     Gets the set of assembly paths already included in the template compilation.
+    ///     Populated during template creation; safe to read after first call to CreateCompilation.
+    /// </summary>
+    public static IReadOnlySet<string> PreloadedAssemblyPaths
+    {
+        get
+        {
+            _ = TemplateCompilation.Value;
+            return PreloadedPaths;
+        }
+    }
+
     /// <summary>
     ///     Gets a workspace for the current thread. This workspace is reused across multiple compilations.
     /// </summary>
-    public static AdhocWorkspace Workspace => ThreadLocalWorkspace.Value;
+    public static AdhocWorkspace Workspace => ThreadLocalWorkspace.Value ??
+                                              throw new InvalidOperationException("Roslyn workspace was not initialized for the current thread.");
 
     /// <summary>
     ///     Gets a syntax generator for the current thread. This generator is reused across multiple compilations.
     /// </summary>
-    public static SyntaxGenerator Generator => ThreadLocalGenerator.Value;
+    public static SyntaxGenerator Generator => ThreadLocalGenerator.Value ??
+                                               throw new InvalidOperationException("Roslyn syntax generator was not initialized for the current thread.");
 
     /// <summary>
     ///     Creates a new CSharpCompilation with all common references already added.
@@ -57,6 +81,10 @@ public static class RoslynSharedFactory
         var compilation = CSharpCompilation.Create("__template__");
         compilation = compilation.AddReferences(RuntimeLibraries.References);
 
+        var coreReferences = CollectCoreTypeReferences();
+        if (coreReferences.Count > 0)
+            compilation = compilation.AddReferences(coreReferences);
+
         return compilation.WithOptions(
             new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
@@ -66,5 +94,39 @@ public static class RoslynSharedFactory
                 .WithConcurrentBuild(false)
                 .WithMetadataImportOptions(MetadataImportOptions.Public)
                 .WithPlatform(Platform.AnyCpu));
+    }
+
+    private static List<MetadataReference> CollectCoreTypeReferences()
+    {
+        var coreTypes = new[]
+        {
+            typeof(object),
+            typeof(CancellationToken),
+            typeof(ISchema),
+            typeof(LibraryBase),
+            typeof(Table),
+            typeof(SyntaxFactory),
+            typeof(ExpandoObject),
+            typeof(SchemaFromNode),
+            typeof(ILogger)
+        };
+
+        var references = new List<MetadataReference>(coreTypes.Length + 2);
+
+        var abstractionDll = Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory,
+            "Microsoft.Extensions.Logging.Abstractions.dll");
+
+        if (File.Exists(abstractionDll) && PreloadedPaths.Add(abstractionDll))
+            references.Add(MetadataReferenceCache.GetOrCreate(abstractionDll));
+
+        foreach (var type in coreTypes)
+        {
+            var location = type.Assembly.Location;
+            if (!string.IsNullOrEmpty(location) && PreloadedPaths.Add(location))
+                references.Add(MetadataReferenceCache.GetOrCreate(location));
+        }
+
+        return references;
     }
 }

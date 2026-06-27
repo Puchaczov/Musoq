@@ -1,11 +1,6 @@
 namespace Musoq.Parser.Tokens;
 
-public class GreaterToken : Token
+public class GreaterToken(TextSpan span) : Token(TokenText, TokenType.Greater, span)
 {
     public const string TokenText = ">";
-
-    public GreaterToken(TextSpan span)
-        : base(TokenText, TokenType.Greater, span)
-    {
-    }
 }

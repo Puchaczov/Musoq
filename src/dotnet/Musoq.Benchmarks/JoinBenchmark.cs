@@ -66,7 +66,8 @@ public class JoinBenchmark
             script,
             Guid.NewGuid().ToString(),
             schemaProvider,
-            _loggerResolver);
+            _loggerResolver,
+            BenchmarkCompilationOptions.Materialized());
     }
 
     [Benchmark]
@@ -75,59 +76,45 @@ public class JoinBenchmark
         return _query.Run();
     }
 
-    private class MyEntity
+    private sealed class MyEntity
     {
-        public string Name { get; set; } = string.Empty;
-        public string Country { get; set; } = string.Empty;
-        public string City { get; set; } = string.Empty;
-        public int Id { get; set; }
+        public string Name { get; init; } = string.Empty;
+        public string Country { get; init; } = string.Empty;
+        public string City { get; init; } = string.Empty;
+        public int Id { get; init; }
     }
 
-    private class MySchemaProvider : ISchemaProvider
+    private sealed class MySchemaProvider(IReadOnlyList<MyEntity> entities) : ISchemaProvider
     {
-        private readonly IEnumerable<MyEntity> _entities;
-
-        public MySchemaProvider(IEnumerable<MyEntity> entities)
-        {
-            _entities = entities;
-        }
-
         public ISchema GetSchema(string schema)
         {
-            return new MySchema(_entities);
+            return new MySchema(entities);
         }
     }
 
-    private class MySchema : SchemaBase
+    private sealed class MySchema(IReadOnlyList<MyEntity> entities) : SchemaBase("test", CreateLibrary())
     {
-        private readonly IEnumerable<MyEntity> _entities;
-
-        public MySchema(IEnumerable<MyEntity> entities) : base("test", CreateLibrary())
-        {
-            _entities = entities;
-        }
-
-        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext,
-            params object[] parameters)
+        public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
+            params object?[] parameters)
         {
             return new MyTable();
         }
 
-        public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
         {
-            return new EntitySource<MyEntity>(_entities, new Dictionary<string, int>
+            return EnsureSourceType<T, MyEntity>(name, new EntitySource<MyEntity>(BenchmarkSourceChunks.Create(entities), new Dictionary<string, int>
             {
                 { nameof(MyEntity.Name), 0 },
                 { nameof(MyEntity.Country), 1 },
                 { nameof(MyEntity.City), 2 },
                 { nameof(MyEntity.Id), 3 }
-            }, new Dictionary<int, Func<MyEntity, object>>
+            }, new Dictionary<int, Func<MyEntity, object?>>
             {
                 { 0, e => e.Name },
                 { 1, e => e.Country },
                 { 2, e => e.City },
                 { 3, e => e.Id }
-            });
+            }));
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -139,15 +126,15 @@ public class JoinBenchmark
         }
     }
 
-    private class MyTable : ISchemaTable
+    private sealed class MyTable : ISchemaTable
     {
-        public ISchemaColumn[] Columns => new ISchemaColumn[]
-        {
+        public ISchemaColumn[] Columns =>
+        [
             new SchemaColumn(nameof(MyEntity.Name), 0, typeof(string)),
             new SchemaColumn(nameof(MyEntity.Country), 1, typeof(string)),
             new SchemaColumn(nameof(MyEntity.City), 2, typeof(string)),
             new SchemaColumn(nameof(MyEntity.Id), 3, typeof(int))
-        };
+        ];
 
         public ISchemaColumn GetColumnByName(string name)
         {
@@ -162,7 +149,5 @@ public class JoinBenchmark
         public SchemaTableMetadata Metadata { get; } = new(typeof(MyEntity));
     }
 
-    private class Library : LibraryBase
-    {
-    }
+    private sealed class Library : LibraryBase;
 }

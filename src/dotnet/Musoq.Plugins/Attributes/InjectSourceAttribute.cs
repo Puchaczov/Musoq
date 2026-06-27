@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Musoq.Plugins.Attributes;
+﻿namespace Musoq.Plugins.Attributes;
 
 internal sealed class InjectSourceAttribute : InjectTypeAttribute
 {

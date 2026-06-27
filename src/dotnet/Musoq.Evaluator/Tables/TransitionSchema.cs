@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Generic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -13,14 +12,14 @@ internal class TransitionSchema(string name, ISchemaTable table)
 {
     private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
 
-    public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
     {
         return table;
     }
 
-    public override RowSource GetRowSource(string name, RuntimeContext interCommunicator, params object[] parameters)
+    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
     {
-        return new TransientVariableSource(name);
+        return EnsureSourceType<T, object>(name, new TransientVariableSource(name));
     }
 
     private static MethodsAggregator GetOrCreateLibrary()

@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Evaluator.Utils.Symbols;
 
-public class FieldsNamesSymbol : Symbol
+public class FieldsNamesSymbol(string[] names) : Symbol
 {
-    public FieldsNamesSymbol(string[] names)
-    {
-        Names = names;
-    }
-
-    public string[] Names { get; }
+    public string[] Names { get; } = names;
 }

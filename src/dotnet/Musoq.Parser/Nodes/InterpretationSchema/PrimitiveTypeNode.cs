@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Parser.Nodes.InterpretationSchema;
 
 /// <summary>
@@ -74,18 +72,37 @@ public class PrimitiveTypeNode : TypeAnnotationNode
     /// <inheritdoc />
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        var typeName = TypeName.ToString().ToLowerInvariant();
+        var typeName = FormatTypeName(TypeName);
         return Endianness switch
         {
             Endianness.LittleEndian => $"{typeName} le",
             Endianness.BigEndian => $"{typeName} be",
             _ => typeName
+        };
+    }
+
+    private static string FormatTypeName(PrimitiveTypeName typeName)
+    {
+        return typeName switch
+        {
+            PrimitiveTypeName.Byte => "byte",
+            PrimitiveTypeName.SByte => "sbyte",
+            PrimitiveTypeName.Short => "short",
+            PrimitiveTypeName.UShort => "ushort",
+            PrimitiveTypeName.Int => "int",
+            PrimitiveTypeName.UInt => "uint",
+            PrimitiveTypeName.Long => "long",
+            PrimitiveTypeName.ULong => "ulong",
+            PrimitiveTypeName.Float => "float",
+            PrimitiveTypeName.Double => "double",
+            _ => typeName.ToString()
         };
     }
 }

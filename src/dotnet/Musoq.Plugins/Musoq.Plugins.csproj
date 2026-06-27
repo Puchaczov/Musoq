@@ -1,35 +1,402 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Version>13.0.0</Version>
-        <Authors>Jakub Puchała</Authors>
-        <Product>Musoq</Product>
-        <PackageProjectUrl>https://github.com/Puchaczov/Musoq</PackageProjectUrl>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageTags>sql, dotnet-core</PackageTags>
-        <PublishRepositoryUrl>true</PublishRepositoryUrl>
-        <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <InternalsVisibleTo Include="Musoq.Evaluator"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
-        <PackageReference Include="Fastenshtein" Version="1.0.11"/>
-        <PackageReference Include="DiffPlex" Version="1.9.0"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Compile Update="QueryStats.cs">
-            <DependentUpon>IQueryStats.cs</DependentUpon>
-        </Compile>
-    </ItemGroup>
-
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Version>$(MusoqPluginsVersion)</Version>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Musoq.Evaluator" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+    <PackageReference Include="Fastenshtein" />
+    <PackageReference Include="DiffPlex" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="QueryStats.cs">
+      <DependentUpon>IQueryStats.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.BitsOperations.And.ByteSByte.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.BitsOperations.And.IntUInt.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.BitsOperations.And.LongULong.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.BitsOperations.And.ShortUShort.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.BitsOperations.Or.ByteSByte.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.BitsOperations.Or.IntUInt.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.BitsOperations.Or.LongULong.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.BitsOperations.Or.ShortUShort.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.BitsOperations.Unary.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.BitsOperations.Xor.ByteSByte.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.BitsOperations.Xor.IntUInt.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.BitsOperations.Xor.LongULong.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.BitsOperations.Xor.ShortUShort.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Compression.Brotli.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Compression.Deflate.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Compression.GZip.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Compression.ZLib.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.DataUtils.Jwt.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.DataUtils.Markup.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.DistinctAggregates.Avg.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.DistinctAggregates.Count.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.DistinctAggregates.MinMax.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.DistinctAggregates.Sum.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Generic.Coalesce.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Generic.Conditionals.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Generic.ElementSelection.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Generic.Regex.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Math.Clamp.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Math.Powers.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Math.RandomAndRank.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Math.RangePredicates.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Math.TrigLog.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.NetworkUtils.Extraction.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.NetworkUtils.IdentityAndBase.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.NetworkUtils.IpAndMac.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.NetworkUtils.SlugAndEscaping.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.NetworkUtils.UnixTime.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.StrictConversions.Comparison.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.StrictConversions.NumericOnly.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.StrictConversions.RuntimeArithmetic.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.StrictConversions.RuntimeComparison.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.StrictConversions.Strict.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.CasingAndPadding.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.Core.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.Extraction.Between.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.Extraction.Edges.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.Extraction.Words.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.RegexAndEncoding.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.RegexAndEncoding.NewLines.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.RegexAndEncoding.Regex.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.RegexAndEncoding.Transformations.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.RegexAndEncoding.WebEncoding.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.Search.Classification.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.Search.Counts.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.Search.Fuzzy.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.Search.Indexing.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.Search.PrefixSuffix.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.Transformations.Basic.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.Transformations.Case.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.WindowFunctions.Aggregates.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.WindowFunctions.Conversions.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.WindowFunctions.PeerKeys.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.WindowFunctions.Ranking.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.WindowFunctions.Values.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.AggregateValues.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Avg.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.BitsOperations.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Bytes.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Compression.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Converting.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.ConvertingFromBytes.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.ConvertingToBytes.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.ConvertingToHex.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Count.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Crypto.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.DataUtils.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Date.Arithmetic.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Date.Boundaries.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Date.Calendar.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Date.Components.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Date.Current.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Date.Differences.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Date.Extraction.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Date.Ranges.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Diff.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.DistinctAggregates.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Generic.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Hashes.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Json.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Math.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Max.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Min.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.NetworkUtils.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.ScalarSubqueries.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.StDev.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.StrictConversions.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Strings.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Sum.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.SumIncome.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.SumOutcome.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.TimeSpan.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.ToString.DateTime.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.ToString.FloatingAndOther.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.ToString.Integers.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Validation.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.Window.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.WindowFunctions.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.Boolean.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.Byte.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.Char.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.DateTime.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.DateTimeOffset.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.Decimal.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.Double.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.ExistingOverloads.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.Float.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.Guid.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.Helpers.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.Int16.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.Int32.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.Int64.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.SByte.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.Single.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.TimeSpan.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.UInt16.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.UInt32.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Lib\LibraryBase.PrimitiveConversionTargets.UInt64.cs">
+      <DependentUpon>LibraryBase.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>

@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class EndOfFileToken : Token
+public class EndOfFileToken(TextSpan span) : Token(string.Empty, TokenType.EndOfFile, span)
 {
     public const string TokenText = "eof";
-
-    public EndOfFileToken(TextSpan span)
-        : base(string.Empty, TokenType.EndOfFile, span)
-    {
-    }
 }

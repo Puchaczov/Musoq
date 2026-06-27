@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using Musoq.Plugins;
@@ -17,12 +16,14 @@ public class PropertiesManager : ManagerBase<MethodInfo>
 
     protected override bool CanReflectedPartBeQueryable(MethodInfo reflectedInfo)
     {
+        ArgumentNullException.ThrowIfNull(reflectedInfo);
         var parameters = reflectedInfo.GetParameters();
-        return parameters.Length == 1 && parameters[0].GetCustomAttributes(typeof(InjectSourceAttribute)) != null;
+        return parameters.Length == 1 && parameters[0].GetCustomAttributes<InjectSourceAttribute>() != null;
     }
 
     protected override MethodInfo[] GetReflectedInfos(Type type)
     {
+        ArgumentNullException.ThrowIfNull(type);
         return type.GetMethods();
     }
 }

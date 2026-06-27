@@ -11,7 +11,7 @@ public class Scope
     private readonly Dictionary<string, string> _attributes = new();
     private readonly List<Scope> _scopes = [];
 
-    public Scope(Scope parent, int selfIndex, string name = "")
+    public Scope(Scope? parent, int selfIndex, string name = "")
     {
         Parent = parent;
         SelfIndex = selfIndex;
@@ -27,13 +27,15 @@ public class Scope
 
     public int SelfIndex { get; }
 
-    public Scope Parent { get; }
+    public Scope? Parent { get; }
 
     public SymbolTable ScopeSymbolTable { get; } = new();
 
     public string this[string key]
     {
-        get => _attributes.ContainsKey(key) ? _attributes[key] : Parent[key];
+        get => _attributes.TryGetValue(key, out var value)
+            ? value
+            : Parent?[key] ?? throw new KeyNotFoundException($"Scope attribute '{key}' was not found.");
         set => _attributes[key] = value;
     }
 

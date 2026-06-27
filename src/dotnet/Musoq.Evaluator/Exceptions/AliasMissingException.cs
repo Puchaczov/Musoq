@@ -1,5 +1,3 @@
-﻿#nullable enable
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
@@ -16,11 +14,31 @@ public class AliasMissingException : Exception, IDiagnosticException
         return $"Method call '{methodCall}' must be qualified with a source alias when more than one schema is used. Prefix it with the alias that owns the method implementation, for example 'a.{methodCall}' or 'b.{methodCall}'. For aggregates, the alias chooses the schema library implementation. If the expression is already aliased in SELECT, prefer that alias in ORDER BY instead of repeating the aggregate.";
     }
 
+    private static string CreateMethodCallMessage(AccessMethodNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        return CreateMethodCallMessage(node.ToString());
+    }
+
+    public AliasMissingException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public AliasMissingException(string message)
+        : base(message)
+    {
+    }
+
+    public AliasMissingException()
+    {
+    }
+
     /// <summary>
     ///     Initializes a new instance with node.
     /// </summary>
     public AliasMissingException(AccessMethodNode node)
-        : base(CreateMethodCallMessage(node.ToString()))
+        : base(CreateMethodCallMessage(node))
     {
         Code = DiagnosticCode.MQ3022_MissingAlias;
     }

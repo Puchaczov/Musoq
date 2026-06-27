@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,10 +10,10 @@ namespace Musoq.Evaluator.Runtime;
 
 public static class RuntimeLibraries
 {
-    private static MetadataReference[] _references;
+    private static MetadataReference[]? _references;
     private static bool _hasLoadedReferences;
     private static readonly object LockGuard = new();
-    private static Task _loadingTask;
+    private static Task? _loadingTask;
     private static bool _readInProgress;
     private static bool _readFinished;
     private static readonly ManualResetEvent ManualResetEvent = new(false);
@@ -24,12 +23,12 @@ public static class RuntimeLibraries
         get
         {
             if (_hasLoadedReferences)
-                return _references;
+                return _references ?? [];
 
             CreateReferences();
             ManualResetEvent.WaitOne();
 
-            return _references;
+            return _references ?? [];
         }
     }
 
@@ -48,7 +47,7 @@ public static class RuntimeLibraries
 
             _readInProgress = true;
 
-            _loadingTask = Task.Factory.StartNew(() =>
+            _loadingTask = Task.Run(() =>
             {
                 try
                 {
@@ -64,6 +63,7 @@ public static class RuntimeLibraries
                         "System.Runtime.dll",
                         "System.Collections.dll",
                         "System.Collections.Concurrent.dll",
+                        "System.Collections.Immutable.dll",
                         "System.Linq.dll",
                         "System.Threading.Tasks.dll",
                         "System.Threading.Tasks.Parallel.dll",

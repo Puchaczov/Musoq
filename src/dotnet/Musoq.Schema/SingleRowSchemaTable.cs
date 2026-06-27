@@ -1,4 +1,3 @@
-﻿using System;
 using System.Linq;
 
 namespace Musoq.Schema;
@@ -10,7 +9,7 @@ public class SingleRowSchemaTable : ISchemaTable
         new SimpleColumn()
     ];
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(column => column.ColumnName == name);
     }
@@ -22,7 +21,7 @@ public class SingleRowSchemaTable : ISchemaTable
 
     public SchemaTableMetadata Metadata => new(typeof(string));
 
-    private class SimpleColumn : ISchemaColumn
+    private sealed class SimpleColumn : ISchemaColumn
     {
         public string ColumnName => "Column1";
 

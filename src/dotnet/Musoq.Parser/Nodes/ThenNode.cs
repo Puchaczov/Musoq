@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Musoq.Parser.Nodes;
+﻿namespace Musoq.Parser.Nodes;
 
 public class ThenNode : UnaryNode
 {
@@ -10,12 +8,13 @@ public class ThenNode : UnaryNode
         Id = $"{nameof(ThenNode)}{Expression.Id}";
     }
 
-    public override Type ReturnType => Expression.ReturnType;
+    public override Type? ReturnType => Expression.ReturnType;
 
     public override string Id { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

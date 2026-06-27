@@ -1,6 +1,4 @@
-﻿#nullable enable
-using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 
 namespace Musoq.Evaluator;
@@ -11,7 +9,7 @@ public partial class Operators
     private static readonly ConcurrentDictionary<string, Regex> RLikePatternCache = new();
     private static readonly Regex EscapePattern = CreateEscapeRegex();
 
-    public bool Like(string content, string searchFor)
+    public bool Like(string? content, string? searchFor)
     {
         if (content is null || searchFor is null)
             return false;
@@ -20,7 +18,7 @@ public partial class Operators
         return matcher(content);
     }
 
-    public bool RLike(string content, string pattern)
+    public bool RLike(string? content, string? pattern)
     {
         if (content is null || pattern is null)
             return false;
@@ -31,7 +29,7 @@ public partial class Operators
         return regex.IsMatch(content);
     }
 
-    public bool Contains<T>(T value, T[] values)
+    public bool Contains<T>(T? value, T?[]? values)
     {
         if (values is null)
             return false;
@@ -49,7 +47,7 @@ public partial class Operators
         }
 
         var escaped = EscapePattern.Replace(pattern, static match => @"\" + match.Value);
-        var sqlPattern = escaped.Replace("_", ".").Replace("%", ".*");
+        var sqlPattern = escaped.Replace("_", ".", StringComparison.Ordinal).Replace("%", ".*", StringComparison.Ordinal);
         var regex = new Regex(string.Concat(@"\A", sqlPattern, @"\z"),
             RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
         return regex.IsMatch;
@@ -68,7 +66,7 @@ public partial class Operators
 
     private static Func<string, bool>? TryCreateFastMatcher(string pattern)
     {
-        if (!pattern.Contains('%'))
+        if (!pattern.Contains('%', StringComparison.Ordinal))
             return content => string.Equals(content, pattern, StringComparison.OrdinalIgnoreCase);
 
         var startsWithPercent = pattern[0] == '%';
@@ -80,21 +78,21 @@ public partial class Operators
                 return static _ => true;
 
             var inner = pattern[1..^1];
-            if (!inner.Contains('%'))
+            if (!inner.Contains('%', StringComparison.Ordinal))
                 return content => content.Contains(inner, StringComparison.OrdinalIgnoreCase);
         }
 
         if (startsWithPercent && !endsWithPercent)
         {
             var suffix = pattern[1..];
-            if (!suffix.Contains('%'))
+            if (!suffix.Contains('%', StringComparison.Ordinal))
                 return content => content.EndsWith(suffix, StringComparison.OrdinalIgnoreCase);
         }
 
         if (!startsWithPercent && endsWithPercent)
         {
             var prefix = pattern[..^1];
-            if (!prefix.Contains('%'))
+            if (!prefix.Contains('%', StringComparison.Ordinal))
                 return content => content.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
         }
 

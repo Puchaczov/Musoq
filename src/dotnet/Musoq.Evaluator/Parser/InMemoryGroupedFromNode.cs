@@ -1,11 +1,6 @@
-﻿using Musoq.Schema.DataSources;
+using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Parser;
 
-public class InMemoryGroupedFromNode : Musoq.Parser.Nodes.From.InMemoryGroupedFromNode
-{
-    public InMemoryGroupedFromNode(string alias)
-        : base(alias, typeof(RowSource))
-    {
-    }
-}
+public class InMemoryGroupedFromNode(string alias)
+    : Musoq.Parser.Nodes.From.InMemoryGroupedFromNode(alias, typeof(RowSource<>));

@@ -1,4 +1,7 @@
-﻿namespace Musoq.Evaluator;
+using System;
+using Musoq.Schema.Optimization;
+
+namespace Musoq.Evaluator;
 
 /// <summary>
 ///     Compilation options for query execution.
@@ -25,8 +28,22 @@
 /// <param name="useCteParallelization">
 ///     Whether CTE parallelization should be used. When enabled, CTEs that do not depend
 ///     on each other will be executed in parallel. Defaults to false.
-///     NOTE: Currently this flag is a no-op - parallel execution infrastructure exists
-///     but is disabled pending further investigation of runtime issues.
+/// </param>
+/// <param name="useCteSidecarIndexes">
+///     Whether materialized CTEs should build eligible hash/keyset sidecar indexes while
+///     rows are appended. Defaults to false.
+/// </param>
+/// <param name="sourceRuntimeSettingsResolver">
+///     Resolves source runtime settings required by schemas. Defaults to an empty resolver.
+/// </param>
+/// <param name="instrumentationMode">
+///     Controls whether generated execution includes diagnostics instrumentation. Defaults to disabled.
+/// </param>
+/// <param name="maxDegreeOfParallelismOverride">
+///     Overrides the generated execution max degree of parallelism. Defaults to null, which uses the current machine.
+/// </param>
+/// <param name="forceTableResultMaterialization">
+///     Whether table-mode query results should be materialized before Run returns. Defaults to false.
 /// </param>
 public class CompilationOptions(
     ParallelizationMode? parallelizationMode = null,
@@ -35,7 +52,12 @@ public class CompilationOptions(
     bool useCommonSubexpressionElimination = true,
     bool useConstantFolding = true,
     bool usePrimitiveTypeValidation = true,
-    bool useCteParallelization = false)
+    bool useCteParallelization = false,
+    bool useCteSidecarIndexes = false,
+    ISourceRuntimeSettingsResolver? sourceRuntimeSettingsResolver = null,
+    QueryInstrumentationMode instrumentationMode = QueryInstrumentationMode.Disabled,
+    int? maxDegreeOfParallelismOverride = null,
+    bool forceTableResultMaterialization = false)
 {
     /// <summary>
     ///     Gets the parallelization mode for query execution.
@@ -79,4 +101,68 @@ public class CompilationOptions(
     ///     This can improve performance for queries with multiple independent CTEs.
     /// </summary>
     public bool UseCteParallelization { get; } = useCteParallelization;
+
+    /// <summary>
+    ///     Gets a value indicating whether materialized CTEs should build eligible hash/keyset sidecar indexes
+    ///     during CTE row production. This optimization is opt-in and preserves the existing post-materialization
+    ///     hash/keyset build shape when disabled or when eligibility is uncertain.
+    /// </summary>
+    public bool UseCteSidecarIndexes { get; } = useCteSidecarIndexes;
+
+    public ISourceRuntimeSettingsResolver SourceRuntimeSettingsResolver { get; } =
+        sourceRuntimeSettingsResolver ?? EmptySourceRuntimeSettingsResolver.Instance;
+
+    public QueryInstrumentationMode InstrumentationMode { get; } = instrumentationMode;
+
+    /// <summary>
+    ///     Gets the generated execution max degree of parallelism override.
+    ///     Null preserves the default runtime behavior and resolves parallelism from the current machine.
+    /// </summary>
+    public int? MaxDegreeOfParallelismOverride { get; } = maxDegreeOfParallelismOverride switch
+    {
+        null => null,
+        > 0 => maxDegreeOfParallelismOverride,
+        _ => throw new ArgumentOutOfRangeException(
+            nameof(maxDegreeOfParallelismOverride),
+            maxDegreeOfParallelismOverride,
+            "Max degree of parallelism override must be a positive integer.")
+    };
+
+    /// <summary>
+    ///     Gets a value indicating whether table-mode query results should be materialized before Run returns.
+    /// </summary>
+    public bool ForceTableResultMaterialization { get; } = forceTableResultMaterialization;
+
+    public bool UsesDefaultSourceRuntimeSettingsResolver =>
+        ReferenceEquals(SourceRuntimeSettingsResolver, EmptySourceRuntimeSettingsResolver.Instance);
+
+    public CompilationOptions WithInstrumentationMode(QueryInstrumentationMode mode) =>
+        new(
+            ParallelizationMode,
+            UseHashJoin,
+            UseSortMergeJoin,
+            UseCommonSubexpressionElimination,
+            UseConstantFolding,
+            UsePrimitiveTypeValidation,
+            UseCteParallelization,
+            UseCteSidecarIndexes,
+            SourceRuntimeSettingsResolver,
+            mode,
+            MaxDegreeOfParallelismOverride,
+            ForceTableResultMaterialization);
+
+    public CompilationOptions WithTableResultMaterialization(bool force = true) =>
+        new(
+            ParallelizationMode,
+            UseHashJoin,
+            UseSortMergeJoin,
+            UseCommonSubexpressionElimination,
+            UseConstantFolding,
+            UsePrimitiveTypeValidation,
+            UseCteParallelization,
+            UseCteSidecarIndexes,
+            SourceRuntimeSettingsResolver,
+            InstrumentationMode,
+            MaxDegreeOfParallelismOverride,
+            force);
 }

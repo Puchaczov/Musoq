@@ -1,30 +1,23 @@
-﻿using System;
-using System.Dynamic;
+﻿using System.Dynamic;
 using System.Globalization;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace Musoq.Evaluator;
 
-internal sealed class ExpandoObjectPropertyInfo : PropertyInfo
+internal sealed class ExpandoObjectPropertyInfo(string name, Type propertyType) : PropertyInfo
 {
-    public ExpandoObjectPropertyInfo(string name, Type propertyType)
-    {
-        Name = name;
-        ReflectedType = typeof(ExpandoObject);
-        PropertyType = propertyType;
-    }
-
     public override PropertyAttributes Attributes => PropertyAttributes.None;
     public override bool CanRead => true;
     public override bool CanWrite => false;
 
-    public override Type PropertyType { get; }
+    public override Type PropertyType { get; } = propertyType;
 
     public override Type DeclaringType => typeof(ExpandoObject);
 
-    public override string Name { get; }
+    public override string Name { get; } = name;
 
-    public override Type ReflectedType { get; }
+    public override Type? ReflectedType { get; } = typeof(ExpandoObject);
 
     public override object[] GetCustomAttributes(bool inherit)
     {
@@ -48,7 +41,7 @@ internal sealed class ExpandoObjectPropertyInfo : PropertyInfo
 
     public override MethodInfo GetGetMethod(bool nonPublic)
     {
-        throw new NotImplementedException();
+        return null!;
     }
 
     public override ParameterInfo[] GetIndexParameters()
@@ -58,18 +51,25 @@ internal sealed class ExpandoObjectPropertyInfo : PropertyInfo
 
     public override MethodInfo GetSetMethod(bool nonPublic)
     {
-        throw new NotImplementedException();
+        return null!;
     }
 
-    public override object GetValue(object obj, BindingFlags invokeAttr, Binder binder, object[] index,
-        CultureInfo culture)
+    public override object GetValue(object? obj, BindingFlags invokeAttr, Binder? binder, object?[]? index,
+        CultureInfo? culture)
     {
-        throw new NotImplementedException();
+        if (index is { Length: > 0 })
+            throw new TargetParameterCountException("Expando object metadata properties do not support index parameters.");
+
+        if (obj is IDictionary<string, object?> values)
+            return values.TryGetValue(Name, out var value) ? value! : null!;
+
+        throw new TargetException(
+            $"Expando object metadata property '{Name}' can only read values from dictionary-backed expando rows.");
     }
 
-    public override void SetValue(object obj, object value, BindingFlags invokeAttr, Binder binder, object[] index,
-        CultureInfo culture)
+    public override void SetValue(object? obj, object? value, BindingFlags invokeAttr, Binder? binder, object?[]? index,
+        CultureInfo? culture)
     {
-        throw new NotImplementedException();
+        throw new NotSupportedException($"Expando object metadata property '{Name}' is read-only.");
     }
 }

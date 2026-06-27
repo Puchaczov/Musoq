@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Musoq.Parser.Nodes;
+﻿namespace Musoq.Parser.Nodes;
 
 public class NotNode : UnaryNode
 {
@@ -10,12 +8,13 @@ public class NotNode : UnaryNode
         Id = CalculateId(this);
     }
 
-    public override Type ReturnType => Expression.ReturnType;
+    public override Type? ReturnType => Expression.ReturnType;
 
     public override string Id { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

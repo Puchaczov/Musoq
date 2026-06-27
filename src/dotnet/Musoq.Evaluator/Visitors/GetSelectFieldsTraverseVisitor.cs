@@ -4,13 +4,9 @@ using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class GetSelectFieldsTraverseVisitor : RawTraverseVisitor<IQueryPartAwareExpressionVisitor>
+public class GetSelectFieldsTraverseVisitor(IQueryPartAwareExpressionVisitor visitor)
+    : RawTraverseVisitor<IQueryPartAwareExpressionVisitor>(visitor)
 {
-    public GetSelectFieldsTraverseVisitor(IQueryPartAwareExpressionVisitor visitor)
-        : base(visitor)
-    {
-    }
-
     public override void Visit(QueryNode node)
     {
         base.Visit(node);
@@ -41,6 +37,13 @@ public class GetSelectFieldsTraverseVisitor : RawTraverseVisitor<IQueryPartAware
     public override void Visit(HavingNode node)
     {
         Visitor.SetQueryPart(QueryPart.Having);
+        base.Visit(node);
+        Visitor.SetQueryPart(QueryPart.None);
+    }
+
+    public override void Visit(QualifyNode node)
+    {
+        Visitor.SetQueryPart(QueryPart.Qualify);
         base.Visit(node);
         Visitor.SetQueryPart(QueryPart.None);
     }

@@ -5,18 +5,12 @@ namespace Musoq.Benchmarks;
 /// <summary>
 ///     Binary schema provider for benchmarks.
 /// </summary>
-public class BenchmarkBinarySchemaProvider : ISchemaProvider
+public class BenchmarkBinarySchemaProvider(IDictionary<string, IEnumerable<IReadOnlyList<BenchmarkBinaryEntity>>> values)
+    : ISchemaProvider
 {
-    private readonly IDictionary<string, IEnumerable<BenchmarkBinaryEntity>> _values;
-
-    public BenchmarkBinarySchemaProvider(IDictionary<string, IEnumerable<BenchmarkBinaryEntity>> values)
-    {
-        _values = values;
-    }
-
     public ISchema GetSchema(string schema)
     {
-        if (_values.TryGetValue(schema, out var entities)) return new BenchmarkBinarySchema(entities);
+        if (values.TryGetValue(schema, out var entities)) return new BenchmarkBinarySchema(entities);
         throw new InvalidOperationException($"Schema '{schema}' not found");
     }
 }

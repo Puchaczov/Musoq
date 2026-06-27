@@ -1,11 +1,6 @@
 namespace Musoq.Parser.Tokens;
 
-public class ExcludeToken : Token
+public class ExcludeToken(TextSpan span) : Token(TokenText, TokenType.Exclude, span)
 {
     public const string TokenText = "exclude";
-
-    public ExcludeToken(TextSpan span)
-        : base(TokenText, TokenType.Exclude, span)
-    {
-    }
 }

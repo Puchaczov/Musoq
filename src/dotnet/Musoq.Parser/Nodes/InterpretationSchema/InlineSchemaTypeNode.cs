@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Text;
 
@@ -58,8 +57,7 @@ public class InlineSchemaTypeNode : TypeAnnotationNode
     ///     Inline schemas have a fixed size only if all their fields have fixed sizes.
     /// </remarks>
     public override bool IsFixedSize => Fields.All(f =>
-        f is FieldDefinitionNode fd &&
-        fd.TypeAnnotation.IsFixedSize);
+        f is FieldDefinitionNode { TypeAnnotation.IsFixedSize: true });
 
     /// <inheritdoc />
     /// <remarks>
@@ -72,8 +70,8 @@ public class InlineSchemaTypeNode : TypeAnnotationNode
             if (!IsFixedSize) return null;
 
             var total = 0;
-            foreach (var field in Fields)
-                if (field is FieldDefinitionNode fd && fd.TypeAnnotation.FixedSizeBytes.HasValue)
+            foreach (var schemaField in Fields)
+                if (schemaField is FieldDefinitionNode { TypeAnnotation.FixedSizeBytes: not null } fd)
                     total += fd.TypeAnnotation.FixedSizeBytes.Value;
                 else
                     return null; // Computed field or unknown size
@@ -98,6 +96,7 @@ public class InlineSchemaTypeNode : TypeAnnotationNode
     /// <inheritdoc />
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 }

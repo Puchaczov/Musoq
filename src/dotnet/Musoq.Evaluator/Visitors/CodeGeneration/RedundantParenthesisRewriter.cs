@@ -49,6 +49,13 @@ internal sealed class RedundantParenthesisRewriter : CSharpSyntaxRewriter
                 and not ConditionalAccessExpressionSyntax)
             return true;
 
+        if (inner is ConditionalExpressionSyntax &&
+            parent is ArgumentSyntax
+                or EqualsValueClauseSyntax
+                or ReturnStatementSyntax
+                or ArrowExpressionClauseSyntax)
+            return true;
+
         return false;
     }
 

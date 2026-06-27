@@ -21,24 +21,26 @@ public class BenchmarkBase
     protected CompiledQuery CreateForCountryWithOptions(
         string script,
         IDictionary<string, IEnumerable<CountryEntity>> sources,
-        CompilationOptions compilationOptions)
+        CompilationOptions compilationOptions,
+        BenchmarkChunkShape chunkShape = BenchmarkChunkShape.Chunk4096)
     {
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
-            new GenericSchemaProvider<CountryEntity, CountryEntityTable>(sources, CountryEntity.KNameToIndexMap,
-                CountryEntity.KIndexToObjectAccessMap), _loggerResolver, compilationOptions);
+            new GenericSchemaProvider<CountryEntity, CountryEntityTable>(BenchmarkSourceChunks.FromRows(sources, chunkShape), CountryEntity.KNameToIndexMap,
+                CountryEntity.KIndexToObjectAccessMap), _loggerResolver, BenchmarkCompilationOptions.Materialized(compilationOptions));
     }
 
     protected CompiledQuery CreateForProfilesWithOptions(
         string script,
         IDictionary<string, IEnumerable<ProfileEntity>> sources,
-        CompilationOptions compilationOptions)
+        CompilationOptions compilationOptions,
+        BenchmarkChunkShape chunkShape = BenchmarkChunkShape.Chunk4096)
     {
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
-            new GenericSchemaProvider<ProfileEntity, ProfileEntityTable>(sources, ProfileEntity.KNameToIndexMap,
-                ProfileEntity.KIndexToObjectAccessMap), _loggerResolver, compilationOptions);
+            new GenericSchemaProvider<ProfileEntity, ProfileEntityTable>(BenchmarkSourceChunks.FromRows(sources, chunkShape), ProfileEntity.KNameToIndexMap,
+                ProfileEntity.KIndexToObjectAccessMap), _loggerResolver, BenchmarkCompilationOptions.Materialized(compilationOptions));
     }
 }

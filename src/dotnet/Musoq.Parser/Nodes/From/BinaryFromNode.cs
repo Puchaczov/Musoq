@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Musoq.Parser.Nodes.From;
+﻿namespace Musoq.Parser.Nodes.From;
 
 public abstract class BinaryFromNode : FromNode
 {

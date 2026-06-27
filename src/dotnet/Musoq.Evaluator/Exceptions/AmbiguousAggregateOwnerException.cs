@@ -1,5 +1,3 @@
-#nullable enable
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser;
@@ -9,6 +7,20 @@ namespace Musoq.Evaluator.Exceptions;
 
 public class AmbiguousAggregateOwnerException : Exception, IDiagnosticException
 {
+
+    public AmbiguousAggregateOwnerException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public AmbiguousAggregateOwnerException(string message)
+        : base(message)
+    {
+    }
+
+    public AmbiguousAggregateOwnerException()
+    {
+    }
     public AmbiguousAggregateOwnerException(string methodCall, IReadOnlyCollection<string> candidateAliases)
         : base(CreateMessage(methodCall, candidateAliases))
     {

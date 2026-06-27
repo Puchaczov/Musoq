@@ -1,14 +1,11 @@
 ﻿namespace Musoq.Evaluator.Utils;
 
-public class ScopeWalker
-{
-    private readonly ScopeWalker _parent;
-    private int _childIndex;
+using System;
 
-    public ScopeWalker(Scope scope)
-    {
-        Scope = scope;
-    }
+public class ScopeWalker(Scope scope)
+{
+    private readonly ScopeWalker? _parent;
+    private int _childIndex;
 
     private ScopeWalker(Scope scope, ScopeWalker parent)
         : this(scope)
@@ -16,7 +13,7 @@ public class ScopeWalker
         _parent = parent;
     }
 
-    public Scope Scope { get; }
+    public Scope Scope { get; } = scope;
 
     public ScopeWalker NextChild()
     {
@@ -25,6 +22,6 @@ public class ScopeWalker
 
     public ScopeWalker Parent()
     {
-        return _parent;
+        return _parent ?? throw new InvalidOperationException("Root scope walker has no parent.");
     }
 }

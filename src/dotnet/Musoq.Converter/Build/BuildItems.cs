@@ -1,50 +1,71 @@
-﻿#nullable enable annotations
-
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.Extensions.Logging;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
+using Musoq.Evaluator.IR.Execution;
+using Musoq.Evaluator.IR.Logical;
+using Musoq.Evaluator.IR.Physical;
+using Musoq.Evaluator.IR.Planning;
+using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.Visitors;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
-using Musoq.Schema.Api;
+using Musoq.Schema.Optimization;
 using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Converter.Build;
 
-public class BuildItems : Dictionary<string, object>
+public partial class BuildItems : Dictionary<string, object>
 {
-    public byte[] DllFile
+    private T? GetOptional<T>(string key)
+        where T : class
     {
-        get => (byte[])this["DLL_FILE"];
-        set => this["DLL_FILE"] = value;
+        return TryGetValue(key, out var value) ? (T)value : null;
     }
 
-    public byte[] PdbFile
+    private void SetOptional<T>(string key, T? value)
+        where T : class
     {
-        get => (byte[])this["PDB_FILE"];
-        set => this["PDB_FILE"] = value;
+        if (value == null)
+        {
+            Remove(key);
+            return;
+        }
+
+        this[key] = value;
+    }
+
+    public byte[]? DllFile
+    {
+        get => GetOptional<byte[]>(BuildItemKeys.DllFile);
+        set => SetOptional(BuildItemKeys.DllFile, value);
+    }
+
+    public byte[]? PdbFile
+    {
+        get => GetOptional<byte[]>(BuildItemKeys.PdbFile);
+        set => SetOptional(BuildItemKeys.PdbFile, value);
     }
 
     public RootNode TransformedQueryTree
     {
-        get => (RootNode)this["TRANSFORMED_QUERY_TREE"];
-        set => this["TRANSFORMED_QUERY_TREE"] = value;
+        get => GetRequired<RootNode>(BuildItemKeys.TransformedQueryTree);
+        set => SetRequired(BuildItemKeys.TransformedQueryTree, value);
     }
 
     public RootNode RawQueryTree
     {
-        get => (RootNode)this["RAW_QUERY_TREE"];
-        set => this["RAW_QUERY_TREE"] = value;
+        get => GetRequired<RootNode>(BuildItemKeys.RawQueryTree);
+        set => SetRequired(BuildItemKeys.RawQueryTree, value);
     }
 
     public string RawQuery
     {
-        get => TryGetValue("RAW_QUERY", out var value) && value is string str
+        get => TryGetValue(BuildItemKeys.RawQuery, out var value) && value is string str
             ? str
             : throw AstValidationException.ForInvalidNodeStructure("BuildItems", "RawQuery access",
                 "RawQuery is not set or is null");
@@ -53,114 +74,221 @@ public class BuildItems : Dictionary<string, object>
             if (string.IsNullOrWhiteSpace(value))
                 throw AstValidationException.ForInvalidNodeStructure("BuildItems", "RawQuery setting",
                     "RawQuery cannot be null or whitespace");
-            this["RAW_QUERY"] = value;
+            this[BuildItemKeys.RawQuery] = value;
         }
     }
 
     public string AssemblyName
     {
-        get => (string)this["ASSEMBLY_NAME"];
-        set => this["ASSEMBLY_NAME"] = value;
+        get => GetRequired<string>(BuildItemKeys.AssemblyName);
+        set => SetRequired(BuildItemKeys.AssemblyName, value);
     }
 
     public ISchemaProvider SchemaProvider
     {
-        get => (ISchemaProvider)this["SCHEMA_PROVIDER"];
-        set => this["SCHEMA_PROVIDER"] = value;
+        get => GetRequired<ISchemaProvider>(BuildItemKeys.SchemaProvider);
+        set => SetRequired(BuildItemKeys.SchemaProvider, value);
     }
 
-    public IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> PositionalEnvironmentVariables
+    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId
     {
-        get => (IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>)this["ENVIRONMENT_VARIABLES"];
-        set => this["ENVIRONMENT_VARIABLES"] = value;
+        get => GetRequired<IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>(BuildItemKeys.SourceRuntimeSettingsBySourceContextId);
+        set => SetRequired(BuildItemKeys.SourceRuntimeSettingsBySourceContextId, value);
+    }
+
+    public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId
+    {
+        get => GetRequired<IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>>(BuildItemKeys.SourceRuntimeSettingDescriptionsBySourceContextId);
+        set => SetRequired(BuildItemKeys.SourceRuntimeSettingDescriptionsBySourceContextId, value);
+    }
+
+    public bool HasDeclaredSourceRuntimeSettings
+    {
+        get => GetFlag(BuildItemKeys.HasDeclaredSourceRuntimeSettings, defaultWhenMissing: false);
+        set => SetFlag(BuildItemKeys.HasDeclaredSourceRuntimeSettings, value);
+    }
+
+    public bool HasSourceRuntimeSettingValues
+    {
+        get => GetFlag(BuildItemKeys.HasSourceRuntimeSettingValues, defaultWhenMissing: false);
+        set => SetFlag(BuildItemKeys.HasSourceRuntimeSettingValues, value);
     }
 
     public CSharpCompilation Compilation
     {
-        get => (CSharpCompilation)this["COMPILATION"];
-        set => this["COMPILATION"] = value;
+        get => GetRequired<CSharpCompilation>(BuildItemKeys.Compilation);
+        set => SetRequired(BuildItemKeys.Compilation, value);
     }
 
     public string AccessToClassPath
     {
-        get => (string)this["ACCESS_TO_CLASS_PATH"];
-        set => this["ACCESS_TO_CLASS_PATH"] = value;
+        get => GetRequired<string>(BuildItemKeys.AccessToClassPath);
+        set => SetRequired(BuildItemKeys.AccessToClassPath, value);
     }
 
     public EmitResult EmitResult
     {
-        get => (EmitResult)this["EMIT_RESULT"];
-        set => this["EMIT_RESULT"] = value;
+        get => GetRequired<EmitResult>(BuildItemKeys.EmitResult);
+        set => SetRequired(BuildItemKeys.EmitResult, value);
     }
 
     public IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> UsedColumns
     {
-        get => (IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>)this["USED_COLUMNS"];
-        set => this["USED_COLUMNS"] = value;
+        get => GetRequired<IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]>>(BuildItemKeys.UsedColumns);
+        set => SetRequired(BuildItemKeys.UsedColumns, value);
     }
 
     public IReadOnlyDictionary<SchemaFromNode, WhereNode> UsedWhereNodes
     {
-        get => (IReadOnlyDictionary<SchemaFromNode, WhereNode>)this["USED_WHERE_NODES"];
-        set => this["USED_WHERE_NODES"] = value;
+        get => GetRequired<IReadOnlyDictionary<SchemaFromNode, WhereNode>>(BuildItemKeys.UsedWhereNodes);
+        set => SetRequired(BuildItemKeys.UsedWhereNodes, value);
     }
 
-    public IReadOnlyDictionary<SchemaFromNode, QueryHints> QueryHintsPerSchema
+    public IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest> SourcePlanRequestsPerSchema
     {
-        get => (IReadOnlyDictionary<SchemaFromNode, QueryHints>)this["QUERY_HINTS_PER_SCHEMA"];
-        set => this["QUERY_HINTS_PER_SCHEMA"] = value;
+        get => GetRequired<IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest>>(BuildItemKeys.SourcePlanRequestsPerSchema);
+        set => SetRequired(BuildItemKeys.SourcePlanRequestsPerSchema, value);
     }
 
-    public Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions, SchemaRegistry,
-            BuildMetadataAndInferTypesVisitor>
+    internal IReadOnlyDictionary<SchemaFromNode, SourceContractDiagnosticLocationMap> SourceContractDiagnosticLocationsPerSchema
+    {
+        get => GetOptional<IReadOnlyDictionary<SchemaFromNode, SourceContractDiagnosticLocationMap>>(
+                   BuildItemKeys.SourceContractDiagnosticLocationsPerSchema) ??
+               new Dictionary<SchemaFromNode, SourceContractDiagnosticLocationMap>();
+        set => SetRequired(BuildItemKeys.SourceContractDiagnosticLocationsPerSchema, value);
+    }
+
+    public IReadOnlyList<ScriptParameterDefinition> ScriptParameterDefinitions
+    {
+        get => GetListOrEmpty<ScriptParameterDefinition>(BuildItemKeys.ScriptParameterDefinitions);
+        set => SetRequired(BuildItemKeys.ScriptParameterDefinitions, value);
+    }
+
+    public Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions, SchemaRegistry?, ILogger<BuildMetadataAndInferTypesVisitor>, BuildMetadataAndInferTypesVisitor>?
         CreateBuildMetadataAndInferTypesVisitor
     {
-        get =>
-            (Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions, SchemaRegistry,
-                BuildMetadataAndInferTypesVisitor>)this[
-                "CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR"];
-        set => this["CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR"] = value;
+        get => GetOptional<Func<ISchemaProvider, IReadOnlyDictionary<string, string[]>, CompilationOptions, SchemaRegistry?, ILogger<BuildMetadataAndInferTypesVisitor>, BuildMetadataAndInferTypesVisitor>>(
+            BuildItemKeys.CreateBuildMetadataAndInferTypesVisitor);
+        set => SetOptional(BuildItemKeys.CreateBuildMetadataAndInferTypesVisitor, value);
     }
 
     public CompilationOptions CompilationOptions
     {
         get
         {
-            if (!ContainsKey("COMPILATION_OPTIONS"))
-                this["COMPILATION_OPTIONS"] = new CompilationOptions(ParallelizationMode.Full);
+            if (!ContainsKey(BuildItemKeys.CompilationOptions))
+                this[BuildItemKeys.CompilationOptions] = new CompilationOptions(ParallelizationMode.Full);
 
-            return (CompilationOptions)this["COMPILATION_OPTIONS"];
+            return GetRequired<CompilationOptions>(BuildItemKeys.CompilationOptions);
         }
-        set => this["COMPILATION_OPTIONS"] = value;
+        set => SetRequired(BuildItemKeys.CompilationOptions, value);
     }
 
-    public SchemaRegistry SchemaRegistry
+    public SchemaRegistry? SchemaRegistry
     {
-        get => ContainsKey("SCHEMA_REGISTRY") ? (SchemaRegistry)this["SCHEMA_REGISTRY"] : null;
-        set => this["SCHEMA_REGISTRY"] = value;
+        get => GetOptional<SchemaRegistry>(BuildItemKeys.SchemaRegistry);
+        set => SetOptional(BuildItemKeys.SchemaRegistry, value);
     }
 
     public string? InterpreterSourceCode
     {
-        get => ContainsKey("INTERPRETER_SOURCE_CODE") ? (string)this["INTERPRETER_SOURCE_CODE"] : null;
-        set => this["INTERPRETER_SOURCE_CODE"] = value;
+        get => GetOptional<string>(BuildItemKeys.InterpreterSourceCode);
+        set => SetOptional(BuildItemKeys.InterpreterSourceCode, value);
     }
 
     public CteExecutionPlan? CteExecutionPlan
     {
-        get => ContainsKey("CTE_EXECUTION_PLAN") ? (CteExecutionPlan)this["CTE_EXECUTION_PLAN"] : null;
-        set => this["CTE_EXECUTION_PLAN"] = value!;
+        get => GetOptional<CteExecutionPlan>(BuildItemKeys.CteExecutionPlan);
+        set => SetOptional(BuildItemKeys.CteExecutionPlan, value);
+    }
+
+    public LogicalNode? LogicalPlan
+    {
+        get => GetOptional<LogicalNode>(BuildItemKeys.LogicalPlan);
+        set => SetOptional(BuildItemKeys.LogicalPlan, value);
+    }
+
+    public PhysicalNode? PhysicalPlan
+    {
+        get => GetOptional<PhysicalNode>(BuildItemKeys.PhysicalPlan);
+        set => SetOptional(BuildItemKeys.PhysicalPlan, value);
+    }
+
+    internal PlanningResult? PlanningResult
+    {
+        get => GetOptional<PlanningResult>(BuildItemKeys.PlanningResult);
+        set => SetOptional(BuildItemKeys.PlanningResult, value);
+    }
+
+    public string? PlanningText
+    {
+        get => GetOptional<string>(BuildItemKeys.PlanningText);
+        set => SetOptional(BuildItemKeys.PlanningText, value);
+    }
+
+    public ExecutionPlan? ExecutionPlan
+    {
+        get => GetOptional<ExecutionPlan>(BuildItemKeys.ExecutionPlan);
+        set => SetOptional(BuildItemKeys.ExecutionPlan, value);
+    }
+
+    public ExecutionPlanBuildResult? ExecutionPlanBuildResult
+    {
+        get => GetOptional<ExecutionPlanBuildResult>(BuildItemKeys.ExecutionPlanBuildResult);
+        set => SetOptional(BuildItemKeys.ExecutionPlanBuildResult, value);
+    }
+
+    public string? ExecutionPlanText
+    {
+        get => GetOptional<string>(BuildItemKeys.ExecutionPlanText);
+        set => SetOptional(BuildItemKeys.ExecutionPlanText, value);
     }
 
     public SourceText? SourceText
     {
-        get => ContainsKey("SOURCE_TEXT") ? (SourceText)this["SOURCE_TEXT"] : null;
-        set => this["SOURCE_TEXT"] = value!;
+        get => GetOptional<SourceText>(BuildItemKeys.SourceText);
+        set => SetOptional(BuildItemKeys.SourceText, value);
     }
 
-    public DiagnosticContext? DiagnosticContext
+    public DiagnosticContext DiagnosticContext
     {
-        get => ContainsKey("DIAGNOSTIC_CONTEXT") ? (DiagnosticContext)this["DIAGNOSTIC_CONTEXT"] : null;
-        set => this["DIAGNOSTIC_CONTEXT"] = value!;
+        get => GetRequired<DiagnosticContext>(BuildItemKeys.DiagnosticContext);
+        init => this[BuildItemKeys.DiagnosticContext] = value;
+    }
+
+    public bool EmitPdb
+    {
+        get => GetFlag(BuildItemKeys.EmitPdb, defaultWhenMissing: true);
+        set => SetFlag(BuildItemKeys.EmitPdb, value);
+    }
+
+    public bool EmitExecutionPlanText
+    {
+        get => GetFlag(BuildItemKeys.EmitExecutionPlanText, defaultWhenMissing: false);
+        set => SetFlag(BuildItemKeys.EmitExecutionPlanText, value);
+    }
+
+    public Scope? PipelineScope
+    {
+        get => GetOptional<Scope>(BuildItemKeys.PipelineScope);
+        set => SetOptional(BuildItemKeys.PipelineScope, value);
+    }
+
+    public IReadOnlyDictionary<string, ISchemaColumn[]>? PipelineInferredColumns
+    {
+        get => GetOptional<IReadOnlyDictionary<string, ISchemaColumn[]>>(BuildItemKeys.PipelineInferredColumns);
+        set => SetOptional(BuildItemKeys.PipelineInferredColumns, value);
+    }
+
+    public IReadOnlyDictionary<string, IReadOnlySet<string>>? PipelineUsedColumns
+    {
+        get => GetOptional<IReadOnlyDictionary<string, IReadOnlySet<string>>>(BuildItemKeys.PipelineUsedColumns);
+        set => SetOptional(BuildItemKeys.PipelineUsedColumns, value);
+    }
+
+    public bool StopAfterPlanning
+    {
+        get => GetFlag(BuildItemKeys.StopAfterPlanning, defaultWhenMissing: false);
+        set => SetFlag(BuildItemKeys.StopAfterPlanning, value);
     }
 }

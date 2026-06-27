@@ -2,15 +2,7 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
 
-public class DistinctToGroupByTraverseVisitor : CloneTraverseVisitor
+public class DistinctToGroupByTraverseVisitor(DistinctToGroupByVisitor visitor) : CloneTraverseVisitor(visitor)
 {
-    private readonly DistinctToGroupByVisitor _distinctVisitor;
-
-    public DistinctToGroupByTraverseVisitor(DistinctToGroupByVisitor visitor)
-        : base(visitor)
-    {
-        _distinctVisitor = visitor;
-    }
-
-    public RootNode Root => _distinctVisitor.Root;
+    public RootNode Root => visitor.Root;
 }

@@ -1,5 +1,3 @@
-#nullable enable
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -10,6 +8,19 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class AmbiguousColumnException : Exception, IDiagnosticException
 {
+    public AmbiguousColumnException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public AmbiguousColumnException(string message)
+        : base(message)
+    {
+    }
+
+    public AmbiguousColumnException()
+    {
+    }
     /// <summary>
     ///     Initializes a new instance of AmbiguousColumnException.
     /// </summary>
@@ -38,17 +49,17 @@ public class AmbiguousColumnException : Exception, IDiagnosticException
     /// <summary>
     ///     Gets the ambiguous column name.
     /// </summary>
-    public string ColumnName { get; }
+    public string ColumnName { get; } = string.Empty;
 
     /// <summary>
     ///     Gets the first conflicting alias.
     /// </summary>
-    public string Alias1 { get; }
+    public string Alias1 { get; } = string.Empty;
 
     /// <summary>
     ///     Gets the second conflicting alias.
     /// </summary>
-    public string Alias2 { get; }
+    public string Alias2 { get; } = string.Empty;
 
     /// <summary>
     ///     Gets the diagnostic code for this exception.

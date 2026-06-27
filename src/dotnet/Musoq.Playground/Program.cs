@@ -1,13 +1,24 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Musoq.Converter;
 using Musoq.Evaluator;
 
 namespace Musoq.Playground;
 
-public class Program
+internal static class Program
 {
     public static void Main(string[] args)
+    {
+        if (args.Length > 0 && args[0] == "micro")
+        {
+            Brc.BrcMicro.Run();
+            return;
+        }
+
+        Brc.BrcExperiment.Run();
+    }
+
+    public static void JoinExperiment(string[] args)
     {
         var directScript2 = @"
 select a.Id, a.Name
@@ -100,6 +111,4 @@ inner join cte4 d on a.Id = d.Id";
     }
 }
 
-public class NoOpLogger<T> : NoOpLogger, ILogger<T>
-{
-}
+internal sealed class NoOpLogger<T> : NoOpLogger, ILogger<T>;

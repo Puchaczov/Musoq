@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Musoq.Plugins.Attributes;
+﻿namespace Musoq.Plugins.Attributes;
 
 /// <summary>
 ///     Represents a method argument that should be injected.

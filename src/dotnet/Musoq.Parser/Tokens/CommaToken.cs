@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class CommaToken : Token
+public class CommaToken(TextSpan span) : Token(TokenText, TokenType.Comma, span)
 {
     public const string TokenText = ",";
-
-    public CommaToken(TextSpan span)
-        : base(TokenText, TokenType.Comma, span)
-    {
-    }
 }

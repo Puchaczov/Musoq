@@ -1,22 +1,13 @@
-﻿using Musoq.Plugins;
+using Musoq.Plugins;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 
 namespace Musoq.Benchmarks;
 
-public class CteBenchSchema : SchemaBase
+public class CteBenchSchema(List<CteBenchEntity> entities, int simulatedWorkIterations = 0)
+    : SchemaBase("test", CreateLibrary())
 {
-    private readonly List<CteBenchEntity> _entities;
-    private readonly int _simulatedWorkIterations;
-
-    public CteBenchSchema(List<CteBenchEntity> entities, int simulatedWorkIterations = 0)
-        : base("test", CreateLibrary())
-    {
-        _entities = entities;
-        _simulatedWorkIterations = simulatedWorkIterations;
-    }
-
     private static MethodsAggregator CreateLibrary()
     {
         var methodsManager = new MethodsManager();
@@ -25,13 +16,13 @@ public class CteBenchSchema : SchemaBase
         return new MethodsAggregator(methodsManager);
     }
 
-    public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
     {
         return new CteBenchTable();
     }
 
-    public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
     {
-        return new CteBenchRowSource(_entities, _simulatedWorkIterations);
+        return EnsureSourceType<T, CteBenchEntity>(name, new CteBenchRowSource(entities, simulatedWorkIterations));
     }
 }

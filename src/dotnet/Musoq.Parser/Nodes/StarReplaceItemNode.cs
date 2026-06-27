@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Parser.Nodes;
 
 public class StarReplaceItemNode(Node expression, string columnName) : Node
@@ -8,7 +6,7 @@ public class StarReplaceItemNode(Node expression, string columnName) : Node
 
     public string ColumnName { get; } = columnName;
 
-    public override Type ReturnType => Expression.ReturnType;
+    public override Type? ReturnType => Expression.ReturnType;
 
     public override string Id => $"{nameof(StarReplaceItemNode)}{Expression.Id}{ColumnName}";
 

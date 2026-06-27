@@ -1,4 +1,3 @@
-﻿using System;
 using System.Reflection;
 using System.Text;
 
@@ -6,7 +5,7 @@ namespace Musoq.Parser.Nodes;
 
 public class AccessCallChainNode : Node
 {
-    public AccessCallChainNode(string columnName, Type columnType, (PropertyInfo Property, object Arg)[] props,
+    public AccessCallChainNode(string columnName, Type columnType, (PropertyInfo Property, object? Arg)[] props,
         string alias)
     {
         ColumnName = columnName;
@@ -17,7 +16,7 @@ public class AccessCallChainNode : Node
         Id = $"{nameof(AccessCallChainNode)}{ToString()}";
     }
 
-    public (PropertyInfo Property, object Arg)[] Props { get; }
+    public (PropertyInfo Property, object? Arg)[] Props { get; }
 
     public string ColumnName { get; }
 
@@ -34,7 +33,7 @@ public class AccessCallChainNode : Node
             if (prop.Arg == null)
                 return prop.Property.PropertyType;
 
-            return prop.Property.PropertyType.GetElementType();
+            return prop.Property.PropertyType.GetElementType() ?? typeof(object);
         }
     }
 
@@ -42,6 +41,7 @@ public class AccessCallChainNode : Node
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -58,15 +58,15 @@ public class AccessCallChainNode : Node
         callChain.Append(ColumnName);
         callChain.Append('.');
 
-        (PropertyInfo Property, object Arg) prop;
+        (PropertyInfo Property, object? Arg) prop;
 
         for (var i = 0; i < Props.Length - 1; ++i)
         {
             prop = Props[i];
             if (prop.Arg == null)
-                callChain.Append($"{prop.Property.Name}.");
+                callChain.Append(System.Globalization.CultureInfo.InvariantCulture, $"{prop.Property.Name}.");
             else
-                callChain.Append($"{prop.Property.Name}[{prop.Arg}]");
+                callChain.Append(System.Globalization.CultureInfo.InvariantCulture, $"{prop.Property.Name}[{prop.Arg}]");
         }
 
         if (Props.Length == 0)
@@ -74,9 +74,9 @@ public class AccessCallChainNode : Node
 
         prop = Props[^1];
         if (prop.Arg == null)
-            callChain.Append($"{prop.Property.Name}");
+            callChain.Append(System.Globalization.CultureInfo.InvariantCulture, $"{prop.Property.Name}");
         else
-            callChain.Append($"{prop.Property.Name}[{prop.Arg}]");
+            callChain.Append(System.Globalization.CultureInfo.InvariantCulture, $"{prop.Property.Name}[{prop.Arg}]");
 
         return callChain.ToString();
     }

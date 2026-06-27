@@ -23,6 +23,7 @@ public enum TokenType : short
     WhiteSpace,
     Equality,
     Identifier,
+    ParameterReference,
     NumericColumn,
     Function,
     Property,
@@ -33,6 +34,8 @@ public enum TokenType : short
     LessEqual,
     Select,
     From,
+    Pivot,
+    Unpivot,
     Like,
     NotLike,
     RLike,
@@ -40,6 +43,8 @@ public enum TokenType : short
     As,
     Is,
     Null,
+    Present,
+    Missing,
     Union,
     UnionAll,
     Except,
@@ -62,6 +67,9 @@ public enum TokenType : short
     InnerJoin,
     OuterJoin,
     AsOfJoin,
+    SemiJoin,
+    AntiJoin,
+    CrossJoin,
     CrossApply,
     OuterApply,
     On,
@@ -72,6 +80,10 @@ public enum TokenType : short
     True,
     False,
     In,
+    Exists,
+    Any,
+    Some,
+    All,
     NotIn,
     Table,
     LBracket, // { (left curly brace)
@@ -83,7 +95,6 @@ public enum TokenType : short
     Then,
     Else,
     End,
-    FieldLink,
     Comment,
     Distinct,
     ColumnKeyword,
@@ -136,6 +147,7 @@ public enum TokenType : short
 
     // Colon separator for field definitions
     Colon,
+    DoubleColon,
 
     // Text schema keywords (placeholders for future sessions)
     Pattern,
@@ -149,6 +161,7 @@ public enum TokenType : short
     Optional,
     Repeat,
     Switch,
+    Substream,
     Nested,
     Escaped,
     Greedy,
@@ -173,7 +186,8 @@ public enum TokenType : short
     // Underscore for default case
     Underscore, // _
 
-    // Question mark for optional quantifier
+    // Null coalescing and question mark for optional quantifier
+    NullCoalescing, // ??
     QuestionMark, // ?
 
     // Star expression modifiers
@@ -184,6 +198,15 @@ public enum TokenType : short
     Over, // OVER keyword after function call
     PartitionBy, // PARTITION BY (multi-word keyword)
     Window, // WINDOW clause keyword
+    Qualify, // QUALIFY clause keyword (post-window filter)
+
+    // Window frame tokens
+    Rows, // ROWS frame type
+    Range, // RANGE frame type
+    Unbounded, // UNBOUNDED keyword
+    Preceding, // PRECEDING keyword
+    Following, // FOLLOWING keyword
+    CurrentRow, // CURRENT ROW (multi-word keyword)
 
     // Error token for recovery mode
     Error // Invalid/unrecognized token

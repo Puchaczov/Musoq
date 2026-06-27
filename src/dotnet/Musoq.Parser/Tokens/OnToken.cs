@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class OnToken : Token
+public class OnToken(TextSpan span) : Token(TokenText, TokenType.On, span)
 {
     public const string TokenText = "on";
-
-    public OnToken(TextSpan span)
-        : base(TokenText, TokenType.On, span)
-    {
-    }
 }

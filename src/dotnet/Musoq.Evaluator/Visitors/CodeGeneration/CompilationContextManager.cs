@@ -1,24 +1,13 @@
-#nullable enable
-using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.IO;
 using System.Reflection;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.Runtime;
-using Musoq.Evaluator.Tables;
-using Musoq.Parser.Nodes.From;
-using Musoq.Plugins;
-using Musoq.Schema;
 
 namespace Musoq.Evaluator.Visitors.CodeGeneration;
 
 /// <summary>
 ///     Manages compilation context: namespaces, assembly references, type tracking.
-///     Extracted from ToCSharpRewriteTreeVisitor to improve separation of concerns.
 /// </summary>
 public sealed class CompilationContextManager
 {
@@ -33,6 +22,9 @@ public sealed class CompilationContextManager
     public CompilationContextManager(CSharpCompilation initialCompilation)
     {
         _compilation = initialCompilation ?? throw new ArgumentNullException(nameof(initialCompilation));
+
+        foreach (var path in RoslynSharedFactory.PreloadedAssemblyPaths)
+            _loadedAssemblies.Add(path);
     }
 
     /// <summary>
@@ -40,64 +32,15 @@ public sealed class CompilationContextManager
     /// </summary>
     public void InitializeDefaults()
     {
-        TrackNamespace("System");
-        TrackNamespace("System.Threading");
-        TrackNamespace("System.Collections.Generic");
-        TrackNamespace("System.Threading.Tasks");
-        TrackNamespace("System.Linq");
-        TrackNamespace("System.Dynamic");
-        TrackNamespace("Microsoft.Extensions.Logging");
-        TrackNamespace("Musoq.Plugins");
-        TrackNamespace("Musoq.Schema");
-        TrackNamespace("Musoq.Evaluator");
-        TrackNamespace("Musoq.Evaluator.Tables");
-        TrackNamespace("Musoq.Evaluator.Helpers");
-        TrackNamespace("Musoq.Parser.Nodes.From");
-        TrackNamespace("Musoq.Parser.Nodes");
     }
 
     /// <summary>
     ///     Initializes core type references required for code generation.
-    ///     Call after InitializeDefaults() during visitor construction.
+    ///     Core Musoq types are already in the template compilation; this only adds plugin assemblies.
     /// </summary>
     /// <param name="assemblies">Plugin assemblies to reference.</param>
     public void InitializeCoreReferences(IEnumerable<Assembly> assemblies)
     {
-        var abstractionDll = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-            "Microsoft.Extensions.Logging.Abstractions.dll");
-
-
-        var coreTypes = new[]
-        {
-            typeof(object),
-            typeof(CancellationToken),
-            typeof(ISchema),
-            typeof(LibraryBase),
-            typeof(Table),
-            typeof(SyntaxFactory),
-            typeof(ExpandoObject),
-            typeof(SchemaFromNode),
-            typeof(ILogger)
-        };
-
-        var newReferences = new List<MetadataReference>(coreTypes.Length + 2);
-
-
-        if (!string.IsNullOrEmpty(abstractionDll) && _loadedAssemblies.Add(abstractionDll))
-            newReferences.Add(MetadataReferenceCache.GetOrCreate(abstractionDll));
-
-
-        foreach (var type in coreTypes)
-        {
-            TrackNamespace(type);
-            var location = type.Assembly.Location;
-            if (!string.IsNullOrEmpty(location) && _loadedAssemblies.Add(location))
-                newReferences.Add(MetadataReferenceCache.GetOrCreate(location));
-        }
-
-        if (newReferences.Count > 0)
-            _compilation = _compilation.AddReferences(newReferences);
-
         AddAssemblyReferences(assemblies as Assembly[] ?? [.. assemblies]);
     }
 
@@ -110,11 +53,13 @@ public sealed class CompilationContextManager
 
     public void TrackNamespace(Type type)
     {
+        ArgumentNullException.ThrowIfNull(type);
         if (type.Namespace != null) TrackNamespace(type.Namespace);
     }
 
     public void TrackNamespaces(params Type[] types)
     {
+        ArgumentNullException.ThrowIfNull(types);
         foreach (var type in types) TrackNamespace(type);
     }
 
@@ -129,6 +74,7 @@ public sealed class CompilationContextManager
 
     public void TrackTypes(params Type[] types)
     {
+        ArgumentNullException.ThrowIfNull(types);
         foreach (var type in types) TrackType(type);
     }
 
@@ -147,6 +93,7 @@ public sealed class CompilationContextManager
 
     public void AddAssemblyReferences(params Assembly[] assemblies)
     {
+        ArgumentNullException.ThrowIfNull(assemblies);
         var newReferences = new List<MetadataReference>(assemblies.Length);
 
         foreach (var assembly in assemblies)

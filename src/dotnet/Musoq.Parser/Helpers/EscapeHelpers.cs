@@ -1,6 +1,6 @@
-using System;
 using System.Buffers;
 using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -42,7 +42,8 @@ public static class EscapeHelpers
     ///     Thrown when encountering malformed Unicode or hex escape sequences if strict mode
     ///     is enabled.
     /// </exception>
-    public static string Unescape(this string escaped)
+    [return: NotNullIfNotNull(nameof(escaped))]
+    public static string? Unescape(this string? escaped)
     {
         if (string.IsNullOrEmpty(escaped))
             return escaped;
@@ -58,7 +59,8 @@ public static class EscapeHelpers
     /// </summary>
     /// <param name="unescaped">The string to escape.</param>
     /// <returns>The escaped string.</returns>
-    public static string Escape(this string unescaped)
+    [return: NotNullIfNotNull(nameof(unescaped))]
+    public static string? Escape(this string? unescaped)
     {
         if (string.IsNullOrEmpty(unescaped))
             return unescaped;
@@ -182,7 +184,7 @@ public static class EscapeHelpers
             if (char.IsControl(current))
                 result.Append(EscapeChar)
                     .Append(UnicodePrefix)
-                    .Append(((int)current).ToString("X4"));
+                    .Append(((int)current).ToString("X4", CultureInfo.InvariantCulture));
             else
                 result.Append(current);
         }

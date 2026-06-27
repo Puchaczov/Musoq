@@ -1,14 +1,14 @@
-using System;
 using System.Linq;
 
 namespace Musoq.Parser.Nodes;
 
 public class WindowSpecificationNode : Node
 {
-    public WindowSpecificationNode(FieldNode[] partitionFields, FieldOrderedNode[] orderByFields)
+    public WindowSpecificationNode(FieldNode[]? partitionFields, FieldOrderedNode[]? orderByFields, WindowFrameNode? frame = null)
     {
         PartitionFields = partitionFields ?? [];
         OrderByFields = orderByFields ?? [];
+        Frame = frame;
 
         var partitionId = PartitionFields.Length == 0
             ? string.Empty
@@ -17,12 +17,14 @@ public class WindowSpecificationNode : Node
             ? string.Empty
             : string.Concat(OrderByFields.Select(f => f.Id));
 
-        Id = $"{nameof(WindowSpecificationNode)}{partitionId}{orderById}";
+        Id = $"{nameof(WindowSpecificationNode)}{partitionId}{orderById}{frame?.Id}";
     }
 
     public FieldNode[] PartitionFields { get; }
 
     public FieldOrderedNode[] OrderByFields { get; }
+
+    public WindowFrameNode? Frame { get; }
 
     public override Type ReturnType => typeof(void);
 
@@ -30,6 +32,7 @@ public class WindowSpecificationNode : Node
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -43,7 +46,9 @@ public class WindowSpecificationNode : Node
             ? $"order by {string.Join(", ", OrderByFields.Select(f => f.ToString()))}"
             : string.Empty;
 
-        var spec = string.Join(" ", new[] { partition, orderBy }.Where(s => s.Length > 0));
+        var frame = Frame != null ? Frame.ToString() : string.Empty;
+
+        var spec = string.Join(" ", new[] { partition, orderBy, frame }.Where(s => s.Length > 0));
         return $"({spec})";
     }
 }

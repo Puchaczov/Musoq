@@ -1,4 +1,4 @@
-﻿using Musoq.Parser.Tokens;
+using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Nodes;
 
@@ -12,6 +12,7 @@ public class IntersectNode : SetOperatorNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

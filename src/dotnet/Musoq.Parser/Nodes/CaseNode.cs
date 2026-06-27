@@ -1,23 +1,16 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Nodes;
 
-public class CaseNode : Node
+public class CaseNode((Node When, Node Then)[] whenThenNodesPairs, Node elseNode, Type? returnType = null)
+    : Node
 {
-    public CaseNode((Node When, Node Then)[] whenThenNodesPairs, Node elseNode, Type returnType = null)
-    {
-        WhenThenPairs = whenThenNodesPairs;
-        Else = elseNode;
-        ReturnType = returnType ?? typeof(void);
-    }
+    public (Node When, Node Then)[] WhenThenPairs { get; } = whenThenNodesPairs;
 
-    public (Node When, Node Then)[] WhenThenPairs { get; }
+    public Node Else { get; } = elseNode;
 
-    public Node Else { get; }
-
-    public override Type ReturnType { get; }
+    public override Type ReturnType { get; } = returnType ?? typeof(void);
 
     public override string Id
     {
@@ -35,6 +28,7 @@ public class CaseNode : Node
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -43,18 +37,18 @@ public class CaseNode : Node
         var builder = new StringBuilder();
 
         builder.Append(CaseToken.TokenText);
-        builder.Append(" ");
+        builder.Append(' ');
 
         foreach (var pair in WhenThenPairs)
         {
             builder.Append(pair.When.ToString());
-            builder.Append(" ");
+            builder.Append(' ');
             builder.Append(pair.Then.ToString());
         }
 
-        builder.Append(" ");
+        builder.Append(' ');
         builder.Append(Else.ToString());
-        builder.Append(" ");
+        builder.Append(' ');
         builder.Append(EndToken.TokenText);
 
         return builder.ToString();

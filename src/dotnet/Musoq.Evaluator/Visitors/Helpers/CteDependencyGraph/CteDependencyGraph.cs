@@ -1,5 +1,3 @@
-#nullable enable annotations
-
 using System.Collections.Generic;
 using System.Linq;
 
@@ -23,11 +21,12 @@ public class CteDependencyGraph
     /// <param name="outerQuery">The outer query pseudo-node.</param>
     public CteDependencyGraph(Dictionary<string, CteGraphNode> nodes, CteGraphNode outerQuery)
     {
+        ArgumentNullException.ThrowIfNull(nodes);
         _nodes = nodes;
         OuterQuery = outerQuery;
 
         _deadCtes = nodes.Values
-            .Where(n => !n.IsReachable && !n.IsOuterQuery)
+            .Where(n => n is { IsReachable: false, IsOuterQuery: false })
             .ToList();
 
         _executionLevels = ComputeExecutionLevels(nodes);
@@ -52,7 +51,7 @@ public class CteDependencyGraph
     ///     Gets CTEs that are reachable from the outer query.
     /// </summary>
     public IReadOnlyList<CteGraphNode> ReachableCtes => _nodes.Values
-        .Where(n => n.IsReachable && !n.IsOuterQuery)
+        .Where(n => n is { IsReachable: true, IsOuterQuery: false })
         .ToList();
 
     /// <summary>
@@ -116,7 +115,7 @@ public class CteDependencyGraph
 
 
         var reachableNodes = nodes.Values
-            .Where(n => n.IsReachable && !n.IsOuterQuery && n.ExecutionLevel >= 0)
+            .Where(n => n is { IsReachable: true, IsOuterQuery: false, ExecutionLevel: >= 0 })
             .GroupBy(n => n.ExecutionLevel)
             .OrderBy(g => g.Key);
 

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Helpers;
 using Musoq.Parser;
@@ -9,8 +9,8 @@ namespace Musoq.Evaluator.Visitors;
 
 public class RewriteToUpdatedColumnAccess(IReadOnlyDictionary<string, string> usedTables) : CloneQueryVisitor
 {
-    private FromNode _from;
-    private WhereNode _where;
+    private FromNode? _from;
+    private WhereNode? _where;
 
     public WhereNode Where
     {
@@ -38,6 +38,7 @@ public class RewriteToUpdatedColumnAccess(IReadOnlyDictionary<string, string> us
 
     public override void Visit(AccessColumnNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         base.Visit(usedTables.TryGetValue(node.Alias, out var alias)
             ? new AccessColumnNode(NamingHelper.ToColumnName(node.Alias, node.Name), alias, node.ReturnType,
                 TextSpan.Empty, node.IntendedTypeName)
@@ -46,6 +47,7 @@ public class RewriteToUpdatedColumnAccess(IReadOnlyDictionary<string, string> us
 
     public override void Visit(PropertyFromNode node)
     {
+        ArgumentNullException.ThrowIfNull(node);
         base.Visit(usedTables.TryGetValue(node.SourceAlias, out var alias)
             ? new Parser.PropertyFromNode(node.Alias, alias, node.PropertiesChain.Select((p, i) =>
             {

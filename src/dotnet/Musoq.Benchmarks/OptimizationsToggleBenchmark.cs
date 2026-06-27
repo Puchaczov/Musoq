@@ -14,15 +14,16 @@ namespace Musoq.Benchmarks;
 public class OptimizationsToggleBenchmark
 {
     // Compilation options
-    private static readonly CompilationOptions OptimizationsEnabled = new(
-        ParallelizationMode.Full);
+    private static readonly CompilationOptions OptimizationsEnabled = BenchmarkCompilationOptions.Materialized(
+        new CompilationOptions(ParallelizationMode.Full));
 
-    private static readonly CompilationOptions OptimizationsDisabled = new(
-        ParallelizationMode.None,
-        false,
-        false,
-        false,
-        false);
+    private static readonly CompilationOptions OptimizationsDisabled = BenchmarkCompilationOptions.Materialized(
+        new CompilationOptions(
+            ParallelizationMode.None,
+            false,
+            false,
+            false,
+            false));
 
     private readonly ILoggerResolver _loggerResolver = new BenchmarkLoggerResolver();
     private CompiledQuery _aggregateQueryOptimized = null!;

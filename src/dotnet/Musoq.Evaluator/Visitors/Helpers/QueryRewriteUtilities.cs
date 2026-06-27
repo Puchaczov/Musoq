@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
-using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.Visitors.Helpers;
 
@@ -25,8 +22,7 @@ public static class QueryRewriteUtilities
     /// <exception cref="ArgumentNullException">Thrown when node is null.</exception>
     public static Node RewriteNullableBoolExpressions(Node node)
     {
-        if (node == null)
-            throw new ArgumentNullException(nameof(node));
+        ArgumentNullException.ThrowIfNull(node);
 
         var nullableBoolType = typeof(bool?);
         if (node.ReturnType != nullableBoolType)
@@ -43,11 +39,10 @@ public static class QueryRewriteUtilities
     /// <exception cref="ArgumentNullException">Thrown when fieldName is null.</exception>
     public static string RewriteFieldNameWithoutStringPrefixAndSuffix(string fieldName)
     {
-        if (fieldName == null)
-            throw new ArgumentNullException(nameof(fieldName));
+        ArgumentNullException.ThrowIfNull(fieldName);
 
         var result = UnescapedQuotePattern.Replace(fieldName, string.Empty);
-        result = result.Replace("\\'", "'");
+        result = result.Replace("\\'", "'", StringComparison.Ordinal);
 
         return result;
     }
@@ -61,10 +56,8 @@ public static class QueryRewriteUtilities
     /// <exception cref="ArgumentNullException">Thrown when methods or node is null.</exception>
     public static bool HasMethod(IEnumerable<AccessMethodNode> methods, AccessMethodNode node)
     {
-        if (methods == null)
-            throw new ArgumentNullException(nameof(methods));
-        if (node == null)
-            throw new ArgumentNullException(nameof(node));
+        ArgumentNullException.ThrowIfNull(methods);
+        ArgumentNullException.ThrowIfNull(node);
 
         return methods.Any(f => f.ToString() == node.ToString());
     }
@@ -77,17 +70,13 @@ public static class QueryRewriteUtilities
     /// <exception cref="ArgumentNullException">Thrown when refreshMethods is null.</exception>
     public static RefreshNode CreateRefreshMethods(IReadOnlyList<AccessMethodNode> refreshMethods)
     {
-        if (refreshMethods == null)
-            throw new ArgumentNullException(nameof(refreshMethods));
+        ArgumentNullException.ThrowIfNull(refreshMethods);
 
         var methods = new List<AccessMethodNode>();
 
         foreach (var method in refreshMethods)
         {
             if (method == null)
-                continue;
-
-            if (method.Method?.GetCustomAttribute<AggregateSetDoNotResolveAttribute>() != null)
                 continue;
 
             if (!HasMethod(methods, method))
@@ -106,8 +95,7 @@ public static class QueryRewriteUtilities
     /// <exception cref="ArgumentException">Thrown when split array is malformed.</exception>
     public static bool IsQueryWithMixedAggregateAndNonAggregateMethods(FieldNode[][] split)
     {
-        if (split == null)
-            throw new ArgumentNullException(nameof(split));
+        ArgumentNullException.ThrowIfNull(split);
         if (split.Length < 2)
             throw new ArgumentException("Split array must contain at least 2 elements", nameof(split));
         if (split[0] == null || split[1] == null)
@@ -126,10 +114,8 @@ public static class QueryRewriteUtilities
     public static FieldNode[] ConcatAggregateFieldsWithGroupByFields(FieldNode[] selectFields,
         FieldNode[] groupByFields)
     {
-        if (selectFields == null)
-            throw new ArgumentNullException(nameof(selectFields));
-        if (groupByFields == null)
-            throw new ArgumentNullException(nameof(groupByFields));
+        ArgumentNullException.ThrowIfNull(selectFields);
+        ArgumentNullException.ThrowIfNull(groupByFields);
 
         var fields = new List<FieldNode>(selectFields);
         var nextOrder = -1;
@@ -166,10 +152,8 @@ public static class QueryRewriteUtilities
     public static Func<AccessColumnNode, bool> IncludeKnownColumns(AccessColumnNode[] accessColumnNodes,
         BinaryFromNode joinFromNode)
     {
-        if (accessColumnNodes == null)
-            throw new ArgumentNullException(nameof(accessColumnNodes));
-        if (joinFromNode == null)
-            throw new ArgumentNullException(nameof(joinFromNode));
+        ArgumentNullException.ThrowIfNull(accessColumnNodes);
+        ArgumentNullException.ThrowIfNull(joinFromNode);
 
         return accessColumnNode =>
         {
@@ -198,10 +182,8 @@ public static class QueryRewriteUtilities
     public static Func<AccessColumnNode, bool> IncludeKnownColumnsForWithOnly(AccessColumnNode[] accessColumnNodes,
         BinaryFromNode binaryFromNode)
     {
-        if (accessColumnNodes == null)
-            throw new ArgumentNullException(nameof(accessColumnNodes));
-        if (binaryFromNode == null)
-            throw new ArgumentNullException(nameof(binaryFromNode));
+        ArgumentNullException.ThrowIfNull(accessColumnNodes);
+        ArgumentNullException.ThrowIfNull(binaryFromNode);
 
         return accessColumnNode =>
         {

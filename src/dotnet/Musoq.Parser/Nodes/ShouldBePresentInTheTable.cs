@@ -1,11 +1,10 @@
-﻿using System;
-
-namespace Musoq.Parser.Nodes;
+﻿namespace Musoq.Parser.Nodes;
 
 public class ShouldBePresentInTheTable : Node
 {
     public ShouldBePresentInTheTable(string table, bool negate, string[] keys)
     {
+        ArgumentNullException.ThrowIfNull(keys);
         Table = table;
         ExpectedResult = negate;
         Keys = keys;
@@ -19,12 +18,13 @@ public class ShouldBePresentInTheTable : Node
 
     public bool ExpectedResult { get; }
 
-    public override Type ReturnType => null;
+    public override Type? ReturnType => null;
 
     public override string Id { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

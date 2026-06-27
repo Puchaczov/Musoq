@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 
 namespace Musoq.Parser.Nodes.InterpretationSchema;
@@ -38,7 +37,7 @@ public class ComputedFieldNode : SchemaFieldNode
     public override bool IsComputed => true;
 
     /// <inheritdoc />
-    public override Type ReturnType => Expression.ReturnType;
+    public override Type? ReturnType => Expression.ReturnType;
 
     /// <inheritdoc />
     public override string Id { get; }
@@ -46,6 +45,7 @@ public class ComputedFieldNode : SchemaFieldNode
     /// <inheritdoc />
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

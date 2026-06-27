@@ -1,192 +1,71 @@
-﻿#nullable enable annotations
-
-using System;
-using System.Collections.Generic;
-using Musoq.Evaluator;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
+using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.Visitors;
-using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
-using Musoq.Parser.Nodes;
-using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Converter.Build;
 
-public class TransformTree(BuildChain successor, ILoggerResolver loggerResolver) : BuildChain(successor)
+public partial class TransformTree(BuildChain successor, ILoggerResolver loggerResolver) : BuildChain(successor)
 {
     public override void Build(BuildItems items)
     {
+        ArgumentNullException.ThrowIfNull(items);
         items.SchemaProvider = new TransitionSchemaProvider(items.SchemaProvider);
 
-        var queryTree = items.RawQueryTree;
+        ParseBuildArtifacts parseArtifacts = items.ParseArtifacts;
+        var queryTree = parseArtifacts.RawQueryTree;
 
-        var distinctRewriter = new DistinctToGroupByVisitor();
-        var distinctTraverser = new DistinctToGroupByTraverseVisitor(distinctRewriter);
-        queryTree.Accept(distinctTraverser);
-        queryTree = distinctTraverser.Root;
+        var preLogicalNormalization = new PreLogicalNormalizer().Normalize(queryTree);
+        queryTree = preLogicalNormalization.NormalizedRoot;
+        items.OptimizerTraceText = OptimizationTraceTextPrinter.Print(preLogicalNormalization.Trace);
 
         var extractColumnsVisitor = new ExtractRawColumnsVisitor();
         var extractRawColumnsTraverseVisitor = new ExtractRawColumnsTraverseVisitor(extractColumnsVisitor);
 
         queryTree.Accept(extractRawColumnsTraverseVisitor);
 
-        var metadata = CreateMetadataVisitor(items, extractColumnsVisitor.Columns);
+        var metadataVisitor = CreateMetadataVisitor(items, extractColumnsVisitor.Columns);
+        var metadataTraverserVisitor = new BuildMetadataAndInferTypesTraverseVisitor(metadataVisitor);
 
-        var metadataTraverser = new BuildMetadataAndInferTypesTraverseVisitor(metadata);
-
-        if (items.DiagnosticContext != null)
+        try
         {
-            try
-            {
-                queryTree.Accept(metadataTraverser);
-                queryTree = metadata.Root;
-            }
-            catch (Exception ex)
-            {
-                if (!items.DiagnosticContext.HasErrors)
-                    items.DiagnosticContext.ReportException(ex);
-            }
-
-            if (items.DiagnosticContext.HasErrors)
-                return;
+            queryTree.Accept(metadataTraverserVisitor);
+            queryTree = metadataVisitor.Root;
         }
-        else
+        catch (Exception ex)
         {
-            queryTree.Accept(metadataTraverser);
-            queryTree = metadata.Root;
+            if (!items.DiagnosticContext.HasErrors)
+                items.DiagnosticContext.ReportException(ex);
         }
 
-        if (items.CompilationOptions.UseConstantFolding)
-        {
-            var constantFolder = new ConstantFoldingVisitor(items.DiagnosticContext);
-            var constantFolderTraverser = new ConstantFoldingTraverseVisitor(constantFolder);
-            queryTree.Accept(constantFolderTraverser);
-            queryTree = constantFolder.Root;
+        if (items.DiagnosticContext.HasErrors)
+            return;
 
-            if (items.DiagnosticContext is { HasErrors: true })
-                return;
-        }
+        if (items.CompilationOptions.UseCteParallelization)
+            items.CteExecutionPlan = ComputeCteExecutionPlan(queryTree);
 
-        queryTree = EliminateDeadCtes(queryTree);
-
-
-        if (items.CompilationOptions.UseCteParallelization) items.CteExecutionPlan = ComputeCteExecutionPlan(queryTree);
-
-        var rewriter = new RewriteQueryVisitor();
-        var rewriteTraverser = new RewriteQueryTraverseVisitor(rewriter, new ScopeWalker(metadataTraverser.Scope));
+        var rewriter = new RewriteQueryVisitor(items.CompilationOptions);
+        var rewriteTraverser = new RewriteQueryTraverseVisitor(rewriter, new ScopeWalker(metadataTraverserVisitor.Scope));
 
         queryTree.Accept(rewriteTraverser);
 
         queryTree = rewriter.RootScript;
 
-        var csharpRewriter = CreateCSharpRewriter(metadata, items);
-        var csharpRewriteTraverser = new ToCSharpRewriteTreeTraverseVisitor(csharpRewriter,
-            new ScopeWalker(metadataTraverser.Scope), items.CompilationOptions);
+        var semanticArtifacts = BuildSemanticArtifacts(items, queryTree, metadataVisitor, metadataTraverserVisitor);
+        items.SemanticArtifacts = semanticArtifacts;
 
-        queryTree.Accept(csharpRewriteTraverser);
+        var planningArtifacts = BuildPlans(semanticArtifacts, metadataVisitor, items);
+        if (planningArtifacts != null)
+            items.PlanningArtifacts = planningArtifacts;
 
-        items.UsedColumns = metadata.UsedColumns;
-        items.UsedWhereNodes = RewriteWhereNodes(metadata.UsedWhereNodes);
-        items.QueryHintsPerSchema = metadata.QueryHintsPerSchema;
-        items.TransformedQueryTree = queryTree;
-        items.Compilation = csharpRewriter.Compilation;
-        items.AccessToClassPath = csharpRewriter.AccessToClassPath;
-        items.PositionalEnvironmentVariables = metadata.PositionalEnvironmentVariables;
+        if (items.DiagnosticContext is { HasErrors: true } || items.StopAfterPlanning)
+            return;
+
+        items.ExecutionArtifacts = BuildExecutionInspection(items);
+        items.RenderingArtifacts = BuildWithIrRenderer(items, semanticArtifacts, metadataVisitor, metadataTraverserVisitor);
 
         Successor?.Build(items);
     }
 
-    private BuildMetadataAndInferTypesVisitor CreateMetadataVisitor(
-        BuildItems items,
-        IReadOnlyDictionary<string, string[]> columns)
-    {
-        if (items.CreateBuildMetadataAndInferTypesVisitor != null)
-            return items.CreateBuildMetadataAndInferTypesVisitor(
-                items.SchemaProvider, columns, items.CompilationOptions, items.SchemaRegistry);
 
-        if (items.DiagnosticContext != null)
-            return new BuildMetadataAndInferTypesVisitor(
-                items.SchemaProvider,
-                columns,
-                loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(),
-                items.DiagnosticContext,
-                items.CompilationOptions,
-                items.SchemaRegistry);
-
-        return new BuildMetadataAndInferTypesVisitor(
-            items.SchemaProvider,
-            columns,
-            loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(),
-            items.CompilationOptions,
-            items.SchemaRegistry);
-    }
-
-
-    private static RootNode EliminateDeadCtes(RootNode queryTree)
-    {
-        if (queryTree.Expression is not CteExpressionNode cteExpression)
-            return queryTree;
-
-        var result = DeadCteEliminator.Eliminate(cteExpression);
-
-
-        if (!result.WereCTEsEliminated)
-            return queryTree;
-
-
-        return new RootNode(result.ResultNode);
-    }
-
-    private static IToCSharpTranslationExpressionVisitor CreateCSharpRewriter(
-        BuildMetadataAndInferTypesVisitor metadata,
-        BuildItems items)
-    {
-        return new ToCSharpRewriteTreeVisitor(
-            metadata.Assemblies,
-            metadata.SetOperatorFieldPositions,
-            metadata.InferredColumns,
-            items.AssemblyName,
-            items.CompilationOptions,
-            items.SchemaRegistry,
-            items.InterpreterSourceCode,
-            items.CteExecutionPlan);
-    }
-
-    private static IReadOnlyDictionary<SchemaFromNode, WhereNode> RewriteWhereNodes(
-        IReadOnlyDictionary<SchemaFromNode, WhereNode> whereNodes)
-    {
-        var result = new Dictionary<SchemaFromNode, WhereNode>();
-
-        foreach (var whereNode in whereNodes)
-        {
-            var rewriter = new RewriteWhereExpressionToPassItToDataSourceVisitor(whereNode.Key);
-            var rewriteTraverser = new RewriteWhereExpressionToPassItToDataSourceTraverseVisitor(rewriter);
-
-            whereNode.Value.Accept(rewriteTraverser);
-
-            result.Add(whereNode.Key, rewriter.WhereNode);
-        }
-
-        return result;
-    }
-
-    private static CteExecutionPlan? ComputeCteExecutionPlan(RootNode queryTree)
-    {
-        CteExpressionNode? cteExpression = null;
-
-        if (queryTree.Expression is CteExpressionNode directCte)
-            cteExpression = directCte;
-        else if (queryTree.Expression is StatementsArrayNode statementsArray)
-            foreach (var statement in statementsArray.Statements)
-                if (statement.Node is CteExpressionNode nestedCte)
-                {
-                    cteExpression = nestedCte;
-                    break;
-                }
-
-        if (cteExpression == null)
-            return null;
-
-        return CteParallelizationAnalyzer.CreatePlan(cteExpression);
-    }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Parser;
@@ -107,6 +106,7 @@ public struct TextSpan : IEquatable<TextSpan>, IComparable<TextSpan>
     /// <returns>The source location.</returns>
     public SourceLocation GetStartLocation(SourceText sourceText)
     {
+        ArgumentNullException.ThrowIfNull(sourceText);
         return sourceText.GetLocation(Start);
     }
 
@@ -117,6 +117,7 @@ public struct TextSpan : IEquatable<TextSpan>, IComparable<TextSpan>
     /// <returns>The source location.</returns>
     public SourceLocation GetEndLocation(SourceText sourceText)
     {
+        ArgumentNullException.ThrowIfNull(sourceText);
         return sourceText.GetLocation(End);
     }
 
@@ -176,11 +177,43 @@ public struct TextSpan : IEquatable<TextSpan>, IComparable<TextSpan>
     }
 
     /// <summary>
+    ///     The less-than comparison operator.
+    /// </summary>
+    public static bool operator <(TextSpan left, TextSpan right)
+    {
+        return left.CompareTo(right) < 0;
+    }
+
+    /// <summary>
+    ///     The less-than-or-equal comparison operator.
+    /// </summary>
+    public static bool operator <=(TextSpan left, TextSpan right)
+    {
+        return left.CompareTo(right) <= 0;
+    }
+
+    /// <summary>
+    ///     The greater-than comparison operator.
+    /// </summary>
+    public static bool operator >(TextSpan left, TextSpan right)
+    {
+        return left.CompareTo(right) > 0;
+    }
+
+    /// <summary>
+    ///     The greater-than-or-equal comparison operator.
+    /// </summary>
+    public static bool operator >=(TextSpan left, TextSpan right)
+    {
+        return left.CompareTo(right) >= 0;
+    }
+
+    /// <summary>
     ///     Performs equality comparsion with object.
     /// </summary>
     /// <param name="obj">The object.</param>
     /// <returns>True if both are equals, otherwise false.</returns>
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj == null)
             return false;

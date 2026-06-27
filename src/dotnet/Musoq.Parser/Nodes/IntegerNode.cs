@@ -1,5 +1,3 @@
-﻿using System;
-
 namespace Musoq.Parser.Nodes;
 
 public class IntegerNode : ConstantValueNode
@@ -11,16 +9,17 @@ public class IntegerNode : ConstantValueNode
 
     public IntegerNode(string value, string abbreviation, TextSpan span)
     {
-        ObjValue = abbreviation.ToLowerInvariant() switch
+        ArgumentNullException.ThrowIfNull(abbreviation);
+        ObjValue = abbreviation.ToUpperInvariant() switch
         {
-            "b" => sbyte.Parse(value),
-            "ub" => byte.Parse(value),
-            "s" => short.Parse(value),
-            "us" => ushort.Parse(value),
-            "i" => int.Parse(value),
-            "ui" => uint.Parse(value),
-            "l" => long.Parse(value),
-            "ul" => ulong.Parse(value),
+            "B" => sbyte.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
+            "UB" => byte.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
+            "S" => short.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
+            "US" => ushort.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
+            "I" => int.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
+            "UI" => uint.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
+            "L" => long.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
+            "UL" => ulong.Parse(value, System.Globalization.CultureInfo.InvariantCulture),
             _ => Parse(value)
         };
 
@@ -50,11 +49,12 @@ public class IntegerNode : ConstantValueNode
 
     public override string ToString()
     {
-        return ObjValue.ToString();
+        return ObjValue.ToString() ?? string.Empty;
     }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

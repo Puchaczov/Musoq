@@ -1,14 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class CoupleToken : Token
+public class CoupleToken(TextSpan textSpan) : Token(TokenText, TokenType.Couple, textSpan)
 {
     public const string TokenText = "couple";
-
-    private TextSpan textSpan;
-
-    public CoupleToken(TextSpan textSpan)
-        : base(TokenText, TokenType.Couple, textSpan)
-    {
-        this.textSpan = textSpan;
-    }
 }

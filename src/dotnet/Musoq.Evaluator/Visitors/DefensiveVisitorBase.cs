@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Parser;
@@ -26,8 +25,7 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
     /// <exception cref="VisitorException">Thrown when the stack is empty.</exception>
     protected Node SafePop(Stack<Node> nodes, string operation)
     {
-        if (nodes == null)
-            throw new ArgumentNullException(nameof(nodes));
+        ArgumentNullException.ThrowIfNull(nodes);
 
         if (nodes.Count == 0)
             throw VisitorException.CreateForStackUnderflow(VisitorName, operation, 1, 0);
@@ -45,8 +43,7 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
     /// <exception cref="VisitorException">Thrown when the stack doesn't have enough items.</exception>
     protected Node[] SafePopMultiple(Stack<Node> nodes, int count, string operation)
     {
-        if (nodes == null)
-            throw new ArgumentNullException(nameof(nodes));
+        ArgumentNullException.ThrowIfNull(nodes);
 
         if (count < 0)
             throw new ArgumentOutOfRangeException(nameof(count), "Count must be non-negative");
@@ -68,8 +65,7 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
     /// <exception cref="VisitorException">Thrown when the stack is empty.</exception>
     protected Node SafePeek(Stack<Node> nodes, string operation)
     {
-        if (nodes == null)
-            throw new ArgumentNullException(nameof(nodes));
+        ArgumentNullException.ThrowIfNull(nodes);
 
         if (nodes.Count == 0)
             throw VisitorException.CreateForStackUnderflow(VisitorName, operation, 1, 0);
@@ -146,8 +142,7 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
     /// <exception cref="VisitorException">Thrown when the action fails.</exception>
     protected void SafeExecute(Action action, string operation)
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
 
         try
         {
@@ -178,8 +173,7 @@ public abstract class DefensiveVisitorBase : NoOpExpressionVisitor
     /// <exception cref="VisitorException">Thrown when the function fails.</exception>
     protected T SafeExecute<T>(Func<T> func, string operation)
     {
-        if (func == null)
-            throw new ArgumentNullException(nameof(func));
+        ArgumentNullException.ThrowIfNull(func);
 
         try
         {

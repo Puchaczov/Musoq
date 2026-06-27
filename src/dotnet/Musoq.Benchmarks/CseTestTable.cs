@@ -4,13 +4,13 @@ namespace Musoq.Benchmarks;
 
 public class CseTestTable : ISchemaTable
 {
-    public ISchemaColumn[] Columns => new ISchemaColumn[]
-    {
+    public ISchemaColumn[] Columns =>
+    [
         new SchemaColumn(nameof(CseTestEntity.Id), 0, typeof(int)),
         new SchemaColumn(nameof(CseTestEntity.Name), 1, typeof(string)),
         new SchemaColumn(nameof(CseTestEntity.Value), 2, typeof(int)),
         new SchemaColumn(nameof(CseTestEntity.Category), 3, typeof(string))
-    };
+    ];
 
     public ISchemaColumn? GetColumnByName(string name)
     {

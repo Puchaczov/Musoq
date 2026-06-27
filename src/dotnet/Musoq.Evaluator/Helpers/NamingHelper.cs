@@ -4,40 +4,37 @@ public static class NamingHelper
 {
     public static string ToTransitionTable(this string name)
     {
-        return $"{name}TransitionTable";
+        return $"{SyntaxHelper.ToCamelCase(name)}TransitionTable";
     }
 
     public static string ToGroupingTable(this string name)
     {
-        return $"{name}GroupingTable";
+        return $"{SyntaxHelper.ToCamelCase(name)}GroupingTable";
     }
 
     public static string ToInfoTable(this string name)
     {
-        return $"{name}InferredInfoTable";
+        return $"{SyntaxHelper.ToCamelCase(name)}InferredInfoTable";
     }
 
     public static string ToRowsSource(this string name)
     {
-        return $"{name}Rows";
+        return $"{SyntaxHelper.ToCamelCase(name)}Rows";
     }
 
     public static string ToRowItem(this string name)
     {
-        return $"{name}Row";
+        return $"{SyntaxHelper.ToCamelCase(name)}Row";
     }
 
     public static string ToScoreTable(this string name)
     {
-        return $"{name}Score";
+        return $"{SyntaxHelper.ToCamelCase(name)}Score";
     }
 
-    public static string ToTransformedRowsSource(this string name, bool isForGrouping)
+    public static string ToTransformedRowsSource(this string name)
     {
-        if (isForGrouping)
-            return $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({name}).Rows";
-
-        return $"{nameof(EvaluationHelper)}.{nameof(EvaluationHelper.ConvertTableToSource)}({name}, false).Rows";
+        return name;
     }
 
     public static string WithRowsUsage(this string name)
@@ -45,8 +42,19 @@ public static class NamingHelper
         return $"{name}.Rows";
     }
 
-    public static string ToColumnName(string alias, string name)
+    public static string ToColumnName(string? alias, string name)
     {
+        if (string.IsNullOrWhiteSpace(alias) || string.IsNullOrWhiteSpace(name))
+            return name;
+
+        var separatorIndex = name.IndexOf('.', StringComparison.Ordinal);
+        if (separatorIndex > 0)
+        {
+            var prefix = name[..separatorIndex];
+            if (string.Equals(prefix, alias, StringComparison.OrdinalIgnoreCase))
+                return name;
+        }
+
         return $"{alias}.{name}";
     }
 
@@ -63,10 +71,5 @@ public static class NamingHelper
     public static string ListOf<T>()
     {
         return $"List<{typeof(T).Name}>";
-    }
-
-    private static string GetSkipContextLiteral(bool skipContexts)
-    {
-        return skipContexts ? "true" : "false";
     }
 }

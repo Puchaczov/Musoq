@@ -4,13 +4,13 @@ namespace Musoq.Benchmarks;
 
 public class OptBenchTable : ISchemaTable
 {
-    public ISchemaColumn[] Columns => new ISchemaColumn[]
-    {
+    public ISchemaColumn[] Columns =>
+    [
         new SchemaColumn(nameof(OptBenchEntity.Id), 0, typeof(int)),
         new SchemaColumn(nameof(OptBenchEntity.Name), 1, typeof(string)),
         new SchemaColumn(nameof(OptBenchEntity.Value), 2, typeof(int)),
         new SchemaColumn(nameof(OptBenchEntity.Category), 3, typeof(string))
-    };
+    ];
 
     public SchemaTableMetadata Metadata => new(typeof(OptBenchEntity));
 

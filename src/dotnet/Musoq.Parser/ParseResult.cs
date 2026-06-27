@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser.Diagnostics;
@@ -132,7 +131,7 @@ public sealed class ParseResult
             return "No diagnostics.";
 
         var formatter = new DiagnosticFormatter();
-        return string.Join(Environment.NewLine, _diagnostics.Select(d => formatter.Format(d)));
+        return string.Join(Environment.NewLine, _diagnostics.Select(formatter.Format));
     }
 
     /// <summary>

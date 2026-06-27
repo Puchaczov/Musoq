@@ -1,26 +1,18 @@
-﻿using System;
+﻿namespace Musoq.Parser.Nodes;
 
-namespace Musoq.Parser.Nodes;
-
-public class IsNullNode : Node
+public class IsNullNode(Node expression, bool isNegated) : Node
 {
-    public IsNullNode(Node expression, bool isNegated)
-    {
-        IsNegated = isNegated;
-        Expression = expression;
-        Id = $"{nameof(IsNullNode)}{expression.Id}{isNegated}";
-    }
+    public Node Expression { get; } = expression;
 
-    public Node Expression { get; }
-
-    public bool IsNegated { get; }
+    public bool IsNegated { get; } = isNegated;
 
     public override Type ReturnType => typeof(bool);
 
-    public override string Id { get; }
+    public override string Id { get; } = $"{nameof(IsNullNode)}{expression.Id}{isNegated}";
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

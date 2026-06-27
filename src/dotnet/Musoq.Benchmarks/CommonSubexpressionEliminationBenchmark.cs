@@ -31,6 +31,7 @@ public class CommonSubexpressionEliminationBenchmark
     {
         var testData = CreateTestData(RowsCount);
         var schemaProvider = new CseTestSchemaProvider(testData);
+        var options = BenchmarkCompilationOptions.Materialized();
 
 
         _queryWithDuplicateExpressions = InstanceCreator.CompileForExecution(
@@ -39,7 +40,8 @@ public class CommonSubexpressionEliminationBenchmark
               WHERE ExpensiveMethod(Value) > 100",
             Guid.NewGuid().ToString(),
             schemaProvider,
-            _loggerResolver);
+            _loggerResolver,
+            options);
 
 
         _queryWithoutDuplicateExpressions = InstanceCreator.CompileForExecution(
@@ -48,7 +50,8 @@ public class CommonSubexpressionEliminationBenchmark
               WHERE ExpensiveMethod(Value) > 100",
             Guid.NewGuid().ToString(),
             schemaProvider,
-            _loggerResolver);
+            _loggerResolver,
+            options);
 
 
         _queryWithTripleDuplicates = InstanceCreator.CompileForExecution(
@@ -57,7 +60,8 @@ public class CommonSubexpressionEliminationBenchmark
               WHERE ExpensiveMethod(Value) > 100",
             Guid.NewGuid().ToString(),
             schemaProvider,
-            _loggerResolver);
+            _loggerResolver,
+            options);
 
 
         _queryWithNestedDuplicates = InstanceCreator.CompileForExecution(
@@ -66,7 +70,8 @@ public class CommonSubexpressionEliminationBenchmark
               WHERE ExpensiveMethod(Value) > 50 AND ExpensiveMethod(Value) < 1000",
             Guid.NewGuid().ToString(),
             schemaProvider,
-            _loggerResolver);
+            _loggerResolver,
+            options);
 
 
         _queryCaseWhenWithDuplicateInSelect = InstanceCreator.CompileForExecution(
@@ -75,7 +80,8 @@ public class CommonSubexpressionEliminationBenchmark
               FROM #test.entities()",
             Guid.NewGuid().ToString(),
             schemaProvider,
-            _loggerResolver);
+            _loggerResolver,
+            options);
 
 
         _queryCaseWhenWithDuplicateInWhere = InstanceCreator.CompileForExecution(
@@ -85,7 +91,8 @@ public class CommonSubexpressionEliminationBenchmark
               WHERE ExpensiveMethod(Value) > 100",
             Guid.NewGuid().ToString(),
             schemaProvider,
-            _loggerResolver);
+            _loggerResolver,
+            options);
 
 
         _queryCaseWhenNoDuplicate = InstanceCreator.CompileForExecution(
@@ -94,7 +101,8 @@ public class CommonSubexpressionEliminationBenchmark
               FROM #test.entities()",
             Guid.NewGuid().ToString(),
             schemaProvider,
-            _loggerResolver);
+            _loggerResolver,
+            options);
     }
 
     /// <summary>

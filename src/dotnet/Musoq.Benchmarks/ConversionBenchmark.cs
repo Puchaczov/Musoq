@@ -7,23 +7,18 @@ namespace Musoq.Benchmarks;
 public class ConversionBenchmark
 {
     private readonly LibraryBase _lib = new();
-    private readonly object[] _testValues;
-
-    public ConversionBenchmark()
-    {
-        _testValues = new object[]
-        {
-            (byte)100,
-            (short)500,
-            1000,
-            5000L,
-            100.5f,
-            250.75,
-            500.50m,
-            "1500",
-            true
-        };
-    }
+    private readonly object[] _testValues =
+    [
+        (byte)100,
+        (short)500,
+        1000,
+        5000L,
+        100.5f,
+        250.75,
+        500.50m,
+        "1500",
+        true
+    ];
 
     [Benchmark]
     public void ConvertToInt32Strict()

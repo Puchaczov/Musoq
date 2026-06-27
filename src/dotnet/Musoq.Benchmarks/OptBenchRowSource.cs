@@ -2,20 +2,9 @@
 
 namespace Musoq.Benchmarks;
 
-public class OptBenchRowSource : RowSource
+public class OptBenchRowSource(List<OptBenchEntity> data) : RowSource<OptBenchEntity>
 {
-    private readonly List<OptBenchEntity> _data;
+    private readonly IReadOnlyList<IReadOnlyList<OptBenchEntity>> _chunks = BenchmarkSourceChunks.Create(data);
 
-    public OptBenchRowSource(List<OptBenchEntity> data)
-    {
-        _data = data;
-    }
-
-    public override IEnumerable<IObjectResolver> Rows
-    {
-        get
-        {
-            foreach (var entity in _data) yield return new OptBenchEntityResolver(entity);
-        }
-    }
+    public override IEnumerable<IReadOnlyList<OptBenchEntity>> Chunks => _chunks;
 }

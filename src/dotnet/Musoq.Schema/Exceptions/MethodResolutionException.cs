@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Schema.Exceptions;
 
 /// <summary>
@@ -8,13 +6,39 @@ namespace Musoq.Schema.Exceptions;
 /// </summary>
 public class MethodResolutionException : InvalidOperationException
 {
-    public MethodResolutionException(string methodName, string[] providedParameterTypes, string[] availableSignatures,
+    public MethodResolutionException(
+        string methodName,
+        string[] providedParameterTypes,
+        string[] availableSignatures,
         string message)
         : base(message)
     {
         MethodName = methodName;
         ProvidedParameterTypes = providedParameterTypes;
         AvailableSignatures = availableSignatures;
+    }
+
+    public MethodResolutionException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+        MethodName = string.Empty;
+        ProvidedParameterTypes = [];
+        AvailableSignatures = [];
+    }
+
+    public MethodResolutionException(string message)
+        : base(message)
+    {
+        MethodName = string.Empty;
+        ProvidedParameterTypes = [];
+        AvailableSignatures = [];
+    }
+
+    public MethodResolutionException()
+    {
+        MethodName = string.Empty;
+        ProvidedParameterTypes = [];
+        AvailableSignatures = [];
     }
 
     public string MethodName { get; }
@@ -26,6 +50,8 @@ public class MethodResolutionException : InvalidOperationException
         string[] providedParameterTypes,
         string[] availableSignatures)
     {
+        ArgumentNullException.ThrowIfNull(providedParameterTypes);
+        ArgumentNullException.ThrowIfNull(availableSignatures);
         var providedParams = providedParameterTypes.Length == 0
             ? "no parameters"
             : string.Join(", ", providedParameterTypes);

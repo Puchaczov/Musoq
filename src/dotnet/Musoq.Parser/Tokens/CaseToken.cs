@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class CaseToken : Token
+public class CaseToken(TextSpan span) : Token(TokenText, TokenType.Case, span)
 {
     public const string TokenText = "case";
-
-    public CaseToken(TextSpan span)
-        : base(TokenText, TokenType.Case, span)
-    {
-    }
 }

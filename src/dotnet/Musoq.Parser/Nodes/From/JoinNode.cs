@@ -1,19 +1,18 @@
-﻿using System;
-
 namespace Musoq.Parser.Nodes.From;
 
 public class JoinNode : FromNode
 {
     internal JoinNode(JoinFromNode join)
-        : base(join.Alias)
+        : base(GetAlias(join))
     {
         Id = $"{nameof(JoinNode)}{join.Id}";
         Join = join;
     }
 
     public JoinNode(JoinFromNode join, Type returnType)
-        : base(join.Alias, returnType)
+        : base(GetAlias(join), returnType)
     {
+        ArgumentNullException.ThrowIfNull(join);
         Id = $"{nameof(JoinNode)}{join.Id}";
         Join = join;
     }
@@ -26,11 +25,18 @@ public class JoinNode : FromNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
     public override string ToString()
     {
         return Join.ToString();
+    }
+
+    private static string GetAlias(JoinFromNode join)
+    {
+        ArgumentNullException.ThrowIfNull(join);
+        return join.Alias;
     }
 }

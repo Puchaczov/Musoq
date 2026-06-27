@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Schema;
 
 public class SchemaTableMetadata(Type tableEntityType)

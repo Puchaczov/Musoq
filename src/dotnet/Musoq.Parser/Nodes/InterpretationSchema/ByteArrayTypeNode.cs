@@ -1,5 +1,3 @@
-using System;
-
 namespace Musoq.Parser.Nodes.InterpretationSchema;
 
 /// <summary>
@@ -32,7 +30,7 @@ public class ByteArrayTypeNode : TypeAnnotationNode
 
     /// <inheritdoc />
     public override int? FixedSizeBytes => SizeExpression is IntegerNode intNode
-        ? int.Parse(intNode.ObjValue.ToString()!)
+        ? int.Parse(intNode.ObjValue.ToString()!, System.Globalization.CultureInfo.InvariantCulture)
         : null;
 
     /// <inheritdoc />
@@ -44,6 +42,7 @@ public class ByteArrayTypeNode : TypeAnnotationNode
     /// <inheritdoc />
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

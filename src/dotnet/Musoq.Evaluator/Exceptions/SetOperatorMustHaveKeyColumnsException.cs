@@ -1,17 +1,19 @@
-﻿#nullable enable annotations
-
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Exceptions;
 
 /// <summary>
-///     Exception thrown when a set operator (UNION, EXCEPT, INTERSECT) is missing required key columns.
+///     Legacy compatibility exception for the MQ3031 set-operator missing-key diagnostic.
 /// </summary>
 public class SetOperatorMustHaveKeyColumnsException : Exception, IDiagnosticException
 {
     private static readonly StringComparer Comparer = StringComparer.OrdinalIgnoreCase;
+
+    public SetOperatorMustHaveKeyColumnsException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
 
     /// <summary>
     ///     Initializes a new instance with the set operator name.
@@ -38,7 +40,7 @@ public class SetOperatorMustHaveKeyColumnsException : Exception, IDiagnosticExce
         var normalizedOperator = GetDisplayName(setOperator);
 
         return
-            $"{normalizedOperator} requires explicit key columns in Musoq. Use '{syntaxExample}' to tell Musoq how to combine rows; standard SQL '{normalizedOperator}' without '(...)' is not supported.";
+            $"Explicit key columns are optional for {normalizedOperator}. Omit the key list or use '()' to compare all projected values; use '{syntaxExample}' only when comparing an explicit subset.";
     }
 
     private static string GetSyntaxExample(string setOperator)
@@ -78,7 +80,7 @@ public class SetOperatorMustHaveKeyColumnsException : Exception, IDiagnosticExce
     /// <summary>
     ///     Gets the name of the set operator.
     /// </summary>
-    public string SetOperator { get; }
+    public string SetOperator { get; } = string.Empty;
 
     /// <summary>
     ///     Gets the diagnostic code for this exception.

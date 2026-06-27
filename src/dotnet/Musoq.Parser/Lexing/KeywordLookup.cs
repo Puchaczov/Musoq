@@ -1,27 +1,20 @@
-using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Lexing;
 
-/// <summary>
-///     Provides fast case-insensitive keyword lookup using frozen dictionaries.
-///     Eliminates the need for ToLowerInvariant() allocations during tokenization.
-/// </summary>
-public static class KeywordLookup
+public static partial class KeywordLookup
 {
-    private static readonly FrozenDictionary<string, TokenType> Keywords;
-    private static readonly FrozenDictionary<string, TokenType> SchemaKeywordTypes;
-    private static readonly FrozenSet<string> SchemaKeywords;
-    private static readonly FrozenDictionary<string, TokenType> Operators;
+    private static readonly FrozenDictionary<string, TokenType> Keywords = CreateKeywords();
+    private static readonly FrozenDictionary<string, TokenType> SchemaKeywordTypes = CreateSchemaKeywordTypes();
+    private static readonly FrozenSet<string> SchemaKeywords = CreateSchemaKeywords();
+    private static readonly FrozenDictionary<string, TokenType> Operators = CreateOperators();
 
-    static KeywordLookup()
+    private static FrozenDictionary<string, TokenType> CreateKeywords()
     {
-        // SQL keywords mapping (case-insensitive)
-        var keywords = new Dictionary<string, TokenType>(StringComparer.OrdinalIgnoreCase)
+        return new Dictionary<string, TokenType>(StringComparer.OrdinalIgnoreCase)
         {
-            // Basic SQL keywords
             { "desc", TokenType.Desc },
             { "asc", TokenType.Asc },
             { "and", TokenType.And },
@@ -30,6 +23,8 @@ public static class KeywordLookup
             { "where", TokenType.Where },
             { "select", TokenType.Select },
             { "from", TokenType.From },
+            { "pivot", TokenType.Pivot },
+            { "unpivot", TokenType.Unpivot },
             { "like", TokenType.Like },
             { "rlike", TokenType.RLike },
             { "as", TokenType.As },
@@ -48,6 +43,8 @@ public static class KeywordLookup
             { "true", TokenType.True },
             { "false", TokenType.False },
             { "in", TokenType.In },
+            { "exists", TokenType.Exists }, { "any", TokenType.Any },
+            { "some", TokenType.Some }, { "all", TokenType.All },
             { "table", TokenType.Table },
             { "couple", TokenType.Couple },
             { "case", TokenType.Case },
@@ -59,12 +56,12 @@ public static class KeywordLookup
             { "between", TokenType.Between },
             { "over", TokenType.Over },
             { "window", TokenType.Window }
-        };
+        }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+    }
 
-        Keywords = keywords.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-
-        // Operators (case-sensitive, exact match)
-        var operators = new Dictionary<string, TokenType>(StringComparer.Ordinal)
+    private static FrozenDictionary<string, TokenType> CreateOperators()
+    {
+        return new Dictionary<string, TokenType>(StringComparer.Ordinal)
         {
             { ",", TokenType.Comma },
             { "<>", TokenType.Diff },
@@ -87,19 +84,21 @@ public static class KeywordLookup
             { "}", TokenType.RBracket },
             { ";", TokenType.Semicolon },
             { ":", TokenType.Colon },
+            { "::", TokenType.DoubleColon },
             { "&", TokenType.Ampersand },
             { "|", TokenType.Pipe },
             { "^", TokenType.Caret },
             { "<<", TokenType.LeftShift },
             { ">>", TokenType.RightShift },
             { "=>", TokenType.FatArrow },
+            { "??", TokenType.NullCoalescing },
             { "?", TokenType.QuestionMark }
-        };
+        }.ToFrozenDictionary(StringComparer.Ordinal);
+    }
 
-        Operators = operators.ToFrozenDictionary(StringComparer.Ordinal);
-
-        // Schema-specific keywords that should only be recognized in schema context
-        var schemaKeywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    private static FrozenSet<string> CreateSchemaKeywords()
+    {
+        return new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "binary", "text", "le", "be",
             "byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong",
@@ -109,12 +108,12 @@ public static class KeywordLookup
             "pattern", "literal", "until", "between", "chars", "token",
             "rest", "whitespace", "optional", "repeat", "switch", "nested",
             "escaped", "greedy", "lazy", "lower", "upper", "capture", "extends"
-        };
+        }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+    }
 
-        SchemaKeywords = schemaKeywords.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
-
-        // Schema keyword to token type mapping (case-insensitive)
-        var schemaKeywordTypes = new Dictionary<string, TokenType>(StringComparer.OrdinalIgnoreCase)
+    private static FrozenDictionary<string, TokenType> CreateSchemaKeywordTypes()
+    {
+        return new Dictionary<string, TokenType>(StringComparer.OrdinalIgnoreCase)
         {
             { "binary", TokenType.Binary },
             { "text", TokenType.Text },
@@ -156,6 +155,7 @@ public static class KeywordLookup
             { "optional", TokenType.Optional },
             { "repeat", TokenType.Repeat },
             { "switch", TokenType.Switch },
+            { "substream", TokenType.Substream },
             { "nested", TokenType.Nested },
             { "escaped", TokenType.Escaped },
             { "greedy", TokenType.Greedy },
@@ -164,61 +164,81 @@ public static class KeywordLookup
             { "upper", TokenType.Upper },
             { "capture", TokenType.Capture },
             { "extends", TokenType.Extends }
-        };
-
-        SchemaKeywordTypes = schemaKeywordTypes.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+        }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
     }
 
-    /// <summary>
-    ///     Tries to get the token type for a keyword using a string key.
-    /// </summary>
-    /// <param name="text">The text to look up.</param>
-    /// <param name="tokenType">The token type if found.</param>
-    /// <returns>True if the text is a recognized keyword.</returns>
     public static bool TryGetKeyword(string text, out TokenType tokenType)
     {
         return Keywords.TryGetValue(text, out tokenType);
     }
 
-    /// <summary>
-    ///     Tries to get the token type for an operator.
-    /// </summary>
-    /// <param name="text">The operator text to look up.</param>
-    /// <param name="tokenType">The token type if found.</param>
-    /// <returns>True if the text is a recognized operator.</returns>
-    public static bool TryGetOperator(string text, out TokenType tokenType)
+    public static bool TryGetKeyword(ReadOnlySpan<char> text, out TokenType tokenType)
     {
-        return Operators.TryGetValue(text, out tokenType);
+        switch (text.Length)
+        {
+            case 2:
+                if (EqualsKeyword(text, "or")) return Found(TokenType.Or, out tokenType);
+                if (EqualsKeyword(text, "as")) return Found(TokenType.As, out tokenType);
+                if (EqualsKeyword(text, "is")) return Found(TokenType.Is, out tokenType);
+                if (EqualsKeyword(text, "on")) return Found(TokenType.On, out tokenType);
+                if (EqualsKeyword(text, "in")) return Found(TokenType.In, out tokenType);
+                break;
+            case 3:
+                if (EqualsKeyword(text, "and")) return Found(TokenType.And, out tokenType);
+                if (EqualsKeyword(text, "not")) return Found(TokenType.Not, out tokenType);
+                if (EqualsKeyword(text, "any")) return Found(TokenType.Any, out tokenType);
+                if (EqualsKeyword(text, "all")) return Found(TokenType.All, out tokenType);
+                if (EqualsKeyword(text, "asc")) return Found(TokenType.Asc, out tokenType);
+                if (EqualsKeyword(text, "end")) return Found(TokenType.End, out tokenType);
+                break;
+            case 4:
+                if (EqualsKeyword(text, "desc")) return Found(TokenType.Desc, out tokenType);
+                if (EqualsKeyword(text, "from")) return Found(TokenType.From, out tokenType);
+                if (EqualsKeyword(text, "like")) return Found(TokenType.Like, out tokenType);
+                if (EqualsKeyword(text, "null")) return Found(TokenType.Null, out tokenType);
+                if (EqualsKeyword(text, "skip")) return Found(TokenType.Skip, out tokenType);
+                if (EqualsKeyword(text, "take")) return Found(TokenType.Take, out tokenType);
+                if (EqualsKeyword(text, "with")) return Found(TokenType.With, out tokenType);
+                if (EqualsKeyword(text, "true")) return Found(TokenType.True, out tokenType);
+                if (EqualsKeyword(text, "some")) return Found(TokenType.Some, out tokenType);
+                if (EqualsKeyword(text, "case")) return Found(TokenType.Case, out tokenType);
+                if (EqualsKeyword(text, "when")) return Found(TokenType.When, out tokenType);
+                if (EqualsKeyword(text, "then")) return Found(TokenType.Then, out tokenType);
+                if (EqualsKeyword(text, "else")) return Found(TokenType.Else, out tokenType);
+                if (EqualsKeyword(text, "over")) return Found(TokenType.Over, out tokenType);
+                break;
+            case 5:
+                if (EqualsKeyword(text, "where")) return Found(TokenType.Where, out tokenType);
+                if (EqualsKeyword(text, "pivot")) return Found(TokenType.Pivot, out tokenType);
+                if (EqualsKeyword(text, "rlike")) return Found(TokenType.RLike, out tokenType);
+                if (EqualsKeyword(text, "union")) return Found(TokenType.Union, out tokenType);
+                if (EqualsKeyword(text, "table")) return Found(TokenType.Table, out tokenType);
+                if (EqualsKeyword(text, "false")) return Found(TokenType.False, out tokenType);
+                break;
+            case 6:
+                if (EqualsKeyword(text, "select")) return Found(TokenType.Select, out tokenType);
+                if (EqualsKeyword(text, "except")) return Found(TokenType.Except, out tokenType);
+                if (EqualsKeyword(text, "having")) return Found(TokenType.Having, out tokenType);
+                if (EqualsKeyword(text, "couple")) return Found(TokenType.Couple, out tokenType);
+                if (EqualsKeyword(text, "window")) return Found(TokenType.Window, out tokenType);
+                if (EqualsKeyword(text, "exists")) return Found(TokenType.Exists, out tokenType);
+                break;
+            case 7:
+                if (EqualsKeyword(text, "between")) return Found(TokenType.Between, out tokenType);
+                if (EqualsKeyword(text, "unpivot")) return Found(TokenType.Unpivot, out tokenType);
+                break;
+            case 8:
+                if (EqualsKeyword(text, "contains")) return Found(TokenType.Contains, out tokenType);
+                if (EqualsKeyword(text, "distinct")) return Found(TokenType.Distinct, out tokenType);
+                break;
+            case 9:
+                if (EqualsKeyword(text, "functions")) return Found(TokenType.Functions, out tokenType);
+                if (EqualsKeyword(text, "intersect")) return Found(TokenType.Intersect, out tokenType);
+                break;
+        }
+
+        tokenType = TokenType.Word;
+        return false;
     }
 
-    /// <summary>
-    ///     Checks if the text is a schema-specific keyword.
-    /// </summary>
-    /// <param name="text">The text to check.</param>
-    /// <returns>True if the text is a schema keyword.</returns>
-    public static bool IsSchemaKeyword(string text)
-    {
-        return SchemaKeywords.Contains(text);
-    }
-
-    /// <summary>
-    ///     Gets the token type for a schema keyword.
-    /// </summary>
-    /// <param name="text">The schema keyword text.</param>
-    /// <returns>The corresponding token type.</returns>
-    public static TokenType GetSchemaKeywordType(string text)
-    {
-        return SchemaKeywordTypes.GetValueOrDefault(text, TokenType.Word);
-    }
-
-    /// <summary>
-    ///     Tries to get the token type for a schema keyword.
-    /// </summary>
-    /// <param name="text">The schema keyword text.</param>
-    /// <param name="tokenType">The token type if found.</param>
-    /// <returns>True if the text is a recognized schema keyword.</returns>
-    public static bool TryGetSchemaKeyword(string text, out TokenType tokenType)
-    {
-        return SchemaKeywordTypes.TryGetValue(text, out tokenType);
-    }
 }

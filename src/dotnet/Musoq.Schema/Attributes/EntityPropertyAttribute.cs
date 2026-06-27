@@ -1,5 +1,4 @@
-﻿using System;
+﻿namespace Musoq.Schema.Attributes;
 
-namespace Musoq.Schema.Attributes;
-
-public class EntityPropertyAttribute : Attribute;
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class EntityPropertyAttribute : Attribute;

@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class DescToken : Token
+public class DescToken(TextSpan span) : Token(TokenText, TokenType.Desc, span)
 {
     public const string TokenText = "desc";
-
-    public DescToken(TextSpan span)
-        : base(TokenText, TokenType.Desc, span)
-    {
-    }
 }

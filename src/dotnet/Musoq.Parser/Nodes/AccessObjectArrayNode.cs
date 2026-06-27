@@ -1,20 +1,12 @@
-﻿using System;
 using System.Linq;
 using System.Reflection;
 using Musoq.Parser.Tokens;
 
 namespace Musoq.Parser.Nodes;
 
-public class AccessObjectArrayNode : IdentifierNode
+public class AccessObjectArrayNode(NumericAccessToken token) : IdentifierNode(token.Name)
 {
-    public AccessObjectArrayNode(NumericAccessToken token)
-        : base(token.Name)
-    {
-        Token = token;
-        Id = $"{nameof(AccessObjectArrayNode)}{token.Value}";
-    }
-
-    public AccessObjectArrayNode(NumericAccessToken token, PropertyInfo propertyInfo)
+    public AccessObjectArrayNode(NumericAccessToken token, PropertyInfo? propertyInfo)
         : this(token)
     {
         PropertyInfo = propertyInfo;
@@ -23,8 +15,8 @@ public class AccessObjectArrayNode : IdentifierNode
     /// <summary>
     ///     Constructor for column-based indexed access (e.g., Name[0], f.Name[0])
     /// </summary>
-    public AccessObjectArrayNode(NumericAccessToken token, Type columnType, string tableAlias = null,
-        string intendedTypeName = null)
+    public AccessObjectArrayNode(NumericAccessToken token, Type? columnType, string? tableAlias = null,
+        string? intendedTypeName = null)
         : this(token)
     {
         ColumnType = columnType;
@@ -33,7 +25,7 @@ public class AccessObjectArrayNode : IdentifierNode
         IntendedTypeName = intendedTypeName;
     }
 
-    public NumericAccessToken Token { get; }
+    public NumericAccessToken Token { get; } = token;
 
     public string ObjectName => Token.Name;
 
@@ -45,18 +37,18 @@ public class AccessObjectArrayNode : IdentifierNode
     /// <summary>
     ///     Table alias for column access (null for direct access)
     /// </summary>
-    public string TableAlias { get; }
+    public string? TableAlias { get; }
 
     /// <summary>
     ///     Column type for column access
     /// </summary>
-    public Type ColumnType { get; }
+    public Type? ColumnType { get; }
 
     /// <summary>
     ///     For schema reference arrays, the intended type name of elements (e.g., "Musoq.Generated.Interpreters.Point").
     ///     This is used for code generation to cast array elements to the generated type.
     /// </summary>
-    public string IntendedTypeName { get; }
+    public string? IntendedTypeName { get; }
 
     public override Type ReturnType
     {
@@ -65,11 +57,14 @@ public class AccessObjectArrayNode : IdentifierNode
             // Handle column-based indexed access
             if (IsColumnAccess)
             {
+                if (ColumnType == null)
+                    return typeof(object);
+
                 if (ColumnType == typeof(string))
                     // String character access returns char
                     return typeof(char);
 
-                if (ColumnType.IsArray) return ColumnType.GetElementType();
+                if (ColumnType.IsArray) return ColumnType.GetElementType() ?? typeof(object);
 
                 // Handle other indexable types
                 var indexProperty = ColumnType.GetProperties()
@@ -90,7 +85,7 @@ public class AccessObjectArrayNode : IdentifierNode
             }
 
             if (PropertyInfo.PropertyType.IsArray)
-                return PropertyInfo.PropertyType.GetElementType();
+                return PropertyInfo.PropertyType.GetElementType() ?? typeof(object);
 
             return (from propertyInfo in PropertyInfo.PropertyType.GetProperties()
                 where propertyInfo.GetIndexParameters().Length == 1
@@ -98,11 +93,12 @@ public class AccessObjectArrayNode : IdentifierNode
         }
     }
 
-    public override string Id { get; }
-    public PropertyInfo PropertyInfo { get; }
+    public override string Id { get; } = $"{nameof(AccessObjectArrayNode)}{token.Value}";
+    public PropertyInfo? PropertyInfo { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

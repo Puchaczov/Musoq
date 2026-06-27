@@ -1,11 +1,10 @@
-﻿using System;
-
-namespace Musoq.Parser.Nodes;
+﻿namespace Musoq.Parser.Nodes;
 
 public class CreateTransformationTableNode : Node
 {
     public CreateTransformationTableNode(string name, string[] keys, FieldNode[] fields, bool forGrouping)
     {
+        ArgumentNullException.ThrowIfNull(keys);
         Name = name;
         Keys = keys;
         Fields = fields;
@@ -22,12 +21,13 @@ public class CreateTransformationTableNode : Node
 
     public string Name { get; }
 
-    public override Type ReturnType => null;
+    public override Type? ReturnType => null;
 
     public override string Id { get; }
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

@@ -1,5 +1,3 @@
-﻿#nullable enable
-using System;
 using System.Linq;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
@@ -12,6 +10,15 @@ namespace Musoq.Evaluator.Exceptions;
 /// </summary>
 public class CannotResolveMethodException : Exception, IDiagnosticException
 {
+
+    public CannotResolveMethodException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public CannotResolveMethodException()
+    {
+    }
     /// <summary>
     ///     Initializes a new instance with a message.
     /// </summary>
@@ -73,6 +80,7 @@ public class CannotResolveMethodException : Exception, IDiagnosticException
     /// </summary>
     public static CannotResolveMethodException CreateForCannotMatchMethodNameOrArguments(string methodName, Node[] args)
     {
+        ArgumentNullException.ThrowIfNull(args);
         var types = args.Length > 0
             ? string.Join(", ", args.Select(f => f.ReturnType?.ToString() ?? "null"))
             : string.Empty;

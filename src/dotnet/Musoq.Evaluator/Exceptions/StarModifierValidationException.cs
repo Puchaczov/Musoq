@@ -1,5 +1,3 @@
-#nullable enable
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -7,6 +5,20 @@ namespace Musoq.Evaluator.Exceptions;
 
 public class StarModifierValidationException : Exception, IDiagnosticException
 {
+
+    public StarModifierValidationException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public StarModifierValidationException(string message)
+        : base(message)
+    {
+    }
+
+    public StarModifierValidationException()
+    {
+    }
     public StarModifierValidationException(string message, DiagnosticCode code, TextSpan span)
         : base(message)
     {

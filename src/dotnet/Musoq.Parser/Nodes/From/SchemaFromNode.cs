@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Musoq.Parser.Nodes.From;
+﻿namespace Musoq.Parser.Nodes.From;
 
 public class SchemaFromNode : FromNode
 {
@@ -19,6 +17,7 @@ public class SchemaFromNode : FromNode
         int queryId)
         : base(alias, returnType)
     {
+        ArgumentNullException.ThrowIfNull(parameters);
         Schema = schema;
         Method = method;
         Parameters = parameters;
@@ -39,6 +38,7 @@ public class SchemaFromNode : FromNode
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -52,10 +52,10 @@ public class SchemaFromNode : FromNode
 
     public override int GetHashCode()
     {
-        return Id.GetHashCode();
+        return Id.GetHashCode(StringComparison.Ordinal);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj is SchemaFromNode node)
             return node.Id == Id;

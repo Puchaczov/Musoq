@@ -1,5 +1,3 @@
-#nullable enable
-using System;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 
@@ -7,6 +5,15 @@ namespace Musoq.Evaluator.Exceptions;
 
 public class ConstructionNotYetSupported : Exception, IDiagnosticException
 {
+
+    public ConstructionNotYetSupported(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public ConstructionNotYetSupported()
+    {
+    }
     public ConstructionNotYetSupported(string message)
         : base(message)
     {

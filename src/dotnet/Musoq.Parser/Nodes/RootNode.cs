@@ -1,20 +1,14 @@
-﻿using System;
+﻿namespace Musoq.Parser.Nodes;
 
-namespace Musoq.Parser.Nodes;
-
-public class RootNode : UnaryNode
+public class RootNode(Node node) : UnaryNode(node)
 {
-    public RootNode(Node node) : base(node)
-    {
-        Id = $"{nameof(RootNode)}{node.Id}";
-    }
+    public override Type? ReturnType => null;
 
-    public override Type ReturnType => null;
-
-    public override string Id { get; }
+    public override string Id { get; } = $"{nameof(RootNode)}{node.Id}";
 
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 

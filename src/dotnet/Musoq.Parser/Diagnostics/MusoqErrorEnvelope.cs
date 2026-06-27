@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace Musoq.Parser.Diagnostics;
@@ -84,6 +83,7 @@ public sealed class MusoqErrorEnvelope
     /// </summary>
     public static MusoqErrorEnvelope FromDiagnostic(Diagnostic diagnostic, string? queryText = null)
     {
+        ArgumentNullException.ThrowIfNull(diagnostic);
         var metadata = ErrorMetadataCatalog.Get(diagnostic.Code);
 
         var explanation = diagnostic.Explanation
@@ -126,6 +126,7 @@ public sealed class MusoqErrorEnvelope
     /// </summary>
     public static MusoqErrorEnvelope FromException(Exception exception, string? queryText = null)
     {
+        ArgumentNullException.ThrowIfNull(exception);
         var sourceText = queryText != null ? new SourceText(queryText) : null;
         var diagnostic = exception.ToDiagnosticOrGeneric(sourceText);
         var envelope = FromDiagnostic(diagnostic, queryText);

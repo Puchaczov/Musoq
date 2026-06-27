@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -69,8 +68,7 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
     /// <returns>True if the diagnostic was added, false if max errors reached.</returns>
     public bool Add(Diagnostic diagnostic)
     {
-        if (diagnostic == null)
-            throw new ArgumentNullException(nameof(diagnostic));
+        ArgumentNullException.ThrowIfNull(diagnostic);
 
         if (diagnostic.IsError && HasTooManyErrors)
             return false;
@@ -163,6 +161,7 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
     /// </summary>
     public void AddRange(IEnumerable<Diagnostic> diagnostics)
     {
+        ArgumentNullException.ThrowIfNull(diagnostics);
         foreach (var diagnostic in diagnostics)
             if (!Add(diagnostic))
                 break;
@@ -173,6 +172,7 @@ public sealed class DiagnosticBag : IEnumerable<Diagnostic>
     /// </summary>
     public void AddRange(DiagnosticBag other)
     {
+        ArgumentNullException.ThrowIfNull(other);
         AddRange(other._diagnostics);
     }
 

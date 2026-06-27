@@ -3,14 +3,14 @@ using Musoq.Schema.DataSources;
 
 namespace Musoq.Playground;
 
-public class NonEquiTable : ISchemaTable
+internal sealed class NonEquiTable : ISchemaTable
 {
-    public ISchemaColumn[] Columns => new ISchemaColumn[]
-    {
+    public ISchemaColumn[] Columns =>
+    [
         new SchemaColumn(nameof(NonEquiEntity.Id), 0, typeof(int)),
         new SchemaColumn(nameof(NonEquiEntity.Name), 1, typeof(string)),
         new SchemaColumn(nameof(NonEquiEntity.Population), 2, typeof(int))
-    };
+    ];
 
     public ISchemaColumn GetColumnByName(string name)
     {

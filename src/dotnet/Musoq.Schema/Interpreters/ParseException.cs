@@ -1,7 +1,3 @@
-#nullable enable
-
-using System;
-
 namespace Musoq.Schema.Interpreters;
 
 /// <summary>
@@ -10,6 +6,19 @@ namespace Musoq.Schema.Interpreters;
 /// </summary>
 public class ParseException : Exception
 {
+    public ParseException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
+    public ParseException(string message)
+        : base(message)
+    {
+    }
+
+    public ParseException()
+    {
+    }
     /// <summary>
     ///     Creates a new parse exception.
     /// </summary>
@@ -55,7 +64,7 @@ public class ParseException : Exception
     /// <summary>
     ///     Gets the name of the schema being parsed when the error occurred.
     /// </summary>
-    public string SchemaName { get; }
+    public string SchemaName { get; } = string.Empty;
 
     /// <summary>
     ///     Gets the name of the field where the error occurred, or null if not field-specific.
@@ -70,7 +79,7 @@ public class ParseException : Exception
     /// <summary>
     ///     Gets additional details about the error.
     /// </summary>
-    public string Details { get; }
+    public string Details { get; } = string.Empty;
 
     private static string FormatMessage(ParseErrorCode errorCode, string schemaName, string? fieldName, int position,
         string details)

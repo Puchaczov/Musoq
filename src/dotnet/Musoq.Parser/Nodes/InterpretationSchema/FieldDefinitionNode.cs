@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 
 namespace Musoq.Parser.Nodes.InterpretationSchema;
@@ -24,17 +23,39 @@ public class FieldDefinitionNode : SchemaFieldNode
         FieldConstraintNode? constraint = null,
         Node? atOffset = null,
         Node? whenCondition = null)
+        : this(name, typeAnnotation, constraint, atOffset, whenCondition, null)
+    {
+    }
+
+    /// <summary>
+    ///     Creates a new field definition with an optional value validation.
+    /// </summary>
+    /// <param name="name">The field name.</param>
+    /// <param name="typeAnnotation">The type specification.</param>
+    /// <param name="constraint">Optional check constraint.</param>
+    /// <param name="atOffset">Optional fixed offset position.</param>
+    /// <param name="whenCondition">Optional conditional parsing expression.</param>
+    /// <param name="valueValidation">Optional <c>const</c>/<c>magic</c>/<c>oneOf</c> value validation.</param>
+    public FieldDefinitionNode(
+        string name,
+        TypeAnnotationNode typeAnnotation,
+        FieldConstraintNode? constraint,
+        Node? atOffset,
+        Node? whenCondition,
+        FieldValueValidationNode? valueValidation)
         : base(name)
     {
         TypeAnnotation = typeAnnotation ?? throw new ArgumentNullException(nameof(typeAnnotation));
         Constraint = constraint;
         AtOffset = atOffset;
         WhenCondition = whenCondition;
+        ValueValidation = valueValidation;
 
         var constraintId = constraint?.Id ?? string.Empty;
         var atId = atOffset?.Id ?? string.Empty;
         var whenId = whenCondition?.Id ?? string.Empty;
-        Id = $"{nameof(FieldDefinitionNode)}{Name}{typeAnnotation.Id}{constraintId}{atId}{whenId}";
+        var validationId = valueValidation?.Id ?? string.Empty;
+        Id = $"{nameof(FieldDefinitionNode)}{Name}{typeAnnotation.Id}{constraintId}{atId}{whenId}{validationId}";
     }
 
     /// <summary>
@@ -59,6 +80,11 @@ public class FieldDefinitionNode : SchemaFieldNode
     /// </summary>
     public Node? WhenCondition { get; }
 
+    /// <summary>
+    ///     Gets the optional <c>const</c>/<c>magic</c>/<c>oneOf</c> value validation for this field.
+    /// </summary>
+    public FieldValueValidationNode? ValueValidation { get; }
+
     /// <inheritdoc />
     public override Type ReturnType => TypeAnnotation.ClrType;
 
@@ -80,6 +106,7 @@ public class FieldDefinitionNode : SchemaFieldNode
     /// <inheritdoc />
     public override void Accept(IExpressionVisitor visitor)
     {
+        ArgumentNullException.ThrowIfNull(visitor);
         visitor.Visit(this);
     }
 
@@ -91,11 +118,13 @@ public class FieldDefinitionNode : SchemaFieldNode
         builder.Append(": ");
         builder.Append(TypeAnnotation.ToString());
 
-        if (AtOffset != null) builder.Append($" at {AtOffset.ToString()}");
+        if (ValueValidation != null) builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" {ValueValidation.ToString()}");
 
-        if (Constraint != null) builder.Append($" {Constraint.ToString()}");
+        if (AtOffset != null) builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" at {AtOffset.ToString()}");
 
-        if (WhenCondition != null) builder.Append($" when {WhenCondition.ToString()}");
+        if (Constraint != null) builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" {Constraint.ToString()}");
+
+        if (WhenCondition != null) builder.Append(System.Globalization.CultureInfo.InvariantCulture, $" when {WhenCondition.ToString()}");
 
         return builder.ToString();
     }

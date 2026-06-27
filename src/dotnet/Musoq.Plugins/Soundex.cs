@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -62,7 +62,7 @@ internal sealed partial class Soundex
 
             soundexCode.Append(numberCharForCurrentLetter);
 
-            previousWasHorW = "HW".Contains(word[i]);
+            previousWasHorW = "HW".Contains(word[i], StringComparison.Ordinal);
         }
 
         return soundexCode
@@ -74,11 +74,11 @@ internal sealed partial class Soundex
 
     private static char GetCharNumberForLetter(char letter)
     {
-        if ("BFPV".Contains(letter)) return '1';
-        if ("CGJKQSXZ".Contains(letter)) return '2';
-        if ("DT".Contains(letter)) return '3';
+        if ("BFPV".Contains(letter, StringComparison.Ordinal)) return '1';
+        if ("CGJKQSXZ".Contains(letter, StringComparison.Ordinal)) return '2';
+        if ("DT".Contains(letter, StringComparison.Ordinal)) return '3';
         if ('L' == letter) return '4';
-        if ("MN".Contains(letter)) return '5';
+        if ("MN".Contains(letter, StringComparison.Ordinal)) return '5';
         if ('R' == letter) return '6';
 
         return '0';

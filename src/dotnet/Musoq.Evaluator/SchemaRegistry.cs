@@ -1,6 +1,3 @@
-#nullable enable
-
-using System;
 using System.Collections.Generic;
 using Musoq.Parser.Nodes;
 
@@ -36,8 +33,7 @@ public class SchemaRegistry
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentNullException(nameof(name));
-        if (node == null)
-            throw new ArgumentNullException(nameof(node));
+        ArgumentNullException.ThrowIfNull(node);
 
         if (_schemas.ContainsKey(name))
             throw new InvalidOperationException(

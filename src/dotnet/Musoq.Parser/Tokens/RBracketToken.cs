@@ -1,11 +1,6 @@
 ﻿namespace Musoq.Parser.Tokens;
 
-public class RBracketToken : Token
+public class RBracketToken(TextSpan textSpan) : Token(TokenText, TokenType.RBracket, textSpan)
 {
     public const string TokenText = "}";
-
-    public RBracketToken(TextSpan textSpan)
-        : base(TokenText, TokenType.RBracket, textSpan)
-    {
-    }
 }
