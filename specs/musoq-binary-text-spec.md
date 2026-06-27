@@ -132,11 +132,11 @@ binary CustomerRecord {
     -- Magic number identifying record type
     -- Must be 0x43555354 ('CUST' in ASCII)
     Magic:        int le,
-    
+
     -- Format version for backward compatibility
     -- Current version: 3
     Version:      short le,
-    
+
     -- Customer identifier (unique, sequential)
     CustomerId:   long le
 }
@@ -178,7 +178,7 @@ The extension uses SQL-compatible constructs where possible:
 |---------|--------------|---------------|
 | Constraints | `CHECK` constraint | `check` clause |
 | Conditional | `CASE WHEN` | `when` clause |
-| Type reference | `CAST(x AS type)` | `Interpret(data, Type)` |
+| Type reference | `CAST(x AS type)` | `Interpret<Type>(data)` |
 | Null semantics | Three-valued logic | Conditional fields yield `null` |
 
 ---
@@ -204,8 +204,8 @@ binary Record {
 -- Query follows schema definitions
 SELECT h.Magic, r.Id, r.Value
 FROM os.file('/data.bin') f
-CROSS APPLY Interpret(f.GetBytes(), Header) h
-CROSS APPLY InterpretAt(f.GetBytes(), 6, Record) r
+CROSS APPLY Interpret<Header>(f.GetBytes()) h
+CROSS APPLY InterpretAt<Record>(f.GetBytes(), 6) r
 ```
 
 **Scope Rules:**
@@ -216,10 +216,10 @@ CROSS APPLY InterpretAt(f.GetBytes(), 6, Record) r
 
 ### 3.2 CROSS APPLY / OUTER APPLY Relaxation
 
-**Current Behavior:**  
+**Current Behavior:**
 CROSS APPLY and OUTER APPLY require the right-hand expression to yield an enumerable (table-valued). Each element produces one output row.
 
-**Extended Behavior:**  
+**Extended Behavior:**
 Both CROSS APPLY and OUTER APPLY accept enumerable and scalar complex types:
 
 | Right-Hand Type | CROSS APPLY Behavior | OUTER APPLY Behavior |
@@ -228,13 +228,13 @@ Both CROSS APPLY and OUTER APPLY accept enumerable and scalar complex types:
 | Complex object `T` | Single output row with object bound to alias | Single output row with object bound to alias |
 | `null` | No output rows | One row with NULL alias |
 
-**Rationale:**  
-`Interpret()` returns a single structured object, not a collection. Relaxing CROSS/OUTER APPLY allows uniform syntax consistent with Musoq's existing patterns.
+**Rationale:**
+`Interpret<Schema>()` returns a single structured object, not a collection. Relaxing CROSS/OUTER APPLY allows uniform syntax consistent with Musoq's existing patterns.
 
 ```sql
 SELECT h.Magic, h.Version
 FROM os.file('/data.bin') f
-CROSS APPLY Interpret(f.GetBytes(), Header) h
+CROSS APPLY Interpret<Header>(f.GetBytes()) h
 ```
 
 **Semantics:**
@@ -243,22 +243,22 @@ CROSS APPLY Interpret(f.GetBytes(), Header) h
 - CROSS APPLY binds the object to alias `h`
 - Result: 1 row with access to `h.Magic`, `h.Version`, etc.
 
-**For arrays within schemas:**  
+**For arrays within schemas:**
 Arrays remain enumerable and work with CROSS/OUTER APPLY as collections:
 
 ```sql
 SELECT c.Magic, r.Id, r.Value
 FROM os.file('/data.bin') f
-CROSS APPLY Interpret(f.GetBytes(), Container) c
+CROSS APPLY Interpret<Container>(f.GetBytes()) c
 CROSS APPLY c.Records r
 ```
 
-**Implementation:**  
+**Implementation:**
 Single complex objects are wrapped in a single-element sequence for uniform processing. A `null` result with CROSS APPLY produces no output rows; a `null` result with OUTER APPLY produces one row with NULL columns.
 
 ### 3.3 APPLY-Only Restriction
 
-All interpretation functions — `Interpret()`, `Parse()`, `TryInterpret()`, `TryParse()`, `InterpretAt()`, `PartialInterpret()`, and `PartialParse()` — MUST appear as the right-hand side of a `CROSS APPLY` or `OUTER APPLY` clause. They MUST NOT be used directly in `SELECT`, `WHERE`, `HAVING`, or other expression contexts.
+All interpretation functions — `Interpret<Schema>()`, `Parse<Schema>()`, `TryInterpret<Schema>()`, `TryParse<Schema>()`, `InterpretAt<Schema>()`, `PartialInterpret<Schema>()`, and `PartialParse<Schema>()` — MUST appear as the right-hand side of a `CROSS APPLY` or `OUTER APPLY` clause. They MUST NOT be used directly in `SELECT`, `WHERE`, `HAVING`, or other expression contexts.
 
 **Valid usage:**
 
@@ -266,32 +266,32 @@ All interpretation functions — `Interpret()`, `Parse()`, `TryInterpret()`, `Tr
 -- CROSS APPLY — parsing succeeds or the row is excluded
 SELECT h.Magic, h.Version
 FROM os.file('/data.bin') f
-CROSS APPLY Interpret(f.GetBytes(), Header) h
+CROSS APPLY Interpret<Header>(f.GetBytes()) h
 
 -- OUTER APPLY — row is preserved with NULLs when parsing fails
 SELECT log.Timestamp, log.Level
 FROM os.file('/app.log') f
 CROSS APPLY Lines(f.GetContent()) line
-OUTER APPLY TryParse(line.Value, LogEntry) log
+OUTER APPLY TryParse<LogEntry>(line.Value) log
 ```
 
 **Invalid usage (compile-time error MQ3033):**
 
 ```sql
 -- ERROR: Parse cannot appear in SELECT
-SELECT Parse(line.Value, LogEntry)
+SELECT Parse<LogEntry>(line.Value)
 FROM ...
 
 -- ERROR: TryInterpret cannot appear in WHERE
 SELECT 1
 FROM os.files('./', '*.bin') f
-WHERE TryInterpret(f.GetBytes(), Header) IS NOT NULL
+WHERE TryInterpret<Header>(f.GetBytes()) IS NOT NULL
 ```
 
-**Rationale:**  
+**Rationale:**
 Interpretation functions return structured objects whose fields MUST be bound to an alias through APPLY. Without an alias, there is no way to reference individual fields of the parsed result. The APPLY clause provides the necessary scoping and alias binding.
 
-**Note:** Inline property access (e.g., `Interpret(data, Header).Magic` in SELECT) is reserved for a future version. See §12.1.
+**Note:** Inline property access (e.g., `Interpret<Header>(data).Magic` in SELECT) is reserved for a future version. See §12.1.
 
 ---
 
@@ -368,7 +368,7 @@ SizeExpression ::= IntegerLiteral | FieldReference | Expression
 **Size Expression Evaluation:**
 - Evaluated at parse time using values of previously parsed fields
 - MUST evaluate to a non-negative integer for meaningful data
-- Negative values produce diagnostic ISE007; the field is set to `null` (graceful handling, no exception thrown)
+- Negative values fail fast with diagnostic ISE0007
 
 Examples:
 
@@ -489,11 +489,11 @@ Examples:
 binary Message {
     MsgType:    byte,
     HasPayload: byte,
-    
+
     -- Only present when HasPayload is non-zero
     PayloadLen: int le when HasPayload <> 0,
     Payload:    byte[PayloadLen] when HasPayload <> 0,
-    
+
     -- Type-based conditions
     ErrorCode:  short le when MsgType = 0xFF
 }
@@ -536,12 +536,12 @@ Examples:
 ```sql
 binary Packet {
     RawFlags:   short le,
-    
+
     -- Computed from RawFlags, no bytes consumed
     IsCompressed: (RawFlags & 0x01) <> 0,
     IsEncrypted:  (RawFlags & 0x02) <> 0,
     Priority:     (RawFlags >> 4) & 0x0F,
-    
+
     Length:     int le,
     Data:       byte[Length]
 }
@@ -554,6 +554,7 @@ binary Packet {
 | Primitive keyword + endianness | Parsed field | `int le`, `short be` |
 | `byte[...]`, `string[...]`, `bits[...]` | Parsed field | `byte[16]`, `string[32] utf8` |
 | Known schema name | Parsed field | `HeaderSchema` |
+| `substream[...]` + `raw`/`as` | Parsed field | `substream[Length] as Body` |
 | Expression with operators | Computed field | `(Flags & 1) <> 0` |
 | Function call | Computed field | `Crc32(Data)` |
 | Parenthesized expression | Computed field | `(Count)` |
@@ -617,6 +618,15 @@ The `align[N]` directive advances to the next N-bit boundary. Common values:
 - `align[16]` - 16-bit alignment
 - `align[32]` - 32-bit alignment
 
+**Compile-time validation:**
+
+Field-size annotations are validated while parsing the schema. Violations raise
+diagnostic `MQ4001` (invalid binary schema field) instead of failing at runtime:
+
+- `bits[N]` requires `1 <= N <= 64`.
+- `align[N]` requires `N >= 1`.
+- Constant `byte[N]` and `Type[N]` array sizes must be non-negative.
+
 ### 4.8 Absolute Positioning
 
 Fields may specify absolute offsets:
@@ -667,16 +677,76 @@ binary ValidatedHeader {
 
 **Semantics:**
 - Field is parsed first, then validation is evaluated
-- Failed validation raises a parse error (ISE002) with field name and constraint
+- Failed validation raises a parse error (ISE0002) with field name and constraint
 - Validation may reference the current field AND any previously declared field
 - Validation expressions must evaluate to boolean
+
+### 4.9.1 Field Value Validations (`const`, `magic`, `oneOf`)
+
+Fields may declare value validations inline, immediately after the type/repeat
+annotation and before any `at`, `when`, or `check` clause:
+
+```
+ValueValidatedField ::= Identifier ':' Type ValueValidation? Positioning? Guard? Check?
+ValueValidation     ::= ('const' | 'magic') Value
+                      | ('const' | 'magic') '[' ByteList ']'
+                      | 'oneOf' '[' ValueList ']'
+```
+
+**`const` / `magic`** assert the field equals a single expected value. `magic` is
+an alias of `const`; both compile identically and exist so signature/magic-number
+fields can read naturally:
+
+```sql
+binary PngFile {
+    Signature: byte[8] magic [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
+    Width:     int be,
+    Height:    int be
+}
+
+binary Header {
+    Version:  byte const 1,
+    Reserved: byte const 0
+}
+```
+
+**`oneOf`** asserts the field equals one of an explicit, non-empty set of values:
+
+```sql
+binary Chunk {
+    Length:    int be,
+    ChunkType: string[4] ascii oneOf ['IHDR', 'IDAT', 'IEND']
+}
+```
+
+**Compatible types:**
+
+| Validation | Allowed field types |
+|------------|---------------------|
+| `const` / `magic` | primitive numeric, `bits`, string, `byte[N]`, raw byte substreams |
+| `oneOf` | primitive numeric, `bits`, string |
+
+**Semantics:**
+- Validation runs AFTER the field is read and string modifiers (`ascii`,
+  trimming, etc.) are applied.
+- When the field carries a `when` guard, validation is skipped if the guard is
+  false (the field is not read, so nothing is validated).
+- A failed validation raises `ParseException(ValidationFailed)`. With
+  `TryInterpret<>` or `TryParse<>` this makes the whole interpretation yield
+  `null`; with `Interpret<>` or `Parse<>` it throws and fails query execution.
+- `const`/`magic` may coexist with a `check` clause on the same field.
+
+**Compile-time validation:** Malformed value validations raise diagnostic
+`MQ4006` (invalid field constraint), including: duplicate validation modifiers,
+incompatible field types, an empty `oneOf` list, and byte-list literals outside
+`0..255`.
 
 ### 4.10 Repetition Until Condition
 
 For variable-length sequences without explicit count:
 
 ```
-RepeatedField ::= Identifier ':' Type 'repeat' 'until' Expression
+RepeatedField ::= Identifier ':' Type 'repeat' 'until' (Expression | 'eof')
 ```
 
 Examples:
@@ -694,12 +764,36 @@ binary TlvRecord {
 }
 ```
 
-**Semantics:**
+**Semantics (`repeat until` Expression):**
 - Parses elements repeatedly until condition becomes TRUE
 - `Records[-1]` refers to the most recently parsed element
 - Condition is evaluated AFTER each element is parsed
-- At least one element is always attempted
+- At least one element is always attempted (do-while)
 - Maximum iteration count is implementation-defined (default: 10,000)
+
+**Repeat until end of input (`repeat until eof`):**
+
+For sequences that fill the remaining input span:
+
+```sql
+binary Inner {
+    -- Read records until the current input span is exhausted
+    Records: TlvRecord repeat until eof
+}
+
+binary Frame {
+    Length:  byte,
+    Payload: substream[Length] as Inner,
+    Trailer: byte
+}
+```
+
+**Semantics (`repeat until eof`):**
+- Parses elements repeatedly until the current interpreter input boundary is reached
+- Zero-or-more: if already at end of input, the result is an empty array (no element is attempted)
+- `eof` is recognized only after `repeat until`; it is not a general keyword
+- Each element must consume at least one bit of input; a zero-progress element raises a parse error (ISE0009)
+- Composes with substreams: inside a `substream`, `eof` is bounded by the substream slice, so the repeat stops at the end of the bounded payload and parsing of the parent resumes at the field that follows the substream
 
 ### 4.11 Discard Fields
 
@@ -719,6 +813,154 @@ binary Example {
 - Discarded fields are NOT accessible in query results
 - Multiple `_` fields are permitted
 - Discard fields may have any type, including conditional
+
+### 4.12 Switch (Tagged Union) Payloads
+
+A field whose parsed type depends on a previously parsed discriminator value:
+
+```
+SwitchField   ::= Identifier ':' 'switch' Selector '{' SwitchCaseList '}'
+
+Selector      ::= FieldReference
+
+SwitchCaseList ::= SwitchCase (',' SwitchCase)* ','?
+
+SwitchCase    ::= CaseLabel '=>' Identifier ':' Type
+
+CaseLabel     ::= ScalarLiteral | '_'
+```
+
+The selector is a reference to a previously declared field. Each case maps a
+constant scalar value (or the default `_`) to a branch, where a branch has a
+unique alias and a binary type annotation.
+
+```sql
+binary Packet {
+    Type:    byte,
+    Length:  short le,
+    Payload: switch Type {
+        1 => Login: LoginPayload,
+        2 => Data:  DataPayload,
+        3 => Error: ErrorPayload,
+        _ => Raw:   byte[Length]
+    }
+}
+```
+
+#### 4.12.1 Result Shape
+
+A switch field produces a tagged-union value with:
+
+- A `Case` member holding the selected branch alias as a string (e.g. `"Login"`,
+  `"Raw"`).
+- One member per branch alias. Exactly one branch member — the one matching the
+  selector — is non-null; all other branch members are null.
+
+```sql
+SELECT
+    p.Type,
+    p.Payload.Case,            -- selected branch alias, e.g. 'Login'
+    p.Payload.Login.UserId,    -- non-null only when Type = 1
+    p.Payload.Raw              -- non-null only when no case matched
+FROM os.file('/packet.bin') f
+CROSS APPLY Interpret<Packet>(f.GetBytes()) p
+```
+
+#### 4.12.2 Cursor Semantics
+
+- The selector is evaluated against already-parsed field values; it consumes no
+  bytes.
+- Only the selected branch is parsed. The cursor advances by exactly the size of
+  the selected branch.
+- Branch types follow the same cursor rules as the equivalent standalone field
+  type (schema reference, `byte[...]`, primitive, etc.).
+
+#### 4.12.3 Default and No-Match Behavior
+
+- The default case `_` is OPTIONAL and, when present, MUST be the last case.
+- When the selector matches no case and a default exists, the default branch is
+  parsed.
+- When the selector matches no case and NO default exists, parsing fails with a
+  parse error identifying the field and unmatched selector value.
+
+#### 4.12.4 Diagnostics
+
+| Code | Condition |
+|------|-----------|
+| `MQ4011` | Switch selector references a field that is not declared before the switch field (forward reference or unknown field). |
+| `MQ4012` | Two branches in the same switch declare the same alias. |
+| `MQ4013` | A case label is not a constant scalar literal compatible with the selector type, or a branch type is not a supported binary type annotation. |
+
+#### 4.12.5 v1 Limits
+
+- The selector MUST be a reference to a previously declared field; arbitrary
+  expressions are not permitted.
+- Case labels MUST be constant scalar literals (integers, etc.); ranges and
+  expression cases are reserved (see §12).
+- `_` is an OPTIONAL default; there is no fallthrough between cases.
+- A switch field is a single value. Arrays of switch fields are not written
+  directly; wrap the switch in a nested schema and make an array of that schema.
+
+### 4.13 Substream (Length-Bounded) Payloads
+
+A field that parses a nested payload within an explicit byte length, so that a
+nested schema cannot drift into following parent fields:
+
+```
+SubstreamField ::= Identifier ':' 'substream' '[' Expression ']' SubstreamBody
+
+SubstreamBody  ::= 'raw'
+                 | 'as' Type SubstreamMode?
+
+SubstreamMode  ::= 'exact' | 'lax'
+```
+
+The size expression resolves to the substream length in bytes and may reference
+previously parsed fields. The substream occupies exactly that many bytes; on
+success the parent cursor advances to `substreamStart + length` regardless of
+how many bytes the nested parser consumed.
+
+```sql
+binary Packet {
+    Kind:     byte,
+    Length:   uint le,
+    Payload:  substream[Length] as PayloadBody,
+    Checksum: uint le
+}
+```
+
+**Forms:**
+
+| Form | Result |
+|------|--------|
+| `substream[Length] raw` | `byte[]` of exactly `Length` bytes |
+| `substream[Length] as Body` | nested `Body` value, exact mode (default) |
+| `substream[Length] as Body exact` | nested `Body`; fails if nested parser consumes fewer than `Length` bytes |
+| `substream[Length] as Body lax` | nested `Body`; unconsumed trailing bytes are skipped |
+| `substream[Length] as { ... }` | inline-schema payload, exact/lax as above |
+
+#### 4.13.1 Cursor Semantics
+
+- The size expression is evaluated against already-parsed field values; the
+  bracketed length itself consumes no extra bytes.
+- The nested parser operates on a bounded slice of exactly `Length` bytes. An
+  over-read past the slice fails naturally because the slice has no more bytes.
+- On success, the parent cursor always advances to `substreamStart + Length`,
+  even in `lax` mode where the nested parser stops early.
+
+#### 4.13.2 Modes
+
+- `as ...` defaults to `exact`.
+- `exact` fails with a parse error if the nested parser consumes fewer than
+  `Length` bytes, catching truncated or mis-sized payloads.
+- `lax` permits the nested parser to consume fewer than `Length` bytes; the
+  remaining bytes inside the substream are discarded.
+
+#### 4.13.3 v1 Limits
+
+- Supported targets are `raw`, a schema-reference type, and an inline schema.
+- Switch (tagged-union) substream targets are reserved and not yet supported.
+- The size expression MUST resolve to a non-negative length.
 
 ---
 
@@ -756,7 +998,7 @@ CaptureMode ::= 'capture' '(' Identifier (',' Identifier)* ')'
 - Patterns are regular expressions. The supported subset includes: character classes (`\d`, `\w`, `\s`, `[...]`), quantifiers (`*`, `+`, `?`, `{n}`, `{n,m}`), alternation (`|`), grouping (`(...)`), named groups (`(?<name>...)`), anchors (`^`, `$`), and standard escape sequences. Lookahead, lookbehind, backreferences, and recursive patterns are not supported.
 - Match MUST occur at current position (implicit `\G` anchor)
 - Cursor advances past the entire match
-- Match failure raises a parse error (ISE003)
+- Match failure raises a parse error (ISE0003)
 
 Examples:
 
@@ -764,11 +1006,11 @@ Examples:
 text Example {
     -- Simple pattern
     Ip:       pattern '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',
-    
+
     -- Pattern with named captures (creates multiple fields)
-    Coords:   pattern '(?<Lat>-?\d+\.\d+),(?<Lon>-?\d+\.\d+)' 
+    Coords:   pattern '(?<Lat>-?\d+\.\d+),(?<Lon>-?\d+\.\d+)'
               capture (Lat, Lon),
-    
+
     -- Quantified patterns
     Digits:   pattern '\d+',
     Hex:      pattern '[0-9A-Fa-f]+'
@@ -801,7 +1043,7 @@ text HttpRequest {
 
 **Semantics:**
 - Match is case-sensitive
-- Failure raises parse error (ISE004)
+- Failure raises parse error (ISE0004)
 - Escape sequences: `\r`, `\n`, `\t`, `\\`, `\'`
 
 ### 5.4 Delimiter-Based Capture
@@ -826,7 +1068,7 @@ text Example {
 - Scans forward for first occurrence of delimiter
 - Captures all characters BEFORE the delimiter
 - Cursor advances PAST the delimiter
-- Delimiter not found raises parse error (ISE005)
+- Delimiter not found raises parse error (ISE0005)
 
 #### 5.4.2 Between Delimiters
 
@@ -865,7 +1107,7 @@ Handles escape sequences within delimited content:
 text Example {
     -- Default: backslash escapes (\" within quotes)
     String1: between '"' '"' escaped,
-    
+
     -- Custom escape: doubling ('' within single quotes)
     String2: between '''' '''' escaped ''''''
 }
@@ -895,7 +1137,7 @@ text CobolRecord {
 
 **Semantics:**
 - Reads exactly N characters (not bytes)
-- Insufficient characters raises parse error (ISE001)
+- Insufficient characters raises parse error (ISE0001)
 - Modifiers apply after capture
 
 ### 5.6 Token Capture
@@ -957,7 +1199,7 @@ text LogLine {
     Level:     until ':',
     _:         literal ': ',
     Message:   until '\t',
-    
+
     -- Optional trace ID at end
     _:         optional literal '\t',
     TraceId:   optional pattern '[a-f0-9]{32}'
@@ -1122,11 +1364,11 @@ Identifier ::= [a-zA-Z_][a-zA-Z0-9_]*
 binary Example {
     -- Single line comment
     Field1: int le,
-    
+
     /* Multi-line
        comment */
     Field2: short le,
-    
+
     Field3: byte   -- Inline comment
 }
 ```
@@ -1170,7 +1412,7 @@ MulExpression ::= UnaryExpression (MulOp UnaryExpression)*
 
 MulOp ::= '*' | '/' | '%'
 
-UnaryExpression ::= '-' UnaryExpression 
+UnaryExpression ::= '-' UnaryExpression
                   | '~' UnaryExpression
                   | 'NOT' UnaryExpression
                   | PrimaryExpression
@@ -1236,7 +1478,7 @@ Schema expressions have access to the following built-in functions. These are **
 | `IndexOf` | `IndexOf(byte[], byte[]) -> int` | Find byte pattern (-1 if not found) |
 | `ToHex` | `ToHex(byte[]) -> string` | Convert bytes to hex string |
 | `FromHex` | `FromHex(string) -> byte[]` | Convert hex string to bytes |
-| `ToString` | `ToString(byte[], string) -> string` | Decode bytes with encoding |
+| `ToText` | `ToText(byte[], string) -> string` | Decode bytes with encoding |
 
 These functions are available within `check` clauses, computed field expressions, and `when` conditions.
 
@@ -1248,8 +1490,8 @@ These functions are available within `check` clauses, computed field expressions
 
 Interpretation functions are generic methods in the Musoq method library. Each schema definition generates a typed interpreter, and the engine pairs it with the appropriate interpretation function based on schema kind (binary or text).
 
-- **Binary interpretation**: `Interpret(data, SchemaType)` — the engine passes the byte array and the generated binary interpreter to the underlying generic method.
-- **Text interpretation**: `Parse(text, SchemaType)` — the engine passes the string and the generated text interpreter to the underlying generic method.
+- **Binary interpretation**: `Interpret<SchemaType>(data)` — the engine passes the byte array and the generated binary interpreter to the underlying generic method.
+- **Text interpretation**: `Parse<SchemaType>(text)` — the engine passes the string and the generated text interpreter to the underlying generic method.
 
 The generated interpreter encapsulates all parsing logic derived from the schema definition. Query authors interact only with the SQL-level syntax shown in §7.2–§7.7; the generic dispatch is an engine implementation detail.
 
@@ -1261,7 +1503,7 @@ In SQL queries, the schema type is referenced by name (without parentheses), con
 -- Schema type referenced by name, no parentheses
 SELECT h.Magic, h.Version
 FROM os.file('/data.bin') f
-CROSS APPLY Interpret(f.GetBytes(), Header) h
+CROSS APPLY Interpret<Header>(f.GetBytes()) h
 ```
 
 **The engine:**
@@ -1272,7 +1514,7 @@ CROSS APPLY Interpret(f.GetBytes(), Header) h
 ### 7.3 Binary Interpretation
 
 ```sql
-Interpret(data, SchemaType)
+Interpret<SchemaType>(data)
 ```
 
 Parses byte array according to schema, returning structured result.
@@ -1280,13 +1522,13 @@ Parses byte array according to schema, returning structured result.
 ```sql
 SELECT h.Magic, h.Version
 FROM os.file('/data.bin') f
-CROSS APPLY Interpret(f.GetBytes(), Header) h
+CROSS APPLY Interpret<Header>(f.GetBytes()) h
 ```
 
 ### 7.4 Text Interpretation
 
 ```sql
-Parse(text, SchemaType)
+Parse<SchemaType>(text)
 ```
 
 Parses string according to text schema.
@@ -1295,28 +1537,28 @@ Parses string according to text schema.
 SELECT log.Timestamp, log.Level, log.Message
 FROM os.file('/app.log') f
 CROSS APPLY Lines(f.GetContent()) line
-CROSS APPLY Parse(line.Value, LogEntry) log
+CROSS APPLY Parse<LogEntry>(line.Value) log
 ```
 
 ### 7.5 Safe Interpretation
 
 ```sql
-TryInterpret(data, SchemaType) -> SchemaType?
-TryParse(text, SchemaType) -> SchemaType?
+TryInterpret<SchemaType>(data) -> SchemaType?
+TryParse<SchemaType>(text) -> SchemaType?
 ```
 
 Returns `null` instead of throwing on parse failure. Like all interpretation functions, `TryInterpret` and `TryParse` MUST be used inside `CROSS APPLY` or `OUTER APPLY` (see §3.3).
 
 ```sql
 -- Use OUTER APPLY so that rows are preserved when parsing fails
-SELECT 
+SELECT
     f.Name,
-    CASE WHEN h.Magic IS NOT NULL 
-         THEN 'Valid' 
-         ELSE 'Invalid' 
+    CASE WHEN h.Magic IS NOT NULL
+         THEN 'Valid'
+         ELSE 'Invalid'
     END AS Status
 FROM os.files('./', '*.bin') f
-OUTER APPLY TryInterpret(f.GetBytes(), Header) h
+OUTER APPLY TryInterpret<Header>(f.GetBytes()) h
 ```
 
 **Behavior with CROSS/OUTER APPLY:**
@@ -1326,18 +1568,18 @@ OUTER APPLY TryInterpret(f.GetBytes(), Header) h
 ### 7.6 Offset-Based Interpretation
 
 ```sql
-InterpretAt(data, offset, SchemaType)
+InterpretAt<SchemaType>(data, offset)
 ```
 
 Begin parsing at specified byte offset:
 
 ```sql
-SELECT 
+SELECT
     h.Magic,
     d.RecordCount
 FROM os.file('/complex.bin') f
-CROSS APPLY Interpret(f.GetBytes(), Header) h
-CROSS APPLY InterpretAt(f.GetBytes(), h.DataOffset, DataSection) d
+CROSS APPLY Interpret<Header>(f.GetBytes()) h
+CROSS APPLY InterpretAt<DataSection>(f.GetBytes(), h.DataOffset) d
 ```
 
 ### 7.7 Multiple Records
@@ -1354,7 +1596,7 @@ binary RecordFile {
 
 SELECT r.Id, r.Value
 FROM os.file('/records.bin') f
-CROSS APPLY Interpret(f.GetBytes(), RecordFile) file
+CROSS APPLY Interpret<RecordFile>(f.GetBytes()) file
 CROSS APPLY file.Records r
 ```
 
@@ -1368,7 +1610,7 @@ WITH RecordOffsets AS (
 SELECT r.Id, r.Value
 FROM os.file('/records.bin') f
 CROSS JOIN RecordOffsets o
-CROSS APPLY InterpretAt(f.GetBytes(), o.Offset, Record) r
+CROSS APPLY InterpretAt<Record>(f.GetBytes(), o.Offset) r
 WHERE o.Offset < Length(f.GetBytes())
 ```
 
@@ -1377,8 +1619,8 @@ WHERE o.Offset < Length(f.GetBytes())
 ### 7.8 Partial Interpretation (Debugging)
 
 ```
-PartialInterpret(data, SchemaType)
-PartialParse(text, SchemaType)
+PartialInterpret<SchemaType>(data)
+PartialParse<SchemaType>(text)
 ```
 
 Returns a partial result for debugging malformed or incomplete data. Like all interpretation functions, `PartialInterpret` and `PartialParse` MUST be used inside `CROSS APPLY` or `OUTER APPLY` (see §3.3).
@@ -1516,7 +1758,7 @@ Parse errors include:
 Example:
 
 ```
-ISE002: Validation failed for field 'Magic' at offset 0
+ISE0002: Validation failed for field 'Magic' at offset 0
   Schema: PacketHeader
   Constraint: Magic = 0xDEADBEEF
   Actual value: 0x00000000
@@ -1526,12 +1768,13 @@ ISE002: Validation failed for field 'Magic' at offset 0
 
 | Category | Codes | Description |
 |----------|-------|-------------|
-| Input errors | ISE001 | Unexpected end of input |
-| Validation errors | ISE002 | CHECK constraint failed |
-| Pattern errors | ISE003-ISE005 | Pattern/literal/delimiter not found |
-| Encoding errors | ISE006 | Invalid character encoding |
-| Expression errors | ISE007, ISE010 | Invalid size or condition expression |
-| Schema errors | ISE008-ISE009, ISE011-ISE012 | Schema definition errors |
+| Input errors | ISE0001 | Unexpected end of input |
+| Validation errors | ISE0002 | CHECK constraint failed |
+| Pattern errors | ISE0003-ISE0006, ISE0011-ISE0012 | Pattern/literal/delimiter/whitespace/alternative not found |
+| Encoding errors | ISE0010 | Invalid character encoding |
+| Expression errors | ISE0007-ISE0008, ISE0014 | Invalid size, position, or field reference expression |
+| Schema errors | ISE0013 | Circular or undefined schema reference |
+| General errors | ISE0009, ISE0015 | Repeat limit exceeded or general parsing failure |
 
 ### 9.3 Error Behavior
 
@@ -1548,20 +1791,20 @@ ISE002: Validation failed for field 'Magic' at offset 0
 For debugging malformed data:
 
 ```sql
-SELECT 
+SELECT
     p.ParsedFields,
     p.ErrorField,
     p.ErrorMessage,
     p.BytesConsumed
 FROM os.file('/corrupted.bin') f
-CROSS APPLY PartialInterpret(f.GetBytes(), Header) p
+CROSS APPLY PartialInterpret<Header>(f.GetBytes()) p
 ```
 
-**`PartialInterpret` returns:**
+**`PartialInterpret` and `PartialParse` return:**
 - `ParsedFields`: Dictionary of successfully parsed field names and values
 - `ErrorField`: Name of field where parsing failed (null if successful)
 - `ErrorMessage`: Error description (null if successful)
-- `BytesConsumed`: Number of bytes successfully processed
+- `BytesConsumed`: Number of bytes or characters successfully processed
 
 ---
 
@@ -1570,31 +1813,31 @@ CROSS APPLY PartialInterpret(f.GetBytes(), Header) p
 ### 10.1 Complete Binary Schema Grammar
 
 ```ebnf
-BinarySchema 
+BinarySchema
     ::= 'binary' Identifier GenericParams? Inheritance? '{' BinaryFieldList '}'
 
-GenericParams 
+GenericParams
     ::= '<' Identifier (',' Identifier)* '>'
 
-Inheritance 
+Inheritance
     ::= 'extends' Identifier
 
-BinaryFieldList 
+BinaryFieldList
     ::= (BinaryField (',' BinaryField)* ','?)?
 
-BinaryField 
+BinaryField
     ::= Comment* (NamedField | DiscardField | AlignDirective)
 
-NamedField 
+NamedField
     ::= Identifier ':' (BinaryType FieldModifiers? | Expression)
 
-DiscardField 
+DiscardField
     ::= '_' ':' BinaryType FieldModifiers?
 
-AlignDirective 
+AlignDirective
     ::= '_' ':' 'align' '[' INTEGER ']'
 
-BinaryType 
+BinaryType
     ::= PrimitiveType
     |   ByteArrayType
     |   StringType
@@ -1602,8 +1845,17 @@ BinaryType
     |   SchemaReference
     |   ArrayType
     |   InlineSchema
+    |   SwitchType
+    |   SubstreamType
+    |   RepeatUntilType
 
-PrimitiveType 
+SubstreamType
+    ::= 'substream' '[' Expression ']' ('raw' | 'as' BinaryType ('exact' | 'lax')?)
+
+RepeatUntilType
+    ::= BinaryType 'repeat' 'until' (Expression | 'eof')
+
+PrimitiveType
     ::= SingleByteType
     |   MultiByteType Endianness
 
@@ -1617,16 +1869,16 @@ MultiByteType
 Endianness
     ::= 'le' | 'be'
 
-ByteArrayType 
+ByteArrayType
     ::= 'byte' '[' SizeExpr ']'
 
-StringType 
+StringType
     ::= 'string' '[' SizeExpr ']' Encoding StringModifiers? TextSchemaRef?
 
-Encoding 
+Encoding
     ::= 'utf8' | 'utf16le' | 'utf16be' | 'ascii' | 'latin1' | 'ebcdic'
 
-StringModifiers 
+StringModifiers
     ::= StringModifier+
 
 StringModifier
@@ -1635,56 +1887,62 @@ StringModifier
 TextSchemaRef
     ::= 'as' Identifier
 
-BitFieldType 
+BitFieldType
     ::= 'bits' '[' INTEGER ']'
 
-SchemaReference 
+SchemaReference
     ::= Identifier GenericArgs?
 
-GenericArgs 
+GenericArgs
     ::= '<' BinaryType (',' BinaryType)* '>'
 
-ArrayType 
+ArrayType
     ::= BinaryType '[' SizeExpr ']'
 
-InlineSchema 
+InlineSchema
     ::= '{' BinaryFieldList '}'
 
-FieldModifiers 
+SwitchType
+    ::= 'switch' FieldReference '{' SwitchCase (',' SwitchCase)* ','? '}'
+
+SwitchCase
+    ::= (ScalarLiteral | '_') '=>' Identifier ':' BinaryType
+
+FieldModifiers
     ::= PositionMod? ConditionMod? ValidationMod?
 
-PositionMod 
+PositionMod
     ::= 'at' Expression
 
-ConditionMod 
+ConditionMod
     ::= 'when' Expression
 
-ValidationMod 
+ValidationMod
     ::= 'check' Expression
 
-SizeExpr 
+SizeExpr
     ::= Expression
 ```
 
 ### 10.2 Complete Text Schema Grammar
 
 ```ebnf
-TextSchema 
+TextSchema
     ::= 'text' Identifier '{' TextFieldList '}'
 
-TextFieldList 
+TextFieldList
     ::= (TextField (',' TextField)* ','?)?
 
-TextField 
+TextField
     ::= Comment* (NamedTextField | DiscardTextField)
 
-NamedTextField 
+NamedTextField
     ::= Identifier ':' TextType TextModifiers?
 
-DiscardTextField 
+DiscardTextField
     ::= '_' ':' TextType TextModifiers?
 
-TextType 
+TextType
     ::= PatternType
     |   LiteralType
     |   UntilType
@@ -1698,58 +1956,58 @@ TextType
     |   SwitchType
     |   SchemaReference
 
-PatternType 
+PatternType
     ::= 'pattern' REGEX CaptureClause?
 
-CaptureClause 
+CaptureClause
     ::= 'capture' '(' Identifier (',' Identifier)* ')'
 
-LiteralType 
+LiteralType
     ::= 'literal' STRING
 
-UntilType 
+UntilType
     ::= 'until' STRING
 
-BetweenType 
+BetweenType
     ::= 'between' STRING STRING BetweenModifier*
 
 BetweenModifier
     ::= 'nested' | 'escaped' STRING?
 
-CharsType 
+CharsType
     ::= 'chars' '[' INTEGER ']'
 
-TokenType 
+TokenType
     ::= 'token'
 
-RestType 
+RestType
     ::= 'rest'
 
-WhitespaceType 
+WhitespaceType
     ::= 'whitespace' Quantifier?
 
 Quantifier
     ::= '+' | '*' | '?'
 
-OptionalType 
+OptionalType
     ::= 'optional' TextType
 
-RepeatType 
+RepeatType
     ::= 'repeat' TextType RepeatUntil?
 
-RepeatUntil 
+RepeatUntil
     ::= 'until' (STRING | 'end')
 
-SwitchType 
+SwitchType
     ::= 'switch' '{' SwitchCase+ DefaultCase? '}'
 
-SwitchCase 
+SwitchCase
     ::= 'pattern' REGEX '=>' TextType ','?
 
-DefaultCase 
+DefaultCase
     ::= '_' '=>' TextType ','?
 
-TextModifiers 
+TextModifiers
     ::= TextModifier+
 
 TextModifier
@@ -1764,7 +2022,7 @@ TextModifier
 
 ```sql
 binary PngSignature {
-    Signature: byte[8] check Signature = [0x89, 0x50, 0x4E, 0x47, 
+    Signature: byte[8] check Signature = [0x89, 0x50, 0x4E, 0x47,
                                           0x0D, 0x0A, 0x1A, 0x0A]
 }
 
@@ -1785,16 +2043,16 @@ binary IhdrData {
     InterlaceMethod:    byte
 }
 
-SELECT 
+SELECT
     f.Name,
     ihdr.Width,
     ihdr.Height,
     ihdr.BitDepth,
     ihdr.ColorType
 FROM os.files('./', '*.png') f
-CROSS APPLY Interpret(f.GetBytes(), PngSignature) sig
-CROSS APPLY InterpretAt(f.GetBytes(), 8, PngChunk) chunk
-CROSS APPLY Interpret(chunk.Data, IhdrData) ihdr
+CROSS APPLY Interpret<PngSignature>(f.GetBytes()) sig
+CROSS APPLY InterpretAt<PngChunk>(f.GetBytes(), 8) chunk
+CROSS APPLY Interpret<IhdrData>(chunk.Data) ihdr
 WHERE chunk.ChunkType = 'IHDR'
 ```
 
@@ -1825,13 +2083,13 @@ text ApacheLog {
     UserAgent:     optional between '"' '"'
 }
 
-SELECT 
+SELECT
     log.Path,
     Count(*) AS ErrorCount,
     Max(log.Timestamp) AS LastSeen
 FROM os.file('/var/log/apache2/access.log') f
 CROSS APPLY Lines(f.GetContent()) line
-CROSS APPLY Parse(line.Value, ApacheLog) log
+CROSS APPLY Parse<ApacheLog>(line.Value) log
 WHERE log.Status = '404'
 GROUP BY log.Path
 ORDER BY ErrorCount DESC
@@ -1862,15 +2120,17 @@ binary TelemetryPayload {
     Flags:       byte
 }
 
-SELECT 
+SELECT
     frame.MsgType,
     CASE frame.MsgType
-        WHEN 0x01 THEN Parse(ToString(frame.Payload, 'utf8'), CommandPayload).Command
-        WHEN 0x02 THEN ToString(Interpret(frame.Payload, TelemetryPayload).SensorId)
+        WHEN 0x01 THEN command.Command
+        WHEN 0x02 THEN ToString(telemetry.SensorId)
         ELSE 'Unknown'
     END AS Identifier
 FROM os.file('/capture.bin') f
-CROSS APPLY InterpretAt(f.GetBytes(), 0, MessageFrame) frame
+CROSS APPLY InterpretAt<MessageFrame>(f.GetBytes(), 0) frame
+OUTER APPLY TryParse<CommandPayload>(ToText(frame.Payload, 'utf8')) command
+OUTER APPLY TryInterpret<TelemetryPayload>(frame.Payload) telemetry
 WHERE frame.MsgType IN (0x01, 0x02)
 ```
 
@@ -1890,7 +2150,7 @@ text CobolCustomerRecord {
     LastUpdate:      chars[8]
 }
 
-SELECT 
+SELECT
     r.CustomerId,
     r.CustomerName,
     Concat(r.AddressLine1, ', ', r.City, ', ', r.State, ' ', r.ZipCode) AS Address,
@@ -1898,7 +2158,7 @@ SELECT
     ParseDate(r.LastUpdate, 'yyyyMMdd') AS LastUpdated
 FROM os.file('/mainframe/CUSTMAST.DAT') f
 CROSS APPLY Lines(f.GetContent()) line
-CROSS APPLY Parse(line.Value, CobolCustomerRecord) r
+CROSS APPLY Parse<CobolCustomerRecord>(line.Value) r
 WHERE r.StatusCode = 'A'
 ```
 
@@ -1909,10 +2169,10 @@ binary StorageHeader {
     Magic:          int le check Magic = 0x53544F52,
     Version:        short le,
     Flags:          short le,
-    
+
     IsCompressed: (Flags & 0x01) <> 0,
     HasIndex:     (Flags & 0x02) <> 0,
-    
+
     RecordCount:    int le,
     IndexOffset:    long le when HasIndex,
     DataOffset:     long le
@@ -1921,12 +2181,12 @@ binary StorageHeader {
 binary StorageRecord {
     RecordType:     byte,
     RecordLength:   int le,
-    
+
     StringLen:      short le when RecordType = 1,
     StringData:     string[StringLen] utf8 when RecordType = 1,
-    
+
     BlobData:       byte[RecordLength - 1] when RecordType = 2,
-    
+
     NestedCount:    int le when RecordType = 3,
     Nested:         SubRecord[NestedCount] when RecordType = 3
 }
@@ -1936,7 +2196,7 @@ binary SubRecord {
     Value:  string[64] utf8 nullterm
 }
 
-SELECT 
+SELECT
     h.Version,
     h.RecordCount,
     r.RecordType,
@@ -1947,8 +2207,8 @@ SELECT
         ELSE 'Unknown record type'
     END AS Content
 FROM os.file('/data/storage.dat') f
-CROSS APPLY Interpret(f.GetBytes(), StorageHeader) h
-CROSS APPLY InterpretAt(f.GetBytes(), h.DataOffset, StorageRecord) r
+CROSS APPLY Interpret<StorageHeader>(f.GetBytes()) h
+CROSS APPLY InterpretAt<StorageRecord>(f.GetBytes(), h.DataOffset) r
 ```
 
 ---
@@ -1957,7 +2217,8 @@ CROSS APPLY InterpretAt(f.GetBytes(), h.DataOffset, StorageRecord) r
 
 ### 12.1 Potential Extensions
 
-- **Inline property access on Interpret / Parse** — Allow `Interpret(data, Header).Magic` syntax directly in SELECT, WHERE, and CASE expressions without requiring CROSS APPLY. This would let users access a single field from a parsed result inline. When accessing multiple fields, CROSS APPLY would remain preferred to avoid redundant parsing. Currently, all interpretation functions must appear inside CROSS APPLY or OUTER APPLY (see §3.3).
+- **Inline property access on Interpret / Parse** — Allow `Interpret<Header>(data).Magic` syntax directly in SELECT, WHERE, and CASE expressions without requiring CROSS APPLY. This would let users access a single field from a parsed result inline. When accessing multiple fields, CROSS APPLY would remain preferred to avoid redundant parsing. Currently, all interpretation functions must appear inside CROSS APPLY or OUTER APPLY (see §3.3).
+- **Binary switch variant extensions** (reserved; see §4.12) — range case labels (`1..3 => ...`), expression case labels, direct arrays of switch types, branch-level `check` constraints, and mixed text/binary switch branches.
 - Compression/encryption integration
 - Schema versioning annotations
 - Schema imports from external files
@@ -1982,11 +2243,11 @@ CROSS APPLY InterpretAt(f.GetBytes(), h.DataOffset, StorageRecord) r
 
 ```
 align, AND, as, ascii, at, be, between, binary, bits, byte,
-capture, CASE, chars, check, double, ebcdic, ELSE, END, 
-escaped, extends, float, greedy, IN, int, latin1, lazy, le, 
-LIKE, literal, long, lower, ltrim, nested, NOT, NULL, nullterm, 
-optional, OR, pattern, repeat, rest, rtrim, sbyte, short, 
-string, switch, text, THEN, token, trim, uint, ulong, until, 
+capture, CASE, chars, check, double, ebcdic, ELSE, END,
+escaped, extends, float, greedy, IN, int, latin1, lazy, le,
+LIKE, literal, long, lower, ltrim, nested, NOT, NULL, nullterm,
+optional, OR, pattern, repeat, rest, rtrim, sbyte, short,
+string, substream, switch, text, THEN, token, trim, uint, ulong, until,
 upper, ushort, utf16be, utf16le, utf8, WHEN, whitespace
 ```
 
@@ -2011,6 +2272,8 @@ upper, ushort, utf16be, utf16le, utf8, WHEN, whitespace
 | `bits[n]` | `byte` (1-8), `ushort` (9-16), `uint` (17-32), `ulong` (33-64) | ⌈n/8⌉ |
 | Schema reference | Generated class | Variable |
 | Array `T[n]` | `T[]` | n × sizeof(T) |
+| `substream[n] raw` | `byte[]` | n |
+| `substream[n] as T` | T (nested value) | n |
 
 ---
 
@@ -2018,18 +2281,21 @@ upper, ushort, utf16be, utf16le, utf8, WHEN, whitespace
 
 | Code | Category | Description |
 |------|----------|-------------|
-| ISE001 | Input | Unexpected end of input |
-| ISE002 | Validation | CHECK constraint failed |
-| ISE003 | Pattern | Regex pattern match failed |
-| ISE004 | Literal | Literal string not found |
-| ISE005 | Delimiter | Delimiter not found |
-| ISE006 | Encoding | Invalid character encoding |
-| ISE007 | Expression | Size expression evaluated to negative (field set to null/default) |
-| ISE008 | Schema | Circular schema reference |
-| ISE009 | Schema | Unknown schema reference |
-| ISE010 | Expression | Condition expression error |
-| ISE011 | Type | Endianness required for multi-byte type |
-| ISE012 | Type | Invalid bit field size (must be 1-64) |
+| ISE0001 | Input | Insufficient data to complete parsing |
+| ISE0002 | Validation | Validation constraint failed |
+| ISE0003 | Pattern | Pattern match failed at current position |
+| ISE0004 | Literal | Expected literal not found at current position |
+| ISE0005 | Delimiter | Delimiter not found in remaining input |
+| ISE0006 | Delimiter | Expected opening delimiter not found |
+| ISE0007 | Expression | Invalid size expression value (negative or overflow) |
+| ISE0008 | Position | Invalid position value (negative) |
+| ISE0009 | Control Flow | Maximum iteration count exceeded in repeat |
+| ISE0010 | Encoding | String encoding error |
+| ISE0011 | Whitespace | Expected whitespace not found |
+| ISE0012 | Alternative | Switch/alternative exhausted without match |
+| ISE0013 | Schema | Circular or undefined schema reference |
+| ISE0014 | Expression | Field reference resolution error |
+| ISE0015 | General | General parsing error |
 | MQ3033 | Bind | Interpret/Parse function used outside CROSS APPLY or OUTER APPLY |
 
 ---

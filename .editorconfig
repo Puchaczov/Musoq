@@ -8,3 +8,481 @@ indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
 
+# Musoq uses underscore-bearing names for stable diagnostic codes, generated
+# helper hooks, benchmark scenarios, and regression-test scenario names.
+dotnet_diagnostic.CA1707.severity = none
+
+[src/dotnet/Musoq.*.Tests/**]
+# Test method and fixture names intentionally encode scenarios.
+dotnet_diagnostic.CA1515.severity = none
+dotnet_diagnostic.CA1822.severity = none
+dotnet_diagnostic.CA1815.severity = none
+# Test fixture and metadata classes are often consumed through reflection, dynamic data, or query/schema discovery.
+dotnet_diagnostic.CA1812.severity = none
+dotnet_diagnostic.CA1819.severity = none
+dotnet_diagnostic.CA1000.severity = none
+dotnet_diagnostic.CA1002.severity = none
+dotnet_diagnostic.CA1031.severity = none
+dotnet_diagnostic.CA1034.severity = none
+dotnet_diagnostic.CA1051.severity = none
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.CA1304.severity = none
+dotnet_diagnostic.CA1303.severity = none
+dotnet_diagnostic.CA1305.severity = none
+dotnet_diagnostic.CA1307.severity = none
+dotnet_diagnostic.CA1308.severity = none
+dotnet_diagnostic.CA1310.severity = none
+dotnet_diagnostic.CA1311.severity = none
+# Tests intentionally exercise defensive null/equality branches that the analyzer can prove at compile time.
+dotnet_diagnostic.CA1508.severity = none
+# Test constant arrays keep scenario data local to the assertion/setup they document.
+dotnet_diagnostic.CA1861.severity = none
+dotnet_diagnostic.CA5394.severity = none
+
+[src/dotnet/Musoq.Benchmarks/**]
+# BenchmarkDotNet relies on public scenario-shaped types and members.
+dotnet_diagnostic.CA1515.severity = none
+dotnet_diagnostic.CA1822.severity = none
+dotnet_diagnostic.CA1815.severity = none
+# Benchmark fixtures can be discovered by BenchmarkDotNet, serializers, or benchmark setup code outside direct construction paths.
+dotnet_diagnostic.CA1812.severity = none
+dotnet_diagnostic.CA1819.severity = none
+dotnet_diagnostic.CA1000.severity = none
+dotnet_diagnostic.CA1002.severity = none
+dotnet_diagnostic.CA1034.severity = none
+dotnet_diagnostic.CA1051.severity = none
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.CA1304.severity = none
+dotnet_diagnostic.CA1303.severity = none
+dotnet_diagnostic.CA1305.severity = none
+dotnet_diagnostic.CA1307.severity = none
+dotnet_diagnostic.CA1308.severity = none
+dotnet_diagnostic.CA1310.severity = none
+dotnet_diagnostic.CA1311.severity = none
+dotnet_diagnostic.CA5394.severity = none
+
+[src/dotnet/Musoq.Plugins/**]
+# SQL plugin methods are discovered and invoked as instance members.
+dotnet_diagnostic.CA1822.severity = none
+
+[src/dotnet/Musoq.Plugins/Lib/**]
+# Plugin utility functions normalize malformed user input and external parser failures to SQL null/false results.
+dotnet_diagnostic.CA1031.severity = none
+
+[src/dotnet/Musoq.Plugins/Lib/LibraryBaseDate.Current.cs]
+# GetDate and UtcGetDate are public SQL functions discovered through BindableMethod.
+dotnet_diagnostic.CA1024.severity = none
+
+[src/dotnet/Musoq.Plugins/Lib/LibraryBaseStrings.RegexAndEncoding.WebEncoding.cs]
+# URL and URI helpers are SQL string transformation functions; returning Uri would break query result types.
+dotnet_diagnostic.CA1055.severity = none
+
+[src/dotnet/Musoq.Playground/Program.cs]
+# Playground output is developer-facing console text in a non-packaged manual app.
+dotnet_diagnostic.CA1303.severity = none
+
+[src/dotnet/Musoq.Plugins/AggregateKernels*.cs]
+# Runtime-v2 aggregate kernels expose static Set/Get/Merge members on generic kernel types for generated hot paths.
+dotnet_diagnostic.CA1000.severity = none
+# Runtime-v2 aggregate kernels intentionally expose nested State structs consumed as Kernel.State by generated code.
+dotnet_diagnostic.CA1034.severity = none
+# Generated inline aggregate hot paths directly update public State fields across assembly boundaries.
+dotnet_diagnostic.CA1051.severity = none
+# Aggregate kernel State structs are mutable accumulator storage; equality is not part of the runtime-v2 aggregate contract.
+dotnet_diagnostic.CA1815.severity = none
+
+[src/dotnet/Musoq.Plugins/QueryStats.cs]
+# Amendable query statistics increment the protected backing field through Interlocked by ref.
+dotnet_diagnostic.CA1051.severity = none
+
+[src/dotnet/Musoq.Plugins/AggregateInputShape.cs]
+# Single is the public aggregate metadata factory for one input argument.
+dotnet_diagnostic.CA1720.severity = none
+
+[src/dotnet/Musoq.Plugins/Attributes/MethodCategories.cs]
+# Public method category constants intentionally mirror SQL documentation category names.
+dotnet_diagnostic.CA1720.severity = none
+
+[src/dotnet/Musoq.Plugins/Attributes/BindableMethodAttribute.cs]
+# BindableMethodAttribute is the public base for specialized SQL method-binding attributes.
+dotnet_diagnostic.CA1813.severity = none
+
+[src/dotnet/Musoq.Plugins/Attributes/AggregationMethodAttribute.cs]
+# AggregationMethodAttribute remains both a direct aggregate marker and the base for typed aggregate kernel attributes.
+dotnet_diagnostic.CA1813.severity = none
+
+[src/dotnet/Musoq.Plugins/IWindowFunction.cs]
+# The generic window-function interface bridges the non-generic runtime contract through explicit interface members.
+dotnet_diagnostic.CA1033.severity = none
+
+[src/dotnet/Musoq.Converter/Build/TransformTree.cs]
+# Diagnostic builds collect semantic failures into DiagnosticContext instead of throwing immediately.
+dotnet_diagnostic.CA1031.severity = none
+
+[src/dotnet/Musoq.Evaluator/Helpers/EvaluationHelper.Descriptions.XmlDocs.cs]
+# XML documentation lookup treats missing or malformed sidecar documentation as optional metadata.
+dotnet_diagnostic.CA1031.severity = none
+
+[src/dotnet/Musoq.Evaluator/QueryPhaseEventHandler.cs]
+# QueryPhaseEventHandler is the public event delegate type exposed by IRunnable and generated query wrappers.
+dotnet_diagnostic.CA1711.severity = none
+# QueryPhaseEventHandler is part of the public generated-query event contract; replacing it with EventHandler<T> would break consumers.
+dotnet_diagnostic.CA1003.severity = none
+
+[src/dotnet/Musoq.Evaluator/Exceptions/ConstructionNotYetSupported.cs]
+# ConstructionNotYetSupported is a legacy public diagnostic exception type consumed by callers and tests.
+dotnet_diagnostic.CA1710.severity = none
+
+[src/dotnet/Musoq.Evaluator/Exceptions/FromNodeIsNull.cs]
+# FromNodeIsNull is a legacy public diagnostic exception type consumed by callers and tests.
+dotnet_diagnostic.CA1710.severity = none
+
+[src/dotnet/Musoq.Evaluator/Tables/Table.cs]
+# Table is the public runtime query-result table type used by generated code and consumers.
+dotnet_diagnostic.CA1710.severity = none
+
+[src/dotnet/Musoq.Evaluator/Helpers/EvaluationHelper.DynamicAccess.cs]
+# Dynamic member access probes must convert binder/runtime access failures into failed lookups.
+dotnet_diagnostic.CA1031.severity = none
+
+[src/dotnet/Musoq.Evaluator/Helpers/EvaluationHelper.TableRows.cs]
+# Generated top-N code references EvaluationHelper.BoundedTopRecordList as a nested helper shape.
+dotnet_diagnostic.CA1034.severity = none
+
+[src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.WindowQualify.cs]
+# Window QUALIFY literal probing treats conversion failures as non-integral literal candidates.
+dotnet_diagnostic.CA1031.severity = none
+
+[src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionNode.Control.cs]
+# Execution context segment kind names describe generated-row context shapes.
+dotnet_diagnostic.CA1720.severity = none
+
+[src/dotnet/Musoq.Evaluator/Visitors/Helpers/CteDependencyGraph/DeadCteEliminator.cs]
+# EliminationResult is a narrow public return shape for the dead-CTE eliminator helper.
+dotnet_diagnostic.CA1034.severity = none
+
+[src/dotnet/Musoq.Evaluator/Visitors/Helpers/CteDependencyGraph/CteDependencyGraph.cs]
+# CteDependencyGraph is the public graph DTO for the matching CTE dependency helper namespace.
+dotnet_diagnostic.CA1724.severity = none
+
+[src/dotnet/Musoq.Evaluator/Visitors/Helpers/InterpretationSchemaDependencyGraph/DeadInterpretationSchemaEliminator.cs]
+# EliminationResult is a narrow public return shape for the interpretation-schema eliminator helper.
+dotnet_diagnostic.CA1034.severity = none
+
+[src/dotnet/Musoq.Evaluator/Visitors/Helpers/InterpretationSchemaDependencyGraph/InterpretationSchemaDependencyGraph.cs]
+# InterpretationSchemaDependencyGraph is the public graph DTO for the matching interpretation-schema dependency helper namespace.
+dotnet_diagnostic.CA1724.severity = none
+
+[src/dotnet/Musoq.Evaluator/QueryAnalyzer.cs]
+# QueryAnalyzer is an LSP-friendly diagnostic boundary that reports failures instead of throwing.
+dotnet_diagnostic.CA1031.severity = none
+
+[src/dotnet/Musoq.Evaluator/SchemaRegistry.cs]
+# SchemaRegistry.Register historically reports blank schema names as ArgumentNullException; tests document that contract.
+dotnet_diagnostic.CA1510.severity = none
+
+[src/dotnet/Musoq.Parser/Parser.cs]
+# Diagnostic parsing collects recoverable parse failures into parser diagnostics.
+dotnet_diagnostic.CA1031.severity = none
+
+[src/dotnet/Musoq.Parser/Diagnostics/SourceText.cs]
+# SourceText.Text and GetText are public diagnostic API members used by parser tooling and tests.
+dotnet_diagnostic.CA1721.severity = none
+
+[src/dotnet/Musoq.Parser/DerivedTableParsing.cs]
+# Parser is the core public parser type; renaming it would break the primary parser API.
+dotnet_diagnostic.CA1724.severity = none
+
+[src/dotnet/Musoq.Parser/Lexing/ILexer.cs]
+# ILexer.Next is the established public token-stream contract used throughout parser implementations.
+dotnet_diagnostic.CA1716.severity = none
+
+[src/dotnet/Musoq.Parser/Diagnostics/DiagnosticCode.cs]
+# Public diagnostic codes intentionally start at MQ1001; zero is not an emitted protocol code.
+dotnet_diagnostic.CA1008.severity = none
+
+[src/dotnet/Musoq.Parser/Diagnostics/DiagnosticSeverity.cs]
+# Diagnostic severities intentionally expose only concrete emitted severities.
+dotnet_diagnostic.CA1008.severity = none
+
+[src/dotnet/Musoq.Parser/Nodes/From/PropertyFromNode.cs]
+# PropertyNameAndTypePair is part of the PropertyFromNode payload consumed throughout planning.
+dotnet_diagnostic.CA1034.severity = none
+
+[src/dotnet/Musoq.Parser/Nodes/FromNode.cs]
+# FromNode.Alias is the public parser AST contract for SQL source aliases.
+dotnet_diagnostic.CA1716.severity = none
+
+[src/dotnet/Musoq.Parser/Nodes/NullNode.cs]
+# NullType is intentionally exposed as NullNode.NullType for parser and schema compatibility.
+dotnet_diagnostic.CA1034.severity = none
+# NullType overrides the BCL Type.GUID member name.
+dotnet_diagnostic.CA1720.severity = none
+
+[src/dotnet/Musoq.Parser/Nodes/InterpretationSchema/PrimitiveTypeName.cs]
+# Primitive type enum names intentionally mirror binary interpretation schema type names.
+dotnet_diagnostic.CA1720.severity = none
+
+[src/dotnet/Musoq.Parser/Tokens/TokenType.cs]
+# Token names intentionally mirror lexer categories such as integer and decimal literals.
+dotnet_diagnostic.CA1720.severity = none
+# WhiteSpace is the legacy lexer token and Whitespace is the text-schema keyword token.
+dotnet_diagnostic.CA1708.severity = none
+# TokenType deliberately uses a compact backing type because parser tokens are stored throughout the lexing/parsing pipeline.
+dotnet_diagnostic.CA1028.severity = none
+
+[src/dotnet/Musoq.Parser/Lexing/FastCharacterClassifier.cs]
+# CharCategory deliberately uses a byte backing type for the ASCII dispatch lookup table.
+dotnet_diagnostic.CA1028.severity = none
+
+[src/dotnet/Musoq.Schema/DataSourceEventHandler.cs]
+# DataSourceEventHandler is a public schema progress callback contract used by source execution contexts.
+dotnet_diagnostic.CA1003.severity = none
+
+[src/dotnet/Musoq.Schema/Optimization/SourceExecutionContext.cs]
+# SourceExecutionContext constructor order is emitted by generated query code and used positionally by schema consumers.
+dotnet_diagnostic.CA1068.severity = none
+
+[src/dotnet/Musoq.Schema/Optimization/SourceMetadataContext.cs]
+# SourceMetadataContext constructor order is part of the source-planning metadata API consumed by evaluator and schemas.
+dotnet_diagnostic.CA1068.severity = none
+
+[src/dotnet/Musoq.Evaluator.Tests/BitwiseOperations*Tests.cs]
+# Bitwise test method names intentionally encode operand type names, including Sbyte/SByte spellings used in scenarios.
+dotnet_diagnostic.CA1708.severity = none
+
+[src/dotnet/Musoq.Schema/Interpreters/BytesInterpreterBase.cs]
+# Partial interpretation captures malformed input failures with any fields parsed before the fault.
+dotnet_diagnostic.CA1031.severity = none
+
+[src/dotnet/Musoq.Schema/Interpreters/ParseErrorCode.cs]
+# Interpretation schema parse error codes intentionally start at ISE0001; zero is not an emitted code.
+dotnet_diagnostic.CA1008.severity = none
+
+[src/dotnet/Musoq.Schema/Interpreters/TextInterpreterBase.cs]
+# The lower text modifier is a public interpretation-schema behavior that must emit lowercase text.
+dotnet_diagnostic.CA1308.severity = none
+
+[src/dotnet/Musoq.Evaluator/Helpers/EvaluationHelper.*.cs]
+# Generated query helpers use List<T> for mutable hot-path buffers and in-place top-N sorting.
+dotnet_diagnostic.CA1002.severity = none
+
+[src/dotnet/Musoq.Evaluator/Helpers/HashJoinBucket.cs]
+# Hash join buckets enumerate mutable List<T> storage without copying during join probes.
+dotnet_diagnostic.CA1002.severity = none
+# Hash join bucket enumerators are nested to keep the allocation-free bucket iteration shape local.
+dotnet_diagnostic.CA1034.severity = none
+# Hash join bucket enumerator equality would compare mutable iteration state and is not part of the bucket contract.
+dotnet_diagnostic.CA1815.severity = none
+
+[src/dotnet/Musoq.Evaluator/Helpers/EvaluationHelper.RangeJoinIndex.cs]
+# Generated range-join code constructs generic indexes through static factories that preserve concrete row/key types.
+dotnet_diagnostic.CA1000.severity = none
+# Range join match/enumerator types are nested to keep generated foreach code tied to the index shape.
+dotnet_diagnostic.CA1034.severity = none
+# Range join match/enumerator structs are lightweight iteration views over sorted index storage; equality is not meaningful.
+dotnet_diagnostic.CA1815.severity = none
+
+[src/dotnet/Musoq.Evaluator/Helpers/EvaluationHelper.JoinIndexes.cs]
+# Generated ASOF join code constructs generic indexes through static factories that preserve concrete row types.
+dotnet_diagnostic.CA1000.severity = none
+
+[src/dotnet/Musoq.Evaluator/Helpers/WindowPartitionCountResult.cs]
+# Window partition count results wrap parallel arrays for indexed lookup; structural equality over backing arrays would be misleading.
+dotnet_diagnostic.CA1815.severity = none
+
+[src/dotnet/Musoq.Evaluator/Helpers/WindowFunctionHelpers*.cs]
+# Window helpers exchange mutable partition lists with generated query code.
+dotnet_diagnostic.CA1002.severity = none
+
+[src/dotnet/Musoq.Evaluator/Helpers/WindowPartitionSet.cs]
+# Window partition sets bridge compact partition storage and legacy mutable partition lists.
+dotnet_diagnostic.CA1002.severity = none
+
+[src/dotnet/Musoq.Evaluator/IR/CodeGeneration/RenderContext.cs]
+# RenderContext owns a mutable Roslyn member list assembled by renderer phases.
+dotnet_diagnostic.CA1002.severity = none
+
+[src/dotnet/Musoq.Evaluator/Tables/IndexedList.cs]
+# IndexedList exposes mutable row buckets used by table index construction and lookup.
+dotnet_diagnostic.CA1002.severity = none
+
+[src/dotnet/Musoq.Evaluator/Tables/Key.cs]
+# Table keys expose array payload fields as part of the legacy runtime indexing contract.
+dotnet_diagnostic.CA1051.severity = none
+
+[src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.cs]
+# Metadata inference exposes its mutable assembly collection to visitor helper binders.
+dotnet_diagnostic.CA1002.severity = none
+
+[src/dotnet/Musoq.Parser/Nodes/TranslatedSetTreeNode.cs]
+# Translated set tree nodes preserve parser-owned mutable construction lists.
+dotnet_diagnostic.CA1002.severity = none
+
+[src/dotnet/Musoq.Parser/Recovery/RecoveryContext.cs]
+# Recovery context records skipped tokens in parser-owned mutable recovery state.
+dotnet_diagnostic.CA1002.severity = none
+
+[src/dotnet/Musoq.Plugins/AggregateKernels.AggregateValues.cs]
+# Aggregate kernel state uses List<T> as mutable accumulator storage.
+dotnet_diagnostic.CA1002.severity = none
+
+[src/dotnet/Musoq.Plugins/AggregateKernels.Window.cs]
+# Window aggregate kernel state uses List<T> as mutable accumulator storage.
+dotnet_diagnostic.CA1002.severity = none
+
+[src/dotnet/Musoq.Schema/Managers/ManagerBase.cs]
+# Reflection managers expose protected mutable parts to derived manager implementations.
+dotnet_diagnostic.CA1002.severity = none
+
+[src/dotnet/Musoq.Evaluator/BaseOperations.cs]
+# Generated query code invokes runtime table helpers through the evaluator instance surface.
+dotnet_diagnostic.CA1822.severity = none
+
+[src/dotnet/Musoq.Evaluator/Operators.cs]
+# SQL operator helpers are part of the evaluator instance surface used by generated queries.
+dotnet_diagnostic.CA1822.severity = none
+
+[src/dotnet/Musoq.Parser/Diagnostics/DiagnosticFormatter.cs]
+# Formatter methods remain instance members to match the configurable formatter surface.
+dotnet_diagnostic.CA1822.severity = none
+
+[src/dotnet/Musoq.Parser/Diagnostics/IDiagnosticException.cs]
+# IDiagnosticException is the public marker for exceptions that can produce parser/evaluator diagnostics.
+dotnet_diagnostic.CA1711.severity = none
+
+[src/dotnet/Musoq.Parser.Tests/Diagnostic_CoreTypesTests.cs]
+# Diagnostic mapping tests intentionally construct generic and runtime-reserved exception types.
+dotnet_diagnostic.CA2201.severity = none
+
+[src/dotnet/Musoq.Evaluator.Tests/Schema/Multi/ICommonInterface.cs]
+# The empty common interface is a test marker for InjectSpecificSource interface dispatch.
+dotnet_diagnostic.CA1040.severity = none
+
+[src/dotnet/Musoq.Parser.Tests/Diagnostic_ErrorEnvelopeTests.cs]
+# Error-envelope tests intentionally use a generic wrapper exception to verify fallback diagnostics.
+dotnet_diagnostic.CA2201.severity = none
+
+[src/dotnet/Musoq.Evaluator.Tests/CrossApplyMixedTests.cs]
+# GetOne is a bindable SQL access method used by CROSS APPLY fixture queries.
+dotnet_diagnostic.CA1024.severity = none
+
+[src/dotnet/Musoq.Evaluator.Tests/Schema/Basic/Library.cs]
+# GetOne is a bindable SQL function whose method name appears in query results.
+dotnet_diagnostic.CA1024.severity = none
+
+[src/dotnet/Musoq.Evaluator/QueryAnalyzer.cs]
+# QueryAnalyzer exposes validation as an instance service API.
+dotnet_diagnostic.CA1822.severity = none
+
+[src/dotnet/Musoq.Evaluator/Visitors/CodeGeneration/CompilationContextManager.cs]
+# Compilation context setup methods remain instance lifecycle hooks.
+dotnet_diagnostic.CA1822.severity = none
+# GetCompilation and GetNamespaces preserve the method-shaped compilation context API used by converter and renderer tests.
+dotnet_diagnostic.CA1024.severity = none
+
+[src/dotnet/Musoq.Evaluator/Visitors/ExtractRawColumnsVisitor.cs]
+# Visitor lifecycle hooks remain instance methods even when a particular hook is currently empty.
+dotnet_diagnostic.CA1822.severity = none
+
+[src/dotnet/Musoq.Evaluator/Visitors/Helpers/CteDependencyGraph/CteDependencyGraphBuilder.cs]
+# Dependency graph builders keep their instance builder API for existing callers.
+dotnet_diagnostic.CA1822.severity = none
+
+[src/dotnet/Musoq.Evaluator/Visitors/Helpers/InterpretationSchemaDependencyGraph/InterpretationSchemaDependencyGraphBuilder.cs]
+# Dependency graph builders keep their instance builder API for existing callers.
+dotnet_diagnostic.CA1822.severity = none
+
+[src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.EntryPoints.cs]
+# Renderer capability checks are part of the renderer instance API.
+dotnet_diagnostic.CA1822.severity = none
+
+[src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionShapeResolver.Sources.cs]
+# Shape resolver entry points remain instance methods to keep the resolver API consistent.
+dotnet_diagnostic.CA1822.severity = none
+
+[src/dotnet/Musoq.Evaluator/IR/Planning/QueryPlanner.cs]
+# QueryPlanner remains an instantiable planning component between logical and physical planning.
+dotnet_diagnostic.CA1822.severity = none
+
+[src/dotnet/Musoq.Parser/Nodes/**]
+# Parser AST nodes preserve array-shaped child payloads for constructor and visitor compatibility.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Parser/Diagnostics/ErrorMetadata.cs]
+# Diagnostic metadata preserves array-shaped ranges and related payloads for existing parser diagnostics.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Evaluator/IR/**]
+# Logical, physical, binding, and expression IR records use arrays to encode immutable plan shape.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Evaluator/Exceptions/NonAggregatedColumnInSelectException.cs]
+# Exception diagnostics preserve array-shaped metadata for callers inspecting semantic failures.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Evaluator/Exceptions/UnresolvableMethodException.cs]
+# Exception diagnostics preserve array-shaped metadata for callers inspecting semantic failures.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Evaluator/Helpers/WindowPartitionSet.cs]
+# Window partition metadata is array-shaped to match renderer and runtime planning contracts.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Evaluator/Runtime/RuntimeLibraries.cs]
+# Roslyn compilation references are exposed as the array shape consumed by compilation setup.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Evaluator/Tables/Row.cs]
+# Row values and contexts are public runtime compatibility boundaries used by generated query rows.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Evaluator/Tables/RowShard.cs]
+# Row shards expose their backing array for runtime batching and fast indexed access.
+dotnet_diagnostic.CA1819.severity = none
+# Row shard equality would need sequence semantics, not backing-array reference equality.
+dotnet_diagnostic.CA1815.severity = none
+
+[src/dotnet/Musoq.Evaluator/TemporarySchemas/DynamicTable.cs]
+# Dynamic table columns implement the schema table array contract.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Evaluator/Utils/Symbols/FieldsNamesSymbol.cs]
+# Symbol payloads mirror parser field arrays for downstream visitors.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Evaluator/Utils/Symbols/TableSymbol.cs]
+# Symbol payloads mirror parser table field arrays for downstream visitors.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Evaluator/Visitors/GetSelectFieldsVisitor.cs]
+# The select-field visitor returns the parser-compatible field array collected during traversal.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Converter/Build/BuildItems.cs]
+# Build artifacts preserve array-shaped compilation metadata consumed by the converter pipeline.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Playground/NonEquiTable.cs]
+# Playground sample table metadata follows the schema table array contract.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Schema/ISchemaTable.cs]
+# The schema table column array is a public plugin contract.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Schema/DataSourceEventHandler.cs]
+# DataSourceEventHandler is the public event delegate type exposed by runnable query progress APIs.
+dotnet_diagnostic.CA1711.severity = none
+
+[src/dotnet/Musoq.Schema/SingleRowSchemaTable.cs]
+# Single-row table columns implement the public schema table array contract.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Schema/Reflection/ConstructorInfo.cs]
+# Constructor argument metadata is array-shaped for reflection binding compatibility.
+dotnet_diagnostic.CA1819.severity = none
+
+[src/dotnet/Musoq.Schema/Exceptions/MethodResolutionException.cs]
+# Method-resolution diagnostics preserve array-shaped metadata for callers inspecting failures.
+dotnet_diagnostic.CA1819.severity = none

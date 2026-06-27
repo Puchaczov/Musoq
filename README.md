@@ -20,7 +20,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Puchaczov/Musoq/graphs/code-frequency)
 [![Nuget](https://img.shields.io/badge/Nuget%3F-yes-green.svg)](https://www.nuget.org/packages?q=musoq)
-![Tests](https://raw.githubusercontent.com/puchaczov/musoq/badges/docs/assets/tests-badge.svg)
+![Tests](https://raw.githubusercontent.com/puchaczov/musoq/badges/assets/tests-badge.svg)
 
 
 **Ad-hoc SQL queries against files, logs, processes, and more — with zero data ingestion or intermediate storage.**
@@ -138,7 +138,7 @@ select
     ToHex(h.PlayerId) as UID, 
     h.Score 
 from os.file('/saves/save1.dat') f
-cross apply Interpret(f.GetBytes(), GameSaveHeader) h
+cross apply Interpret<GameSaveHeader>(f.GetBytes()) h
 where h.Magic = 0x4D414745 -- 'GAME'
 ```
 
@@ -159,7 +159,7 @@ text LogEntry {
 select log.Timestamp, log.Level, log.Message
 from os.file('/var/logs/app.log') f
 cross apply Lines(f.GetContent()) line
-cross apply Parse(line.Value, LogEntry) log
+cross apply Parse<LogEntry>(line.Value) log
 where log.Level = 'ERROR'
 ```
 
@@ -174,7 +174,7 @@ table Receipt {
 };
 
 -- Bind untyped AI-vision extraction output to strict SQL Types
-couple stdin.LlmExtractFromImage() with table Receipt as SourceOfReceipts;
+couple stdin.LlmExtractFromImage with table Receipt as SourceOfReceipts;
 
 select s.Shop, s.ProductName, s.Price 
 from SourceOfReceipts('OpenAi', 'gpt-4o') s
@@ -224,7 +224,7 @@ There are several excellent tools that allow you to use SQL outside of tradition
 | **osquery** | Endpoint Monitoring | Tracking the state, metrics, and security configurations across fleets of operating systems. |
 | **Musoq** | Ad-hoc Querying & Investigation | One-off queries, debugging sessions, and local investigations against files, logs, binary data, and `stdin` — without importing or storing anything. |
 
-While tools like DuckDB and Steampipe excel when data is already naturally structured or API-driven, Musoq is built for the investigative, exploratory side of development — when you don't know the shape of the data yet and you want to ask questions first. It gives you the primitives (inline `text` matchers, `binary` schemas, and AI `couple` statements) to define structure *during* the query, not before it.
+While OLAP engines and API-oriented SQL tools excel when data is already naturally structured or API-driven, Musoq is built for the investigative, exploratory side of development — when you don't know the shape of the data yet and you want to ask questions first. It gives you the primitives (inline `text` matchers, `binary` schemas, and AI `couple` statements) to define structure *during* the query, not before it.
 
 Importantly, **Musoq does not use an underlying database engine** (like SQLite or Postgres FDWs). There is no "import" step, no data ingestion, and no intermediate storage. Musoq is a pure runtime that streams and transforms data exactly where it resides—whether that's a file on disk, an API response, or `stdin`—and outputs the result directly.
 
@@ -281,30 +281,70 @@ It is divided into 3 key projects:
 
 ### Deep Dive: Engine Architecture
 
-When a query enters the core **Musoq Engine**, it goes through the following pipeline:
+When a query enters the core **Musoq Engine**, it is compiled through explicit plan
+representations before becoming executable C#. The long-term optimizer direction
+is documented in [Musoq Enhanced Architecture](musoq_enchanced_architecture.md):
+builders create initial shapes, optimizer passes rewrite those shapes, lowerers
+translate selected plans, and renderers emit the resulting Execution IR.
 
 ```mermaid
 flowchart TD
-    SQL[/SQL Query String/] --> Parser
-    
-    subgraph Engine [Core Engine Internal Pipeline]
+    SQL[/SQL Query String/] --> Parser[Lexer and Parser]
+
+    subgraph CompileTime [Compile-Time Engine Pipeline]
         direction TB
-        Parser[Lexer & Parser] --> AST[Abstract Syntax Tree]
-        AST --> Visitors[AST Visitors & Rewriters]
-        Visitors --> Semantic[Type Inference & Semantic Analysis]
-        Semantic --> Compiler[C# Code Generator & Compiler]
-        Compiler --> Runtime[Execution Runtime]
+        Parser --> RawAst[Raw AST]
+        RawAst --> SchemaCompiler[Interpretation Schema Compiler]
+        SchemaCompiler --> NormalizedAst[Query AST without schema definitions]
+        SchemaCompiler --> SchemaRegistry[SchemaRegistry and Generated Interpreters]
+
+        NormalizedAst --> Semantic[Semantic Binding and Normalization]
+        Semantic --> ExpressionIr[Expression IR]
+        ExpressionIr --> InitialLogical[Initial Logical Plan]
+        InitialLogical --> LogicalOptimizer[Logical Optimizer Passes]
+        LogicalOptimizer --> OptimizedLogical[Optimized Logical Plan]
+        OptimizedLogical --> InitialPhysical[Initial Physical Plan]
+        InitialPhysical --> PhysicalOptimizer[Physical Optimizer Passes]
+        PhysicalOptimizer --> OptimizedPhysical[Optimized Physical Plan]
+        OptimizedPhysical --> ExecutionLowerer[Execution IR Lowerer]
+        ExecutionLowerer --> InitialExecutionIr[Initial Execution IR]
+        InitialExecutionIr --> ExecutionOptimizer[Execution IR Optimizer Passes]
+        ExecutionOptimizer --> OptimizedExecutionIr[Optimized Execution IR]
+        OptimizedExecutionIr --> Renderer[IR CSharp Renderers]
+        Renderer --> CodegenReadability[Codegen Readability Pass]
+        CodegenReadability --> GeneratedCSharp[Readable Generated CSharp]
+        GeneratedCSharp --> Roslyn[Roslyn In-Memory Assembly]
+        Roslyn --> Runnable[IRunnable]
     end
-    
-    Registry[(Plugin / Schema Registry)] -.->|Injects types & methods| Semantic
-    Runtime <-->|Streams Data Row-by-Row| DataSource[(Data Source Plugin)]
-    Runtime ===> Results[/Tabular Result Set/]
+
+    subgraph Runtime [Runtime Execution]
+        Runnable --> CompiledQuery[CompiledQuery.Run]
+        CompiledQuery --> RuntimeTables[Table, Row, ObjectsRow, Group, Indexes]
+        RuntimeTables --> Results[/Tabular Result Set/]
+    end
+
+    SchemaProvider[(ISchemaProvider and Schemas)] -.->|columns, methods, types| Semantic
+    SchemaProvider -.->|source capabilities| LogicalOptimizer
+    SchemaProvider -->|RowSource| RuntimeTables
+    Plugins[(Musoq.Plugins Built-In Functions)] -.->|methods and aggregates| Semantic
+    CompilationOptions[(CompilationOptions)] -.->|strategy and parallelization settings| PhysicalOptimizer
+    CompilationOptions -.->|execution metadata| ExecutionOptimizer
+    SchemaRegistry -.->|interpreter types| ExecutionLowerer
+
+    OptimizedExecutionIr -.-> ParallelNodes[Explicit Parallel Runtime Nodes]
+    ParallelNodes -.-> ParallelDetails[CTE blocks, mergeable aggregate loops, filter/project loops]
 ```
+
+The detailed optimization sets live in the enhanced architecture document. In
+short, logical optimizers should handle semantic-preserving rewrites, physical
+optimizers should choose implementation strategies, Execution IR optimizers
+should improve executable shape, and codegen readability passes should make the
+generated C# stable and pleasant to inspect.
 
 ## 🤖 Extensibility & AI-Driven Agent Plugins
 You can write C# or Python plugins manually, or point an AI agent at the plugin development guide and have it build one for you.
 
-We provide a dedicated, self-contained guide designed explicitly for Autonomous Coding Agents (like GitHub Copilot, Cursor, or Claude) to build, test, package, and deploy complete .NET plugins without human intervention. Just point your agent at the docs and tell it what data source you want!
+We provide a dedicated, self-contained guide designed explicitly for Autonomous Coding Agents (like GitHub Copilot, Cursor, or Claude) to build, test, package, and deploy complete .NET plugins without human intervention. Just point your agent at that guide and tell it what data source you want!
 
 Check out the [🤖 Autonomous Plugin Development Guide (in Musoq.DataSources)](https://github.com/Puchaczov/Musoq.DataSources/blob/main/MusoqAutonomousPluginDevelopment.md) to bootstrap your first AI-generated plugin.
 

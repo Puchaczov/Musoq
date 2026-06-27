@@ -147,8 +147,8 @@ AI schemas are the third member of the interpretation schema family:
 
 | Schema Type | Input | Interpretation Method | Function | Output |
 |-------------|-------|----------------------|----------|--------|
-| `binary` | `byte[]` | Byte-level parsing | `Interpret()` | Typed object |
-| `text` | `string` | Character-level parsing | `Parse()` | Typed object |
+| `binary` | `byte[]` | Byte-level parsing | `Interpret<Schema>()` | Typed object |
+| `text` | `string` | Character-level parsing | `Parse<Schema>()` | Typed object |
 | `ai` | `string` or `byte[]` (base64 image) | LLM inference | `Infer()` | Typed object |
 
 All three:
@@ -274,12 +274,12 @@ CROSS APPLY Infer(f.Base64File(), Receipt) r
 
 ### 3.2 New Interpretation Function: `Infer()`
 
-`Infer()` is the AI equivalent of `Interpret()` (binary) and `Parse()` (text).
+`Infer()` is the AI equivalent of `Interpret<SchemaType>()` (binary) and `Parse()` (text).
 
 **Signatures:**
 
 ```
-Infer(content, SchemaType)           -- Basic inference
+Infer(content)           -- Basic inference
 Infer(content, SchemaType, hint)     -- With extraction hint
 TryInfer(content, SchemaType)        -- Returns null on failure
 TryInfer(content, SchemaType, hint)  -- Safe with hint
@@ -859,12 +859,12 @@ When a constraint fails, the compiled validator produces structured errors. Thes
 
 ### 7.1 Function Signatures
 
-AI inference functions follow the same pattern as `Interpret()` (binary) and `Parse()` (text):
+AI inference functions follow the same pattern as `Interpret<SchemaType>()` (binary) and `Parse()` (text):
 
 **Primary inference:**
 
 ```
-Infer(content, SchemaType)
+Infer(content)
 ```
 
 | Parameter | Type | Description |
@@ -1087,7 +1087,7 @@ SELECT
     cl.DocumentType,
     cl.Language
 FROM os.files('./documents', true) f
-CROSS APPLY Interpret(f.GetBytes(), PdfHeader) header
+CROSS APPLY Interpret<PdfHeader>(f.GetBytes()) header
 CROSS APPLY Infer(f.GetFileContent(), DocumentClassification) cl
 WHERE cl.DocumentType = 'invoice'
 ```
@@ -1551,7 +1551,7 @@ SELECT
     cl.Action
 FROM os.file('/var/log/syslog') f
 CROSS APPLY Lines(f.GetContent()) line
-CROSS APPLY Parse(line.Value, SyslogLine) log
+CROSS APPLY Parse<SyslogLine>(line.Value) log
 CROSS APPLY Infer(log.Message, LogClassification) cl
 WHERE cl.UserImpact <> 'none'
 ORDER BY 
@@ -1602,7 +1602,7 @@ SELECT
     bm.RiskReason
 FROM os.file('/mainframe/ACCTMAST.DAT') f
 CROSS APPLY Lines(f.GetContent()) line
-CROSS APPLY Parse(line.Value, CobolRecord) r
+CROSS APPLY Parse<CobolRecord>(line.Value) r
 CROSS APPLY Infer(
     'AccountType=' + r.AccountType + ' StatusCode=' + r.StatusCode + 
     ' LastActivity=' + r.LastActivity + ' Balance=' + r.Balance,

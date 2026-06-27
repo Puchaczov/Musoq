@@ -1,6 +1,6 @@
 # Musoq TABLE and COUPLE Statements Specification
 
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Status:** Specification  
 **Author:** Jakub Puchała
 
@@ -30,7 +30,7 @@
 
 ### 1.1 Purpose
 
-This document specifies the TABLE and COUPLE statements in Musoq — a pair of statements that work together to define explicit type schemas for data sources that return untyped, dynamically-typed, or object-based rows.
+This document specifies the TABLE and COUPLE statements in Musoq. TABLE defines explicit row shapes for data sources that return untyped, dynamically-typed, or object-based rows. COUPLE creates query-local aliases for schema methods and can bind those aliases to a table shape, a source runtime settings profile, or both.
 
 ### 1.2 Scope
 
@@ -38,6 +38,9 @@ This specification covers:
 
 - TABLE statement syntax and semantics
 - COUPLE statement syntax and semantics
+- Source runtime settings profile selection through COUPLE
+- Column-local read modifiers for datasource interpretation hints
+- Datasource-reported source contract diagnostics
 - Supported data types
 - Type resolution and validation
 - Error conditions
@@ -64,6 +67,9 @@ An implementation that claims conformance to the TABLE/COUPLE profile MUST imple
 | **Coupled Alias** | A named reference to a schema method bound via COUPLE that can be used as a data source |
 | **Schema Method** | A method exposed by a schema provider (e.g., `A.Entities`, `csv.file('/path')`) |
 | **Dynamic Row Source** | A data source that returns rows with unknown or object-typed columns at query definition time |
+| **Settings Profile** | A named source runtime settings profile selected by COUPLE and resolved by the host for one source context |
+| **Read Modifier** | A column-local key/value hint, declared in TABLE, that a datasource may use when reading that column |
+| **Source Contract Diagnostic** | A datasource-reported info, warning, or error about a TABLE contract, read modifier, or source-vs-table mismatch |
 
 ---
 
@@ -87,21 +93,26 @@ For dynamically-typed and unknown sources, the query engine cannot infer types a
 TABLE and COUPLE statements allow query authors to:
 
 1. **Define an explicit schema** with named, typed columns using TABLE
-2. **Bind that schema** to a data source method using COUPLE
-3. **Use the coupled alias** as a strongly-typed data source in queries
+2. **Annotate individual columns** with datasource read hints when the source needs extra information
+3. **Bind that schema** to a data source method using COUPLE
+4. **Select a source runtime settings profile** for one source context when needed
+5. **Use the coupled alias** as a data source in queries
 
 This provides:
 - Compile-time type checking
 - Clear documentation of expected data shape
 - Type-safe query expressions
 - Reusable schema definitions within a query batch
+- Query-local settings profile selection without embedding setting values in SQL
 
 ### 2.3 Design Philosophy
 
 - **Explicit over implicit**: Schema MUST be declared before use
 - **Fail-fast**: Invalid types or missing definitions produce clear errors
-- **SQL-aligned syntax**: Uses familiar SQL-like syntax (`table`, `as`, `with table`)
-- **Separation of concerns**: TABLE defines structure; COUPLE binds it to a source
+- **SQL-aligned syntax**: Uses familiar SQL-like syntax (`table`, `as`, `with table`, `with settings`)
+- **Separation of concerns**: TABLE defines structure; COUPLE binds source aliases to structure and/or settings profile selection
+- **Column-local hints**: Read modifiers belong to individual columns; there are no table-level defaults
+- **Datasource authority**: The core language preserves modifiers, but datasources decide what each modifier means
 
 ---
 
@@ -116,11 +127,17 @@ table_name ::= identifier
 
 column_def_list ::= column_def { ',' column_def } [',']
 
-column_def ::= column_name ':' type_name ['?']
+column_def ::= column_name ':' type_name ['?'] read_modifier*
 
 column_name ::= identifier
 
-type_name ::= identifier
+type_name ::= identifier { '.' identifier }
+
+read_modifier ::= 'encoding' string_literal
+                | 'culture' string_literal
+                | 'format' string_literal
+                | 'trim'
+                | 'source' identifier string_literal
 ```
 
 ### 3.2 Structure
@@ -143,6 +160,7 @@ table TableName {
 | `Column` | Column name identifier |
 | `type` | Type keyword or fully-qualified type name |
 | `?` | Optional suffix indicating nullable type |
+| read modifier | Optional column-local datasource hint such as `encoding`, `culture`, `format`, `trim`, or `source codec` |
 | `,` | Column separator (trailing comma is optional) |
 | `;` | Statement terminator (optional) |
 
@@ -153,6 +171,7 @@ Each column definition consists of:
 1. **Column name**: A case-sensitive identifier
 2. **Type name**: A supported type keyword or qualified type name
 3. **Nullable marker** (optional): `?` suffix for explicitly nullable types
+4. **Read modifiers** (optional): zero or more column-local datasource hints
 
 **Valid column definitions:**
 
@@ -164,19 +183,59 @@ IsActive: bool?        -- Explicitly nullable boolean
 Date: datetimeoffset?  -- Explicitly nullable DateTimeOffset
 ```
 
-### 3.4 Scope and Visibility
+### 3.4 Column Read Modifiers
+
+Column read modifiers provide missing per-column information to the datasource. They are preserved in column metadata and passed through metadata, planning, and execution contexts. The core engine does not interpret modifier semantics beyond parsing and duplicate-key validation.
+
+```sql
+table LegacyRecord {
+    Id: int,
+    Name: string encoding 'windows-1250' trim,
+    Amount: decimal culture 'pl-PL' format '#,##0.00',
+    Payload: string source codec 'base64'
+};
+```
+
+Supported modifier syntax:
+
+| Syntax | Stored key | Stored value |
+|--------|------------|--------------|
+| `encoding 'windows-1250'` | `encoding` | `windows-1250` |
+| `culture 'pl-PL'` | `culture` | `pl-PL` |
+| `format '#,##0.00'` | `format` | `#,##0.00` |
+| `trim` | `trim` | `true` |
+| `source codec 'base64'` | `source.codec` | `base64` |
+
+Modifier keys are lowercase. `source` modifiers use the key form `source.<identifier>`. Values preserve the string literal value. `trim` stores the string value `true`.
+
+There are no table-level defaults. If a column does not specify a modifier, its read-modifier map is empty. The datasource SHOULD treat missing modifiers as "use datasource defaults" and MUST NOT infer table-level defaults from other columns.
+
+Duplicate modifier keys on the same column are invalid:
+
+```sql
+table Bad {
+    Name: string encoding 'utf-8' encoding 'windows-1250'
+};
+```
+
+The core engine reports duplicate keys as `MQ2012_InvalidSchemaDefinition`. This applies to `source` keys as well, so `source codec 'a' source codec 'b'` is invalid, while `source codec 'a' source mode 'strict'` is valid because the keys are different.
+
+Read modifiers are not CSV-specific. Different datasources may interpret them differently or ignore unsupported modifiers. Datasources SHOULD report source contract diagnostics when a modifier is unsupported, ignored, or conflicts with source capabilities.
+
+### 3.5 Scope and Visibility
 
 - **Scope**: Table definitions are scoped to the query batch in which they are defined
 - **Visibility**: Visible only after definition; no forward references
 - **Uniqueness**: Table names MUST be unique within a batch
 - **Lifetime**: Exists only for the duration of query execution
 
-### 3.5 Semantics
+### 3.6 Semantics
 
 1. TABLE creates a named schema structure stored in memory
 2. The structure is registered and available for COUPLE statements
 3. Column order in the definition determines column indices (0-based)
 4. Value types are automatically promoted to nullable to handle dynamic data
+5. Column read modifiers are stored with the corresponding column metadata
 
 ---
 
@@ -185,15 +244,20 @@ Date: datetimeoffset?  -- Explicitly nullable DateTimeOffset
 ### 4.1 Syntax
 
 ```ebnf
-couple_statement ::= COUPLE schema_source WITH TABLE table_name AS alias_name
+couple_statement ::= COUPLE couple_schema_source WITH couple_option { AND couple_option } AS alias_name
 
-schema_source ::= schema_name '.' method_name
+couple_option ::= TABLE table_name
+                | SETTINGS settings_profile
+
+couple_schema_source ::= schema_name '.' method_name
 
 schema_name ::= identifier
 
 method_name ::= identifier
 
 table_name ::= identifier
+
+settings_profile ::= identifier
 
 alias_name ::= identifier
 ```
@@ -202,6 +266,9 @@ alias_name ::= identifier
 
 ```sql
 couple Schema.Method with table TableName as AliasName;
+couple Schema.Method with settings ProfileName as AliasName;
+couple Schema.Method with table TableName and settings ProfileName as AliasName;
+couple Schema.Method with settings ProfileName and table TableName as AliasName;
 ```
 
 **Components:**
@@ -210,8 +277,10 @@ couple Schema.Method with table TableName as AliasName;
 |-----------|-------------|
 | `couple` | Keyword initiating the binding |
 | `Schema.Method` | Schema method reference |
-| `with table` | Keywords linking to the table definition |
+| `with table` | Optional binding to a table definition |
 | `TableName` | Name of a previously defined TABLE |
+| `with settings` | Optional binding to a source runtime settings profile |
+| `ProfileName` | Host-resolved settings profile name |
 | `as` | Keyword introducing the alias |
 | `AliasName` | The name to use as a data source in queries |
 | `;` | Statement terminator (optional) |
@@ -228,10 +297,17 @@ couple A.Entities with table MyTable as Source;
 
 ### 4.4 Semantics
 
-1. COUPLE binds a previously defined TABLE to a schema method
-2. Creates an alias that can be used as a data source
-3. The alias behaves like a method and is invoked with parentheses
-4. Arguments can be passed to the aliased source at query time
+1. COUPLE binds a schema method to a query-local alias
+2. A `table` option supplies explicit column metadata for dynamic sources
+3. A `settings` option selects a named source runtime settings profile for that source context
+4. Settings-only couples infer table metadata from the underlying schema
+5. Table-and-settings couples use the declared table shape and selected profile
+6. COUPLE does not define or override column read modifiers; it only binds the TABLE contract to the source alias
+7. The alias behaves like a method and is invoked with parentheses
+8. Arguments can be passed to the aliased source at query time
+9. Setting values are resolved by the host and are not written inline in SQL
+
+Duplicate `table` options, duplicate `settings` options, and `couple ... with` statements without at least one option are invalid.
 
 ### 4.5 Alias Usage
 
@@ -251,6 +327,8 @@ select a.Column1 from AliasName() a
 with Data as (select * from other.source())
 select * from AliasName(Data)
 ```
+
+The coupled alias (`AliasName`) names the callable data source. A table alias after the invocation (`a` in `AliasName() a`) is a normal FROM alias scoped to the current query block. When coupled-source columns are projected through a CTE, the core CTE output-name rules apply: explicit SELECT aliases define the exported names, and source qualifiers such as `a.` are not exported.
 
 ---
 
@@ -320,6 +398,15 @@ with FilteredData as (
 select * from FilteredData;
 ```
 
+If the coupled source is table-aliased inside the CTE, that alias is local to the CTE body. The CTE exposes `Id` and `Name`, not `t.Id` and `t.Name`:
+
+```sql
+with FilteredData as (
+    select t.Id, t.Name from TypedSource() t where t.Id > 10
+)
+select Id, Name from FilteredData;
+```
+
 ### 5.5 With CTE as Argument
 
 Use CTE results as input to a coupled source:
@@ -334,6 +421,53 @@ with InputData as (
     select Value from input.source()
 )
 select Text from Transformer(InputData);
+```
+
+### 5.6 With Source Runtime Settings
+
+Select a host-resolved settings profile for a source:
+
+```sql
+couple api.items with settings prod as Items;
+select Id, Name from Items();
+```
+
+Combine explicit table shape with a settings profile:
+
+```sql
+table Item {
+    Id: string,
+    Name: string,
+    Price: decimal?
+};
+couple api.items with table Item and settings prod as Items;
+select Id, Name, Price from Items();
+```
+
+The `table` and `settings` options can appear in either order:
+
+```sql
+couple api.items with settings prod and table Item as Items;
+```
+
+Repeated uses of the same schema method can select different settings profiles by using different coupled aliases:
+
+```sql
+couple api.items with settings prod as ProdItems;
+couple api.items with settings staging as StagingItems;
+
+select p.Id, s.Id
+from ProdItems() p
+inner join StagingItems() s on p.Id = s.Id;
+```
+
+The selected profile name is passed to the host runtime settings resolver. Values remain outside SQL and are keyed by the source context id, so repeated uses of the same schema method can resolve different settings.
+
+Use the core `DESC SETTINGS` statement to inspect declared requirements and resolution status without exposing values:
+
+```sql
+desc settings api.items;
+desc settings ProdItems;
 ```
 
 ---
@@ -414,6 +548,9 @@ table Example {
 | **Missing Identifier** | Column without name | `table T { : string }` |
 | **Missing Type** | Column without type | `table T { Name: }` |
 | **Unclosed Braces** | Missing closing brace | `table T { Name: string` |
+| **Duplicate Read Modifier** | Same read-modifier key repeated on one column | `table T { Name: string trim trim }` |
+| **Duplicate COUPLE Option** | `table` or `settings` repeated in one COUPLE statement | `couple A.X with settings prod and settings dev as X` |
+| **Missing COUPLE Option** | `with` is not followed by `table` or `settings` | `couple A.X with as X` |
 
 ### 7.2 Semantic Errors
 
@@ -424,9 +561,32 @@ table Example {
 | **Duplicate Column Names** | Same column name used twice | `table T { Name: string, Name: int }` |
 | **Undefined Table Reference** | COUPLE references non-existent TABLE | `couple A.X with table Unknown as Y` |
 | **Undefined Alias** | Query references uncoupled alias | `select * from NonExistent()` |
+| **Missing Source Runtime Setting** | Required source runtime setting was not resolved | `select * from SecureApi()` |
+| **Source Contract Error** | Datasource reports that the TABLE contract or read modifiers cannot be honored | `table T { Name: string encoding 'x-unknown' }` |
 | **Constructor Not Found** | Internal adapter type generated for a schema source does not expose the expected constructor | `couple separatedvalues.comma with table CsvRow as Csv` |
 
-### 7.3 Runtime Adapter Diagnostics [Informative]
+### 7.3 Source Contract Diagnostics
+
+Datasources may report contract diagnostics from `DescribeSource` or `TryPlanSource`.
+
+| Severity | Normal diagnostic behavior |
+|----------|----------------------------|
+| `Info` | Appears in planning text only |
+| `Warning` | Reported as `MQ5013_SourceContractWarning` and appears in planning text |
+| `Error` | Reported as `MQ3071_SourceContractError`, stops compilation, and appears in planning text |
+
+When a diagnostic references a TABLE column and modifier, normal diagnostics SHOULD point at the modifier text. If only the column is referenced, they SHOULD point at the column declaration. Diagnostics without table-origin metadata use the normal empty-span fallback while keeping the datasource message.
+
+Typical source contract diagnostics include:
+
+- A modifier is unsupported and ignored.
+- A source supports only one encoding but a column requests another.
+- A declared TABLE type conflicts with a datasource-known column kind.
+- A modifier value is malformed for that datasource.
+
+No diagnostic is required when modifiers are absent. Missing modifiers mean the datasource should use its defaults.
+
+### 7.4 Runtime Adapter Diagnostics [Informative]
 
 When COUPLE is used with dynamic file-based sources (for example separated values), host/runtime internals may route through generated adapter/helper types. In stack traces, names such as `memoryMapped` can appear.
 
@@ -452,8 +612,10 @@ Recommended checks:
 | `MQ2001` | Unexpected Token |
 | `MQ2008` | Duplicate Alias |
 | `MQ2012` | Invalid Schema Definition |
+| `MQ3071` | Source Contract Error |
 | `MQ4008` | Duplicate Schema Field |
 | `MQ2030` | Unsupported Syntax |
+| `MQ5013` | Source Contract Warning |
 
 ---
 
@@ -466,7 +628,13 @@ table_definition ::= TABLE identifier '{' column_def_list '}'
 
 column_def_list ::= column_def { ',' column_def } [',']
 
-column_def ::= identifier ':' type_name [ '?' ]
+column_def ::= identifier ':' type_name [ '?' ] read_modifier*
+
+read_modifier ::= 'encoding' string_literal
+                | 'culture' string_literal
+                | 'format' string_literal
+                | 'trim'
+                | 'source' identifier string_literal
 
 type_name ::= identifier
             | qualified_type_name
@@ -477,9 +645,12 @@ qualified_type_name ::= identifier { '.' identifier }
 ### 8.2 Couple Statement Grammar
 
 ```ebnf
-couple_statement ::= COUPLE schema_source WITH TABLE identifier AS identifier
+couple_statement ::= COUPLE couple_schema_source WITH couple_option { AND couple_option } AS identifier
 
-schema_source ::= [ '#' ] identifier '.' identifier
+couple_option ::= TABLE identifier
+                | SETTINGS identifier
+
+couple_schema_source ::= identifier '.' identifier
 ```
 
 ### 8.3 Coupled Alias Reference Grammar
@@ -589,6 +760,41 @@ couple dynamic.source with table NullableExample as Data;
 select Id, Name, IsActive from Data();
 ```
 
+### 9.7 Source Runtime Settings Profiles
+
+```sql
+table ApiItem {
+    Id: string,
+    Name: string,
+    Price: decimal?
+};
+
+couple api.items with table ApiItem and settings prod as ProdItems;
+couple api.items with settings staging as StagingItems;
+
+select p.Id, p.Price
+from ProdItems() p
+inner join StagingItems() s on p.Id = s.Id;
+```
+
+### 9.8 Column Read Modifiers
+
+```sql
+table LegacyInvoiceRow {
+    InvoiceNo: string encoding 'windows-1250' trim,
+    CustomerName: string encoding 'windows-1250' trim,
+    Total: decimal culture 'pl-PL' format '#,##0.00',
+    Attachment: string source codec 'base64'
+};
+
+couple separatedvalues.comma with table LegacyInvoiceRow as Invoices;
+
+select InvoiceNo, CustomerName, Total, Attachment
+from Invoices('legacy-invoices.csv');
+```
+
+If `Total` omitted `culture` and `format`, the datasource would receive an empty modifier map for those keys and would use its own defaults. The `couple` statement remains unchanged; the annotations belong to TABLE columns.
+
 ---
 
 ## 10. Integration with Other Constructs
@@ -606,6 +812,15 @@ with FilteredData as (
     select Id, Name from TypedSource()
 )
 select * from FilteredData;
+```
+
+CTE aliasing follows the core language rules. Source aliases inside the CTE body do not become part of the CTE output names:
+
+```sql
+with FilteredData as (
+    select t.Id, t.Name from TypedSource() t
+)
+select Id, Name from FilteredData;
 ```
 
 ### 10.2 With JOINs
@@ -687,8 +902,8 @@ select Id, Name from SourceB();
 
 Within a query batch, statements MUST follow this order:
 
-1. **TABLE definitions** (one or more)
-2. **COUPLE statements** (referencing previously defined tables)
+1. **TABLE definitions** (if any)
+2. **COUPLE statements** (after any TABLE definitions they reference)
 3. **CTEs** (if any)
 4. **Query** (SELECT, FROM-first, etc.)
 
@@ -715,16 +930,29 @@ inner join Y() on CTE.Col1 = Y.Col2;
 
 ```sql
 table TableName {
-    Column1: type1,
-    Column2: type2?,
+    Column1: type1 [read modifiers],
+    Column2: type2? [read modifiers],
     ...
 };
 ```
 
+Read modifiers:
+
+```text
+encoding 'name'
+culture 'name'
+format 'pattern'
+trim
+source identifier 'value'
+```
+
 ### COUPLE Statement
 
-```sql
-couple [#]Schema.Method with table TableName as AliasName;
+```text
+couple Schema.Method with table TableName as AliasName;
+couple Schema.Method with settings ProfileName as AliasName;
+couple Schema.Method with table TableName and settings ProfileName as AliasName;
+couple Schema.Method with settings ProfileName and table TableName as AliasName;
 ```
 
 ### Usage in Query
@@ -743,7 +971,7 @@ select columns from AliasName([args]) [alias]
 
 | Construct | Purpose | Scope |
 |-----------|---------|-------|
-| **TABLE/COUPLE** | Explicit schema for dynamic sources | Query batch |
+| **TABLE/COUPLE** | Explicit schema and settings profile binding for source aliases | Query batch |
 | **CTE** | Named subquery result | Query batch |
 | **binary/text schema** | Parse binary/text data | Query batch |
 | **ISchemaTable** | Built-in schema definition | Schema provider |

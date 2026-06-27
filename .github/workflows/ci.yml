@@ -8,40 +8,86 @@ on:
     branches:
       - master
     paths-ignore:
-      - 'docs/**'
       - '*.md'
       - 'LICENSE'
-      - '.github/workflows/jekyll-gh-pages.yml'
       - '.github/workflows/update-badge.yml'
   pull_request:
     branches:
       - master
     paths-ignore:
-      - 'docs/**'
       - '*.md'
       - 'LICENSE'
-      - '.github/workflows/jekyll-gh-pages.yml'
       - '.github/workflows/update-badge.yml'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    name: Running tests on ubuntu-latest.
+  validate:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux validation (primary)
+            os: ubuntu-latest
+            artifact_name: trx-linux
+            warning_ratchet: true
+          - name: Windows validation
+            os: windows-latest
+            artifact_name: trx-windows
+            warning_ratchet: false
+
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
 
-    - name: Cache NuGet packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Build.props') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Build.props', '**/Directory.Packages.props', 'scripts/Versions.props', 'global.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
-    - name: Build & Run tests
-      run: dotnet test src/dotnet/Musoq.sln --configuration Release --logger "trx;LogFileName=test-results.trx"
+      - name: Restore
+        run: dotnet restore src/dotnet/Musoq.sln
+
+      - name: Build
+        run: dotnet build src/dotnet/Musoq.sln --configuration Release --no-restore
+
+      - name: Enforce warning ratchet
+        if: matrix.warning_ratchet == true
+        shell: bash
+        run: |
+          dotnet build src/dotnet/Musoq.Parser/Musoq.Parser.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Parser.Tests/Musoq.Parser.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Schema/Musoq.Schema.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Schema.Tests/Musoq.Schema.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Plugins/Musoq.Plugins.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Plugins.Tests/Musoq.Plugins.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Tests.Common/Musoq.Tests.Common.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Evaluator/Musoq.Evaluator.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Converter/Musoq.Converter.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Evaluator.Tests/Musoq.Evaluator.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Playground/Musoq.Playground.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+
+      - name: Test
+        run: dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --logger "console;verbosity=minimal" --logger "trx;LogFileName=test-results.trx"
+
+      - name: Pack release packages
+        if: matrix.warning_ratchet == true
+        shell: pwsh
+        run: pwsh scripts/release/Pack-Release.ps1 -AllPackages -OutputPath artifacts/ci-nupkgs
+
+      - name: Publish TRX artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: src/dotnet/**/TestResults/*.trx
+          if-no-files-found: error

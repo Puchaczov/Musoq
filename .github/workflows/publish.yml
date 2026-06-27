@@ -1,66 +1,216 @@
 name: Publish
 
-permissions:
-  contents: write
-
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["CI"]
-    branches: [master]
-    types:
-      - completed
+    inputs:
+      tag:
+        description: Release tag to validate as a dry run, for example parser/v17.0.1-preview.1
+        required: true
+        type: string
+  push:
+    tags:
+      - 'v*.*.*'
+      - '*/v*.*.*'
+
+permissions:
+  contents: read
 
 jobs:
-  publish:
-    if: >-
-      (github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'master') ||
-      github.event_name == 'workflow_dispatch'
+  validate-pack:
+    name: Validate and pack
     runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-    
-    - name: Cache NuGet packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Build.props') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
-    
-    - name: Restore dependencies
-      run: dotnet restore src/dotnet/Musoq.sln
-    
-    - name: Build
-      run: dotnet build src/dotnet/Musoq.sln --configuration Release --no-restore
-    
-    - name: Pack specific projects
-      run: |
-        dotnet pack src/dotnet/Musoq.Converter/Musoq.Converter.csproj --configuration Release --no-build --output ./nupkgs
-        dotnet pack src/dotnet/Musoq.Evaluator/Musoq.Evaluator.csproj --configuration Release --no-build --output ./nupkgs
-        dotnet pack src/dotnet/Musoq.Parser/Musoq.Parser.csproj --configuration Release --no-build --output ./nupkgs
-        dotnet pack src/dotnet/Musoq.Plugins/Musoq.Plugins.csproj --configuration Release --no-build --output ./nupkgs
-        dotnet pack src/dotnet/Musoq.Schema/Musoq.Schema.csproj --configuration Release --no-build --output ./nupkgs
-    
-    - name: Publish to NuGet.org
-      shell: pwsh
-      run: |
-        $packages = Get-ChildItem -Path ./nupkgs -Filter *.nupkg
-        foreach ($package in $packages) {
-          dotnet nuget push $package.FullName --api-key ${{ secrets.NUGET_MUSOQ_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-        }
+    permissions:
+      contents: read
+    outputs:
+      release_tag: ${{ steps.release.outputs.release_tag }}
+      release_version: ${{ steps.release.outputs.release_version }}
+      release_notes_path: ${{ steps.release.outputs.release_notes_path }}
+      is_prerelease: ${{ steps.release.outputs.is_prerelease }}
+      is_dry_run: ${{ steps.release.outputs.is_dry_run }}
 
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: nuget-publish-${{ github.run_id }}-${{ github.run_attempt }}
-        name: NuGet publish ${{ github.run_number }}
-        generate_release_notes: true
-        files: ./nupkgs/*.nupkg
+    steps:
+      # actions/checkout@v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+
+      # actions/setup-dotnet@v4.3.1
+      - name: Setup .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+        with:
+          dotnet-version: '10.0.x'
+
+      # actions/cache@v4.2.4
+      - name: Cache NuGet packages
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Build.props', '**/Directory.Packages.props', 'scripts/Versions.props', 'global.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Validate release tag
+        id: release
+        shell: pwsh
+        env:
+          RELEASE_EVENT_NAME: ${{ github.event_name }}
+          RELEASE_INPUT_TAG: ${{ inputs.tag }}
+          RELEASE_REF_NAME: ${{ github.ref_name }}
+        run: |
+          if ($env:RELEASE_EVENT_NAME -eq 'workflow_dispatch') {
+            $tag = $env:RELEASE_INPUT_TAG
+            $isDryRun = 'true'
+          }
+          else {
+            $tag = $env:RELEASE_REF_NAME
+            $isDryRun = 'false'
+          }
+
+          $summaryJson = & ./scripts/release/Validate-Release.ps1 -Tag $tag -Json
+          $summary = $summaryJson | ConvertFrom-Json
+
+          "release_tag=$($summary.tag)" >> $env:GITHUB_OUTPUT
+          "release_version=$($summary.version)" >> $env:GITHUB_OUTPUT
+          "release_notes_path=release-notes/$($summary.tag).md" >> $env:GITHUB_OUTPUT
+          "is_prerelease=$($summary.isPrerelease.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          "is_dry_run=$isDryRun" >> $env:GITHUB_OUTPUT
+
+      - name: Restore
+        run: dotnet restore src/dotnet/Musoq.sln --nologo --verbosity quiet
+
+      - name: Build
+        run: dotnet build src/dotnet/Musoq.sln --configuration Release --no-restore --nologo --verbosity quiet
+
+      - name: Test
+        run: dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
+
+      - name: Pack selected packages
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.release_tag }}
+        run: pwsh scripts/release/Pack-Release.ps1 -Tag $env:RELEASE_TAG -OutputPath artifacts/nupkgs
+
+      - name: Smoke test selected packages
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.release_tag }}
+        run: pwsh scripts/release/Test-PackageSmoke.ps1 -Tag $env:RELEASE_TAG -PackageDirectory artifacts/nupkgs
+
+      # actions/upload-artifact@v4.6.2
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: release-packages
+          path: artifacts/nupkgs/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish to NuGet
+    needs: validate-pack
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: nuget-production
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      # actions/checkout@v4.2.2
+      - name: Checkout release metadata
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ needs.validate-pack.outputs.release_tag }}
+          sparse-checkout: |
+            release-notes
+          sparse-checkout-cone-mode: false
+
+      - name: Resolve release notes
+        id: release-notes
+        shell: pwsh
+        env:
+          RELEASE_NOTES_PATH: ${{ needs.validate-pack.outputs.release_notes_path }}
+        run: |
+          if (Test-Path -LiteralPath $env:RELEASE_NOTES_PATH) {
+            "exists=true" >> $env:GITHUB_OUTPUT
+          }
+          else {
+            "exists=false" >> $env:GITHUB_OUTPUT
+          }
+
+      # actions/download-artifact@v4.3.0
+      - name: Download package artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: release-packages
+          path: artifacts/nupkgs
+
+      # NuGet/login@v1
+      - name: NuGet login with Trusted Publishing
+        id: nuget-login
+        continue-on-error: true
+        uses: NuGet/login@ebc737b6fc418a6ca0073cf116ec8dc156d8b81e
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push packages to NuGet.org
+        shell: pwsh
+        env:
+          TRUSTED_NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          FALLBACK_NUGET_API_KEY: ${{ secrets.NUGET_MUSOQ_KEY }}
+        run: |
+          $apiKey = $env:TRUSTED_NUGET_API_KEY
+          if ([string]::IsNullOrWhiteSpace($apiKey)) {
+            $apiKey = $env:FALLBACK_NUGET_API_KEY
+          }
+
+          if ([string]::IsNullOrWhiteSpace($apiKey)) {
+            throw 'NuGet publishing credential is unavailable. Configure Trusted Publishing or NUGET_MUSOQ_KEY.'
+          }
+
+          $manifestPath = Join-Path 'artifacts/nupkgs' 'release-package-files.txt'
+          if (-not (Test-Path -LiteralPath $manifestPath)) {
+            throw 'Release package manifest was not found.'
+          }
+
+          $packageFiles = Get-Content -LiteralPath $manifestPath |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+            ForEach-Object { Split-Path -Leaf $_ } |
+            ForEach-Object { Join-Path 'artifacts/nupkgs' $_ }
+
+          foreach ($packageFile in $packageFiles) {
+            if (-not (Test-Path -LiteralPath $packageFile)) {
+              throw 'Release package listed in the manifest was not found.'
+            }
+
+            dotnet nuget push $packageFile --api-key $apiKey --source https://api.nuget.org/v3/index.json --skip-duplicate
+            if ($LASTEXITCODE -ne 0) {
+              throw 'NuGet push failed.'
+            }
+          }
+
+      # softprops/action-gh-release@v2.2.2
+      - name: Create GitHub Release with curated notes
+        if: steps.release-notes.outputs.exists == 'true'
+        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631
+        with:
+          tag_name: ${{ needs.validate-pack.outputs.release_tag }}
+          name: Release ${{ needs.validate-pack.outputs.release_tag }}
+          prerelease: ${{ needs.validate-pack.outputs.is_prerelease }}
+          body_path: ${{ needs.validate-pack.outputs.release_notes_path }}
+          generate_release_notes: false
+          files: |
+            artifacts/nupkgs/*.nupkg
+            artifacts/nupkgs/*.snupkg
+
+      # softprops/action-gh-release@v2.2.2
+      - name: Create GitHub Release with generated notes
+        if: steps.release-notes.outputs.exists != 'true'
+        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631
+        with:
+          tag_name: ${{ needs.validate-pack.outputs.release_tag }}
+          name: Release ${{ needs.validate-pack.outputs.release_tag }}
+          prerelease: ${{ needs.validate-pack.outputs.is_prerelease }}
+          generate_release_notes: true
+          files: |
+            artifacts/nupkgs/*.nupkg
+            artifacts/nupkgs/*.snupkg

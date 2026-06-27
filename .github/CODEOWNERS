@@ -1,0 +1,9 @@
+.github/workflows/ @Puchaczov
+scripts/release/ @Puchaczov
+scripts/Versions.props @Puchaczov
+release-notes/ @Puchaczov
+src/dotnet/Musoq.Parser/Musoq.Parser.csproj @Puchaczov
+src/dotnet/Musoq.Plugins/Musoq.Plugins.csproj @Puchaczov
+src/dotnet/Musoq.Schema/Musoq.Schema.csproj @Puchaczov
+src/dotnet/Musoq.Evaluator/Musoq.Evaluator.csproj @Puchaczov
+src/dotnet/Musoq.Converter/Musoq.Converter.csproj @Puchaczov

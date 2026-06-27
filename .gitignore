@@ -6,6 +6,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+.copilot_session_summary.md
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -194,6 +195,7 @@ ClientBin/
 *.publishsettings
 node_modules/
 orleans.codegen.cs
+/generated-code-samples/
 
 # Since there are multiple workflows, uncomment next line to ignore bower_components
 # (https://github.com/github/gitignore/pull/1529#issuecomment-104372622)
@@ -262,7 +264,16 @@ __pycache__/
 /Musoq.Tools.CopyReleased/conf.mrf
 merged-test-results.xml
 
-_site/
-.jekyll-cache/
 
 **/BenchmarkDotNet.Artifacts
+
+# Benchmark result files
+/*_results.txt
+/*_benchmarks.txt
+/*_benchmarks_final.txt
+/*_baseline.txt
+/*_optimized*.txt
+
+# Claude Code local overrides
+CLAUDE.local.md
+.claude/settings.local.json

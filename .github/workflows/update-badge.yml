@@ -21,7 +21,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '10.0.x'
     
     - name: Cache NuGet packages
       uses: actions/cache@v4
@@ -78,9 +78,9 @@ jobs:
       id: check
       shell: bash
       run: |
-        if [ -f "docs/assets/tests-badge.svg" ]; then
+        if [ -f "assets/tests-badge.svg" ]; then
           # Extract current values from existing badge
-          CURRENT_BADGE=$(cat docs/assets/tests-badge.svg)
+          CURRENT_BADGE=$(cat assets/tests-badge.svg)
           echo "Current badge exists, will compare with new values"
         else
           echo "No existing badge found"
@@ -133,11 +133,11 @@ jobs:
           git rm -rf .
         fi
         
-        mkdir -p docs/assets
+        mkdir -p assets
         
         # Move the new badge to the correct location
-        mv /tmp/tests-badge-new.svg docs/assets/tests-badge.svg
-        git add docs/assets/tests-badge.svg
+        mv /tmp/tests-badge-new.svg assets/tests-badge.svg
+        git add assets/tests-badge.svg
         
         if ! git diff --cached --quiet; then
           git commit -m "Update test results badge [skip ci]

@@ -1,5 +1,7 @@
 ﻿select * from #custom.persons() d where d.Name like '%2344%' and d.Age > 10;
 
+Historical pre-runtime-v2 code-generation sketch. The snippets in this file are archival only and include helper names from the removed old renderer path; do not treat them as active runtime-v2 implementation guidance.
+
 Table Evaluate(ISchemaProvider provider)
 {
 	var d = provider.GetSchema("custom");
