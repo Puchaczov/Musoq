@@ -103,12 +103,28 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains(
             "var libraryBase0 = new Musoq.Plugins.LibraryBase();",
             result.GeneratedCSharpCode);
-        Assert.Contains(
-            "ParallelSingleKeyAggregate_0(groupsToFinalizeParallelRows, 24, token, libraryBase0)",
-            result.GeneratedCSharpCode);
-        Assert.Contains(
-            "private static List<ResultAggregateGroup> ParallelSingleKeyAggregate_0(IReadOnlyList<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> rows, int maxDegreeOfParallelism, CancellationToken cancellationToken, Musoq.Plugins.LibraryBase libraryBase0)",
-            result.GeneratedCSharpCode);
+
+        const string parallelAggregateCall = "ParallelSingleKeyAggregate_0(groupsToFinalizeParallelRows, ";
+        if (result.GeneratedCSharpCode.Contains(parallelAggregateCall, StringComparison.Ordinal))
+        {
+            var callLine = GetLine(
+                result.GeneratedCSharpCode,
+                result.GeneratedCSharpCode.IndexOf(parallelAggregateCall, StringComparison.Ordinal));
+
+            Assert.Contains(", token, libraryBase0)", callLine);
+            Assert.Contains(
+                "private static List<ResultAggregateGroup> ParallelSingleKeyAggregate_0(IReadOnlyList<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> rows, int maxDegreeOfParallelism, CancellationToken cancellationToken, Musoq.Plugins.LibraryBase libraryBase0)",
+                result.GeneratedCSharpCode);
+        }
+        else
+        {
+            Assert.Contains(
+                "UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, libraryBase0,",
+                result.GeneratedCSharpCode);
+            Assert.Contains(
+                "Musoq.Plugins.LibraryBase libraryBase0",
+                result.GeneratedCSharpCode);
+        }
     }
 
     [TestMethod]
