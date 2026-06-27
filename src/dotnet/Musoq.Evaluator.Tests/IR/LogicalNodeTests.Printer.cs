@@ -36,7 +36,7 @@ public partial class LogicalNodeTests
         var expected =
             "Filter [(t.Id > 18)]\r\n" +
             "  SchemaScan [#test.data() as t]";
-        Assert.AreEqual(expected, result);
+        PlanTextAssertions.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -76,7 +76,7 @@ public partial class LogicalNodeTests
             "  Aggregate [keys: Name] [aggs: Count]\r\n" +
             "    Filter [(t.Id > 18)]\r\n" +
             "      SchemaScan [#test.data() as t]";
-        Assert.AreEqual(expected, result);
+        PlanTextAssertions.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -96,7 +96,7 @@ public partial class LogicalNodeTests
             "Join [Inner] [(a.Id = b.Id)]\r\n" +
             "  SchemaScan [#test.data() as a]\r\n" +
             "  SchemaScan [#test.data() as b]";
-        Assert.AreEqual(expected, result);
+        PlanTextAssertions.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -115,7 +115,7 @@ public partial class LogicalNodeTests
         var expected =
             "Sort [t.Name, t.Id DESC]\r\n" +
             "  SchemaScan [#test.data() as t]";
-        Assert.AreEqual(expected, result);
+        PlanTextAssertions.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -135,7 +135,7 @@ public partial class LogicalNodeTests
             "  Skip [10]\r\n" +
             "    Sort [t.Id]\r\n" +
             "      SchemaScan [#test.data() as t]";
-        Assert.AreEqual(expected, result);
+        PlanTextAssertions.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -153,7 +153,7 @@ public partial class LogicalNodeTests
         var expected =
             "Having [(AggRef(Count) > 5)]\r\n" +
             "  SchemaScan [#test.data() as t]";
-        Assert.AreEqual(expected, result);
+        PlanTextAssertions.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -169,7 +169,7 @@ public partial class LogicalNodeTests
             "SetOp [UnionAll]\r\n" +
             "  SchemaScan [#test.data() as a]\r\n" +
             "  SchemaScan [#test.data() as b]";
-        Assert.AreEqual(expected, result);
+        PlanTextAssertions.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -185,7 +185,7 @@ public partial class LogicalNodeTests
             "Apply [Cross]\r\n" +
             "  SchemaScan [#test.data() as a]\r\n" +
             "  SchemaScan [#test.data() as b]";
-        Assert.AreEqual(expected, result);
+        PlanTextAssertions.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -205,7 +205,7 @@ public partial class LogicalNodeTests
             "    SchemaScan [#test.data() as d]\r\n" +
             "  Query\r\n" +
             "    SchemaScan [#test.data() as q]";
-        Assert.AreEqual(expected, result);
+        PlanTextAssertions.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -260,7 +260,7 @@ public partial class LogicalNodeTests
             "MultiStatement\r\n" +
             "  SchemaScan [#test.data() as a]\r\n" +
             "  SchemaScan [#test.data() as b]";
-        Assert.AreEqual(expected, result);
+        PlanTextAssertions.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -278,7 +278,7 @@ public partial class LogicalNodeTests
         var expected =
             "Qualify [(t.Id > 1)]\r\n" +
             "  SchemaScan [#test.data() as t]";
-        Assert.AreEqual(expected, result);
+        PlanTextAssertions.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -297,7 +297,7 @@ public partial class LogicalNodeTests
         var expected =
             "Window [ToUpper(idx:0)]\r\n" +
             "  SchemaScan [#test.data() as t]";
-        Assert.AreEqual(expected, result);
+        PlanTextAssertions.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -342,7 +342,7 @@ public partial class LogicalNodeTests
             "        Join [LeftOuter] [(a.Id = b.Id)]\r\n" +
             "          SchemaScan [#test.data() as a]\r\n" +
             "          SchemaScan [#test.data() as b]";
-        Assert.AreEqual(expected, result);
+        PlanTextAssertions.AreEqual(expected, result);
     }
 
     #endregion

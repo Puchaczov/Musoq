@@ -645,7 +645,7 @@ public class PhysicalPlanBuilderTests
 
         var output = PhysicalPlanPrinter.Print(CreatePhysicalBuilder().Lower(logical));
 
-        Assert.AreEqual(
+        PlanTextAssertions.AreEqual(
             "PhysicalAggregateCandidate [keys: Name] [aggs: Count]\r\n  PhysicalSchemaScan [#test.data() as t]",
             output);
     }

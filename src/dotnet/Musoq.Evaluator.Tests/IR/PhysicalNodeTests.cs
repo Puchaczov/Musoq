@@ -392,7 +392,7 @@ public class PhysicalNodeTests
 
         var output = PhysicalPlanPrinter.Print(project);
 
-        Assert.AreEqual(
+        PlanTextAssertions.AreEqual(
             "PhysicalProject [t.Name as Name]\r\n  PhysicalSchemaScan [#test.data() as t]",
             output);
     }
@@ -408,7 +408,7 @@ public class PhysicalNodeTests
 
         var output = PhysicalPlanPrinter.Print(project);
 
-        Assert.AreEqual(
+        PlanTextAssertions.AreEqual(
             "PhysicalProject [t.Id as Id]\r\n  PhysicalFilter [(t.Id > 5)]\r\n    PhysicalSchemaScan [#test.data() as t]",
             output);
     }
@@ -422,7 +422,7 @@ public class PhysicalNodeTests
 
         var output = PhysicalPlanPrinter.Print(join);
 
-        Assert.AreEqual(
+        PlanTextAssertions.AreEqual(
             "PhysicalHashJoin [Inner] [build: a.Id] [probe: b.UserId]\r\n  PhysicalSchemaScan [#test.data() as a]\r\n  PhysicalSchemaScan [#test.data() as b]",
             output);
     }
@@ -437,7 +437,7 @@ public class PhysicalNodeTests
 
         var output = PhysicalPlanPrinter.Print(agg);
 
-        Assert.AreEqual(
+        PlanTextAssertions.AreEqual(
             "PhysicalSingleKeyAggregate [key: Name (String)] [aggs: Count]\r\n  PhysicalSchemaScan [#test.data() as t]",
             output);
     }
@@ -453,7 +453,7 @@ public class PhysicalNodeTests
 
         var output = PhysicalPlanPrinter.Print(window);
 
-        Assert.AreEqual(
+        PlanTextAssertions.AreEqual(
             "PhysicalWindow [ToUpper(idx:0)]\r\n  PhysicalMaterialize\r\n    PhysicalSchemaScan [#test.data() as t]",
             output);
     }
@@ -467,7 +467,7 @@ public class PhysicalNodeTests
 
         var output = PhysicalPlanPrinter.Print(topN);
 
-        Assert.AreEqual(
+        PlanTextAssertions.AreEqual(
             "PhysicalTopN [10] [t.Name]\r\n  PhysicalSchemaScan [#test.data() as t]",
             output);
     }
@@ -483,7 +483,7 @@ public class PhysicalNodeTests
 
         var output = PhysicalPlanPrinter.Print(cte);
 
-        Assert.AreEqual(
+        PlanTextAssertions.AreEqual(
             "PhysicalCte\r\n  Definition [MyCte]\r\n    PhysicalProject [inner.Id as Id]\r\n      PhysicalSchemaScan [#test.data() as inner]\r\n  Query\r\n    PhysicalCteRef [MyCte as c]",
             output);
     }

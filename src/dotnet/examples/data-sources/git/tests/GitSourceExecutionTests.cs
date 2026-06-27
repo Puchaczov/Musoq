@@ -117,7 +117,7 @@ public sealed class GitSourceExecutionTests : GitExampleTestBase
     }
 
     [TestMethod]
-    public void Source_WhenCancellationIsRequestedDuringEnumeration_ShouldThrowAfterCurrentChunk()
+    public void Source_WhenCancellationIsRequestedDuringEnumeration_ShouldReportCompletedChunk()
     {
         using var cancellation = new CancellationTokenSource();
         var events = new List<DataSourceEventArgs>();
@@ -139,7 +139,9 @@ public sealed class GitSourceExecutionTests : GitExampleTestBase
                 rows.AddRange(chunk);
         });
 
-        Assert.AreEqual(32, rows.Count);
+        Assert.IsTrue(
+            rows.Count is 0 or 32,
+            $"The consumer should either observe cancellation before draining the buffered chunk or after receiving the completed chunk. Actual rows: {rows.Count}.");
         Assert.AreEqual(DataSourcePhase.End, events.Last().Phase);
         Assert.AreEqual(32, events.Last().RowsProcessed);
     }

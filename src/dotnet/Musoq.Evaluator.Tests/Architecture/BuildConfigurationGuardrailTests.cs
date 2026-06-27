@@ -26,7 +26,7 @@ public sealed class BuildConfigurationGuardrailTests
             .Select(line => SolutionProjectPath.Match(line))
             .Where(static match => match.Success)
             .Select(match => match.Groups[1].Value)
-            .Where(relativePath => !File.Exists(Path.Combine(solutionDirectory, relativePath)))
+            .Where(relativePath => !File.Exists(Path.Combine(solutionDirectory, NormalizeSolutionPath(relativePath))))
             .ToArray();
 
         Assert.IsEmpty(
@@ -167,5 +167,12 @@ public sealed class BuildConfigurationGuardrailTests
     {
         var parts = file.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         return parts.Contains("bin") || parts.Contains("obj");
+    }
+
+    private static string NormalizeSolutionPath(string relativePath)
+    {
+        return relativePath
+            .Replace('\\', Path.DirectorySeparatorChar)
+            .Replace('/', Path.DirectorySeparatorChar);
     }
 }
