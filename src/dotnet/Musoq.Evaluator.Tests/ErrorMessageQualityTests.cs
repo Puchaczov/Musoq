@@ -9,19 +9,9 @@ namespace Musoq.Evaluator.Tests;
 public class ErrorMessageQualityTests : NegativeTestsBase
 {
     [TestMethod]
-    public void EQ001_CountStarShouldMentionCountOne()
+    public void EQ001_CountStar_ShouldCompile()
     {
-        try
-        {
-            CompileQuery("SELECT Count(*) FROM #test.people()");
-            Assert.Fail("Expected an error for Count(*)");
-        }
-        catch (Exception ex)
-        {
-            Assert.IsTrue(
-                ex.Message.Contains("Count") || ex.Message.Contains("*") || ex.Message.Contains("star"),
-                $"Error message should be helpful for Count(*): {ex.Message}");
-        }
+        CompileQuery("SELECT Count(*) FROM #test.people()");
     }
 
     [TestMethod]
@@ -60,56 +50,30 @@ public class ErrorMessageQualityTests : NegativeTestsBase
     }
 
     [TestMethod]
-    public void EQ004_StandardUnionWithoutColumnList_ShouldProduceError()
+    public void EQ004_StandardUnionWithoutColumnList_ShouldCompile()
+    {
+        CompileQuery("SELECT Name FROM #test.people() UNION SELECT Name FROM #test.people()");
+    }
+
+    [TestMethod]
+    public void EQ005_NotEqualOperator_IsSupported()
+    {
+        CompileQuery("SELECT * FROM #test.people() WHERE Age != 25");
+    }
+
+    [TestMethod]
+    public void EQ006_SubqueryInWhere_MultiColumnSubquery_ShouldProduceError()
     {
         try
         {
-            CompileQuery("SELECT Name FROM #test.people() UNION SELECT Name FROM #test.people()");
-            Assert.Fail("Expected an error for UNION without column list");
-        }
-        catch (MusoqQueryException)
-        {
-            // Expected — Musoq requires UNION (ColumnList)
+            CompileQuery("SELECT * FROM #test.people() WHERE Id IN (SELECT Id, Name FROM #test.people())");
+            Assert.Fail("Expected an error for multi-column subquery in IN");
         }
         catch (Exception ex)
         {
             Assert.IsTrue(
-                ex.Message.Contains("UNION") || ex.Message.Contains("column") || ex.Message.Contains("syntax"),
-                $"Error should mention UNION syntax: {ex.Message}");
-        }
-    }
-
-    [TestMethod]
-    public void EQ005_NotEqualOperator_IsNotSupported()
-    {
-        try
-        {
-            CompileQuery("SELECT * FROM #test.people() WHERE Age != 25");
-            Assert.Fail("Expected an error for != operator");
-        }
-        catch (MusoqQueryException ex)
-        {
-            Assert.IsNotNull(ex.InnerException, "MusoqQueryException should preserve the original exception");
-            Assert.IsTrue(
-                ex.Message.Contains("!=") || ex.Message.Contains("<>") || ex.Message.Contains("operator"),
-                $"Error message should explain that '!=' is invalid and suggest '<>': {ex.Message}");
-        }
-    }
-
-    [TestMethod]
-    public void EQ006_SubqueryInWhere_ShouldProduceError()
-    {
-        try
-        {
-            CompileQuery("SELECT * FROM #test.people() WHERE Id IN (SELECT PersonId FROM #test.orders())");
-            Assert.Fail("Expected an error for subquery");
-        }
-        catch (MusoqQueryException ex)
-        {
-            Assert.IsNotNull(ex.InnerException, "MusoqQueryException should preserve the original exception");
-            Assert.IsTrue(
-                ex.Message.Contains("select") || ex.Message.Contains("Select") || ex.Message.Contains("cannot be used"),
-                $"Error message should indicate subqueries are not supported: {ex.Message}");
+                ex.Message.Contains("one column") || ex.Message.Contains("exactly one"),
+                $"Error message should indicate subquery must return one column: {ex.Message}");
         }
     }
 
@@ -173,7 +137,7 @@ public class ErrorMessageQualityTests : NegativeTestsBase
         catch (Exception ex)
         {
             Assert.IsTrue(
-                ex.Message.Contains("R") || ex.Message.Contains("recursive") || ex.Message.Contains("not defined") ||
+                ex.Message.Contains('R') || ex.Message.Contains("recursive") || ex.Message.Contains("not defined") ||
                 ex.Message.Contains("not found") || ex.Message.Contains("unknown"),
                 $"Error should indicate recursive CTE issue: {ex.Message}");
         }

@@ -108,6 +108,15 @@ public class BuiltInMethodOverloadTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void WhenGetElementAtForExistingElement_ShouldPass()
+    {
+        var table = TestResultMethodTemplate("GetElementAt('test1', 1)");
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual('e', (char)table[0].Values[0]);
+    }
+
+    [TestMethod]
     public void WhenRetrieveLengthFromSupportedType_ShouldPass()
     {
         var table = TestResultMethodTemplate("Length('test1')");

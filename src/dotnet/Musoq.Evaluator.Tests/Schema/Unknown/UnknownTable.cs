@@ -1,19 +1,14 @@
-using System.Dynamic;
+using System.Collections.Generic;
 using System.Linq;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests.Schema.Unknown;
 
-public class UnknownTable : ISchemaTable
+public class UnknownTable(SourceMetadataContext runtimeContext) : ISchemaTable
 {
-    public UnknownTable(RuntimeContext runtimeContext)
-    {
-        Columns = runtimeContext.AllColumns.ToArray();
-    }
+    public ISchemaColumn[] Columns { get; } = runtimeContext.AllColumns.ToArray();
 
-    public ISchemaColumn[] Columns { get; }
-
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(col => col.ColumnName == name);
     }
@@ -23,5 +18,5 @@ public class UnknownTable : ISchemaTable
         return Columns.Where(col => col.ColumnName == name).ToArray();
     }
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(DynamicObject));
+    public SchemaTableMetadata Metadata { get; } = new(typeof(IReadOnlyDictionary<string, object>));
 }

@@ -236,7 +236,7 @@ public class TypeConversionTests : PluginsTestBase
         var format = "dd-MM-yyyy";
 
         // Act
-        var result = Library.ToDateTimeWithFormat(input!, format);
+        var result = Library.ToDateTimeWithFormat(input, format);
 
         // Assert
         Assert.IsNotNull(result);

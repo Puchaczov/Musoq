@@ -12,7 +12,7 @@ public class NestedTable : ISchemaTable
         new SchemaColumn(nameof(NestedEntity.Info), 1, typeof(ComplexInfo))
     ];
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(col => col.ColumnName == name);
     }

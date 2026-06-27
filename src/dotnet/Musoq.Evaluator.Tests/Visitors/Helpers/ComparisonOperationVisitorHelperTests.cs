@@ -23,7 +23,7 @@ public class ComparisonOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(EqualityNode));
+        Assert.IsInstanceOfType<EqualityNode>(result);
         var equalityNode = (EqualityNode)result;
         Assert.AreEqual(leftNode, equalityNode.Left);
         Assert.AreEqual(rightNode, equalityNode.Right);
@@ -44,7 +44,7 @@ public class ComparisonOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(GreaterOrEqualNode));
+        Assert.IsInstanceOfType<GreaterOrEqualNode>(result);
         var greaterEqualNode = (GreaterOrEqualNode)result;
         Assert.AreEqual(leftNode, greaterEqualNode.Left);
         Assert.AreEqual(rightNode, greaterEqualNode.Right);
@@ -65,7 +65,7 @@ public class ComparisonOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(LessOrEqualNode));
+        Assert.IsInstanceOfType<LessOrEqualNode>(result);
         var lessEqualNode = (LessOrEqualNode)result;
         Assert.AreEqual(leftNode, lessEqualNode.Left);
         Assert.AreEqual(rightNode, lessEqualNode.Right);
@@ -86,7 +86,7 @@ public class ComparisonOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(GreaterNode));
+        Assert.IsInstanceOfType<GreaterNode>(result);
         var greaterNode = (GreaterNode)result;
         Assert.AreEqual(leftNode, greaterNode.Left);
         Assert.AreEqual(rightNode, greaterNode.Right);
@@ -107,7 +107,7 @@ public class ComparisonOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(LessNode));
+        Assert.IsInstanceOfType<LessNode>(result);
         var lessNode = (LessNode)result;
         Assert.AreEqual(leftNode, lessNode.Left);
         Assert.AreEqual(rightNode, lessNode.Right);
@@ -128,7 +128,7 @@ public class ComparisonOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(DiffNode));
+        Assert.IsInstanceOfType<DiffNode>(result);
         var diffNode = (DiffNode)result;
         Assert.AreEqual(leftNode, diffNode.Left);
         Assert.AreEqual(rightNode, diffNode.Right);
@@ -149,7 +149,7 @@ public class ComparisonOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(LikeNode));
+        Assert.IsInstanceOfType<LikeNode>(result);
         var likeNode = (LikeNode)result;
         Assert.AreEqual(leftNode, likeNode.Left);
         Assert.AreEqual(rightNode, likeNode.Right);

@@ -1,90 +1,88 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Numerics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class MinTests : PluginsTestBase
+public class MinTests
 {
     [TestMethod]
-    public void MinIntTest()
+    public void MinAggregateKernel_SkipsNullsAndReturnsSmallest()
     {
-        Library.SetMin(Group, "test", 5);
-        Library.SetMin(Group, "test", 4);
-        Library.SetMin(Group, "test", 6);
-        Library.SetMin(Group, "test", (int?)null);
-        Library.SetMin(Group, "test", -5);
-
-        Assert.AreEqual(-5m, Library.Min(Group, "test"));
+        AssertMin<byte>(50, 10, 30, 10);
+        AssertMin<sbyte>(50, -10, 30, -10);
+        AssertMin<short>(500, 100, 300, 100);
+        AssertMin<ushort>(500, 100, 300, 100);
+        AssertMin(5, 4, -5, -5);
+        AssertMin<uint>(500, 100, 300, 100);
+        AssertMin<long>(1, 4, -4, -4);
+        AssertMin<ulong>(500, 100, 300, 100);
+        AssertMin(5.5f, 1.5f, 3.5f, 1.5f);
+        AssertMin(5.5, 1.5, 3.5, 1.5);
+        AssertMin(1m, 2m, -4m, -4m);
     }
 
     [TestMethod]
-    public void MinIntParentTest()
+    public void MinAggregateKernel_EmptyStateReturnsNull()
     {
-        Library.SetMin(Group, "test", 10, 1);
-        Library.SetMin(Group, "test", 10, 1);
-        Library.SetMin(Group, "test", 6);
-        Library.SetMin(Group, "test", (int?)null);
+        var state = new MinAggregateKernel<int>.State();
 
-        Library.SetMin(Group, "test", 10, 1);
-        Library.SetMin(Group, "test", -3);
-
-        Assert.AreEqual(10m, Library.Min(Group, "test", 1));
-        Assert.AreEqual(-3m, Library.Min(Group, "test"));
+        Assert.IsNull(MinAggregateKernel<int>.Get(in state));
     }
 
     [TestMethod]
-    public void MinLongTest()
+    public void MinAggregateKernel_AllNullInputsReturnNull()
     {
-        Library.SetMin(Group, "test", 1L);
-        Library.SetMin(Group, "test", 4L);
-        Library.SetMin(Group, "test", 6L);
-        Library.SetMin(Group, "test", (long?)null);
-
-        Library.SetMin(Group, "test", -4);
-
-        Assert.AreEqual(-4m, Library.Min(Group, "test"));
+        AssertAllNullMin<int>();
+        AssertAllNullMin<decimal>();
     }
 
     [TestMethod]
-    public void MinLongParentTest()
+    public void MinAggregateKernel_MergeUsesSmallestPartialValue()
     {
-        Library.SetMin(Group, "test", 5L, 1);
-        Library.SetMin(Group, "test", 5L, 1);
-        Library.SetMin(Group, "test", 5L);
-        Library.SetMin(Group, "test", (long?)null, 1);
+        var target = new MinAggregateKernel<int>.State();
+        var source = new MinAggregateKernel<int>.State();
 
-        Library.SetMin(Group, "test", -1, 1);
-        Library.SetMin(Group, "test", -3);
+        MinAggregateKernel<int>.Set(ref target, 4);
+        MinAggregateKernel<int>.Set(ref source, -3);
+        MinAggregateKernel<int>.Merge(ref target, in source);
 
-        Assert.AreEqual(-1m, Library.Min(Group, "test", 1));
-        Assert.AreEqual(-3m, Library.Min(Group, "test"));
+        Assert.AreEqual(-3, MinAggregateKernel<int>.Get(in target));
     }
 
     [TestMethod]
-    public void MinDecimalTest()
+    public void MinAggregateKernel_MergeIgnoresEmptyPartialState()
     {
-        Library.SetMin(Group, "test", 1m);
-        Library.SetMin(Group, "test", 2m);
-        Library.SetMin(Group, "test", 3m);
-        Library.SetMin(Group, "test", (decimal?)null);
+        var target = new MinAggregateKernel<decimal>.State();
+        var source = new MinAggregateKernel<decimal>.State();
 
-        Library.SetMin(Group, "test", -4m);
+        MinAggregateKernel<decimal>.Set(ref target, 12m);
+        MinAggregateKernel<decimal>.Merge(ref target, in source);
 
-        Assert.AreEqual(-4m, Library.Min(Group, "test"));
+        Assert.AreEqual(12m, MinAggregateKernel<decimal>.Get(in target));
     }
 
-    [TestMethod]
-    public void MinDecimalParentTest()
+    private static void AssertMin<T>(T first, T second, T third, T expected)
+        where T : struct, INumber<T>
     {
-        Library.SetMin(Group, "test", 9m, 1);
-        Library.SetMin(Group, "test", 4m, 1);
-        Library.SetMin(Group, "test", 6m);
-        Library.SetMin(Group, "test", (decimal?)null, 1);
+        var state = new MinAggregateKernel<T>.State();
 
-        Library.SetMin(Group, "test", -1m, 1);
-        Library.SetMin(Group, "test", -2m);
+        MinAggregateKernel<T>.Set(ref state, first);
+        MinAggregateKernel<T>.Set(ref state, null);
+        MinAggregateKernel<T>.Set(ref state, second);
+        MinAggregateKernel<T>.Set(ref state, third);
 
-        Assert.AreEqual(-1m, Library.Min(Group, "test", 1));
-        Assert.AreEqual(-2m, Library.Min(Group, "test"));
+        Assert.AreEqual(expected, MinAggregateKernel<T>.Get(in state));
+    }
+
+    private static void AssertAllNullMin<T>()
+        where T : struct, INumber<T>
+    {
+        var state = new MinAggregateKernel<T>.State();
+
+        MinAggregateKernel<T>.Set(ref state, null);
+        MinAggregateKernel<T>.Set(ref state, null);
+
+        Assert.IsNull(MinAggregateKernel<T>.Get(in state));
     }
 }

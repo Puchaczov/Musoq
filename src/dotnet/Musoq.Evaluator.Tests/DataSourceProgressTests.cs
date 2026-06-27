@@ -7,6 +7,7 @@ using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Evaluator.Tests.Schema.DataSourceProgress;
 using Musoq.Schema;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -14,17 +15,17 @@ namespace Musoq.Evaluator.Tests;
 public class DataSourceProgressTests : BasicEntityTestBase
 {
     [TestMethod]
-    public void RuntimeContext_WithCallback_InvokesCallback()
+    public void SourceExecutionContext_WithCallback_InvokesCallback()
     {
         var events = new List<DataSourceEventArgs>();
 
-        var runtimeContext = new RuntimeContext(
+        var runtimeContext = new SourceExecutionContext(
             "test_query",
+            SourceExecutionPlan.Empty(SourceIdentity.Empty),
             CancellationToken.None,
             [],
             new Dictionary<string, string>(),
-            QuerySourceInfo.Empty,
-            null,
+            NullLogger.Instance,
             Callback);
 
         runtimeContext.ReportDataSourceBegin("TestSource");
@@ -69,7 +70,7 @@ public class DataSourceProgressTests : BasicEntityTestBase
             new ReportingSchemaProvider<BasicEntity>(sources),
             LoggerResolver);
 
-        vm.DataSourceProgress += (sender, args) =>
+        vm.DataSourceProgress += (_, args) =>
         {
             events.Add((args.Phase, args.DataSourceName, args.QueryId, args.TotalRows, args.RowsProcessed));
         };
@@ -121,9 +122,9 @@ public class DataSourceProgressTests : BasicEntityTestBase
             new ReportingSchemaProvider<BasicEntity>(sources),
             LoggerResolver);
 
-        vm.DataSourceProgress += (sender, args) => phases.Add(args.Phase);
+        vm.DataSourceProgress += (_, args) => phases.Add(args.Phase);
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         Assert.IsGreaterThanOrEqualTo(4, phases.Count, "Should have at least 4 events");
 
@@ -155,7 +156,7 @@ public class DataSourceProgressTests : BasicEntityTestBase
             new ReportingSchemaProvider<BasicEntity>(sources),
             LoggerResolver);
 
-        vm.DataSourceProgress += (sender, args) => events.Add(args);
+        vm.DataSourceProgress += (_, args) => events.Add(args);
 
         var result = vm.Run();
 
@@ -193,14 +194,14 @@ public class DataSourceProgressTests : BasicEntityTestBase
             new ReportingSchemaProvider<BasicEntity>(sources),
             LoggerResolver);
 
-        vm.DataSourceProgress += (sender, args) =>
+        vm.DataSourceProgress += (_, args) =>
         {
             if (!eventsBySource.ContainsKey(args.DataSourceName))
                 eventsBySource[args.DataSourceName] = [];
             eventsBySource[args.DataSourceName].Add(args);
         };
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         Assert.HasCount(2, eventsBySource, "Should have events from exactly two data sources");
 

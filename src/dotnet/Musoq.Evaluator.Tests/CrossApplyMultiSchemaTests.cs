@@ -77,16 +77,16 @@ public class CrossApplyMultiSchemaTests
         )).ToList();
 
         Assert.IsTrue(
-            rows.Any(r => r.FullPath == "/path/to/test/file1.txt" && r.Country == "Country1" && r.Money == 1000m),
+            rows.Any(r => r is { FullPath: "/path/to/test/file1.txt", Country: "Country1", Money: 1000m }),
             "Should contain file1 with Country1");
         Assert.IsTrue(
-            rows.Any(r => r.FullPath == "/path/to/test/file1.txt" && r.Country == "Country2" && r.Money == 2000m),
+            rows.Any(r => r is { FullPath: "/path/to/test/file1.txt", Country: "Country2", Money: 2000m }),
             "Should contain file1 with Country2");
         Assert.IsTrue(
-            rows.Any(r => r.FullPath == "/path/to/test/file2.txt" && r.Country == "Country1" && r.Money == 1000m),
+            rows.Any(r => r is { FullPath: "/path/to/test/file2.txt", Country: "Country1", Money: 1000m }),
             "Should contain file2 with Country1");
         Assert.IsTrue(
-            rows.Any(r => r.FullPath == "/path/to/test/file2.txt" && r.Country == "Country2" && r.Money == 2000m),
+            rows.Any(r => r is { FullPath: "/path/to/test/file2.txt", Country: "Country2", Money: 2000m }),
             "Should contain file2 with Country2");
     }
 
@@ -125,9 +125,9 @@ public class CrossApplyMultiSchemaTests
             Money: (decimal)row.Values[2]
         )).ToList();
 
-        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/file1.txt" && r.Country == "Country1" && r.Money == 1000m),
+        Assert.IsTrue(rows.Any(r => r is { FullPath: "/path/to/file1.txt", Country: "Country1", Money: 1000m }),
             "Should contain file1 with Country1");
-        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/file2.txt" && r.Country == "Country1" && r.Money == 1000m),
+        Assert.IsTrue(rows.Any(r => r is { FullPath: "/path/to/file2.txt", Country: "Country1", Money: 1000m }),
             "Should contain file2 with Country1");
     }
 
@@ -170,9 +170,9 @@ public class CrossApplyMultiSchemaTests
             Country: row.Values[1]?.ToString()
         )).ToList();
 
-        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/file1.txt" && r.Country == "Country1"),
+        Assert.IsTrue(rows.Any(r => r is { FullPath: "/path/to/file1.txt", Country: "Country1" }),
             "Should contain file1 with Country1");
-        Assert.IsTrue(rows.Any(r => r.FullPath == "/path/to/file1.txt" && r.Country == "Country2"),
+        Assert.IsTrue(rows.Any(r => r is { FullPath: "/path/to/file1.txt", Country: "Country2" }),
             "Should contain file1 with Country2");
     }
 
@@ -199,7 +199,7 @@ public class CrossApplyMultiSchemaTests
 
     #region Test Entities and Schemas
 
-    private class FileEntity
+    public class FileEntity
     {
         public static readonly IReadOnlyDictionary<string, int> NameToIndexMap = new Dictionary<string, int>
         {
@@ -207,18 +207,18 @@ public class CrossApplyMultiSchemaTests
             { nameof(Country), 1 }
         };
 
-        public static readonly IReadOnlyDictionary<int, Func<FileEntity, object>> IndexToObjectAccessMap =
-            new Dictionary<int, Func<FileEntity, object>>
+        public static readonly IReadOnlyDictionary<int, Func<FileEntity, object?>> IndexToObjectAccessMap =
+            new Dictionary<int, Func<FileEntity, object?>>
             {
                 { 0, e => e.FullPath },
                 { 1, e => e.Country }
             };
 
-        public string FullPath { get; set; }
-        public string Country { get; set; }
+        public string FullPath { get; set; } = string.Empty;
+        public string Country { get; set; } = string.Empty;
     }
 
-    private class DataEntity
+    public class DataEntity
     {
         public static readonly IReadOnlyDictionary<string, int> NameToIndexMap = new Dictionary<string, int>
         {
@@ -226,50 +226,45 @@ public class CrossApplyMultiSchemaTests
             { nameof(Money), 1 }
         };
 
-        public static readonly IReadOnlyDictionary<int, Func<DataEntity, object>> IndexToObjectAccessMap =
-            new Dictionary<int, Func<DataEntity, object>>
+        public static readonly IReadOnlyDictionary<int, Func<DataEntity, object?>> IndexToObjectAccessMap =
+            new Dictionary<int, Func<DataEntity, object?>>
             {
                 { 0, e => e.Country },
                 { 1, e => e.Money }
             };
 
-        public string Country { get; set; }
+        public string Country { get; set; } = string.Empty;
         public decimal Money { get; set; }
     }
 
-    private class TestSchema<TEntity> : SchemaBase
+    private sealed class TestSchema<TEntity>(
+        string name,
+        TEntity[] source,
+        Func<object?[], GenericChunkSource<TEntity>, RowSource<TEntity>>? filter = null)
+        : SchemaBase(name, CreateLibrary())
     {
-        private readonly Func<object[], GenericRowsSource<TEntity>, RowSource> _filter;
-        private readonly TEntity[] _source;
-
-        public TestSchema(string name, TEntity[] source,
-            Func<object[], GenericRowsSource<TEntity>, RowSource> filter = null)
-            : base(name, CreateLibrary())
-        {
-            _source = source;
-            _filter = filter;
-        }
-
-        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext,
-            params object[] parameters)
+        public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
+            params object?[] parameters)
         {
             return new GenericEntityTable<TEntity>();
         }
 
-        public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
         {
             var nameToIndex =
-                typeof(TEntity).GetField("NameToIndexMap")?.GetValue(null) as IReadOnlyDictionary<string, int>;
+                typeof(TEntity).GetField("NameToIndexMap")?.GetValue(null) as IReadOnlyDictionary<string, int>
+                ?? throw new InvalidOperationException($"Missing {nameof(GenericChunkSource<>)} name-to-index map.");
             var indexToAccess =
                 typeof(TEntity).GetField("IndexToObjectAccessMap")?.GetValue(null) as
-                    IReadOnlyDictionary<int, Func<TEntity, object>>;
+                    IReadOnlyDictionary<int, Func<TEntity, object?>>
+                ?? throw new InvalidOperationException($"Missing {nameof(GenericChunkSource<>)} index access map.");
 
-            var source = new GenericRowsSource<TEntity>(_source, nameToIndex, indexToAccess);
+            var source1 = new GenericChunkSource<TEntity>(source, nameToIndex, indexToAccess);
 
-            if (_filter != null && parameters.Length > 0)
-                return _filter(parameters, source);
+            if (filter != null && parameters.Length > 0)
+                return EnsureSourceType<T>(name, filter(parameters, source1));
 
-            return source;
+            return EnsureSourceType<T, TEntity>(name, source1);
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -280,18 +275,11 @@ public class CrossApplyMultiSchemaTests
         }
     }
 
-    private class TestMultiSchemaProvider : ISchemaProvider
+    private sealed class TestMultiSchemaProvider(IDictionary<string, ISchema> schemas) : ISchemaProvider
     {
-        private readonly IDictionary<string, ISchema> _schemas;
-
-        public TestMultiSchemaProvider(IDictionary<string, ISchema> schemas)
-        {
-            _schemas = schemas;
-        }
-
         public ISchema GetSchema(string schema)
         {
-            return _schemas[schema];
+            return schemas[schema];
         }
     }
 

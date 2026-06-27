@@ -1,3 +1,4 @@
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -159,21 +160,21 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
         Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual("a.Sum(b.Value)", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual(typeof(double?), table.Columns.ElementAt(1).ColumnType);
 
         Assert.AreEqual(3, table.Count, "Table should have 3 entries");
 
         Assert.IsTrue(table.Any(entry =>
             (string)entry.Values[0] == "City1" &&
-            (decimal)entry.Values[1] == 1m), "First entry should be City1 with 1m");
+            (double)entry.Values[1] == 1d), "First entry should be City1 with 1");
 
         Assert.IsTrue(table.Any(entry =>
             (string)entry.Values[0] == "City2" &&
-            (decimal)entry.Values[1] == 5m), "Second entry should be City2 with 5m");
+            (double)entry.Values[1] == 5d), "Second entry should be City2 with 5");
 
         Assert.IsTrue(table.Any(entry =>
             (string)entry.Values[0] == "City3" &&
-            (decimal)entry.Values[1] == 15m), "Third entry should be City3 with 15m");
+            (double)entry.Values[1] == 15d), "Third entry should be City3 with 15");
     }
 
     [TestMethod]
@@ -484,7 +485,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
             {
                 ComplexType = new ComplexType5
                 {
-                    PrimitiveValues = [1, 2]
+                    PrimitiveValues = { 1, 2 }
                 }
             }
         }.ToArray();
@@ -525,7 +526,7 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
             {
                 ComplexType = new ComplexType5
                 {
-                    ComplexValues = [new ComplexType6 { Value = 1 }, new ComplexType6 { Value = 2 }]
+                    ComplexValues = { new ComplexType6 { Value = 1 }, new ComplexType6 { Value = 2 } }
                 }
             }
         }.ToArray();
@@ -549,61 +550,61 @@ public class OuterApplySelfPropertyTests : GenericEntityTestBase
                 (int)row.Values[0] == 2), "Expected row with value 2");
     }
 
-    private class OuterApplyClass1
+    private sealed class OuterApplyClass1
     {
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        public double[] Values { get; set; }
+        public double[] Values { get; set; } = [];
     }
 
-    private class OuterApplyClass2
+    private sealed class OuterApplyClass2
     {
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        public List<double> Values { get; set; }
+        public List<double> Values { get; set; } = [];
     }
 
     // ReSharper disable once MemberCanBePrivate.Global
     public class ComplexType1
     {
-        public string Value1 { get; set; }
+        public string Value1 { get; set; } = string.Empty;
 
         public int Value2 { get; set; }
     }
 
-    private class OuterApplyClass3
+    private sealed class OuterApplyClass3
     {
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        [BindablePropertyAsTable] public ComplexType1[] Values { get; set; }
+        [BindablePropertyAsTable] public ComplexType1[] Values { get; set; } = [];
     }
 
-    private class OuterApplyClass4
+    private sealed class OuterApplyClass4
     {
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        [BindablePropertyAsTable] public List<ComplexType1> Values { get; set; }
+        [BindablePropertyAsTable] public List<ComplexType1> Values { get; set; } = [];
     }
 
-    private class OuterApplyClass5
+    private sealed class OuterApplyClass5
     {
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        public double[] Values1 { get; set; }
+        public double[] Values1 { get; set; } = [];
 
-        public double[] Values2 { get; set; }
+        public double[] Values2 { get; set; } = [];
     }
 
-    private class OuterApplyClass7
+    private sealed class OuterApplyClass7
     {
-        public ComplexType5 ComplexType { get; set; }
+        public ComplexType5? ComplexType { get; set; }
     }
 
     public class ComplexType5
     {
-        [BindablePropertyAsTable] public List<int> PrimitiveValues { get; set; }
+        [BindablePropertyAsTable] public List<int> PrimitiveValues { get; } = [];
 
-        [BindablePropertyAsTable] public List<ComplexType6> ComplexValues { get; set; }
+        [BindablePropertyAsTable] public List<ComplexType6> ComplexValues { get; } = [];
     }
 
     public class ComplexType6

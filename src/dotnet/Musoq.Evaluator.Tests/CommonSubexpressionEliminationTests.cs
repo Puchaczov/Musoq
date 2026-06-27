@@ -66,7 +66,7 @@ public class CommonSubexpressionEliminationTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => ((string)row.Values[0]).StartsWith("1")));
+        Assert.IsTrue(table.All(row => ((string)row.Values[0]).StartsWith('1')));
     }
 
     #endregion

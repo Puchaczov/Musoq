@@ -1,5 +1,3 @@
-#nullable enable
-
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Build;
@@ -12,7 +10,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Integration tests that generate text interpreter code and actually parse text data.
 /// </summary>
 [TestClass]
-public class TextInterpretationTests
+public partial class TextInterpretationTests
 {
     #region Rest Field Tests
 

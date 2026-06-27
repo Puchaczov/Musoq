@@ -14,7 +14,7 @@ public class GenericEntityTable<TTableEntity> : ISchemaTable
         var properties = type.GetProperties();
 
         var nameToIndexMap = new Dictionary<string, int>();
-        var indexToObjectAccessMap = new Dictionary<int, Func<TTableEntity, object>>();
+        var indexToObjectAccessMap = new Dictionary<int, Func<TTableEntity, object?>>();
 
         for (var i = 0; i < properties.Length; i++)
         {
@@ -40,10 +40,10 @@ public class GenericEntityTable<TTableEntity> : ISchemaTable
     // ReSharper disable once StaticMemberInGenericType
     public static IReadOnlyDictionary<string, int> NameToIndexMap { get; }
 
-    public static IReadOnlyDictionary<int, Func<TTableEntity, object>> IndexToObjectAccessMap { get; }
+    public static IReadOnlyDictionary<int, Func<TTableEntity, object?>> IndexToObjectAccessMap { get; }
     public ISchemaColumn[] Columns { get; }
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns[NameToIndexMap[name]];
     }

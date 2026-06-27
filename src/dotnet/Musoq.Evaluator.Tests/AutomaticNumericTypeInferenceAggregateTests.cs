@@ -125,7 +125,7 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, table[0].Values[0]);
+        Assert.AreEqual(2L, table[0].Values[0]);
     }
 
     [TestMethod]
@@ -165,4 +165,3 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
 
     #endregion
 }
-

@@ -5,30 +5,26 @@ namespace Musoq.Evaluator.Tests.Schema.Basic;
 
 public class BasicEntity
 {
-    public static readonly IDictionary<string, int> TestNameToIndexMap;
-    public static readonly IDictionary<int, Func<BasicEntity, object>> TestIndexToObjectAccessMap;
-
-    static BasicEntity()
+    public static readonly IDictionary<string, int> TestNameToIndexMap = new Dictionary<string, int>
     {
-        TestNameToIndexMap = new Dictionary<string, int>
-        {
-            { nameof(Name), 10 },
-            { nameof(City), 11 },
-            { nameof(Country), 12 },
-            { nameof(Population), 13 },
-            { nameof(Self), 14 },
-            { nameof(Money), 15 },
-            { nameof(Month), 16 },
-            { nameof(Time), 17 },
-            { nameof(Id), 18 },
-            { nameof(NullableValue), 19 },
-            { nameof(Other), 20 },
-            { nameof(Array), 21 },
-            { nameof(Dictionary), 22 },
-            { nameof(Children), 23 }
-        };
+        { nameof(Name), 10 },
+        { nameof(City), 11 },
+        { nameof(Country), 12 },
+        { nameof(Population), 13 },
+        { nameof(Self), 14 },
+        { nameof(Money), 15 },
+        { nameof(Month), 16 },
+        { nameof(Time), 17 },
+        { nameof(Id), 18 },
+        { nameof(NullableValue), 19 },
+        { nameof(Other), 20 },
+        { nameof(Array), 21 },
+        { nameof(Dictionary), 22 },
+        { nameof(Children), 23 }
+    };
 
-        TestIndexToObjectAccessMap = new Dictionary<int, Func<BasicEntity, object>>
+    public static readonly IDictionary<int, Func<BasicEntity, object?>> TestIndexToObjectAccessMap =
+        new Dictionary<int, Func<BasicEntity, object?>>
         {
             { 10, arg => arg.Name },
             { 11, arg => arg.City },
@@ -45,43 +41,42 @@ public class BasicEntity
             { 22, arg => arg.Dictionary },
             { 23, arg => arg.Children }
         };
-    }
 
     public BasicEntity()
     {
     }
 
-    public BasicEntity(string name)
+    public BasicEntity(string? name)
     {
         Name = name;
     }
 
-    public BasicEntity(string country, string city)
+    public BasicEntity(string? country, string? city)
     {
         Country = country;
         City = city;
     }
 
-    public BasicEntity(string country, int population)
+    public BasicEntity(string? country, int population)
     {
         Country = country;
         Population = population;
     }
 
-    public BasicEntity(string city, string country, int population)
+    public BasicEntity(string? city, string? country, int population)
     {
         City = city;
         Country = country;
         Population = population;
     }
 
-    public BasicEntity(string month, decimal money)
+    public BasicEntity(string? month, decimal money)
     {
         Month = month;
         Money = money;
     }
 
-    public BasicEntity(string city, string month, decimal money)
+    public BasicEntity(string? city, string? month, decimal money)
     {
         City = city;
         Month = month;
@@ -93,13 +88,13 @@ public class BasicEntity
         Time = time;
     }
 
-    public string Month { get; set; }
+    public string? Month { get; set; } = string.Empty;
 
-    public string Name { get; set; }
+    public string? Name { get; set; } = string.Empty;
 
-    public string Country { get; set; }
+    public string? Country { get; set; }
 
-    public string City { get; set; }
+    public string? City { get; set; } = string.Empty;
 
     public decimal Population { get; set; }
 

@@ -1,3 +1,4 @@
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -178,28 +179,28 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
         Assert.AreEqual("b.Length(b.Value)", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(int?), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual("b.Count(b.Length(b.Value))", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual(typeof(long), table.Columns.ElementAt(1).ColumnType);
 
         Assert.AreEqual(4, table.Count, "Table should have 4 entries");
 
         Assert.IsTrue(table.Any(row =>
             (int)row[0] == 5 &&
-            (int)row[1] == 5
+            (long)row[1] == 5L
         ), "First row should be 5, 5");
 
         Assert.IsTrue(table.Any(row =>
             (int)row[0] == 3 &&
-            (int)row[1] == 1
+            (long)row[1] == 1L
         ), "Second row should be 3, 1");
 
         Assert.IsTrue(table.Any(row =>
             (int)row[0] == 11 &&
-            (int)row[1] == 1
+            (long)row[1] == 1L
         ), "Third row should be 11, 1");
 
         Assert.IsTrue(table.Any(row =>
             (int)row[0] == 10 &&
-            (int)row[1] == 1
+            (long)row[1] == 1L
         ), "Fourth row should be 10, 1");
     }
 
@@ -254,15 +255,15 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
         }
     }
 
-    private class OuterApplyClass1
+    private sealed class OuterApplyClass1
     {
         public int Value1 { get; set; }
 
-        public string Value2 { get; set; }
+        public string Value2 { get; set; } = string.Empty;
     }
 
-    private class OuterApplyClass2
+    private sealed class OuterApplyClass2
     {
-        public string Text { get; set; }
+        public string Text { get; set; } = string.Empty;
     }
 }

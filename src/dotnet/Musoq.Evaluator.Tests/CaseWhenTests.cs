@@ -156,6 +156,6 @@ public class CaseWhenTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
 
-        Assert.Throws<MethodCallThrownException>(() => vm.Run(TestContext.CancellationToken));
+        Assert.Throws<MethodCallThrownException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
     }
 }

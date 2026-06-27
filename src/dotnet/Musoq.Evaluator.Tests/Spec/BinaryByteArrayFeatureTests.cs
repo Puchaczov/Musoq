@@ -32,7 +32,7 @@ public class BinaryByteArrayFeatureTests
                 Footer: byte[2]
             };
             select d.Header, d.Body, d.Footer from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
         var testData = new byte[14];
         for (var i = 0; i < 14; i++)
@@ -73,7 +73,7 @@ public class BinaryByteArrayFeatureTests
         var query = @"
             binary Data { Payload: byte[4] };
             select d.Payload from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
         var testData = new byte[] { 0x01, 0x02, 0x03, 0x04 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -103,7 +103,7 @@ public class BinaryByteArrayFeatureTests
                 Payload: byte[Length] 
             };
             select d.Length, d.Payload from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
         var testData = new byte[] { 0x00 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -129,7 +129,7 @@ public class BinaryByteArrayFeatureTests
         var query = @"
             binary Data { Payload: byte[256] };
             select d.Payload from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
         var testData = new byte[256];
         for (var i = 0; i < 256; i++)
@@ -166,7 +166,7 @@ public class BinaryByteArrayFeatureTests
                 Payload: byte[Length] 
             };
             select d.Length, d.Payload from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
         var testData = new byte[] { 0x05, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -197,7 +197,7 @@ public class BinaryByteArrayFeatureTests
                 Payload: byte[Length] 
             };
             select d.Length, d.Payload from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0x08, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
@@ -227,7 +227,7 @@ public class BinaryByteArrayFeatureTests
                 Payload: byte[Length] 
             };
             select d.Length, d.Payload from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0x03, 0x00, 0x00, 0x00, 0xAA, 0xBB, 0xCC };
@@ -261,7 +261,7 @@ public class BinaryByteArrayFeatureTests
                 Items: byte[Count * 2] 
             };
             select d.Count, d.Items from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0x03, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
@@ -292,7 +292,7 @@ public class BinaryByteArrayFeatureTests
                 Payload: byte[BaseLen + Extra] 
             };
             select d.BaseLen, d.Extra, d.Payload from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0x02, 0x03, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5 };
@@ -324,11 +324,11 @@ public class BinaryByteArrayFeatureTests
         var query = @"
             binary Header { Magic: byte[4] };
             select f.Name from #test.files() f
-            cross apply Interpret(f.Content, 'Header') h
+            cross apply Interpret<Header>(f.Content) h
             where h.Magic[0] = 0x89 and h.Magic[1] = 0x50";
 
         var pngMagic = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
-        var gifMagic = new byte[] { 0x47, 0x49, 0x46, 0x38 };
+        var gifMagic = "GIF8"u8.ToArray();
 
         var entities = new[]
         {
@@ -356,7 +356,7 @@ public class BinaryByteArrayFeatureTests
             binary Data { Values: byte[4] };
             select d.Values[0], d.Values[1], d.Values[2], d.Values[3] 
             from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
         var testData = new byte[] { 0x10, 0x20, 0x30, 0x40 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };

@@ -1,334 +1,101 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Numerics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class AvgTests : PluginsTestBase
+public class AvgTests
 {
-    #region Existing Tests
-
     [TestMethod]
-    public void AvgIntTest()
+    public void AvgAggregateKernel_AveragesConcreteNumericTypes()
     {
-        Library.SetAvg(Group, "test", 5);
-        Library.SetAvg(Group, "test", 4);
-        Library.SetAvg(Group, "test", 6);
-        Library.SetAvg(Group, "test", (int?)null);
-        Library.SetAvg(Group, "test", -5);
-
-        Assert.AreEqual(2.5m, Library.Avg(Group, "test"));
+        AssertAvg<byte>(10, 20, 30, 20);
+        AssertAvg<sbyte>(10, -10, 20, 6);
+        AssertAvg<short>(100, 200, 300, 200);
+        AssertAvg<ushort>(100, 200, 300, 200);
+        AssertAvg(5, 4, -5, 1);
+        AssertAvg(1000u, 2000u, 3000u, 2000u);
+        AssertAvg(1L, 4L, -4L, 0L);
+        AssertAvg(10000UL, 20000UL, 30000UL, 20000UL);
+        AssertAvg(1.5f, 2.5f, 5.0f, 3.0f);
+        AssertAvg(1.5d, 2.5d, 5.0d, 3.0d);
+        AssertAvg(1m, 2m, 3m, 2m);
     }
 
     [TestMethod]
-    public void AvgIntParentTest()
+    public void AvgAggregateKernel_EmptyStateReturnsNull()
     {
-        Library.SetAvg(Group, "test", 10, 1);
-        Library.SetAvg(Group, "test", 10, 1);
-        Library.SetAvg(Group, "test", 6);
-        Library.SetAvg(Group, "test", (int?)null);
+        var state = new AvgAggregateKernel<int>.State();
 
-        Library.SetAvg(Group, "test", 10, 1);
-        Library.SetAvg(Group, "test", -3);
-
-        Assert.AreEqual(10m, Library.Avg(Group, "test", 1));
-        Assert.AreEqual(1.5m, Library.Avg(Group, "test"));
+        Assert.IsNull(AvgAggregateKernel<int>.Get(in state));
     }
 
     [TestMethod]
-    public void AvgLongTest()
+    public void AvgAggregateKernel_AllNullInputsReturnNull()
     {
-        Library.SetAvg(Group, "test", 1L);
-        Library.SetAvg(Group, "test", 4L);
-        Library.SetAvg(Group, "test", 6L);
-        Library.SetAvg(Group, "test", (long?)null);
-
-        Library.SetAvg(Group, "test", -4);
-
-        Assert.AreEqual(1.75m, Library.Avg(Group, "test"));
+        AssertAllNullAvg<int>();
+        AssertAllNullAvg<decimal>();
     }
 
     [TestMethod]
-    public void AvgLongParentTest()
+    public void AvgAggregateKernel_MergeCombinesPartialStates()
     {
-        Library.SetAvg(Group, "test", 5L, 1);
-        Library.SetAvg(Group, "test", 5L, 1);
-        Library.SetAvg(Group, "test", 5L);
-        Library.SetAvg(Group, "test", (long?)null, 1);
+        var target = new AvgAggregateKernel<int>.State();
+        var source = new AvgAggregateKernel<int>.State();
 
-        Library.SetAvg(Group, "test", -1, 1);
-        Library.SetAvg(Group, "test", -3);
+        AvgAggregateKernel<int>.Set(ref target, 10);
+        AvgAggregateKernel<int>.Set(ref target, 20);
+        AvgAggregateKernel<int>.Set(ref source, 30);
+        AvgAggregateKernel<int>.Set(ref source, 40);
+        AvgAggregateKernel<int>.Merge(ref target, in source);
 
-        Assert.AreEqual(3m, Library.Avg(Group, "test", 1));
-        Assert.AreEqual(1m, Library.Avg(Group, "test"));
+        Assert.AreEqual(25, AvgAggregateKernel<int>.Get(in target));
     }
 
     [TestMethod]
-    public void AvgDecimalTest()
+    public void AvgAggregateKernel_MergeIgnoresEmptyPartialState()
     {
-        Library.SetAvg(Group, "test", 1m);
-        Library.SetAvg(Group, "test", 2m);
-        Library.SetAvg(Group, "test", 3m);
-        Library.SetAvg(Group, "test", (decimal?)null);
+        var target = new AvgAggregateKernel<decimal>.State();
+        var source = new AvgAggregateKernel<decimal>.State();
 
-        Library.SetAvg(Group, "test", -4);
+        AvgAggregateKernel<decimal>.Set(ref target, 12m);
+        AvgAggregateKernel<decimal>.Merge(ref target, in source);
 
-        Assert.AreEqual(0.5m, Library.Avg(Group, "test"));
+        Assert.AreEqual(12m, AvgAggregateKernel<decimal>.Get(in target));
     }
 
     [TestMethod]
-    public void AvgDecimalParentTest()
+    public void AvgAggregateKernel_CheckedIntegralOverflowThrows()
     {
-        Library.SetAvg(Group, "test", 9m, 1);
-        Library.SetAvg(Group, "test", 4m, 1);
-        Library.SetAvg(Group, "test", 6m);
-        Library.SetAvg(Group, "test", (decimal?)null, 1);
+        var state = new AvgAggregateKernel<int>.State();
 
-        Library.SetAvg(Group, "test", -1m, 1);
-        Library.SetAvg(Group, "test", -2m);
+        AvgAggregateKernel<int>.Set(ref state, int.MaxValue);
 
-        Assert.AreEqual(4m, Library.Avg(Group, "test", 1));
-        Assert.AreEqual(2m, Library.Avg(Group, "test"));
+        Assert.Throws<OverflowException>(() => AvgAggregateKernel<int>.Set(ref state, 1));
     }
 
-    #endregion
-
-    #region Byte Tests
-
-    [TestMethod]
-    public void AvgByteTest()
+    private static void AssertAvg<T>(T first, T second, T third, T expected)
+        where T : struct, INumber<T>
     {
-        Library.SetAvg(Group, "test", (byte)10);
-        Library.SetAvg(Group, "test", (byte)20);
-        Library.SetAvg(Group, "test", (byte)30);
-        Library.SetAvg(Group, "test", (byte?)null);
+        var state = new AvgAggregateKernel<T>.State();
 
-        Assert.AreEqual(20m, Library.Avg(Group, "test"));
+        AvgAggregateKernel<T>.Set(ref state, first);
+        AvgAggregateKernel<T>.Set(ref state, null);
+        AvgAggregateKernel<T>.Set(ref state, second);
+        AvgAggregateKernel<T>.Set(ref state, third);
+
+        Assert.AreEqual(expected, AvgAggregateKernel<T>.Get(in state));
     }
 
-    [TestMethod]
-    public void AvgByteParentTest()
+    private static void AssertAllNullAvg<T>()
+        where T : struct, INumber<T>
     {
-        Library.SetAvg(Group, "test", (byte)20, 1);
-        Library.SetAvg(Group, "test", (byte)40, 1);
-        Library.SetAvg(Group, "test", (byte)60);
-        Library.SetAvg(Group, "test", (byte?)null, 1);
+        var state = new AvgAggregateKernel<T>.State();
 
-        Assert.AreEqual(30m, Library.Avg(Group, "test", 1));
-        Assert.AreEqual(60m, Library.Avg(Group, "test"));
+        AvgAggregateKernel<T>.Set(ref state, null);
+        AvgAggregateKernel<T>.Set(ref state, null);
+
+        Assert.IsNull(AvgAggregateKernel<T>.Get(in state));
     }
-
-    #endregion
-
-    #region SByte Tests
-
-    [TestMethod]
-    public void AvgSByteTest()
-    {
-        Library.SetAvg(Group, "test", 10);
-        Library.SetAvg(Group, "test", -10);
-        Library.SetAvg(Group, "test", 20);
-        Library.SetAvg(Group, "test", null);
-
-
-        var result = Library.Avg(Group, "test");
-        Assert.IsTrue(result > 6.6m && result < 6.7m);
-    }
-
-    [TestMethod]
-    public void AvgSByteParentTest()
-    {
-        Library.SetAvg(Group, "test", 15, 1);
-        Library.SetAvg(Group, "test", 15, 1);
-        Library.SetAvg(Group, "test", 30);
-        Library.SetAvg(Group, "test", null, 1);
-
-        Assert.AreEqual(15m, Library.Avg(Group, "test", 1));
-        Assert.AreEqual(30m, Library.Avg(Group, "test"));
-    }
-
-    #endregion
-
-    #region Short Tests
-
-    [TestMethod]
-    public void AvgShortTest()
-    {
-        Library.SetAvg(Group, "test", (short)100);
-        Library.SetAvg(Group, "test", (short)200);
-        Library.SetAvg(Group, "test", 300);
-        Library.SetAvg(Group, "test", (short?)null);
-
-        Assert.AreEqual(200m, Library.Avg(Group, "test"));
-    }
-
-    [TestMethod]
-    public void AvgShortParentTest()
-    {
-        Library.SetAvg(Group, "test", (short)50, 1);
-        Library.SetAvg(Group, "test", (short)150, 1);
-        Library.SetAvg(Group, "test", 500);
-        Library.SetAvg(Group, "test", (short?)null, 1);
-
-        Assert.AreEqual(100m, Library.Avg(Group, "test", 1));
-        Assert.AreEqual(500m, Library.Avg(Group, "test"));
-    }
-
-    #endregion
-
-    #region UShort Tests
-
-    [TestMethod]
-    public void AvgUShortTest()
-    {
-        Library.SetAvg(Group, "test", (ushort)100);
-        Library.SetAvg(Group, "test", (ushort)200);
-        Library.SetAvg(Group, "test", (ushort)300);
-        Library.SetAvg(Group, "test", (ushort?)null);
-
-        Assert.AreEqual(200m, Library.Avg(Group, "test"));
-    }
-
-    [TestMethod]
-    public void AvgUShortParentTest()
-    {
-        Library.SetAvg(Group, "test", (ushort)200, 1);
-        Library.SetAvg(Group, "test", (ushort)200, 1);
-        Library.SetAvg(Group, "test", (ushort)800);
-        Library.SetAvg(Group, "test", (ushort?)null, 1);
-
-        Assert.AreEqual(200m, Library.Avg(Group, "test", 1));
-        Assert.AreEqual(800m, Library.Avg(Group, "test"));
-    }
-
-    #endregion
-
-    #region UInt Tests
-
-    [TestMethod]
-    public void AvgUIntTest()
-    {
-        Library.SetAvg(Group, "test", 1000u);
-        Library.SetAvg(Group, "test", 2000u);
-        Library.SetAvg(Group, "test", 3000u);
-        Library.SetAvg(Group, "test", (uint?)null);
-
-        Assert.AreEqual(2000m, Library.Avg(Group, "test"));
-    }
-
-    [TestMethod]
-    public void AvgUIntParentTest()
-    {
-        Library.SetAvg(Group, "test", 500u, 1);
-        Library.SetAvg(Group, "test", 500u, 1);
-        Library.SetAvg(Group, "test", 2000u);
-        Library.SetAvg(Group, "test", (uint?)null, 1);
-
-        Assert.AreEqual(500m, Library.Avg(Group, "test", 1));
-        Assert.AreEqual(2000m, Library.Avg(Group, "test"));
-    }
-
-    #endregion
-
-    #region ULong Tests
-
-    [TestMethod]
-    public void AvgULongTest()
-    {
-        Library.SetAvg(Group, "test", 10000UL);
-        Library.SetAvg(Group, "test", 20000UL);
-        Library.SetAvg(Group, "test", 30000UL);
-        Library.SetAvg(Group, "test", (ulong?)null);
-
-        Assert.AreEqual(20000m, Library.Avg(Group, "test"));
-    }
-
-    [TestMethod]
-    public void AvgULongParentTest()
-    {
-        Library.SetAvg(Group, "test", 10000UL, 1);
-        Library.SetAvg(Group, "test", 20000UL, 1);
-        Library.SetAvg(Group, "test", 50000UL);
-        Library.SetAvg(Group, "test", (ulong?)null, 1);
-
-        Assert.AreEqual(15000m, Library.Avg(Group, "test", 1));
-        Assert.AreEqual(50000m, Library.Avg(Group, "test"));
-    }
-
-    #endregion
-
-    #region Float Tests
-
-    [TestMethod]
-    public void AvgFloatTest()
-    {
-        Library.SetAvg(Group, "test", 1.5f);
-        Library.SetAvg(Group, "test", 2.5f);
-        Library.SetAvg(Group, "test", 5.0f);
-        Library.SetAvg(Group, "test", (float?)null);
-
-        Assert.AreEqual(3m, Library.Avg(Group, "test"));
-    }
-
-    [TestMethod]
-    public void AvgFloatParentTest()
-    {
-        Library.SetAvg(Group, "test", 10.0f, 1);
-        Library.SetAvg(Group, "test", 20.0f, 1);
-        Library.SetAvg(Group, "test", 50.0f);
-        Library.SetAvg(Group, "test", (float?)null, 1);
-
-        Assert.AreEqual(15m, Library.Avg(Group, "test", 1));
-        Assert.AreEqual(50m, Library.Avg(Group, "test"));
-    }
-
-    [TestMethod]
-    public void AvgFloatWithNegativeTest()
-    {
-        Library.SetAvg(Group, "test", 10.0f);
-        Library.SetAvg(Group, "test", -5.0f);
-        Library.SetAvg(Group, "test", 10.0f);
-
-
-        Assert.AreEqual(5m, Library.Avg(Group, "test"));
-    }
-
-    #endregion
-
-    #region Double Tests
-
-    [TestMethod]
-    public void AvgDoubleTest()
-    {
-        Library.SetAvg(Group, "test", 1.5d);
-        Library.SetAvg(Group, "test", 2.5d);
-        Library.SetAvg(Group, "test", 5.0d);
-        Library.SetAvg(Group, "test", (double?)null);
-
-        Assert.AreEqual(3m, Library.Avg(Group, "test"));
-    }
-
-    [TestMethod]
-    public void AvgDoubleParentTest()
-    {
-        Library.SetAvg(Group, "test", 100.0d, 1);
-        Library.SetAvg(Group, "test", 200.0d, 1);
-        Library.SetAvg(Group, "test", 500.0d);
-        Library.SetAvg(Group, "test", (double?)null, 1);
-
-        Assert.AreEqual(150m, Library.Avg(Group, "test", 1));
-        Assert.AreEqual(500m, Library.Avg(Group, "test"));
-    }
-
-    [TestMethod]
-    public void AvgDoubleWithNegativeTest()
-    {
-        Library.SetAvg(Group, "test", 100.0d);
-        Library.SetAvg(Group, "test", -50.0d);
-        Library.SetAvg(Group, "test", 100.0d);
-
-
-        Assert.AreEqual(50m, Library.Avg(Group, "test"));
-    }
-
-    #endregion
 }

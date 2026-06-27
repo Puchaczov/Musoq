@@ -11,7 +11,7 @@ public class DualTable : ISchemaTable
         new SchemaColumn(nameof(DualEntity.Dummy), 0, typeof(string))
     ];
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(column => column.ColumnName == name);
     }

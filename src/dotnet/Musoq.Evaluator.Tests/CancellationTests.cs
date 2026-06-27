@@ -19,7 +19,7 @@ public class CancellationTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
-        Assert.Throws<OperationCanceledException>(() => vm.Run(TokenSource.Token));
+        Assert.Throws<OperationCanceledException>(() => _ = vm.Run(TokenSource.Token).Count);
     }
 
     [TestMethod]
@@ -37,7 +37,7 @@ public class CancellationTests : BasicEntityTestBase
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
-        Assert.Throws<OperationCanceledException>(() => vm.Run(TokenSource.Token));
+        Assert.Throws<OperationCanceledException>(() => _ = vm.Run(TokenSource.Token).Count);
     }
 
 
@@ -57,7 +57,7 @@ select Name from #A.Entities() where Name = '002'";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
-        Assert.Throws<OperationCanceledException>(() => vm.Run(TokenSource.Token));
+        Assert.Throws<OperationCanceledException>(() => _ = vm.Run(TokenSource.Token).Count);
     }
 
     [TestMethod]
@@ -90,7 +90,7 @@ select City, Sum(Population) from #C.Entities() group by City";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
-        Assert.Throws<OperationCanceledException>(() => vm.Run(TokenSource.Token));
+        Assert.Throws<OperationCanceledException>(() => _ = vm.Run(TokenSource.Token).Count);
     }
 
     [TestMethod]
@@ -107,7 +107,7 @@ select City, Sum(Population) from #C.Entities() group by City";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
-        Assert.Throws<OperationCanceledException>(() => vm.Run(TokenSource.Token));
+        Assert.Throws<OperationCanceledException>(() => _ = vm.Run(TokenSource.Token).Count);
     }
 
 
@@ -123,7 +123,7 @@ select City, Sum(Population) from #C.Entities() group by City";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
-        Assert.Throws<OperationCanceledException>(() => vm.Run(TokenSource.Token));
+        Assert.Throws<OperationCanceledException>(() => _ = vm.Run(TokenSource.Token).Count);
     }
 
     [TestMethod]
@@ -146,6 +146,6 @@ select City, Sum(Population) from #C.Entities() group by City";
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         TokenSource.Cancel();
-        Assert.Throws<OperationCanceledException>(() => vm.Run(TokenSource.Token));
+        Assert.Throws<OperationCanceledException>(() => _ = vm.Run(TokenSource.Token).Count);
     }
 }

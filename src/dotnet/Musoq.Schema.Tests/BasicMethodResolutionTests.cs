@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.Managers;
@@ -8,9 +9,9 @@ namespace Musoq.Schema.Tests;
 [TestClass]
 public class BasicMethodResolutionTests
 {
-    private Type _entityType;
+    private Type? _entityType;
 
-    private MethodsMetadata _methodsMetadata;
+    private MethodsMetadata _methodsMetadata = new TestMethodsMetadata();
 
     [TestInitialize]
     public void Initialize()
@@ -111,7 +112,8 @@ public class BasicMethodResolutionTests
         Assert.IsNull(method);
     }
 
-    private class TestClass
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+    private sealed class TestClass
     {
         public void NoParameters()
         {
@@ -138,7 +140,7 @@ public class BasicMethodResolutionTests
         }
     }
 
-    private class TestMethodsMetadata : MethodsMetadata
+    private sealed class TestMethodsMetadata : MethodsMetadata
     {
         public TestMethodsMetadata()
         {

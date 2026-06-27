@@ -38,7 +38,7 @@ public class BasicEntityTable : ISchemaTable
             typeof(BasicEntity).GetProperty(nameof(BasicEntity.Children))!.PropertyType)
     ];
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(col => col.ColumnName == name);
     }

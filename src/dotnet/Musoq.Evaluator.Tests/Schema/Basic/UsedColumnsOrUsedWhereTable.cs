@@ -12,6 +12,7 @@ public class UsedColumnsOrUsedWhereTable : ISchemaTable
 
     public UsedColumnsOrUsedWhereTable(string name)
     {
+        _ = name;
     }
 
     public ISchemaColumn[] Columns { get; } =
@@ -28,7 +29,7 @@ public class UsedColumnsOrUsedWhereTable : ISchemaTable
             typeof(BasicEntity).GetProperty(nameof(UsedColumnsOrUsedWhereEntity.Month))!.PropertyType)
     ];
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(col => col.ColumnName == name);
     }

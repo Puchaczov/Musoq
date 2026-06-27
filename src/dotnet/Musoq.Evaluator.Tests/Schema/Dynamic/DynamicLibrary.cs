@@ -1,4 +1,4 @@
-using System.Dynamic;
+using System.Collections.Generic;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 
@@ -19,7 +19,7 @@ public class DynamicLibrary : LibraryBase
     }
 
     [BindableMethod]
-    public bool TrueWhenCalled([InjectSpecificSource(typeof(DynamicObject))] DynamicObject item)
+    public bool TrueWhenCalled([InjectSpecificSource(typeof(IReadOnlyDictionary<string, object>))] IReadOnlyDictionary<string, object> item)
     {
         return true;
     }

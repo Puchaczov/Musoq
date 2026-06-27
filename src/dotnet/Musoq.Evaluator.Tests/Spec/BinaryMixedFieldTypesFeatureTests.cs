@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
@@ -37,9 +36,9 @@ public class BinaryMixedFieldTypesFeatureTests
                 Data: byte[DataLen]
             };
             select d.Version, d.Name, d.DataLen from #test.files() b
-            cross apply Interpret(b.Content, 'FileHeader') d";
+            cross apply Interpret<FileHeader>(b.Content) d";
 
-        var name = Encoding.UTF8.GetBytes("test");
+        var name = "test"u8.ToArray();
         var data = new byte[] { 0xAA, 0xBB, 0xCC };
         var testData = new byte[] { 0x01, 0x00, 0x00, 0x00 }
             .Concat([(byte)name.Length])
@@ -80,7 +79,7 @@ public class BinaryMixedFieldTypesFeatureTests
                 TotalSize: = Length + 3
             };
             select p.Type, p.Length, p.TotalSize from #test.files() b
-            cross apply Interpret(b.Content, 'Packet') p";
+            cross apply Interpret<Packet>(b.Content) p";
 
         var testData = new byte[]
         {
@@ -117,7 +116,7 @@ public class BinaryMixedFieldTypesFeatureTests
             binary Middle { Data: Inner };
             binary Outer { Container: Middle };
             select o.Container.Data.Value from #test.files() b
-            cross apply Interpret(b.Content, 'Outer') o";
+            cross apply Interpret<Outer>(b.Content) o";
 
         var testData = new byte[] { 0x39, 0x05 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -150,7 +149,7 @@ public class BinaryMixedFieldTypesFeatureTests
             };
             binary Container { Count: byte, Items: Item[Count] };
             select i.Width, i.Height, i.Area from #test.files() b
-            cross apply Interpret(b.Content, 'Container') c
+            cross apply Interpret<Container>(b.Content) c
             cross apply c.Items i
             order by i.Width";
 
@@ -199,10 +198,10 @@ public class BinaryMixedFieldTypesFeatureTests
                 Last: string[LastLen] utf8
             };
             select r.First, r.Last from #test.files() b
-            cross apply Interpret(b.Content, 'Record') r";
+            cross apply Interpret<Record>(b.Content) r";
 
-        var first = Encoding.UTF8.GetBytes("John");
-        var last = Encoding.UTF8.GetBytes("Doe");
+        var first = "John"u8.ToArray();
+        var last = "Doe"u8.ToArray();
         var testData = new[] { (byte)first.Length }
             .Concat(first)
             .Concat([(byte)last.Length])
@@ -236,7 +235,7 @@ public class BinaryMixedFieldTypesFeatureTests
             binary Entry { Type: byte, Value: short le };
             binary DataList { Count: byte, Entries: Entry[Count] };
             select e.Value from #test.files() b
-            cross apply Interpret(b.Content, 'DataList') t
+            cross apply Interpret<DataList>(b.Content) t
             cross apply t.Entries e
             where e.Type = 2
             order by e.Value asc";
@@ -276,7 +275,7 @@ public class BinaryMixedFieldTypesFeatureTests
             binary Record { Id: byte, Score: short le };
             binary List { Count: byte, Records: Record[Count] };
             select r.Id, r.Score from #test.files() b
-            cross apply Interpret(b.Content, 'List') l
+            cross apply Interpret<List>(b.Content) l
             cross apply l.Records r
             order by r.Score desc";
 
@@ -321,7 +320,7 @@ public class BinaryMixedFieldTypesFeatureTests
                 IntPayload: int le when Type = 2
             };
             select m.Type, m.ShortPayload, m.IntPayload from #test.files() b
-            cross apply Interpret(b.Content, 'Message') m";
+            cross apply Interpret<Message>(b.Content) m";
 
         var testData = new byte[]
         {

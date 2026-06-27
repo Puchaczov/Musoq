@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Nodes;
@@ -11,7 +12,7 @@ namespace Musoq.Schema.Tests;
 [TestClass]
 public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
 {
-    private MethodsMetadata _methodsMetadata;
+    private MethodsMetadata _methodsMetadata = CreateMethodsMetadataFor<TestClass>();
 
     [TestInitialize]
     public void Initialize()
@@ -31,6 +32,7 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
             "Should resolve with all parameters"
         );
 
+        method = RequireResolved(method);
         var parameters = method.GetParameters();
         Assert.HasCount(5, parameters);
         Assert.IsNotNull(parameters[^1].GetCustomAttribute<ParamArrayAttribute>());
@@ -124,19 +126,14 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
         );
     }
 
-    private interface IEntity
-    {
-    }
+    private interface IEntity;
 
-    private interface IAggregatable
-    {
-    }
+    private interface IAggregatable;
 
-    private class Entity : IEntity
-    {
-    }
+    private sealed class Entity : IEntity;
 
-    private class TestClass
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+    private sealed class TestClass
     {
         [AggregationMethod]
         public void ComplexAggregation(
@@ -149,13 +146,7 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
         {
         }
 
-        [AggregationGetMethod]
-        public decimal AggregateData(string name)
-        {
-            return 0m;
-        }
-
-        public TResult ProcessData<TSource, TResult>(
+        public TResult? ProcessData<TSource, TResult>(
             [InjectSpecificSource(typeof(IEntity))]
             IEntity entity,
             TSource source,
@@ -182,17 +173,17 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
         {
         }
 
-        public string HandleNullableData(int? value, string format = null)
+        public string HandleNullableData(int? value, string? format = null)
         {
             return string.Empty;
         }
 
-        public string HandleNullableData(DateTime? value, string format = null)
+        public string HandleNullableData(DateTime? value, string? format = null)
         {
             return string.Empty;
         }
 
-        public string HandleNullableData(object value, string format = null)
+        public string HandleNullableData(object value, string? format = null)
         {
             return string.Empty;
         }
@@ -200,7 +191,7 @@ public class MethodsMetadataComplexScenarioTests : MethodsMetadataTestBase
         public void ComplexInjection<T>(
             [InjectSpecificSource(typeof(IEntity))]
             IEntity entity,
-            [InjectGroup] object group,
+            [InjectQueryStats] object stats,
             T value,
             params string[] additionalData)
             where T : IEntity

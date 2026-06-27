@@ -31,6 +31,7 @@ public class StringifyTests : BasicEntityTestBase
         "table Example { Id: int, Name: string };\ncouple #a.b with table Example as SourceOfExamples;\nselect 1 from SourceOfExamples('a', 'b')")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s where s.Column1 = 4")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s group by s.Column2")]
+    [DataRow("select s.Column1, Count(s.Column2) from #some.thing() s group by all")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s order by s.Column1 desc")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s skip 10")]
     [DataRow("select s.Column1, s.Column2 from #some.thing() s take 5")]
@@ -68,8 +69,10 @@ public class StringifyTests : BasicEntityTestBase
         "select s.Column1, s.Column2 from #some.thing() s group by s.Column1, s.Column2 order by s.Column1 skip 5 take 10")]
     [DataRow(
         "select s.Column1, s.Column2 from #some.thing() s where s.Column1 > 0 group by s.Column2 order by s.Column1 skip 2 take 5")]
+    [DataRow("select a.City from #A.entities() a where a.City in (select b.City from #B.entities() b)")]
     [DataRow("select t.Name, Count(t.Name) from #some.thing(true) t group by t.Name having Count(t.Name) > 1")]
     [DataRow("select t.* from #some.thing(true) t")]
+    [DataRow("select * rename (Name as EntityName) from #A.entities()")]
     [DataRow("select somethingVeryLong.* from #some.thing(true) somethingVeryLong")]
     [DataRow("select somethingVeryLong2.* from #some.thing(true) somethingVeryLong2")]
     [DataRow("select b.* from #some.thing() a cross apply #some.thing() b")]

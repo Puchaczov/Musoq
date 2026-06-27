@@ -47,7 +47,7 @@ public class DistinctTests : BasicEntityTestBase
         Assert.HasCount(1, transformedStatementsArray.Statements, "Should still have one statement");
 
 
-        QueryNode queryNode = null;
+        QueryNode? queryNode = null;
         var statementNode = transformedStatementsArray.Statements[0].Node;
         if (statementNode is SingleSetNode transformedSingleSet)
             queryNode = transformedSingleSet.Query;
@@ -55,9 +55,10 @@ public class DistinctTests : BasicEntityTestBase
 
         Assert.IsNotNull(queryNode,
             $"Could not find QueryNode in transformed tree. StatementNode type: {statementNode?.GetType().Name ?? "null"}");
-        Assert.IsNotNull(queryNode.GroupBy, "DISTINCT should have been converted to GROUP BY");
-        Assert.IsTrue(queryNode.Select.IsDistinct, "IsDistinct flag should be preserved for optimization hints");
-        Assert.HasCount(1, queryNode.GroupBy.Fields, "GROUP BY should have one field matching SELECT");
+        var requiredQueryNode = queryNode ?? throw new AssertFailedException("Expected a query node.");
+        Assert.IsNotNull(requiredQueryNode.GroupBy, "DISTINCT should have been converted to GROUP BY");
+        Assert.IsTrue(requiredQueryNode.Select.IsDistinct, "IsDistinct flag should be preserved for optimization hints");
+        Assert.HasCount(1, requiredQueryNode.GroupBy.Fields, "GROUP BY should have one field matching SELECT");
     }
 
     [TestMethod]

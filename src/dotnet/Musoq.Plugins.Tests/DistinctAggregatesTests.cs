@@ -1,327 +1,199 @@
+using System.Numerics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
-/// <summary>
-///     Tests for DISTINCT aggregate functions: CountDistinct, SumDistinct, AvgDistinct, MinDistinct, MaxDistinct
-/// </summary>
 [TestClass]
-public class DistinctAggregatesTests : PluginsTestBase
+public class DistinctAggregatesTests
 {
-    #region CountDistinct Tests
-
     [TestMethod]
-    public void CountDistinct_IntValues_ShouldCountUnique()
+    public void CountDistinctNullableAggregateKernel_CountsUniqueNonNullValues()
     {
-        Library.SetDistinctAggregate(Group, "test", 1);
-        Library.SetDistinctAggregate(Group, "test", 1);
-        Library.SetDistinctAggregate(Group, "test", 2);
-        Library.SetDistinctAggregate(Group, "test", 3);
-        Library.SetDistinctAggregate(Group, "test", 2);
+        var state = new CountDistinctNullableAggregateKernel<int>.State();
 
-        Assert.AreEqual(3, Library.CountDistinct(Group, "test"));
+        CountDistinctNullableAggregateKernel<int>.Set(ref state, 1);
+        CountDistinctNullableAggregateKernel<int>.Set(ref state, 1);
+        CountDistinctNullableAggregateKernel<int>.Set(ref state, null);
+        CountDistinctNullableAggregateKernel<int>.Set(ref state, 2);
+        CountDistinctNullableAggregateKernel<int>.Set(ref state, 3);
+        CountDistinctNullableAggregateKernel<int>.Set(ref state, 2);
+
+        Assert.AreEqual(3L, CountDistinctNullableAggregateKernel<int>.Get(in state));
     }
 
     [TestMethod]
-    public void CountDistinct_IntWithNull_ShouldExcludeNulls()
+    public void CountDistinctReferenceAggregateKernel_CountsUniqueNonNullValues()
     {
-        Library.SetDistinctAggregate(Group, "test", 1);
-        Library.SetDistinctAggregate(Group, "test", (int?)null);
-        Library.SetDistinctAggregate(Group, "test", 2);
-        Library.SetDistinctAggregate(Group, "test", (int?)null);
-        Library.SetDistinctAggregate(Group, "test", 1);
+        var state = new CountDistinctReferenceAggregateKernel<string>.State();
 
-        Assert.AreEqual(2, Library.CountDistinct(Group, "test"));
+        CountDistinctReferenceAggregateKernel<string>.Set(ref state, "a");
+        CountDistinctReferenceAggregateKernel<string>.Set(ref state, "a");
+        CountDistinctReferenceAggregateKernel<string>.Set(ref state, null);
+        CountDistinctReferenceAggregateKernel<string>.Set(ref state, "b");
+        CountDistinctReferenceAggregateKernel<string>.Set(ref state, "c");
+
+        Assert.AreEqual(3L, CountDistinctReferenceAggregateKernel<string>.Get(in state));
     }
 
     [TestMethod]
-    public void CountDistinct_StringValues_ShouldCountUnique()
+    public void CountDistinctAggregateKernels_EmptyStatesReturnZero()
     {
-        Library.SetDistinctAggregate(Group, "test", "a");
-        Library.SetDistinctAggregate(Group, "test", "a");
-        Library.SetDistinctAggregate(Group, "test", "b");
-        Library.SetDistinctAggregate(Group, "test", "c");
-        Library.SetDistinctAggregate(Group, "test", "b");
+        var nullableState = new CountDistinctNullableAggregateKernel<int>.State();
+        var referenceState = new CountDistinctReferenceAggregateKernel<string>.State();
 
-        Assert.AreEqual(3, Library.CountDistinct(Group, "test"));
+        Assert.AreEqual(0L, CountDistinctNullableAggregateKernel<int>.Get(in nullableState));
+        Assert.AreEqual(0L, CountDistinctReferenceAggregateKernel<string>.Get(in referenceState));
     }
 
     [TestMethod]
-    public void CountDistinct_DecimalValues_ShouldCountUnique()
+    public void CountDistinctAggregateKernels_MergeCombinesUniqueValues()
     {
-        Library.SetDistinctAggregate(Group, "test", 1.5m);
-        Library.SetDistinctAggregate(Group, "test", 1.5m);
-        Library.SetDistinctAggregate(Group, "test", 2.5m);
-        Library.SetDistinctAggregate(Group, "test", 3.5m);
+        var target = new CountDistinctNullableAggregateKernel<int>.State();
+        var source = new CountDistinctNullableAggregateKernel<int>.State();
 
-        Assert.AreEqual(3, Library.CountDistinct(Group, "test"));
+        CountDistinctNullableAggregateKernel<int>.Set(ref target, 1);
+        CountDistinctNullableAggregateKernel<int>.Set(ref target, 2);
+        CountDistinctNullableAggregateKernel<int>.Set(ref source, 2);
+        CountDistinctNullableAggregateKernel<int>.Set(ref source, 3);
+        CountDistinctNullableAggregateKernel<int>.Merge(ref target, in source);
+
+        Assert.AreEqual(3L, CountDistinctNullableAggregateKernel<int>.Get(in target));
     }
 
     [TestMethod]
-    public void CountDistinct_AllDuplicates_ShouldReturnOne()
+    public void SumDistinctAggregateKernel_SumsUniqueNonNullValues()
     {
-        Library.SetDistinctAggregate(Group, "test", "same");
-        Library.SetDistinctAggregate(Group, "test", "same");
-        Library.SetDistinctAggregate(Group, "test", "same");
-
-        Assert.AreEqual(1, Library.CountDistinct(Group, "test"));
-    }
-
-    #endregion
-
-    #region SumDistinct Tests
-
-    [TestMethod]
-    public void SumDistinct_IntValues_ShouldSumUnique()
-    {
-        Library.SetDistinctAggregate(Group, "test", 1);
-        Library.SetDistinctAggregate(Group, "test", 1);
-        Library.SetDistinctAggregate(Group, "test", 2);
-        Library.SetDistinctAggregate(Group, "test", 3);
-        Library.SetDistinctAggregate(Group, "test", 2);
-
-        Assert.AreEqual(6m, Library.SumDistinct(Group, "test"));
+        AssertSumDistinct(1, 1, 2, 3, 6);
+        AssertSumDistinct(100L, 100L, 200L, 300L, 600L);
+        AssertSumDistinct(1.5m, 1.5m, 2.5m, 3.5m, 7.5m);
     }
 
     [TestMethod]
-    public void SumDistinct_DecimalValues_ShouldSumUnique()
+    public void SumDistinctAggregateKernel_EmptyStateReturnsNull()
     {
-        Library.SetDistinctAggregate(Group, "test", 1.5m);
-        Library.SetDistinctAggregate(Group, "test", 1.5m);
-        Library.SetDistinctAggregate(Group, "test", 2.5m);
-        Library.SetDistinctAggregate(Group, "test", 3.5m);
+        var state = new SumDistinctAggregateKernel<int>.State();
 
-        Assert.AreEqual(7.5m, Library.SumDistinct(Group, "test"));
+        Assert.IsNull(SumDistinctAggregateKernel<int>.Get(in state));
     }
 
     [TestMethod]
-    public void SumDistinct_NullValues_ShouldExcludeNulls()
+    public void SumDistinctAggregateKernel_MergeCombinesUniqueValues()
     {
-        Library.SetDistinctAggregate(Group, "test", 10);
-        Library.SetDistinctAggregate(Group, "test", (int?)null);
-        Library.SetDistinctAggregate(Group, "test", 20);
-        Library.SetDistinctAggregate(Group, "test", (int?)null);
+        var target = new SumDistinctAggregateKernel<int>.State();
+        var source = new SumDistinctAggregateKernel<int>.State();
 
-        Assert.AreEqual(30m, Library.SumDistinct(Group, "test"));
+        SumDistinctAggregateKernel<int>.Set(ref target, 10);
+        SumDistinctAggregateKernel<int>.Set(ref target, 10);
+        SumDistinctAggregateKernel<int>.Set(ref source, 10);
+        SumDistinctAggregateKernel<int>.Set(ref source, 5);
+        SumDistinctAggregateKernel<int>.Merge(ref target, in source);
+
+        Assert.AreEqual(15, SumDistinctAggregateKernel<int>.Get(in target));
     }
 
     [TestMethod]
-    public void SumDistinct_DoubleValues_ShouldSumUnique()
+    public void AvgDistinctAggregateKernel_AveragesUniqueNonNullValues()
     {
-        Library.SetDistinctAggregate(Group, "test", 1.1);
-        Library.SetDistinctAggregate(Group, "test", 1.1);
-        Library.SetDistinctAggregate(Group, "test", 2.2);
-        Library.SetDistinctAggregate(Group, "test", 3.3);
-
-        Assert.AreEqual(6.6m, Library.SumDistinct(Group, "test"));
+        AssertAvgDistinct(10, 10, 20, 30, 20);
+        AssertAvgDistinct(1m, 1m, 2m, 3m, 2m);
     }
 
     [TestMethod]
-    public void SumDistinct_LongValues_ShouldSumUnique()
+    public void AvgDistinctAggregateKernel_EmptyStateReturnsNull()
     {
-        Library.SetDistinctAggregate(Group, "test", 100L);
-        Library.SetDistinctAggregate(Group, "test", 100L);
-        Library.SetDistinctAggregate(Group, "test", 200L);
+        var state = new AvgDistinctAggregateKernel<int>.State();
 
-        Assert.AreEqual(300m, Library.SumDistinct(Group, "test"));
-    }
-
-    #endregion
-
-    #region AvgDistinct Tests
-
-    [TestMethod]
-    public void AvgDistinct_IntValues_ShouldAverageUnique()
-    {
-        Library.SetDistinctAggregate(Group, "test", 10);
-        Library.SetDistinctAggregate(Group, "test", 10);
-        Library.SetDistinctAggregate(Group, "test", 20);
-        Library.SetDistinctAggregate(Group, "test", 30);
-        Library.SetDistinctAggregate(Group, "test", 20);
-
-        Assert.AreEqual(20m, Library.AvgDistinct(Group, "test"));
+        Assert.IsNull(AvgDistinctAggregateKernel<int>.Get(in state));
     }
 
     [TestMethod]
-    public void AvgDistinct_DecimalValues_ShouldAverageUnique()
+    public void MinMaxDistinctAggregateKernels_SkipNullsAndReturnExtremes()
     {
-        Library.SetDistinctAggregate(Group, "test", 1.0m);
-        Library.SetDistinctAggregate(Group, "test", 2.0m);
-        Library.SetDistinctAggregate(Group, "test", 3.0m);
-
-        Assert.AreEqual(2.0m, Library.AvgDistinct(Group, "test"));
+        AssertMinMaxDistinct(5, 5, 10, 3, 3, 10);
+        AssertMinMaxDistinct(5.5m, 5.5m, 2.2m, 7.7m, 2.2m, 7.7m);
     }
 
     [TestMethod]
-    public void AvgDistinct_NullValues_ShouldExcludeNulls()
+    public void MinMaxDistinctAggregateKernels_EmptyStatesReturnNull()
     {
-        Library.SetDistinctAggregate(Group, "test", 10);
-        Library.SetDistinctAggregate(Group, "test", (int?)null);
-        Library.SetDistinctAggregate(Group, "test", 30);
+        var minState = new MinDistinctAggregateKernel<int>.State();
+        var maxState = new MaxDistinctAggregateKernel<int>.State();
 
-        Assert.AreEqual(20m, Library.AvgDistinct(Group, "test"));
+        Assert.IsNull(MinDistinctAggregateKernel<int>.Get(in minState));
+        Assert.IsNull(MaxDistinctAggregateKernel<int>.Get(in maxState));
     }
 
     [TestMethod]
-    public void AvgDistinct_DoubleValues_ShouldAverageUnique()
+    public void MinMaxDistinctAggregateKernels_MergeCombinesExtremes()
     {
-        Library.SetDistinctAggregate(Group, "test", 1.5);
-        Library.SetDistinctAggregate(Group, "test", 1.5);
-        Library.SetDistinctAggregate(Group, "test", 4.5);
+        var minTarget = new MinDistinctAggregateKernel<int>.State();
+        var minSource = new MinDistinctAggregateKernel<int>.State();
+        var maxTarget = new MaxDistinctAggregateKernel<int>.State();
+        var maxSource = new MaxDistinctAggregateKernel<int>.State();
 
-        Assert.AreEqual(3.0m, Library.AvgDistinct(Group, "test"));
+        MinDistinctAggregateKernel<int>.Set(ref minTarget, 5);
+        MinDistinctAggregateKernel<int>.Set(ref minSource, -2);
+        MinDistinctAggregateKernel<int>.Merge(ref minTarget, in minSource);
+        MaxDistinctAggregateKernel<int>.Set(ref maxTarget, 5);
+        MaxDistinctAggregateKernel<int>.Set(ref maxSource, 12);
+        MaxDistinctAggregateKernel<int>.Merge(ref maxTarget, in maxSource);
+
+        Assert.AreEqual(-2, MinDistinctAggregateKernel<int>.Get(in minTarget));
+        Assert.AreEqual(12, MaxDistinctAggregateKernel<int>.Get(in maxTarget));
     }
 
-    #endregion
-
-    #region MinDistinct Tests
-
-    [TestMethod]
-    public void MinDistinct_IntValues_ShouldFindMinUnique()
+    private static void AssertSumDistinct<T>(T first, T duplicate, T second, T third, T expected)
+        where T : struct, INumber<T>
     {
-        Library.SetDistinctAggregate(Group, "test", 5);
-        Library.SetDistinctAggregate(Group, "test", 5);
-        Library.SetDistinctAggregate(Group, "test", 10);
-        Library.SetDistinctAggregate(Group, "test", 3);
-        Library.SetDistinctAggregate(Group, "test", 10);
+        var state = new SumDistinctAggregateKernel<T>.State();
 
-        Assert.AreEqual(3m, Library.MinDistinct(Group, "test"));
+        SumDistinctAggregateKernel<T>.Set(ref state, first);
+        SumDistinctAggregateKernel<T>.Set(ref state, duplicate);
+        SumDistinctAggregateKernel<T>.Set(ref state, null);
+        SumDistinctAggregateKernel<T>.Set(ref state, second);
+        SumDistinctAggregateKernel<T>.Set(ref state, third);
+
+        Assert.AreEqual(expected, SumDistinctAggregateKernel<T>.Get(in state));
     }
 
-    [TestMethod]
-    public void MinDistinct_DecimalValues_ShouldFindMinUnique()
+    private static void AssertAvgDistinct<T>(T first, T duplicate, T second, T third, T expected)
+        where T : struct, INumber<T>
     {
-        Library.SetDistinctAggregate(Group, "test", 5.5m);
-        Library.SetDistinctAggregate(Group, "test", 2.2m);
-        Library.SetDistinctAggregate(Group, "test", 7.7m);
+        var state = new AvgDistinctAggregateKernel<T>.State();
 
-        Assert.AreEqual(2.2m, Library.MinDistinct(Group, "test"));
+        AvgDistinctAggregateKernel<T>.Set(ref state, first);
+        AvgDistinctAggregateKernel<T>.Set(ref state, duplicate);
+        AvgDistinctAggregateKernel<T>.Set(ref state, null);
+        AvgDistinctAggregateKernel<T>.Set(ref state, second);
+        AvgDistinctAggregateKernel<T>.Set(ref state, third);
+
+        Assert.AreEqual(expected, AvgDistinctAggregateKernel<T>.Get(in state));
     }
 
-    [TestMethod]
-    public void MinDistinct_NullValues_ShouldExcludeNulls()
+    private static void AssertMinMaxDistinct<T>(
+        T first,
+        T duplicate,
+        T second,
+        T third,
+        T expectedMin,
+        T expectedMax)
+        where T : struct, INumber<T>
     {
-        Library.SetDistinctAggregate(Group, "test", 10);
-        Library.SetDistinctAggregate(Group, "test", (int?)null);
-        Library.SetDistinctAggregate(Group, "test", 5);
+        var minState = new MinDistinctAggregateKernel<T>.State();
+        var maxState = new MaxDistinctAggregateKernel<T>.State();
 
-        Assert.AreEqual(5m, Library.MinDistinct(Group, "test"));
+        MinDistinctAggregateKernel<T>.Set(ref minState, first);
+        MinDistinctAggregateKernel<T>.Set(ref minState, duplicate);
+        MinDistinctAggregateKernel<T>.Set(ref minState, null);
+        MinDistinctAggregateKernel<T>.Set(ref minState, second);
+        MinDistinctAggregateKernel<T>.Set(ref minState, third);
+        MaxDistinctAggregateKernel<T>.Set(ref maxState, first);
+        MaxDistinctAggregateKernel<T>.Set(ref maxState, duplicate);
+        MaxDistinctAggregateKernel<T>.Set(ref maxState, null);
+        MaxDistinctAggregateKernel<T>.Set(ref maxState, second);
+        MaxDistinctAggregateKernel<T>.Set(ref maxState, third);
+
+        Assert.AreEqual(expectedMin, MinDistinctAggregateKernel<T>.Get(in minState));
+        Assert.AreEqual(expectedMax, MaxDistinctAggregateKernel<T>.Get(in maxState));
     }
-
-    [TestMethod]
-    public void MinDistinct_NegativeValues_ShouldFindMinUnique()
-    {
-        Library.SetDistinctAggregate(Group, "test", -5);
-        Library.SetDistinctAggregate(Group, "test", -5);
-        Library.SetDistinctAggregate(Group, "test", 10);
-        Library.SetDistinctAggregate(Group, "test", -10);
-
-        Assert.AreEqual(-10m, Library.MinDistinct(Group, "test"));
-    }
-
-    #endregion
-
-    #region MaxDistinct Tests
-
-    [TestMethod]
-    public void MaxDistinct_IntValues_ShouldFindMaxUnique()
-    {
-        Library.SetDistinctAggregate(Group, "test", 5);
-        Library.SetDistinctAggregate(Group, "test", 5);
-        Library.SetDistinctAggregate(Group, "test", 10);
-        Library.SetDistinctAggregate(Group, "test", 3);
-        Library.SetDistinctAggregate(Group, "test", 10);
-
-        Assert.AreEqual(10m, Library.MaxDistinct(Group, "test"));
-    }
-
-    [TestMethod]
-    public void MaxDistinct_DecimalValues_ShouldFindMaxUnique()
-    {
-        Library.SetDistinctAggregate(Group, "test", 5.5m);
-        Library.SetDistinctAggregate(Group, "test", 2.2m);
-        Library.SetDistinctAggregate(Group, "test", 7.7m);
-
-        Assert.AreEqual(7.7m, Library.MaxDistinct(Group, "test"));
-    }
-
-    [TestMethod]
-    public void MaxDistinct_NullValues_ShouldExcludeNulls()
-    {
-        Library.SetDistinctAggregate(Group, "test", 10);
-        Library.SetDistinctAggregate(Group, "test", (int?)null);
-        Library.SetDistinctAggregate(Group, "test", 15);
-
-        Assert.AreEqual(15m, Library.MaxDistinct(Group, "test"));
-    }
-
-    [TestMethod]
-    public void MaxDistinct_NegativeValues_ShouldFindMaxUnique()
-    {
-        Library.SetDistinctAggregate(Group, "test", -5);
-        Library.SetDistinctAggregate(Group, "test", -5);
-        Library.SetDistinctAggregate(Group, "test", -2);
-        Library.SetDistinctAggregate(Group, "test", -10);
-
-        Assert.AreEqual(-2m, Library.MaxDistinct(Group, "test"));
-    }
-
-    #endregion
-
-    #region Mixed Type Tests
-
-    [TestMethod]
-    public void DistinctAggregates_ByteValues_ShouldWork()
-    {
-        Library.SetDistinctAggregate(Group, "test", (byte)10);
-        Library.SetDistinctAggregate(Group, "test", (byte)10);
-        Library.SetDistinctAggregate(Group, "test", (byte)20);
-
-        Assert.AreEqual(2, Library.CountDistinct(Group, "test"));
-        Assert.AreEqual(30m, Library.SumDistinct(Group, "test"));
-        Assert.AreEqual(15m, Library.AvgDistinct(Group, "test"));
-    }
-
-    [TestMethod]
-    public void DistinctAggregates_ShortValues_ShouldWork()
-    {
-        Library.SetDistinctAggregate(Group, "test", (short)100);
-        Library.SetDistinctAggregate(Group, "test", (short)100);
-        Library.SetDistinctAggregate(Group, "test", (short)200);
-
-        Assert.AreEqual(2, Library.CountDistinct(Group, "test"));
-        Assert.AreEqual(300m, Library.SumDistinct(Group, "test"));
-    }
-
-    [TestMethod]
-    public void DistinctAggregates_FloatValues_ShouldWork()
-    {
-        Library.SetDistinctAggregate(Group, "test", 1.5f);
-        Library.SetDistinctAggregate(Group, "test", 1.5f);
-        Library.SetDistinctAggregate(Group, "test", 2.5f);
-
-        Assert.AreEqual(2, Library.CountDistinct(Group, "test"));
-        Assert.AreEqual(4m, Library.SumDistinct(Group, "test"));
-    }
-
-    [TestMethod]
-    public void DistinctAggregates_WithParentGroup_ShouldWork()
-    {
-        Library.SetDistinctAggregate(Group, "test", 10, 1);
-        Library.SetDistinctAggregate(Group, "test", 10, 1);
-        Library.SetDistinctAggregate(Group, "test", 20, 1);
-        Library.SetDistinctAggregate(Group, "test", 5);
-        Library.SetDistinctAggregate(Group, "test", 5);
-        Library.SetDistinctAggregate(Group, "test", 15);
-
-
-        Assert.AreEqual(2, Library.CountDistinct(Group, "test", 1));
-        Assert.AreEqual(30m, Library.SumDistinct(Group, "test", 1));
-
-
-        Assert.AreEqual(2, Library.CountDistinct(Group, "test"));
-        Assert.AreEqual(20m, Library.SumDistinct(Group, "test"));
-    }
-
-    #endregion
 }

@@ -6,12 +6,12 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests.Schema.Multi;
 
-public class MultiSchema(IReadOnlyDictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)> tables)
+public class MultiSchema(IReadOnlyDictionary<string, (ISchemaTable SchemaTable, object RowSource)> tables)
     : SchemaBase("test", CachedLibrary.Value)
 {
     private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
 
-    public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
     {
         return name switch
         {
@@ -21,12 +21,12 @@ public class MultiSchema(IReadOnlyDictionary<string, (ISchemaTable SchemaTable, 
         };
     }
 
-    public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
     {
         return name switch
         {
-            "first" => tables[name].RowSource,
-            "second" => tables[name].RowSource,
+            "first" => EnsureSourceType<T>(name, tables[name].RowSource),
+            "second" => EnsureSourceType<T>(name, tables[name].RowSource),
             _ => throw new NotSupportedException($"Table {name} is not supported.")
         };
     }

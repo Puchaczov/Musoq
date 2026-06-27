@@ -84,12 +84,12 @@ public class LibraryBaseTests : PluginsTestBase
         Assert.AreEqual("System.Int32[]", result);
     }
 
-    private class TestClass
+    private sealed class TestClass
     {
         public string Name { get; set; } = "Test";
     }
 
-    private class TestableQueryStats : QueryStats
+    private sealed class TestableQueryStats : QueryStats
     {
         public TestableQueryStats(int rowNumber)
         {

@@ -31,7 +31,7 @@ public class TextRestFeatureTests
                 Data: rest trim
             };
             select r.Type, r.Data from #test.lines() l
-            cross apply Parse(l.Line, 'Record') r
+            cross apply Parse<Record>(l.Line) r
             where r.Data like '%error%'";
 
         var entities = new[]
@@ -65,7 +65,7 @@ public class TextRestFeatureTests
                 Content: rest
             };
             select d.Content from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "This is the entire content" } };
         var schemaProvider = new TextSchemaProvider(
@@ -91,7 +91,7 @@ public class TextRestFeatureTests
                 Remainder: rest
             };
             select d.Prefix, d.Remainder from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "HelloWorld123" } };
         var schemaProvider = new TextSchemaProvider(
@@ -118,7 +118,7 @@ public class TextRestFeatureTests
                 Field2: rest
             };
             select d.Field1, d.Field2 from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "key:value and more" } };
         var schemaProvider = new TextSchemaProvider(
@@ -148,7 +148,7 @@ public class TextRestFeatureTests
                 Content: rest trim
             };
             select d.Content from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "  trimmed content  " } };
         var schemaProvider = new TextSchemaProvider(
@@ -173,7 +173,7 @@ public class TextRestFeatureTests
                 Content: rest rtrim
             };
             select d.Content from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "  content  " } };
         var schemaProvider = new TextSchemaProvider(
@@ -198,7 +198,7 @@ public class TextRestFeatureTests
                 Content: rest ltrim
             };
             select d.Content from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "  content  " } };
         var schemaProvider = new TextSchemaProvider(
@@ -230,7 +230,7 @@ public class TextRestFeatureTests
                 Message: rest trim
             };
             select e.Level, e.Code, e.Message from #test.lines() l
-            cross apply Parse(l.Line, 'LogEntry') e";
+            cross apply Parse<LogEntry>(l.Line) e";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "ERROR:E001 Something went wrong" } };
         var schemaProvider = new TextSchemaProvider(
@@ -258,7 +258,7 @@ public class TextRestFeatureTests
                 Body: rest trim
             };
             select m.Sender, m.Body from #test.lines() l
-            cross apply Parse(l.Line, 'Message') m
+            cross apply Parse<Message>(l.Line) m
             order by m.Sender";
 
         var entities = new[]
@@ -296,7 +296,7 @@ public class TextRestFeatureTests
                 Extra: rest
             };
             select d.Full, d.Extra from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "1234567890" } };
         var schemaProvider = new TextSchemaProvider(
@@ -323,7 +323,7 @@ public class TextRestFeatureTests
                 Content: rest
             };
             select d.Prefix, d.Content from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = ">>>Special: @#$%^&*()!" } };
         var schemaProvider = new TextSchemaProvider(

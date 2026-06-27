@@ -1,3 +1,4 @@
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -36,7 +37,7 @@ public class OuterApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -110,7 +111,7 @@ public class OuterApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -167,7 +168,7 @@ public class OuterApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -222,9 +223,9 @@ public class OuterApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()),
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray(),
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -286,7 +287,7 @@ public class OuterApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -300,20 +301,20 @@ public class OuterApplyTests : GenericEntityTestBase
         Assert.IsTrue(table.Any(entry =>
                 (string)entry[0] == "Country1" &&
                 (decimal)entry[1] == 6000m &&
-                (int)entry[2] == 4),
+                (long)entry[2] == 4L),
             "First entry should represent Country1 with total 6000m and 4 transactions");
 
         Assert.IsTrue(table.Any(entry =>
                 (string)entry[0] == "Country2" &&
                 (decimal)entry[1] == 3000m &&
-                (int)entry[2] == 1),
+                (long)entry[2] == 1L),
             "Second entry should represent Country2 with total 3000m and 1 transaction");
 
         Assert.IsTrue(table.Any(entry =>
                 (string)entry[0] == "Country3" &&
-                (decimal)entry[1] == 0m &&
-                (int)entry[2] == 0),
-            "Third entry should represent Country3 with 0m total and 0 transactions");
+                entry[1] == null &&
+                (long)entry[2] == 0L),
+            "Third entry should represent Country3 with null total and 0 transactions");
     }
 
     [TestMethod]
@@ -347,7 +348,7 @@ public class OuterApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -381,28 +382,28 @@ public class OuterApplyTests : GenericEntityTestBase
         ), "Expected combination (City3, Country3, null, null) not found");
     }
 
-    private class OuterApplyClass1
+    private sealed class OuterApplyClass1
     {
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        public string Country { get; set; }
+        public string Country { get; set; } = string.Empty;
 
         public int Population { get; set; }
     }
 
-    private class OuterApplyClass2
+    private sealed class OuterApplyClass2
     {
-        public string Country { get; set; }
+        public string Country { get; set; } = string.Empty;
 
         public decimal Money { get; set; }
 
-        public string Month { get; set; }
+        public string Month { get; set; } = string.Empty;
     }
 
-    private class OuterApplyClass3
+    private sealed class OuterApplyClass3
     {
-        public string Country { get; set; }
+        public string Country { get; set; } = string.Empty;
 
-        public string Address { get; set; }
+        public string Address { get; set; } = string.Empty;
     }
 }

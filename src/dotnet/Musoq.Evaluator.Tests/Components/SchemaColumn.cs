@@ -6,16 +6,9 @@ namespace Musoq.Evaluator.Tests.Components;
 /// <summary>
 ///     Simple schema column implementation.
 /// </summary>
-public class SchemaColumn : ISchemaColumn
+public class SchemaColumn(string columnName, int columnIndex, Type columnType) : ISchemaColumn
 {
-    public SchemaColumn(string columnName, int columnIndex, Type columnType)
-    {
-        ColumnName = columnName;
-        ColumnIndex = columnIndex;
-        ColumnType = columnType;
-    }
-
-    public string ColumnName { get; }
-    public int ColumnIndex { get; }
-    public Type ColumnType { get; }
+    public string ColumnName { get; } = columnName;
+    public int ColumnIndex { get; } = columnIndex;
+    public Type ColumnType { get; } = columnType;
 }

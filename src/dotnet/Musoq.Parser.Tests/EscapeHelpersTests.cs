@@ -17,7 +17,7 @@ public class EscapeHelpersTests
     [TestMethod]
     public void Unescape_NullString_ReturnsNull()
     {
-        string input = null;
+        string? input = null;
         Assert.IsNull(input.Unescape());
     }
 
@@ -157,7 +157,7 @@ public class EscapeHelpersTests
     [TestMethod]
     public void Unescape_NullAndEmpty()
     {
-        Assert.IsNull(((string)null).Unescape());
+        Assert.IsNull(((string?)null).Unescape());
         Assert.AreEqual(string.Empty, string.Empty.Unescape());
     }
 

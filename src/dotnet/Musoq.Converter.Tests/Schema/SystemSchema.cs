@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -8,17 +8,12 @@ using Musoq.Schema.Reflection;
 
 namespace Musoq.Converter.Tests.Schema;
 
-public class SystemSchema : SchemaBase
+public class SystemSchema() : SchemaBase(System, CreateLibrary())
 {
     private const string Dual = "dual";
     private const string System = "system";
 
-    public SystemSchema()
-        : base(System, CreateLibrary())
-    {
-    }
-
-    public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
     {
         switch (name.ToLowerInvariant())
         {
@@ -29,12 +24,12 @@ public class SystemSchema : SchemaBase
         throw new NotSupportedException(name);
     }
 
-    public override RowSource GetRowSource(string name, RuntimeContext interCommunicator, params object[] parameters)
+    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
     {
         switch (name.ToLowerInvariant())
         {
             case Dual:
-                return new DualRowSource();
+                return EnsureSourceType<T, DualEntity>(name, new DualRowSource());
         }
 
         throw new NotSupportedException(name);

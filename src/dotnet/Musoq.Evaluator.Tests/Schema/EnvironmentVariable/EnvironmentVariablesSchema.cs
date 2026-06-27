@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
 
@@ -11,26 +10,6 @@ public class EnvironmentVariablesSchema : SchemaBase
 {
     private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
 
-    private static readonly IReadOnlyDictionary<string, int> EnvironmentVariableNameToIndexMap;
-
-    private static readonly IReadOnlyDictionary<int, Func<EnvironmentVariableEntity, object>>
-        EnvironmentVariableIndexToObjectAccessMap;
-
-    static EnvironmentVariablesSchema()
-    {
-        EnvironmentVariableNameToIndexMap = new Dictionary<string, int>
-        {
-            { nameof(EnvironmentVariableEntity.Key), 0 },
-            { nameof(EnvironmentVariableEntity.Value), 1 }
-        };
-
-        EnvironmentVariableIndexToObjectAccessMap = new Dictionary<int, Func<EnvironmentVariableEntity, object>>
-        {
-            { 0, arg => arg.Key },
-            { 1, arg => arg.Value }
-        };
-    }
-
     public EnvironmentVariablesSchema()
         : base("environmentVariables", CachedLibrary.Value)
     {
@@ -38,9 +17,9 @@ public class EnvironmentVariablesSchema : SchemaBase
         AddSource<EnvironmentVariablesSource>("all");
     }
 
-    public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
     {
-        return new EnvironmentVariablesSource(runtimeContext);
+        return EnsureSourceType<T, EnvironmentVariableEntity>(name, new EnvironmentVariablesSource(executionContext));
     }
 
     private static MethodsAggregator CreateLibrary()
@@ -54,18 +33,12 @@ public class EnvironmentVariablesSchema : SchemaBase
         return new MethodsAggregator(methodManager);
     }
 
-    private class EnvironmentVariablesSource(RuntimeContext runtimeContext) : RowSource
+    private sealed class EnvironmentVariablesSource(SourceExecutionContext runtimeContext) : RowSource<EnvironmentVariableEntity>
     {
-        public override IEnumerable<IObjectResolver> Rows
-        {
-            get
-            {
-                return runtimeContext.EnvironmentVariables.Select(variable =>
-                    new EntityResolver<EnvironmentVariableEntity>(
-                        new EnvironmentVariableEntity(variable.Key, variable.Value),
-                        EnvironmentVariableNameToIndexMap,
-                        EnvironmentVariableIndexToObjectAccessMap));
-            }
-        }
+        public override IEnumerable<IReadOnlyList<EnvironmentVariableEntity>> Chunks =>
+        [
+            runtimeContext.SourceRuntimeSettings.Select(variable =>
+                new EnvironmentVariableEntity(variable.Key, variable.Value)).ToArray()
+        ];
     }
 }

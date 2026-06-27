@@ -24,7 +24,7 @@ public class TypesTable : ISchemaTable
         new SchemaColumn(nameof(TypesEntity.NullableIntCol), 12, typeof(int?))
     ];
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(col => col.ColumnName == name);
     }

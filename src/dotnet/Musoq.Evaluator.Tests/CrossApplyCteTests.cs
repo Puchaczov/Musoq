@@ -1,3 +1,4 @@
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,9 +18,16 @@ public class CrossApplyCteTests : GenericEntityTestBase
     {
         const string query = @"
 with p as (
-    select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from #schema.first() a cross apply #schema.second(a.Country) b
+    select
+        a.City as City,
+        a.Country as SourceCountry,
+        a.Population as Population,
+        b.Country as AppliedCountry,
+        b.Money as Money,
+        b.Month as Month
+    from #schema.first() a cross apply #schema.second(a.Country) b
 )
-select [a.City], [a.Country], [a.Population], [b.Country], [b.Money], [b.Month] from p";
+select City, SourceCountry, Population, AppliedCountry, Money, Month from p";
 
         var firstSource = new List<CrossApplyClass1>
         {
@@ -43,22 +51,22 @@ select [a.City], [a.Country], [a.Population], [b.Country], [b.Money], [b.Month] 
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(6, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("a.Country", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("SourceCountry", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("a.Population", table.Columns.ElementAt(2).ColumnName);
+        Assert.AreEqual("Population", table.Columns.ElementAt(2).ColumnName);
         Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("b.Country", table.Columns.ElementAt(3).ColumnName);
+        Assert.AreEqual("AppliedCountry", table.Columns.ElementAt(3).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(3).ColumnType);
-        Assert.AreEqual("b.Money", table.Columns.ElementAt(4).ColumnName);
+        Assert.AreEqual("Money", table.Columns.ElementAt(4).ColumnName);
         Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(4).ColumnType);
-        Assert.AreEqual("b.Month", table.Columns.ElementAt(5).ColumnName);
+        Assert.AreEqual("Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
 
         Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
@@ -125,7 +133,7 @@ select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a cro
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -193,7 +201,7 @@ select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a cro
 with p as (
     select a.Name, b.Value from #schema.first() a cross apply a.Skills b
 )
-select [a.Name], [b.Value] from p";
+select Name, Value from p";
 
         var firstSource = new List<CrossApplyClass3>
         {
@@ -210,10 +218,10 @@ select [a.Name], [b.Value] from p";
 
         Assert.AreEqual(2, table.Columns.Count());
 
-        Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
 
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual("Value", table.Columns.ElementAt(1).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
 
         Assert.AreEqual(9, table.Count);
@@ -344,9 +352,9 @@ select a.Name, b.Value from first a cross apply a.Skills b";
         {
             vm.Run(TestContext.CancellationToken);
         }
-        catch (Exception)
+        catch (Exception exception)
         {
-            Assert.Fail("Expected not to throw exception but got: ");
+            Assert.Fail($"Expected not to throw exception but got: {exception}");
         }
     }
 
@@ -514,33 +522,33 @@ select a.Name, b.Value from first a cross apply a.Skills b";
             "Missing Skill3/two row");
     }
 
-    private class CrossApplyClass1
+    private sealed class CrossApplyClass1
     {
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        public string Country { get; set; }
+        public string Country { get; set; } = string.Empty;
 
         public int Population { get; set; }
     }
 
-    private class CrossApplyClass2
+    private sealed class CrossApplyClass2
     {
-        public string Country { get; set; }
+        public string Country { get; set; } = string.Empty;
 
         public decimal Money { get; set; }
 
-        public string Month { get; set; }
+        public string Month { get; set; } = string.Empty;
     }
 
-    private class CrossApplyClass3
+    private sealed class CrossApplyClass3
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
-        [BindablePropertyAsTable] public string[] Skills { get; set; }
+        [BindablePropertyAsTable] public string[] Skills { get; set; } = [];
     }
 
     public class CrossApplyClass4
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
     }
 }

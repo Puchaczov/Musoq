@@ -1,48 +1,87 @@
-﻿using System;
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class TimeSpanTests : PluginsTestBase
+public class TimeSpanTests
 {
-    [TestMethod]
-    public void SumTimeSpanTest()
-    {
-        Library.SetSumTimeSpan(Group, "test", new TimeSpan(1, 0, 0));
-        Library.SetSumTimeSpan(Group, "test", new TimeSpan(2, 0, 0));
-        Library.SetSumTimeSpan(Group, "test", new TimeSpan(3, 0, 0));
-        Library.SetSumTimeSpan(Group, "test", null);
+    private readonly LibraryBase _library = new();
 
-        Assert.AreEqual(new TimeSpan(6, 0, 0), Library.SumTimeSpan(Group, "test"));
+    [TestMethod]
+    public void SumTimeSpanAggregateKernel_SumsNonNullValues()
+    {
+        var state = new SumTimeSpanAggregateKernel.State();
+
+        SumTimeSpanAggregateKernel.Set(ref state, TimeSpan.FromHours(1));
+        SumTimeSpanAggregateKernel.Set(ref state, null);
+        SumTimeSpanAggregateKernel.Set(ref state, TimeSpan.FromHours(2));
+        SumTimeSpanAggregateKernel.Set(ref state, TimeSpan.FromHours(3));
+
+        Assert.AreEqual(TimeSpan.FromHours(6), SumTimeSpanAggregateKernel.Get(in state));
     }
 
     [TestMethod]
-    public void ComputeMinTimeSpanTest()
+    public void SumTimeSpanAggregateKernel_EmptyStateReturnsNull()
     {
-        Library.SetMinTimeSpan(Group, "test", new TimeSpan(1, 0, 0));
-        Library.SetMinTimeSpan(Group, "test", new TimeSpan(2, 0, 0));
-        Library.SetMinTimeSpan(Group, "test", new TimeSpan(3, 0, 0));
-        Library.SetMinTimeSpan(Group, "test", null);
+        var state = new SumTimeSpanAggregateKernel.State();
 
-        Assert.AreEqual(new TimeSpan(1, 0, 0), Library.MinTimeSpan(Group, "test"));
+        Assert.IsNull(SumTimeSpanAggregateKernel.Get(in state));
     }
 
     [TestMethod]
-    public void ComputeMaxTimeSpanTest()
+    public void SumTimeSpanAggregateKernel_MergeCombinesPartialStates()
     {
-        Library.SetMaxTimeSpan(Group, "test", new TimeSpan(1, 0, 0));
-        Library.SetMaxTimeSpan(Group, "test", new TimeSpan(2, 0, 0));
-        Library.SetMaxTimeSpan(Group, "test", new TimeSpan(3, 0, 0));
-        Library.SetMaxTimeSpan(Group, "test", null);
+        var target = new SumTimeSpanAggregateKernel.State();
+        var source = new SumTimeSpanAggregateKernel.State();
 
-        Assert.AreEqual(new TimeSpan(3, 0, 0), Library.MaxTimeSpan(Group, "test"));
+        SumTimeSpanAggregateKernel.Set(ref target, TimeSpan.FromHours(1));
+        SumTimeSpanAggregateKernel.Set(ref source, TimeSpan.FromHours(2));
+        SumTimeSpanAggregateKernel.Merge(ref target, in source);
+
+        Assert.AreEqual(TimeSpan.FromHours(3), SumTimeSpanAggregateKernel.Get(in target));
+    }
+
+    [TestMethod]
+    public void MinTimeSpanAggregateKernel_SkipsNullsAndReturnsMinimum()
+    {
+        var state = new MinComparableAggregateKernel<TimeSpan>.State();
+
+        MinComparableAggregateKernel<TimeSpan>.Set(ref state, TimeSpan.FromHours(3));
+        MinComparableAggregateKernel<TimeSpan>.Set(ref state, null);
+        MinComparableAggregateKernel<TimeSpan>.Set(ref state, TimeSpan.FromHours(1));
+        MinComparableAggregateKernel<TimeSpan>.Set(ref state, TimeSpan.FromHours(2));
+
+        Assert.AreEqual(TimeSpan.FromHours(1), MinComparableAggregateKernel<TimeSpan>.Get(in state));
+    }
+
+    [TestMethod]
+    public void MaxTimeSpanAggregateKernel_SkipsNullsAndReturnsMaximum()
+    {
+        var state = new MaxComparableAggregateKernel<TimeSpan>.State();
+
+        MaxComparableAggregateKernel<TimeSpan>.Set(ref state, TimeSpan.FromHours(1));
+        MaxComparableAggregateKernel<TimeSpan>.Set(ref state, null);
+        MaxComparableAggregateKernel<TimeSpan>.Set(ref state, TimeSpan.FromHours(3));
+        MaxComparableAggregateKernel<TimeSpan>.Set(ref state, TimeSpan.FromHours(2));
+
+        Assert.AreEqual(TimeSpan.FromHours(3), MaxComparableAggregateKernel<TimeSpan>.Get(in state));
+    }
+
+    [TestMethod]
+    public void TimeSpanComparableAggregateKernels_EmptyStatesReturnNull()
+    {
+        var minState = new MinComparableAggregateKernel<TimeSpan>.State();
+        var maxState = new MaxComparableAggregateKernel<TimeSpan>.State();
+
+        Assert.IsNull(MinComparableAggregateKernel<TimeSpan>.Get(in minState));
+        Assert.IsNull(MaxComparableAggregateKernel<TimeSpan>.Get(in maxState));
     }
 
     [TestMethod]
     public void AddTimeSpansTest()
     {
-        var timeSpan = Library.AddTimeSpans(TimeSpan.Zero, TimeSpan.FromHours(1));
+        var timeSpan = _library.AddTimeSpans(TimeSpan.Zero, TimeSpan.FromHours(1));
 
         Assert.AreEqual(TimeSpan.FromHours(1), timeSpan);
     }
@@ -50,7 +89,7 @@ public class TimeSpanTests : PluginsTestBase
     [TestMethod]
     public void WhenFirstTimeSpanIsNull_Add_ShouldReturnRightOne()
     {
-        var timeSpan = Library.AddTimeSpans(null, TimeSpan.FromMinutes(30));
+        var timeSpan = _library.AddTimeSpans(null, TimeSpan.FromMinutes(30));
 
         Assert.AreEqual(TimeSpan.FromMinutes(30), timeSpan);
     }
@@ -58,7 +97,7 @@ public class TimeSpanTests : PluginsTestBase
     [TestMethod]
     public void WhenSecondTimeSpanIsNull_Add_ShouldReturnLeftOne()
     {
-        var timeSpan = Library.AddTimeSpans(TimeSpan.FromMinutes(30), null);
+        var timeSpan = _library.AddTimeSpans(TimeSpan.FromMinutes(30), null);
 
         Assert.AreEqual(TimeSpan.FromMinutes(30), timeSpan);
     }
@@ -66,7 +105,7 @@ public class TimeSpanTests : PluginsTestBase
     [TestMethod]
     public void SubtractTimeSpansTest()
     {
-        var timeSpan = Library.SubtractTimeSpans(TimeSpan.FromHours(1), TimeSpan.FromMinutes(30));
+        var timeSpan = _library.SubtractTimeSpans(TimeSpan.FromHours(1), TimeSpan.FromMinutes(30));
 
         Assert.AreEqual(TimeSpan.FromMinutes(30), timeSpan);
     }
@@ -74,7 +113,7 @@ public class TimeSpanTests : PluginsTestBase
     [TestMethod]
     public void WhenFirstTimeSpanIsNull_Subtract_ShouldReturnRightOne()
     {
-        var timeSpan = Library.SubtractTimeSpans(null, TimeSpan.FromMinutes(30));
+        var timeSpan = _library.SubtractTimeSpans(null, TimeSpan.FromMinutes(30));
 
         Assert.AreEqual(TimeSpan.FromMinutes(30), timeSpan);
     }
@@ -82,7 +121,7 @@ public class TimeSpanTests : PluginsTestBase
     [TestMethod]
     public void WhenSecondTimeSpanIsNull_Subtract_ShouldReturnLeftOne()
     {
-        var timeSpan = Library.SubtractTimeSpans(TimeSpan.FromMinutes(30), null);
+        var timeSpan = _library.SubtractTimeSpans(TimeSpan.FromMinutes(30), null);
 
         Assert.AreEqual(TimeSpan.FromMinutes(30), timeSpan);
     }

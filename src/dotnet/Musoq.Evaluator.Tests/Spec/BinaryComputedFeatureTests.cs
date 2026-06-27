@@ -32,7 +32,7 @@ public class BinaryComputedFeatureTests
                 Step2: = Step1 + 10
             };
             select d.Base, d.Step1, d.Step2 from #test.bytes() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var data = new byte[] { 0x05, 0x00, 0x00, 0x00 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
@@ -65,12 +65,12 @@ public class BinaryComputedFeatureTests
                 Category: = Value / 10
             };
             select d.Value, d.Category from #test.bytes() b
-            cross apply Interpret(b.Content, 'Data') d
+            cross apply Interpret<Data>(b.Content) d
             where d.Category = 2";
 
         var data1 = new byte[] { 0x0F, 0x00, 0x00, 0x00 };
         var data2 = new byte[] { 0x19, 0x00, 0x00, 0x00 };
-        var data3 = new byte[] { 0x23, 0x00, 0x00, 0x00 };
+        var data3 = "#\u0000\u0000\u0000"u8.ToArray();
         var entities = new[]
         {
             new BinaryEntity { Name = "1.bin", Data = data1 },
@@ -105,7 +105,7 @@ public class BinaryComputedFeatureTests
                 VersionLabel: = 'v' + ToString(Version)
             };
             select h.Version, h.VersionLabel from #test.bytes() b
-            cross apply Interpret(b.Content, 'Header') h";
+            cross apply Interpret<Header>(b.Content) h";
 
         var data = new byte[] { 0x02 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
@@ -137,9 +137,9 @@ public class BinaryComputedFeatureTests
                 IsPositive: = Value > 0
             };
             select d.Value, d.IsPositive from #test.bytes() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
-        var data = new byte[] { 0x0A, 0x00, 0x00, 0x00 };
+        var data = "\n\u0000\u0000\u0000"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -169,7 +169,7 @@ public class BinaryComputedFeatureTests
                 Constant: = 42
             };
             select d.Value, d.Constant from #test.bytes() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var data = new byte[] { 0x01, 0x00, 0x00, 0x00 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
@@ -197,9 +197,9 @@ public class BinaryComputedFeatureTests
                 Doubled: = Value * 2
             };
             select d.Value, d.Doubled from #test.bytes() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
-        var data = new byte[] { 0x0A, 0x00, 0x00, 0x00 };
+        var data = "\n\u0000\u0000\u0000"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -227,7 +227,7 @@ public class BinaryComputedFeatureTests
                 Product: = A * B
             };
             select d.A, d.B, d.Sum, d.Product from #test.bytes() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var data = new byte[]
         {
@@ -266,7 +266,7 @@ public class BinaryComputedFeatureTests
                 Second: int le
             };
             select d.First, d.Computed, d.Second from #test.bytes() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var data = new byte[]
         {
@@ -302,7 +302,7 @@ public class BinaryComputedFeatureTests
                 Sum: = ComputedA + ComputedB
             };
             select d.A, d.ComputedA, d.B, d.ComputedB, d.Sum from #test.bytes() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var data = new byte[] { 0x04, 0x05 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };

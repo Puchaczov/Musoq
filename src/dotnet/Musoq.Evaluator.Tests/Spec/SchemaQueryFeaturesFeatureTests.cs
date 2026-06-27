@@ -28,7 +28,7 @@ public class SchemaQueryFeaturesFeatureTests
         var query = @"
             binary Record { Category: byte };
             select distinct d.Category from #test.bytes() b
-            cross apply Interpret(b.Content, 'Record') d
+            cross apply Interpret<Record>(b.Content) d
             order by d.Category asc";
 
         var entities = new[]
@@ -65,7 +65,7 @@ public class SchemaQueryFeaturesFeatureTests
         var query = @"
             binary Record { Value: byte };
             select d.Value from #test.bytes() b
-            cross apply Interpret(b.Content, 'Record') d
+            cross apply Interpret<Record>(b.Content) d
             order by d.Value asc
             skip 2
             take 2";
@@ -103,7 +103,7 @@ public class SchemaQueryFeaturesFeatureTests
         var query = @"
             binary Record { Id: byte };
             select d.Id from #test.bytes() b
-            cross apply Interpret(b.Content, 'Record') d
+            cross apply Interpret<Record>(b.Content) d
             order by d.Id asc
             take 3";
 
@@ -146,7 +146,7 @@ public class SchemaQueryFeaturesFeatureTests
                         when d.Score >= 70 then 'C' 
                         else 'F' end as Grade
             from #test.bytes() b
-            cross apply Interpret(b.Content, 'Record') d
+            cross apply Interpret<Record>(b.Content) d
             order by d.Score desc";
 
         var entities = new[]
@@ -188,7 +188,7 @@ public class SchemaQueryFeaturesFeatureTests
                         when e.Level = 'WARN' then 'Warning' 
                         else 'Info' end as Severity
             from #test.lines() l
-            cross apply Parse(l.Line, 'Entry') e
+            cross apply Parse<Entry>(l.Line) e
             order by e.Level asc";
 
         var entities = new[]
@@ -227,7 +227,7 @@ public class SchemaQueryFeaturesFeatureTests
             binary Dimensions { Width: short le, Height: short le };
             select d.Width, d.Height, d.Width * d.Height as Area, (d.Width + d.Height) * 2 as Perimeter
             from #test.bytes() b
-            cross apply Interpret(b.Content, 'Dimensions') d
+            cross apply Interpret<Dimensions>(b.Content) d
             order by d.Width asc";
 
         var entities = new[]
@@ -267,7 +267,7 @@ public class SchemaQueryFeaturesFeatureTests
             text Data { Key: until '=', Value: rest };
             select ToUpperInvariant(d.Key) as UpperKey, Length(d.Value) as ValueLen
             from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d
+            cross apply Parse<Data>(l.Line) d
             order by d.Key asc";
 
         var entities = new[]
@@ -302,7 +302,7 @@ public class SchemaQueryFeaturesFeatureTests
         var query = @"
             text LogLine { Level: until ' ', Message: rest };
             select distinct l2.Level from #test.lines() l
-            cross apply Parse(l.Line, 'LogLine') l2
+            cross apply Parse<LogLine>(l.Line) l2
             order by l2.Level asc";
 
         var entities = new[]
@@ -340,7 +340,7 @@ public class SchemaQueryFeaturesFeatureTests
         var query = @"
             binary Record { Type: byte, Value: short le };
             select d.Type, d.Value from #test.bytes() b
-            cross apply Interpret(b.Content, 'Record') d
+            cross apply Interpret<Record>(b.Content) d
             where d.Type = 1 and d.Value > 10
             order by d.Value asc";
 
@@ -374,7 +374,7 @@ public class SchemaQueryFeaturesFeatureTests
         var query = @"
             binary Record { Type: byte, Value: short le };
             select d.Type, d.Value from #test.bytes() b
-            cross apply Interpret(b.Content, 'Record') d
+            cross apply Interpret<Record>(b.Content) d
             where d.Type = 1 or d.Value = 100
             order by d.Value asc";
 

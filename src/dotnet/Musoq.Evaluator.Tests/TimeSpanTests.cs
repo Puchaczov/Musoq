@@ -44,6 +44,32 @@ public class TimeSpanTests : UnknownQueryTestsBase
     }
 
     [TestMethod]
+    public void SumTimeSpan_WhenAllValuesAreNull_ShouldReturnNull()
+    {
+        const string query = "table Periods {" +
+                             "  Period: timespan" +
+                             "};" +
+                             "couple #test.whatever with table Periods as Periods; " +
+                             "select SumTimeSpan(Period) from Periods()";
+
+        dynamic first = new ExpandoObject();
+        first.Period = null;
+
+        dynamic second = new ExpandoObject();
+        second.Period = null;
+
+        var vm = CreateAndRunVirtualMachine(query,
+        [
+            first, second
+        ]);
+
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.IsNull(table[0].Values[0]);
+    }
+
+    [TestMethod]
     public void MinTimeSpanTest()
     {
         const string query = "table Periods {" +
@@ -169,4 +195,3 @@ public class TimeSpanTests : UnknownQueryTestsBase
         Assert.AreEqual(TimeSpan.FromHours(1), table[0].Values[0]);
     }
 }
-

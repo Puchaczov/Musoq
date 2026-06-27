@@ -1,35 +1,38 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins.Helpers;
 
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class JsonTests : PluginsTestBase
+public sealed class JsonTests : PluginsTestBase
 {
-    private static readonly int[] Obj = [1, 2, 3];
-
     [TestMethod]
-    public void WhenSerializingPrimitiveType_ShouldPass()
+    [DynamicData(nameof(ToJsonCases))]
+    public void ToJson_Cases_ReturnExpected(object? value, string? expected)
     {
-        Assert.AreEqual("1", Library.ToJson(1));
+        var result = Library.ToJson(value);
+
+        Assert.AreEqual(expected, result);
     }
 
     [TestMethod]
-    public void WhenSerializingObject_ShouldPass()
+    [DynamicData(nameof(ExtractFromJsonCases))]
+    public void ExtractFromJson_Cases_ReturnExpected(string? json, string? path, string? expected)
     {
-        Assert.AreEqual("{\"Name\":\"John\",\"Age\":30}", Library.ToJson(new { Name = "John", Age = 30 }));
+        var result = Library.ExtractFromJson(json, path);
+
+        Assert.AreEqual(expected, result);
     }
 
     [TestMethod]
-    public void WhenSerializingArray_ShouldPass()
+    [DynamicData(nameof(ExtractFromJsonToArrayCases))]
+    public void ExtractFromJsonToArray_Cases_ReturnExpected(string? json, string? path, string[] expected)
     {
-        Assert.AreEqual("[1,2,3]", Library.ToJson(Obj));
-    }
+        var result = Library.ExtractFromJsonToArray(json, path);
 
-    [TestMethod]
-    public void WhenNull_ShouldPass()
-    {
-        Assert.IsNull(Library.ToJson<int?>(null));
+        CollectionAssert.AreEqual(expected, result);
     }
 
     [TestMethod]
@@ -507,5 +510,36 @@ public class JsonTests : PluginsTestBase
         // Alternative notation
         var result6 = JsonExtractorHelper.ExtractFromJson(json, "$['nested']['complex[name].with.dot']");
         Assert.AreEqual("value4", result6[0]);
+    }
+
+    public static IEnumerable<object?[]> ToJsonCases()
+    {
+        yield return [null, null];
+        yield return [1, "1"];
+        yield return ["hello", "\"hello\""];
+        yield return [true, "true"];
+        yield return [false, "false"];
+        yield return [new[] { 1, 2, 3 }, "[1,2,3]"];
+        yield return [new { Name = "John", Age = 30 }, "{\"Name\":\"John\",\"Age\":30}"];
+        yield return [new { Name = "Test", Value = 42 }, "{\"Name\":\"Test\",\"Value\":42}"];
+    }
+
+    public static IEnumerable<object?[]> ExtractFromJsonCases()
+    {
+        yield return [null, "$.name", null];
+        yield return [string.Empty, "$.name", null];
+        yield return ["{\"name\":\"test\"}", null, null];
+        yield return ["{\"name\":\"test\"}", string.Empty, null];
+        yield return ["{\"name\":\"test\"}", "$.name", "test"];
+    }
+
+    public static IEnumerable<object?[]> ExtractFromJsonToArrayCases()
+    {
+        yield return [null, "$.name", Array.Empty<string>()];
+        yield return [string.Empty, "$.name", Array.Empty<string>()];
+        yield return ["{\"name\":\"test\"}", null, Array.Empty<string>()];
+        yield return ["{\"name\":\"test\"}", string.Empty, Array.Empty<string>()];
+        yield return ["{\"name\":\"test\"}", "$.name", new[] { "test" }];
+        yield return ["{\"names\":[\"a\",\"b\",\"c\"]}", "$.names[*]", new[] { "a", "b", "c" }];
     }
 }

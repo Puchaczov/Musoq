@@ -229,7 +229,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     {
         var expandoObject = new ExpandoObject();
 
-        ((IDictionary<string, object>)expandoObject).Add("Complex", complexType);
+        ((IDictionary<string, object?>)expandoObject).Add("Complex", complexType);
 
         return expandoObject;
     }
@@ -238,33 +238,24 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     {
         var expandoObject = new ExpandoObject();
 
-        ((IDictionary<string, object>)expandoObject).Add("Complex", dynamicObject);
+        ((IDictionary<string, object?>)expandoObject).Add("Complex", dynamicObject);
 
         return expandoObject;
     }
 
     [DynamicObjectPropertyTypeHint("Id", typeof(int))]
     [DynamicObjectPropertyTypeHint("Name", typeof(string))]
-    public class ComplexType : DynamicObject
+    public class ComplexType(int intValue, string stringValue) : DynamicObject
     {
-        private readonly int _intValue;
-        private readonly string _stringValue;
-
-        public ComplexType(int intValue, string stringValue)
-        {
-            _intValue = intValue;
-            _stringValue = stringValue;
-        }
-
-        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        public override bool TryGetMember(GetMemberBinder binder, out object? result)
         {
             switch (binder.Name)
             {
                 case "Id":
-                    result = _intValue;
+                    result = intValue;
                     return true;
                 case "Name":
-                    result = _stringValue;
+                    result = stringValue;
                     return true;
                 default:
                     return base.TryGetMember(binder, out result);
@@ -281,7 +272,7 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
             _arrayValue = arrayValue;
         }
 
-        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        public override bool TryGetMember(GetMemberBinder binder, out object? result)
         {
             if (binder.Name != "Array") return base.TryGetMember(binder, out result);
 
@@ -291,38 +282,19 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     }
 
     [DynamicObjectPropertyTypeHint("Array", typeof(short[]))]
-    public class ComplexArrayOfShortsType : ComplexArrayType<short>
-    {
-        public ComplexArrayOfShortsType(short[] arrayValue)
-            : base(arrayValue)
-        {
-        }
-    }
+    public class ComplexArrayOfShortsType(short[] arrayValue) : ComplexArrayType<short>(arrayValue);
 
     [DynamicObjectPropertyTypeHint("Array", typeof(ComplexType[]))]
-    public class ComplexArrayOfComplexTypeType : ComplexArrayType<ComplexType>
-    {
-        public ComplexArrayOfComplexTypeType(ComplexType[] arrayValue)
-            : base(arrayValue)
-        {
-        }
-    }
+    public class ComplexArrayOfComplexTypeType(ComplexType[] arrayValue) : ComplexArrayType<ComplexType>(arrayValue);
 
     [DynamicObjectPropertyTypeHint("Complex", typeof(ComplexType))]
-    public class ComplexExpandoType : DynamicObject
+    public class ComplexExpandoType(ComplexType complexType) : DynamicObject
     {
-        private readonly ComplexType _expandoType;
-
-        public ComplexExpandoType(ComplexType complexType)
-        {
-            _expandoType = complexType;
-        }
-
-        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        public override bool TryGetMember(GetMemberBinder binder, out object? result)
         {
             if (binder.Name == "Complex")
             {
-                result = _expandoType;
+                result = complexType;
                 return true;
             }
 
@@ -331,20 +303,13 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     }
 
     [DynamicObjectPropertyTypeHint("NestedExpando", typeof(DynamicObject))]
-    public class NestedExpandoType : DynamicObject
+    public class NestedExpandoType(DynamicObject nestedExpandoType) : DynamicObject
     {
-        private readonly DynamicObject _nestedExpandoType;
-
-        public NestedExpandoType(DynamicObject nestedExpandoType)
-        {
-            _nestedExpandoType = nestedExpandoType;
-        }
-
-        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        public override bool TryGetMember(GetMemberBinder binder, out object? result)
         {
             if (binder.Name == "NestedExpando")
             {
-                result = _nestedExpandoType;
+                result = nestedExpandoType;
                 return true;
             }
 

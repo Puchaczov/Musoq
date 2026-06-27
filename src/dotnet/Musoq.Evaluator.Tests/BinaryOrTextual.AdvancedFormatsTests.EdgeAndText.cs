@@ -1,0 +1,236 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter;
+
+namespace Musoq.Evaluator.Tests;
+
+public partial class BinaryOrTextualAdvancedFormatsTests
+{
+    #region Edge Case Tests
+
+    [TestMethod]
+    public void Query_SelectInterpret_WithEmptyByteArray_ShouldParseEmpty()
+    {
+        // Arrange: Zero-length byte array
+        var query = @"
+            binary EmptyArrayData {
+                Count: byte,
+                Data: byte[Count]
+            };
+            select
+                h.Count,
+                h.Data
+            from #test.files() f
+            cross apply Interpret<EmptyArrayData>(f.Content) h";
+
+        // Count=0, no data bytes
+        var testData = new byte[] { 0x00 };
+        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+
+        var schemaProvider = new BinarySchemaProvider(
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+
+        // Act
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver, TestCompilationOptions);
+
+        var table = vm.Run(CancellationToken.None);
+
+        // Assert
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual((byte)0, table[0][0]);
+        var data = (byte[])table[0][1];
+        Assert.IsEmpty(data);
+    }
+
+    [TestMethod]
+    public void Query_SelectInterpret_WithMaxValues_ShouldHandleCorrectly()
+    {
+        // Arrange: Maximum values for various types
+        var query = @"
+            binary MaxValues {
+                MaxByte: byte,
+                MaxShort: short le,
+                MaxInt: int le
+            };
+            select
+                h.MaxByte,
+                h.MaxShort,
+                h.MaxInt
+            from #test.files() f
+            cross apply Interpret<MaxValues>(f.Content) h";
+
+        // Max values: byte=255, short=32767, int=2147483647
+        var testData = new byte[]
+        {
+            0xFF, // byte max
+            0xFF, 0x7F, // short max (little-endian)
+            0xFF, 0xFF, 0xFF, 0x7F // int max (little-endian)
+        };
+        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+
+        var schemaProvider = new BinarySchemaProvider(
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+
+        // Act
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver, TestCompilationOptions);
+
+        var table = vm.Run(CancellationToken.None);
+
+        // Assert
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual((byte)255, table[0][0]);
+        Assert.AreEqual((short)32767, table[0][1]);
+        Assert.AreEqual(2147483647, table[0][2]);
+    }
+
+    [TestMethod]
+    public void Query_SelectInterpret_WithMinValues_ShouldHandleCorrectly()
+    {
+        // Arrange: Minimum values for signed types
+        var query = @"
+            binary MinValues {
+                MinSByte: sbyte,
+                MinShort: short le,
+                MinInt: int le
+            };
+            select
+                h.MinSByte,
+                h.MinShort,
+                h.MinInt
+            from #test.files() f
+            cross apply Interpret<MinValues>(f.Content) h";
+
+        // Min values: sbyte=-128, short=-32768, int=-2147483648
+        var testData = new byte[]
+        {
+            0x80, // sbyte min (-128)
+            0x00, 0x80, // short min (-32768)
+            0x00, 0x00, 0x00, 0x80 // int min (-2147483648)
+        };
+        var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
+
+        var schemaProvider = new BinarySchemaProvider(
+            new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
+
+        // Act
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver, TestCompilationOptions);
+
+        var table = vm.Run(CancellationToken.None);
+
+        // Assert
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual((sbyte)-128, table[0][0]);
+        Assert.AreEqual((short)-32768, table[0][1]);
+        Assert.AreEqual(-2147483648, table[0][2]);
+    }
+
+    #endregion
+
+    #region Text Schema Query Tests
+
+    [TestMethod]
+    public void Query_SelectParse_WithTextSchema_ShouldParseData()
+    {
+        // Arrange
+        var query = @"
+            text LogEntry {
+                Level: until ':',
+                _: literal ' ',
+                Message: rest
+            };
+            select
+                p.Level,
+                p.Message
+            from #test.logs() f
+            cross apply Parse<LogEntry>(f.Text) p
+            order by p.Level";
+
+        var entities = new[]
+        {
+            new TextEntity { Name = "log1", Text = "INFO: Application started" },
+            new TextEntity { Name = "log2", Text = "ERROR: Failed to connect" }
+        };
+
+        var schemaProvider = new TextSchemaProvider(
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+
+        // Act
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver, TestCompilationOptions);
+
+        var table = vm.Run(CancellationToken.None);
+
+        // Assert
+        Assert.AreEqual(2, table.Count);
+        // Results ordered by Level (ERROR before INFO alphabetically)
+        Assert.AreEqual("ERROR", table[0][0]);
+        Assert.AreEqual("Failed to connect", table[0][1]);
+        Assert.AreEqual("INFO", table[1][0]);
+        Assert.AreEqual("Application started", table[1][1]);
+    }
+
+    [TestMethod]
+    public void Query_SelectParse_WithCsvSchema_ShouldParseDelimitedData()
+    {
+        // Arrange
+        var query = @"
+            text CsvRow {
+                Name: until ',',
+                Age: until ',',
+                City: rest
+            };
+            select
+                p.Name,
+                p.Age,
+                p.City
+            from #test.csv() f
+            cross apply Parse<CsvRow>(f.Line) p
+            order by p.Name";
+
+        var entities = new[]
+        {
+            new TextEntity { Name = "row1", Text = "John Doe,30,New York" },
+            new TextEntity { Name = "row2", Text = "Jane Smith,25,Los Angeles" }
+        };
+
+        var schemaProvider = new TextSchemaProvider(
+            new Dictionary<string, IEnumerable<TextEntity>> { { "#test", entities } });
+
+        // Act
+        var vm = InstanceCreator.CompileForExecution(
+            query,
+            Guid.NewGuid().ToString(),
+            schemaProvider,
+            LoggerResolver, TestCompilationOptions);
+
+        var table = vm.Run(CancellationToken.None);
+
+        // Assert - ordered by Name (Jane before John alphabetically)
+        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual("Jane Smith", table[0][0]);
+        Assert.AreEqual("25", table[0][1]);
+        Assert.AreEqual("Los Angeles", table[0][2]);
+        Assert.AreEqual("John Doe", table[1][0]);
+        Assert.AreEqual("30", table[1][1]);
+        Assert.AreEqual("New York", table[1][2]);
+    }
+
+    #endregion
+}

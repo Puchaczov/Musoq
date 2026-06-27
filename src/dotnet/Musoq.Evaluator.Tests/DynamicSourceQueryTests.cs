@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Dynamic;
 
 namespace Musoq.Evaluator.Tests;
@@ -10,6 +11,9 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class DynamicSourceQueryTests : DynamicQueryTestsBase
 {
+    private static readonly CompilationOptions ExecutionIrCompilationOptions = new(
+        usePrimitiveTypeValidation: false);
+
     public TestContext TestContext { get; set; }
 
     [TestMethod]
@@ -58,6 +62,65 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
         Assert.IsTrue(table.All(row =>
                 new[] { (1, "Test1"), (2, "Test2") }.Contains(((int)row[0], (string)row[1]))),
             "Expected rows with values: (1,Test1), (2,Test2)");
+    }
+
+    [TestMethod]
+    public void WithDynamicSource_WhenExecutionIrRendererIsEnabled_ShouldUseAdapterAndReturnSimpleColumns()
+    {
+        const string query = "select d.Id, d.Name from #dynamic.all() d";
+        var sources = new List<dynamic>
+        {
+            CreateExpandoObject(1, "Test1"),
+            CreateExpandoObject(2, "Test2")
+        };
+
+        var inspection = CreateDynamicInspection(query, sources);
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            compilationOptions: ExecutionIrCompilationOptions);
+
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.Contains("private sealed class dDynamicRow0", inspection.GeneratedCSharpCode);
+        Assert.Contains(
+            "new dDynamicRow0(dResolver.ContainsKey(\"Id\") ? (int)dResolver[\"Id\"] : default(int), dResolver.ContainsKey(\"Name\") ? (string)dResolver[\"Name\"] : default(string))",
+            inspection.GeneratedCSharpCode);
+        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("EvaluationHelper.GetColumnValue", StringComparison.Ordinal));
+        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual(1, table[0][0]);
+        Assert.AreEqual("Test1", table[0][1]);
+        Assert.AreEqual(2, table[1][0]);
+        Assert.AreEqual("Test2", table[1][1]);
+    }
+
+    [TestMethod]
+    public void WithDynamicSource_WhenExecutionIrRendererIsEnabled_ShouldAdaptObjectValuedColumns()
+    {
+        const string query = "select d.Complex.Id, d.Complex.Name from #dynamic.all() d";
+        var sources = new List<dynamic>
+        {
+            CreateExpandoObject(CreateExpandoObject(1, "Test1"))
+        };
+        var schema = new Dictionary<string, Type>
+        {
+            { "Complex", typeof(ExpandoObject) }
+        };
+
+        var inspection = CreateDynamicInspection(query, sources, schema);
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            schema,
+            ExecutionIrCompilationOptions);
+
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.Contains("public dynamic Complex", inspection.GeneratedCSharpCode);
+        Assert.Contains("new dDynamicRow0(dResolver.ContainsKey(\"Complex\") ? dResolver[\"Complex\"] : null)", inspection.GeneratedCSharpCode);
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(1, table[0][0]);
+        Assert.AreEqual("Test1", table[0][1]);
     }
 
     [TestMethod]
@@ -267,7 +330,7 @@ inner join #location.all() location on weather.Location = location.Name
     public void WithDynamicSource_SyntaxKeywordAsColumnNameUSed_ShouldPass()
     {
         const string query = "select [case], [end] from #dynamic.all()";
-        IDictionary<string, object> expando = new ExpandoObject();
+        IDictionary<string, object?> expando = new ExpandoObject();
 
         expando.Add("case", "case");
         expando.Add("end", "end");
@@ -289,5 +352,53 @@ inner join #location.all() location on weather.Location = location.Name
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("case", table[0][0]);
         Assert.AreEqual("end", table[0][1]);
+    }
+
+    [TestMethod]
+    public void WithDynamicSource_WhenExecutionIrRendererIsEnabledForKeywordColumns_ShouldUseExecutionRendererAdapter()
+    {
+        const string query = "select [case], [end] from #dynamic.all()";
+        IDictionary<string, object?> expando = new ExpandoObject();
+
+        expando.Add("case", "case");
+        expando.Add("end", "end");
+
+        var sources = new List<dynamic>
+        {
+            (dynamic)expando
+        };
+
+        var inspection = CreateDynamicInspection(query, sources);
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            compilationOptions: ExecutionIrCompilationOptions);
+
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.Contains("private sealed class ko3ikoDynamicRow0", inspection.GeneratedCSharpCode);
+        Assert.Contains("new ko3ikoDynamicRow0", inspection.GeneratedCSharpCode);
+        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("EvaluationHelper.GetColumnValue", StringComparison.Ordinal));
+        Assert.AreEqual("case", table[0][0]);
+        Assert.AreEqual("end", table[0][1]);
+    }
+
+    private QueryInspectionResult CreateDynamicInspection(
+        string query,
+        IReadOnlyCollection<dynamic> values,
+        IReadOnlyDictionary<string, Type>? schema = null)
+    {
+        schema ??= ((IDictionary<string, object?>)values.First()).ToDictionary(field => field.Key, field => field.Value?.GetType() ?? typeof(object));
+
+        return InstanceCreator.CompileForInspection(
+            query,
+            Guid.NewGuid().ToString(),
+            new AnySchemaNameProvider(
+                new Dictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)>
+                {
+                    { "dynamic", (schema, values) }
+                }),
+            LoggerResolver,
+            ExecutionIrCompilationOptions);
     }
 }

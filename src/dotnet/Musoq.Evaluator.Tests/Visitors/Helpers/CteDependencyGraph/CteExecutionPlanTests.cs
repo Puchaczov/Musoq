@@ -26,9 +26,7 @@ public class CteExecutionPlanTests
     {
         // Arrange
         var graph = CreateSimpleGraph();
-        var node = new CteGraphNode("cteA", null);
-        node.ExecutionLevel = 0;
-        node.IsReachable = true;
+        var node = new CteGraphNode("cteA", null) { ExecutionLevel = 0, IsReachable = true };
         var levels = new List<CteExecutionLevel>
         {
             new(0, new List<CteGraphNode> { node })

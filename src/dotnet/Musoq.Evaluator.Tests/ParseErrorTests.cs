@@ -353,26 +353,19 @@ public class ParseErrorTests : NegativeTestsBase
     #region 1.7 Set Operation Syntax Errors
 
     [TestMethod]
-    public void PE080_UnionWithoutColumnList_ShouldThrowError()
+    public void PE080_UnionWithoutColumnList_ShouldCompile()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() UNION SELECT Name FROM #test.people()"));
+        var vm = CompileQuery("SELECT Name FROM #test.people() UNION SELECT Name FROM #test.people()");
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "UNION");
-        AssertHasGuidance(ex);
-        AssertMessageContains(ex, "UNION (<key_columns>)");
-        AssertMessageContains(ex, "not supported");
+        Assert.IsNotNull(vm);
     }
 
     [TestMethod]
-    public void PE081_UnionWithEmptyColumnList_ShouldThrowError()
+    public void PE081_UnionWithEmptyColumnList_ShouldCompile()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() UNION () SELECT Name FROM #test.people()"));
+        var vm = CompileQuery("SELECT Name FROM #test.people() UNION () SELECT Name FROM #test.people()");
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "UNION");
-        AssertHasGuidance(ex);
-        AssertMessageContains(ex, "UNION (<key_columns>)");
+        Assert.IsNotNull(vm);
     }
 
     [TestMethod]
@@ -386,13 +379,11 @@ public class ParseErrorTests : NegativeTestsBase
     }
 
     [TestMethod]
-    public void PE083_IntersectWithoutColumnList_ShouldThrowError()
+    public void PE083_IntersectWithoutColumnList_ShouldCompile()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name FROM #test.people() INTERSECT SELECT Name FROM #test.people()"));
+        var vm = CompileQuery("SELECT Name FROM #test.people() INTERSECT SELECT Name FROM #test.people()");
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3031_SetOperatorMissingKeys, DiagnosticPhase.Bind, "INTERSECT");
-        AssertHasGuidance(ex);
+        Assert.IsNotNull(vm);
     }
 
     #endregion

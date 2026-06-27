@@ -183,7 +183,7 @@ public class TypeErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Sum(Name) FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "SetSum");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "Sum");
         AssertHasGuidance(ex);
     }
 
@@ -193,7 +193,7 @@ public class TypeErrorTests : NegativeTestsBase
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Avg(City) FROM #test.people()"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "SetAvg");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3029_UnresolvableMethod, DiagnosticPhase.Bind, "Avg");
         AssertHasGuidance(ex);
     }
 

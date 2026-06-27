@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
@@ -18,7 +17,7 @@ public class DynamicTable : ISchemaTable
 
     public ISchemaColumn[] Columns { get; }
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(col => col.ColumnName == name);
     }
@@ -28,5 +27,5 @@ public class DynamicTable : ISchemaTable
         return Columns.Where(col => col.ColumnName == name).ToArray();
     }
 
-    public SchemaTableMetadata Metadata { get; } = new(typeof(DynamicObject));
+    public SchemaTableMetadata Metadata { get; } = new(typeof(IReadOnlyDictionary<string, object>));
 }

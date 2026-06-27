@@ -6,7 +6,6 @@ using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Multi.First;
 using Musoq.Evaluator.Tests.Schema.Multi.Second;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Schema.Multi;
@@ -25,28 +24,24 @@ public class MultiSchemaTestBase
         FirstEntity[] first,
         SecondEntity[] second)
     {
-        var schema = new MultiSchema(new Dictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)>
+        var schema = new MultiSchema(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
         {
             {
                 "first",
-                (new FirstEntityTable(),
-                    new MultiRowSource<FirstEntity>(first, FirstEntity.TestNameToIndexMap,
-                        FirstEntity.TestIndexToObjectAccessMap))
+                (new FirstEntityTable(), new MultiRowSource<FirstEntity>(first))
             },
             {
                 "second",
-                (new SecondEntityTable(),
-                    new MultiRowSource<SecondEntity>(second, SecondEntity.TestNameToIndexMap,
-                        SecondEntity.TestIndexToObjectAccessMap))
+                (new SecondEntityTable(), new MultiRowSource<SecondEntity>(second))
             }
         });
         return CreateAndRunVirtualMachine(script, schema, CreateMockedEnvironmentVariables());
     }
 
-    private IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> CreateMockedEnvironmentVariables()
+    private IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> CreateMockedEnvironmentVariables()
     {
-        var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
-        environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
+        var environmentVariablesMock = new Mock<IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>();
+        environmentVariablesMock.Setup(f => f[It.IsAny<string>()]).Returns(new Dictionary<string, string>());
 
         return environmentVariablesMock.Object;
     }
@@ -54,8 +49,10 @@ public class MultiSchemaTestBase
     private CompiledQuery CreateAndRunVirtualMachine(
         string script,
         ISchema schema,
-        IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables = null)
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? SourceRuntimeSettingsBySourceContextId = null)
     {
+        _ = SourceRuntimeSettingsBySourceContextId;
+
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),

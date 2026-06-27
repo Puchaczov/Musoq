@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,7 +5,6 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Parser.Diagnostics;
-using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -18,7 +16,7 @@ public class QueryAnalyzerTests : BasicEntityTestBase
 {
     #region Setup
 
-    private static ISchemaProvider CreateSchemaProvider()
+    private static BasicSchemaProvider<BasicEntity> CreateSchemaProvider()
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -315,7 +313,6 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         // Assert
         if (result.HasErrors)
         {
-            var allDiagnostics = result.Diagnostics;
             var errors = result.Errors.ToList();
 
             Assert.IsTrue(errors.All(e => e.Severity == DiagnosticSeverity.Error),

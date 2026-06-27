@@ -32,7 +32,7 @@ public class DefensiveVisitorBaseTests
 
     #region Test Helper Class
 
-    private class TestVisitor : DefensiveVisitorBase
+    private sealed class TestVisitor : DefensiveVisitorBase
     {
         protected override string VisitorName => "TestVisitor";
 
@@ -121,7 +121,7 @@ public class DefensiveVisitorBaseTests
         var visitor = new TestVisitor();
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => visitor.TestSafePop(null, "TestOp"));
+        Assert.Throws<ArgumentNullException>(() => visitor.TestSafePop(null!, "TestOp"));
     }
 
     #endregion
@@ -237,7 +237,7 @@ public class DefensiveVisitorBaseTests
 
         // Assert
         Assert.IsNotNull(result);
-        Assert.IsInstanceOfType(result, typeof(IntegerNode));
+        Assert.IsInstanceOfType<IntegerNode>(result);
     }
 
     [TestMethod]
@@ -259,7 +259,7 @@ public class DefensiveVisitorBaseTests
         var visitor = new TestVisitor();
 
         // Act & Assert
-        var ex = Assert.Throws<VisitorException>(() => visitor.TestSafeCast<IntegerNode>(null, "TestOp"));
+        var ex = Assert.Throws<VisitorException>(() => visitor.TestSafeCast<IntegerNode>(null!, "TestOp"));
         Assert.Contains("null", ex.Message);
     }
 
@@ -284,7 +284,7 @@ public class DefensiveVisitorBaseTests
         var visitor = new TestVisitor();
 
         // Act & Assert
-        var ex = Assert.Throws<VisitorException>(() => visitor.TestValidateConstructorParameter("param", null, "ctor"));
+        var ex = Assert.Throws<VisitorException>(() => visitor.TestValidateConstructorParameter("param", null!, "ctor"));
         Assert.Contains("param", ex.Message);
     }
 
@@ -309,7 +309,7 @@ public class DefensiveVisitorBaseTests
         var visitor = new TestVisitor();
 
         // Act & Assert
-        var ex = Assert.Throws<VisitorException>(() => visitor.TestValidateStringParameter("param", null, "op"));
+        var ex = Assert.Throws<VisitorException>(() => visitor.TestValidateStringParameter("param", null!, "op"));
         Assert.Contains("param", ex.Message);
     }
 
@@ -352,7 +352,7 @@ public class DefensiveVisitorBaseTests
         var ex = Assert.Throws<VisitorException>(() =>
             visitor.TestSafeExecuteAction(() => throw new InvalidOperationException("Test"), "TestOp"));
         Assert.IsNotNull(ex.InnerException);
-        Assert.IsInstanceOfType(ex.InnerException, typeof(InvalidOperationException));
+        Assert.IsInstanceOfType<InvalidOperationException>(ex.InnerException);
     }
 
     [TestMethod]

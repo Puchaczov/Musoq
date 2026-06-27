@@ -15,7 +15,7 @@ public class PathValueSchemaTable : ISchemaTable
 
     public SchemaTableMetadata Metadata { get; } = new(typeof(PathValueEntity));
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return name switch
         {
@@ -28,6 +28,8 @@ public class PathValueSchemaTable : ISchemaTable
 
     public ISchemaColumn[] GetColumnsByName(string name)
     {
-        return [GetColumnByName(name)];
+        var column = GetColumnByName(name) ??
+            throw new InvalidOperationException($"Column {name} does not exist.");
+        return [column];
     }
 }

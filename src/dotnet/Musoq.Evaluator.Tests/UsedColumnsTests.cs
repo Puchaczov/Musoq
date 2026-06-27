@@ -87,6 +87,22 @@ with q1 as (
     }
 
     [TestMethod]
+    public void WhenCteReusesAliasAcrossScopes_ShouldPopulatePipelineInferredColumnsWithoutThrowing()
+    {
+        const string query = @"
+with q1 as (
+    select a.City as City from #A.entities('1') a
+), q2 as (
+    select a.Population as Population from #A.entities('2') a
+) select City from q1";
+
+        var buildItems = CreateBuildItems<UsedColumnsOrUsedWhereEntity>(query);
+
+        Assert.IsNotNull(buildItems.PipelineInferredColumns);
+        Assert.IsTrue(buildItems.PipelineInferredColumns.ContainsKey("a"));
+    }
+
+    [TestMethod]
     public void WhenColumnsUsedAsSourceOfMethodAndUsedInWhere_ShouldPass()
     {
         var query = "select a.City from #A.entities() a where DoNothing(a.Population) = 400d";

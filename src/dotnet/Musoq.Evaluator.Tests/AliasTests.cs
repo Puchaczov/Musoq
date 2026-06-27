@@ -67,13 +67,13 @@ public class AliasTests : MultiSchemaTestBase
     }
 
     [TestMethod]
-    public void WhenCteInheritsAliasedName_ShouldBeAccessibleByRawColumnNameAccessSyntax()
+    public void WhenCteUsesExplicitDottedAlias_ShouldBeAccessibleByRawColumnNameAccessSyntax()
     {
         const string query = @"
 with p as (
     select 
-        first.FirstItem, 
-        second.FirstItem 
+        first.FirstItem as [first.FirstItem],
+        second.FirstItem as [second.FirstItem]
     from #schema.first() first 
     inner join #schema.second() second on 1 = 1
 )
@@ -94,13 +94,13 @@ select [first.FirstItem], [second.FirstItem] from p";
     }
 
     [TestMethod]
-    public void WhenCteInheritsAliasedName_ShouldBeAccessibleByAliasedColumnNameAccessSyntax()
+    public void WhenCteUsesExplicitDottedAlias_ShouldBeAccessibleByAliasedColumnNameAccessSyntax()
     {
         const string query = @"
 with p as (
     select 
-        first.FirstItem, 
-        second.FirstItem
+        first.FirstItem as [first.FirstItem],
+        second.FirstItem as [second.FirstItem]
     }
     from #schema.first() first
     inner join #schema.second() second on 1 = 1
@@ -122,13 +122,13 @@ select p.[first.FirstItem], p.[second.FirstItem] from p";
     }
 
     [TestMethod]
-    public void WhenCteInheritsAliasedName_ShouldBeAccessibleByAliasedColumnNameAccessSyntaxWithAlias()
+    public void WhenCteUsesExplicitDottedAlias_ShouldBeAccessibleByAliasedColumnNameAccessSyntaxWithAlias()
     {
         const string query = @"
 with p as (
     select 
-        first.FirstItem, 
-        second.FirstItem
+        first.FirstItem as [first.FirstItem],
+        second.FirstItem as [second.FirstItem]
     from #schema.first() first
     inner join #schema.second() second on 1 = 1
 ), q as (
@@ -151,18 +151,18 @@ select q.FirstItem, q.SecondItem from q";
     }
 
     [TestMethod]
-    public void WhenCteInheritsAliasedName_ShouldBeAccessibleByAliasedColumnNameAccessSyntaxWithAliasAndAlias()
+    public void WhenCteUsesExplicitDottedAlias_ShouldBeAccessibleByAliasedColumnNameAccessSyntaxWithAliasAndAlias()
     {
         const string query = @"
 with p as (
     select 
-        first.FirstItem, 
-        second.FirstItem
+        first.FirstItem as [first.FirstItem],
+        second.FirstItem as [second.FirstItem]
     }
     from #schema.first() first
     inner join #schema.second() second on 1 = 1
 ), q as (
-    select p.[first.FirstItem], p.[second.FirstItem] from p
+    select p.[first.FirstItem] as [p.first.FirstItem], p.[second.FirstItem] as [p.second.FirstItem] from p
 )
 select q.[p.first.FirstItem], q.[p.second.FirstItem] from q";
 
@@ -269,6 +269,26 @@ cross apply first.Split('') b";
         ]));
 
         AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind, "src");
+    }
+
+    [TestMethod]
+    public void WhenCteReferenceUsesDuplicateJoinAlias_ShouldReportDuplicateAlias()
+    {
+        const string query = @"
+            with cte as (
+                select FirstItem from #schema.first()
+            )
+            select a.FirstItem
+            from #schema.first() a
+            inner join cte a on 1 = 1";
+
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, [
+            new FirstEntity()
+        ], [
+            new SecondEntity()
+        ]));
+
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind, "a");
     }
 
     [TestMethod]

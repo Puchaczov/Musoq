@@ -17,14 +17,14 @@ public abstract class SchemaParserTestsBase
     protected static BinarySchemaNode ParseBinarySchema(string schema)
     {
         var result = ParseSchema(schema);
-        Assert.IsInstanceOfType(result, typeof(BinarySchemaNode));
+        Assert.IsInstanceOfType<BinarySchemaNode>(result);
         return (BinarySchemaNode)result;
     }
 
     protected static TextSchemaNode ParseTextSchema(string schema)
     {
         var result = ParseSchema(schema);
-        Assert.IsInstanceOfType(result, typeof(TextSchemaNode));
+        Assert.IsInstanceOfType<TextSchemaNode>(result);
         return (TextSchemaNode)result;
     }
 

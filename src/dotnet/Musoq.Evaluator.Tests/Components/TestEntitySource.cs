@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tests.Components;
@@ -7,28 +8,20 @@ namespace Musoq.Evaluator.Tests.Components;
 /// <summary>
 ///     Generic row source for test entities.
 /// </summary>
-public class TestEntitySource<T> : RowSource
+public class TestEntitySource<T> : RowSource<T>
 {
-    private readonly IEnumerable<T> _entities;
-    private readonly IReadOnlyDictionary<int, Func<T, object>> _indexToObjectAccessMap;
-    private readonly IReadOnlyDictionary<string, int> _nameToIndexMap;
+    private readonly IEnumerable<IReadOnlyList<T>> _chunks;
 
     public TestEntitySource(
-        IEnumerable<T> entities,
+        IEnumerable<IReadOnlyList<T>> chunks,
         IReadOnlyDictionary<string, int> nameToIndexMap,
-        IReadOnlyDictionary<int, Func<T, object>> indexToObjectAccessMap)
+        IReadOnlyDictionary<int, Func<T, object?>> indexToObjectAccessMap)
     {
-        _entities = entities;
-        _nameToIndexMap = nameToIndexMap;
-        _indexToObjectAccessMap = indexToObjectAccessMap;
+        _ = nameToIndexMap;
+        _ = indexToObjectAccessMap;
+
+        _chunks = chunks;
     }
 
-    public override IEnumerable<IObjectResolver> Rows
-    {
-        get
-        {
-            foreach (var entity in _entities)
-                yield return new EntityResolver<T>(entity, _nameToIndexMap, _indexToObjectAccessMap);
-        }
-    }
+    public override IEnumerable<IReadOnlyList<T>> Chunks => _chunks;
 }

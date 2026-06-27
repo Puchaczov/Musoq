@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests.Components;
@@ -17,7 +17,7 @@ public class TextEntityTable : ISchemaTable
 
     public SchemaTableMetadata Metadata => new(typeof(TextEntity));
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Array.Find(Columns, c => c.ColumnName == name)!;
     }

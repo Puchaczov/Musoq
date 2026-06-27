@@ -12,9 +12,9 @@ namespace Musoq.Converter.Tests;
 public class SchemaRegistryInjectionTests
 {
     [TestMethod]
-    public void TransformTree_WhenUsingLegacyCustomVisitorFactory_ShouldInjectSchemaRegistryWithoutReflection()
+    public void TransformTree_WhenUsingCustomVisitorFactory_ShouldInjectSchemaRegistryWithoutReflection()
     {
-        BuildMetadataAndInferTypesVisitor capturedVisitor = null;
+        BuildMetadataAndInferTypesVisitor? capturedVisitor = null;
         var expectedRegistry = new SchemaRegistry();
         var loggerResolver = new TestsLoggerResolver();
 
@@ -31,12 +31,12 @@ public class SchemaRegistryInjectionTests
             {
                 items.SchemaRegistry = expectedRegistry;
                 items.CreateBuildMetadataAndInferTypesVisitor =
-                    (provider, columns, compilationOptions, schemaRegistry) =>
+                    (provider, columns, compilationOptions, schemaRegistry, logger) =>
                     {
                         capturedVisitor = new BuildMetadataAndInferTypesVisitor(
                             provider,
                             columns,
-                            loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(),
+                            logger,
                             compilationOptions,
                             schemaRegistry);
 
@@ -47,7 +47,7 @@ public class SchemaRegistryInjectionTests
         var result = compiled.Run();
 
         Assert.IsNotNull(result);
-        Assert.IsNotNull(capturedVisitor);
+        capturedVisitor = capturedVisitor ?? throw new AssertFailedException("Expected visitor to be captured.");
         Assert.AreSame(expectedRegistry, capturedVisitor.SchemaRegistry);
     }
 }

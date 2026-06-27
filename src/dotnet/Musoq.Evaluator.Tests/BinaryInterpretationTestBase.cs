@@ -1,10 +1,6 @@
-#nullable enable annotations
-
 using System;
-using System.Collections.Generic;
 using Musoq.Evaluator.Build;
 using Musoq.Evaluator.Visitors;
-using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Tests;
@@ -14,7 +10,7 @@ public abstract class BinaryInterpretationTestBase
     protected static object CreateAndCompileInterpreter(string schemaName, params FieldDefinitionNode[] fields)
     {
         var registry = new SchemaRegistry();
-        var schema = new BinarySchemaNode(schemaName, fields);
+        var schema = new BinarySchemaNode(schemaName, [.. fields]);
         registry.Register(schemaName, schema);
 
         return CompileInterpreter(registry, schemaName);
@@ -108,7 +104,7 @@ public abstract class BinaryInterpretationTestBase
     protected static object CreateAndCompileInterpreterWithSchema(string schemaName, params SchemaFieldNode[] fields)
     {
         var registry = new SchemaRegistry();
-        var schema = new BinarySchemaNode(schemaName, fields);
+        var schema = new BinarySchemaNode(schemaName, [.. fields]);
         registry.Register(schemaName, schema);
 
         return CompileInterpreter(registry, schemaName);

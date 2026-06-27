@@ -366,7 +366,7 @@ public class StarTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
 
-        Assert.AreEqual("a.Month", table.Columns.ElementAt(5).ColumnName);
+        Assert.AreEqual("Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual("january", table[0].Values[5]);
     }
 
@@ -393,7 +393,7 @@ public class StarTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
 
-        Assert.AreEqual("a.Month", table.Columns.ElementAt(5).ColumnName);
+        Assert.AreEqual("Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual("january", table[0].Values[5]);
     }
 
@@ -420,7 +420,7 @@ public class StarTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
 
-        Assert.AreEqual("a.Month", table.Columns.ElementAt(5).ColumnName);
+        Assert.AreEqual("Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual("january", table[0].Values[5]);
     }
 
@@ -448,7 +448,7 @@ public class StarTests : BasicEntityTestBase
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(9, table.Columns.Count());
 
-        Assert.AreEqual("p.a.Month", table.Columns.ElementAt(5).ColumnName);
+        Assert.AreEqual("p.Month", table.Columns.ElementAt(5).ColumnName);
         Assert.AreEqual("january", table[0].Values[5]);
     }
 }

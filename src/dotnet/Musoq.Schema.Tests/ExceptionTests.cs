@@ -516,7 +516,7 @@ public class ExceptionTests
     [TestMethod]
     public void ParseException_AllErrorCodes_ShouldCreateValidException()
     {
-        var errorCodes = (ParseErrorCode[])Enum.GetValues(typeof(ParseErrorCode));
+        var errorCodes = (ParseErrorCode[])Enum.GetValues<ParseErrorCode>();
 
         foreach (var code in errorCodes)
         {

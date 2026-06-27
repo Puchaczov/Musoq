@@ -26,21 +26,14 @@ public class PathValueQueryTestBase
     protected Table RunQuery(string script, IEnumerable<PathValueEntity> entities)
     {
         var vm = CreateAndRunVirtualMachine(script, entities);
-        return vm.Run();
+        return TableMaterializationTestHelper.Materialize(vm.Run());
     }
 
-    protected class PathValueSchemaProvider : ISchemaProvider
+    protected class PathValueSchemaProvider(IEnumerable<PathValueEntity> entities) : ISchemaProvider
     {
-        private readonly IEnumerable<PathValueEntity> _entities;
-
-        public PathValueSchemaProvider(IEnumerable<PathValueEntity> entities)
-        {
-            _entities = entities;
-        }
-
         public ISchema GetSchema(string schema)
         {
-            return new PathValueSchema(_entities);
+            return new PathValueSchema(entities);
         }
     }
 }

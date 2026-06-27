@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +7,6 @@ using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
-using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -21,7 +19,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
 {
     #region Test Helpers
 
-    private static ISchemaProvider CreateSchemaProvider()
+    private static BasicSchemaProvider<BasicEntity> CreateSchemaProvider()
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -32,21 +30,21 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
 
     #endregion
 
-    #region FieldLink Coverage
+    #region GROUP BY Ordinal Coverage
 
     [TestMethod]
-    public void GroupBy_InvalidFieldIndex_DiagnosticMode()
+    public void GroupBy_InvalidOrdinal_DiagnosticMode()
     {
         // Arrange
         var schemaProvider = CreateSchemaProvider();
         var analyzer = new QueryAnalyzer(schemaProvider);
-        // GROUP BY with invalid index
+        // GROUP BY with invalid ordinal
         var query = "SELECT Name, Count(1) FROM #A.Entities() GROUP BY 99";
 
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Should detect invalid field index
+        // Assert - Should detect invalid ordinal
         Assert.IsTrue(result.IsParsed);
     }
 
@@ -158,6 +156,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
 
         var warnings = result.Warnings.ToList();
         var errors = result.Errors.ToList();
+
+        Assert.AreEqual(0, warnings.Count + errors.Count);
 
         // Access HasErrors to cover that branch
         if (!result.HasErrors) Assert.IsTrue(result.IsSuccess);
@@ -437,7 +437,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void Analyze_NestedQuery_DiagnosticMode()
+    public void Analyze_DerivedTable_DiagnosticMode()
     {
         // Arrange
         var schemaProvider = CreateSchemaProvider();
@@ -452,6 +452,9 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
 
         // Assert
         Assert.IsTrue(result.IsParsed);
+        Assert.IsFalse(
+            result.HasErrors,
+            string.Join(Environment.NewLine, result.Diagnostics.Select(diagnostic => diagnostic.Message)));
     }
 
     [TestMethod]
@@ -538,15 +541,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
             INNER JOIN #A.Entities() b ON a.Name = b.Name";
 
         // Act & Assert - Should not throw when properly qualified
-        try
-        {
-            var result = CreateAndRunVirtualMachine(query, sources);
-            Assert.IsNotNull(result);
-        }
-        catch (Exception)
-        {
-            // Some exceptions are expected in certain configurations
-        }
+        var result = CreateAndRunVirtualMachine(query, sources);
+        Assert.IsNotNull(result);
     }
 
     [TestMethod]
@@ -558,7 +554,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
             { "#A", [new BasicEntity("city", "country", 0)] }
         };
 
-        // Act & Assert - Union requires matching keys, and we test that exception is thrown
+        // Act & Assert - Union requires matching projection width, and we test that exception is thrown
         try
         {
             CreateAndRunVirtualMachine(@"
@@ -569,7 +565,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         }
         catch (MusoqQueryException)
         {
-            // Expected - Union requires key columns to be defined
+            // Expected - different projection widths are invalid
         }
         catch (SetOperatorMustHaveSameQuantityOfColumnsException)
         {

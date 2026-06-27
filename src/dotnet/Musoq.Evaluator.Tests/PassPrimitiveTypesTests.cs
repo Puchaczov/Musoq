@@ -51,11 +51,11 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
         vm.Run(TestContext.CancellationToken);
     }
 
-    private CompiledQuery CreateAndRunVirtualMachine(string script, IEnumerable<TestEntity> source,
-        Action<object[]> onGetTableOrRowSource, WhenCheckedParameters whenChecked)
+    private CompiledQuery CreateAndRunVirtualMachine(string script, IReadOnlyList<TestEntity> source,
+        Action<object?[]> onGetTableOrRowSource, WhenCheckedParameters whenChecked)
     {
-        var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
-        environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
+        var environmentVariablesMock = new Mock<IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>();
+        environmentVariablesMock.Setup(f => f[It.IsAny<string>()]).Returns(new Dictionary<string, string>());
 
         return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(),
             new TestSchemaProvider(source, onGetTableOrRowSource, whenChecked), LoggerResolver);
@@ -67,9 +67,9 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
         OnMethodCall
     }
 
-    private class TestSchemaProvider(
-        IEnumerable<TestEntity> entities,
-        Action<object[]> onGetTableOrRowSource,
+    private sealed class TestSchemaProvider(
+        IReadOnlyList<TestEntity> entities,
+        Action<object?[]> onGetTableOrRowSource,
         WhenCheckedParameters whenChecked)
         : ISchemaProvider
     {
@@ -79,23 +79,23 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
         }
     }
 
-    private class TestSchema(
-        IEnumerable<TestEntity> entities,
-        Action<object[]> onGetTableOrRowSource,
+    private sealed class TestSchema(
+        IReadOnlyList<TestEntity> entities,
+        Action<object?[]> onGetTableOrRowSource,
         WhenCheckedParameters whenChecked)
         : SchemaBase("test", CachedLibrary.Value)
     {
         private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
 
-        public override RowSource GetRowSource(string name, RuntimeContext communicator, params object[] parameters)
+        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext communicator, params object?[] parameters)
         {
             if (whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) onGetTableOrRowSource(parameters);
-            return new EntitySource<TestEntity>(entities, new Dictionary<string, int>(),
-                new Dictionary<int, Func<TestEntity, object>>());
+            return EnsureSourceType<T, TestEntity>(name, new EntitySource<TestEntity>([entities], new Dictionary<string, int>(),
+                new Dictionary<int, Func<TestEntity, object?>>()));
         }
 
-        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext,
-            params object[] parameters)
+        public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
+            params object?[] parameters)
         {
             if (whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) onGetTableOrRowSource(parameters);
             return new TestTable();
@@ -121,11 +121,11 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
         }
     }
 
-    private class TestTable : ISchemaTable
+    private sealed class TestTable : ISchemaTable
     {
         public ISchemaColumn[] Columns => [];
 
-        public ISchemaColumn GetColumnByName(string name)
+        public ISchemaColumn? GetColumnByName(string name)
         {
             return Columns.Single(column => column.ColumnName == name);
         }
@@ -138,5 +138,5 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
         public SchemaTableMetadata Metadata { get; } = new(typeof(TestEntity));
     }
 
-    private class TestEntity;
+    private sealed class TestEntity;
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Exceptions;
 using Musoq.Plugins;
@@ -8,6 +9,8 @@ namespace Musoq.Evaluator.Tests.Schema.Basic;
 
 public class Library : LibraryBase
 {
+    private static int _nextValue;
+
     private readonly Random _random = new();
 
     [BindableMethod]
@@ -17,13 +20,13 @@ public class Library : LibraryBase
     }
 
     [BindableMethod]
-    public string Name([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
+    public string? Name([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
     {
         return entity.Name;
     }
 
     [BindableMethod]
-    public string MyName([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
+    public string? MyName([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
     {
         return entity.Name;
     }
@@ -67,6 +70,13 @@ public class Library : LibraryBase
     public int RandomNumber()
     {
         return _random.Next(0, 100);
+    }
+
+    [BindableMethod]
+    [NonDeterministic]
+    public int NextValue()
+    {
+        return Interlocked.Increment(ref _nextValue);
     }
 
     [BindableMethod]
@@ -141,7 +151,7 @@ public class Library : LibraryBase
         return value;
     }
 
-    public new string ToString(object obj)
+    public new string? ToString(object obj)
     {
         return obj.ToString();
     }
@@ -158,13 +168,13 @@ public class Library : LibraryBase
     }
 
     [BindableMethod]
-    public string GetCity([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
+    public string? GetCity([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
     {
         return entity.City;
     }
 
     [BindableMethod]
-    public string GetCountry([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
+    public string? GetCountry([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity)
     {
         return entity.Country;
     }
@@ -182,10 +192,10 @@ public class Library : LibraryBase
     }
 
     [BindableMethod]
-    public string GetCountryOrDefaultGeneric<TColumn>([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity,
+    public string? GetCountryOrDefaultGeneric<TColumn>([InjectSpecificSource(typeof(BasicEntity))] BasicEntity entity,
         TColumn @default)
     {
-        return entity.Country ?? @default.ToString();
+        return entity.Country ?? @default?.ToString();
     }
 
     [BindableMethod]
@@ -195,21 +205,21 @@ public class Library : LibraryBase
     }
 
     [WindowFunction(Name = "RunningProduct")]
-    public IWindowFunction<object, decimal> WindowRunningProduct()
+    public IWindowFunction<decimal?, decimal> WindowRunningProduct()
     {
         return new RunningProductWindowFunction();
     }
 
-    private sealed class RunningProductWindowFunction : IWindowFunction<object, decimal>
+    private sealed class RunningProductWindowFunction : IWindowFunction<decimal?, decimal>
     {
         private decimal _product;
 
         public void PartitionStart() => _product = 1;
 
-        public void Accumulate(object value)
+        public void Accumulate(decimal? value)
         {
-            if (value is not null)
-                _product *= Convert.ToDecimal(value);
+            if (value.HasValue)
+                _product *= value.GetValueOrDefault();
         }
 
         public decimal GetValue() => _product;

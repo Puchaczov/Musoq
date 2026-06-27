@@ -11,8 +11,8 @@ namespace Musoq.Schema.Tests;
 [TestClass]
 public class StandardLibraryCompatibilityTests
 {
-    private MethodsManager _methodsManager;
-    private LibraryBase _standardLibrary;
+    private MethodsManager _methodsManager = new();
+    private LibraryBase _standardLibrary = new();
 
     [TestInitialize]
     public void Initialize()
@@ -27,34 +27,37 @@ public class StandardLibraryCompatibilityTests
     {
         var testCases = new[]
         {
-            ("Trim", new[] { typeof(string) }),
-            ("ToUpper", new[] { typeof(string) }),
-            ("ToLower", new[] { typeof(string) }),
+            ("Trim", [typeof(string)]),
+            ("ToUpper", [typeof(string)]),
+            ("ToLower", [typeof(string)]),
             ("Abs", new[] { typeof(int?) }),
-            ("NewId", new Type[0])
+            ("NewId", Type.EmptyTypes)
         };
 
         foreach (var (methodName, paramTypes) in testCases)
         {
-            var exactSuccess = _methodsManager.TryGetMethod(methodName, paramTypes, null, out var exactMethod);
+            var exactSuccess = _methodsManager.TryGetMethod(methodName, paramTypes, null, out _);
             Assert.IsTrue(exactSuccess, $"Exact case should resolve: {methodName}");
 
 
             var lowerSuccess =
                 _methodsManager.TryGetMethod(methodName.ToLowerInvariant(), paramTypes, null, out var lowerMethod);
             Assert.IsTrue(lowerSuccess, $"Lowercase should resolve: {methodName}");
+            lowerMethod = TestNullabilityGuards.Require(lowerMethod, $"lowercase method {methodName}");
             Assert.AreEqual(methodName, lowerMethod.Name, $"Should preserve original name for: {methodName}");
 
 
             var upperSuccess =
                 _methodsManager.TryGetMethod(methodName.ToUpperInvariant(), paramTypes, null, out var upperMethod);
             Assert.IsTrue(upperSuccess, $"Uppercase should resolve: {methodName}");
+            upperMethod = TestNullabilityGuards.Require(upperMethod, $"uppercase method {methodName}");
             Assert.AreEqual(methodName, upperMethod.Name, $"Should preserve original name for: {methodName}");
 
 
             var underscoreSuccess = _methodsManager.TryGetMethod(InsertUnderscores(methodName), paramTypes, null,
                 out var underscoreMethod);
             Assert.IsTrue(underscoreSuccess, $"Underscore variant should resolve: {methodName}");
+            underscoreMethod = TestNullabilityGuards.Require(underscoreMethod, $"underscore method {methodName}");
             Assert.AreEqual(methodName, underscoreMethod.Name, $"Should preserve original name for: {methodName}");
         }
     }
@@ -64,11 +67,11 @@ public class StandardLibraryCompatibilityTests
     {
         var commonMethods = new[]
         {
-            ("Abs", new[] { typeof(decimal?) }),
-            ("Trim", new[] { typeof(string) }),
-            ("ToUpper", new[] { typeof(string) }),
+            ("Abs", [typeof(decimal?)]),
+            ("Trim", [typeof(string)]),
+            ("ToUpper", [typeof(string)]),
             ("ToLower", new[] { typeof(string) }),
-            ("NewId", new Type[0])
+            ("NewId", Type.EmptyTypes)
         };
 
         foreach (var (methodName, paramTypes) in commonMethods)
@@ -80,6 +83,7 @@ public class StandardLibraryCompatibilityTests
             var lowerSuccess =
                 _methodsManager.TryGetMethod(methodName.ToLowerInvariant(), paramTypes, null, out var lowerMethod);
             Assert.IsTrue(lowerSuccess, $"Lowercase should work for {methodName}");
+            lowerMethod = TestNullabilityGuards.Require(lowerMethod, $"lowercase method {methodName}");
 
             Assert.AreEqual(exactMethod, lowerMethod,
                 $"Exact and case-insensitive should resolve to same method for {methodName}");
@@ -92,8 +96,8 @@ public class StandardLibraryCompatibilityTests
     {
         var absTests = new[]
         {
-            (new[] { typeof(decimal?) }, "decimal?"),
-            (new[] { typeof(long?) }, "long?"),
+            ([typeof(decimal?)], "decimal?"),
+            ([typeof(long?)], "long?"),
             (new[] { typeof(int?) }, "int?")
         };
 
@@ -105,10 +109,12 @@ public class StandardLibraryCompatibilityTests
 
             var lowerSuccess = _methodsManager.TryGetMethod("abs", paramTypes, null, out var lowerMethod);
             Assert.IsTrue(lowerSuccess, $"Lowercase 'abs' should resolve for {expectedType}");
+            lowerMethod = TestNullabilityGuards.Require(lowerMethod, $"lowercase Abs {expectedType}");
 
 
             var upperSuccess = _methodsManager.TryGetMethod("ABS", paramTypes, null, out var upperMethod);
             Assert.IsTrue(upperSuccess, $"Uppercase 'ABS' should resolve for {expectedType}");
+            upperMethod = TestNullabilityGuards.Require(upperMethod, $"uppercase Abs {expectedType}");
 
 
             Assert.AreEqual(exactMethod, lowerMethod,
@@ -194,6 +200,7 @@ public class StandardLibraryCompatibilityTests
             var success = _methodsManager.TryGetMethod(lowerName, parameterTypes, null, out var resolvedMethod);
 
             Assert.IsTrue(success, $"Should resolve {method.Name} via lowercase {lowerName}");
+            resolvedMethod = TestNullabilityGuards.Require(resolvedMethod, $"resolved method {lowerName}");
             Assert.AreEqual(method.Name, resolvedMethod.Name,
                 $"Should preserve original method name {method.Name}, not return {resolvedMethod.Name}");
         }
@@ -202,20 +209,20 @@ public class StandardLibraryCompatibilityTests
     [TestMethod]
     public void StandardLibrary_EdgeCasesHandleCorrectly()
     {
-        var success1 = _methodsManager.TryGetMethod("nonexistentmethod", new Type[0], null, out _);
+        var success1 = _methodsManager.TryGetMethod("nonexistentmethod", Type.EmptyTypes, null, out _);
         Assert.IsFalse(success1, "Non-existent method should not resolve");
 
 
-        var success2 = _methodsManager.TryGetMethod("abs", new[] { typeof(string) }, null, out _);
+        var success2 = _methodsManager.TryGetMethod("abs", [typeof(string)], null, out _);
         Assert.IsFalse(success2, "Wrong parameter types should not resolve");
 
 
         Assert.Throws<ArgumentNullException>(() =>
-            _methodsManager.TryGetMethod(null, new Type[0], null, out _));
+            _methodsManager.TryGetMethod(null!, Type.EmptyTypes, null, out _));
 
 
         Assert.Throws<ArgumentException>(() =>
-            _methodsManager.TryGetMethod("", new Type[0], null, out _));
+            _methodsManager.TryGetMethod("", Type.EmptyTypes, null, out _));
     }
 
     private static string InsertUnderscores(string methodName)

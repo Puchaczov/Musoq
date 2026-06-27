@@ -20,7 +20,7 @@ public class EnvironmentVariablesTestBase
 
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
-        IDictionary<uint, IEnumerable<EnvironmentVariableEntity>> sources)
+        IDictionary<string, IEnumerable<EnvironmentVariableEntity>> sources)
     {
         return InstanceCreator.CompileForExecution(
             script,
@@ -41,7 +41,7 @@ public class EnvironmentVariablesTestBase
             }, items =>
             {
                 items.CreateBuildMetadataAndInferTypesVisitor =
-                    (provider, columns, compilationOptions, schemaRegistry) =>
+                    (provider, columns, compilationOptions, _, _) =>
                         new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources,
                             LoggerResolver.ResolveLogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>(),
                             compilationOptions);
@@ -52,7 +52,7 @@ public class EnvironmentVariablesTestBase
         string script,
         IDictionary<string, IEnumerable<BasicEntity>> basicSources,
         IDictionary<string, IEnumerable<EnvironmentVariableEntity>> environmentSources,
-        IDictionary<uint, IEnumerable<EnvironmentVariableEntity>> sources)
+        IDictionary<string, IEnumerable<EnvironmentVariableEntity>> sources)
     {
         var schemas = new Dictionary<string, ISchemaProvider>();
 
@@ -72,7 +72,7 @@ public class EnvironmentVariablesTestBase
             items =>
             {
                 items.CreateBuildMetadataAndInferTypesVisitor =
-                    (provider, columns, compilationOptions, schemaRegistry) =>
+                    (provider, columns, compilationOptions, _, _) =>
                         new EnvironmentVariablesBuildMetadataAndInferTypesVisitor(provider, columns, sources,
                             LoggerResolver.ResolveLogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor>(),
                             compilationOptions);

@@ -48,26 +48,19 @@ public class DynamicSourceWithDynamicAndDefaultTypeHinting : DynamicQueryTestsBa
 
     [DynamicObjectPropertyTypeHint("AsInt", typeof(int))]
     [DynamicObjectPropertyDefaultTypeHint(typeof(double))]
-    public class MultiformType : DynamicObject
+    public class MultiformType(double value) : DynamicObject
     {
-        private readonly double _value;
-
-        public MultiformType(double value)
-        {
-            _value = value;
-        }
-
-        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        public override bool TryGetMember(GetMemberBinder binder, out object? result)
         {
             if (binder.Name == "AsInt")
             {
-                result = (int)_value;
+                result = (int)value;
                 return true;
             }
 
             if (binder.Name == "AsDouble")
             {
-                result = _value;
+                result = value;
                 return true;
             }
 

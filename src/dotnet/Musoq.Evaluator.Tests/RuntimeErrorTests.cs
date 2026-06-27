@@ -17,7 +17,7 @@ public class RuntimeErrorTests : NegativeTestsBase
     public void RE020_InvalidRegexPattern_ShouldThrowRuntimeError()
     {
         var vm = CompileQuery("SELECT * FROM #test.people() WHERE Name RLIKE '[invalid('");
-        Assert.Throws<Exception>(() => vm.Run(CancellationToken.None));
+        Assert.Throws<Exception>(() => _ = vm.Run(CancellationToken.None).Count);
     }
 
     #endregion

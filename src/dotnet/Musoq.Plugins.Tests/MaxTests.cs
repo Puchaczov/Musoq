@@ -1,90 +1,88 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Numerics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class MaxTests : PluginsTestBase
+public class MaxTests
 {
     [TestMethod]
-    public void MaxIntTest()
+    public void MaxAggregateKernel_SkipsNullsAndReturnsLargest()
     {
-        Library.SetMax(Group, "test", 5);
-        Library.SetMax(Group, "test", 4);
-        Library.SetMax(Group, "test", 6);
-        Library.SetMax(Group, "test", (int?)null);
-        Library.SetMax(Group, "test", -5);
-
-        Assert.AreEqual(6m, Library.Max(Group, "test"));
+        AssertMax<byte>(10, 50, 30, 50);
+        AssertMax<sbyte>(-10, 50, -30, 50);
+        AssertMax<short>(100, 500, 300, 500);
+        AssertMax<ushort>(100, 500, 300, 500);
+        AssertMax(5, 4, 6, 6);
+        AssertMax<uint>(100, 500, 300, 500);
+        AssertMax<long>(1, 4, 6, 6);
+        AssertMax<ulong>(100, 500, 300, 500);
+        AssertMax(1.5f, 5.5f, 3.5f, 5.5f);
+        AssertMax(1.5, 5.5, 3.5, 5.5);
+        AssertMax(1m, 2m, 3m, 3m);
     }
 
     [TestMethod]
-    public void MaxIntParentTest()
+    public void MaxAggregateKernel_EmptyStateReturnsNull()
     {
-        Library.SetMax(Group, "test", 10, 1);
-        Library.SetMax(Group, "test", 10, 1);
-        Library.SetMax(Group, "test", 6);
-        Library.SetMax(Group, "test", (int?)null);
+        var state = new MaxAggregateKernel<int>.State();
 
-        Library.SetMax(Group, "test", 10, 1);
-        Library.SetMax(Group, "test", -3);
-
-        Assert.AreEqual(10m, Library.Max(Group, "test", 1));
-        Assert.AreEqual(6m, Library.Max(Group, "test"));
+        Assert.IsNull(MaxAggregateKernel<int>.Get(in state));
     }
 
     [TestMethod]
-    public void MaxLongTest()
+    public void MaxAggregateKernel_AllNullInputsReturnNull()
     {
-        Library.SetMax(Group, "test", 1L);
-        Library.SetMax(Group, "test", 4L);
-        Library.SetMax(Group, "test", 6L);
-        Library.SetMax(Group, "test", (long?)null);
-
-        Library.SetMax(Group, "test", -4);
-
-        Assert.AreEqual(6m, Library.Max(Group, "test"));
+        AssertAllNullMax<int>();
+        AssertAllNullMax<decimal>();
     }
 
     [TestMethod]
-    public void MaxLongParentTest()
+    public void MaxAggregateKernel_MergeUsesLargestPartialValue()
     {
-        Library.SetMax(Group, "test", 5L, 1);
-        Library.SetMax(Group, "test", 5L, 1);
-        Library.SetMax(Group, "test", 5L);
-        Library.SetMax(Group, "test", (long?)null, 1);
+        var target = new MaxAggregateKernel<int>.State();
+        var source = new MaxAggregateKernel<int>.State();
 
-        Library.SetMax(Group, "test", -1, 1);
-        Library.SetMax(Group, "test", -3);
+        MaxAggregateKernel<int>.Set(ref target, 4);
+        MaxAggregateKernel<int>.Set(ref source, 9);
+        MaxAggregateKernel<int>.Merge(ref target, in source);
 
-        Assert.AreEqual(5m, Library.Max(Group, "test", 1));
-        Assert.AreEqual(5m, Library.Max(Group, "test"));
+        Assert.AreEqual(9, MaxAggregateKernel<int>.Get(in target));
     }
 
     [TestMethod]
-    public void MaxDecimalTest()
+    public void MaxAggregateKernel_MergeIgnoresEmptyPartialState()
     {
-        Library.SetMax(Group, "test", 1m);
-        Library.SetMax(Group, "test", 2m);
-        Library.SetMax(Group, "test", 3m);
-        Library.SetMax(Group, "test", (decimal?)null);
+        var target = new MaxAggregateKernel<decimal>.State();
+        var source = new MaxAggregateKernel<decimal>.State();
 
-        Library.SetMax(Group, "test", -4m);
+        MaxAggregateKernel<decimal>.Set(ref target, 12m);
+        MaxAggregateKernel<decimal>.Merge(ref target, in source);
 
-        Assert.AreEqual(3m, Library.Max(Group, "test"));
+        Assert.AreEqual(12m, MaxAggregateKernel<decimal>.Get(in target));
     }
 
-    [TestMethod]
-    public void MaxDecimalParentTest()
+    private static void AssertMax<T>(T first, T second, T third, T expected)
+        where T : struct, INumber<T>
     {
-        Library.SetMax(Group, "test", 9m, 1);
-        Library.SetMax(Group, "test", 4m, 1);
-        Library.SetMax(Group, "test", 6m);
-        Library.SetMax(Group, "test", (decimal?)null, 1);
+        var state = new MaxAggregateKernel<T>.State();
 
-        Library.SetMax(Group, "test", -1m, 1);
-        Library.SetMax(Group, "test", -2m);
+        MaxAggregateKernel<T>.Set(ref state, first);
+        MaxAggregateKernel<T>.Set(ref state, null);
+        MaxAggregateKernel<T>.Set(ref state, second);
+        MaxAggregateKernel<T>.Set(ref state, third);
 
-        Assert.AreEqual(9m, Library.Max(Group, "test", 1));
-        Assert.AreEqual(6m, Library.Max(Group, "test"));
+        Assert.AreEqual(expected, MaxAggregateKernel<T>.Get(in state));
+    }
+
+    private static void AssertAllNullMax<T>()
+        where T : struct, INumber<T>
+    {
+        var state = new MaxAggregateKernel<T>.State();
+
+        MaxAggregateKernel<T>.Set(ref state, null);
+        MaxAggregateKernel<T>.Set(ref state, null);
+
+        Assert.IsNull(MaxAggregateKernel<T>.Get(in state));
     }
 }

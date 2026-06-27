@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema.Managers;
 
@@ -7,7 +8,7 @@ namespace Musoq.Schema.Tests;
 [TestClass]
 public class MethodsMetadataEntityTypeInjectionTests : MethodsMetadataTestBase
 {
-    private MethodsMetadata _methodsMetadata;
+    private MethodsMetadata _methodsMetadata = CreateMethodsMetadataFor<TestClass>();
 
     [TestInitialize]
     public void Initialize()
@@ -58,20 +59,6 @@ public class MethodsMetadataEntityTypeInjectionTests : MethodsMetadataTestBase
         Assert.IsFalse(
             _methodsMetadata.TryGetMethod("Method2", [typeof(int)], typeof(OtherEntity), out _),
             "Should not resolve with OtherEntity"
-        );
-    }
-
-    [TestMethod]
-    public void TryGetMethod_GroupInjection()
-    {
-        Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("GroupMethod", [typeof(int)], typeof(BaseEntity), out _),
-            "Should resolve with any entity type"
-        );
-
-        Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("GroupMethod", [typeof(int)], typeof(string), out _),
-            "Should resolve with string type"
         );
     }
 
@@ -127,27 +114,18 @@ public class MethodsMetadataEntityTypeInjectionTests : MethodsMetadataTestBase
         );
     }
 
-    private interface IBaseEntity
-    {
-    }
+    private interface IBaseEntity;
 
-    private interface ISpecificEntity : IBaseEntity
-    {
-    }
+    private interface ISpecificEntity : IBaseEntity;
 
-    private class BaseEntity : IBaseEntity
-    {
-    }
+    private class BaseEntity : IBaseEntity;
 
-    private class SpecificEntity : BaseEntity, ISpecificEntity
-    {
-    }
+    private sealed class SpecificEntity : BaseEntity, ISpecificEntity;
 
-    private class OtherEntity : IBaseEntity
-    {
-    }
+    private sealed class OtherEntity : IBaseEntity;
 
-    private class TestClass
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+    private sealed class TestClass
     {
         public void Method1(
             [InjectSpecificSource(typeof(IBaseEntity))]
@@ -163,12 +141,6 @@ public class MethodsMetadataEntityTypeInjectionTests : MethodsMetadataTestBase
         {
         }
 
-        public void GroupMethod(
-            [InjectGroup] object groupContext,
-            int param)
-        {
-        }
-
         public void StatsMethod(
             [InjectQueryStats] object stats,
             int param)
@@ -178,7 +150,7 @@ public class MethodsMetadataEntityTypeInjectionTests : MethodsMetadataTestBase
         public void MultipleInjection(
             [InjectSpecificSource(typeof(IBaseEntity))]
             IBaseEntity entity,
-            [InjectGroup] object groupContext,
+            [InjectQueryStats] object stats,
             int param)
         {
         }

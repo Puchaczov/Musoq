@@ -58,15 +58,15 @@ public class CteReferenceExtractorTraverserTests
         // Create nested joins: (cteA JOIN cteB) JOIN cteC
         var fromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var joinCond1 = new BooleanNode(true);
-        var joinAB = new JoinInMemoryWithSourceTableFromNode("cteA", fromB, joinCond1, JoinType.Inner, typeof(object));
+        var joinAb = new JoinInMemoryWithSourceTableFromNode("cteA", fromB, joinCond1, JoinType.Inner, typeof(object));
 
         var fromC = new InMemoryTableFromNode("cteC", "c", typeof(object));
         var joinCond2 = new BooleanNode(true);
-        var joinFromABC = new JoinFromNode(joinAB, fromC, joinCond2, JoinType.Inner, typeof(object));
-        var joinABC = new JoinNode(joinFromABC, typeof(object));
+        var joinFromAbc = new JoinFromNode(joinAb, fromC, joinCond2, JoinType.Inner, typeof(object));
+        var joinAbc = new JoinNode(joinFromAbc, typeof(object));
 
         // Act
-        joinABC.Accept(traverser);
+        joinAbc.Accept(traverser);
 
         // Assert
         Assert.HasCount(3, extractor.FoundReferences);
@@ -83,7 +83,7 @@ public class CteReferenceExtractorTraverserTests
         var traverser = new CteReferenceExtractorTraverser(extractor);
 
         // Create a schema from node (not a CTE reference)
-        var schemaFrom = new SchemaFromNode("schema", "method", new ArgsListNode([]), null, typeof(object), 0);
+        var schemaFrom = new SchemaFromNode("schema", "method", new ArgsListNode([]), string.Empty, typeof(object), 0);
 
         // Act
         schemaFrom.Accept(traverser);
@@ -120,7 +120,7 @@ public class CteReferenceExtractorTraverserTests
         var extractor = new CteReferenceExtractor(["cteA"]);
         var traverser = new CteReferenceExtractorTraverser(extractor);
 
-        var sourceTable = new SchemaFromNode("schema", "method", new ArgsListNode([]), null, typeof(object), 0);
+        var sourceTable = new SchemaFromNode("schema", "method", new ArgsListNode([]), string.Empty, typeof(object), 0);
         var applyNode = new ApplyInMemoryWithSourceTableFromNode("cteA", sourceTable, ApplyType.Cross, typeof(object));
 
         // Act
@@ -153,6 +153,40 @@ public class CteReferenceExtractorTraverserTests
         // Assert
         Assert.HasCount(1, extractor.FoundReferences);
         Assert.Contains("cteA", extractor.FoundReferences);
+    }
+
+    [TestMethod]
+    public void Traverse_InQuerySubquery_ShouldFindCteReferences()
+    {
+        // Arrange
+        var extractor = new CteReferenceExtractor(["cteB"]);
+        var traverser = new CteReferenceExtractorTraverser(extractor);
+
+        var outerFrom = new SchemaFromNode("schema", "method", new ArgsListNode([]), "a", typeof(object), 0);
+        var subqueryFrom = new InMemoryTableFromNode("cteB", "b", typeof(object));
+        var subquery = new QueryNode(
+            new SelectNode([new FieldNode(new IdentifierNode("City"), 0, "City")]),
+            subqueryFrom,
+            null,
+            null,
+            null,
+            null,
+            null);
+        var query = new QueryNode(
+            new SelectNode([new FieldNode(new IdentifierNode("City"), 0, "City")]),
+            outerFrom,
+            new WhereNode(new InQueryNode(new IdentifierNode("City"), subquery)),
+            null,
+            null,
+            null,
+            null);
+
+        // Act
+        query.Accept(traverser);
+
+        // Assert
+        Assert.HasCount(1, extractor.FoundReferences);
+        Assert.Contains("cteB", extractor.FoundReferences);
     }
 
     [TestMethod]

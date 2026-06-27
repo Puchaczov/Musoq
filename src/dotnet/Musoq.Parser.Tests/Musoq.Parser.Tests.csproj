@@ -1,22 +1,72 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <IsPackable>false</IsPackable>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0"/>
-        <PackageReference Include="MSTest.TestAdapter" Version="4.0.1"/>
-        <PackageReference Include="MSTest.TestFramework" Version="4.0.1"/>
-        <PackageReference Include="coverlet.collector" Version="6.0.0">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj"/>
-    </ItemGroup>
-
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="MSTest.TestAdapter" />
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="AdditionalNodesTests.FieldsAndOrdering.cs">
+      <DependentUpon>AdditionalNodesTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AdditionalNodesTests.Literals.cs">
+      <DependentUpon>AdditionalNodesTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="AdditionalNodesTests.QueryClauses.cs">
+      <DependentUpon>AdditionalNodesTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="LexerSchemaTests.ComplexTokenization.cs">
+      <DependentUpon>LexerSchemaTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="LexerSchemaTests.EncodingAndModifiers.cs">
+      <DependentUpon>LexerSchemaTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="LexerSchemaTests.TextSchemaKeywords.cs">
+      <DependentUpon>LexerSchemaTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitorTests.BitwiseAndIdentifiers.cs">
+      <DependentUpon>NoOpExpressionVisitorTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitorTests.CollectionPredicates.cs">
+      <DependentUpon>NoOpExpressionVisitorTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitorTests.Coverage.cs">
+      <DependentUpon>NoOpExpressionVisitorTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitorTests.LiteralsAndAccess.cs">
+      <DependentUpon>NoOpExpressionVisitorTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NoOpExpressionVisitorTests.QueryAndInterpretation.cs">
+      <DependentUpon>NoOpExpressionVisitorTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="TokenFactoryTests.ComplexTokens.cs">
+      <DependentUpon>TokenFactoryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="TokenFactoryTests.FullOuterJoin.cs">
+      <DependentUpon>TokenFactoryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="TokenFactoryTests.JoinTokens.cs">
+      <DependentUpon>TokenFactoryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="TokenFactoryTests.Pivot.cs">
+      <DependentUpon>TokenFactoryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="TokenFactoryTests.SimpleTokensTail.cs">
+      <DependentUpon>TokenFactoryTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="TokenFactoryTests.SpecialAndEdgeCases.cs">
+      <DependentUpon>TokenFactoryTests.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>

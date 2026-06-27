@@ -56,6 +56,51 @@ on a.Country = b.Country AND a.City = b.City";
     }
 
     [TestMethod]
+    public void CompileForInspection_WhenCompositeKeyUsesValueTypes_ShouldUseValueTupleHashKey()
+    {
+        const string query = @"
+select
+    a.Name,
+    b.Name
+from #A.entities() a
+inner join #B.entities() b
+on a.Id = b.Id AND a.Population = b.Population";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity { Name = "John", Id = 1, Population = 100 },
+                    new BasicEntity { Name = "Alice", Id = 2, Population = 200 }
+                ]
+            },
+            {
+                "#B", [
+                    new BasicEntity { Name = "Doe", Id = 1, Population = 100 },
+                    new BasicEntity { Name = "Smith", Id = 2, Population = 300 }
+                ]
+            }
+        };
+
+        var result = InstanceCreator.CompileForInspection(
+            query,
+            Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(sources),
+            LoggerResolver,
+            new CompilationOptions(useHashJoin: true, useSortMergeJoin: false));
+
+        Assert.Contains("ExecutionPlan [compiled]", result.ExecutionPlanText);
+        Assert.Contains(
+            "CreateHash [bHash: ValueTuple<int, decimal> -> BasicEntity]",
+            result.ExecutionPlanText);
+        Assert.Contains("HashAdd [bHash[(b.Id, b.Population)] += b]", result.ExecutionPlanText);
+        Assert.Contains("HashProbe [bHash[(a.Id, a.Population)] -> bHashMatches]", result.ExecutionPlanText);
+        Assert.Contains("new Dictionary<ValueTuple<int, decimal>, HashJoinBucket<", result.GeneratedCSharpCode);
+        Assert.Contains("var key = (b.Id, b.Population);", result.GeneratedCSharpCode);
+        Assert.IsFalse(result.GeneratedCSharpCode.Contains("CreateNullableHashJoinKey", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
     public void LeftOuterJoin_WithCompositeKey_ShouldUseHashJoin()
     {
         const string query = @"
@@ -229,6 +274,41 @@ on a.Country = b.Country AND a.City = b.City";
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("John", table[0][0]);
+        Assert.IsNull(table[0][1]);
+    }
+
+    [TestMethod]
+    public void LeftOuterJoin_WithPostJoinFilterOnNullableSide_ShouldFilterNullExtendedRows()
+    {
+        const string query = @"
+select
+    a.Name,
+    b.Name
+from #A.entities() a
+left outer join #B.entities() b
+on a.Country = b.Country
+where b.Name is null";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity { Name = "John", Country = "USA" },
+                    new BasicEntity { Name = "Bob", Country = "France" }
+                ]
+            },
+            {
+                "#B", [
+                    new BasicEntity { Name = "Doe", Country = "USA" }
+                ]
+            }
+        };
+
+        var vm = CreateAndRunVirtualMachine(query, sources, new CompilationOptions(useHashJoin: true));
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("Bob", table[0][0]);
         Assert.IsNull(table[0][1]);
     }
 

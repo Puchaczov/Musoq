@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -49,53 +50,15 @@ public class ConversionMethodsTests : PluginsTestBase
     #region ToHex(byte[], delimiter) Tests
 
     [TestMethod]
-    public void ToHex_ByteArray_Null_ReturnsNull()
+    [DynamicData(nameof(ToHexByteArrayCases))]
+    public void ToHex_ByteArray_ReturnsExpected(byte[]? bytes, string delimiter, string expected)
     {
-        var result = Library.ToHex(null);
-        Assert.IsNull(result);
-    }
+        var result = delimiter == null ? Library.ToHex(bytes) : Library.ToHex(bytes, delimiter);
 
-    [TestMethod]
-    public void ToHex_ByteArray_Empty_ReturnsEmpty()
-    {
-        var result = Library.ToHex(Array.Empty<byte>());
-        Assert.IsNotNull(result);
-        Assert.AreEqual("", result);
-    }
-
-    [TestMethod]
-    public void ToHex_ByteArray_SingleByte_NoDelimiter()
-    {
-        var result = Library.ToHex(new byte[] { 0xFF });
-        Assert.AreEqual("FF", result);
-    }
-
-    [TestMethod]
-    public void ToHex_ByteArray_MultipleBytes_NoDelimiter()
-    {
-        var result = Library.ToHex(new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F });
-        Assert.AreEqual("48656C6C6F", result);
-    }
-
-    [TestMethod]
-    public void ToHex_ByteArray_WithSpaceDelimiter()
-    {
-        var result = Library.ToHex(new byte[] { 0x48, 0x65, 0x6C }, " ");
-        Assert.AreEqual("48 65 6C", result);
-    }
-
-    [TestMethod]
-    public void ToHex_ByteArray_WithDashDelimiter()
-    {
-        var result = Library.ToHex(new byte[] { 0x48, 0x65, 0x6C }, "-");
-        Assert.AreEqual("48-65-6C", result);
-    }
-
-    [TestMethod]
-    public void ToHex_ByteArray_WithColonDelimiter()
-    {
-        var result = Library.ToHex(new byte[] { 0x48, 0x65, 0x6C }, ":");
-        Assert.AreEqual("48:65:6C", result);
+        if (expected == null)
+            Assert.IsNull(result);
+        else
+            Assert.AreEqual(expected, result);
     }
 
     #endregion
@@ -103,123 +66,18 @@ public class ConversionMethodsTests : PluginsTestBase
     #region ToHex<T>(T value) Generic Tests
 
     [TestMethod]
-    public void ToHex_Boolean_True()
+    [DynamicData(nameof(ToHexValueCases))]
+    public void ToHex_Value_ReturnsExpected(Func<LibraryBase, string?> actualFactory, Func<LibraryBase, string?> expectedFactory)
     {
-        var result = Library.ToHex(true);
+        var result = actualFactory(Library);
         Assert.IsNotNull(result);
-        Assert.AreEqual(Library.ToHex(BitConverter.GetBytes(true)), result);
+        Assert.AreEqual(expectedFactory(Library), result);
     }
 
     [TestMethod]
-    public void ToHex_Boolean_False()
+    public void ToHex_SByte_ReturnsValue()
     {
-        var result = Library.ToHex(false);
-        Assert.IsNotNull(result);
-        Assert.AreEqual(Library.ToHex(BitConverter.GetBytes(false)), result);
-    }
-
-    [TestMethod]
-    public void ToHex_Byte()
-    {
-        var result = Library.ToHex((byte)255);
-        Assert.IsNotNull(result);
-
-        Assert.AreEqual(Library.ToHex(Library.GetBytes(255)), result);
-    }
-
-    [TestMethod]
-    public void ToHex_Char()
-    {
-        var result = Library.ToHex('A');
-        Assert.IsNotNull(result);
-        Assert.AreEqual(Library.ToHex(BitConverter.GetBytes('A')), result);
-    }
-
-    [TestMethod]
-    public void ToHex_Int16()
-    {
-        var result = Library.ToHex((short)1234);
-        Assert.IsNotNull(result);
-        Assert.AreEqual(Library.ToHex(BitConverter.GetBytes((short)1234)), result);
-    }
-
-    [TestMethod]
-    public void ToHex_Int32()
-    {
-        var result = Library.ToHex(123456);
-        Assert.IsNotNull(result);
-        Assert.AreEqual(Library.ToHex(BitConverter.GetBytes(123456)), result);
-    }
-
-    [TestMethod]
-    public void ToHex_Int64()
-    {
-        var result = Library.ToHex(123456789L);
-        Assert.IsNotNull(result);
-        Assert.AreEqual(Library.ToHex(BitConverter.GetBytes(123456789L)), result);
-    }
-
-    [TestMethod]
-    public void ToHex_SByte()
-    {
-        var result = Library.ToHex((sbyte)-1);
-        Assert.IsNotNull(result);
-    }
-
-    [TestMethod]
-    public void ToHex_UInt16()
-    {
-        var result = Library.ToHex((ushort)65535);
-        Assert.IsNotNull(result);
-        Assert.AreEqual(Library.ToHex(BitConverter.GetBytes((ushort)65535)), result);
-    }
-
-    [TestMethod]
-    public void ToHex_UInt32()
-    {
-        var result = Library.ToHex(123456u);
-        Assert.IsNotNull(result);
-        Assert.AreEqual(Library.ToHex(BitConverter.GetBytes(123456u)), result);
-    }
-
-    [TestMethod]
-    public void ToHex_UInt64()
-    {
-        var result = Library.ToHex(123456789UL);
-        Assert.IsNotNull(result);
-        Assert.AreEqual(Library.ToHex(BitConverter.GetBytes(123456789UL)), result);
-    }
-
-    [TestMethod]
-    public void ToHex_Single()
-    {
-        var result = Library.ToHex(3.14f);
-        Assert.IsNotNull(result);
-        Assert.AreEqual(Library.ToHex(BitConverter.GetBytes(3.14f)), result);
-    }
-
-    [TestMethod]
-    public void ToHex_Double()
-    {
-        var result = Library.ToHex(3.14159);
-        Assert.IsNotNull(result);
-        Assert.AreEqual(Library.ToHex(BitConverter.GetBytes(3.14159)), result);
-    }
-
-    [TestMethod]
-    public void ToHex_Decimal()
-    {
-        var result = Library.ToHex(123.456m);
-        Assert.IsNotNull(result);
-        Assert.AreEqual(Library.ToHex(Library.GetBytes(123.456m)), result);
-    }
-
-    [TestMethod]
-    public void ToHex_String()
-    {
-        var result = Library.ToHex("Hello");
-        Assert.IsNotNull(result);
-        Assert.AreEqual(Library.ToHex(Encoding.UTF8.GetBytes("Hello")), result);
+        Assert.IsNotNull(Library.ToHex((sbyte)-1));
     }
 
     [TestMethod]
@@ -241,79 +99,19 @@ public class ConversionMethodsTests : PluginsTestBase
     #region FromHexToBytes Tests
 
     [TestMethod]
-    public void FromHexToBytes_Null_ReturnsNull()
+    [DynamicData(nameof(FromHexToBytesCases))]
+    public void FromHexToBytes_ReturnsExpectedString(string hex, string expected)
     {
-        var result = Library.FromHexToBytes(null);
-        Assert.IsNull(result);
-    }
+        var result = Library.FromHexToBytes(hex);
 
-    [TestMethod]
-    public void FromHexToBytes_Empty_ReturnsNull()
-    {
-        var result = Library.FromHexToBytes("");
-        Assert.IsNull(result);
-    }
+        if (expected == null)
+        {
+            Assert.IsNull(result);
+            return;
+        }
 
-    [TestMethod]
-    public void FromHexToBytes_ValidHex()
-    {
-        var result = Library.FromHexToBytes("48656C6C6F");
         Assert.IsNotNull(result);
-        Assert.AreEqual("Hello", Encoding.UTF8.GetString(result));
-    }
-
-    [TestMethod]
-    public void FromHexToBytes_WithSpaces()
-    {
-        var result = Library.FromHexToBytes("48 65 6C 6C 6F");
-        Assert.IsNotNull(result);
-        Assert.AreEqual("Hello", Encoding.UTF8.GetString(result));
-    }
-
-    [TestMethod]
-    public void FromHexToBytes_WithDashes()
-    {
-        var result = Library.FromHexToBytes("48-65-6C-6C-6F");
-        Assert.IsNotNull(result);
-        Assert.AreEqual("Hello", Encoding.UTF8.GetString(result));
-    }
-
-    [TestMethod]
-    public void FromHexToBytes_WithColons()
-    {
-        var result = Library.FromHexToBytes("48:65:6C:6C:6F");
-        Assert.IsNotNull(result);
-        Assert.AreEqual("Hello", Encoding.UTF8.GetString(result));
-    }
-
-    [TestMethod]
-    public void FromHexToBytes_With0xPrefix()
-    {
-        var result = Library.FromHexToBytes("0x48656C6C6F");
-        Assert.IsNotNull(result);
-        Assert.AreEqual("Hello", Encoding.UTF8.GetString(result));
-    }
-
-    [TestMethod]
-    public void FromHexToBytes_With0XPrefix()
-    {
-        var result = Library.FromHexToBytes("0X48656C6C6F");
-        Assert.IsNotNull(result);
-        Assert.AreEqual("Hello", Encoding.UTF8.GetString(result));
-    }
-
-    [TestMethod]
-    public void FromHexToBytes_OddLength_ReturnsNull()
-    {
-        var result = Library.FromHexToBytes("48656C6C6");
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void FromHexToBytes_InvalidHex_ReturnsNull()
-    {
-        var result = Library.FromHexToBytes("ZZZZ");
-        Assert.IsNull(result);
+        Assert.AreEqual(expected, Encoding.UTF8.GetString(result));
     }
 
     #endregion
@@ -321,45 +119,16 @@ public class ConversionMethodsTests : PluginsTestBase
     #region FromHexToString Tests
 
     [TestMethod]
-    public void FromHexToString_Null_ReturnsNull()
+    [DataRow(null, null, null)]
+    [DataRow("48656C6C6F", null, "Hello")]
+    [DataRow("ZZZZ", null, null)]
+    [DataRow(null, "UTF-8", null)]
+    [DataRow("48656C6C6F", "UTF-8", "Hello")]
+    [DataRow("48656C6C6F", "ASCII", "Hello")]
+    public void FromHexToString_ReturnsExpected(string? hex, string? encoding, string? expected)
     {
-        var result = Library.FromHexToString(null);
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void FromHexToString_ValidHex()
-    {
-        var result = Library.FromHexToString("48656C6C6F");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void FromHexToString_InvalidHex_ReturnsNull()
-    {
-        var result = Library.FromHexToString("ZZZZ");
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void FromHexToString_WithEncoding_Null_ReturnsNull()
-    {
-        var result = Library.FromHexToString(null, "UTF-8");
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void FromHexToString_WithEncoding_ValidHex()
-    {
-        var result = Library.FromHexToString("48656C6C6F", "UTF-8");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void FromHexToString_WithEncoding_ASCII()
-    {
-        var result = Library.FromHexToString("48656C6C6F", "ASCII");
-        Assert.AreEqual("Hello", result);
+        var result = encoding == null ? Library.FromHexToString(hex) : Library.FromHexToString(hex, encoding);
+        Assert.AreEqual(expected, result);
     }
 
     #endregion
@@ -367,38 +136,15 @@ public class ConversionMethodsTests : PluginsTestBase
     #region ToHexFromString Tests
 
     [TestMethod]
-    public void ToHexFromString_Null_ReturnsNull()
+    [DataRow(null, null, null)]
+    [DataRow("Hello", null, "48656C6C6F")]
+    [DataRow(null, "UTF-8", null)]
+    [DataRow("Hello", "UTF-8", "48656C6C6F")]
+    [DataRow("Hello", "ASCII", "48656C6C6F")]
+    public void ToHexFromString_ReturnsExpected(string text, string encoding, string expected)
     {
-        var result = Library.ToHexFromString(null);
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void ToHexFromString_ValidString()
-    {
-        var result = Library.ToHexFromString("Hello");
-        Assert.AreEqual("48656C6C6F", result);
-    }
-
-    [TestMethod]
-    public void ToHexFromString_WithEncoding_Null_ReturnsNull()
-    {
-        var result = Library.ToHexFromString(null, "UTF-8");
-        Assert.IsNull(result);
-    }
-
-    [TestMethod]
-    public void ToHexFromString_WithEncoding_UTF8()
-    {
-        var result = Library.ToHexFromString("Hello", "UTF-8");
-        Assert.AreEqual("48656C6C6F", result);
-    }
-
-    [TestMethod]
-    public void ToHexFromString_WithEncoding_ASCII()
-    {
-        var result = Library.ToHexFromString("Hello", "ASCII");
-        Assert.AreEqual("48656C6C6F", result);
+        var result = encoding == null ? Library.ToHexFromString(text) : Library.ToHexFromString(text, encoding);
+        Assert.AreEqual(expected, result);
     }
 
     #endregion
@@ -410,7 +156,7 @@ public class ConversionMethodsTests : PluginsTestBase
     {
         var result = Library.FromBytesToBool(BitConverter.GetBytes(true));
         Assert.IsTrue(result.HasValue);
-        Assert.IsTrue(result.Value);
+        Assert.IsTrue(result.GetValueOrDefault());
     }
 
     [TestMethod]
@@ -418,7 +164,7 @@ public class ConversionMethodsTests : PluginsTestBase
     {
         var result = Library.FromBytesToBool(BitConverter.GetBytes(false));
         Assert.IsTrue(result.HasValue);
-        Assert.IsFalse(result.Value);
+        Assert.IsFalse(result.GetValueOrDefault());
     }
 
     #endregion
@@ -491,7 +237,7 @@ public class ConversionMethodsTests : PluginsTestBase
         var expected = 3.14f;
         var result = Library.FromBytesToFloat(BitConverter.GetBytes(expected));
         Assert.IsTrue(result.HasValue);
-        Assert.AreEqual(expected, result.Value, 0.0001f);
+        Assert.AreEqual(expected, result.GetValueOrDefault(), 0.0001f);
     }
 
     [TestMethod]
@@ -500,7 +246,7 @@ public class ConversionMethodsTests : PluginsTestBase
         var expected = -3.14f;
         var result = Library.FromBytesToFloat(BitConverter.GetBytes(expected));
         Assert.IsTrue(result.HasValue);
-        Assert.AreEqual(expected, result.Value, 0.0001f);
+        Assert.AreEqual(expected, result.GetValueOrDefault(), 0.0001f);
     }
 
     #endregion
@@ -513,7 +259,7 @@ public class ConversionMethodsTests : PluginsTestBase
         var expected = 3.14159265358979;
         var result = Library.FromBytesToDouble(BitConverter.GetBytes(expected));
         Assert.IsTrue(result.HasValue);
-        Assert.AreEqual(expected, result.Value, 0.0000000001);
+        Assert.AreEqual(expected, result.GetValueOrDefault(), 0.0000000001);
     }
 
     [TestMethod]
@@ -522,7 +268,7 @@ public class ConversionMethodsTests : PluginsTestBase
         var expected = -3.14159265358979;
         var result = Library.FromBytesToDouble(BitConverter.GetBytes(expected));
         Assert.IsTrue(result.HasValue);
-        Assert.AreEqual(expected, result.Value, 0.0000000001);
+        Assert.AreEqual(expected, result.GetValueOrDefault(), 0.0000000001);
     }
 
     #endregion
@@ -532,7 +278,7 @@ public class ConversionMethodsTests : PluginsTestBase
     [TestMethod]
     public void FromBytesToString_UTF8()
     {
-        var bytes = Encoding.UTF8.GetBytes("Hello World");
+        var bytes = "Hello World"u8.ToArray();
         var result = Library.FromBytesToString(bytes);
         Assert.AreEqual("Hello World", result);
     }
@@ -563,116 +309,86 @@ public class ConversionMethodsTests : PluginsTestBase
     }
 
     [TestMethod]
-    public void ToText_UTF8()
+    [DataRow("utf-8", "utf8")]
+    [DataRow("utf8", "utf8")]
+    [DataRow("utf-16", "utf16")]
+    [DataRow("utf16", "utf16")]
+    [DataRow("unicode", "utf16")]
+    [DataRow("utf-16le", "utf16")]
+    [DataRow("utf16le", "utf16")]
+    [DataRow("utf-16be", "utf16be")]
+    [DataRow("utf16be", "utf16be")]
+    [DataRow("ascii", "ascii")]
+    [DataRow("latin1", "latin1")]
+    [DataRow("iso-8859-1", "latin1")]
+    [DataRow("unknown-encoding", "utf8")]
+    [DataRow(null, "utf8")]
+    public void ToText_WithEncoding_ReturnsHello(string encoding, string byteEncoding)
     {
-        var bytes = Encoding.UTF8.GetBytes("Hello");
-        var result = Library.ToText(bytes, "utf-8");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void ToText_UTF8_Alt()
-    {
-        var bytes = Encoding.UTF8.GetBytes("Hello");
-        var result = Library.ToText(bytes, "utf8");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void ToText_UTF16()
-    {
-        var bytes = Encoding.Unicode.GetBytes("Hello");
-        var result = Library.ToText(bytes, "utf-16");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void ToText_UTF16_Alt()
-    {
-        var bytes = Encoding.Unicode.GetBytes("Hello");
-        var result = Library.ToText(bytes, "utf16");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void ToText_Unicode()
-    {
-        var bytes = Encoding.Unicode.GetBytes("Hello");
-        var result = Library.ToText(bytes, "unicode");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void ToText_UTF16LE()
-    {
-        var bytes = Encoding.Unicode.GetBytes("Hello");
-        var result = Library.ToText(bytes, "utf-16le");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void ToText_UTF16LE_Alt()
-    {
-        var bytes = Encoding.Unicode.GetBytes("Hello");
-        var result = Library.ToText(bytes, "utf16le");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void ToText_UTF16BE()
-    {
-        var bytes = Encoding.BigEndianUnicode.GetBytes("Hello");
-        var result = Library.ToText(bytes, "utf-16be");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void ToText_UTF16BE_Alt()
-    {
-        var bytes = Encoding.BigEndianUnicode.GetBytes("Hello");
-        var result = Library.ToText(bytes, "utf16be");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void ToText_ASCII()
-    {
-        var bytes = Encoding.ASCII.GetBytes("Hello");
-        var result = Library.ToText(bytes, "ascii");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void ToText_Latin1()
-    {
-        var bytes = Encoding.Latin1.GetBytes("Hello");
-        var result = Library.ToText(bytes, "latin1");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void ToText_ISO88591()
-    {
-        var bytes = Encoding.Latin1.GetBytes("Hello");
-        var result = Library.ToText(bytes, "iso-8859-1");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void ToText_UnknownEncoding_DefaultsToUTF8()
-    {
-        var bytes = Encoding.UTF8.GetBytes("Hello");
-        var result = Library.ToText(bytes, "unknown-encoding");
-        Assert.AreEqual("Hello", result);
-    }
-
-    [TestMethod]
-    public void ToText_NullEncoding_DefaultsToUTF8()
-    {
-        var bytes = Encoding.UTF8.GetBytes("Hello");
-        var result = Library.ToText(bytes, null!);
+        var bytes = GetEncodedHello(byteEncoding);
+        var result = Library.ToText(bytes, encoding);
         Assert.AreEqual("Hello", result);
     }
 
     #endregion
+
+    public static IEnumerable<object?[]> ToHexByteArrayCases()
+    {
+        yield return [null, null, null];
+        yield return [Array.Empty<byte>(), null, ""];
+        yield return [new byte[] { 0xFF }, null, "FF"];
+        yield return ["Hello"u8.ToArray(), null, "48656C6C6F"];
+        yield return ["Hel"u8.ToArray(), " ", "48 65 6C"];
+        yield return ["Hel"u8.ToArray(), "-", "48-65-6C"];
+        yield return ["Hel"u8.ToArray(), ":", "48:65:6C"];
+    }
+
+    public static IEnumerable<object[]> ToHexValueCases()
+    {
+        yield return [Hex((LibraryBase lib) => lib.ToHex(true)), Hex(lib => lib.ToHex(BitConverter.GetBytes(true)))];
+        yield return [Hex(lib => lib.ToHex(false)), Hex(lib => lib.ToHex(BitConverter.GetBytes(false)))];
+        yield return [Hex(lib => lib.ToHex((byte)255)), Hex(lib => lib.ToHex(lib.GetBytes(255)))];
+        yield return [Hex(lib => lib.ToHex('A')), Hex(lib => lib.ToHex(BitConverter.GetBytes('A')))];
+        yield return [Hex(lib => lib.ToHex((short)1234)), Hex(lib => lib.ToHex(BitConverter.GetBytes((short)1234)))];
+        yield return [Hex(lib => lib.ToHex(123456)), Hex(lib => lib.ToHex(BitConverter.GetBytes(123456)))];
+        yield return [Hex(lib => lib.ToHex(123456789L)), Hex(lib => lib.ToHex(BitConverter.GetBytes(123456789L)))];
+        yield return [Hex(lib => lib.ToHex((ushort)65535)), Hex(lib => lib.ToHex(BitConverter.GetBytes((ushort)65535)))];
+        yield return [Hex(lib => lib.ToHex(123456u)), Hex(lib => lib.ToHex(BitConverter.GetBytes(123456u)))];
+        yield return [Hex(lib => lib.ToHex(123456789UL)), Hex(lib => lib.ToHex(BitConverter.GetBytes(123456789UL)))];
+        yield return [Hex(lib => lib.ToHex(3.14f)), Hex(lib => lib.ToHex(BitConverter.GetBytes(3.14f)))];
+        yield return [Hex(lib => lib.ToHex(3.14159)), Hex(lib => lib.ToHex(BitConverter.GetBytes(3.14159)))];
+        yield return [Hex(lib => lib.ToHex(123.456m)), Hex(lib => lib.ToHex(lib.GetBytes(123.456m)))];
+        yield return [Hex(lib => lib.ToHex("Hello")), Hex(lib => lib.ToHex("Hello"u8.ToArray()))];
+    }
+
+    public static IEnumerable<object?[]> FromHexToBytesCases()
+    {
+        yield return [null, null];
+        yield return ["", null];
+        yield return ["48656C6C6F", "Hello"];
+        yield return ["48 65 6C 6C 6F", "Hello"];
+        yield return ["48-65-6C-6C-6F", "Hello"];
+        yield return ["48:65:6C:6C:6F", "Hello"];
+        yield return ["0x48656C6C6F", "Hello"];
+        yield return ["0X48656C6C6F", "Hello"];
+        yield return ["48656C6C6", null];
+        yield return ["ZZZZ", null];
+    }
+
+    private static Func<LibraryBase, string?> Hex(Func<LibraryBase, string?> factory)
+    {
+        return factory;
+    }
+
+    private static byte[] GetEncodedHello(string encoding)
+    {
+        return encoding switch
+        {
+            "utf16" => Encoding.Unicode.GetBytes("Hello"),
+            "utf16be" => Encoding.BigEndianUnicode.GetBytes("Hello"),
+            "ascii" => "Hello"u8.ToArray(),
+            "latin1" => Encoding.Latin1.GetBytes("Hello"),
+            _ => "Hello"u8.ToArray()
+        };
+    }
 }

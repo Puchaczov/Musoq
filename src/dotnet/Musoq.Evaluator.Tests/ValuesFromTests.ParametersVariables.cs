@@ -1,0 +1,122 @@
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter.Exceptions;
+using Musoq.Evaluator.Tests.Schema.Basic;
+using Musoq.Parser.Diagnostics;
+
+namespace Musoq.Evaluator.Tests;
+
+public partial class ValuesFromTests
+{
+    [TestMethod]
+    public void ValuesSource_WithScalarParameter_ShouldUseRuntimeValue()
+    {
+        const string query = @"
+param(baseScore: int)
+from values {
+    { Name: 'first', Score: $baseScore },
+    { Name: 'second', Score: $baseScore + 5 }
+} scores
+select scores.Name, scores.Score
+order by scores.Score";
+
+        var vm = CreateAndRunVirtualMachine(query, EmptySources());
+        vm.Parameters["baseScore"] = 10;
+        var table = vm.Run(TestContext.CancellationToken);
+
+        AssertColumn(table, 1, "scores.Score", typeof(int));
+        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual(10, table[0][1]);
+        Assert.AreEqual(15, table[1][1]);
+    }
+
+    [TestMethod]
+    public void ValuesSource_WithNullableScalarParameter_ShouldInferNullableColumn()
+    {
+        const string query = @"
+param(optionalScore: int? = null)
+from values {
+    { Name: 'first', Score: $optionalScore },
+    { Name: 'second', Score: 20 }
+} scores
+select scores.Name, scores.Score
+order by scores.Name";
+
+        var vm = CreateAndRunVirtualMachine(query, EmptySources());
+        var table = vm.Run(TestContext.CancellationToken);
+
+        AssertColumn(table, 1, "scores.Score", typeof(int?));
+        Assert.IsNull(table[0][1]);
+        Assert.AreEqual(20, table[1][1]);
+    }
+
+    [TestMethod]
+    public void ValuesSource_WithScalarLetReferences_ShouldUseResolvedValues()
+    {
+        const string query = @"
+let prefix: string = 'pkg'
+let baseScore: int = 40
+from values {
+    { Name: $prefix + '-a', Score: $baseScore + 1 },
+    { Name: $prefix + '-b', Score: $baseScore + 2 }
+} scores
+select scores.Name, scores.Score
+order by scores.Score";
+
+        var vm = CreateAndRunVirtualMachine(query, EmptySources());
+        var table = vm.Run(TestContext.CancellationToken);
+
+        AssertColumn(table, 0, "scores.Name", typeof(string));
+        AssertColumn(table, 1, "scores.Score", typeof(int));
+        Assert.AreEqual("pkg-a", table[0][0]);
+        Assert.AreEqual(41, table[0][1]);
+        Assert.AreEqual("pkg-b", table[1][0]);
+        Assert.AreEqual(42, table[1][1]);
+    }
+
+    [TestMethod]
+    public void ValuesSource_WithLiteralAndScalarParameter_ShouldInferSharedType()
+    {
+        const string query = @"
+param(baseScore: int)
+from values {
+    { Name: 'literal', Score: 7 },
+    { Name: 'parameter', Score: $baseScore }
+} scores
+select scores.Name, scores.Score
+order by scores.Score";
+
+        var vm = CreateAndRunVirtualMachine(query, EmptySources());
+        vm.Parameters["baseScore"] = 12;
+        var table = vm.Run(TestContext.CancellationToken);
+
+        AssertColumn(table, 1, "scores.Score", typeof(int));
+        Assert.AreEqual(7, table[0][1]);
+        Assert.AreEqual(12, table[1][1]);
+    }
+
+    [TestMethod]
+    public void ValuesSource_WithSourceColumnReference_ShouldThrow()
+    {
+        const string query = @"
+select v.Score
+from #A.entities() a
+inner join values {
+    { Score: a.Population }
+} v on a.Id = v.Score";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [new BasicEntity { Id = 1, Population = 100m }] }
+        };
+
+        var ex = Assert.Throws<MusoqQueryException>(() => CreateAndRunVirtualMachine(query, sources));
+
+        MusoqExceptionAssertions.AssertSingleError(
+            ex,
+            DiagnosticCode.MQ3055_InvalidValuesSource,
+            DiagnosticPhase.Bind,
+            "scalar script parameter/let expression");
+    }
+}

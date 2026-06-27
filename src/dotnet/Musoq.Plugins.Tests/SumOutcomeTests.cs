@@ -1,91 +1,77 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Numerics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class SumOutcomeTests : PluginsTestBase
+public class SumOutcomeTests
 {
     [TestMethod]
-    public void SumOutcomeIntTest()
+    public void SumOutcomeAggregateKernel_SumsOnlyNegativeValues()
     {
-        Library.SetSumOutcome(Group, "test", -1);
-        Library.SetSumOutcome(Group, "test", -4);
-        Library.SetSumOutcome(Group, "test", -6);
-        Library.SetSumOutcome(Group, "test", (int?)null);
-
-        Library.SetSumOutcome(Group, "test", 4);
-
-        Assert.AreEqual(-11m, Library.SumOutcome(Group, "test"));
+        AssertOutcome(-1, -4, 6, 0, -5);
+        AssertOutcome<long>(-1, -4, 6, 0, -5);
+        AssertOutcome(-1.5f, -4.5f, 6.5f, 0f, -6f);
+        AssertOutcome(-1.5, -4.5, 6.5, 0, -6);
+        AssertOutcome(-1m, -2m, 4m, 0m, -3m);
     }
 
     [TestMethod]
-    public void SumOutcomeIntParentTest()
+    public void SumOutcomeAggregateKernel_EmptyStateReturnsNull()
     {
-        Library.SetSumOutcome(Group, "test", -1, 1);
-        Library.SetSumOutcome(Group, "test", -4, 1);
-        Library.SetSumOutcome(Group, "test", -6);
-        Library.SetSumOutcome(Group, "test", (int?)null);
+        var state = new SumOutcomeAggregateKernel<int>.State();
 
-        Library.SetSumOutcome(Group, "test", 4, 1);
-        Library.SetSumOutcome(Group, "test", 3);
-
-        Assert.AreEqual(-5, Library.SumOutcome(Group, "test", 1));
-        Assert.AreEqual(-6, Library.SumOutcome(Group, "test"));
+        Assert.IsNull(SumOutcomeAggregateKernel<int>.Get(in state));
     }
 
     [TestMethod]
-    public void SumOutcomeLongTest()
+    public void SumOutcomeAggregateKernel_AllNonNegativeOrNullInputsReturnNull()
     {
-        Library.SetSumOutcome(Group, "test", -1L);
-        Library.SetSumOutcome(Group, "test", -4L);
-        Library.SetSumOutcome(Group, "test", -6L);
-        Library.SetSumOutcome(Group, "test", (long?)null);
+        var state = new SumOutcomeAggregateKernel<int>.State();
 
-        Library.SetSumOutcome(Group, "test", 4);
+        SumOutcomeAggregateKernel<int>.Set(ref state, 1);
+        SumOutcomeAggregateKernel<int>.Set(ref state, null);
+        SumOutcomeAggregateKernel<int>.Set(ref state, 0);
 
-        Assert.AreEqual(-11m, Library.SumOutcome(Group, "test"));
+        Assert.IsNull(SumOutcomeAggregateKernel<int>.Get(in state));
     }
 
     [TestMethod]
-    public void SumOutcomeLongParentTest()
+    public void SumOutcomeAggregateKernel_UnsignedInputsCannotQualify()
     {
-        Library.SetSumOutcome(Group, "test", -1L, 1);
-        Library.SetSumOutcome(Group, "test", -4L, 1);
-        Library.SetSumOutcome(Group, "test", -6L);
-        Library.SetSumOutcome(Group, "test", (long?)null, 1);
+        var state = new SumOutcomeAggregateKernel<uint>.State();
 
-        Library.SetSumOutcome(Group, "test", 4, 1);
-        Library.SetSumOutcome(Group, "test", 3);
+        SumOutcomeAggregateKernel<uint>.Set(ref state, 1u);
+        SumOutcomeAggregateKernel<uint>.Set(ref state, 0u);
 
-        Assert.AreEqual(-5m, Library.SumOutcome(Group, "test", 1));
-        Assert.AreEqual(-6m, Library.SumOutcome(Group, "test"));
+        Assert.IsNull(SumOutcomeAggregateKernel<uint>.Get(in state));
     }
 
     [TestMethod]
-    public void SumOutcomeDecimalTest()
+    public void SumOutcomeAggregateKernel_MergeCombinesOnlyQualifiedPartialStates()
     {
-        Library.SetSumOutcome(Group, "test", -1m);
-        Library.SetSumOutcome(Group, "test", -2m);
-        Library.SetSumOutcome(Group, "test", -3m);
-        Library.SetSumOutcome(Group, "test", (decimal?)null);
+        var target = new SumOutcomeAggregateKernel<decimal>.State();
+        var source = new SumOutcomeAggregateKernel<decimal>.State();
 
-        Library.SetSumOutcome(Group, "test", 4);
+        SumOutcomeAggregateKernel<decimal>.Set(ref target, -2m);
+        SumOutcomeAggregateKernel<decimal>.Set(ref target, 10m);
+        SumOutcomeAggregateKernel<decimal>.Set(ref source, -3m);
+        SumOutcomeAggregateKernel<decimal>.Merge(ref target, in source);
 
-        Assert.AreEqual(-6m, Library.SumOutcome(Group, "test"));
+        Assert.AreEqual(-5m, SumOutcomeAggregateKernel<decimal>.Get(in target));
     }
 
-    [TestMethod]
-    public void SumOutcomeDecimalParentTest()
+    private static void AssertOutcome<T>(T first, T second, T third, T fourth, T expected)
+        where T : struct, INumber<T>
     {
-        Library.SetSumOutcome(Group, "test", -1m, 1);
-        Library.SetSumOutcome(Group, "test", -4m, 1);
-        Library.SetSumOutcome(Group, "test", -6m);
-        Library.SetSumOutcome(Group, "test", (decimal?)null, 1);
+        var state = new SumOutcomeAggregateKernel<T>.State();
 
-        Library.SetSumOutcome(Group, "test", 4, 1);
-        Library.SetSumOutcome(Group, "test", 3);
+        SumOutcomeAggregateKernel<T>.Set(ref state, first);
+        SumOutcomeAggregateKernel<T>.Set(ref state, null);
+        SumOutcomeAggregateKernel<T>.Set(ref state, second);
+        SumOutcomeAggregateKernel<T>.Set(ref state, third);
+        SumOutcomeAggregateKernel<T>.Set(ref state, fourth);
 
-        Assert.AreEqual(-5m, Library.SumOutcome(Group, "test", 1));
-        Assert.AreEqual(-6m, Library.SumOutcome(Group, "test"));
+        Assert.AreEqual(expected, SumOutcomeAggregateKernel<T>.Get(in state));
     }
 }

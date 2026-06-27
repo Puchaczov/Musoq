@@ -50,11 +50,11 @@ public class TypeHelperTests
         Assert.IsTrue((bool?)indexToMethodAccessMap[3](test));
     }
 
-    private class TestEntity
+    private sealed class TestEntity
     {
         [EntityProperty] public int Prop1 { get; set; }
 
-        [EntityProperty] public string Prop2 { get; set; }
+        [EntityProperty] public string Prop2 { get; set; } = string.Empty;
 
         [EntityProperty] public decimal Prop3 { get; set; }
 

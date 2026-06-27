@@ -6,26 +6,19 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests.Schema.PathValue;
 
-public class PathValueSchema : SchemaBase
+public class PathValueSchema(IEnumerable<PathValueEntity> entities) : SchemaBase(SchemaName, CachedLibrary.Value)
 {
     private const string SchemaName = "pathvalue";
     private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
-    private readonly IEnumerable<PathValueEntity> _entities;
 
-    public PathValueSchema(IEnumerable<PathValueEntity> entities)
-        : base(SchemaName, CachedLibrary.Value)
-    {
-        _entities = entities;
-    }
-
-    public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
     {
         return new PathValueSchemaTable();
     }
 
-    public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
     {
-        return new PathValueRowSource(_entities);
+        return EnsureSourceType<T, PathValueEntity>(name, new PathValueRowSource(entities));
     }
 
     private static MethodsAggregator CreateLibrary()

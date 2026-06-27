@@ -57,7 +57,7 @@ public class CryptoTests : PluginsTestBase
     [TestMethod]
     public void Sha384_WhenBytesProvided_ShouldReturnHash()
     {
-        var bytes = Encoding.UTF8.GetBytes("hello");
+        var bytes = "hello"u8.ToArray();
         var result = Library.Sha384(bytes);
 
         Assert.IsNotNull(result);
@@ -144,7 +144,7 @@ public class CryptoTests : PluginsTestBase
     [TestMethod]
     public void Crc32_WhenBytesProvided_ShouldReturnChecksum()
     {
-        var bytes = Encoding.UTF8.GetBytes("hello");
+        var bytes = "hello"u8.ToArray();
         var result = Library.Crc32(bytes);
 
         Assert.IsNotNull(result);

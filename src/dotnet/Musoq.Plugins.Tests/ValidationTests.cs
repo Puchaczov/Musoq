@@ -3,489 +3,183 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class ValidationTests
+public class ValidationTests : PluginsTestBase
 {
-    private readonly LibraryBase _library = new();
-
-    #region IsValidEmail Tests
-
-    [TestMethod]
-    public void IsValidEmail_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(_library.IsValidEmail(null));
-    }
-
-    [TestMethod]
-    public void IsValidEmail_WhenEmpty_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidEmail(string.Empty));
-    }
-
-    [TestMethod]
-    public void IsValidEmail_WhenWhitespace_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidEmail("   "));
-    }
-
-    [TestMethod]
-    public void IsValidEmail_WhenValidSimple_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidEmail("test@example.com"));
-    }
-
-    [TestMethod]
-    public void IsValidEmail_WhenValidWithSubdomain_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidEmail("user@mail.example.com"));
-    }
-
-    [TestMethod]
-    public void IsValidEmail_WhenValidWithPlus_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidEmail("test+label@example.com"));
-    }
-
-    [TestMethod]
-    public void IsValidEmail_WhenMissingAt_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidEmail("testexample.com"));
-    }
-
-    [TestMethod]
-    public void IsValidEmail_WhenMissingDomain_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidEmail("test@"));
-    }
-
-    #endregion
-
-    #region IsValidUrl Tests
-
-    [TestMethod]
-    public void IsValidUrl_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(_library.IsValidUrl(null));
-    }
-
-    [TestMethod]
-    public void IsValidUrl_WhenEmpty_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidUrl(string.Empty));
-    }
-
-    [TestMethod]
-    public void IsValidUrl_WhenHttp_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidUrl("http://example.com"));
-    }
-
-    [TestMethod]
-    public void IsValidUrl_WhenHttps_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidUrl("https://example.com"));
-    }
-
-    [TestMethod]
-    public void IsValidUrl_WhenFtp_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidUrl("ftp://files.example.com"));
-    }
-
-    [TestMethod]
-    public void IsValidUrl_WhenWithPath_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidUrl("https://example.com/path/to/resource"));
-    }
-
-    [TestMethod]
-    public void IsValidUrl_WhenWithQueryString_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidUrl("https://example.com?query=value"));
-    }
-
-    [TestMethod]
-    public void IsValidUrl_WhenRelative_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidUrl("/path/to/resource"));
-    }
-
-    [TestMethod]
-    public void IsValidUrl_WhenInvalidScheme_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidUrl("mailto:test@example.com"));
-    }
-
-    #endregion
-
-    #region IsValidUri Tests
-
-    [TestMethod]
-    public void IsValidUri_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(_library.IsValidUri(null));
-    }
-
-    [TestMethod]
-    public void IsValidUri_WhenMailto_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidUri("mailto:test@example.com"));
-    }
-
-    [TestMethod]
-    public void IsValidUri_WhenFile_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidUri("file:///c:/path/to/file"));
-    }
-
-    #endregion
-
-    #region IsValidJson Tests
-
-    [TestMethod]
-    public void IsValidJson_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(_library.IsValidJson(null));
-    }
-
-    [TestMethod]
-    public void IsValidJson_WhenEmpty_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidJson(string.Empty));
-    }
-
-    [TestMethod]
-    public void IsValidJson_WhenValidObject_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidJson("{\"key\": \"value\"}"));
-    }
-
-    [TestMethod]
-    public void IsValidJson_WhenValidArray_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidJson("[1, 2, 3]"));
-    }
-
-    [TestMethod]
-    public void IsValidJson_WhenValidString_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidJson("\"hello\""));
-    }
-
-    [TestMethod]
-    public void IsValidJson_WhenValidNumber_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidJson("123.45"));
-    }
-
-    [TestMethod]
-    public void IsValidJson_WhenValidBoolean_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidJson("true"));
-    }
-
-    [TestMethod]
-    public void IsValidJson_WhenValidNull_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidJson("null"));
-    }
-
-    [TestMethod]
-    public void IsValidJson_WhenInvalid_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidJson("{key: value}"));
-    }
-
-    [TestMethod]
-    public void IsValidJson_WhenUnclosed_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidJson("{\"key\": \"value\""));
-    }
-
-    #endregion
-
-    #region IsValidXml Tests
-
-    [TestMethod]
-    public void IsValidXml_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(_library.IsValidXml(null));
-    }
-
-    [TestMethod]
-    public void IsValidXml_WhenEmpty_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidXml(string.Empty));
-    }
-
-    [TestMethod]
-    public void IsValidXml_WhenValidSimple_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidXml("<root>content</root>"));
-    }
-
-    [TestMethod]
-    public void IsValidXml_WhenValidWithAttributes_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidXml("<root attr=\"value\">content</root>"));
-    }
-
-    [TestMethod]
-    public void IsValidXml_WhenValidNested_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidXml("<root><child>content</child></root>"));
-    }
-
-    [TestMethod]
-    public void IsValidXml_WhenValidWithDeclaration_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidXml("<?xml version=\"1.0\"?><root/>"));
-    }
-
-    [TestMethod]
-    public void IsValidXml_WhenUnclosedTag_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidXml("<root>"));
-    }
-
-    [TestMethod]
-    public void IsValidXml_WhenMismatchedTags_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidXml("<root></other>"));
-    }
-
-    #endregion
-
-    #region IsValidGuid Tests
-
-    [TestMethod]
-    public void IsValidGuid_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(_library.IsValidGuid(null));
-    }
-
-    [TestMethod]
-    public void IsValidGuid_WhenEmpty_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidGuid(string.Empty));
-    }
-
-    [TestMethod]
-    public void IsValidGuid_WhenValid_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidGuid("550e8400-e29b-41d4-a716-446655440000"));
-    }
-
-    [TestMethod]
-    public void IsValidGuid_WhenValidNoBraces_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidGuid("550e8400e29b41d4a716446655440000"));
-    }
-
-    [TestMethod]
-    public void IsValidGuid_WhenInvalid_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidGuid("not-a-guid"));
-    }
-
-    #endregion
-
-    #region IsValidInteger Tests
-
-    [TestMethod]
-    public void IsValidInteger_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(_library.IsValidInteger(null));
-    }
-
-    [TestMethod]
-    public void IsValidInteger_WhenPositive_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidInteger("12345"));
-    }
-
-    [TestMethod]
-    public void IsValidInteger_WhenNegative_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidInteger("-12345"));
-    }
-
-    [TestMethod]
-    public void IsValidInteger_WhenZero_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidInteger("0"));
-    }
-
-    [TestMethod]
-    public void IsValidInteger_WhenDecimal_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidInteger("12.34"));
-    }
-
-    [TestMethod]
-    public void IsValidInteger_WhenText_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidInteger("abc"));
-    }
-
-    #endregion
-
-    #region IsValidDecimal Tests
-
-    [TestMethod]
-    public void IsValidDecimal_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(_library.IsValidDecimal(null));
-    }
-
-    [TestMethod]
-    public void IsValidDecimal_WhenInteger_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidDecimal("12345"));
-    }
-
     [TestMethod]
-    public void IsValidDecimal_WhenDecimal_ReturnsTrue()
+    [DataRow(null, null)]
+    [DataRow("", false)]
+    [DataRow("   ", false)]
+    [DataRow("test@example.com", true)]
+    [DataRow("user@mail.example.com", true)]
+    [DataRow("test+label@example.com", true)]
+    [DataRow("testexample.com", false)]
+    [DataRow("test@", false)]
+    public void IsValidEmail_WhenValueProvided_ReturnsExpected(string? value, bool? expected)
     {
-        Assert.IsTrue(_library.IsValidDecimal("123,456"));
+        Assert.AreEqual(expected, Library.IsValidEmail(value));
     }
 
     [TestMethod]
-    public void IsValidDecimal_WhenNegative_ReturnsTrue()
+    [DataRow(null, null)]
+    [DataRow("", false)]
+    [DataRow("   ", false)]
+    [DataRow("http://example.com", true)]
+    [DataRow("https://example.com", true)]
+    [DataRow("ftp://example.com", true)]
+    [DataRow("ftp://files.example.com", true)]
+    [DataRow("ftps://example.com", true)]
+    [DataRow("https://example.com/path/to/resource", true)]
+    [DataRow("https://example.com?query=value", true)]
+    [DataRow("/path/to/resource", false)]
+    [DataRow("mailto:test@example.com", false)]
+    [DataRow("not a url", false)]
+    public void IsValidUrl_WhenValueProvided_ReturnsExpected(string? value, bool? expected)
     {
-        Assert.IsTrue(_library.IsValidDecimal("-123,456"));
+        Assert.AreEqual(expected, Library.IsValidUrl(value));
     }
 
-    [TestMethod]
-    public void IsValidDecimal_WhenText_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidDecimal("abc"));
-    }
-
-    #endregion
-
-    #region IsValidDateTime Tests
-
-    [TestMethod]
-    public void IsValidDateTime_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(_library.IsValidDateTime(null));
-    }
-
-    [TestMethod]
-    public void IsValidDateTime_WhenValidIso_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidDateTime("2023-12-25T10:30:00"));
-    }
-
-    [TestMethod]
-    public void IsValidDateTime_WhenValidDate_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidDateTime("2023-12-25"));
-    }
-
-    [TestMethod]
-    public void IsValidDateTime_WhenInvalid_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidDateTime("not-a-date"));
-    }
-
-    #endregion
-
-    #region IsValidIPv4 Tests
-
-    [TestMethod]
-    public void IsValidIPv4_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(_library.IsValidIPv4(null));
-    }
-
-    [TestMethod]
-    public void IsValidIPv4_WhenValid_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidIPv4("192.168.1.1"));
-    }
-
-    [TestMethod]
-    public void IsValidIPv4_WhenLocalhost_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidIPv4("127.0.0.1"));
-    }
-
-    [TestMethod]
-    public void IsValidIPv4_WhenZeros_ReturnsTrue()
+    [TestMethod]
+    [DataRow(null, null)]
+    [DataRow("", false)]
+    [DataRow("   ", false)]
+    [DataRow("http://example.com", true)]
+    [DataRow("mailto:test@example.com", true)]
+    [DataRow("file:///c:/path/to/file", true)]
+    [DataRow("file:///c:/path", true)]
+    [DataRow("not a uri", false)]
+    public void IsValidUri_WhenValueProvided_ReturnsExpected(string? value, bool? expected)
     {
-        Assert.IsTrue(_library.IsValidIPv4("0.0.0.0"));
+        Assert.AreEqual(expected, Library.IsValidUri(value));
     }
 
     [TestMethod]
-    public void IsValidIPv4_WhenMax_ReturnsTrue()
+    [DataRow(null, null)]
+    [DataRow("", false)]
+    [DataRow("   ", false)]
+    [DataRow("{\"key\": \"value\"}", true)]
+    [DataRow("[1, 2, 3]", true)]
+    [DataRow("\"hello\"", true)]
+    [DataRow("123.45", true)]
+    [DataRow("true", true)]
+    [DataRow("null", true)]
+    [DataRow("{key: value}", false)]
+    [DataRow("{\"key\": \"value\"", false)]
+    [DataRow("{invalid json}", false)]
+    public void IsValidJson_WhenValueProvided_ReturnsExpected(string? value, bool? expected)
     {
-        Assert.IsTrue(_library.IsValidIPv4("255.255.255.255"));
+        Assert.AreEqual(expected, Library.IsValidJson(value));
     }
 
-    [TestMethod]
-    public void IsValidIPv4_WhenTooFewParts_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidIPv4("192.168.1"));
-    }
-
-    [TestMethod]
-    public void IsValidIPv4_WhenValueTooHigh_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidIPv4("192.168.1.256"));
-    }
-
-    [TestMethod]
-    public void IsValidIPv4_WhenNegative_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidIPv4("192.168.-1.1"));
-    }
-
-    #endregion
-
-    #region IsValidBoolean Tests
-
-    [TestMethod]
-    public void IsValidBoolean_WhenNull_ReturnsNull()
-    {
-        Assert.IsNull(_library.IsValidBoolean(null));
-    }
-
-    [TestMethod]
-    public void IsValidBoolean_WhenTrue_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidBoolean("true"));
-        Assert.IsTrue(_library.IsValidBoolean("TRUE"));
-        Assert.IsTrue(_library.IsValidBoolean("True"));
-    }
-
-    [TestMethod]
-    public void IsValidBoolean_WhenFalse_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidBoolean("false"));
-        Assert.IsTrue(_library.IsValidBoolean("FALSE"));
-    }
-
-    [TestMethod]
-    public void IsValidBoolean_WhenYesNo_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidBoolean("yes"));
-        Assert.IsTrue(_library.IsValidBoolean("no"));
-    }
-
-    [TestMethod]
-    public void IsValidBoolean_WhenOneZero_ReturnsTrue()
-    {
-        Assert.IsTrue(_library.IsValidBoolean("1"));
-        Assert.IsTrue(_library.IsValidBoolean("0"));
+    [TestMethod]
+    [DataRow(null, null)]
+    [DataRow("", false)]
+    [DataRow("   ", false)]
+    [DataRow("<root>content</root>", true)]
+    [DataRow("<root attr=\"value\">content</root>", true)]
+    [DataRow("<root><child>content</child></root>", true)]
+    [DataRow("<root><child>text</child></root>", true)]
+    [DataRow("<?xml version=\"1.0\"?><root/>", true)]
+    [DataRow("<root>", false)]
+    [DataRow("<root></other>", false)]
+    [DataRow("<root><unclosed>", false)]
+    public void IsValidXml_WhenValueProvided_ReturnsExpected(string? value, bool? expected)
+    {
+        Assert.AreEqual(expected, Library.IsValidXml(value));
+    }
+
+    [TestMethod]
+    [DataRow(null, null)]
+    [DataRow("", false)]
+    [DataRow("   ", false)]
+    [DataRow("550e8400-e29b-41d4-a716-446655440000", true)]
+    [DataRow("550e8400e29b41d4a716446655440000", true)]
+    [DataRow("{550e8400-e29b-41d4-a716-446655440000}", true)]
+    [DataRow("not-a-guid", false)]
+    public void IsValidGuid_WhenValueProvided_ReturnsExpected(string? value, bool? expected)
+    {
+        Assert.AreEqual(expected, Library.IsValidGuid(value));
+    }
+
+    [TestMethod]
+    [DataRow(null, null)]
+    [DataRow("", false)]
+    [DataRow("   ", false)]
+    [DataRow("12345", true)]
+    [DataRow("-12345", true)]
+    [DataRow("0", true)]
+    [DataRow("12.34", false)]
+    [DataRow("abc", false)]
+    public void IsValidInteger_WhenValueProvided_ReturnsExpected(string? value, bool? expected)
+    {
+        Assert.AreEqual(expected, Library.IsValidInteger(value));
+    }
+
+    [TestMethod]
+    [DataRow(null, null)]
+    [DataRow("", false)]
+    [DataRow("   ", false)]
+    [DataRow("12345", true)]
+    [DataRow("123,456", true)]
+    [DataRow("-123,456", true)]
+    [DataRow("12,34", true)]
+    [DataRow("-12,34", true)]
+    [DataRow("abc", false)]
+    public void IsValidDecimal_WhenValueProvided_ReturnsExpected(string? value, bool? expected)
+    {
+        Assert.AreEqual(expected, Library.IsValidDecimal(value));
+    }
+
+    [TestMethod]
+    [DataRow(null, null)]
+    [DataRow("", false)]
+    [DataRow("   ", false)]
+    [DataRow("2023-12-25T10:30:00", true)]
+    [DataRow("2023-12-25", true)]
+    [DataRow("2024-01-15T10:30:00Z", true)]
+    [DataRow("2024-01-15", true)]
+    [DataRow("not-a-date", false)]
+    [DataRow("not a date", false)]
+    public void IsValidDateTime_WhenValueProvided_ReturnsExpected(string? value, bool? expected)
+    {
+        Assert.AreEqual(expected, Library.IsValidDateTime(value));
+    }
+
+    [TestMethod]
+    [DataRow(null, null)]
+    [DataRow("", false)]
+    [DataRow("   ", false)]
+    [DataRow("192.168.1.1", true)]
+    [DataRow("127.0.0.1", true)]
+    [DataRow("0.0.0.0", true)]
+    [DataRow("255.255.255.255", true)]
+    [DataRow("192.168.1", false)]
+    [DataRow("192.168.1.256", false)]
+    [DataRow("192.168.-1.1", false)]
+    [DataRow("192.168.1.1.1", false)]
+    [DataRow("192.168.1.abc", false)]
+    public void IsValidIPv4_WhenValueProvided_ReturnsExpected(string? value, bool? expected)
+    {
+        Assert.AreEqual(expected, Library.IsValidIPv4(value));
+    }
+
+    [TestMethod]
+    [DataRow(null, null)]
+    [DataRow("", false)]
+    [DataRow("   ", false)]
+    [DataRow("true", true)]
+    [DataRow("TRUE", true)]
+    [DataRow("True", true)]
+    [DataRow("false", true)]
+    [DataRow("FALSE", true)]
+    [DataRow("yes", true)]
+    [DataRow("no", true)]
+    [DataRow("1", true)]
+    [DataRow("0", true)]
+    [DataRow("maybe", false)]
+    [DataRow("2", false)]
+    [DataRow("  true  ", true)]
+    public void IsValidBoolean_WhenValueProvided_ReturnsExpected(string? value, bool? expected)
+    {
+        Assert.AreEqual(expected, Library.IsValidBoolean(value));
     }
-
-    [TestMethod]
-    public void IsValidBoolean_WhenInvalid_ReturnsFalse()
-    {
-        Assert.IsFalse(_library.IsValidBoolean("maybe"));
-        Assert.IsFalse(_library.IsValidBoolean("2"));
-    }
-
-    #endregion
 }

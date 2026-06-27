@@ -54,7 +54,7 @@ public class FieldProcessingHelperTests
     [TestMethod]
     public void CreateFields_WhenEmptyOldFields_ShouldReturnEmptyArray()
     {
-        var oldFields = new FieldNode[0];
+        var oldFields = System.Array.Empty<FieldNode>();
         var nodes = new Stack<Node>();
 
 

@@ -25,14 +25,14 @@ public class UnknownSchema : SchemaBase
         _values = [];
     }
 
-    public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
     {
-        return new UnknownTable(runtimeContext);
+        return new UnknownTable(metadataContext);
     }
 
-    public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
     {
-        return new DynamicSource(_values);
+        return EnsureSourceType<T, IReadOnlyDictionary<string, object?>>(name, new DynamicSource(_values));
     }
 
     private static MethodsAggregator CreateLibrary()

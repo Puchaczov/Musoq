@@ -10,32 +10,32 @@ namespace Musoq.Evaluator.Tests.Schema.Dynamic;
 public class DynamicSchema(
     IReadOnlyDictionary<string, Type> tableSchema,
     IEnumerable<dynamic> values,
-    Func<RuntimeContext, SchemaMethodInfo[]> getRawConstructors = null,
-    Func<string, RuntimeContext, SchemaMethodInfo[]> getRawConstructorsByName = null)
+    Func<SourceMetadataContext, SchemaMethodInfo[]>? getRawConstructors = null,
+    Func<string, SourceMetadataContext, SchemaMethodInfo[]>? getRawConstructorsByName = null)
     : SchemaBase(SchemaName, CachedLibrary.Value)
 {
     private const string SchemaName = "Dynamic";
     private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
 
-    public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
     {
         return new DynamicTable(tableSchema);
     }
 
-    public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
     {
-        return new DynamicSource(values);
+        return EnsureSourceType<T, IReadOnlyDictionary<string, object?>>(name, new DynamicSource(values));
     }
 
-    public override SchemaMethodInfo[] GetRawConstructors(RuntimeContext runtimeContext)
+    public override SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext)
     {
-        return getRawConstructors?.Invoke(runtimeContext) ?? base.GetRawConstructors(runtimeContext);
+        return getRawConstructors?.Invoke(metadataContext) ?? base.GetRawConstructors(metadataContext);
     }
 
-    public override SchemaMethodInfo[] GetRawConstructors(string methodName, RuntimeContext runtimeContext)
+    public override SchemaMethodInfo[] GetRawConstructors(string methodName, SourceMetadataContext metadataContext)
     {
-        return getRawConstructorsByName?.Invoke(methodName, runtimeContext) ??
-               base.GetRawConstructors(methodName, runtimeContext);
+        return getRawConstructorsByName?.Invoke(methodName, metadataContext) ??
+               base.GetRawConstructors(methodName, metadataContext);
     }
 
     private static MethodsAggregator CreateLibrary()

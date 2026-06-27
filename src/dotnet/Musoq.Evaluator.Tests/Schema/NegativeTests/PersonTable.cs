@@ -19,7 +19,7 @@ public class PersonTable : ISchemaTable
         new SchemaColumn(nameof(PersonEntity.Email), 7, typeof(string))
     ];
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(col => col.ColumnName == name);
     }

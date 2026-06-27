@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Musoq.Converter;
+using Musoq.Converter.Build;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Plugins;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Schema.Generic;
@@ -21,18 +22,56 @@ public class GenericEntityTestBase
 
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
+    protected static T RequireParameter<T>(object?[] parameters, int index)
+    {
+        if (parameters[index] is T value)
+            return value;
+
+        throw new AssertFailedException(
+            $"Expected parameter {index} to be {typeof(T).Name}, but got {parameters[index]?.GetType().Name ?? "null"}.");
+    }
+
+    protected BuildItems CreateBuildItems<TFirstEntity, TSecondEntity, TThirdEntity>(
+        string script,
+        TFirstEntity[] first,
+        TSecondEntity[] second,
+        TThirdEntity[] third,
+        Func<TFirstEntity, bool>? filterFirst = null,
+        Func<TSecondEntity, bool>? filterSecond = null,
+        Func<TThirdEntity, bool>? filterThird = null,
+        Func<object?[], RowSourceFilterInput, object?>? filterFirstRowsSource = null,
+        Func<object?[], RowSourceFilterInput, object?>? filterSecondRowsSource = null,
+        Func<object?[], RowSourceFilterInput, object?>? filterThirdRowsSource = null)
+    {
+        var schema = new GenericSchema<GenericLibrary>(
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
+            {
+                { "first", CreateEntitySource(first, filterFirst) },
+                { "second", CreateEntitySource(second, filterSecond) },
+                { "third", CreateEntitySource(third, filterThird) }
+            },
+            new Dictionary<string, Func<object?[], RowSourceFilterInput, object?>?>
+            {
+                { "first", filterFirstRowsSource },
+                { "second", filterSecondRowsSource },
+                { "third", filterThirdRowsSource }
+            });
+
+        return CreateBuildItems(script, schema);
+    }
+
     protected CompiledQuery CreateAndRunVirtualMachine<TFirstEntity>(
         string script,
         TFirstEntity[] first,
-        Func<TFirstEntity, bool> filterFirst = null,
-        Func<object[], RowSource, RowSource> filter = null
+        Func<TFirstEntity, bool>? filterFirst = null,
+        Func<object?[], RowSourceFilterInput, object?>? filter = null
     )
     {
         var schema = new GenericSchema<GenericLibrary>(
-            new Dictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)>
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
                 { "first", CreateEntitySource(first, filterFirst) }
-            }, new Dictionary<string, Func<object[], RowSource, RowSource>>
+            }, new Dictionary<string, Func<object?[], RowSourceFilterInput, object?>?>
             {
                 { "first", filter }
             });
@@ -43,14 +82,14 @@ public class GenericEntityTestBase
     protected CompiledQuery CreateAndRunVirtualMachine<TFirstEntity, TLibrary>(
         string script,
         TFirstEntity[] first,
-        Func<TFirstEntity, bool> filterFirst = null,
-        Func<object[], RowSource, RowSource> filter = null
+        Func<TFirstEntity, bool>? filterFirst = null,
+        Func<object?[], RowSourceFilterInput, object?>? filter = null
     ) where TLibrary : LibraryBase, new()
     {
-        var schema = new GenericSchema<TLibrary>(new Dictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)>
+        var schema = new GenericSchema<TLibrary>(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
         {
             { "first", CreateEntitySource(first, filterFirst) }
-        }, new Dictionary<string, Func<object[], RowSource, RowSource>>
+        }, new Dictionary<string, Func<object?[], RowSourceFilterInput, object?>?>
         {
             { "first", filter }
         });
@@ -62,18 +101,18 @@ public class GenericEntityTestBase
         string script,
         TFirstEntity[] first,
         TSecondEntity[] second,
-        Func<TFirstEntity, bool> filterFirst = null,
-        Func<TSecondEntity, bool> filterSecond = null,
-        Func<object[], RowSource, RowSource> filterFirstRowsSource = null,
-        Func<object[], RowSource, RowSource> filterSecondRowsSource = null
+        Func<TFirstEntity, bool>? filterFirst = null,
+        Func<TSecondEntity, bool>? filterSecond = null,
+        Func<object?[], RowSourceFilterInput, object?>? filterFirstRowsSource = null,
+        Func<object?[], RowSourceFilterInput, object?>? filterSecondRowsSource = null
     )
     {
         var schema = new GenericSchema<GenericLibrary>(
-            new Dictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)>
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
                 { "first", CreateEntitySource(first, filterFirst) },
                 { "second", CreateEntitySource(second, filterSecond) }
-            }, new Dictionary<string, Func<object[], RowSource, RowSource>>
+            }, new Dictionary<string, Func<object?[], RowSourceFilterInput, object?>?>
             {
                 { "first", filterFirstRowsSource },
                 { "second", filterSecondRowsSource }
@@ -87,21 +126,21 @@ public class GenericEntityTestBase
         TFirstEntity[] first,
         TSecondEntity[] second,
         TThirdEntity[] third,
-        Func<TFirstEntity, bool> filterFirst = null,
-        Func<TSecondEntity, bool> filterSecond = null,
-        Func<TThirdEntity, bool> filterThird = null,
-        Func<object[], RowSource, RowSource> filterFirstRowsSource = null,
-        Func<object[], RowSource, RowSource> filterSecondRowsSource = null,
-        Func<object[], RowSource, RowSource> filterThirdRowsSource = null
+        Func<TFirstEntity, bool>? filterFirst = null,
+        Func<TSecondEntity, bool>? filterSecond = null,
+        Func<TThirdEntity, bool>? filterThird = null,
+        Func<object?[], RowSourceFilterInput, object?>? filterFirstRowsSource = null,
+        Func<object?[], RowSourceFilterInput, object?>? filterSecondRowsSource = null,
+        Func<object?[], RowSourceFilterInput, object?>? filterThirdRowsSource = null
     )
     {
         var schema = new GenericSchema<GenericLibrary>(
-            new Dictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)>
+            new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
             {
                 { "first", CreateEntitySource(first, filterFirst) },
                 { "second", CreateEntitySource(second, filterSecond) },
                 { "third", CreateEntitySource(third, filterThird) }
-            }, new Dictionary<string, Func<object[], RowSource, RowSource>>
+            }, new Dictionary<string, Func<object?[], RowSourceFilterInput, object?>?>
             {
                 { "first", filterFirstRowsSource },
                 { "second", filterSecondRowsSource },
@@ -114,8 +153,10 @@ public class GenericEntityTestBase
     private CompiledQuery CreateAndRunVirtualMachine(
         string script,
         ISchema schema,
-        IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables = null)
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? SourceRuntimeSettingsBySourceContextId = null)
     {
+        _ = SourceRuntimeSettingsBySourceContextId;
+
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
@@ -127,18 +168,30 @@ public class GenericEntityTestBase
             TestCompilationOptions);
     }
 
-    private static (ISchemaTable SchemaTable, RowSource RowSource) CreateEntitySource<T>(
-        T[] entities, Func<T, bool> filter = null)
+    private BuildItems CreateBuildItems(string script, ISchema schema)
+    {
+        return InstanceCreator.CreateForAnalyze(
+            script,
+            Guid.NewGuid().ToString(),
+            new GenericSchemaProvider(new Dictionary<string, ISchema>
+            {
+                { "#schema", schema }
+            }),
+            LoggerResolver);
+    }
+
+    private static (ISchemaTable SchemaTable, object RowSource) CreateEntitySource<T>(
+        T[] entities, Func<T, bool>? filter = null)
     {
         return (new GenericEntityTable<T>(),
-            new GenericRowsSource<T>(entities, GenericEntityTable<T>.NameToIndexMap,
+            new GenericChunkSource<T>(entities, GenericEntityTable<T>.NameToIndexMap,
                 GenericEntityTable<T>.IndexToObjectAccessMap, filter));
     }
 
-    private static IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> CreateMockedEnvironmentVariables()
+    private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> CreateMockedEnvironmentVariables()
     {
-        var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
-        environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
+        var environmentVariablesMock = new Mock<IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>();
+        environmentVariablesMock.Setup(f => f[It.IsAny<string>()]).Returns(new Dictionary<string, string>());
 
         return environmentVariablesMock.Object;
     }

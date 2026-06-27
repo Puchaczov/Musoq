@@ -8,38 +8,38 @@ namespace Musoq.Evaluator.Tests;
 /// </summary>
 public abstract class ExploratoryEvaluatorTestsBase : GenericEntityTestBase
 {
-    public TestContext TestContext { get; set; }
+    public TestContext TestContext { get; set; } = null!;
 
     #region Test Data Classes
 
     public class Person
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public int Age { get; set; }
-        public string[] Tags { get; set; }
-        public int[] Scores { get; set; }
-        public Address[] Addresses { get; set; }
-        public Person Manager { get; set; }
+        public string[]? Tags { get; set; } = [];
+        public int[] Scores { get; set; } = [];
+        public Address[]? Addresses { get; set; } = [];
+        public Person? Manager { get; set; }
     }
 
     public class Address
     {
-        public string City { get; set; }
-        public string Street { get; set; }
-        public string[] PhoneNumbers { get; set; }
+        public string City { get; set; } = string.Empty;
+        public string Street { get; set; } = string.Empty;
+        public string[] PhoneNumbers { get; set; } = [];
     }
 
     public class Order
     {
         public int OrderId { get; set; }
-        public string CustomerName { get; set; }
-        public OrderItem[] Items { get; set; }
+        public string CustomerName { get; set; } = string.Empty;
+        public OrderItem[] Items { get; set; } = [];
         public decimal Total { get; set; }
     }
 
     public class OrderItem
     {
-        public string ProductName { get; set; }
+        public string ProductName { get; set; } = string.Empty;
         public int Quantity { get; set; }
         public decimal Price { get; set; }
     }
@@ -47,8 +47,8 @@ public abstract class ExploratoryEvaluatorTestsBase : GenericEntityTestBase
     public class TreeNode
     {
         public int Id { get; set; }
-        public string Value { get; set; }
-        public TreeNode[] Children { get; set; }
+        public string Value { get; set; } = string.Empty;
+        public TreeNode[] Children { get; set; } = [];
     }
 
     #endregion

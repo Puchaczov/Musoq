@@ -15,13 +15,7 @@ public class ParserExceptionsAndTokensTests
     #region Helper Classes
 
     // Concrete implementation for testing Token base class
-    private class TestToken : Token
-    {
-        public TestToken(string value, TokenType type, TextSpan span)
-            : base(value, type, span)
-        {
-        }
-    }
+    private sealed class TestToken(string value, TokenType type, TextSpan span) : Token(value, type, span);
 
     #endregion
 
@@ -57,7 +51,7 @@ public class ParserExceptionsAndTokensTests
         var exception = new ParserValidationException("msg");
 
         // Assert
-        Assert.IsInstanceOfType(exception, typeof(ArgumentException));
+        Assert.IsInstanceOfType<ArgumentException>(exception);
     }
 
     [TestMethod]
@@ -137,7 +131,7 @@ public class ParserExceptionsAndTokensTests
         var exception = new SyntaxException("msg", "part");
 
         // Assert
-        Assert.IsInstanceOfType(exception, typeof(Exception));
+        Assert.IsInstanceOfType<Exception>(exception);
     }
 
     #endregion
@@ -163,7 +157,7 @@ public class ParserExceptionsAndTokensTests
         var exception = new UnknownTokenException(0, 'x', "query");
 
         // Assert
-        Assert.IsInstanceOfType(exception, typeof(Exception));
+        Assert.IsInstanceOfType<Exception>(exception);
     }
 
     [TestMethod]
@@ -433,36 +427,4 @@ public class ParserExceptionsAndTokensTests
 
     #endregion
 
-    #region VarArgToken Tests
-
-    [TestMethod]
-    public void VarArgToken_Constructor_WithArgsCount_ShouldSetValue()
-    {
-        // Arrange & Act
-        var token = new VarArgToken(3);
-
-        // Assert
-        Assert.AreEqual(TokenType.VarArg, token.TokenType);
-        Assert.AreEqual("arg", token.Value);
-    }
-
-    [TestMethod]
-    public void VarArgToken_Constructor_WithName_ShouldSetValue()
-    {
-        // Arrange & Act
-        var token = new VarArgToken("customArg");
-
-        // Assert
-        Assert.AreEqual(TokenType.VarArg, token.TokenType);
-        Assert.AreEqual("customArg", token.Value);
-    }
-
-    [TestMethod]
-    public void VarArgToken_TokenText_ShouldBeArg()
-    {
-        // Arrange & Act & Assert
-        Assert.AreEqual("arg", VarArgToken.TokenText);
-    }
-
-    #endregion
 }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tables;
-using Musoq.Plugins;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -12,103 +11,8 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class TablesTests
 {
-    #region TableIndex Tests
-
-    [TestMethod]
-    public void TableIndex_Constructor_ShouldSetColumnName()
-    {
-        // Arrange & Act
-        var index = new TableIndex("TestColumn");
-
-        // Assert
-        Assert.AreEqual("TestColumn", index.ColumnName);
-    }
-
-    [TestMethod]
-    public void TableIndex_Equals_SameColumnName_ShouldReturnTrue()
-    {
-        // Arrange
-        var index1 = new TableIndex("Column1");
-        var index2 = new TableIndex("Column1");
-
-        // Act & Assert
-        Assert.IsTrue(index1.Equals(index2));
-    }
-
-    [TestMethod]
-    public void TableIndex_Equals_DifferentColumnName_ShouldReturnFalse()
-    {
-        // Arrange
-        var index1 = new TableIndex("Column1");
-        var index2 = new TableIndex("Column2");
-
-        // Act & Assert
-        Assert.IsFalse(index1.Equals(index2));
-    }
-
-    [TestMethod]
-    public void TableIndex_Equals_Null_ShouldReturnFalse()
-    {
-        // Arrange
-        var index1 = new TableIndex("Column1");
-
-        // Act & Assert
-        Assert.IsFalse(index1.Equals(null));
-    }
-
-    [TestMethod]
-    public void TableIndex_Equals_SameReference_ShouldReturnTrue()
-    {
-        // Arrange
-        var index1 = new TableIndex("Column1");
-
-        // Act & Assert
-        Assert.IsTrue(index1.Equals(index1));
-    }
-
-    [TestMethod]
-    public void TableIndex_Equals_Object_ShouldWork()
-    {
-        // Arrange
-        var index1 = new TableIndex("Column1");
-        object index2 = new TableIndex("Column1");
-
-        // Act & Assert
-        Assert.IsTrue(index1.Equals(index2));
-    }
-
-    [TestMethod]
-    public void TableIndex_Equals_DifferentType_ShouldReturnFalse()
-    {
-        // Arrange
-        var index = new TableIndex("Column1");
-
-        // Act & Assert
-        Assert.IsFalse(index.Equals("Column1"));
-    }
-
-    [TestMethod]
-    public void TableIndex_GetHashCode_SameColumnName_ShouldBeSame()
-    {
-        // Arrange
-        var index1 = new TableIndex("Column1");
-        var index2 = new TableIndex("Column1");
-
-        // Act & Assert
-        Assert.AreEqual(index1.GetHashCode(), index2.GetHashCode());
-    }
-
-    [TestMethod]
-    public void TableIndex_GetHashCode_NullColumnName_ShouldReturnZero()
-    {
-        // Arrange
-        var index = new TableIndex(null);
-
-        // Act & Assert
-        Assert.AreEqual(0, index.GetHashCode());
-    }
-
-    #endregion
+    private static object?[] RequireContexts(TestRow row) =>
+        row.Contexts ?? throw new AssertFailedException("Expected row contexts.");
 
     #region Key Tests
 
@@ -232,7 +136,7 @@ public class TablesTests
     {
         // Arrange
         var key = new Key(["A"], [0]);
-        var row = new ObjectsRow(["A", 1]);
+        var row = new TestRow(["A", 1]);
 
         // Act
         var result = key.DoesRowMatchKey(row);
@@ -246,7 +150,7 @@ public class TablesTests
     {
         // Arrange
         var key = new Key(["B"], [0]);
-        var row = new ObjectsRow(["A", 1]);
+        var row = new TestRow(["A", 1]);
 
         // Act
         var result = key.DoesRowMatchKey(row);
@@ -257,16 +161,16 @@ public class TablesTests
 
     #endregion
 
-    #region ObjectsRow Tests
+    #region TestRow Tests
 
     [TestMethod]
-    public void ObjectsRow_Constructor_WithValues_ShouldSetProperties()
+    public void TestRow_Constructor_WithValues_ShouldSetProperties()
     {
         // Arrange
         var values = new object[] { "A", 1, true };
 
         // Act
-        var row = new ObjectsRow(values);
+        var row = new TestRow(values);
 
         // Assert
         Assert.AreEqual(3, row.Count);
@@ -276,21 +180,21 @@ public class TablesTests
     }
 
     [TestMethod]
-    public void ObjectsRow_Constructor_WithContexts_ShouldSetContexts()
+    public void TestRow_Constructor_WithContexts_ShouldSetContexts()
     {
         // Arrange
         var values = new object[] { "A" };
         var contexts = new object[] { "context1" };
 
         // Act
-        var row = new ObjectsRow(values, contexts);
+        var row = new TestRow(values, contexts);
 
         // Assert
         Assert.AreEqual(contexts, row.Contexts);
     }
 
     [TestMethod]
-    public void ObjectsRow_Constructor_WithLeftAndRightContexts_ShouldConcatenate()
+    public void TestRow_Constructor_WithLeftAndRightContexts_ShouldConcatenate()
     {
         // Arrange
         var values = new object[] { "A" };
@@ -298,139 +202,142 @@ public class TablesTests
         var rightContexts = new object[] { "right" };
 
         // Act
-        var row = new ObjectsRow(values, leftContexts, rightContexts);
+        var row = new TestRow(values, leftContexts, rightContexts);
 
         // Assert
-        Assert.HasCount(2, row.Contexts);
-        Assert.AreEqual("left", row.Contexts[0]);
-        Assert.AreEqual("right", row.Contexts[1]);
+        var contexts = RequireContexts(row);
+        Assert.HasCount(2, contexts);
+        Assert.AreEqual("left", contexts[0]);
+        Assert.AreEqual("right", contexts[1]);
     }
 
     [TestMethod]
-    public void ObjectsRow_Constructor_WithNullLeftContext_ShouldHandleCorrectly()
+    public void TestRow_Constructor_WithNullLeftContext_ShouldHandleCorrectly()
     {
         // Arrange
         var values = new object[] { "A" };
-        object[] leftContexts = null;
+        object?[]? leftContexts = null;
         var rightContexts = new object[] { "right" };
 
         // Act
-        var row = new ObjectsRow(values, leftContexts, rightContexts);
+        var row = new TestRow(values, leftContexts, rightContexts);
 
         // Assert
-        Assert.HasCount(2, row.Contexts);
-        Assert.IsNull(row.Contexts[0]);
-        Assert.AreEqual("right", row.Contexts[1]);
+        var contexts = RequireContexts(row);
+        Assert.HasCount(2, contexts);
+        Assert.IsNull(contexts[0]);
+        Assert.AreEqual("right", contexts[1]);
     }
 
     [TestMethod]
-    public void ObjectsRow_Constructor_WithNullRightContext_ShouldHandleCorrectly()
+    public void TestRow_Constructor_WithNullRightContext_ShouldHandleCorrectly()
     {
         // Arrange
         var values = new object[] { "A" };
         var leftContexts = new object[] { "left" };
-        object[] rightContexts = null;
+        object?[]? rightContexts = null;
 
         // Act
-        var row = new ObjectsRow(values, leftContexts, rightContexts);
+        var row = new TestRow(values, leftContexts, rightContexts);
 
         // Assert
-        Assert.HasCount(2, row.Contexts);
-        Assert.AreEqual("left", row.Contexts[0]);
-        Assert.IsNull(row.Contexts[1]);
+        var contexts = RequireContexts(row);
+        Assert.HasCount(2, contexts);
+        Assert.AreEqual("left", contexts[0]);
+        Assert.IsNull(contexts[1]);
     }
 
     [TestMethod]
-    public void ObjectsRow_Constructor_BothContextsNull_ShouldThrow()
+    public void TestRow_Constructor_BothContextsNull_ShouldThrow()
     {
         // Arrange
         var values = new object[] { "A" };
 
         // Act & Assert
-        Assert.Throws<NotSupportedException>(() => new ObjectsRow(values, null, null));
+        Assert.Throws<NotSupportedException>(() => new TestRow(values, null, null));
     }
 
     [TestMethod]
-    public void ObjectsRow_Values_ShouldReturnOriginalArray()
+    public void TestRow_Values_ShouldReturnOriginalArray()
     {
         // Arrange
         var values = new object[] { "A", 1 };
-        var row = new ObjectsRow(values);
+        var row = new TestRow(values);
 
         // Act & Assert
         Assert.AreSame(values, row.Values);
     }
 
     [TestMethod]
-    public void ObjectsRow_Equals_SameValues_ShouldReturnTrue()
+    public void TestRow_Equals_SameValues_ShouldReturnTrue()
     {
         // Arrange
-        var row1 = new ObjectsRow(["A", 1]);
-        var row2 = new ObjectsRow(["A", 1]);
+        var row1 = new TestRow(["A", 1]);
+        var row2 = new TestRow(["A", 1]);
 
         // Act & Assert
         Assert.IsTrue(row1.Equals(row2));
     }
 
     [TestMethod]
-    public void ObjectsRow_Equals_DifferentValues_ShouldReturnFalse()
+    public void TestRow_Equals_DifferentValues_ShouldReturnFalse()
     {
         // Arrange
-        var row1 = new ObjectsRow(["A", 1]);
-        var row2 = new ObjectsRow(["B", 1]);
+        var row1 = new TestRow(["A", 1]);
+        var row2 = new TestRow(["B", 1]);
 
         // Act & Assert
         Assert.IsFalse(row1.Equals(row2));
     }
 
     [TestMethod]
-    public void ObjectsRow_Equals_DifferentCount_ShouldReturnFalse()
+    public void TestRow_Equals_DifferentCount_ShouldReturnFalse()
     {
         // Arrange
-        var row1 = new ObjectsRow(["A", 1]);
-        var row2 = new ObjectsRow(["A"]);
+        var row1 = new TestRow(["A", 1]);
+        var row2 = new TestRow(["A"]);
 
         // Act & Assert
         Assert.IsFalse(row1.Equals(row2));
     }
 
     [TestMethod]
-    public void ObjectsRow_Equals_Null_ShouldReturnFalse()
+    public void TestRow_Equals_Null_ShouldReturnFalse()
     {
         // Arrange
-        var row1 = new ObjectsRow(["A"]);
+        var row1 = new TestRow(["A"]);
 
         // Act & Assert
         Assert.IsFalse(row1.Equals(null));
     }
 
     [TestMethod]
-    public void ObjectsRow_Equals_Object_ShouldWork()
+    public void TestRow_Equals_Object_ShouldWork()
     {
         // Arrange
-        var row1 = new ObjectsRow(["A"]);
-        object row2 = new ObjectsRow(["A"]);
+        var row1 = new TestRow(["A"]);
+        object row2 = new TestRow(["A"]);
 
         // Act & Assert
         Assert.IsTrue(row1.Equals(row2));
     }
 
     [TestMethod]
-    public void ObjectsRow_GetHashCode_SameValues_ShouldBeSame()
+    public void TestRow_GetHashCode_SameValues_ShouldBeSame()
     {
         // Arrange
-        var row1 = new ObjectsRow(["A", 1]);
-        var row2 = new ObjectsRow(["A", 1]);
+        var row1 = new TestRow(["A", 1]);
+        var row2 = new TestRow(["A", 1]);
 
         // Act & Assert
         Assert.AreEqual(row1.GetHashCode(), row2.GetHashCode());
     }
 
     [TestMethod]
-    public void ObjectsRow_FitsTheIndex_ShouldCheckKey()
+    public void TestRow_FitsTheIndex_ShouldCheckKey()
     {
         // Arrange
-        var row = new ObjectsRow(["A", 1]);
+        var row = new TestRow(["A", 1]);
         var key = new Key(["A"], [0]);
 
         // Act
@@ -441,10 +348,10 @@ public class TablesTests
     }
 
     [TestMethod]
-    public void ObjectsRow_CheckWithKey_ShouldMatchKey()
+    public void TestRow_CheckWithKey_ShouldMatchKey()
     {
         // Arrange
-        var row = new ObjectsRow(["A", 1, true]);
+        var row = new TestRow(["A", 1, true]);
         var key = new Key([1], [1]);
 
         // Act
@@ -455,10 +362,10 @@ public class TablesTests
     }
 
     [TestMethod]
-    public void ObjectsRow_CheckWithKey_NoMatch_ShouldReturnFalse()
+    public void TestRow_CheckWithKey_NoMatch_ShouldReturnFalse()
     {
         // Arrange
-        var row = new ObjectsRow(["A", 1]);
+        var row = new TestRow(["A", 1]);
         var key = new Key([2], [1]);
 
         // Act
@@ -466,242 +373,6 @@ public class TablesTests
 
         // Assert
         Assert.IsFalse(result);
-    }
-
-    #endregion
-
-    #region GroupKey Tests
-
-    [TestMethod]
-    public void GroupKey_Constructor_ShouldSetValues()
-    {
-        // Arrange & Act
-        var key = new GroupKey("A", 1, true);
-
-        // Assert
-        Assert.HasCount(3, key.Values);
-        Assert.AreEqual("A", key.Values[0]);
-        Assert.AreEqual(1, key.Values[1]);
-        Assert.IsTrue((bool?)key.Values[2]);
-    }
-
-    [TestMethod]
-    public void GroupKey_Equals_SameValues_ShouldReturnTrue()
-    {
-        // Arrange
-        var key1 = new GroupKey("A", 1);
-        var key2 = new GroupKey("A", 1);
-
-        // Act & Assert
-        Assert.IsTrue(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void GroupKey_Equals_DifferentValues_ShouldReturnFalse()
-    {
-        // Arrange
-        var key1 = new GroupKey("A", 1);
-        var key2 = new GroupKey("B", 1);
-
-        // Act & Assert
-        Assert.IsFalse(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void GroupKey_Equals_Null_ShouldReturnFalse()
-    {
-        // Arrange
-        var key1 = new GroupKey("A");
-
-        // Act & Assert
-        Assert.IsFalse(key1.Equals(null));
-    }
-
-    [TestMethod]
-    public void GroupKey_Equals_SameReference_ShouldReturnTrue()
-    {
-        // Arrange
-        var key = new GroupKey("A");
-
-        // Act & Assert
-        Assert.IsTrue(key.Equals(key));
-    }
-
-    [TestMethod]
-    public void GroupKey_Equals_WithNullValues_ShouldHandleCorrectly()
-    {
-        // Arrange
-        var key1 = new GroupKey(null, "A");
-        var key2 = new GroupKey(null, "A");
-
-        // Act & Assert - Fixed: Now uses typed Equals(GroupKey) which handles null values correctly
-        Assert.IsTrue(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void GroupKey_Equals_OneNullOneValue_ShouldReturnFalse()
-    {
-        // Arrange
-        var key1 = new GroupKey(null, "A");
-        var key2 = new GroupKey("B", "A");
-
-        // Act & Assert - Fixed: Now uses typed Equals(GroupKey) which handles null values correctly
-        Assert.IsFalse(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void GroupKey_Equals_ValueNull_ShouldReturnFalse()
-    {
-        // Arrange
-        var key1 = new GroupKey("B", "A");
-        var key2 = new GroupKey(null, "A");
-
-        // Act & Assert
-        Assert.IsFalse(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void GroupKey_Equals_Object_ShouldWork()
-    {
-        // Arrange
-        var key1 = new GroupKey("A");
-        object key2 = new GroupKey("A");
-
-        // Act & Assert
-        Assert.IsTrue(key1.Equals(key2));
-    }
-
-    [TestMethod]
-    public void GroupKey_Equals_DifferentType_ShouldReturnFalse()
-    {
-        // Arrange
-        var key = new GroupKey("A");
-
-        // Act & Assert
-        Assert.IsFalse(key.Equals("A"));
-    }
-
-    [TestMethod]
-    public void GroupKey_Equals_DifferentCounts_ShouldReturnFalse()
-    {
-        // Arrange
-        var key1 = new GroupKey("A", "B");
-        var key2 = new GroupKey("A");
-
-        // Act & Assert - Note: Use Equals(object) as Equals(GroupKey) throws on different lengths
-        Assert.IsFalse(key1.Equals((object)key2));
-    }
-
-    [TestMethod]
-    public void GroupKey_ToString_ShouldReturnCommaSeparatedValues()
-    {
-        // Arrange
-        var key = new GroupKey("A", 1, true);
-
-        // Act
-        var result = key.ToString();
-
-        // Assert
-        Assert.AreEqual("A,1,True", result);
-    }
-
-    [TestMethod]
-    public void GroupKey_ToString_WithNull_ShouldShowNull()
-    {
-        // Arrange
-        var key = new GroupKey(null, "A");
-
-        // Act
-        var result = key.ToString();
-
-        // Assert
-        Assert.Contains("null", result);
-    }
-
-    [TestMethod]
-    public void GroupKey_GetHashCode_SameValues_ShouldBeSame()
-    {
-        // Arrange
-        var key1 = new GroupKey("A", 1);
-        var key2 = new GroupKey("A", 1);
-
-        // Act & Assert
-        Assert.AreEqual(key1.GetHashCode(), key2.GetHashCode());
-    }
-
-    [TestMethod]
-    public void GroupKey_GetHashCode_WithNull_ShouldNotThrow()
-    {
-        // Arrange
-        var key = new GroupKey(null, "A");
-
-        // Act & Assert
-        var hash = key.GetHashCode(); // Should not throw
-        Assert.AreEqual(hash, key.GetHashCode());
-    }
-
-    #endregion
-
-    #region GroupRow Tests
-
-    [TestMethod]
-    public void GroupRow_Count_ShouldReturnColumnCount()
-    {
-        // Arrange
-        var group = new Group(null, ["col1"], ["value1"]);
-
-        var columnMapping = new Dictionary<int, string>
-        {
-            { 0, "col1" }
-        };
-
-        var row = new GroupRow(group, columnMapping);
-
-        // Act & Assert
-        Assert.AreEqual(1, row.Count);
-    }
-
-    [TestMethod]
-    public void GroupRow_Indexer_ShouldReturnValueFromGroup()
-    {
-        // Arrange
-        var group = new Group(null, ["col1"], ["testValue"]);
-
-        var columnMapping = new Dictionary<int, string>
-        {
-            { 0, "col1" }
-        };
-
-        var row = new GroupRow(group, columnMapping);
-
-        // Act
-        var result = row[0];
-
-        // Assert
-        Assert.AreEqual("testValue", result);
-    }
-
-    [TestMethod]
-    public void GroupRow_Values_ShouldReturnAllValues()
-    {
-        // Arrange
-        var group = new Group(null, ["col1", "col2"], ["value1", 42]);
-
-        var columnMapping = new Dictionary<int, string>
-        {
-            { 0, "col1" },
-            { 1, "col2" }
-        };
-
-        var row = new GroupRow(group, columnMapping);
-
-        // Act
-        var values = row.Values;
-
-        // Assert
-        Assert.HasCount(2, values);
-        Assert.AreEqual("value1", values[0]);
-        Assert.AreEqual(42, values[1]);
     }
 
     #endregion
@@ -741,7 +412,7 @@ public class TablesTests
     {
         // Arrange
         var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
-        var row = new ObjectsRow(["value1"]);
+        var row = new TestRow(["value1"]);
 
         // Act
         table.Add(row);
@@ -755,7 +426,7 @@ public class TablesTests
     {
         // Arrange
         var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
-        var row = new ObjectsRow(["value1"]);
+        var row = new TestRow(["value1"]);
         table.Add(row);
 
         // Act
@@ -770,7 +441,7 @@ public class TablesTests
     {
         // Arrange
         var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
-        var row = new ObjectsRow(["value1"]);
+        var row = new TestRow(["value1"]);
         table.Add(row);
 
         // Act
@@ -785,8 +456,8 @@ public class TablesTests
     {
         // Arrange
         var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
-        var row1 = new ObjectsRow(["value1"]);
-        var row2 = new ObjectsRow(["value2"]);
+        var row1 = new TestRow(["value1"]);
+        var row2 = new TestRow(["value2"]);
         table.Add(row1);
 
         // Act
@@ -800,16 +471,83 @@ public class TablesTests
     public void Table_GetEnumerator_ShouldEnumerateRows()
     {
         // Arrange
-        var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
-        table.Add(new ObjectsRow(["value1"]));
-        table.Add(new ObjectsRow(["value2"]));
+        var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]) { new TestRow(["value1"]), new TestRow(["value2"]) };
 
         // Act
         var count = 0;
-        foreach (var row in table) count++;
+        foreach (var _ in table) count++;
 
         // Assert
         Assert.AreEqual(2, count);
+    }
+
+    [TestMethod]
+    public void Table_AddDirectDeferred_ShouldFlushRowsWhenRead()
+    {
+        // Arrange
+        var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
+        IReadOnlyList<TestRow>[] shards =
+        [
+            [new TestRow(["value1"]), new TestRow(["value2"])],
+            [new TestRow(["value3"])]
+        ];
+
+        // Act
+        table.AddDirectDeferred(shards);
+
+        // Assert
+        Assert.AreEqual(3, table.Count);
+        Assert.AreEqual("value1", table[0][0]);
+        Assert.AreEqual("value2", table[1][0]);
+        Assert.AreEqual("value3", table[2][0]);
+    }
+
+    [TestMethod]
+    public void Table_AddDirectDeferred_WithRowShards_ShouldFlushExactCountsWhenRead()
+    {
+        // Arrange
+        var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
+        var firstShardRows = new[]
+        {
+            new TestRow(["value1"]),
+            new TestRow(["value2"]),
+            new TestRow(["ignored"])
+        };
+        RowShard<TestRow>[] shards =
+        [
+            new(firstShardRows, 2),
+            new([new TestRow(["value3"])], 1)
+        ];
+
+        // Act
+        table.AddDirectDeferred(shards);
+
+        // Assert
+        Assert.AreEqual(3, table.Count);
+        Assert.AreEqual("value1", table[0][0]);
+        Assert.AreEqual("value2", table[1][0]);
+        Assert.AreEqual("value3", table[2][0]);
+    }
+
+    [TestMethod]
+    public void Table_AddDirectDeferred_WithRowsAndCount_ShouldFlushExactCountWhenRead()
+    {
+        // Arrange
+        var table = new Table("TestTable", [new Column("Col1", typeof(string), 0)]);
+        var rows = new[]
+        {
+            new TestRow(["value1"]),
+            new TestRow(["value2"]),
+            new TestRow(["ignored"])
+        };
+
+        // Act
+        table.AddDirectDeferred(rows, 2);
+
+        // Assert
+        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual("value1", table[0][0]);
+        Assert.AreEqual("value2", table[1][0]);
     }
 
     #endregion

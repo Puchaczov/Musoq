@@ -30,7 +30,7 @@ public class SchemaEdgeCaseFeatureTests
             binary Item { Value: byte };
             binary Container { Count: byte, Items: Item[Count] };
             select i.Value from #test.files() b
-            cross apply Interpret(b.Content, 'Container') c
+            cross apply Interpret<Container>(b.Content) c
             cross apply c.Items i";
 
         var testData = new byte[] { 0x00 };
@@ -58,7 +58,7 @@ public class SchemaEdgeCaseFeatureTests
         var query = @"
             binary Minimal { Value: byte };
             select d.Value from #test.files() b
-            cross apply Interpret(b.Content, 'Minimal') d";
+            cross apply Interpret<Minimal>(b.Content) d";
 
         var testData = new byte[] { 0xFF };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -90,7 +90,7 @@ public class SchemaEdgeCaseFeatureTests
                 MaxInt: int le
             };
             select d.MaxByte, d.MaxShort, d.MaxInt from #test.files() b
-            cross apply Interpret(b.Content, 'MaxTypes') d";
+            cross apply Interpret<MaxTypes>(b.Content) d";
 
         var testData = new byte[]
         {
@@ -129,9 +129,9 @@ public class SchemaEdgeCaseFeatureTests
                 C: int le
             };
             select d.A, d.B, d.C from #test.files() b
-            cross apply Interpret(b.Content, 'ZeroData') d";
+            cross apply Interpret<ZeroData>(b.Content) d";
 
-        var testData = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        var testData = "\u0000\u0000\u0000\u0000\u0000\u0000\u0000"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -162,7 +162,7 @@ public class SchemaEdgeCaseFeatureTests
                 Payload: int le when HasPayload <> 0
             };
             select d.HasPayload, d.Payload from #test.bytes() b
-            cross apply Interpret(b.Content, 'Data') d
+            cross apply Interpret<Data>(b.Content) d
             order by d.HasPayload asc";
 
         var entities = new[]
@@ -201,7 +201,7 @@ public class SchemaEdgeCaseFeatureTests
                 Suffix: byte
             };
             select d.Text, d.Suffix from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var testData = new byte[] { 0x00, 0xAB };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -233,7 +233,7 @@ public class SchemaEdgeCaseFeatureTests
                 Data: byte
             };
             select b.Name, d.Data from #test.files() b
-            cross apply TryInterpret(b.Content, 'Packet') d
+            cross apply TryInterpret<Packet>(b.Content) d
             where d.Data is not null
             order by d.Data asc";
 
@@ -274,7 +274,7 @@ public class SchemaEdgeCaseFeatureTests
                 Section: between '[' ']'
             };
             select d.Section from #test.lines() l
-            cross apply TryParse(l.Line, 'Config') d
+            cross apply TryParse<Config>(l.Line) d
             where d.Section is not null
             order by d.Section asc";
 
@@ -310,7 +310,7 @@ public class SchemaEdgeCaseFeatureTests
             binary Item { Value: short le };
             binary Container { Count: byte, Items: Item[Count] };
             select i.Value from #test.files() b
-            cross apply Interpret(b.Content, 'Container') c
+            cross apply Interpret<Container>(b.Content) c
             cross apply c.Items i";
 
         var testData = new byte[] { 0x01, 0x2A, 0x00 };
@@ -343,7 +343,7 @@ public class SchemaEdgeCaseFeatureTests
                 SignedInt: int le
             };
             select d.SignedByte, d.SignedShort, d.SignedInt from #test.files() b
-            cross apply Interpret(b.Content, 'SignedData') d";
+            cross apply Interpret<SignedData>(b.Content) d";
 
         var testData = new byte[]
         {
@@ -378,7 +378,7 @@ public class SchemaEdgeCaseFeatureTests
         var query = @"
             text Data { Prefix: until ':', Suffix: rest };
             select d.Prefix, d.Suffix from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[]
         {
@@ -412,7 +412,7 @@ public class SchemaEdgeCaseFeatureTests
                 IntBE: int be
             };
             select n.ShortBE, n.IntBE from #test.files() b
-            cross apply Interpret(b.Content, 'NetworkPacket') n";
+            cross apply Interpret<NetworkPacket>(b.Content) n";
 
         var testData = new byte[]
         {
@@ -450,7 +450,7 @@ public class SchemaEdgeCaseFeatureTests
                 IsHigh: = Raw > 100
             };
             select d.Raw, d.TimesTwo, d.PlusTen, d.IsHigh from #test.bytes() b
-            cross apply Interpret(b.Content, 'Data') d
+            cross apply Interpret<Data>(b.Content) d
             order by d.Raw asc";
 
         var entities = new[]
@@ -487,7 +487,7 @@ public class SchemaEdgeCaseFeatureTests
                 UIntVal: uint le
             };
             select d.UByte, d.UShortVal, d.UIntVal from #test.files() b
-            cross apply Interpret(b.Content, 'UnsignedMax') d";
+            cross apply Interpret<UnsignedMax>(b.Content) d";
 
         var testData = new byte[]
         {
@@ -526,7 +526,7 @@ public class SchemaEdgeCaseFeatureTests
                 Trailer: byte
             };
             select d.Len, d.Trailer from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var testData = new byte[] { 0x00, 0xAA };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };

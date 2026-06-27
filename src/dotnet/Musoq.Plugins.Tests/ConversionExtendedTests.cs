@@ -20,25 +20,25 @@ public class ConversionExtendedTests : PluginsTestBase
     [TestMethod]
     public void ToBin_EmptyBytes_ReturnsEmptyString()
     {
-        Assert.AreEqual("", Library.ToBin(Array.Empty<byte>()));
+        Assert.AreEqual("", Library.ToBin([]));
     }
 
     [TestMethod]
     public void ToBin_SingleByte_ReturnsBinary()
     {
-        Assert.AreEqual("11111111", Library.ToBin(new byte[] { 255 }));
+        Assert.AreEqual("11111111", Library.ToBin([255]));
     }
 
     [TestMethod]
     public void ToBin_MultipleBytes_ReturnsBinary()
     {
-        Assert.AreEqual("0000000111111111", Library.ToBin(new byte[] { 1, 255 }));
+        Assert.AreEqual("0000000111111111", Library.ToBin([1, 255]));
     }
 
     [TestMethod]
     public void ToBin_WithDelimiter_ReturnsBinaryWithDelimiter()
     {
-        var result = Library.ToBin(new byte[] { 1, 255 }, " ");
+        var result = Library.ToBin([1, 255], " ");
         Assert.AreEqual("00000001 11111111 ", result);
     }
 
@@ -114,20 +114,20 @@ public class ConversionExtendedTests : PluginsTestBase
     [TestMethod]
     public void ToBase64_EmptyBytes_ReturnsEmpty()
     {
-        Assert.AreEqual("", Library.ToBase64(Array.Empty<byte>()));
+        Assert.AreEqual("", Library.ToBase64([]));
     }
 
     [TestMethod]
     public void ToBase64_ValidBytes_ReturnsBase64()
     {
-        var bytes = new byte[] { 72, 101, 108, 108, 111 };
+        var bytes = "Hello"u8.ToArray();
         Assert.AreEqual("SGVsbG8=", Library.ToBase64(bytes));
     }
 
     [TestMethod]
     public void ToBase64_WithOffsetAndLength_ReturnsBase64()
     {
-        var bytes = new byte[] { 72, 101, 108, 108, 111 };
+        var bytes = "Hello"u8.ToArray();
         var result = Library.ToBase64(bytes, 0, 3);
         Assert.AreEqual("SGVs", result);
     }
@@ -187,7 +187,7 @@ public class ConversionExtendedTests : PluginsTestBase
     {
         var result = Library.FromBase64("SGVsbG8=");
         Assert.IsNotNull(result);
-        CollectionAssert.AreEqual(new byte[] { 72, 101, 108, 108, 111 }, result);
+        CollectionAssert.AreEqual("Hello"u8.ToArray(), result);
     }
 
     #endregion

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Musoq.Evaluator.Tests.Components;
@@ -15,8 +15,8 @@ public class TextEntity
         { nameof(Line), 1 } // Alias for Text
     };
 
-    public static readonly IReadOnlyDictionary<int, Func<TextEntity, object>> IndexToObjectAccessMap =
-        new Dictionary<int, Func<TextEntity, object>>
+    public static readonly IReadOnlyDictionary<int, Func<TextEntity, object?>> IndexToObjectAccessMap =
+        new Dictionary<int, Func<TextEntity, object?>>
         {
             { 0, e => e.Name },
             { 1, e => e.Text }

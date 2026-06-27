@@ -30,7 +30,7 @@ public class BinaryCheckConstraintFeatureTests
                 Magic: int le check Magic = 0x12345678
             };
             select h.Magic from #test.files() b
-            cross apply Interpret(b.Content, 'Header') h";
+            cross apply Interpret<Header>(b.Content) h";
 
         var testData = new byte[] { 0x78, 0x56, 0x34, 0x12 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -60,7 +60,7 @@ public class BinaryCheckConstraintFeatureTests
                 Version: byte check Version >= 1 AND Version <= 10
             };
             select d.Version from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var testData = new byte[] { 0x05 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -90,9 +90,9 @@ public class BinaryCheckConstraintFeatureTests
                 Magic: int le check Magic = 0xDEADBEEF
             };
             select h.Magic from #test.files() b
-            outer apply TryInterpret(b.Content, 'Header') h";
+            outer apply TryInterpret<Header>(b.Content) h";
 
-        var testData = new byte[] { 0x00, 0x00, 0x00, 0x00 };
+        var testData = "\u0000\u0000\u0000\u0000"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -122,7 +122,7 @@ public class BinaryCheckConstraintFeatureTests
                 Length: short le
             };
             select r.Magic, r.Version, r.Length from #test.files() b
-            cross apply Interpret(b.Content, 'Record') r";
+            cross apply Interpret<Record>(b.Content) r";
 
         var testData = new byte[]
         {
@@ -160,11 +160,11 @@ public class BinaryCheckConstraintFeatureTests
                 Size: int le
             };
             select b.Name, h.Size from #test.files() b
-            outer apply TryInterpret(b.Content, 'ValidFile') h
+            outer apply TryInterpret<ValidFile>(b.Content) h
             where h.Magic is not null";
 
-        var validData = new byte[] { 0xCD, 0xAB, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00 };
-        var invalidData = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00 };
+        var validData = "\u036B\u0000\u0000d\u0000\u0000\u0000"u8.ToArray();
+        var invalidData = "\u0000\u0000\u0000\u0000d\u0000\u0000\u0000"u8.ToArray();
         var entities = new[]
         {
             new BinaryEntity { Name = "valid.bin", Content = validData },

@@ -1,3 +1,4 @@
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -38,7 +39,7 @@ public class CrossApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -127,7 +128,7 @@ public class CrossApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -201,7 +202,7 @@ public class CrossApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -257,9 +258,9 @@ public class CrossApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()),
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray(),
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -328,9 +329,9 @@ public class CrossApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()),
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray(),
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -381,9 +382,9 @@ public class CrossApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()),
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray(),
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -430,7 +431,7 @@ public class CrossApplyTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray()));
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -475,28 +476,28 @@ public class CrossApplyTests : GenericEntityTestBase
             "Missing Country2/3000/March row");
     }
 
-    private class CrossApplyClass1
+    private sealed class CrossApplyClass1
     {
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        public string Country { get; set; }
+        public string Country { get; set; } = string.Empty;
 
         public int Population { get; set; }
     }
 
-    private class CrossApplyClass2
+    private sealed class CrossApplyClass2
     {
-        public string Country { get; set; }
+        public string Country { get; set; } = string.Empty;
 
         public decimal Money { get; set; }
 
-        public string Month { get; set; }
+        public string Month { get; set; } = string.Empty;
     }
 
-    private class CrossApplyClass3
+    private sealed class CrossApplyClass3
     {
-        public string Country { get; set; }
+        public string Country { get; set; } = string.Empty;
 
-        public string Address { get; set; }
+        public string Address { get; set; } = string.Empty;
     }
 }

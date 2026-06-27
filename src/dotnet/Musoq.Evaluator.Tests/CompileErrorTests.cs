@@ -58,21 +58,22 @@ public class CompileErrorTests : NegativeTestsBase
     #region 4.2 Alias / Scope Violations in Compiled Code
 
     [TestMethod]
-    public void CE010_SelectAliasUsedInWhere_ShouldThrowCompileError()
+    public void CE010_SelectAliasUsedInWhere_ShouldCompileAndFilterByAlias()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Name AS FileName FROM #test.people() WHERE FileName = 'test'"));
+        var vm = CompileQuery("SELECT Name AS FileName FROM #test.people() WHERE FileName = 'Alice'");
+        var table = vm.Run(TokenSource.Token);
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "FileName");
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("Alice", table[0][0]);
     }
 
     [TestMethod]
-    public void CE011_SelectAliasUsedInGroupBy_ShouldThrowError()
+    public void CE011_SelectAliasUsedInGroupBy_ShouldCompileAndGroupByAlias()
     {
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT Length(Name) AS NameLen FROM #test.people() GROUP BY NameLen"));
+        var vm = CompileQuery("SELECT Length(Name) AS NameLen, Count(1) FROM #test.people() GROUP BY NameLen");
+        var table = vm.Run(TokenSource.Token);
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3001_UnknownColumn, DiagnosticPhase.Bind, "NameLen");
+        Assert.AreEqual(3, table.Count);
     }
 
     #endregion

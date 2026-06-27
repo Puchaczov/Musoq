@@ -1,91 +1,76 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Numerics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class SumIncomeTests : PluginsTestBase
+public class SumIncomeTests
 {
     [TestMethod]
-    public void SumIncomeIntTest()
+    public void SumIncomeAggregateKernel_SumsOnlyNonNegativeValues()
     {
-        Library.SetSumIncome(Group, "test", 1);
-        Library.SetSumIncome(Group, "test", 4);
-        Library.SetSumIncome(Group, "test", 6);
-        Library.SetSumIncome(Group, "test", (int?)null);
-
-        Library.SetSumIncome(Group, "test", -4);
-
-        Assert.AreEqual(11m, Library.SumIncome(Group, "test"));
+        AssertIncome(1, 4, -6, 0, 5);
+        AssertIncome<long>(1, 4, -6, 0, 5);
+        AssertIncome(1.5f, 4.5f, -6.5f, 0f, 6f);
+        AssertIncome(1.5, 4.5, -6.5, 0, 6);
+        AssertIncome(1m, 2m, -4m, 0m, 3m);
     }
 
     [TestMethod]
-    public void SumIncomeIntParentTest()
+    public void SumIncomeAggregateKernel_EmptyStateReturnsNull()
     {
-        Library.SetSumIncome(Group, "test", 1, 1);
-        Library.SetSumIncome(Group, "test", 4, 1);
-        Library.SetSumIncome(Group, "test", 6);
-        Library.SetSumIncome(Group, "test", (int?)null);
+        var state = new SumIncomeAggregateKernel<int>.State();
 
-        Library.SetSumIncome(Group, "test", -4, 1);
-        Library.SetSumIncome(Group, "test", -3);
-
-        Assert.AreEqual(5, Library.SumIncome(Group, "test", 1));
-        Assert.AreEqual(6, Library.SumIncome(Group, "test"));
+        Assert.IsNull(SumIncomeAggregateKernel<int>.Get(in state));
     }
 
     [TestMethod]
-    public void SumIncomeLongTest()
+    public void SumIncomeAggregateKernel_AllNegativeOrNullInputsReturnNull()
     {
-        Library.SetSumIncome(Group, "test", 1L);
-        Library.SetSumIncome(Group, "test", 4L);
-        Library.SetSumIncome(Group, "test", 6L);
-        Library.SetSumIncome(Group, "test", (long?)null);
+        var state = new SumIncomeAggregateKernel<int>.State();
 
-        Library.SetSumIncome(Group, "test", -4);
+        SumIncomeAggregateKernel<int>.Set(ref state, -1);
+        SumIncomeAggregateKernel<int>.Set(ref state, null);
+        SumIncomeAggregateKernel<int>.Set(ref state, -4);
 
-        Assert.AreEqual(11m, Library.SumIncome(Group, "test"));
+        Assert.IsNull(SumIncomeAggregateKernel<int>.Get(in state));
     }
 
     [TestMethod]
-    public void SumIncomeLongParentTest()
+    public void SumIncomeAggregateKernel_ZeroIsAQualifyingIncomeValue()
     {
-        Library.SetSumIncome(Group, "test", 1L, 1);
-        Library.SetSumIncome(Group, "test", 4L, 1);
-        Library.SetSumIncome(Group, "test", 6L);
-        Library.SetSumIncome(Group, "test", (long?)null, 1);
+        var state = new SumIncomeAggregateKernel<int>.State();
 
-        Library.SetSumIncome(Group, "test", -4, 1);
-        Library.SetSumIncome(Group, "test", -3);
+        SumIncomeAggregateKernel<int>.Set(ref state, 0);
 
-        Assert.AreEqual(5m, Library.SumIncome(Group, "test", 1));
-        Assert.AreEqual(6m, Library.SumIncome(Group, "test"));
+        Assert.AreEqual(0, SumIncomeAggregateKernel<int>.Get(in state));
     }
 
     [TestMethod]
-    public void SumIncomeDecimalTest()
+    public void SumIncomeAggregateKernel_MergeCombinesOnlyQualifiedPartialStates()
     {
-        Library.SetSumIncome(Group, "test", 1m);
-        Library.SetSumIncome(Group, "test", 2m);
-        Library.SetSumIncome(Group, "test", 3m);
-        Library.SetSumIncome(Group, "test", (decimal?)null);
+        var target = new SumIncomeAggregateKernel<decimal>.State();
+        var source = new SumIncomeAggregateKernel<decimal>.State();
 
-        Library.SetSumIncome(Group, "test", -4);
+        SumIncomeAggregateKernel<decimal>.Set(ref target, 2m);
+        SumIncomeAggregateKernel<decimal>.Set(ref target, -10m);
+        SumIncomeAggregateKernel<decimal>.Set(ref source, 3m);
+        SumIncomeAggregateKernel<decimal>.Merge(ref target, in source);
 
-        Assert.AreEqual(6m, Library.SumIncome(Group, "test"));
+        Assert.AreEqual(5m, SumIncomeAggregateKernel<decimal>.Get(in target));
     }
 
-    [TestMethod]
-    public void SumIncomeDecimalParentTest()
+    private static void AssertIncome<T>(T first, T second, T third, T fourth, T expected)
+        where T : struct, INumber<T>
     {
-        Library.SetSumIncome(Group, "test", 1m, 1);
-        Library.SetSumIncome(Group, "test", 4m, 1);
-        Library.SetSumIncome(Group, "test", 6m);
-        Library.SetSumIncome(Group, "test", (decimal?)null, 1);
+        var state = new SumIncomeAggregateKernel<T>.State();
 
-        Library.SetSumIncome(Group, "test", -4, 1);
-        Library.SetSumIncome(Group, "test", -3);
+        SumIncomeAggregateKernel<T>.Set(ref state, first);
+        SumIncomeAggregateKernel<T>.Set(ref state, null);
+        SumIncomeAggregateKernel<T>.Set(ref state, second);
+        SumIncomeAggregateKernel<T>.Set(ref state, third);
+        SumIncomeAggregateKernel<T>.Set(ref state, fourth);
 
-        Assert.AreEqual(5m, Library.SumIncome(Group, "test", 1));
-        Assert.AreEqual(6m, Library.SumIncome(Group, "test"));
+        Assert.AreEqual(expected, SumIncomeAggregateKernel<T>.Get(in state));
     }
 }

@@ -209,7 +209,7 @@ public class DataUtilsExtendedTests : PluginsTestBase
     {
         var result = Library.ToHumanReadableSize((long)(1.5 * 1024 * 1024));
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("1") && result.Contains("5") && result.Contains("MB"));
+        Assert.IsTrue(result.Contains('1') && result.Contains('5') && result.Contains("MB"));
     }
 
     #endregion
@@ -620,7 +620,7 @@ public class DataUtilsExtendedTests : PluginsTestBase
     {
         var result = Library.FormatXml("<root><child>text</child></root>");
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains("\n") || result.Contains("<root>"));
+        Assert.IsTrue(result.Contains('\n') || result.Contains("<root>"));
     }
 
     [TestMethod]

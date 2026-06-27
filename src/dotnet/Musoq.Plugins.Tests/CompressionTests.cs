@@ -1,494 +1,365 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class CompressionTests : PluginsTestBase
+public sealed class CompressionTests : PluginsTestBase
 {
+    private const string ZLib = "ZLib";
+    private const string GZip = "GZip";
+    private const string Deflate = "Deflate";
+    private const string Brotli = "Brotli";
     private const string TestXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root><item>Hello World</item></root>";
     private const string TestText = "Hello, World! This is a test string for compression.";
-
-    #region ZLib Tests
+    private const string UnicodeText = "Hello \u4e16\u754c! \u041f\u0440\u0438\u0432\u0435\u0442 \u043c\u0438\u0440! \U0001f30d";
 
     [TestMethod]
-    public void CompressZLib_WhenStringProvided_ShouldReturnCompressedBytes()
+    [DynamicData(nameof(Codecs))]
+    public void CompressString_WhenValueProvided_ReturnsCompressedBytes(string codec)
     {
-        var compressed = Library.CompressZLib(TestText);
+        var compressed = CompressString(codec, TestText);
 
-        Assert.IsNotNull(compressed);
-        Assert.IsNotEmpty(compressed);
+        AssertCompressedBytes(compressed);
     }
 
     [TestMethod]
-    public void CompressZLib_WhenNullString_ShouldReturnNull()
+    [DynamicData(nameof(Codecs))]
+    public void CompressString_WhenNullProvided_ReturnsNull(string codec)
     {
-        var compressed = Library.CompressZLib((string?)null);
+        var compressed = CompressString(codec, null);
 
         Assert.IsNull(compressed);
     }
 
     [TestMethod]
-    public void CompressZLib_WhenBytesProvided_ShouldReturnCompressedBytes()
+    [DynamicData(nameof(Codecs))]
+    public void CompressBytes_WhenValueProvided_ReturnsCompressedBytes(string codec)
     {
         var data = Encoding.UTF8.GetBytes(TestText);
-        var compressed = Library.CompressZLib(data);
+        var compressed = CompressBytes(codec, data);
 
-        Assert.IsNotNull(compressed);
-        Assert.IsNotEmpty(compressed);
+        AssertCompressedBytes(compressed);
     }
 
     [TestMethod]
-    public void CompressZLib_WhenNullBytes_ShouldReturnNull()
+    [DynamicData(nameof(Codecs))]
+    public void CompressBytes_WhenNullProvided_ReturnsNull(string codec)
     {
-        var compressed = Library.CompressZLib((byte[]?)null);
+        var compressed = CompressBytes(codec, null);
 
         Assert.IsNull(compressed);
     }
 
     [TestMethod]
-    public void DecompressZLib_WhenCompressedBytesProvided_ShouldReturnOriginalString()
+    [DynamicData(nameof(Codecs))]
+    public void CompressBytes_WhenEmptyProvided_ReturnsNull(string codec)
     {
-        var compressed = Library.CompressZLib(TestText);
-        var decompressed = Library.DecompressZLib(compressed);
+        var compressed = CompressBytes(codec, []);
 
-        Assert.AreEqual(TestText, decompressed);
+        Assert.IsNull(compressed);
     }
 
     [TestMethod]
-    public void DecompressZLib_WhenNullProvided_ShouldReturnNull()
+    [DynamicData(nameof(Codecs))]
+    public void Decompress_WhenNullProvided_ReturnsNull(string codec)
     {
-        var decompressed = Library.DecompressZLib(null);
+        var decompressed = Decompress(codec, null);
 
         Assert.IsNull(decompressed);
     }
 
     [TestMethod]
-    public void DecompressZLib_WhenEmptyArrayProvided_ShouldReturnNull()
+    [DynamicData(nameof(Codecs))]
+    public void Decompress_WhenEmptyProvided_ReturnsNull(string codec)
     {
-        var decompressed = Library.DecompressZLib([]);
+        var decompressed = Decompress(codec, []);
 
         Assert.IsNull(decompressed);
     }
 
     [TestMethod]
-    public void DecompressZLib_WithEncoding_ShouldReturnOriginalString()
+    [DynamicData(nameof(Codecs))]
+    public void DecompressWithEncoding_WhenNullProvided_ReturnsNull(string codec)
     {
-        var compressed = Library.CompressZLib(TestText);
-        var decompressed = Library.DecompressZLib(compressed, "UTF-8");
+        var decompressed = DecompressWithEncoding(codec, null, "UTF-8");
+
+        Assert.IsNull(decompressed);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(Codecs))]
+    public void DecompressWithEncoding_WhenEmptyProvided_ReturnsNull(string codec)
+    {
+        var decompressed = DecompressWithEncoding(codec, [], "UTF-8");
+
+        Assert.IsNull(decompressed);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(Codecs))]
+    public void DecompressToBytes_WhenNullProvided_ReturnsNull(string codec)
+    {
+        var decompressed = DecompressToBytes(codec, null);
+
+        Assert.IsNull(decompressed);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(Codecs))]
+    public void DecompressToBytes_WhenEmptyProvided_ReturnsNull(string codec)
+    {
+        var decompressed = DecompressToBytes(codec, []);
+
+        Assert.IsNull(decompressed);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(Codecs))]
+    public void RoundTrip_WhenStringCompressed_ReturnsOriginalString(string codec)
+    {
+        var compressed = CompressString(codec, TestText);
+        var decompressed = Decompress(codec, compressed);
 
         Assert.AreEqual(TestText, decompressed);
     }
 
     [TestMethod]
-    public void DecompressZLibToBytes_WhenCompressedBytesProvided_ShouldReturnOriginalBytes()
+    [DynamicData(nameof(Codecs))]
+    public void RoundTrip_WhenEncodingProvided_ReturnsOriginalString(string codec)
+    {
+        var compressed = CompressString(codec, TestText);
+        var decompressed = DecompressWithEncoding(codec, compressed, "UTF-8");
+
+        Assert.AreEqual(TestText, decompressed);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(Codecs))]
+    public void RoundTrip_WhenBytesCompressed_ReturnsOriginalBytes(string codec)
     {
         var originalBytes = Encoding.UTF8.GetBytes(TestText);
-        var compressed = Library.CompressZLib(originalBytes);
-        var decompressed = Library.DecompressZLibToBytes(compressed);
+        var compressed = CompressBytes(codec, originalBytes);
+        var decompressed = DecompressToBytes(codec, compressed);
 
         CollectionAssert.AreEqual(originalBytes, decompressed);
     }
 
     [TestMethod]
-    public void CompressZLibToBase64_WhenStringProvided_ShouldReturnBase64String()
+    [DynamicData(nameof(Codecs))]
+    public void CompressToBase64_WhenStringProvided_ReturnsBase64(string codec)
     {
-        var base64Compressed = Library.CompressZLibToBase64(TestText);
+        var compressed = CompressToBase64(codec, TestText);
 
-        Assert.IsNotNull(base64Compressed);
-        Assert.IsFalse(string.IsNullOrEmpty(base64Compressed));
-
-
-        var bytes = Convert.FromBase64String(base64Compressed);
-        Assert.IsNotEmpty(bytes);
+        AssertBase64Payload(compressed);
     }
 
     [TestMethod]
-    public void CompressZLibToBase64_WhenNull_ShouldReturnNull()
+    [DynamicData(nameof(Codecs))]
+    public void CompressToBase64_WhenNullProvided_ReturnsNull(string codec)
     {
-        var base64Compressed = Library.CompressZLibToBase64(null);
+        var compressed = CompressToBase64(codec, null);
 
-        Assert.IsNull(base64Compressed);
+        Assert.IsNull(compressed);
     }
 
     [TestMethod]
-    public void DecompressZLibFromBase64_WhenBase64Provided_ShouldReturnOriginalString()
+    [DynamicData(nameof(Codecs))]
+    public void DecompressFromBase64_WhenNullProvided_ReturnsNull(string codec)
     {
-        var base64Compressed = Library.CompressZLibToBase64(TestText);
-        var decompressed = Library.DecompressZLibFromBase64(base64Compressed);
-
-        Assert.AreEqual(TestText, decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressZLibFromBase64_WhenNullProvided_ShouldReturnNull()
-    {
-        var decompressed = Library.DecompressZLibFromBase64(null);
+        var decompressed = DecompressFromBase64(codec, null);
 
         Assert.IsNull(decompressed);
     }
 
     [TestMethod]
-    public void DecompressZLibFromBase64_WhenEmptyProvided_ShouldReturnNull()
+    [DynamicData(nameof(Codecs))]
+    public void DecompressFromBase64_WhenEmptyProvided_ReturnsNull(string codec)
     {
-        var decompressed = Library.DecompressZLibFromBase64(string.Empty);
+        var decompressed = DecompressFromBase64(codec, string.Empty);
 
         Assert.IsNull(decompressed);
     }
 
     [TestMethod]
-    public void DecompressZLibFromBase64_WithEncoding_ShouldReturnOriginalString()
+    [DynamicData(nameof(Codecs))]
+    public void DecompressFromBase64WithEncoding_WhenNullProvided_ReturnsNull(string codec)
     {
-        var base64Compressed = Library.CompressZLibToBase64(TestText);
-        var decompressed = Library.DecompressZLibFromBase64(base64Compressed, "UTF-8");
+        var decompressed = DecompressFromBase64WithEncoding(codec, null, "UTF-8");
+
+        Assert.IsNull(decompressed);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(Codecs))]
+    public void DecompressFromBase64WithEncoding_WhenEmptyProvided_ReturnsNull(string codec)
+    {
+        var decompressed = DecompressFromBase64WithEncoding(codec, string.Empty, "UTF-8");
+
+        Assert.IsNull(decompressed);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(Codecs))]
+    public void Base64RoundTrip_WhenStringCompressed_ReturnsOriginalString(string codec)
+    {
+        var compressed = CompressToBase64(codec, TestText);
+        var decompressed = DecompressFromBase64(codec, compressed);
 
         Assert.AreEqual(TestText, decompressed);
     }
 
     [TestMethod]
-    public void DecompressZLibFromBase64_WithXml_ShouldReturnOriginalXml()
+    [DynamicData(nameof(Codecs))]
+    public void Base64RoundTrip_WhenEncodingProvided_ReturnsOriginalString(string codec)
     {
-        var base64Compressed = Library.CompressZLibToBase64(TestXml);
-        var decompressed = Library.DecompressZLibFromBase64(base64Compressed);
+        var compressed = CompressToBase64(codec, TestText);
+        var decompressed = DecompressFromBase64WithEncoding(codec, compressed, "UTF-8");
+
+        Assert.AreEqual(TestText, decompressed);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(Codecs))]
+    public void Base64RoundTrip_WhenXmlCompressed_ReturnsOriginalXml(string codec)
+    {
+        var compressed = CompressToBase64(codec, TestXml);
+        var decompressed = DecompressFromBase64(codec, compressed);
 
         Assert.AreEqual(TestXml, decompressed);
     }
 
-    #endregion
-
-    #region GZip Tests
-
     [TestMethod]
-    public void CompressGZip_WhenStringProvided_ShouldReturnCompressedBytes()
+    [DynamicData(nameof(Codecs))]
+    public void Base64RoundTrip_WhenUnicodeCompressed_ReturnsOriginalText(string codec)
     {
-        var compressed = Library.CompressGZip(TestText);
+        var compressed = CompressToBase64(codec, UnicodeText);
+        var decompressed = DecompressFromBase64(codec, compressed);
 
+        Assert.AreEqual(UnicodeText, decompressed);
+    }
+
+    public static IEnumerable<object[]> Codecs()
+    {
+        yield return [ZLib];
+        yield return [GZip];
+        yield return [Deflate];
+        yield return [Brotli];
+    }
+
+    private byte[]? CompressString(string codec, string? data)
+    {
+        return codec switch
+        {
+            ZLib => Library.CompressZLib(data),
+            GZip => Library.CompressGZip(data),
+            Deflate => Library.CompressDeflate(data),
+            Brotli => Library.CompressBrotli(data),
+            _ => throw UnknownCodec(codec)
+        };
+    }
+
+    private byte[]? CompressBytes(string codec, byte[]? data)
+    {
+        return codec switch
+        {
+            ZLib => Library.CompressZLib(data),
+            GZip => Library.CompressGZip(data),
+            Deflate => Library.CompressDeflate(data),
+            Brotli => Library.CompressBrotli(data),
+            _ => throw UnknownCodec(codec)
+        };
+    }
+
+    private string? Decompress(string codec, byte[]? data)
+    {
+        return codec switch
+        {
+            ZLib => Library.DecompressZLib(data),
+            GZip => Library.DecompressGZip(data),
+            Deflate => Library.DecompressDeflate(data),
+            Brotli => Library.DecompressBrotli(data),
+            _ => throw UnknownCodec(codec)
+        };
+    }
+
+    private string? DecompressWithEncoding(string codec, byte[]? data, string encoding)
+    {
+        return codec switch
+        {
+            ZLib => Library.DecompressZLib(data, encoding),
+            GZip => Library.DecompressGZip(data, encoding),
+            Deflate => Library.DecompressDeflate(data, encoding),
+            Brotli => Library.DecompressBrotli(data, encoding),
+            _ => throw UnknownCodec(codec)
+        };
+    }
+
+    private byte[]? DecompressToBytes(string codec, byte[]? data)
+    {
+        return codec switch
+        {
+            ZLib => Library.DecompressZLibToBytes(data),
+            GZip => Library.DecompressGZipToBytes(data),
+            Deflate => Library.DecompressDeflateToBytes(data),
+            Brotli => Library.DecompressBrotliToBytes(data),
+            _ => throw UnknownCodec(codec)
+        };
+    }
+
+    private string? CompressToBase64(string codec, string? data)
+    {
+        return codec switch
+        {
+            ZLib => Library.CompressZLibToBase64(data),
+            GZip => Library.CompressGZipToBase64(data),
+            Deflate => Library.CompressDeflateToBase64(data),
+            Brotli => Library.CompressBrotliToBase64(data),
+            _ => throw UnknownCodec(codec)
+        };
+    }
+
+    private string? DecompressFromBase64(string codec, string? data)
+    {
+        return codec switch
+        {
+            ZLib => Library.DecompressZLibFromBase64(data),
+            GZip => Library.DecompressGZipFromBase64(data),
+            Deflate => Library.DecompressDeflateFromBase64(data),
+            Brotli => Library.DecompressBrotliFromBase64(data),
+            _ => throw UnknownCodec(codec)
+        };
+    }
+
+    private string? DecompressFromBase64WithEncoding(string codec, string? data, string encoding)
+    {
+        return codec switch
+        {
+            ZLib => Library.DecompressZLibFromBase64(data, encoding),
+            GZip => Library.DecompressGZipFromBase64(data, encoding),
+            Deflate => Library.DecompressDeflateFromBase64(data, encoding),
+            Brotli => Library.DecompressBrotliFromBase64(data, encoding),
+            _ => throw UnknownCodec(codec)
+        };
+    }
+
+    private static void AssertCompressedBytes(byte[]? compressed)
+    {
         Assert.IsNotNull(compressed);
         Assert.IsNotEmpty(compressed);
     }
 
-    [TestMethod]
-    public void CompressGZip_WhenNullString_ShouldReturnNull()
+    private static void AssertBase64Payload(string? compressed)
     {
-        var compressed = Library.CompressGZip((string?)null);
-
-        Assert.IsNull(compressed);
-    }
-
-    [TestMethod]
-    public void DecompressGZip_WhenCompressedBytesProvided_ShouldReturnOriginalString()
-    {
-        var compressed = Library.CompressGZip(TestText);
-        var decompressed = Library.DecompressGZip(compressed);
-
-        Assert.AreEqual(TestText, decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressGZip_WhenNullProvided_ShouldReturnNull()
-    {
-        var decompressed = Library.DecompressGZip(null);
-
-        Assert.IsNull(decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressGZip_WithEncoding_ShouldReturnOriginalString()
-    {
-        var compressed = Library.CompressGZip(TestText);
-        var decompressed = Library.DecompressGZip(compressed, "UTF-8");
-
-        Assert.AreEqual(TestText, decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressGZipToBytes_WhenCompressedBytesProvided_ShouldReturnOriginalBytes()
-    {
-        var originalBytes = Encoding.UTF8.GetBytes(TestText);
-        var compressed = Library.CompressGZip(originalBytes);
-        var decompressed = Library.DecompressGZipToBytes(compressed);
-
-        CollectionAssert.AreEqual(originalBytes, decompressed);
-    }
-
-    [TestMethod]
-    public void CompressGZipToBase64_WhenStringProvided_ShouldReturnBase64String()
-    {
-        var base64Compressed = Library.CompressGZipToBase64(TestText);
-
-        Assert.IsNotNull(base64Compressed);
-        Assert.IsFalse(string.IsNullOrEmpty(base64Compressed));
-    }
-
-    [TestMethod]
-    public void DecompressGZipFromBase64_WhenBase64Provided_ShouldReturnOriginalString()
-    {
-        var base64Compressed = Library.CompressGZipToBase64(TestText);
-        var decompressed = Library.DecompressGZipFromBase64(base64Compressed);
-
-        Assert.AreEqual(TestText, decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressGZipFromBase64_WhenNullProvided_ShouldReturnNull()
-    {
-        var decompressed = Library.DecompressGZipFromBase64(null);
-
-        Assert.IsNull(decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressGZipFromBase64_WithEncoding_ShouldReturnOriginalString()
-    {
-        var base64Compressed = Library.CompressGZipToBase64(TestText);
-        var decompressed = Library.DecompressGZipFromBase64(base64Compressed, "UTF-8");
-
-        Assert.AreEqual(TestText, decompressed);
-    }
-
-    #endregion
-
-    #region Deflate Tests
-
-    [TestMethod]
-    public void CompressDeflate_WhenStringProvided_ShouldReturnCompressedBytes()
-    {
-        var compressed = Library.CompressDeflate(TestText);
-
         Assert.IsNotNull(compressed);
-        Assert.IsNotEmpty(compressed);
+        var bytes = Convert.FromBase64String(compressed);
+        Assert.IsNotEmpty(bytes);
     }
 
-    [TestMethod]
-    public void CompressDeflate_WhenNullString_ShouldReturnNull()
+    private static ArgumentOutOfRangeException UnknownCodec(string codec)
     {
-        var compressed = Library.CompressDeflate((string?)null);
-
-        Assert.IsNull(compressed);
+        return new ArgumentOutOfRangeException(nameof(codec), codec, "Unknown compression codec.");
     }
-
-    [TestMethod]
-    public void DecompressDeflate_WhenCompressedBytesProvided_ShouldReturnOriginalString()
-    {
-        var compressed = Library.CompressDeflate(TestText);
-        var decompressed = Library.DecompressDeflate(compressed);
-
-        Assert.AreEqual(TestText, decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressDeflate_WhenNullProvided_ShouldReturnNull()
-    {
-        var decompressed = Library.DecompressDeflate(null);
-
-        Assert.IsNull(decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressDeflate_WithEncoding_ShouldReturnOriginalString()
-    {
-        var compressed = Library.CompressDeflate(TestText);
-        var decompressed = Library.DecompressDeflate(compressed, "UTF-8");
-
-        Assert.AreEqual(TestText, decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressDeflateToBytes_WhenCompressedBytesProvided_ShouldReturnOriginalBytes()
-    {
-        var originalBytes = Encoding.UTF8.GetBytes(TestText);
-        var compressed = Library.CompressDeflate(originalBytes);
-        var decompressed = Library.DecompressDeflateToBytes(compressed);
-
-        CollectionAssert.AreEqual(originalBytes, decompressed);
-    }
-
-    [TestMethod]
-    public void CompressDeflateToBase64_WhenStringProvided_ShouldReturnBase64String()
-    {
-        var base64Compressed = Library.CompressDeflateToBase64(TestText);
-
-        Assert.IsNotNull(base64Compressed);
-        Assert.IsFalse(string.IsNullOrEmpty(base64Compressed));
-    }
-
-    [TestMethod]
-    public void DecompressDeflateFromBase64_WhenBase64Provided_ShouldReturnOriginalString()
-    {
-        var base64Compressed = Library.CompressDeflateToBase64(TestText);
-        var decompressed = Library.DecompressDeflateFromBase64(base64Compressed);
-
-        Assert.AreEqual(TestText, decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressDeflateFromBase64_WhenNullProvided_ShouldReturnNull()
-    {
-        var decompressed = Library.DecompressDeflateFromBase64(null);
-
-        Assert.IsNull(decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressDeflateFromBase64_WithEncoding_ShouldReturnOriginalString()
-    {
-        var base64Compressed = Library.CompressDeflateToBase64(TestText);
-        var decompressed = Library.DecompressDeflateFromBase64(base64Compressed, "UTF-8");
-
-        Assert.AreEqual(TestText, decompressed);
-    }
-
-    #endregion
-
-    #region Round-trip Tests with Real XML
-
-    [TestMethod]
-    public void ZLibRoundTrip_WithXml_ShouldPreserveContent()
-    {
-        var xml = "<?xml version=\"1.0\"?><data><record id=\"1\"><name>Test</name><value>123</value></record></data>";
-
-        var compressed = Library.CompressZLibToBase64(xml);
-        var decompressed = Library.DecompressZLibFromBase64(compressed);
-
-        Assert.AreEqual(xml, decompressed);
-    }
-
-    [TestMethod]
-    public void GZipRoundTrip_WithXml_ShouldPreserveContent()
-    {
-        var xml = "<?xml version=\"1.0\"?><data><record id=\"1\"><name>Test</name><value>123</value></record></data>";
-
-        var compressed = Library.CompressGZipToBase64(xml);
-        var decompressed = Library.DecompressGZipFromBase64(compressed);
-
-        Assert.AreEqual(xml, decompressed);
-    }
-
-    [TestMethod]
-    public void DeflateRoundTrip_WithXml_ShouldPreserveContent()
-    {
-        var xml = "<?xml version=\"1.0\"?><data><record id=\"1\"><name>Test</name><value>123</value></record></data>";
-
-        var compressed = Library.CompressDeflateToBase64(xml);
-        var decompressed = Library.DecompressDeflateFromBase64(compressed);
-
-        Assert.AreEqual(xml, decompressed);
-    }
-
-    [TestMethod]
-    public void ZLibRoundTrip_WithUnicodeContent_ShouldPreserveContent()
-    {
-        var text = "Hello 世界! Привет мир! 🌍";
-
-        var compressed = Library.CompressZLibToBase64(text);
-        var decompressed = Library.DecompressZLibFromBase64(compressed);
-
-        Assert.AreEqual(text, decompressed);
-    }
-
-    #endregion
-
-    #region Brotli Tests
-
-    [TestMethod]
-    public void CompressBrotli_WhenStringProvided_ShouldReturnCompressedBytes()
-    {
-        var compressed = Library.CompressBrotli(TestText);
-
-        Assert.IsNotNull(compressed);
-        Assert.IsNotEmpty(compressed);
-    }
-
-    [TestMethod]
-    public void CompressBrotli_WhenNullString_ShouldReturnNull()
-    {
-        var compressed = Library.CompressBrotli((string?)null);
-
-        Assert.IsNull(compressed);
-    }
-
-    [TestMethod]
-    public void DecompressBrotli_WhenCompressedBytesProvided_ShouldReturnOriginalString()
-    {
-        var compressed = Library.CompressBrotli(TestText);
-        var decompressed = Library.DecompressBrotli(compressed);
-
-        Assert.AreEqual(TestText, decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressBrotli_WhenNullProvided_ShouldReturnNull()
-    {
-        var decompressed = Library.DecompressBrotli(null);
-
-        Assert.IsNull(decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressBrotli_WithEncoding_ShouldReturnOriginalString()
-    {
-        var compressed = Library.CompressBrotli(TestText);
-        var decompressed = Library.DecompressBrotli(compressed, "UTF-8");
-
-        Assert.AreEqual(TestText, decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressBrotliToBytes_WhenCompressedBytesProvided_ShouldReturnOriginalBytes()
-    {
-        var originalBytes = Encoding.UTF8.GetBytes(TestText);
-        var compressed = Library.CompressBrotli(originalBytes);
-        var decompressed = Library.DecompressBrotliToBytes(compressed);
-
-        CollectionAssert.AreEqual(originalBytes, decompressed);
-    }
-
-    [TestMethod]
-    public void CompressBrotliToBase64_WhenStringProvided_ShouldReturnBase64String()
-    {
-        var base64Compressed = Library.CompressBrotliToBase64(TestText);
-
-        Assert.IsNotNull(base64Compressed);
-        Assert.IsFalse(string.IsNullOrEmpty(base64Compressed));
-    }
-
-    [TestMethod]
-    public void DecompressBrotliFromBase64_WhenBase64Provided_ShouldReturnOriginalString()
-    {
-        var base64Compressed = Library.CompressBrotliToBase64(TestText);
-        var decompressed = Library.DecompressBrotliFromBase64(base64Compressed);
-
-        Assert.AreEqual(TestText, decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressBrotliFromBase64_WhenNullProvided_ShouldReturnNull()
-    {
-        var decompressed = Library.DecompressBrotliFromBase64(null);
-
-        Assert.IsNull(decompressed);
-    }
-
-    [TestMethod]
-    public void DecompressBrotliFromBase64_WithEncoding_ShouldReturnOriginalString()
-    {
-        var base64Compressed = Library.CompressBrotliToBase64(TestText);
-        var decompressed = Library.DecompressBrotliFromBase64(base64Compressed, "UTF-8");
-
-        Assert.AreEqual(TestText, decompressed);
-    }
-
-    [TestMethod]
-    public void BrotliRoundTrip_WithXml_ShouldPreserveContent()
-    {
-        var xml = "<?xml version=\"1.0\"?><data><record id=\"1\"><name>Test</name><value>123</value></record></data>";
-
-        var compressed = Library.CompressBrotliToBase64(xml);
-        var decompressed = Library.DecompressBrotliFromBase64(compressed);
-
-        Assert.AreEqual(xml, decompressed);
-    }
-
-    #endregion
 }

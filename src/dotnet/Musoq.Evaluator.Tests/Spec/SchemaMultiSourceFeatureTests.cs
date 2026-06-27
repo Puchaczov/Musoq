@@ -32,7 +32,7 @@ public class SchemaMultiSourceFeatureTests
                 Version: byte
             };
             select b.Name, d.Magic, d.Version from #test.files() b
-            cross apply TryInterpret(b.Content, 'Header') d
+            cross apply TryInterpret<Header>(b.Content) d
             where d.Magic is not null
             order by b.Name asc";
 
@@ -69,7 +69,7 @@ public class SchemaMultiSourceFeatureTests
         var query = @"
             text KvPair { Key: until '=', Value: rest };
             select l.Name, d.Key, d.Value from #test.lines() l
-            cross apply TryParse(l.Line, 'KvPair') d
+            cross apply TryParse<KvPair>(l.Line) d
             where d.Key is not null
             order by d.Key asc";
 
@@ -107,7 +107,7 @@ public class SchemaMultiSourceFeatureTests
             binary Point { X: byte, Y: byte };
             binary Shape { PointCount: byte, Points: Point[PointCount] };
             select p.X, p.Y from #test.files() b
-            cross apply Interpret(b.Content, 'Shape') s
+            cross apply Interpret<Shape>(b.Content) s
             cross apply s.Points p
             order by p.X asc, p.Y asc";
 
@@ -148,7 +148,7 @@ public class SchemaMultiSourceFeatureTests
         var query = @"
             binary Header { Magic: int le, Version: byte };
             select b.Name, h.Magic, h.Version from #test.files() b
-            cross apply Interpret(b.Content, 'Header') h
+            cross apply Interpret<Header>(b.Content) h
             order by b.Name asc";
 
         var file1 = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x0A };
@@ -193,7 +193,7 @@ public class SchemaMultiSourceFeatureTests
             binary Header { Version: byte, Flags: byte };
             text Config { Key: until '=', Value: rest };
             select h.Version, h.Flags from #test.files() f
-            cross apply Interpret(f.Content, 'Header') h
+            cross apply Interpret<Header>(f.Content) h
             order by h.Version asc";
 
         var binaryData = new byte[] { 0x01, 0xFF };
@@ -233,7 +233,7 @@ public class SchemaMultiSourceFeatureTests
             binary Bag { Count: byte, Items: Item[Count] };
             select Sum(i.Val) as TotalVal, Count(i.Val) as TotalItems
             from #test.files() b
-            cross apply Interpret(b.Content, 'Bag') bag
+            cross apply Interpret<Bag>(b.Content) bag
             cross apply bag.Items i";
 
         var file1 = new byte[] { 0x02, 0x0A, 0x14 };
@@ -251,8 +251,8 @@ public class SchemaMultiSourceFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(36m, table[0][0]);
-        Assert.AreEqual(5, table[0][1]);
+        Assert.AreEqual((byte)36, table[0][0]);
+        Assert.AreEqual(5L, table[0][1]);
     }
 
     #endregion
@@ -268,7 +268,7 @@ public class SchemaMultiSourceFeatureTests
         var query = @"
             binary Value { Data: int le };
             select d.Data from #test.files() b
-            cross apply InterpretAt(b.Content, 4, 'Value') d";
+            cross apply InterpretAt<Value>(b.Content, 4) d";
 
         var testData = new byte[]
         {
@@ -300,7 +300,7 @@ public class SchemaMultiSourceFeatureTests
         var query = @"
             binary Record { Value: byte };
             select Count(d.Value) as Total from #test.bytes() b
-            cross apply Interpret(b.Content, 'Record') d";
+            cross apply Interpret<Record>(b.Content) d";
 
         var entities = new[]
         {
@@ -318,7 +318,7 @@ public class SchemaMultiSourceFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(5, table[0][0]);
+        Assert.AreEqual(5L, table[0][0]);
     }
 
     #endregion

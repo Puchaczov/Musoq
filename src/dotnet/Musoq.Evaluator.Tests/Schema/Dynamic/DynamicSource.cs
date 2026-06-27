@@ -1,41 +1,57 @@
 using System;
-using System.Collections.Concurrent;
+using System.Threading;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tests.Schema.Dynamic;
 
-public class DynamicSource : RowSourceBase<dynamic>
+public class DynamicSource(IEnumerable<dynamic> values) : RowSourceBase<IReadOnlyDictionary<string, object?>>
 {
-    private readonly IEnumerable<dynamic> _values;
+    private readonly IEnumerable<IReadOnlyDictionary<string, object?>> _values = values.Select(ToDictionary).ToArray();
 
-    public DynamicSource(IEnumerable<dynamic> values)
+    protected override void CollectChunks(IChunkWriter<IReadOnlyDictionary<string, object?>> writer)
     {
-        _values = values;
+        writer.Write(_values.ToList());
     }
 
-    protected override void CollectChunks(BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
+    private static IReadOnlyDictionary<string, object?> ToDictionary(object value)
     {
-        var index = 0;
-        var indexToNameMap = new Dictionary<int, string>();
+        if (value is IReadOnlyDictionary<string, object?> readOnlyDictionary)
+            return readOnlyDictionary;
 
-        if (_values.First() is IDictionary<string, object> dict)
-            indexToNameMap = dict.ToDictionary(_ => index++, f => f.Key);
+        if (value is IDictionary<string, object?> dictionary)
+            return dictionary.ToDictionary(pair => pair.Key, pair => pair.Value);
 
-        if (_values.First().GetType() is Type type &&
-            type.GetCustomAttributes(typeof(DynamicObjectPropertyTypeHintAttribute), true).Any())
-            indexToNameMap = type.GetCustomAttributes(typeof(DynamicObjectPropertyTypeHintAttribute), true)
-                .Cast<DynamicObjectPropertyTypeHintAttribute>()
-                .ToDictionary(_ => index++, f => f.Name);
-
-        chunkedSource.Add(_values.Select(dynamic =>
+        if (value is DynamicObject dynamicObject)
         {
-            if (dynamic is IDictionary<string, object> accessMap)
-                return (IObjectResolver)new DynamicDictionaryResolver(accessMap, indexToNameMap);
+            return value
+                .GetType()
+                .GetCustomAttributes(typeof(DynamicObjectPropertyTypeHintAttribute), inherit: true)
+                .Cast<DynamicObjectPropertyTypeHintAttribute>()
+                .ToDictionary(
+                    hint => hint.Name,
+                    hint => GetDynamicMember(dynamicObject, hint.Name));
+        }
 
-            return new DynamicObjectResolver(dynamic, indexToNameMap);
-        }).ToList());
+        throw new NotSupportedException(
+            $"Dynamic source rows must be dictionaries. Row type '{value?.GetType().FullName ?? "<null>"}' is not supported.");
+    }
+
+    private static object? GetDynamicMember(DynamicObject value, string name)
+    {
+        return value.TryGetMember(new DynamicMemberBinder(name), out var result)
+            ? result
+            : null;
+    }
+
+    private sealed class DynamicMemberBinder(string name) : GetMemberBinder(name, ignoreCase: false)
+    {
+        public override DynamicMetaObject FallbackGetMember(DynamicMetaObject target, DynamicMetaObject? errorSuggestion)
+        {
+            return errorSuggestion ?? throw new NotSupportedException($"Dynamic member '{Name}' could not be resolved.");
+        }
     }
 }

@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+using System.Threading;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -243,7 +243,7 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         ), "Expected value 'test2' not found in results");
     }
 
-    private class ParametersSchemaProvider : ISchemaProvider
+    private sealed class ParametersSchemaProvider : ISchemaProvider
     {
         public ISchema GetSchema(string schema)
         {
@@ -251,24 +251,19 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         }
     }
 
-    private class ParametersSchema : SchemaBase
+    private sealed class ParametersSchema() : SchemaBase(SchemaName, CreateLibrary())
     {
         private const string SchemaName = "Parameters";
 
-        public ParametersSchema()
-            : base(SchemaName, CreateLibrary())
-        {
-        }
-
-        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext,
-            params object[] parameters)
+        public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
+            params object?[] parameters)
         {
             return new ParametersTable(parameters);
         }
 
-        public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
         {
-            return new ParametersRowsSource(parameters);
+            return EnsureSourceType<T, IReadOnlyDictionary<string, object?>>(name, new ParametersRowsSource(parameters));
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -283,21 +278,21 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         }
     }
 
-    private class ParametersTable : ISchemaTable
+    private sealed class ParametersTable : ISchemaTable
     {
-        public ParametersTable(object[] values)
+        public ParametersTable(object?[] values)
         {
             Columns = values
-                .Select((t, i) => new SchemaColumn($"Parameter{i}", i, t.GetType()))
+                .Select((t, i) => new SchemaColumn($"Parameter{i}", i, t?.GetType() ?? typeof(object)))
                 .Cast<ISchemaColumn>()
                 .ToArray();
         }
 
         public ISchemaColumn[] Columns { get; }
 
-        public SchemaTableMetadata Metadata { get; } = new(typeof(object));
+        public SchemaTableMetadata Metadata { get; } = new(typeof(IReadOnlyDictionary<string, object?>));
 
-        public ISchemaColumn GetColumnByName(string name)
+        public ISchemaColumn? GetColumnByName(string name)
         {
             return Columns.First(c => c.ColumnName == name);
         }
@@ -308,26 +303,20 @@ public class CouplingSyntaxTests : BasicEntityTestBase
         }
     }
 
-    private class ParametersRowsSource(object[] values) : RowSourceBase<dynamic>
+    private sealed class ParametersRowsSource(object?[] values) : RowSourceBase<IReadOnlyDictionary<string, object?>>
     {
-        protected override void CollectChunks(BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
+        protected override void CollectChunks(IChunkWriter<IReadOnlyDictionary<string, object?>> writer)
         {
             var index = 0;
-            var indexToNameMap = new Dictionary<int, string>();
-            var accessMap = new Dictionary<string, object>();
+            var accessMap = new Dictionary<string, object?>();
 
             foreach (var value in values)
             {
-                indexToNameMap.Add(index, $"Parameter{index}");
                 accessMap.Add($"Parameter{index}", value);
                 index++;
             }
 
-            chunkedSource.Add(
-            [
-                new DynamicDictionaryResolver(accessMap, indexToNameMap)
-            ]);
+            writer.Write([accessMap]);
         }
     }
 }
-

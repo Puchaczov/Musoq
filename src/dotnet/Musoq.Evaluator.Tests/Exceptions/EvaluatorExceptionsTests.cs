@@ -79,37 +79,22 @@ public class EvaluatorExceptionsTests
 
     #endregion
 
-    #region DotNetNotFoundException Tests
+    #region GroupByIndexOutOfRangeException Tests
 
     [TestMethod]
-    public void DotNetNotFoundException_ShouldBeCreatable()
-    {
-        // Act
-        var exception = new DotNetNotFoundException();
-
-        // Assert
-        Assert.IsNotNull(exception);
-        Assert.IsInstanceOfType(exception, typeof(Exception));
-    }
-
-    #endregion
-
-    #region FieldLinkIndexOutOfRangeException Tests
-
-    [TestMethod]
-    public void FieldLinkIndexOutOfRangeException_ShouldContainIndexAndGroupInfo()
+    public void GroupByIndexOutOfRangeException_ShouldContainOrdinalAndSelectFieldInfo()
     {
         // Arrange
-        var index = 5;
-        var groups = 3;
+        var ordinal = 5;
+        var selectFields = 3;
 
         // Act
-        var exception = new FieldLinkIndexOutOfRangeException(index, groups);
+        var exception = new GroupByIndexOutOfRangeException(ordinal, selectFields);
 
         // Assert
         Assert.Contains("5", exception.Message);
         Assert.Contains("3", exception.Message);
-        Assert.Contains("group", exception.Message);
+        Assert.Contains("GROUP BY", exception.Message);
     }
 
     #endregion
@@ -177,7 +162,8 @@ public class EvaluatorExceptionsTests
         // Assert
         Assert.Contains(setOperator, exception.Message);
         Assert.Contains("<key_columns>", exception.Message);
-        Assert.Contains("not supported", exception.Message);
+        Assert.Contains("optional", exception.Message);
+        Assert.Contains("all projected values", exception.Message);
     }
 
     #endregion
@@ -265,23 +251,6 @@ public class EvaluatorExceptionsTests
 
     #endregion
 
-    #region UnresolvableMethodException Tests
-
-    [TestMethod]
-    public void UnresolvableMethodException_ShouldContainMessage()
-    {
-        // Arrange
-        var message = "Cannot resolve method 'DoSomething'";
-
-        // Act
-        var exception = new UnresolvableMethodException(message);
-
-        // Assert
-        Assert.AreEqual(message, exception.Message);
-    }
-
-    #endregion
-
     #region CannotResolveMethodException Tests
 
     [TestMethod]
@@ -295,7 +264,7 @@ public class EvaluatorExceptionsTests
 
         // Assert
         Assert.AreEqual(message, exception.Message);
-        Assert.IsInstanceOfType(exception, typeof(Exception));
+        Assert.IsInstanceOfType<Exception>(exception);
     }
 
     [TestMethod]
@@ -439,7 +408,7 @@ public class EvaluatorExceptionsTests
     public void VisitorException_WithNullVisitorName_ShouldUseDefault()
     {
         // Act
-        var exception = new VisitorException(null, "operation", "message");
+        var exception = new VisitorException(null!, "operation", "message");
 
         // Assert
         Assert.AreEqual("Unknown", exception.VisitorName);
@@ -449,7 +418,7 @@ public class EvaluatorExceptionsTests
     public void VisitorException_WithNullOperation_ShouldUseDefault()
     {
         // Act
-        var exception = new VisitorException("visitor", null, "message");
+        var exception = new VisitorException("visitor", null!, "message");
 
         // Assert
         Assert.AreEqual("Unknown", exception.Operation);

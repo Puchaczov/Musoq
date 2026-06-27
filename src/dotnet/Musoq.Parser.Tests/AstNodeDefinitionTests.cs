@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Nodes;
@@ -15,9 +14,15 @@ public class AstNodeDefinitionTests
 {
     #region Helper Classes
 
-    private class TestArrayClass
+    private sealed class TestArrayClass
     {
-        public string[] Items { get; set; }
+        public string[] Items { get; set; } = [];
+    }
+
+    private static PropertyInfo GetRequiredProperty(Type type, string name)
+    {
+        return type.GetProperty(name) ??
+               throw new InvalidOperationException($"Property {type.FullName}.{name} was not found.");
     }
 
     #endregion
@@ -91,7 +96,7 @@ public class AstNodeDefinitionTests
     public void GroupSelectNode_WithEmptyFields_ShouldWork()
     {
         // Arrange & Act
-        var node = new GroupSelectNode(Array.Empty<FieldNode>());
+        var node = new GroupSelectNode([]);
 
         // Assert
         Assert.IsEmpty(node.Fields);
@@ -101,10 +106,10 @@ public class AstNodeDefinitionTests
     public void GroupSelectNode_IsSelectNode()
     {
         // Arrange & Act
-        var node = new GroupSelectNode(Array.Empty<FieldNode>());
+        var node = new GroupSelectNode([]);
 
         // Assert
-        Assert.IsInstanceOfType(node, typeof(SelectNode));
+        Assert.IsInstanceOfType<SelectNode>(node);
     }
 
     #endregion
@@ -217,67 +222,23 @@ public class AstNodeDefinitionTests
     public void QueryScope_WithEmptyStatements_ShouldWork()
     {
         // Arrange & Act
-        var node = new QueryScope(Array.Empty<Node>());
+        var node = new QueryScope([]);
 
         // Assert
         Assert.IsEmpty(node.Statements);
     }
 
     [TestMethod]
-    public void QueryScope_ToString_ShouldReturnNull()
+    public void QueryScope_ToString_ShouldReturnEmptyStringForEmptyScope()
     {
         // Arrange
-        var node = new QueryScope(Array.Empty<Node>());
+        var node = new QueryScope([]);
 
         // Act
         var result = node.ToString();
 
         // Assert
-        Assert.IsNull(result);
-    }
-
-    #endregion
-
-    #region RawFunctionNode Tests
-
-    [TestMethod]
-    public void RawFunctionNode_Constructor_ShouldSetParameters()
-    {
-        // Arrange
-        var args = new Node[]
-        {
-            new IntegerNode(1),
-            new StringNode("test")
-        };
-
-        // Act
-        var node = new RawFunctionNode(args);
-
-        // Assert
-        Assert.HasCount(2, node.Parameters);
-    }
-
-    [TestMethod]
-    public void RawFunctionNode_Id_ShouldContainNodeName()
-    {
-        // Arrange
-        var node = new RawFunctionNode(new Node[] { new IntegerNode(1) });
-
-        // Act & Assert
-        Assert.Contains("RawFunctionNode", node.Id);
-    }
-
-    [TestMethod]
-    public void RawFunctionNode_ToString_ShouldReturnNull()
-    {
-        // Arrange
-        var node = new RawFunctionNode(new Node[] { new IntegerNode(1) });
-
-        // Act
-        var result = node.ToString();
-
-        // Assert
-        Assert.IsNull(result);
+        Assert.AreEqual(string.Empty, result);
     }
 
     #endregion
@@ -410,7 +371,7 @@ public class AstNodeDefinitionTests
     public void ShouldBePresentInTheTable_ReturnType_ShouldBeNull()
     {
         // Arrange & Act
-        var node = new ShouldBePresentInTheTable("test", false, Array.Empty<string>());
+        var node = new ShouldBePresentInTheTable("test", false, []);
 
         // Assert
         Assert.IsNull(node.ReturnType);
@@ -420,7 +381,7 @@ public class AstNodeDefinitionTests
     public void ShouldBePresentInTheTable_Id_ShouldContainNodeName()
     {
         // Arrange
-        var node = new ShouldBePresentInTheTable("test", false, new[] { "key" });
+        var node = new ShouldBePresentInTheTable("test", false, ["key"]);
 
         // Act & Assert
         Assert.Contains("ShouldBePresentInTheTable", node.Id);
@@ -430,7 +391,7 @@ public class AstNodeDefinitionTests
     public void ShouldBePresentInTheTable_WithEmptyKeys_ShouldWork()
     {
         // Arrange & Act
-        var node = new ShouldBePresentInTheTable("test", true, Array.Empty<string>());
+        var node = new ShouldBePresentInTheTable("test", true, []);
 
         // Assert
         Assert.IsEmpty(node.Keys);
@@ -441,7 +402,7 @@ public class AstNodeDefinitionTests
     public void ShouldBePresentInTheTable_ToString_ShouldContainTableName()
     {
         // Arrange
-        var node = new ShouldBePresentInTheTable("orders", false, new[] { "orderId" });
+        var node = new ShouldBePresentInTheTable("orders", false, ["orderId"]);
 
         // Act
         var result = node.ToString();
@@ -459,7 +420,7 @@ public class AstNodeDefinitionTests
     public void TranslatedSetTreeNode_WithEmptyNodes_ShouldWork()
     {
         // Arrange & Act
-        var node = new TranslatedSetTreeNode(new List<TranslatedSetOperatorNode>());
+        var node = new TranslatedSetTreeNode([]);
 
         // Assert
         Assert.IsEmpty(node.Nodes);
@@ -469,7 +430,7 @@ public class AstNodeDefinitionTests
     public void TranslatedSetTreeNode_Id_ShouldContainNodeName()
     {
         // Arrange
-        var node = new TranslatedSetTreeNode(new List<TranslatedSetOperatorNode>());
+        var node = new TranslatedSetTreeNode([]);
 
         // Act & Assert
         Assert.Contains("TranslatedSetTreeNode", node.Id);
@@ -483,8 +444,8 @@ public class AstNodeDefinitionTests
     public void AccessCallChainNode_Constructor_ShouldSetProperties()
     {
         // Arrange
-        var propInfo = typeof(string).GetProperty(nameof(string.Length));
-        var props = new (PropertyInfo, object)[] { (propInfo, null) };
+        var propInfo = GetRequiredProperty(typeof(string), nameof(string.Length));
+        var props = new (PropertyInfo, object?)[] { (propInfo, null) };
 
         // Act
         var node = new AccessCallChainNode("column", typeof(string), props, "alias");
@@ -500,8 +461,8 @@ public class AstNodeDefinitionTests
     public void AccessCallChainNode_ReturnType_WithNullArg_ShouldReturnPropertyType()
     {
         // Arrange
-        var propInfo = typeof(string).GetProperty(nameof(string.Length));
-        var props = new (PropertyInfo, object)[] { (propInfo, null) };
+        var propInfo = GetRequiredProperty(typeof(string), nameof(string.Length));
+        var props = new (PropertyInfo, object?)[] { (propInfo, null) };
         var node = new AccessCallChainNode("column", typeof(string), props, "alias");
 
         // Act
@@ -516,8 +477,8 @@ public class AstNodeDefinitionTests
     {
         // Arrange
         // Use an array property to test element type
-        var propInfo = typeof(TestArrayClass).GetProperty(nameof(TestArrayClass.Items));
-        var props = new (PropertyInfo, object)[] { (propInfo, 0) }; // With arg (index)
+        var propInfo = GetRequiredProperty(typeof(TestArrayClass), nameof(TestArrayClass.Items));
+        var props = new (PropertyInfo, object?)[] { (propInfo, 0) }; // With arg (index)
         var node = new AccessCallChainNode("column", typeof(TestArrayClass), props, "alias");
 
         // Act
@@ -531,8 +492,8 @@ public class AstNodeDefinitionTests
     public void AccessCallChainNode_Id_ShouldContainNodeName()
     {
         // Arrange
-        var propInfo = typeof(string).GetProperty(nameof(string.Length));
-        var props = new (PropertyInfo, object)[] { (propInfo, null) };
+        var propInfo = GetRequiredProperty(typeof(string), nameof(string.Length));
+        var props = new (PropertyInfo, object?)[] { (propInfo, null) };
         var node = new AccessCallChainNode("col", typeof(string), props, "a");
 
         // Act & Assert

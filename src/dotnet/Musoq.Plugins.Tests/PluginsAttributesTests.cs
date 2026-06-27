@@ -34,52 +34,7 @@ public class PluginsAttributesTests
         var attr = new AggregationMethodAttribute();
 
         // Assert
-        Assert.IsInstanceOfType(attr, typeof(BindableMethodAttribute));
-    }
-
-    #endregion
-
-    #region AggregationGetMethodAttribute Tests
-
-    [TestMethod]
-    public void AggregationGetMethodAttribute_IsAggregationMethodAttribute()
-    {
-        // Arrange & Act
-        var attr = new AggregationGetMethodAttribute();
-
-        // Assert
-        Assert.IsInstanceOfType(attr, typeof(AggregationMethodAttribute));
-    }
-
-    #endregion
-
-    #region AggregationSetMethodAttribute Tests
-
-    [TestMethod]
-    public void AggregationSetMethodAttribute_IsAggregationMethodAttribute()
-    {
-        // Arrange & Act
-        var attr = new AggregationSetMethodAttribute();
-
-        // Assert
-        Assert.IsInstanceOfType(attr, typeof(AggregationMethodAttribute));
-    }
-
-    #endregion
-
-    #region AggregateSetDoNotResolveAttribute Tests
-
-    [TestMethod]
-    public void AggregateSetDoNotResolveAttribute_IsAttribute()
-    {
-        // Arrange
-        var method = typeof(AttributeTargetsFixture).GetMethod(nameof(AttributeTargetsFixture.SampleMethod));
-
-        // Act
-        var hasAttribute = Attribute.IsDefined(method!, typeof(AggregateSetDoNotResolveAttribute));
-
-        // Assert
-        Assert.IsTrue(hasAttribute);
+        Assert.IsInstanceOfType<BindableMethodAttribute>(attr);
     }
 
     #endregion
@@ -108,9 +63,6 @@ public class PluginsAttributesTests
 
         [BindableMethod]
         [AggregationMethod]
-        [AggregationGetMethod]
-        [AggregationSetMethod]
-        [AggregateSetDoNotResolve]
         [NonDeterministic]
         [MethodCategory("TestCategory")]
         public void SampleMethod()
@@ -119,9 +71,7 @@ public class PluginsAttributesTests
 
         [DynamicObjectPropertyTypeHint("First", typeof(string))]
         [DynamicObjectPropertyTypeHint("Second", typeof(int))]
-        public sealed class WithMultipleHints
-        {
-        }
+        public sealed class WithMultipleHints;
     }
 
     private sealed class TestQueryStats : QueryStats
@@ -163,30 +113,6 @@ public class PluginsAttributesTests
 
     #endregion
 
-    #region InjectGroupAttribute Tests
-
-    [TestMethod]
-    public void InjectGroupAttribute_InjectType_ReturnsGroupType()
-    {
-        // Arrange & Act
-        var attr = new InjectGroupAttribute();
-
-        // Assert
-        Assert.AreEqual(typeof(Group), attr.InjectType);
-    }
-
-    [TestMethod]
-    public void InjectGroupAttribute_IsInjectTypeAttribute()
-    {
-        // Arrange & Act
-        var attr = new InjectGroupAttribute();
-
-        // Assert
-        Assert.IsInstanceOfType(attr, typeof(InjectTypeAttribute));
-    }
-
-    #endregion
-
     #region InjectQueryStatsAttribute Tests
 
     [TestMethod]
@@ -206,7 +132,7 @@ public class PluginsAttributesTests
         var attr = new InjectQueryStatsAttribute();
 
         // Assert
-        Assert.IsInstanceOfType(attr, typeof(InjectTypeAttribute));
+        Assert.IsInstanceOfType<InjectTypeAttribute>(attr);
     }
 
     #endregion
@@ -233,31 +159,7 @@ public class PluginsAttributesTests
         var attr = new InjectSpecificSourceAttribute(typeof(int));
 
         // Assert
-        Assert.IsInstanceOfType(attr, typeof(InjectTypeAttribute));
-    }
-
-    #endregion
-
-    #region InjectGroupAccessName Tests
-
-    [TestMethod]
-    public void InjectGroupAccessName_InjectType_ReturnsStringType()
-    {
-        // Arrange & Act
-        var attr = new InjectGroupAccessName();
-
-        // Assert
-        Assert.AreEqual(typeof(string), attr.InjectType);
-    }
-
-    [TestMethod]
-    public void InjectGroupAccessName_IsInjectTypeAttribute()
-    {
-        // Arrange & Act
-        var attr = new InjectGroupAccessName();
-
-        // Assert
-        Assert.IsInstanceOfType(attr, typeof(InjectTypeAttribute));
+        Assert.IsInstanceOfType<InjectTypeAttribute>(attr);
     }
 
     #endregion
@@ -444,55 +346,6 @@ public class PluginsAttributesTests
         Assert.HasCount(1, attrUsage);
         var usage = (AttributeUsageAttribute)attrUsage[0];
         Assert.AreEqual(AttributeTargets.Method, usage.ValidOn);
-    }
-
-    #endregion
-
-    #region Group Tests
-
-    [TestMethod]
-    public void Group_SetValue_GetValue_Works()
-    {
-        // Arrange
-        var group = new Group(null, new[] { "field1" }, new object[] { "value1" });
-        var key = "testKey";
-        var value = 42;
-
-        // Act
-        group.SetValue(key, value);
-        var result = group.GetValue<int>(key);
-
-        // Assert
-        Assert.AreEqual(value, result);
-    }
-
-    [TestMethod]
-    public void Group_GetOrCreateValue_CreatesNew()
-    {
-        // Arrange
-        var group = new Group(null, new[] { "field1" }, new object[] { "value1" });
-        var key = "newKey";
-
-        // Act
-        var result = group.GetOrCreateValue(key, () => 100);
-
-        // Assert
-        Assert.AreEqual(100, result);
-    }
-
-    [TestMethod]
-    public void Group_GetOrCreateValue_ReturnsExisting()
-    {
-        // Arrange
-        var group = new Group(null, new[] { "field1" }, new object[] { "value1" });
-        var key = "existingKey";
-        group.SetValue(key, 50);
-
-        // Act
-        var result = group.GetOrCreateValue(key, () => 100);
-
-        // Assert
-        Assert.AreEqual(50, result);
     }
 
     #endregion

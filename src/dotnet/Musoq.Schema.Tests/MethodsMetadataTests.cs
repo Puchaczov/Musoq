@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema.Managers;
@@ -59,7 +60,19 @@ public class MethodsMetadataTests
         Assert.IsFalse(hasSiblingMethod);
     }
 
-    private class TestLibraryBase : LibraryBase
+    [TestMethod]
+    public void TryGetMethod_WhenMethodIsMissing_ShouldReturnFalseAndNullResult()
+    {
+        var methodsManager = new MethodsManager();
+
+        var found = methodsManager.TryGetMethod("MissingMethod", [typeof(int)], null, out var method);
+
+        Assert.IsFalse(found);
+        Assert.IsNull(method);
+    }
+
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+    private sealed class TestLibraryBase : LibraryBase
     {
         [BindableMethod]
         public int TestMethod1([InjectSpecificSource(typeof(TestEntity))] TestEntity entity, params string[] arguments)
@@ -95,5 +108,5 @@ public class MethodsMetadataTests
         }
     }
 
-    private class TestEntity;
+    private sealed class TestEntity;
 }

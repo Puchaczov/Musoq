@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Threading;
 using System.Collections.Generic;
 using Musoq.Schema.DataSources;
 
@@ -6,12 +6,8 @@ namespace Musoq.Converter.Tests.Schema;
 
 public class DualRowSource : RowSourceBase<DualEntity>
 {
-    protected override void CollectChunks(BlockingCollection<IReadOnlyList<IObjectResolver>> chunkedSource)
+    protected override void CollectChunks(IChunkWriter<DualEntity> writer)
     {
-        chunkedSource.Add(
-        [
-            new EntityResolver<DualEntity>(new DualEntity(), SystemSchemaHelper.FlatNameToIndexMap,
-                SystemSchemaHelper.FlatIndexToMethodAccessMap)
-        ]);
+        writer.Write([new DualEntity()]);
     }
 }

@@ -14,7 +14,7 @@ public class CSharpTypeNameHelperTests
     [TestMethod]
     public void GetCSharpTypeName_NullType_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => CSharpTypeNameHelper.GetCSharpTypeName(null));
+        Assert.Throws<ArgumentNullException>(() => CSharpTypeNameHelper.GetCSharpTypeName(null!));
     }
 
     [TestMethod]
@@ -116,7 +116,7 @@ public class CSharpTypeNameHelperTests
     public void GetCSharpTypeName_GenericTypeParameter_ReturnsParameterName()
     {
         var method =
-            typeof(CSharpTypeNameHelperTests).GetMethod(nameof(GenericMethod),
+            GetRequiredMethod(typeof(CSharpTypeNameHelperTests), nameof(GenericMethod),
                 BindingFlags.NonPublic | BindingFlags.Static);
         var genericParam = method.GetGenericArguments()[0];
 
@@ -126,7 +126,7 @@ public class CSharpTypeNameHelperTests
     [TestMethod]
     public void GetCSharpTypeName_ComplexGenericTypeParameter_ReturnsParameterName()
     {
-        var method = typeof(CSharpTypeNameHelperTests).GetMethod(nameof(ComplexGenericMethod),
+        var method = GetRequiredMethod(typeof(CSharpTypeNameHelperTests), nameof(ComplexGenericMethod),
             BindingFlags.NonPublic | BindingFlags.Static);
         var genericParams = method.GetGenericArguments();
 
@@ -157,7 +157,7 @@ public class CSharpTypeNameHelperTests
     [TestMethod]
     public void GetCSharpTypeAlias_NullType_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => CSharpTypeNameHelper.GetCSharpTypeAlias(null));
+        Assert.Throws<ArgumentNullException>(() => CSharpTypeNameHelper.GetCSharpTypeAlias(null!));
     }
 
     [TestMethod]
@@ -196,13 +196,13 @@ public class CSharpTypeNameHelperTests
     [TestMethod]
     public void FormatMethodSignature_NullMethodInfo_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => CSharpTypeNameHelper.FormatMethodSignature(null));
+        Assert.Throws<ArgumentNullException>(() => CSharpTypeNameHelper.FormatMethodSignature(null!));
     }
 
     [TestMethod]
     public void FormatMethodSignature_SimpleMethod_ReturnsCorrectSignature()
     {
-        var method = typeof(TestClass).GetMethod(nameof(TestClass.SimpleMethod));
+        var method = GetRequiredMethod(typeof(TestClass), nameof(TestClass.SimpleMethod));
         var signature = CSharpTypeNameHelper.FormatMethodSignature(method);
 
         Assert.AreEqual("void SimpleMethod()", signature);
@@ -211,7 +211,7 @@ public class CSharpTypeNameHelperTests
     [TestMethod]
     public void FormatMethodSignature_MethodWithParameters_ReturnsCorrectSignature()
     {
-        var method = typeof(TestClass).GetMethod(nameof(TestClass.MethodWithParameters));
+        var method = GetRequiredMethod(typeof(TestClass), nameof(TestClass.MethodWithParameters));
         var signature = CSharpTypeNameHelper.FormatMethodSignature(method);
 
         Assert.AreEqual("int MethodWithParameters(int x, string y)", signature);
@@ -220,7 +220,7 @@ public class CSharpTypeNameHelperTests
     [TestMethod]
     public void FormatMethodSignature_MethodWithNullableParameters_ReturnsCorrectSignature()
     {
-        var method = typeof(TestClass).GetMethod(nameof(TestClass.MethodWithNullableParameters));
+        var method = GetRequiredMethod(typeof(TestClass), nameof(TestClass.MethodWithNullableParameters));
         var signature = CSharpTypeNameHelper.FormatMethodSignature(method);
 
         Assert.AreEqual("int? MethodWithNullableParameters(int? value)", signature);
@@ -229,7 +229,7 @@ public class CSharpTypeNameHelperTests
     [TestMethod]
     public void FormatMethodSignature_GenericMethod_ReturnsCorrectSignature()
     {
-        var method = typeof(TestClass).GetMethod(nameof(TestClass.GenericMethod));
+        var method = GetRequiredMethod(typeof(TestClass), nameof(TestClass.GenericMethod));
         var signature = CSharpTypeNameHelper.FormatMethodSignature(method);
 
         Assert.AreEqual("T GenericMethod<T>(T value)", signature);
@@ -238,7 +238,7 @@ public class CSharpTypeNameHelperTests
     [TestMethod]
     public void FormatMethodSignature_GenericMethodWithMultipleParameters_ReturnsCorrectSignature()
     {
-        var method = typeof(TestClass).GetMethod(nameof(TestClass.ComplexGenericMethod));
+        var method = GetRequiredMethod(typeof(TestClass), nameof(TestClass.ComplexGenericMethod));
         var signature = CSharpTypeNameHelper.FormatMethodSignature(method);
 
         Assert.AreEqual("TResult ComplexGenericMethod<T, TResult>(T input, List<T> items)", signature);
@@ -247,7 +247,7 @@ public class CSharpTypeNameHelperTests
     [TestMethod]
     public void FormatMethodSignature_MethodWithArrayParameters_ReturnsCorrectSignature()
     {
-        var method = typeof(TestClass).GetMethod(nameof(TestClass.MethodWithArrays));
+        var method = GetRequiredMethod(typeof(TestClass), nameof(TestClass.MethodWithArrays));
         var signature = CSharpTypeNameHelper.FormatMethodSignature(method);
 
         Assert.AreEqual("string[] MethodWithArrays(int[] numbers, string[] texts)", signature);
@@ -256,7 +256,7 @@ public class CSharpTypeNameHelperTests
     [TestMethod]
     public void FormatMethodSignature_MethodWithComplexGenericParameters_ReturnsCorrectSignature()
     {
-        var method = typeof(TestClass).GetMethod(nameof(TestClass.MethodWithComplexGenerics));
+        var method = GetRequiredMethod(typeof(TestClass), nameof(TestClass.MethodWithComplexGenerics));
         var signature = CSharpTypeNameHelper.FormatMethodSignature(method);
 
         Assert.AreEqual("List<int> MethodWithComplexGenerics(Dictionary<string, List<int>> data)", signature);
@@ -266,6 +266,12 @@ public class CSharpTypeNameHelperTests
 
     #region Helper Methods and Test Classes
 
+    private static MethodInfo GetRequiredMethod(Type type, string name, BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.Instance)
+    {
+        return type.GetMethod(name, bindingFlags) ??
+               throw new InvalidOperationException($"Method {type.FullName}.{name} was not found.");
+    }
+
     private static T GenericMethod<T>(T value)
     {
         return value;
@@ -273,6 +279,8 @@ public class CSharpTypeNameHelperTests
 
     private static TValue ComplexGenericMethod<TKey, TValue>(TKey key, TValue value)
     {
+        _ = key;
+
         return value;
     }
 
@@ -299,7 +307,7 @@ public class CSharpTypeNameHelperTests
 
         public TResult ComplexGenericMethod<T, TResult>(T input, List<T> items)
         {
-            return default;
+            throw new NotSupportedException("Reflection-only test method.");
         }
 
         public string[] MethodWithArrays(int[] numbers, string[] texts)
@@ -309,7 +317,7 @@ public class CSharpTypeNameHelperTests
 
         public List<int> MethodWithComplexGenerics(Dictionary<string, List<int>> data)
         {
-            return null;
+            return [];
         }
     }
 

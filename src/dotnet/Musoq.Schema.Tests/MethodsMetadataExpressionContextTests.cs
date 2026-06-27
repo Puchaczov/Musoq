@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema.Managers;
@@ -8,7 +9,7 @@ namespace Musoq.Schema.Tests;
 [TestClass]
 public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
 {
-    private MethodsMetadata _methodsMetadata;
+    private MethodsMetadata _methodsMetadata = CreateMethodsMetadataFor<TestClass>();
 
     [TestInitialize]
     public void Initialize()
@@ -24,6 +25,7 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
             "Should resolve basic where filter"
         );
 
+        method = RequireResolved(method);
         Assert.AreEqual(typeof(bool), method.ReturnType, "Where clause method should return bool");
     }
 
@@ -31,7 +33,7 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
     public void TryGetMethod_WhereClause_WithEntityInjection()
     {
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("WhereFilterWithEntity", [typeof(int)], typeof(TestEntity), out var method),
+            _methodsMetadata.TryGetMethod("WhereFilterWithEntity", [typeof(int)], typeof(TestEntity), out _),
             "Should resolve where filter with entity"
         );
 
@@ -39,32 +41,6 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
             _methodsMetadata.TryGetMethod("WhereFilterWithEntity", [typeof(int)], typeof(string), out _),
             "Should not resolve where filter with wrong entity type"
         );
-    }
-
-    [TestMethod]
-    public void TryGetMethod_GroupClause_AggregationMethods()
-    {
-        Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("GetValue", [typeof(string)], null, out var method),
-            "Should resolve group value getter"
-        );
-
-        Assert.IsTrue(Attribute.IsDefined(method, typeof(AggregationGetMethodAttribute)),
-            "Method should have AggregationGetMethod attribute");
-    }
-
-    [TestMethod]
-    public void TryGetMethod_GroupClause_WithGroupInjection()
-    {
-        Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("GetValueWithGroup", [typeof(string)], null, out var method),
-            "Should resolve group value getter with group injection"
-        );
-
-        var parameters = method.GetParameters();
-        Assert.IsTrue(parameters.Length > 1 &&
-                      Attribute.IsDefined(parameters[1], typeof(InjectGroupAttribute)),
-            "Method should have InjectGroupAttribute parameter");
     }
 
     [TestMethod]
@@ -80,22 +56,12 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
             "Should resolve Count aggregation method"
         );
 
+        sumMethod = RequireResolved(sumMethod);
+        countMethod = RequireResolved(countMethod);
         Assert.IsTrue(Attribute.IsDefined(sumMethod, typeof(AggregationMethodAttribute)),
             "Sum should have AggregationMethodAttribute");
         Assert.IsTrue(Attribute.IsDefined(countMethod, typeof(AggregationMethodAttribute)),
             "Count should have AggregationMethodAttribute");
-    }
-
-    [TestMethod]
-    public void TryGetMethod_MixedContext()
-    {
-        Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("MixedContextMethod", [typeof(int)], null, out var method),
-            "Should resolve in mixed context"
-        );
-
-        Assert.IsTrue(Attribute.IsDefined(method, typeof(AggregationGetMethodAttribute)),
-            "Mixed context method should have AggregationGetMethod attribute");
     }
 
     [TestMethod]
@@ -106,6 +72,7 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
             "Should resolve with stats injection"
         );
 
+        method = RequireResolved(method);
         var parameters = method.GetParameters();
         Assert.IsTrue(parameters.Length > 0 &&
                       Attribute.IsDefined(parameters[0], typeof(InjectQueryStatsAttribute)),
@@ -125,6 +92,8 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
             "Should resolve aggregation overload"
         );
 
+        regularMethod = RequireResolved(regularMethod);
+        aggMethod = RequireResolved(aggMethod);
         Assert.IsFalse(Attribute.IsDefined(regularMethod, typeof(AggregationMethodAttribute)),
             "Regular method should not have AggregationMethodAttribute");
         Assert.IsTrue(Attribute.IsDefined(aggMethod, typeof(AggregationMethodAttribute)),
@@ -145,15 +114,12 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
         );
     }
 
-    private interface ITestEntity
-    {
-    }
+    private interface ITestEntity;
 
-    private class TestEntity : ITestEntity
-    {
-    }
+    private sealed class TestEntity : ITestEntity;
 
-    private class TestClass
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+    private sealed class TestClass
     {
         public bool WhereFilter(int value)
         {
@@ -165,17 +131,6 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
             return true;
         }
 
-        [AggregationGetMethod]
-        public decimal GetValue(string name)
-        {
-            return 0m;
-        }
-
-        public decimal GetValueWithGroup(string name, [InjectGroup] object group)
-        {
-            return 0m;
-        }
-
         [AggregationMethod]
         public void Sum(string name, decimal value)
         {
@@ -184,12 +139,6 @@ public class MethodsMetadataExpressionContextTests : MethodsMetadataTestBase
         [AggregationMethod]
         public void Count(string name)
         {
-        }
-
-        [AggregationGetMethod]
-        public decimal MixedContextMethod(int value)
-        {
-            return 0m;
         }
 
         public decimal StatsMethod([InjectQueryStats] object stats, int value)

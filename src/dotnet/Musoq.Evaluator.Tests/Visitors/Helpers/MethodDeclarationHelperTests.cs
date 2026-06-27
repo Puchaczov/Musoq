@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Visitors.Helpers;
 
@@ -10,6 +11,24 @@ namespace Musoq.Evaluator.Tests.Visitors.Helpers;
 [TestClass]
 public class MethodDeclarationHelperTests
 {
+    private static string RequireTypeText(ParameterSyntax parameter)
+    {
+        Assert.IsNotNull(parameter.Type);
+        return parameter.Type.ToString();
+    }
+
+    private static SyntaxList<AccessorDeclarationSyntax> RequireAccessors(PropertyDeclarationSyntax property)
+    {
+        Assert.IsNotNull(property.AccessorList);
+        return property.AccessorList.Accessors;
+    }
+
+    private static BlockSyntax RequireBody(MethodDeclarationSyntax method)
+    {
+        Assert.IsNotNull(method.Body);
+        return method.Body;
+    }
+
     [TestMethod]
     public void CreateStandardParameterList_ReturnsParameterListWithCorrectParameters()
     {
@@ -21,8 +40,8 @@ public class MethodDeclarationHelperTests
 
         var parameters = parameterList.Parameters.ToArray();
         Assert.AreEqual("provider", parameters[0].Identifier.ValueText);
-        Assert.AreEqual("positionalEnvironmentVariables", parameters[1].Identifier.ValueText);
-        Assert.AreEqual("queriesInformation", parameters[2].Identifier.ValueText);
+        Assert.AreEqual("sourceRuntimeSettingsBySourceContextId", parameters[1].Identifier.ValueText);
+        Assert.AreEqual("sourceExecutionPlans", parameters[2].Identifier.ValueText);
         Assert.AreEqual("logger", parameters[3].Identifier.ValueText);
         Assert.AreEqual("token", parameters[4].Identifier.ValueText);
     }
@@ -37,19 +56,19 @@ public class MethodDeclarationHelperTests
         var parameters = parameterList.Parameters.ToArray();
 
 
-        Assert.Contains("ISchemaProvider", parameters[0].Type.ToString());
+        Assert.Contains("ISchemaProvider", RequireTypeText(parameters[0]));
 
 
-        Assert.Contains("IReadOnlyDictionary", parameters[1].Type.ToString());
+        Assert.Contains("IReadOnlyDictionary", RequireTypeText(parameters[1]));
 
 
-        Assert.Contains("IReadOnlyDictionary", parameters[2].Type.ToString());
+        Assert.Contains("IReadOnlyDictionary", RequireTypeText(parameters[2]));
 
 
-        Assert.Contains("ILogger", parameters[3].Type.ToString());
+        Assert.Contains("ILogger", RequireTypeText(parameters[3]));
 
 
-        Assert.Contains("CancellationToken", parameters[4].Type.ToString());
+        Assert.Contains("CancellationToken", RequireTypeText(parameters[4]));
     }
 
     [TestMethod]
@@ -70,7 +89,7 @@ public class MethodDeclarationHelperTests
         Assert.Contains("Table", method.ReturnType.ToString());
         Assert.AreEqual(5, method.ParameterList.Parameters.Count);
         Assert.IsNotNull(method.Body);
-        Assert.AreEqual(0, method.Body.Statements.Count);
+        Assert.AreEqual(0, RequireBody(method).Statements.Count);
     }
 
     [TestMethod]
@@ -80,7 +99,7 @@ public class MethodDeclarationHelperTests
 
 
         Assert.Throws<ArgumentException>(() =>
-            MethodDeclarationHelper.CreateStandardPrivateMethod(null, body));
+            MethodDeclarationHelper.CreateStandardPrivateMethod(null!, body));
     }
 
     [TestMethod]
@@ -107,7 +126,7 @@ public class MethodDeclarationHelperTests
     public void CreateStandardPrivateMethod_WithNullBody_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            MethodDeclarationHelper.CreateStandardPrivateMethod("TestMethod", null));
+            MethodDeclarationHelper.CreateStandardPrivateMethod("TestMethod", null!));
     }
 
     [TestMethod]
@@ -125,16 +144,17 @@ public class MethodDeclarationHelperTests
         Assert.Contains(typeName, property.Type.ToString());
         Assert.AreEqual(1, property.Modifiers.Count);
         Assert.IsTrue(property.Modifiers[0].IsKind(SyntaxKind.PublicKeyword));
-        Assert.AreEqual(2, property.AccessorList.Accessors.Count);
-        Assert.IsTrue(property.AccessorList.Accessors[0].IsKind(SyntaxKind.GetAccessorDeclaration));
-        Assert.IsTrue(property.AccessorList.Accessors[1].IsKind(SyntaxKind.SetAccessorDeclaration));
+        var accessors = RequireAccessors(property);
+        Assert.AreEqual(2, accessors.Count);
+        Assert.IsTrue(accessors[0].IsKind(SyntaxKind.GetAccessorDeclaration));
+        Assert.IsTrue(accessors[1].IsKind(SyntaxKind.SetAccessorDeclaration));
     }
 
     [TestMethod]
     public void CreatePublicProperty_WithNullTypeName_ThrowsArgumentException()
     {
         Assert.Throws<ArgumentException>(() =>
-            MethodDeclarationHelper.CreatePublicProperty(null, "TestProperty"));
+            MethodDeclarationHelper.CreatePublicProperty(null!, "TestProperty"));
     }
 
     [TestMethod]
@@ -148,7 +168,7 @@ public class MethodDeclarationHelperTests
     public void CreatePublicProperty_WithNullPropertyName_ThrowsArgumentException()
     {
         Assert.Throws<ArgumentException>(() =>
-            MethodDeclarationHelper.CreatePublicProperty("string", null));
+            MethodDeclarationHelper.CreatePublicProperty("string", null!));
     }
 
     [TestMethod]
@@ -159,35 +179,35 @@ public class MethodDeclarationHelperTests
     }
 
     [TestMethod]
-    public void CreatePositionalEnvironmentVariablesProperty_ReturnsCorrectPropertyDeclaration()
+    public void CreateSourceRuntimeSettingsBySourceContextIdProperty_ReturnsCorrectPropertyDeclaration()
     {
-        var property = MethodDeclarationHelper.CreatePositionalEnvironmentVariablesProperty();
+        var property = MethodDeclarationHelper.CreateSourceRuntimeSettingsBySourceContextIdProperty();
 
 
         Assert.IsNotNull(property);
-        Assert.AreEqual("PositionalEnvironmentVariables", property.Identifier.ValueText);
+        Assert.AreEqual("SourceRuntimeSettingsBySourceContextId", property.Identifier.ValueText);
         Assert.Contains("IReadOnlyDictionary", property.Type.ToString());
-        Assert.Contains("uint", property.Type.ToString());
+        Assert.IsFalse(property.Type.ToString().Contains("uint", StringComparison.Ordinal));
         Assert.Contains("string", property.Type.ToString());
         Assert.AreEqual(1, property.Modifiers.Count);
         Assert.IsTrue(property.Modifiers[0].IsKind(SyntaxKind.PublicKeyword));
-        Assert.AreEqual(2, property.AccessorList.Accessors.Count);
+        Assert.AreEqual(2, RequireAccessors(property).Count);
     }
 
     [TestMethod]
-    public void CreateQueriesInformationProperty_ReturnsCorrectPropertyDeclaration()
+    public void CreateSourceExecutionPlansProperty_ReturnsCorrectPropertyDeclaration()
     {
-        var property = MethodDeclarationHelper.CreateQueriesInformationProperty();
+        var property = MethodDeclarationHelper.CreateSourceExecutionPlansProperty();
 
 
         Assert.IsNotNull(property);
-        Assert.AreEqual("QueriesInformation", property.Identifier.ValueText);
+        Assert.AreEqual("SourceExecutionPlans", property.Identifier.ValueText);
         Assert.Contains("IReadOnlyDictionary", property.Type.ToString());
         Assert.Contains("string", property.Type.ToString());
-        Assert.Contains("QuerySourceInfo", property.Type.ToString());
+        Assert.Contains("SourceExecutionPlan", property.Type.ToString());
         Assert.AreEqual(1, property.Modifiers.Count);
         Assert.IsTrue(property.Modifiers[0].IsKind(SyntaxKind.PublicKeyword));
-        Assert.AreEqual(2, property.AccessorList.Accessors.Count);
+        Assert.AreEqual(2, RequireAccessors(property).Count);
     }
 
     [TestMethod]
@@ -195,7 +215,7 @@ public class MethodDeclarationHelperTests
     {
         // Arrange
         var methodCallExpression =
-            "SomeMethod(Provider, PositionalEnvironmentVariables, QueriesInformation, Logger, token)";
+            "SomeMethod(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token)";
 
         // Act
         var method = MethodDeclarationHelper.CreateRunMethod(methodCallExpression);
@@ -208,10 +228,10 @@ public class MethodDeclarationHelperTests
         Assert.Contains("Table", method.ReturnType.ToString());
         Assert.AreEqual(1, method.ParameterList.Parameters.Count);
         Assert.AreEqual("token", method.ParameterList.Parameters[0].Identifier.ValueText);
-        Assert.Contains("CancellationToken", method.ParameterList.Parameters[0].Type.ToString());
+        Assert.Contains("CancellationToken", RequireTypeText(method.ParameterList.Parameters[0]));
 
 
-        var bodyText = method.Body.ToString();
+        var bodyText = RequireBody(method).ToString();
         Assert.Contains("return", bodyText);
         Assert.Contains(methodCallExpression, bodyText);
     }
@@ -220,7 +240,7 @@ public class MethodDeclarationHelperTests
     public void CreateRunMethod_WithNullMethodCallExpression_ThrowsArgumentException()
     {
         Assert.Throws<ArgumentException>(() =>
-            MethodDeclarationHelper.CreateRunMethod(null));
+            MethodDeclarationHelper.CreateRunMethod(null!));
     }
 
     [TestMethod]
@@ -238,19 +258,43 @@ public class MethodDeclarationHelperTests
     }
 
     [TestMethod]
+    public void CreateOnDataSourceProgressMethod_ReturnsAggressivelyInlinedHelper()
+    {
+        var method = MethodDeclarationHelper.CreateOnDataSourceProgressMethod();
+        var methodText = method.NormalizeWhitespace().ToFullString();
+
+        Assert.AreEqual("OnDataSourceProgress", method.Identifier.ValueText);
+        Assert.Contains(
+            "[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]",
+            methodText);
+    }
+
+    [TestMethod]
+    public void CreateOnPhaseChangedMethod_ReturnsAggressivelyInlinedHelper()
+    {
+        var method = MethodDeclarationHelper.CreateOnPhaseChangedMethod();
+        var methodText = method.NormalizeWhitespace().ToFullString();
+
+        Assert.AreEqual("OnPhaseChanged", method.Identifier.ValueText);
+        Assert.Contains(
+            "[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]",
+            methodText);
+    }
+
+    [TestMethod]
     public void ComplexParameterTypes_AreCorrectlyGenerated()
     {
         var parameterList = MethodDeclarationHelper.CreateStandardParameterList();
-        var posProperty = MethodDeclarationHelper.CreatePositionalEnvironmentVariablesProperty();
-        var queriesProperty = MethodDeclarationHelper.CreateQueriesInformationProperty();
+        var posProperty = MethodDeclarationHelper.CreateSourceRuntimeSettingsBySourceContextIdProperty();
+        var queriesProperty = MethodDeclarationHelper.CreateSourceExecutionPlansProperty();
 
 
         var posParam = parameterList.Parameters[1];
-        Assert.AreEqual(posParam.Type.ToString(), posProperty.Type.ToString());
+        Assert.AreEqual(RequireTypeText(posParam), posProperty.Type.ToString());
 
         var queriesParam = parameterList.Parameters[2];
 
-        Assert.Contains("IReadOnlyDictionary", queriesParam.Type.ToString());
+        Assert.Contains("IReadOnlyDictionary", RequireTypeText(queriesParam));
         Assert.Contains("IReadOnlyDictionary", queriesProperty.Type.ToString());
     }
 
@@ -260,9 +304,11 @@ public class MethodDeclarationHelperTests
         var parameterList = MethodDeclarationHelper.CreateStandardParameterList();
         var method = MethodDeclarationHelper.CreateStandardPrivateMethod("TestMethod", SyntaxFactory.Block());
         var property1 = MethodDeclarationHelper.CreatePublicProperty("string", "TestProperty");
-        var property2 = MethodDeclarationHelper.CreatePositionalEnvironmentVariablesProperty();
-        var property3 = MethodDeclarationHelper.CreateQueriesInformationProperty();
+        var property2 = MethodDeclarationHelper.CreateSourceRuntimeSettingsBySourceContextIdProperty();
+        var property3 = MethodDeclarationHelper.CreateSourceExecutionPlansProperty();
         var runMethod = MethodDeclarationHelper.CreateRunMethod("TestCall()");
+        var onDataSourceProgressMethod = MethodDeclarationHelper.CreateOnDataSourceProgressMethod();
+        var onPhaseChangedMethod = MethodDeclarationHelper.CreateOnPhaseChangedMethod();
 
 
         Assert.IsFalse(parameterList.ContainsDiagnostics);
@@ -271,5 +317,7 @@ public class MethodDeclarationHelperTests
         Assert.IsFalse(property2.ContainsDiagnostics);
         Assert.IsFalse(property3.ContainsDiagnostics);
         Assert.IsFalse(runMethod.ContainsDiagnostics);
+        Assert.IsFalse(onDataSourceProgressMethod.ContainsDiagnostics);
+        Assert.IsFalse(onPhaseChangedMethod.ContainsDiagnostics);
     }
 }

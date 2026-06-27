@@ -12,29 +12,30 @@ namespace Musoq.Evaluator.Tests.Components;
 public class EnvironmentVariablesBuildMetadataAndInferTypesVisitor(
     ISchemaProvider provider,
     IReadOnlyDictionary<string, string[]> columns,
-    IDictionary<uint, IEnumerable<EnvironmentVariableEntity>> sources,
+    IDictionary<string, IEnumerable<EnvironmentVariableEntity>> sources,
     ILogger<EnvironmentVariablesBuildMetadataAndInferTypesVisitor> logger,
-    CompilationOptions compilationOptions = null)
+    CompilationOptions? compilationOptions = null)
     : BuildMetadataAndInferTypesVisitor(provider, columns, logger, compilationOptions)
 {
     public List<Type> PassedSchemaArguments { get; } = [];
 
-    protected override IReadOnlyDictionary<string, string> RetrieveEnvironmentVariables(uint position,
+    protected override IReadOnlyDictionary<string, string> RetrieveInitialSourceRuntimeSettings(string sourceContextId,
         SchemaFromNode node)
     {
-        PassedSchemaArguments.AddRange(node.Parameters.Args.Select(f => f.ReturnType));
+        PassedSchemaArguments.AddRange(node.Parameters.Args.Select(f => f.ReturnType ?? typeof(object)));
 
-        if (sources.TryGetValue(position, out var environmentVariables))
+        if (sources.TryGetValue(sourceContextId, out var environmentVariables) ||
+            sources.TryGetValue("*", out environmentVariables))
         {
             var loadEnvironmentVariables = environmentVariables.ToDictionary(
                 x => x.Key,
                 x => x.Value);
 
-            InternalPositionalEnvironmentVariables.Add(position, loadEnvironmentVariables);
+            InternalSourceRuntimeSettingsBySourceContextId[sourceContextId] = loadEnvironmentVariables;
 
             return loadEnvironmentVariables;
         }
 
-        return base.RetrieveEnvironmentVariables(position, node);
+        return base.RetrieveInitialSourceRuntimeSettings(sourceContextId, node);
     }
 }

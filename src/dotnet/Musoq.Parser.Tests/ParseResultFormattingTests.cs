@@ -233,7 +233,7 @@ public class ParseResultFormattingTests
         };
         var parseResult = new ParseResult(null, sourceText, diagnostics);
 
-        Assert.Throws<ParseException>(() => parseResult.ThrowIfErrors());
+        Assert.Throws<ParseException>(parseResult.ThrowIfErrors);
     }
 
     #endregion

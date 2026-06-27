@@ -543,7 +543,7 @@ public class ToStringMethodsTests : PluginsTestBase
     [TestMethod]
     public void ToString_WhenStringArrayProvided_ShouldReturnCommaSeparated()
     {
-        var result = Library.ToString(new[] { "a", "b", "c" });
+        var result = Library.ToString(["a", "b", "c"]);
 
         Assert.AreEqual("a,b,c", result);
     }
@@ -551,7 +551,7 @@ public class ToStringMethodsTests : PluginsTestBase
     [TestMethod]
     public void ToString_WhenEmptyStringArrayProvided_ShouldReturnEmpty()
     {
-        var result = Library.ToString(Array.Empty<string>());
+        var result = Library.ToString([]);
 
         Assert.AreEqual("", result);
     }
@@ -559,7 +559,7 @@ public class ToStringMethodsTests : PluginsTestBase
     [TestMethod]
     public void ToString_WhenSingleElementStringArrayProvided_ShouldReturnElement()
     {
-        var result = Library.ToString(new[] { "single" });
+        var result = Library.ToString(["single"]);
 
         Assert.AreEqual("single", result);
     }
@@ -567,7 +567,7 @@ public class ToStringMethodsTests : PluginsTestBase
     [TestMethod]
     public void ToString_WhenStringArrayWithSpacesProvided_ShouldPreserveSpaces()
     {
-        var result = Library.ToString(new[] { "hello world", "foo bar" });
+        var result = Library.ToString(["hello world", "foo bar"]);
 
         Assert.AreEqual("hello world,foo bar", result);
     }
@@ -579,7 +579,7 @@ public class ToStringMethodsTests : PluginsTestBase
     [TestMethod]
     public void ToString_WhenIntArrayProvided_ShouldReturnCommaSeparated()
     {
-        var result = Library.ToString(new[] { 1, 2, 3 });
+        var result = Library.ToString([1, 2, 3]);
 
         Assert.AreEqual("1,2,3", result);
     }
@@ -595,7 +595,7 @@ public class ToStringMethodsTests : PluginsTestBase
     [TestMethod]
     public void ToString_WhenSingleElementIntArrayProvided_ShouldReturnElement()
     {
-        var result = Library.ToString(new[] { 42 });
+        var result = Library.ToString([42]);
 
         Assert.AreEqual("42", result);
     }
@@ -603,16 +603,16 @@ public class ToStringMethodsTests : PluginsTestBase
     [TestMethod]
     public void ToString_WhenDoubleArrayProvided_ShouldReturnCommaSeparated()
     {
-        var result = Library.ToString(new[] { 1.0, 2.0, 3.0 });
+        var result = Library.ToString([1.0, 2.0, 3.0]);
 
         Assert.IsNotNull(result);
-        Assert.IsTrue(result.Contains(",") || (result.Contains("1") && result.Contains("2") && result.Contains("3")));
+        Assert.IsTrue(result.Contains(',') || (result.Contains('1') && result.Contains('2') && result.Contains('3')));
     }
 
     [TestMethod]
     public void ToString_WhenBoolArrayProvided_ShouldReturnCommaSeparated()
     {
-        var result = Library.ToString(new[] { true, false, true });
+        var result = Library.ToString([true, false, true]);
 
         Assert.AreEqual("True,False,True", result);
     }

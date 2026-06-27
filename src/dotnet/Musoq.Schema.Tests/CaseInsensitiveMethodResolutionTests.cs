@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.Helpers;
@@ -9,9 +10,9 @@ namespace Musoq.Schema.Tests;
 [TestClass]
 public class CaseInsensitiveMethodResolutionTests
 {
-    private Type _entityType;
+    private Type? _entityType;
 
-    private MethodsMetadata _methodsMetadata;
+    private MethodsMetadata _methodsMetadata = new TestMethodsMetadata();
 
     [TestInitialize]
     public void Initialize()
@@ -34,7 +35,7 @@ public class CaseInsensitiveMethodResolutionTests
     [TestMethod]
     public void MethodNameNormalizer_ShouldThrowOnNull()
     {
-        Assert.Throws<ArgumentNullException>(() => MethodNameNormalizer.Normalize(null));
+        Assert.Throws<ArgumentNullException>(() => MethodNameNormalizer.Normalize(null!));
     }
 
     [TestMethod]
@@ -47,7 +48,7 @@ public class CaseInsensitiveMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_ExactCase_ShouldResolveCorrectly()
     {
-        var types = new Type[0];
+        var types = Type.EmptyTypes;
 
         var success = _methodsMetadata.TryGetMethod("MyMethod", types, _entityType, out var method);
 
@@ -59,7 +60,7 @@ public class CaseInsensitiveMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_LowerCase_ShouldResolveCorrectly()
     {
-        var types = new Type[0];
+        var types = Type.EmptyTypes;
 
         var success = _methodsMetadata.TryGetMethod("mymethod", types, _entityType, out var method);
 
@@ -71,7 +72,7 @@ public class CaseInsensitiveMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_UpperCase_ShouldResolveCorrectly()
     {
-        var types = new Type[0];
+        var types = Type.EmptyTypes;
 
         var success = _methodsMetadata.TryGetMethod("MYMETHOD", types, _entityType, out var method);
 
@@ -83,7 +84,7 @@ public class CaseInsensitiveMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_WithUnderscores_ShouldResolveCorrectly()
     {
-        var types = new Type[0];
+        var types = Type.EmptyTypes;
 
         var success = _methodsMetadata.TryGetMethod("my_method", types, _entityType, out var method);
 
@@ -109,7 +110,7 @@ public class CaseInsensitiveMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_UnderscoreMethodName_DifferentCases_ShouldResolveCorrectly()
     {
-        var types = new Type[0];
+        var types = Type.EmptyTypes;
 
 
         var testCases = new[]
@@ -133,7 +134,7 @@ public class CaseInsensitiveMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_UppercaseMethodName_DifferentCases_ShouldResolveCorrectly()
     {
-        var types = new Type[0];
+        var types = Type.EmptyTypes;
 
 
         var testCases = new[]
@@ -157,7 +158,7 @@ public class CaseInsensitiveMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_MixedCaseMethodName_DifferentCases_ShouldResolveCorrectly()
     {
-        var types = new Type[0];
+        var types = Type.EmptyTypes;
 
 
         var testCases = new[]
@@ -181,7 +182,7 @@ public class CaseInsensitiveMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_ExactMatchTakesPrecedence_OverCaseInsensitive()
     {
-        var types = new Type[0];
+        var types = Type.EmptyTypes;
 
 
         var success = _methodsMetadata.TryGetMethod("simple", types, _entityType, out var method);
@@ -194,7 +195,7 @@ public class CaseInsensitiveMethodResolutionTests
     [TestMethod]
     public void TryGetMethod_NonExistentMethod_ShouldReturnFalse()
     {
-        var types = new Type[0];
+        var types = Type.EmptyTypes;
 
         var success = _methodsMetadata.TryGetMethod("nonexistentmethod", types, _entityType, out var method);
 
@@ -205,7 +206,7 @@ public class CaseInsensitiveMethodResolutionTests
     [TestMethod]
     public void TryGetRawMethod_CaseInsensitive_ShouldResolveCorrectly()
     {
-        var types = new Type[0];
+        var types = Type.EmptyTypes;
 
         var success = _methodsMetadata.TryGetRawMethod("mymethod", types, out var method);
 
@@ -217,7 +218,7 @@ public class CaseInsensitiveMethodResolutionTests
     [TestMethod]
     public void TryGetRawMethod_WithUnderscores_ShouldResolveCorrectly()
     {
-        var types = new Type[0];
+        var types = Type.EmptyTypes;
 
         var success = _methodsMetadata.TryGetRawMethod("my_method", types, out var method);
 
@@ -226,7 +227,8 @@ public class CaseInsensitiveMethodResolutionTests
         Assert.AreEqual("MyMethod", method.Name);
     }
 
-    private class TestClass
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+    private sealed class TestClass
     {
         public void MyMethod()
         {
@@ -244,6 +246,7 @@ public class CaseInsensitiveMethodResolutionTests
         {
         }
 
+        // These names intentionally exercise exact-case method resolution.
         public void mixedCaseMethod()
         {
         }
@@ -253,7 +256,7 @@ public class CaseInsensitiveMethodResolutionTests
         }
     }
 
-    private class TestMethodsMetadata : MethodsMetadata
+    private sealed class TestMethodsMetadata : MethodsMetadata
     {
         public TestMethodsMetadata()
         {

@@ -14,7 +14,7 @@ public class EnvironmentVariableEntityTable : ISchemaTable
             typeof(EnvironmentVariableEntity).GetProperty(nameof(EnvironmentVariableEntity.Value))!.PropertyType)
     ];
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(col => col.ColumnName == name);
     }

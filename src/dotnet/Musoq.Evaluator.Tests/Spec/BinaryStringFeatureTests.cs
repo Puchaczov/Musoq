@@ -32,7 +32,7 @@ public class BinaryStringFeatureTests
                 Name: string[Length] utf8 
             };
             select d.Length, d.Name from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
         var testData = new byte[] { 0x05, 0x48, 0x65, 0x6C, 0x6C, 0x6F };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -64,7 +64,7 @@ public class BinaryStringFeatureTests
                 LastName: string[10] utf8 trim
             };
             select r.FirstName, r.LastName from #test.files() f
-            cross apply Interpret(f.Content, 'Record') r";
+            cross apply Interpret<Record>(f.Content) r";
 
         var firstName = "John".PadRight(10);
         var lastName = "Doe".PadRight(10);
@@ -96,13 +96,13 @@ public class BinaryStringFeatureTests
         var query = @"
             binary Header { Magic: string[4] ascii };
             select f.Name from #test.files() f
-            cross apply Interpret(f.Content, 'Header') h
+            cross apply Interpret<Header>(f.Content) h
             where h.Magic = 'PNG '";
 
         var entities = new[]
         {
-            new BinaryEntity { Name = "image.png", Content = Encoding.ASCII.GetBytes("PNG ") },
-            new BinaryEntity { Name = "image.gif", Content = Encoding.ASCII.GetBytes("GIF8") }
+            new BinaryEntity { Name = "image.png", Content = "PNG "u8.ToArray() },
+            new BinaryEntity { Name = "image.gif", Content = "GIF8"u8.ToArray() }
         };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -128,9 +128,9 @@ public class BinaryStringFeatureTests
         var query = @"
             binary Data { Name: string[5] utf8 };
             select d.Name from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
-        var testData = Encoding.UTF8.GetBytes("Hello");
+        var testData = "Hello"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -152,10 +152,10 @@ public class BinaryStringFeatureTests
         var query = @"
             binary Data { Text: string[6] utf8 };
             select d.Text from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
-        var testData = Encoding.UTF8.GetBytes("日本");
+        var testData = "日本"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -181,9 +181,9 @@ public class BinaryStringFeatureTests
         var query = @"
             binary Data { Code: string[4] ascii };
             select d.Code from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
-        var testData = Encoding.ASCII.GetBytes("TEST");
+        var testData = "TEST"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -205,9 +205,9 @@ public class BinaryStringFeatureTests
         var query = @"
             binary Data { Value: string[8] ascii };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
-        var testData = Encoding.ASCII.GetBytes("ABC-1234");
+        var testData = "ABC-1234"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -233,9 +233,9 @@ public class BinaryStringFeatureTests
         var query = @"
             binary Data { Name: string[10] utf8 trim };
             select d.Name from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
-        var testData = Encoding.UTF8.GetBytes("Hello     ");
+        var testData = "Hello     "u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -257,9 +257,9 @@ public class BinaryStringFeatureTests
         var query = @"
             binary Data { Name: string[12] utf8 trim };
             select d.Name from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
-        var testData = Encoding.UTF8.GetBytes("  Testing   ");
+        var testData = "  Testing   "u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -281,9 +281,9 @@ public class BinaryStringFeatureTests
         var query = @"
             binary Data { Name: string[12] utf8 rtrim };
             select d.Name from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
-        var testData = Encoding.UTF8.GetBytes("  Testing   ");
+        var testData = "  Testing   "u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -305,9 +305,9 @@ public class BinaryStringFeatureTests
         var query = @"
             binary Data { Name: string[12] utf8 ltrim };
             select d.Name from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
-        var testData = Encoding.UTF8.GetBytes("  Testing   ");
+        var testData = "  Testing   "u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -333,9 +333,9 @@ public class BinaryStringFeatureTests
         var query = @"
             binary Data { Name: string[10] utf8 nullterm };
             select d.Name from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
-        var testData = new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x00, 0x58, 0x58, 0x58, 0x58 };
+        var testData = "Hello\u0000XXXX"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -357,9 +357,9 @@ public class BinaryStringFeatureTests
         var query = @"
             binary Data { Name: string[10] utf8 nullterm };
             select d.Name from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
-        var testData = new byte[] { 0x00, 0x58, 0x58, 0x58, 0x58, 0x58, 0x58, 0x58, 0x58, 0x58 };
+        var testData = "\u0000XXXXXXXXX"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -381,9 +381,9 @@ public class BinaryStringFeatureTests
         var query = @"
             binary Data { Name: string[5] utf8 nullterm };
             select d.Name from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
-        var testData = Encoding.UTF8.GetBytes("ABCDE");
+        var testData = "ABCDE"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });

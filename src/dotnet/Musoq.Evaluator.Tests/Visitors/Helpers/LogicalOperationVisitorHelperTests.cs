@@ -28,7 +28,7 @@ public class LogicalOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(AndNode));
+        Assert.IsInstanceOfType<AndNode>(result);
         var andNode = (AndNode)result;
         Assert.AreEqual(leftNode, andNode.Left);
         Assert.AreEqual(rightNode, andNode.Right);
@@ -49,7 +49,7 @@ public class LogicalOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(OrNode));
+        Assert.IsInstanceOfType<OrNode>(result);
         var orNode = (OrNode)result;
         Assert.AreEqual(leftNode, orNode.Left);
         Assert.AreEqual(rightNode, orNode.Right);
@@ -68,7 +68,7 @@ public class LogicalOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(NotNode));
+        Assert.IsInstanceOfType<NotNode>(result);
         var notNode = (NotNode)result;
         Assert.AreEqual(operandNode, notNode.Expression);
     }
@@ -88,7 +88,7 @@ public class LogicalOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(ContainsNode));
+        Assert.IsInstanceOfType<ContainsNode>(result);
         var containsNode = (ContainsNode)result;
         Assert.AreEqual(leftNode, containsNode.Left);
         Assert.AreEqual(rightNode, containsNode.Right);
@@ -107,7 +107,7 @@ public class LogicalOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(IsNullNode));
+        Assert.IsInstanceOfType<IsNullNode>(result);
         var isNullNode = (IsNullNode)result;
         Assert.AreEqual(operandNode, isNullNode.Expression);
         Assert.IsTrue(isNullNode.IsNegated);
@@ -134,10 +134,10 @@ public class LogicalOperationVisitorHelperTests
         var result = nodes.Pop();
 
 
-        Assert.IsInstanceOfType(result, typeof(OrNode));
+        Assert.IsInstanceOfType<OrNode>(result);
         var outerOr = (OrNode)result;
-        Assert.IsInstanceOfType(outerOr.Left, typeof(OrNode));
-        Assert.IsInstanceOfType(outerOr.Right, typeof(EqualityNode));
+        Assert.IsInstanceOfType<OrNode>(outerOr.Left);
+        Assert.IsInstanceOfType<EqualityNode>(outerOr.Right);
     }
 
     [TestMethod]
@@ -164,7 +164,7 @@ public class LogicalOperationVisitorHelperTests
         Assert.IsTrue(rewriterCalled);
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(AndNode));
+        Assert.IsInstanceOfType<AndNode>(result);
     }
 
     [TestMethod]
@@ -191,7 +191,7 @@ public class LogicalOperationVisitorHelperTests
         Assert.IsTrue(rewriterCalled);
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(OrNode));
+        Assert.IsInstanceOfType<OrNode>(result);
     }
 
     [TestMethod]
@@ -211,7 +211,7 @@ public class LogicalOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(EqualityNode));
+        Assert.IsInstanceOfType<EqualityNode>(result);
         var equalityNode = (EqualityNode)result;
         Assert.AreEqual(leftNode, equalityNode.Left);
     }
@@ -231,8 +231,54 @@ public class LogicalOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(BooleanNode));
+        Assert.IsInstanceOfType<BooleanNode>(result);
         var booleanNode = (BooleanNode)result;
         Assert.IsFalse((bool)booleanNode.ObjValue);
+    }
+
+    [TestMethod]
+    public void ProcessInOperation_WhenAtOrAboveThreshold_ShouldCreateContainsNode()
+    {
+        var nodes = new Stack<Node>();
+        var leftNode = new IdentifierNode("x");
+        var args = new Node[LogicalOperationVisitorHelper.ContainsThreshold];
+        for (var i = 0; i < args.Length; i++)
+            args[i] = new IntegerNode(i.ToString());
+        var argsNode = new ArgsListNode(args);
+        nodes.Push(leftNode);
+        nodes.Push(argsNode);
+
+
+        LogicalOperationVisitorHelper.ProcessInOperation(nodes);
+
+
+        Assert.HasCount(1, nodes);
+        var result = nodes.Pop();
+        Assert.IsInstanceOfType<ContainsNode>(result);
+        var containsNode = (ContainsNode)result;
+        Assert.AreEqual(leftNode, containsNode.Left);
+        Assert.AreEqual(argsNode, containsNode.ToCompareExpression);
+    }
+
+    [TestMethod]
+    public void ProcessInOperation_WhenBelowThreshold_ShouldCreateOrChain()
+    {
+        var nodes = new Stack<Node>();
+        var leftNode = new IdentifierNode("x");
+        var count = LogicalOperationVisitorHelper.ContainsThreshold - 1;
+        var args = new Node[count];
+        for (var i = 0; i < args.Length; i++)
+            args[i] = new IntegerNode(i.ToString());
+        var argsNode = new ArgsListNode(args);
+        nodes.Push(leftNode);
+        nodes.Push(argsNode);
+
+
+        LogicalOperationVisitorHelper.ProcessInOperation(nodes);
+
+
+        Assert.HasCount(1, nodes);
+        var result = nodes.Pop();
+        Assert.IsInstanceOfType<OrNode>(result);
     }
 }

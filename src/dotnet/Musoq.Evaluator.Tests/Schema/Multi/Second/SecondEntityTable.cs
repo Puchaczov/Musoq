@@ -11,7 +11,7 @@ public class SecondEntityTable : ISchemaTable
         new SchemaColumn(nameof(SecondEntity.FirstItem), 1, typeof(string))
     ];
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns[SecondEntity.TestNameToIndexMap[name]];
     }

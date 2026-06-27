@@ -217,6 +217,61 @@ public class InterpretationSchemaNodeTests
 
     #endregion
 
+    #region FieldValueValidationNode Tests
+
+    [TestMethod]
+    public void FieldValueValidationNode_ScalarConst_ShouldFormatCorrectly()
+    {
+        var node = new FieldValueValidationNode(FieldValueValidationKind.Const, [new IntegerNode("5", "i")], false);
+
+        Assert.AreEqual(FieldValueValidationKind.Const, node.Kind);
+        Assert.IsFalse(node.IsByteList);
+        Assert.HasCount(1, node.Values);
+        Assert.AreEqual("const 5", node.ToString());
+    }
+
+    [TestMethod]
+    public void FieldValueValidationNode_MagicByteList_ShouldFormatCorrectly()
+    {
+        var node = new FieldValueValidationNode(
+            FieldValueValidationKind.Magic,
+            [new IntegerNode("137", "i"), new IntegerNode("80", "i")],
+            true);
+
+        Assert.AreEqual(FieldValueValidationKind.Magic, node.Kind);
+        Assert.IsTrue(node.IsByteList);
+        Assert.AreEqual("magic [137, 80]", node.ToString());
+    }
+
+    [TestMethod]
+    public void FieldValueValidationNode_OneOf_ShouldFormatCorrectly()
+    {
+        var node = new FieldValueValidationNode(
+            FieldValueValidationKind.OneOf,
+            [new IntegerNode("1", "i"), new IntegerNode("2", "i")],
+            false);
+
+        Assert.AreEqual(FieldValueValidationKind.OneOf, node.Kind);
+        Assert.AreEqual("oneOf [1, 2]", node.ToString());
+    }
+
+    [TestMethod]
+    public void FieldDefinitionNode_WithValueValidation_ShouldIncludeBeforeOffset()
+    {
+        var typeNode = new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable);
+        var validation = new FieldValueValidationNode(
+            FieldValueValidationKind.OneOf,
+            [new IntegerNode("1", "i"), new IntegerNode("2", "i")],
+            false);
+        var offsetNode = new IntegerNode("4", "s");
+        var node = new FieldDefinitionNode("Version", typeNode, null, offsetNode, null, validation);
+
+        Assert.AreSame(validation, node.ValueValidation);
+        Assert.AreEqual("Version: byte oneOf [1, 2] at 4", node.ToString());
+    }
+
+    #endregion
+
     #region BinarySchemaNode Tests
 
     [TestMethod]
@@ -450,11 +505,13 @@ public class InterpretationSchemaNodeTests
         new TextFieldDefinitionNode("Test", TextFieldType.Rest).Accept(visitor);
         new BinarySchemaNode("Test", []).Accept(visitor);
         new TextSchemaNode("Test", []).Accept(visitor);
+        new SubstreamTypeNode(new IntegerNode("8", "s"), SubstreamMode.Raw, null).Accept(visitor);
+        new FieldValueValidationNode(FieldValueValidationKind.Const, [new IntegerNode("1", "i")], false).Accept(visitor);
 
-        Assert.AreEqual(12, visitor.VisitCount);
+        Assert.AreEqual(14, visitor.VisitCount);
     }
 
-    private class TestVisitor : NoOpExpressionVisitor
+    private sealed class TestVisitor : NoOpExpressionVisitor
     {
         public int VisitCount { get; private set; }
 
@@ -514,6 +571,16 @@ public class InterpretationSchemaNodeTests
         }
 
         public override void Visit(TextSchemaNode node)
+        {
+            VisitCount++;
+        }
+
+        public override void Visit(SubstreamTypeNode node)
+        {
+            VisitCount++;
+        }
+
+        public override void Visit(FieldValueValidationNode node)
         {
             VisitCount++;
         }

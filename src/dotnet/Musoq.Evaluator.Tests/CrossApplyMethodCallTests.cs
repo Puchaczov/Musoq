@@ -1,3 +1,4 @@
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -405,43 +406,43 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
         Assert.AreEqual("b.Length(b.Value)", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(int?), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual("b.Count(Length(b.Value))", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual(typeof(long), table.Columns.ElementAt(1).ColumnType);
 
         Assert.AreEqual(4, table.Count);
 
         Assert.IsTrue(table.Any(row =>
             (int)row[0] == 5 &&
-            (int)row[1] == 5));
+            (long)row[1] == 5L));
 
         Assert.IsTrue(table.Any(row =>
             (int)row[0] == 3 &&
-            (int)row[1] == 1));
+            (long)row[1] == 1L));
 
         Assert.IsTrue(table.Any(row =>
             (int)row[0] == 11 &&
-            (int)row[1] == 1));
+            (long)row[1] == 1L));
 
         Assert.IsTrue(table.Any(row =>
             (int)row[0] == 10 &&
-            (int)row[1] == 1));
+            (long)row[1] == 1L));
     }
 
-    private class CrossApplyClass1
+    private sealed class CrossApplyClass1
     {
         public int Value1 { get; set; }
 
-        public string Value2 { get; set; }
+        public string Value2 { get; set; } = string.Empty;
     }
 
-    private class CrossApplyClass2
+    private sealed class CrossApplyClass2
     {
-        public string Text { get; set; }
+        public string Text { get; set; } = string.Empty;
     }
 
-    private class CrossApplyClass3
+    private sealed class CrossApplyClass3
     {
-        public string Numbers { get; set; }
+        public string Numbers { get; set; } = string.Empty;
 
-        public string Words { get; set; }
+        public string Words { get; set; } = string.Empty;
     }
 }

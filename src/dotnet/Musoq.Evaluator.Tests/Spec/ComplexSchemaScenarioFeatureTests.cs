@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
@@ -32,7 +31,7 @@ public class ComplexSchemaScenarioFeatureTests
             binary Point { X: byte, Y: byte };
             binary Shape { Id: byte, Origin: Point, Area: short le };
             select s.Id, s.Origin.X, s.Origin.Y, s.Area from #test.bytes() b
-            cross apply Interpret(b.Content, 'Shape') s
+            cross apply Interpret<Shape>(b.Content) s
             order by s.Id asc";
 
         var entities = new[]
@@ -77,10 +76,10 @@ public class ComplexSchemaScenarioFeatureTests
                 IntData: IntPayload when Type = 2
             };
             select m.Type, m.TextData.Text from #test.files() b
-            cross apply Interpret(b.Content, 'Message') m
+            cross apply Interpret<Message>(b.Content) m
             where m.Type = 1";
 
-        var text = Encoding.UTF8.GetBytes("Hi");
+        var text = "Hi"u8.ToArray();
         var testData = new byte[] { 0x01, (byte)text.Length }
             .Concat(text)
             .ToArray();
@@ -112,7 +111,7 @@ public class ComplexSchemaScenarioFeatureTests
             binary Shape { Id: byte, Origin: Coord };
             binary Canvas { ShapeCount: byte, Shapes: Shape[ShapeCount] };
             select s.Id, s.Origin.X, s.Origin.Y from #test.files() b
-            cross apply Interpret(b.Content, 'Canvas') c
+            cross apply Interpret<Canvas>(b.Content) c
             cross apply c.Shapes s
             order by s.Id asc";
 
@@ -153,7 +152,7 @@ public class ComplexSchemaScenarioFeatureTests
             binary Entry { Key: byte, Val: byte };
             binary DataBlock { Header: byte, RowCount: byte, Entries: Entry[RowCount] };
             select d.Header, r.Key, r.Val from #test.files() b
-            cross apply Interpret(b.Content, 'DataBlock') d
+            cross apply Interpret<DataBlock>(b.Content) d
             cross apply d.Entries r
             where d.Header = 0xAA
             order by r.Key asc";
@@ -203,12 +202,12 @@ public class ComplexSchemaScenarioFeatureTests
                 Quadrupled: = Doubled * 2
             };
             select d.Base, d.Doubled, d.Quadrupled from #test.bytes() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var entities = new[]
         {
-            new BinaryEntity { Name = "1.bin", Data = [0x05, 0x00, 0x00, 0x00] },
-            new BinaryEntity { Name = "2.bin", Data = [0x0A, 0x00, 0x00, 0x00] }
+            new BinaryEntity { Name = "1.bin", Data = "\u0005\u0000\u0000\u0000"u8.ToArray() },
+            new BinaryEntity { Name = "2.bin", Data = "\n\u0000\u0000\u0000"u8.ToArray() }
         };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -240,10 +239,10 @@ public class ComplexSchemaScenarioFeatureTests
                 Value: short le
             };
             select r.Id, r.Name, r.Flags, r.Value from #test.files() b
-            cross apply Interpret(b.Content, 'Record') r";
+            cross apply Interpret<Record>(b.Content) r";
 
-        var name = Encoding.UTF8.GetBytes("test");
-        var testData = new byte[] { 0x2A, 0x00, 0x00, 0x00 }
+        var name = "test"u8.ToArray();
+        var testData = "*\u0000\u0000\u0000"u8.ToArray()
             .Concat([(byte)name.Length])
             .Concat(name)
             .Concat(new byte[] { 0x03, 0xFF, 0xFF, 0x64, 0x00 })
@@ -279,7 +278,7 @@ public class ComplexSchemaScenarioFeatureTests
             binary File { TagCount: byte, Tags: Tag[TagCount] };
             select t.Category, Count(t.Category) as Cnt
             from #test.files() b
-            cross apply Interpret(b.Content, 'File') f
+            cross apply Interpret<File>(b.Content) f
             cross apply f.Tags t
             group by t.Category
             order by t.Category asc";
@@ -300,11 +299,11 @@ public class ComplexSchemaScenarioFeatureTests
 
         Assert.AreEqual(3, table.Count);
         Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(2, table[0][1]);
+        Assert.AreEqual(2L, table[0][1]);
         Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
+        Assert.AreEqual(2L, table[1][1]);
         Assert.AreEqual((byte)3, table[2][0]);
-        Assert.AreEqual(1, table[2][1]);
+        Assert.AreEqual(1L, table[2][1]);
     }
 
     #endregion
@@ -320,7 +319,7 @@ public class ComplexSchemaScenarioFeatureTests
         var query = @"
             text KeyVal { Key: until ':', Value: rest };
             select k.Key, k.Value from #test.lines() l
-            cross apply Parse(l.Line, 'KeyVal') k
+            cross apply Parse<KeyVal>(l.Line) k
             where k.Key <> '#comment'
             order by k.Key asc";
 
@@ -362,7 +361,7 @@ public class ComplexSchemaScenarioFeatureTests
                 Data: byte[Size] when Type <> 0
             };
             select e.Type, e.Size from #test.files() b
-            cross apply Interpret(b.Content, 'Extended') e
+            cross apply Interpret<Extended>(b.Content) e
             where e.Type = 1";
 
         var testData = new byte[] { 0x01, 0x03, 0xAA, 0xBB, 0xCC };

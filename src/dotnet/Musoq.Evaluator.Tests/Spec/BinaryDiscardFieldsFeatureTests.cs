@@ -33,7 +33,7 @@ public class BinaryDiscardFieldsFeatureTests
                 Value: int le
             };
             select d.Magic, d.Value from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var testData = new byte[]
         {
@@ -71,7 +71,7 @@ public class BinaryDiscardFieldsFeatureTests
                 Second: byte
             };
             select d.First, d.Second from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var testData = new byte[] { 0x0A, 0xFF, 0x0B };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -103,7 +103,7 @@ public class BinaryDiscardFieldsFeatureTests
                 Value: short le
             };
             select d.Value from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var testData = new byte[]
         {
@@ -138,13 +138,9 @@ public class BinaryDiscardFieldsFeatureTests
                 Value: int le
             };
             select d.Value from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
-        var testData = new byte[]
-        {
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x2A, 0x00, 0x00, 0x00
-        };
+        var testData = "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000*\u0000\u0000\u0000"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -173,7 +169,7 @@ public class BinaryDiscardFieldsFeatureTests
                 _: byte[4]
             };
             select d.Value from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var testData = new byte[]
         {
@@ -209,7 +205,7 @@ public class BinaryDiscardFieldsFeatureTests
                 _: literal ':end'
             };
             select d.Value from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "start:[hello]:end" } };
         var schemaProvider = new TextSchemaProvider(
@@ -239,7 +235,7 @@ public class BinaryDiscardFieldsFeatureTests
                 Value: rest
             };
             select d.Value from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "PREFIX:the remaining text" } };
         var schemaProvider = new TextSchemaProvider(

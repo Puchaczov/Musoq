@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -12,7 +13,7 @@ namespace Musoq.Schema.Tests;
 [TestClass]
 public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTestBase
 {
-    private MethodsMetadata _methodsMetadata;
+    private MethodsMetadata _methodsMetadata = CreateMethodsMetadataFor<TestClass>();
 
     [TestInitialize]
     public void Initialize()
@@ -24,7 +25,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
     public void TryGetMethod_GenericConstraints_ValueType()
     {
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("ValueTypeGeneric", [typeof(int)], null, out var method),
+            _methodsMetadata.TryGetMethod("ValueTypeGeneric", [typeof(int)], null, out _),
             "Should resolve for value type"
         );
 
@@ -38,7 +39,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
     public void TryGetMethod_GenericConstraints_ReferenceType()
     {
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("ReferenceTypeGeneric", [typeof(string)], null, out var method),
+            _methodsMetadata.TryGetMethod("ReferenceTypeGeneric", [typeof(string)], null, out _),
             "Should resolve for reference type"
         );
 
@@ -52,7 +53,7 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
     public void TryGetMethod_GenericConstraints_NullableStruct()
     {
         Assert.IsTrue(
-            _methodsMetadata.TryGetMethod("NullableStructGeneric", [typeof(int?)], null, out var method),
+            _methodsMetadata.TryGetMethod("NullableStructGeneric", [typeof(int?)], null, out _),
             "Should resolve for nullable value type"
         );
 
@@ -119,10 +120,9 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
         );
 
         var parameters = method.GetParameters();
-        Assert.HasCount(4, parameters, "Should have all parameters");
+        Assert.HasCount(3, parameters, "Should have all parameters");
         Assert.IsTrue(Attribute.IsDefined(parameters[0], typeof(InjectSpecificSourceAttribute)));
-        Assert.IsTrue(Attribute.IsDefined(parameters[1], typeof(InjectGroupAttribute)));
-        Assert.IsTrue(Attribute.IsDefined(parameters[2], typeof(InjectQueryStatsAttribute)));
+        Assert.IsTrue(Attribute.IsDefined(parameters[1], typeof(InjectQueryStatsAttribute)));
     }
 
     [TestMethod]
@@ -187,19 +187,14 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
         );
     }
 
-    private interface IBase
-    {
-    }
+    private interface IBase;
 
-    private class BaseEntity : IBase
-    {
-    }
+    private class BaseEntity : IBase;
 
-    private class DerivedEntity : BaseEntity
-    {
-    }
+    private sealed class DerivedEntity : BaseEntity;
 
-    private class TestClass
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+    private sealed class TestClass
     {
         public void EmptyMethod()
         {
@@ -260,7 +255,6 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
 
         public void MultipleInjection(
             [InjectSpecificSource(typeof(IBase))] IBase entity1,
-            [InjectGroup] object group,
             [InjectQueryStats] object stats,
             int value)
         {
@@ -283,7 +277,8 @@ public class MethodsMetadataEdgeCasesMethodResolutionTests : MethodsMetadataTest
         }
     }
 
-    private class ManyOverloadsClass
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+    private sealed class ManyOverloadsClass
     {
         public void OverloadedMethod(byte value)
         {

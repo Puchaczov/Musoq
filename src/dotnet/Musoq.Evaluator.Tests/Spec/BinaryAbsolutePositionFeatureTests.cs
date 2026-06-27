@@ -30,7 +30,7 @@ public class BinaryAbsolutePositionFeatureTests
                 Value: byte at 0x04
             };
             select d.Value from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var testData = new byte[] { 0x00, 0x00, 0x00, 0x00, 0xAB };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -61,7 +61,7 @@ public class BinaryAbsolutePositionFeatureTests
                 Data: int le at DataOffset
             };
             select h.DataOffset, h.Data from #test.files() b
-            cross apply Interpret(b.Content, 'FileHeader') h";
+            cross apply Interpret<FileHeader>(b.Content) h";
 
         var testData = new byte[]
         {
@@ -98,7 +98,7 @@ public class BinaryAbsolutePositionFeatureTests
                 Value: short le at BaseOffset + 2
             };
             select d.BaseOffset, d.Value from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var testData = new byte[]
         {
@@ -136,7 +136,7 @@ public class BinaryAbsolutePositionFeatureTests
                 FirstAgain: int le at 0
             };
             select d.First, d.Second, d.FirstAgain from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var testData = new byte[]
         {
@@ -174,7 +174,7 @@ public class BinaryAbsolutePositionFeatureTests
                 Signature: int le at 8
             };
             select h.DosMagic, h.PeOffset, h.Signature from #test.files() b
-            cross apply Interpret(b.Content, 'PeHeader') h";
+            cross apply Interpret<PeHeader>(b.Content) h";
 
         var testData = new byte[]
         {
@@ -212,7 +212,7 @@ public class BinaryAbsolutePositionFeatureTests
                 Value: int le at 4
             };
             select d.Value from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var testData = new byte[]
         {
@@ -242,7 +242,7 @@ public class BinaryAbsolutePositionFeatureTests
                 Value: short le at 0
             };
             select d.Value from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var testData = new byte[] { 0x0A, 0x00, 0xFF, 0xFF };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -274,7 +274,7 @@ public class BinaryAbsolutePositionFeatureTests
                 ExtraValue: int le at 8 when HasExtra <> 0
             };
             select d.HasExtra, d.Value, d.ExtraValue from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         var testData = new byte[]
         {
@@ -310,13 +310,9 @@ public class BinaryAbsolutePositionFeatureTests
                 ExtraValue: int le at 8 when HasExtra <> 0
             };
             select d.HasExtra, d.Value, d.ExtraValue from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
-        var testData = new byte[]
-        {
-            0x00,
-            0x0A, 0x00, 0x00, 0x00
-        };
+        var testData = "\u0000\n\u0000\u0000\u0000"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });

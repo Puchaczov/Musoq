@@ -17,7 +17,7 @@ public class OrderTable : ISchemaTable
         new SchemaColumn(nameof(OrderEntity.Notes), 5, typeof(string))
     ];
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns.SingleOrDefault(col => col.ColumnName == name);
     }

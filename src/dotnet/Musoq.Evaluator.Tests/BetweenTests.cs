@@ -134,14 +134,13 @@ public class BetweenTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("Small") { Population = 50000 },
                     new BasicEntity("Medium") { Population = 200000 },
                     new BasicEntity("Large") { Population = 1000000 },
                     new BasicEntity("Tiny") { Population = 100000 },
                     new BasicEntity("Huge") { Population = 500000 }
-                }
+                ]
             }
         };
 
@@ -157,7 +156,7 @@ public class BetweenTests : BasicEntityTestBase
         var query = "select 5 between 1 and 10 as Result from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", new[] { new BasicEntity("test") } }
+            { "#A", [new BasicEntity("test")] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
@@ -174,12 +173,11 @@ public class BetweenTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("Small") { Population = 50000 },
                     new BasicEntity("Medium") { Population = 200000 },
                     new BasicEntity("Large") { Population = 1000000 }
-                }
+                ]
             }
         };
 
@@ -197,12 +195,11 @@ public class BetweenTests : BasicEntityTestBase
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
-                "#A", new[]
-                {
+                "#A", [
                     new BasicEntity("City1") { Population = 200000, City = "Boston" },
                     new BasicEntity("City2") { Population = 200000, City = "Denver" },
                     new BasicEntity("City3") { Population = 50000, City = "Boston" }
-                }
+                ]
             }
         };
 

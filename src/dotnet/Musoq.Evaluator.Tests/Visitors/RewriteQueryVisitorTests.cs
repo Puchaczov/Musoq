@@ -14,8 +14,8 @@ namespace Musoq.Evaluator.Tests.Visitors;
 [TestClass]
 public class RewriteQueryVisitorTests
 {
-    private Scope _scope;
-    private RewriteQueryVisitor _visitor;
+    private Scope _scope = new(null, 0, "test");
+    private RewriteQueryVisitor _visitor = new();
 
     [TestInitialize]
     public void Setup()
@@ -28,13 +28,14 @@ public class RewriteQueryVisitorTests
     private Stack<Node> GetPrivateNodes()
     {
         var nodesProperty = _visitor.GetType().GetProperty("Nodes", BindingFlags.NonPublic | BindingFlags.Instance);
-        return (Stack<Node>)nodesProperty?.GetValue(_visitor);
+        return nodesProperty?.GetValue(_visitor) as Stack<Node> ??
+            throw new AssertFailedException("Expected visitor node stack.");
     }
 
-    private void PushNode(Node node)
+    private void PushNode(Node? node)
     {
         var nodes = GetPrivateNodes();
-        nodes.Push(node);
+        nodes.Push(node!);
     }
 
     private int GetNodesCount()
@@ -356,9 +357,8 @@ public class RewriteQueryVisitorTests
     [TestMethod]
     public void SetScope_WithNull_ShouldNotThrowImmediately()
     {
-        _visitor.SetScope(null);
+        _visitor.SetScope(null!);
     }
-
 
     [TestMethod]
     public void Visit_ComplexExpression_ShouldHandleCorrectly()
@@ -554,9 +554,8 @@ public class RewriteQueryVisitorTests
     {
         // Arrange
         var dataSourceNode = new AccessColumnNode("data", "source", typeof(byte[]), TextSpan.Empty);
-        var schemaNameNode = new StringNode("MySchema");
-        var argsListNode = new ArgsListNode([dataSourceNode, schemaNameNode]);
-        var functionToken = new FunctionToken("Interpret", TextSpan.Empty);
+        var argsListNode = new ArgsListNode([dataSourceNode]);
+        var functionToken = new GenericFunctionToken("Interpret", "MySchema", TextSpan.Empty);
         var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
 
 
@@ -567,7 +566,7 @@ public class RewriteQueryVisitorTests
 
         // Assert
         var result = GetPrivateNodes().Pop();
-        Assert.IsInstanceOfType(result, typeof(InterpretCallNode));
+        Assert.IsInstanceOfType<InterpretCallNode>(result);
         var interpretNode = (InterpretCallNode)result;
         Assert.AreEqual("MySchema", interpretNode.SchemaName);
     }
@@ -577,9 +576,8 @@ public class RewriteQueryVisitorTests
     {
         // Arrange
         var dataSourceNode = new AccessColumnNode("data", "source", typeof(byte[]), TextSpan.Empty);
-        var schemaNameNode = new StringNode("MyParser");
-        var argsListNode = new ArgsListNode([dataSourceNode, schemaNameNode]);
-        var functionToken = new FunctionToken("Parse", TextSpan.Empty);
+        var argsListNode = new ArgsListNode([dataSourceNode]);
+        var functionToken = new GenericFunctionToken("Parse", "MyParser", TextSpan.Empty);
         var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
 
 
@@ -590,7 +588,7 @@ public class RewriteQueryVisitorTests
 
         // Assert
         var result = GetPrivateNodes().Pop();
-        Assert.IsInstanceOfType(result, typeof(ParseCallNode));
+        Assert.IsInstanceOfType<ParseCallNode>(result);
         var parseNode = (ParseCallNode)result;
         Assert.AreEqual("MyParser", parseNode.SchemaName);
     }
@@ -601,9 +599,8 @@ public class RewriteQueryVisitorTests
         // Arrange
         var dataSourceNode = new AccessColumnNode("data", "source", typeof(byte[]), TextSpan.Empty);
         var offsetNode = new IntegerNode("10");
-        var schemaNameNode = new StringNode("MyOffsetSchema");
-        var argsListNode = new ArgsListNode([dataSourceNode, offsetNode, schemaNameNode]);
-        var functionToken = new FunctionToken("InterpretAt", TextSpan.Empty);
+        var argsListNode = new ArgsListNode([dataSourceNode, offsetNode]);
+        var functionToken = new GenericFunctionToken("InterpretAt", "MyOffsetSchema", TextSpan.Empty);
         var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
 
 
@@ -614,7 +611,7 @@ public class RewriteQueryVisitorTests
 
         // Assert
         var result = GetPrivateNodes().Pop();
-        Assert.IsInstanceOfType(result, typeof(InterpretAtCallNode));
+        Assert.IsInstanceOfType<InterpretAtCallNode>(result);
         var interpretAtNode = (InterpretAtCallNode)result;
         Assert.AreEqual("MyOffsetSchema", interpretAtNode.SchemaName);
     }
@@ -636,7 +633,7 @@ public class RewriteQueryVisitorTests
 
         // Assert
         var result = GetPrivateNodes().Pop();
-        Assert.IsInstanceOfType(result, typeof(AccessMethodNode));
+        Assert.IsInstanceOfType<AccessMethodNode>(result);
         var methodNode = (AccessMethodNode)result;
         Assert.AreEqual("SomeOtherFunction", methodNode.FunctionToken.Value);
     }
@@ -657,16 +654,15 @@ public class RewriteQueryVisitorTests
 
 
         var result = GetPrivateNodes().Pop();
-        Assert.IsInstanceOfType(result, typeof(AccessMethodNode));
+        Assert.IsInstanceOfType<AccessMethodNode>(result);
     }
 
     [TestMethod]
     public void Visit_AccessMethodNode_InterpretCaseInsensitive_ShouldTransformToInterpretCallNode()
     {
         var dataSourceNode = new AccessColumnNode("data", "source", typeof(byte[]), TextSpan.Empty);
-        var schemaNameNode = new StringNode("MySchema");
-        var argsListNode = new ArgsListNode([dataSourceNode, schemaNameNode]);
-        var functionToken = new FunctionToken("INTERPRET", TextSpan.Empty);
+        var argsListNode = new ArgsListNode([dataSourceNode]);
+        var functionToken = new GenericFunctionToken("INTERPRET", "MySchema", TextSpan.Empty);
         var accessMethodNode = new AccessMethodNode(functionToken, argsListNode, null, false);
 
 
@@ -677,7 +673,7 @@ public class RewriteQueryVisitorTests
 
 
         var result = GetPrivateNodes().Pop();
-        Assert.IsInstanceOfType(result, typeof(InterpretCallNode));
+        Assert.IsInstanceOfType<InterpretCallNode>(result);
     }
 
     #endregion

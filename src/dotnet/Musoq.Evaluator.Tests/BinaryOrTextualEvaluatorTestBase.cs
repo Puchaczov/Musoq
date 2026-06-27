@@ -1,9 +1,6 @@
-#nullable enable annotations
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Schema;
@@ -35,8 +32,8 @@ public abstract class BinaryOrTextualEvaluatorTestBase
             { nameof(Content), 1 }
         };
 
-        public static readonly IReadOnlyDictionary<int, Func<BinaryEntity, object>> IndexToObjectAccessMap =
-            new Dictionary<int, Func<BinaryEntity, object>>
+        public static readonly IReadOnlyDictionary<int, Func<BinaryEntity, object?>> IndexToObjectAccessMap =
+            new Dictionary<int, Func<BinaryEntity, object?>>
             {
                 { 0, e => e.Name },
                 { 1, e => e.Content }
@@ -58,8 +55,8 @@ public abstract class BinaryOrTextualEvaluatorTestBase
             { nameof(Line), 1 } // Alias for Text
         };
 
-        public static readonly IReadOnlyDictionary<int, Func<TextEntity, object>> IndexToObjectAccessMap =
-            new Dictionary<int, Func<TextEntity, object>>
+        public static readonly IReadOnlyDictionary<int, Func<TextEntity, object?>> IndexToObjectAccessMap =
+            new Dictionary<int, Func<TextEntity, object?>>
             {
                 { 0, e => e.Name },
                 { 1, e => e.Text }
@@ -122,34 +119,29 @@ public abstract class BinaryOrTextualEvaluatorTestBase
     /// <summary>
     ///     Schema for binary entities with byte[] content.
     /// </summary>
-    protected class BinarySchema : SchemaBase
+    protected class BinarySchema(IEnumerable<BinaryEntity> entities) : SchemaBase("test", CachedLibrary.Value)
     {
+        private readonly IReadOnlyList<BinaryEntity> _entities = entities as IReadOnlyList<BinaryEntity> ?? entities.ToArray();
         private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
-        private readonly IEnumerable<BinaryEntity> _entities;
 
-        public BinarySchema(IEnumerable<BinaryEntity> entities)
-            : base("test", CachedLibrary.Value)
-        {
-            _entities = entities;
-        }
-
-        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext,
-            params object[] parameters)
+        public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
+            params object?[] parameters)
         {
             return new BinaryEntityTable();
         }
 
-        public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
         {
-            return new EntitySource<BinaryEntity>(
-                _entities,
+            return EnsureSourceType<T, BinaryEntity>(name, new EntitySource<BinaryEntity>(
+                [_entities],
                 BinaryEntity.NameToIndexMap,
-                BinaryEntity.IndexToObjectAccessMap);
+                BinaryEntity.IndexToObjectAccessMap));
         }
 
         private static MethodsAggregator CreateLibrary()
         {
             var methodManager = new MethodsManager();
+            methodManager.RegisterLibraries(new LibraryBase());
             return new MethodsAggregator(methodManager);
         }
     }
@@ -157,29 +149,23 @@ public abstract class BinaryOrTextualEvaluatorTestBase
     /// <summary>
     ///     Schema for text entities with string content.
     /// </summary>
-    protected class TextSchema : SchemaBase
+    protected class TextSchema(IEnumerable<TextEntity> entities) : SchemaBase("test", CachedLibrary.Value)
     {
+        private readonly IReadOnlyList<TextEntity> _entities = entities as IReadOnlyList<TextEntity> ?? entities.ToArray();
         private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
-        private readonly IEnumerable<TextEntity> _entities;
 
-        public TextSchema(IEnumerable<TextEntity> entities)
-            : base("test", CachedLibrary.Value)
-        {
-            _entities = entities;
-        }
-
-        public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext,
-            params object[] parameters)
+        public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
+            params object?[] parameters)
         {
             return new TextEntityTable();
         }
 
-        public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+        public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
         {
-            return new EntitySource<TextEntity>(
-                _entities,
+            return EnsureSourceType<T, TextEntity>(name, new EntitySource<TextEntity>(
+                [_entities],
                 TextEntity.NameToIndexMap,
-                TextEntity.IndexToObjectAccessMap);
+                TextEntity.IndexToObjectAccessMap));
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -193,18 +179,11 @@ public abstract class BinaryOrTextualEvaluatorTestBase
     /// <summary>
     ///     Schema provider for binary entities.
     /// </summary>
-    protected class BinarySchemaProvider : ISchemaProvider
+    protected class BinarySchemaProvider(IDictionary<string, IEnumerable<BinaryEntity>> values) : ISchemaProvider
     {
-        private readonly IDictionary<string, IEnumerable<BinaryEntity>> _values;
-
-        public BinarySchemaProvider(IDictionary<string, IEnumerable<BinaryEntity>> values)
-        {
-            _values = values;
-        }
-
         public ISchema GetSchema(string schema)
         {
-            if (_values.TryGetValue(schema, out var entities)) return new BinarySchema(entities);
+            if (values.TryGetValue(schema, out var entities)) return new BinarySchema(entities);
             throw new InvalidOperationException($"Schema '{schema}' not found");
         }
     }
@@ -212,18 +191,11 @@ public abstract class BinaryOrTextualEvaluatorTestBase
     /// <summary>
     ///     Schema provider for text entities.
     /// </summary>
-    protected class TextSchemaProvider : ISchemaProvider
+    protected class TextSchemaProvider(IDictionary<string, IEnumerable<TextEntity>> values) : ISchemaProvider
     {
-        private readonly IDictionary<string, IEnumerable<TextEntity>> _values;
-
-        public TextSchemaProvider(IDictionary<string, IEnumerable<TextEntity>> values)
-        {
-            _values = values;
-        }
-
         public ISchema GetSchema(string schema)
         {
-            if (_values.TryGetValue(schema, out var entities)) return new TextSchema(entities);
+            if (values.TryGetValue(schema, out var entities)) return new TextSchema(entities);
             throw new InvalidOperationException($"Schema '{schema}' not found");
         }
     }
@@ -231,18 +203,11 @@ public abstract class BinaryOrTextualEvaluatorTestBase
     /// <summary>
     ///     Simple schema column implementation.
     /// </summary>
-    protected class SchemaColumn : ISchemaColumn
+    protected class SchemaColumn(string columnName, int columnIndex, Type columnType) : ISchemaColumn
     {
-        public SchemaColumn(string columnName, int columnIndex, Type columnType)
-        {
-            ColumnName = columnName;
-            ColumnIndex = columnIndex;
-            ColumnType = columnType;
-        }
-
-        public string ColumnName { get; }
-        public int ColumnIndex { get; }
-        public Type ColumnType { get; }
+        public string ColumnName { get; } = columnName;
+        public int ColumnIndex { get; } = columnIndex;
+        public Type ColumnType { get; } = columnType;
     }
 
     #endregion

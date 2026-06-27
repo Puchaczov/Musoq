@@ -393,8 +393,7 @@ public class LexerTests
     [TestMethod]
     public void SchemaContext_GenericWithArray_ShouldTokenizeCorrectly()
     {
-        var lexer = new Lexer("Wrapper<Data>[5]", true);
-        lexer.IsSchemaContext = true;
+        var lexer = new Lexer("Wrapper<Data>[5]", true) { IsSchemaContext = true };
 
         var tokens = new List<Token>();
         var token = lexer.Next();
@@ -437,8 +436,7 @@ public class LexerTests
     [TestMethod]
     public void SchemaContext_BracketedNumber_ShouldSplit()
     {
-        var lexer = new Lexer("[5]", true);
-        lexer.IsSchemaContext = true;
+        var lexer = new Lexer("[5]", true) { IsSchemaContext = true };
 
         var tokens = new List<Token>();
         var token = lexer.Next();
@@ -506,8 +504,7 @@ public class LexerTests
     [TestMethod]
     public void KeyAccessWithArithmetic_InSchemaContext_ShouldSplit()
     {
-        var lexer = new Lexer("byte[Total - HeaderSize]", true);
-        lexer.IsSchemaContext = true;
+        var lexer = new Lexer("byte[Total - HeaderSize]", true) { IsSchemaContext = true };
 
         var tokens = new List<Token>();
         var token = lexer.Next();
@@ -526,8 +523,7 @@ public class LexerTests
     [TestMethod]
     public void QuestionMark_Alone_TokenizesAsQuestionMark()
     {
-        var lexer = new Lexer("?", true);
-        lexer.IsSchemaContext = true;
+        var lexer = new Lexer("?", true) { IsSchemaContext = true };
 
         var tokens = new List<Token>();
         var token = lexer.Next();
@@ -549,8 +545,7 @@ public class LexerTests
     [TestMethod]
     public void QuestionMark_InSchemaContext_TokenizesAsQuestionMark()
     {
-        var lexer = new Lexer("whitespace?", true);
-        lexer.IsSchemaContext = true;
+        var lexer = new Lexer("whitespace?", true) { IsSchemaContext = true };
 
         var tokens = new List<Token>();
         var token = lexer.Next();
@@ -595,5 +590,14 @@ public class LexerTests
         Assert.AreEqual(TokenType.Property, token.TokenType,
             $"Fifth token 'X' should be Property, got {token.TokenType}");
         Assert.AreEqual("X", token.Value);
+    }
+
+    [TestMethod]
+    public void CurrentRowKeyword_ShouldReturnCurrentRowToken()
+    {
+        var lexer = new Lexer("current row", true);
+        var token = lexer.Next();
+
+        Assert.AreEqual(TokenType.CurrentRow, token.TokenType);
     }
 }

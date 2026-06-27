@@ -51,9 +51,9 @@ public class DiagnosticMetadataTests
     {
         var diag = Diagnostic.Error(DiagnosticCode.MQ2001_UnexpectedToken, "test", new TextSpan(0, 5));
 
-        var withDocs = diag.WithDocsReference("docs/errors.md#MQ2001");
+        var withDocs = diag.WithDocsReference("specs/errors.md#MQ2001");
 
-        Assert.AreEqual("docs/errors.md#MQ2001", withDocs.DocsReference);
+        Assert.AreEqual("specs/errors.md#MQ2001", withDocs.DocsReference);
     }
 
     [TestMethod]
@@ -137,7 +137,7 @@ public class DiagnosticMetadataTests
     {
         var bag = new DiagnosticBag();
 
-        Assert.Throws<ArgumentNullException>(() => bag.Add(null));
+        Assert.Throws<ArgumentNullException>(() => bag.Add(null!));
     }
 
     [TestMethod]

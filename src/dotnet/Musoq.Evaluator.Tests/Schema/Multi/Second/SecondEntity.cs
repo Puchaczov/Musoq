@@ -5,25 +5,20 @@ namespace Musoq.Evaluator.Tests.Schema.Multi.Second;
 
 public class SecondEntity : ICommonInterface
 {
-    public static readonly IReadOnlyDictionary<string, int> TestNameToIndexMap;
-    public static readonly IReadOnlyDictionary<int, Func<SecondEntity, object>> TestIndexToObjectAccessMap;
-
-    static SecondEntity()
+    public static readonly IReadOnlyDictionary<string, int> TestNameToIndexMap = new Dictionary<string, int>
     {
-        TestNameToIndexMap = new Dictionary<string, int>
-        {
-            { nameof(ZeroItem), 0 },
-            { nameof(FirstItem), 1 }
-        };
+        { nameof(ZeroItem), 0 },
+        { nameof(FirstItem), 1 }
+    };
 
-        TestIndexToObjectAccessMap = new Dictionary<int, Func<SecondEntity, object>>
+    public static readonly IReadOnlyDictionary<int, Func<SecondEntity, object?>> TestIndexToObjectAccessMap =
+        new Dictionary<int, Func<SecondEntity, object?>>
         {
             { 0, entity => entity.ZeroItem },
             { 1, entity => entity.FirstItem }
         };
-    }
 
-    public string ZeroItem { get; set; }
+    public string ZeroItem { get; set; } = string.Empty;
 
-    public string FirstItem { get; set; }
+    public string FirstItem { get; set; } = string.Empty;
 }

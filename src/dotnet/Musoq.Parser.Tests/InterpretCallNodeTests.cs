@@ -50,7 +50,7 @@ public class InterpretCallNodeTests
         var result = node.ToString();
 
         // Assert
-        Assert.AreEqual("Interpret(f.Content, BmpHeader)", result);
+        Assert.AreEqual("Interpret<BmpHeader>(f.Content)", result);
     }
 
     [TestMethod]
@@ -110,7 +110,37 @@ public class InterpretCallNodeTests
         var result = node.ToString();
 
         // Assert
-        Assert.AreEqual("Parse(line.Value, CsvRow)", result);
+        Assert.AreEqual("Parse<CsvRow>(line.Value)", result);
+    }
+
+    [TestMethod]
+    public void PartialParseCallNode_ShouldStoreAllProperties()
+    {
+        var dataSource = new IdentifierNode("line", typeof(string));
+        var schemaName = "LogEntry";
+        var returnType = typeof(object);
+
+
+        var node = new PartialParseCallNode(dataSource, schemaName, returnType);
+
+
+        Assert.AreEqual(dataSource, node.DataSource);
+        Assert.AreEqual(schemaName, node.SchemaName);
+        Assert.AreEqual(returnType, node.ReturnType);
+    }
+
+    [TestMethod]
+    public void PartialParseCallNode_ToString_ShouldReturnExpectedFormat()
+    {
+        var dataSource = new IdentifierNode("line.Value", typeof(string));
+        var schemaName = "CsvRow";
+        var node = new PartialParseCallNode(dataSource, schemaName);
+
+
+        var result = node.ToString();
+
+
+        Assert.AreEqual("PartialParse<CsvRow>(line.Value)", result);
     }
 
     [TestMethod]
@@ -161,7 +191,7 @@ public class InterpretCallNodeTests
         var result = node.ToString();
 
         // Assert
-        Assert.AreEqual("InterpretAt(buffer, 256, Packet)", result);
+        Assert.AreEqual("InterpretAt<Packet>(buffer, 256)", result);
     }
 
     [TestMethod]
@@ -183,6 +213,12 @@ public class InterpretCallNodeTests
     public void ParseCallNode_NullDataSource_ShouldThrow()
     {
         Assert.Throws<ArgumentNullException>(() => new ParseCallNode(null!, "Schema"));
+    }
+
+    [TestMethod]
+    public void PartialParseCallNode_NullDataSource_ShouldThrow()
+    {
+        Assert.Throws<ArgumentNullException>(() => new PartialParseCallNode(null!, "Schema"));
     }
 
     [TestMethod]

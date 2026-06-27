@@ -153,9 +153,6 @@ public class BitwiseOperationsOrTests : BasicEntityTestBase
     [TestMethod]
     public void WhenBitwiseOrBetweenShortAndSByte_ShouldBeEvaluated()
     {
-        short x = 1;
-        byte y = 1;
-        var result = (ushort)x | y;
         TestMethodTemplate<int?>("Or(1s, 1b)", 1);
     }
 

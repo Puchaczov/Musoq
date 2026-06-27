@@ -1,3 +1,4 @@
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,8 +42,8 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             (parameters, source) =>
             {
                 var filterKey = parameters[0];
-                return new ObjectRowsSource(source.Rows.Where(f =>
-                    Equals(f["FilterKey"], filterKey)).ToArray());
+                return source.Filter(f =>
+                    Equals(f.FilterKey, filterKey)).ToArray();
             });
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -77,9 +78,9 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             null,
             (parameters, source) =>
             {
-                var filterKey = (string)parameters[0];
-                return new ObjectRowsSource(source.Rows.Where(f =>
-                    (string)f["FilterKey"] == filterKey).ToArray());
+                var filterKey = RequireParameter<string>(parameters, 0);
+                return source.Filter(f =>
+                    (string)f.FilterKey == filterKey).ToArray();
             });
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -116,9 +117,8 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             (parameters, source) =>
             {
                 var filterKey = parameters[0];
-                var filterValue = parameters[1];
-                return new ObjectRowsSource(source.Rows.Where(f =>
-                    Equals(f["FilterKey"], filterKey)).ToArray());
+                return source.Filter(f =>
+                    Equals(f.FilterKey, filterKey)).ToArray();
             });
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -148,7 +148,7 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             null,
             null,
             null,
-            (parameters, source) => new ObjectRowsSource(null));
+            (_, _) => null);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -177,10 +177,10 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             null,
             null,
             null,
-            (parameters, source) => throw new InvalidOperationException("Function failed"));
+            (_, _) => throw new InvalidOperationException("Function failed"));
 
 
-        Assert.Throws<InvalidOperationException>(() => vm.Run(TestContext.CancellationToken));
+        Assert.Throws<InvalidOperationException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
     }
 
     [TestMethod]
@@ -210,11 +210,11 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
             {
                 var param = parameters[0];
                 if (param != null && int.TryParse(param.ToString(), out var intParam))
+                    return source.Filter(f =>
+                        f.FilterKey?.ToString() == intParam.ToString()).ToArray();
 
-                    return new ObjectRowsSource(source.Rows.Where(f =>
-                        f["FilterKey"]?.ToString() == intParam.ToString()).ToArray());
-                return new ObjectRowsSource(source.Rows.Where(f =>
-                    Equals(f["FilterKey"], param)).ToArray());
+                return source.Filter(f =>
+                    Equals(f.FilterKey, param)).ToArray();
             });
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -224,15 +224,15 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
         Assert.AreEqual(1, table.Count);
     }
 
-    private class TestClass1
+    private sealed class TestClass1
     {
-        public string Key { get; set; }
-        public string Value { get; set; }
+        public string? Key { get; set; } = string.Empty;
+        public string? Value { get; set; } = string.Empty;
     }
 
-    private class TestClass2
+    private sealed class TestClass2
     {
-        public string FilterKey { get; set; }
+        public string? FilterKey { get; set; } = string.Empty;
         public decimal Amount { get; set; }
     }
 }

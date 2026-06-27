@@ -31,7 +31,7 @@ public class TextCombinedPatternsFeatureTests
                 Value: rest
             };
             select d.Key, d.Value from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "name=John Doe" } };
         var schemaProvider = new TextSchemaProvider(
@@ -62,7 +62,7 @@ public class TextCombinedPatternsFeatureTests
                 Message: rest
             };
             select d.Tag, d.Message from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "[ERROR] Something went wrong" } };
         var schemaProvider = new TextSchemaProvider(
@@ -95,7 +95,7 @@ public class TextCombinedPatternsFeatureTests
                 Message: rest
             };
             select d.Level, d.Timestamp, d.Message from #test.lines() l
-            cross apply Parse(l.Line, 'LogEntry') d";
+            cross apply Parse<LogEntry>(l.Line) d";
 
         var entities = new[]
             { new TextEntity { Name = "test.txt", Text = "INFO 2024-01-15 Application started successfully" } };
@@ -129,7 +129,7 @@ public class TextCombinedPatternsFeatureTests
                 Col3: rest
             };
             select d.Col1, d.Col2, d.Col3 from #test.lines() l
-            cross apply Parse(l.Line, 'CsvRow') d";
+            cross apply Parse<CsvRow>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "Alice,30,Engineer" } };
         var schemaProvider = new TextSchemaProvider(
@@ -161,7 +161,7 @@ public class TextCombinedPatternsFeatureTests
                 Second: between '[' ']'
             };
             select d.First, d.Second from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "(hello)[world]" } };
         var schemaProvider = new TextSchemaProvider(
@@ -193,7 +193,7 @@ public class TextCombinedPatternsFeatureTests
                 Suffix: chars[3]
             };
             select d.Prefix, d.Value, d.Suffix from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "ABC<data>XYZ" } };
         var schemaProvider = new TextSchemaProvider(
@@ -226,7 +226,7 @@ public class TextCombinedPatternsFeatureTests
                 Value: rest
             };
             select d.Key, d.Value from #test.lines() l
-            cross apply Parse(l.Line, 'KeyValue') d
+            cross apply Parse<KeyValue>(l.Line) d
             order by d.Key asc";
 
         var entities = new[]
@@ -267,7 +267,7 @@ public class TextCombinedPatternsFeatureTests
                 Message: rest
             };
             select l2.Message from #test.lines() l
-            cross apply Parse(l.Line, 'LogLine') l2
+            cross apply Parse<LogLine>(l.Line) l2
             where l2.Level = 'ERROR'
             order by l2.Message asc";
 
@@ -306,7 +306,7 @@ public class TextCombinedPatternsFeatureTests
                 Name: rest
             };
             select e.Priority, e.Name from #test.lines() l
-            cross apply Parse(l.Line, 'Entry') e
+            cross apply Parse<Entry>(l.Line) e
             order by e.Priority asc";
 
         var entities = new[]

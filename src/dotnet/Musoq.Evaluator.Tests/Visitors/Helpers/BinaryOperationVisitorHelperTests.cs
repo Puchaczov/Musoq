@@ -24,7 +24,7 @@ public class BinaryOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(StarNode));
+        Assert.IsInstanceOfType<StarNode>(result);
         var starNode = (StarNode)result;
         Assert.AreEqual(leftNode, starNode.Left);
         Assert.AreEqual(rightNode, starNode.Right);
@@ -45,7 +45,7 @@ public class BinaryOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(FSlashNode));
+        Assert.IsInstanceOfType<FSlashNode>(result);
         var fSlashNode = (FSlashNode)result;
         Assert.AreEqual(leftNode, fSlashNode.Left);
         Assert.AreEqual(rightNode, fSlashNode.Right);
@@ -66,7 +66,7 @@ public class BinaryOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(ModuloNode));
+        Assert.IsInstanceOfType<ModuloNode>(result);
         var moduloNode = (ModuloNode)result;
         Assert.AreEqual(leftNode, moduloNode.Left);
         Assert.AreEqual(rightNode, moduloNode.Right);
@@ -87,7 +87,7 @@ public class BinaryOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(AddNode));
+        Assert.IsInstanceOfType<AddNode>(result);
         var addNode = (AddNode)result;
         Assert.AreEqual(leftNode, addNode.Left);
         Assert.AreEqual(rightNode, addNode.Right);
@@ -108,7 +108,7 @@ public class BinaryOperationVisitorHelperTests
 
         Assert.HasCount(1, nodes);
         var result = nodes.Pop();
-        Assert.IsInstanceOfType(result, typeof(HyphenNode));
+        Assert.IsInstanceOfType<HyphenNode>(result);
         var hyphenNode = (HyphenNode)result;
         Assert.AreEqual(leftNode, hyphenNode.Left);
         Assert.AreEqual(rightNode, hyphenNode.Right);
@@ -118,7 +118,7 @@ public class BinaryOperationVisitorHelperTests
     public void ProcessStarOperation_WhenNullStack_ShouldThrowArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            BinaryOperationVisitorHelper.ProcessStarOperation(null));
+            BinaryOperationVisitorHelper.ProcessStarOperation(null!));
     }
 
     [TestMethod]

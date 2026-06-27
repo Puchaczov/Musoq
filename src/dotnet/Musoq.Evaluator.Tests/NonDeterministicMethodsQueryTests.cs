@@ -118,7 +118,7 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
             var random = Convert.ToInt32(row[1]);
 
             Assert.IsTrue(name == "A" || name == "B");
-            Assert.IsTrue(random >= 0 && random < 100);
+            Assert.IsTrue(random is >= 0 and < 100);
         }
     }
 
@@ -154,7 +154,7 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
         foreach (var row in table)
         {
             var value = Convert.ToInt32(row[0]);
-            Assert.IsTrue(value >= 0 && value < 100, $"Random value {value} should be between 0 and 99");
+            Assert.IsTrue(value is >= 0 and < 100, $"Random value {value} should be between 0 and 99");
         }
     }
 
@@ -185,7 +185,7 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
 
 
         foreach (var v in r1Values.Concat(r2Values))
-            Assert.IsTrue(v >= 0 && v < 100, $"Random value {v} should be between 0 and 99");
+            Assert.IsTrue(v is >= 0 and < 100, $"Random value {v} should be between 0 and 99");
     }
 
     #endregion
@@ -217,7 +217,7 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
         foreach (var row in table)
         {
             var shifted = Convert.ToInt32(row[0]);
-            Assert.IsTrue(shifted >= 100 && shifted < 200,
+            Assert.IsTrue(shifted is >= 100 and < 200,
                 $"Shifted value {shifted} should be between 100 and 199");
         }
     }
@@ -254,9 +254,9 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
             var doubled = Convert.ToInt32(row[1]);
 
 
-            Assert.IsTrue(shifted1 >= 100 && shifted1 < 200,
+            Assert.IsTrue(shifted1 is >= 100 and < 200,
                 $"Shifted1 {shifted1} should be between 100 and 199");
-            Assert.IsTrue(doubled >= 0 && doubled < 200,
+            Assert.IsTrue(doubled is >= 0 and < 200,
                 $"Doubled {doubled} should be between 0 and 198");
         }
     }
@@ -334,8 +334,8 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
                 "Deterministic expressions should have consistent results");
 
 
-            Assert.IsTrue(random1 >= 0 && random1 < 100);
-            Assert.IsTrue(random2 >= 0 && random2 < 100);
+            Assert.IsTrue(random1 is >= 0 and < 100);
+            Assert.IsTrue(random2 is >= 0 and < 100);
         }
     }
 

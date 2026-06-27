@@ -42,6 +42,33 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
     }
 
     [TestMethod]
+    public void MinMaxDateTimeOffset_WhenAllValuesAreNull_ShouldReturnNull()
+    {
+        const string query = "table Dates {" +
+                             "  Date: datetimeoffset" +
+                             "};" +
+                             "couple #test.whatever with table Dates as Dates; " +
+                             "select MinDateTimeOffset(Date), MaxDateTimeOffset(Date) from Dates()";
+
+        dynamic first = new ExpandoObject();
+        first.Date = null;
+
+        dynamic second = new ExpandoObject();
+        second.Date = null;
+
+        var vm = CreateAndRunVirtualMachine(query,
+        [
+            first, second
+        ]);
+
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.IsNull(table[0].Values[0]);
+        Assert.IsNull(table[0].Values[1]);
+    }
+
+    [TestMethod]
     public void MaxDateTimeOffsetTest()
     {
         const string query = "table Dates {" +
@@ -123,10 +150,9 @@ public class DateTimeOffsetTests : UnknownQueryTestsBase
 
         Assert.AreEqual(1, table.Columns.Count());
         Assert.AreEqual("Date1 - Date2", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(TimeSpan), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(typeof(TimeSpan?), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(TimeSpan.Zero, table[0].Values[0]);
     }
 }
-

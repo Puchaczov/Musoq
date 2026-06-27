@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
@@ -23,7 +22,7 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     {
         var result = Library.GetBytes("Hello");
         Assert.IsNotNull(result);
-        CollectionAssert.AreEqual(Encoding.UTF8.GetBytes("Hello"), result);
+        CollectionAssert.AreEqual("Hello"u8.ToArray(), result);
     }
 
     [TestMethod]
@@ -49,7 +48,7 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     {
         var result = Library.GetBytes("Hello World", 5, 6);
         Assert.IsNotNull(result);
-        CollectionAssert.AreEqual(Encoding.UTF8.GetBytes("World"), result);
+        CollectionAssert.AreEqual("World"u8.ToArray(), result);
     }
 
     #endregion
@@ -306,20 +305,20 @@ public class ByteOperationsExtendedTests : PluginsTestBase
     [TestMethod]
     public void ToHex_EmptyBytes_ReturnsEmptyString()
     {
-        Assert.AreEqual("", Library.ToHex(Array.Empty<byte>()));
+        Assert.AreEqual("", Library.ToHex([]));
     }
 
     [TestMethod]
     public void ToHex_ValidBytes_ReturnsHex()
     {
-        var result = Library.ToHex(new byte[] { 255, 0, 128 });
+        var result = Library.ToHex([255, 0, 128]);
         Assert.AreEqual("FF0080", result);
     }
 
     [TestMethod]
     public void ToHex_WithDelimiter_ReturnsHexWithDelimiter()
     {
-        var result = Library.ToHex(new byte[] { 255, 0, 128 }, ":");
+        var result = Library.ToHex([255, 0, 128], ":");
 
         Assert.IsNotNull(result);
         Assert.Contains(":", result);

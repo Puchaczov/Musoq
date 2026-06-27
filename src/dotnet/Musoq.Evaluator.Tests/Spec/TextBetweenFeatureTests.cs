@@ -30,7 +30,7 @@ public class TextBetweenFeatureTests
                 Content: between '(' ')'
             };
             select d.Content from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "()" } };
         var schemaProvider = new TextSchemaProvider(
@@ -60,7 +60,7 @@ public class TextBetweenFeatureTests
                 Second: between '(' ')'
             };
             select d.First, d.Second from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "[alpha](beta)" } };
         var schemaProvider = new TextSchemaProvider(
@@ -90,7 +90,7 @@ public class TextBetweenFeatureTests
                 Name: between '<' '>'
             };
             select t.Name from #test.lines() l
-            cross apply Parse(l.Line, 'Tag') t
+            cross apply Parse<Tag>(l.Line) t
             where t.Name = 'div'";
 
         var entities = new[]
@@ -126,7 +126,7 @@ public class TextBetweenFeatureTests
                 Content: between '/*' '*/'
             };
             select c.Content from #test.lines() l
-            cross apply Parse(l.Line, 'Comment') c";
+            cross apply Parse<Comment>(l.Line) c";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "/* this is a comment */" } };
         var schemaProvider = new TextSchemaProvider(
@@ -156,7 +156,7 @@ public class TextBetweenFeatureTests
                 Message: rest trim
             };
             select l.Timestamp, l.Message from #test.lines() f
-            cross apply Parse(f.Line, 'LogLine') l";
+            cross apply Parse<LogLine>(f.Line) l";
 
         var entities = new[]
         {
@@ -194,7 +194,7 @@ public class TextBetweenFeatureTests
                 Content: between '[' ']'
             };
             select d.Content from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "[hello world]" } };
         var schemaProvider = new TextSchemaProvider(
@@ -219,7 +219,7 @@ public class TextBetweenFeatureTests
                 Args: between '(' ')'
             };
             select d.Args from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "(arg1, arg2)" } };
         var schemaProvider = new TextSchemaProvider(
@@ -244,7 +244,7 @@ public class TextBetweenFeatureTests
                 Quoted: between '""' '""'
             };
             select d.Quoted from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "\"quoted text\"" } };
         var schemaProvider = new TextSchemaProvider(
@@ -273,7 +273,7 @@ public class TextBetweenFeatureTests
                 Name: between '<' '>'
             };
             select t.Name from #test.lines() l
-            cross apply Parse(l.Line, 'Tag') t";
+            cross apply Parse<Tag>(l.Line) t";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "<html>" } };
         var schemaProvider = new TextSchemaProvider(
@@ -298,7 +298,7 @@ public class TextBetweenFeatureTests
                 Name: between '{' '}'
             };
             select p.Name from #test.lines() l
-            cross apply Parse(l.Line, 'Placeholder') p";
+            cross apply Parse<Placeholder>(l.Line) p";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "{username}" } };
         var schemaProvider = new TextSchemaProvider(
@@ -328,7 +328,7 @@ public class TextBetweenFeatureTests
                 Content: between '[' ']'
             };
             select d.Prefix, d.Content from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "prefix[content]" } };
         var schemaProvider = new TextSchemaProvider(
@@ -355,7 +355,7 @@ public class TextBetweenFeatureTests
                 Suffix: rest
             };
             select d.Content, d.Suffix from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "[content]suffix" } };
         var schemaProvider = new TextSchemaProvider(

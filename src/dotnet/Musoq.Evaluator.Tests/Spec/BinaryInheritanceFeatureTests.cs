@@ -34,7 +34,7 @@ public class BinaryInheritanceFeatureTests
                 Flags: byte
             };
             select e.Id, e.Version, e.Flags from #test.files() b
-            cross apply Interpret(b.Content, 'Extended') e";
+            cross apply Interpret<Extended>(b.Content) e";
 
         var testData = new byte[] { 0x01, 0x02, 0x03 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -69,7 +69,7 @@ public class BinaryInheritanceFeatureTests
                 Doubled: = Value * 2
             };
             select d.Value, d.Doubled from #test.files() b
-            cross apply Interpret(b.Content, 'Derived') d";
+            cross apply Interpret<Derived>(b.Content) d";
 
         var testData = BitConverter.GetBytes(25);
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -104,7 +104,7 @@ public class BinaryInheritanceFeatureTests
                 Data: byte[Length]
             };
             select p.MsgType, p.Length, p.Data from #test.files() b
-            cross apply Interpret(b.Content, 'Packet') p";
+            cross apply Interpret<Packet>(b.Content) p";
 
         var testData = new byte[] { 0x01, 0x03, 0x00, 0xAA, 0xBB, 0xCC };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -146,7 +146,7 @@ public class BinaryInheritanceFeatureTests
                 Flags: byte
             };
             select g.Id, g.Version, g.Flags from #test.files() b
-            cross apply Interpret(b.Content, 'Grandchild') g";
+            cross apply Interpret<Grandchild>(b.Content) g";
 
         var testData = new byte[] { 0x0A, 0x02, 0xFF };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -182,7 +182,7 @@ public class BinaryInheritanceFeatureTests
                 Payload: byte[Length]
             };
             select m.Type, m.Length from #test.files() b
-            cross apply Interpret(b.Content, 'Message') m
+            cross apply Interpret<Message>(b.Content) m
             where m.Type = 2";
 
         var entities = new[]
@@ -222,7 +222,7 @@ public class BinaryInheritanceFeatureTests
                 Extra: short le
             };
             select a.Type, a.Value, a.Extra from #test.files() b
-            cross apply Interpret(b.Content, 'TypeA') a";
+            cross apply Interpret<TypeA>(b.Content) a";
 
         var testData = new byte[]
         {

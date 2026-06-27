@@ -129,11 +129,8 @@ public class CteGraphNodeTests
     [TestMethod]
     public void CteGraphNode_IsReachable_CanBeSetToTrue()
     {
-        // Arrange
-        var node = new CteGraphNode("myCte", null);
-
-        // Act
-        node.IsReachable = true;
+        // Arrange & Act
+        var node = new CteGraphNode("myCte", null) { IsReachable = true };
 
         // Assert
         Assert.IsTrue(node.IsReachable);
@@ -142,11 +139,8 @@ public class CteGraphNodeTests
     [TestMethod]
     public void CteGraphNode_ExecutionLevel_CanBeSet()
     {
-        // Arrange
-        var node = new CteGraphNode("myCte", null);
-
-        // Act
-        node.ExecutionLevel = 2;
+        // Arrange & Act
+        var node = new CteGraphNode("myCte", null) { ExecutionLevel = 2 };
 
         // Assert
         Assert.AreEqual(2, node.ExecutionLevel);
@@ -156,10 +150,7 @@ public class CteGraphNodeTests
     public void CteGraphNode_ToString_ShouldIncludeRelevantInfo()
     {
         // Arrange
-        var node = new CteGraphNode("myCte", null);
-        node.IsReachable = true;
-        node.ExecutionLevel = 1;
-        node.Dependencies.Add("dep1");
+        var node = new CteGraphNode("myCte", null) { IsReachable = true, ExecutionLevel = 1, Dependencies = { "dep1" } };
 
         // Act
         var result = node.ToString();
@@ -175,8 +166,7 @@ public class CteGraphNodeTests
     public void CteGraphNode_ToString_WhenDead_ShouldShowDead()
     {
         // Arrange
-        var node = new CteGraphNode("deadCte", null);
-        node.IsReachable = false;
+        var node = new CteGraphNode("deadCte", null) { IsReachable = false };
 
         // Act
         var result = node.ToString();
@@ -300,11 +290,8 @@ public class CteGraphNodeTests
     [TestMethod]
     public void CteGraphNode_ExecutionLevel_CanBeSetToZero()
     {
-        // Arrange
-        var node = new CteGraphNode("myCte", null);
-
-        // Act
-        node.ExecutionLevel = 0;
+        // Arrange & Act
+        var node = new CteGraphNode("myCte", null) { ExecutionLevel = 0 };
 
         // Assert
         Assert.AreEqual(0, node.ExecutionLevel);
@@ -313,11 +300,8 @@ public class CteGraphNodeTests
     [TestMethod]
     public void CteGraphNode_ExecutionLevel_CanBeSetToHighValue()
     {
-        // Arrange
-        var node = new CteGraphNode("myCte", null);
-
-        // Act
-        node.ExecutionLevel = 100;
+        // Arrange & Act
+        var node = new CteGraphNode("myCte", null) { ExecutionLevel = 100 };
 
         // Assert
         Assert.AreEqual(100, node.ExecutionLevel);
@@ -331,11 +315,7 @@ public class CteGraphNodeTests
     public void CteGraphNode_ToString_WithMultipleDeps_ShouldListAll()
     {
         // Arrange
-        var node = new CteGraphNode("myCte", null);
-        node.IsReachable = true;
-        node.ExecutionLevel = 0;
-        node.Dependencies.Add("dep1");
-        node.Dependencies.Add("dep2");
+        var node = new CteGraphNode("myCte", null) { IsReachable = true, ExecutionLevel = 0, Dependencies = { "dep1", "dep2" } };
 
         // Act
         var result = node.ToString();
@@ -350,9 +330,7 @@ public class CteGraphNodeTests
     public void CteGraphNode_ToString_WithNoDeps_ShouldShowEmptyDeps()
     {
         // Arrange
-        var node = new CteGraphNode("myCte", null);
-        node.IsReachable = true;
-        node.ExecutionLevel = 0;
+        var node = new CteGraphNode("myCte", null) { IsReachable = true, ExecutionLevel = 0 };
 
         // Act
         var result = node.ToString();

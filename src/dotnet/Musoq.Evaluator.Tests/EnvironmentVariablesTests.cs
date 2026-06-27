@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -16,10 +15,10 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
     public void WhenDescEnvironmentVariables_ShouldListAllColumns()
     {
         var query = "desc #EnvironmentVariables.All()";
-        var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
+        var sources = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
         {
             {
-                0,
+                "*",
                 []
             }
         };
@@ -38,10 +37,10 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
     {
         var query = "select Key, Value from #EnvironmentVariables.All()";
 
-        var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
+        var sources = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
         {
             {
-                0,
+                "*",
                 [
                     new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
                     new EnvironmentVariableEntity("KEY_2", "VALUE_2")
@@ -65,17 +64,17 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
     {
         var query =
             "select e1.Key, e1.Value, e2.Value from #EnvironmentVariables.All() e1 inner join #EnvironmentVariables.All() e2 on e1.Key = e2.Key";
-        var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
+        var sources = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
         {
             {
-                0,
+                "e1:1",
                 [
                     new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
                     new EnvironmentVariableEntity("KEY_2", "VALUE_2")
                 ]
             },
             {
-                1,
+                "e2:1",
                 [
                     new EnvironmentVariableEntity("KEY_1", "VALUE_3"),
                     new EnvironmentVariableEntity("KEY_2", "VALUE_4")
@@ -105,18 +104,18 @@ public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
     public void WhenPassedEnvironmentVariables_UnionDataSources_ShouldListThemAll()
     {
         var query =
-            "select Key, Value from #EnvironmentVariables.All() union all (Key) select Key, Value from #EnvironmentVariables.All()";
-        var sources = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
+            "select Key, Value from #EnvironmentVariables.All() leftEnv union all (Key) select Key, Value from #EnvironmentVariables.All() rightEnv";
+        var sources = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
         {
             {
-                0,
+                "leftEnv:1",
                 [
                     new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
                     new EnvironmentVariableEntity("KEY_2", "VALUE_2")
                 ]
             },
             {
-                1,
+                "rightEnv:2",
                 [
                     new EnvironmentVariableEntity("KEY_3", "VALUE_3"),
                     new EnvironmentVariableEntity("KEY_4", "VALUE_4")
@@ -178,14 +177,10 @@ select Key, Value from #EnvironmentVariables.All()";
             }
         };
 
-        var environmentVariablesSource = new Dictionary<uint, IEnumerable<EnvironmentVariableEntity>>
+        var environmentVariablesSource = new Dictionary<string, IEnumerable<EnvironmentVariableEntity>>
         {
             {
-                0,
-                []
-            },
-            {
-                1,
+                "*",
                 [
                     new EnvironmentVariableEntity("KEY_1", "VALUE_1"),
                     new EnvironmentVariableEntity("KEY_2", "VALUE_2")
@@ -213,4 +208,5 @@ select Key, Value from #EnvironmentVariables.All()";
             (string)entry[1] == "VALUE_2"
         ), "Second entry should be KEY_2, VALUE_2");
     }
+
 }

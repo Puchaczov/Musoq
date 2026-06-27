@@ -6,7 +6,6 @@ using Musoq.Evaluator.Tests.Schema.Multi;
 using Musoq.Evaluator.Tests.Schema.Multi.First;
 using Musoq.Evaluator.Tests.Schema.Multi.Second;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -39,19 +38,15 @@ public class HashJoinTests : MultiSchemaTestBase
         SecondEntity[] second,
         CompilationOptions options)
     {
-        var schema = new MultiSchema(new Dictionary<string, (ISchemaTable SchemaTable, RowSource RowSource)>
+        var schema = new MultiSchema(new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
         {
             {
                 "first",
-                (new FirstEntityTable(),
-                    new MultiRowSource<FirstEntity>(first, FirstEntity.TestNameToIndexMap,
-                        FirstEntity.TestIndexToObjectAccessMap))
+                (new FirstEntityTable(), new MultiRowSource<FirstEntity>(first))
             },
             {
                 "second",
-                (new SecondEntityTable(),
-                    new MultiRowSource<SecondEntity>(second, SecondEntity.TestNameToIndexMap,
-                        SecondEntity.TestIndexToObjectAccessMap))
+                (new SecondEntityTable(), new MultiRowSource<SecondEntity>(second))
             }
         });
 

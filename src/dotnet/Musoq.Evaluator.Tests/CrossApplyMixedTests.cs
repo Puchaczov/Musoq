@@ -1,3 +1,4 @@
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,7 +61,7 @@ public class CrossApplyMixedTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Country"] == (string)parameters[0]).ToArray())
+                source.Filter(f => (string)f.Country == RequireParameter<string>(parameters, 0)).ToArray()
         );
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -146,8 +147,8 @@ public class CrossApplyMixedTests : GenericEntityTestBase
             null,
             null,
             (parameters, source) =>
-                new ObjectRowsSource(source.Rows.Where(f => (string)f["Department"] == (string)parameters[0])
-                    .ToArray()));
+                source.Filter(f => (string)f.Department == RequireParameter<string>(parameters, 0))
+                    .ToArray());
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -351,13 +352,13 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
         Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
         Assert.AreEqual("Count(a.Department)", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual(typeof(long), table.Columns.ElementAt(1).ColumnType);
 
         Assert.AreEqual(1, table.Count, "Table should have 1 entry");
 
         Assert.IsTrue(table.Any(row =>
             (string)row[0] == "IT" &&
-            (int)row[1] == 2
+            (long)row[1] == 2L
         ), "First row should match IT, 2");
     }
 
@@ -532,78 +533,78 @@ public class CrossApplyMixedTests : GenericEntityTestBase
         vm.Run(TestContext.CancellationToken);
     }
 
-    private class CrossApplyClass1
+    private sealed class CrossApplyClass1
     {
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        public string Country { get; set; }
+        public string Country { get; set; } = string.Empty;
     }
 
     // ReSharper disable once MemberCanBePrivate.Global
     public class ComplexType1
     {
-        public string StreetName { get; set; }
+        public string StreetName { get; set; } = string.Empty;
 
         public int HouseNumber { get; set; }
 
-        [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; }
+        [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; } = [];
     }
 
-    private class CrossApplyClass2
+    private sealed class CrossApplyClass2
     {
-        public string Country { get; set; }
+        public string Country { get; set; } = string.Empty;
 
-        [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; }
+        [BindablePropertyAsTable] public ComplexType1[] Addresses { get; set; } = [];
     }
 
-    private class CrossApplyClass3
+    private sealed class CrossApplyClass3
     {
-        public string Department { get; set; }
+        public string Department { get; set; } = string.Empty;
 
         public int Budget { get; set; }
     }
 
-    private class CrossApplyClass4
+    private sealed class CrossApplyClass4
     {
-        public string Department { get; set; }
+        public string Department { get; set; } = string.Empty;
 
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         public int Salary { get; set; }
 
-        public string[] Skills { get; set; }
+        public string[] Skills { get; set; } = [];
     }
 
-    private class CrossApplyClass5
+    private sealed class CrossApplyClass5
     {
-        public string Department { get; set; }
+        public string Department { get; set; } = string.Empty;
         public int Budget { get; set; }
 
-        [BindablePropertyAsTable] public ComplexType2[] Employees { get; set; }
+        [BindablePropertyAsTable] public ComplexType2[] Employees { get; set; } = [];
     }
 
     // ReSharper disable once MemberCanBePrivate.Global
     public class ComplexType2
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
-        public string[] Skills { get; set; }
+        public string[] Skills { get; set; } = [];
     }
 
-    private class CrossApplyClass6
+    private sealed class CrossApplyClass6
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
-        public string Surname { get; set; }
+        public string Surname { get; set; } = string.Empty;
 
         public int Id { get; set; }
     }
 
-    private class CrossApplyClass7
+    private sealed class CrossApplyClass7
     {
         public int Id { get; set; }
 
-        [BindablePropertyAsTable] public string[] Skills { get; set; }
+        [BindablePropertyAsTable] public string[] Skills { get; set; } = [];
     }
 
     public class SpecialCaseEmptyType

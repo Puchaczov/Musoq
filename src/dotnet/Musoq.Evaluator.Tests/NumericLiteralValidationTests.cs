@@ -219,22 +219,22 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
 
     public class SimpleEntity
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         public int Count { get; set; }
     }
 
     public class InnerComplexType
     {
-        public string Value1 { get; set; }
+        public string Value1 { get; set; } = string.Empty;
     }
 
     public class EntityWithUnbindableProperty
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [BindablePropertyAsTable]
-        public InnerComplexType NotACollection { get; set; }
+        public InnerComplexType? NotACollection { get; set; }
     }
 
     #endregion

@@ -70,21 +70,21 @@ public class BasicEntityTestBase
 
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
-        IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> positionalEnvironmentVariables = null,
-        ISchemaProvider schemaProvider = null)
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? SourceRuntimeSettingsBySourceContextId = null,
+        ISchemaProvider? schemaProvider = null)
     {
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
-            schemaProvider,
+            schemaProvider ?? throw new ArgumentNullException(nameof(schemaProvider)),
             LoggerResolver,
             TestCompilationOptions);
     }
 
-    private IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> CreateMockedEnvironmentVariables()
+    private IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> CreateMockedEnvironmentVariables()
     {
-        var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
-        environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
+        var environmentVariablesMock = new Mock<IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>();
+        environmentVariablesMock.Setup(f => f[It.IsAny<string>()]).Returns(new Dictionary<string, string>());
 
         return environmentVariablesMock.Object;
     }
@@ -121,7 +121,7 @@ public class BasicEntityTestBase
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        return vm.Run();
+        return TableMaterializationTestHelper.Materialize(vm.Run());
     }
 
     private static IDictionary<string, IEnumerable<T>> CreateMockObjectFor<T>()
@@ -132,7 +132,7 @@ public class BasicEntityTestBase
         return mock.Object;
     }
 
-    private class MockBasedSchemaProvider(IDictionary<string, IEnumerable<BasicEntity>> schemas)
+    private sealed class MockBasedSchemaProvider(IDictionary<string, IEnumerable<BasicEntity>> schemas)
         : BasicSchemaProvider<BasicEntity>(schemas)
     {
         public override ISchema GetSchema(string schema)

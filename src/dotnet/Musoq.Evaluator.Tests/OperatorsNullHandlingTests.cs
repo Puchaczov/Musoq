@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public class OperatorsNullHandlingTests
 {
-    private Operators _operators;
+    private Operators _operators = new();
 
     [TestInitialize]
     public void Setup()
@@ -23,7 +23,7 @@ public class OperatorsNullHandlingTests
     public void Contains_WhenArrayIsNull_ShouldReturnFalse()
     {
         var value = "test";
-        string[] array = null;
+        string[]? array = null;
 
 
         var result = _operators.Contains(value, array);
@@ -35,8 +35,8 @@ public class OperatorsNullHandlingTests
     [TestMethod]
     public void Contains_WhenValueIsNullAndArrayIsNull_ShouldReturnFalse()
     {
-        string value = null;
-        string[] array = null;
+        string? value = null;
+        string[]? array = null;
 
 
         var result = _operators.Contains(value, array);
@@ -48,7 +48,7 @@ public class OperatorsNullHandlingTests
     [TestMethod]
     public void Contains_WhenValueIsNullAndArrayContainsNull_ShouldReturnTrue()
     {
-        string value = null;
+        string? value = null;
         var array = new[] { "a", null, "c" };
 
 
@@ -61,7 +61,7 @@ public class OperatorsNullHandlingTests
     [TestMethod]
     public void Contains_WhenValueIsNullAndArrayDoesNotContainNull_ShouldReturnFalse()
     {
-        string value = null;
+        string? value = null;
         var array = new[] { "a", "b", "c" };
 
 
@@ -101,7 +101,7 @@ public class OperatorsNullHandlingTests
     public void Contains_WithIntegersWhenArrayIsNull_ShouldReturnFalse()
     {
         var value = 5;
-        int[] array = null;
+        int[]? array = null;
 
 
         var result = _operators.Contains(value, array);

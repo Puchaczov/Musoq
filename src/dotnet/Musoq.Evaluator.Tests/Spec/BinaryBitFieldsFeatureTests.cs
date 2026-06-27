@@ -32,7 +32,7 @@ public class BinaryBitFieldsFeatureTests
                 NextByte: byte
             };
             select r.Flags, r.NextByte from #test.files() b
-            cross apply Interpret(b.Content, 'Record') r";
+            cross apply Interpret<Record>(b.Content) r";
 
         var testData = new byte[] { 0x05, 0xAB };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -67,7 +67,7 @@ public class BinaryBitFieldsFeatureTests
             };
             select p.Version, p.HeaderLen, p.Protocol, p.Length 
             from #test.files() b
-            cross apply Interpret(b.Content, 'Packet') p";
+            cross apply Interpret<Packet>(b.Content) p";
 
         var testData = new byte[] { 0x54, 0x06, 0x40, 0x00 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -103,7 +103,7 @@ public class BinaryBitFieldsFeatureTests
             };
             select f.Readable, f.Writable, f.Executable
             from #test.files() b
-            cross apply Interpret(b.Content, 'Flags') f
+            cross apply Interpret<Flags>(b.Content) f
             where f.Writable = 1";
 
         var entities = new[]
@@ -135,7 +135,7 @@ public class BinaryBitFieldsFeatureTests
         var query = @"
             binary Flags { Flag0: bits[1] };
             select f.Flag0 from #test.files() b
-            cross apply Interpret(b.Content, 'Flags') f";
+            cross apply Interpret<Flags>(b.Content) f";
 
         var testData = new byte[] { 0x01 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -159,7 +159,7 @@ public class BinaryBitFieldsFeatureTests
         var query = @"
             binary Flags { Flag0: bits[1] };
             select f.Flag0 from #test.files() b
-            cross apply Interpret(b.Content, 'Flags') f";
+            cross apply Interpret<Flags>(b.Content) f";
 
         var testData = new byte[] { 0xFE };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -190,7 +190,7 @@ public class BinaryBitFieldsFeatureTests
                 High: bits[4] 
             };
             select f.Low, f.High from #test.files() b
-            cross apply Interpret(b.Content, 'Flags') f";
+            cross apply Interpret<Flags>(b.Content) f";
 
         var testData = new byte[] { 0xAB };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -219,7 +219,7 @@ public class BinaryBitFieldsFeatureTests
                 C: bits[3]
             };
             select d.A, d.B, d.C from #test.files() b
-            cross apply Interpret(b.Content, 'Data') d";
+            cross apply Interpret<Data>(b.Content) d";
 
         // 0b11_101_011 = 0xEB
         // bits[2] A reads bits 0-1: 11 = 3

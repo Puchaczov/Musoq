@@ -1,24 +1,180 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <IsPackable>false</IsPackable>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="coverlet.collector" Version="6.0.0">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0"/>
-        <PackageReference Include="MSTest.TestAdapter" Version="4.0.1"/>
-        <PackageReference Include="MSTest.TestFramework" Version="4.0.1"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj"/>
-        <ProjectReference Include="..\Musoq.Tests.Common\Musoq.Tests.Common.csproj"/>
-    </ItemGroup>
-
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="MSTest.TestAdapter" />
+    <PackageReference Include="MSTest.TestFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
+    <ProjectReference Include="..\Musoq.Tests.Common\Musoq.Tests.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="DataUtilsTests.BaseEncodingsAndJwtValidation.cs">
+      <DependentUpon>DataUtilsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DataUtilsTests.MetricsAndValidation.cs">
+      <DependentUpon>DataUtilsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DataUtilsTests.QueryAndStructuredText.cs">
+      <DependentUpon>DataUtilsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DateTests.AddAndBounds.cs">
+      <DependentUpon>DateTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DateTests.CalendarClassification.cs">
+      <DependentUpon>DateTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DateTests.DiffsAndRanges.cs">
+      <DependentUpon>DateTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DateTests.ExtractionAndTimeParts.cs">
+      <DependentUpon>DateTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DateTests.OffsetAndAdditional.cs">
+      <DependentUpon>DateTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DateTimeExtendedTests.DateMath.cs">
+      <DependentUpon>DateTimeExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DateTimeExtendedTests.DiffAndCalendar.cs">
+      <DependentUpon>DateTimeExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DateTimeExtendedTests.RangesAndParsing.cs">
+      <DependentUpon>DateTimeExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="FromBytesMethodsTests.CharHalfAndPadding.cs">
+      <DependentUpon>FromBytesMethodsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="FromBytesMethodsTests.NullAndInsufficientInputs.cs">
+      <DependentUpon>FromBytesMethodsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="FromBytesMethodsTests.StringsAndRoundTrips.cs">
+      <DependentUpon>FromBytesMethodsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="GenericTests.Coalesce.cs">
+      <DependentUpon>GenericTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="LibraryBaseStrictConversionsDecimalTests.ComparisonConversions.cs">
+      <DependentUpon>LibraryBaseStrictConversionsDecimalTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="LibraryBaseStrictConversionsDecimalTests.ComparisonOperators.cs">
+      <DependentUpon>LibraryBaseStrictConversionsDecimalTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="LibraryBaseStrictConversionsDecimalTests.NumericOnlyCore.cs">
+      <DependentUpon>LibraryBaseStrictConversionsDecimalTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="LibraryBaseStrictConversionsDecimalTests.NumericOnlyDecimalDouble.cs">
+      <DependentUpon>LibraryBaseStrictConversionsDecimalTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="LibraryBaseStrictConversionsDecimalTests.RuntimeOperators.cs">
+      <DependentUpon>LibraryBaseStrictConversionsDecimalTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="LibraryBaseStrictConversionsDecimalTests.StrictDecimal.cs">
+      <DependentUpon>LibraryBaseStrictConversionsDecimalTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="LibraryBaseStrictConversionsDecimalTests.StrictIntegers.cs">
+      <DependentUpon>LibraryBaseStrictConversionsDecimalTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="LibraryBaseUtilsTests.JwtQueryAndFormats.cs">
+      <DependentUpon>LibraryBaseUtilsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="LibraryBaseUtilsTests.NetworkConversionAndExtraction.cs">
+      <DependentUpon>LibraryBaseUtilsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="MathExtendedTests.EdgeCases.cs">
+      <DependentUpon>MathExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="MathExtendedTests.PowersAndLogs.cs">
+      <DependentUpon>MathExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="MathExtendedTests.RangesAndLogBases.cs">
+      <DependentUpon>MathExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="MathExtendedTests.TrigAndNaturalLog.cs">
+      <DependentUpon>MathExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NetworkUtilsExtendedTests.SlugEscapesAndExtraction.cs">
+      <DependentUpon>NetworkUtilsExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NetworkUtilsExtendedTests.SubnetMacAndBaseConversion.cs">
+      <DependentUpon>NetworkUtilsExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NetworkUtilsExtendedTests.UnixTimestamps.cs">
+      <DependentUpon>NetworkUtilsExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NetworkUtilsTests.Extraction.cs">
+      <DependentUpon>NetworkUtilsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NetworkUtilsTests.GuidAndBaseConversion.cs">
+      <DependentUpon>NetworkUtilsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NetworkUtilsTests.IpSubnetAndMac.cs">
+      <DependentUpon>NetworkUtilsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NetworkUtilsTests.SlugAndEscaping.cs">
+      <DependentUpon>NetworkUtilsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NetworkUtilsTests.UnixTimestamps.cs">
+      <DependentUpon>NetworkUtilsTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NumericOnlyTypeConverterExtendedTests.Decimal.cs">
+      <DependentUpon>NumericOnlyTypeConverterExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NumericOnlyTypeConverterExtendedTests.Double.cs">
+      <DependentUpon>NumericOnlyTypeConverterExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NumericOnlyTypeConverterExtendedTests.EdgeCases.cs">
+      <DependentUpon>NumericOnlyTypeConverterExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NumericOnlyTypeConverterExtendedTests.Int64.cs">
+      <DependentUpon>NumericOnlyTypeConverterExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="NumericOnlyTypeConverterExtendedTests.OtherTypes.cs">
+      <DependentUpon>NumericOnlyTypeConverterExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="StringCultureConsistencyTests.ReplacementAndCasing.cs">
+      <DependentUpon>StringCultureConsistencyTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="StringCultureConsistencyTests.SoundexUnicodeAndConsistency.cs">
+      <DependentUpon>StringCultureConsistencyTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="StringMethodsExtendedTests.Classification.cs">
+      <DependentUpon>StringMethodsExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="StringMethodsExtendedTests.Counts.cs">
+      <DependentUpon>StringMethodsExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="StringMethodsExtendedTests.Regex.cs">
+      <DependentUpon>StringMethodsExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="StringMethodsExtendedTests.Shape.cs">
+      <DependentUpon>StringMethodsExtendedTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Strings.ExtractAndEncodingTests.ExtractBetween.cs">
+      <DependentUpon>Strings.ExtractAndEncodingTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Strings.ExtractAndEncodingTests.HtmlEncoding.cs">
+      <DependentUpon>Strings.ExtractAndEncodingTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="TypeConversionEdgeCasesTests.Int32Comparison.cs">
+      <DependentUpon>TypeConversionEdgeCasesTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="TypeConversionEdgeCasesTests.Int32NumericOnly.cs">
+      <DependentUpon>TypeConversionEdgeCasesTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="TypeConversionEdgeCasesTests.OtherComparison.cs">
+      <DependentUpon>TypeConversionEdgeCasesTests.cs</DependentUpon>
+    </Compile>
+    <Compile Update="TypeConversionEdgeCasesTests.OtherNumericOnly.cs">
+      <DependentUpon>TypeConversionEdgeCasesTests.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>

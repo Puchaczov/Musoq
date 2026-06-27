@@ -26,19 +26,19 @@ public class InterpretationFunctionsFeatureTests
     public void InterpretAndParse_Combined_ShouldWork()
     {
         var query = @"
-            binary BinaryData { 
+            binary BinaryData {
                 Value: int le
             };
-            text TextData { 
+            text TextData {
                 Name: until ':'
             };
-            select b.Name, d.Value, t.Name as TextName 
+            select b.Name, d.Value, t.Name as TextName
             from #btest.bytes() b
-            cross apply Interpret(b.Content, 'BinaryData') d
+            cross apply Interpret<BinaryData>(b.Content) d
             cross apply #ttest.lines() l
-            cross apply Parse(l.Line, 'TextData') t";
+            cross apply Parse<TextData>(l.Line) t";
 
-        var binaryData = new byte[] { 0x0A, 0x00, 0x00, 0x00 };
+        var binaryData = "\n\u0000\u0000\u0000"u8.ToArray();
         var binaryEntities = new[] { new BinaryEntity { Name = "test.bin", Data = binaryData } };
         var textEntities = new[] { new TextEntity { Name = "test.txt", Text = "Label:data" } };
 
@@ -67,12 +67,12 @@ public class InterpretationFunctionsFeatureTests
     public void Interpret_WithGroupBy_ShouldAggregate()
     {
         var query = @"
-            binary Data { 
+            binary Data {
                 Category: byte,
                 Value: int le
             };
             select d.Category, Sum(d.Value) as Total from #test.bytes() b
-            cross apply Interpret(b.Content, 'Data') d
+            cross apply Interpret<Data>(b.Content) d
             group by d.Category
             order by d.Category";
 
@@ -94,9 +94,9 @@ public class InterpretationFunctionsFeatureTests
 
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(40m, table[0][1]);
+        Assert.AreEqual(40, table[0][1]);
         Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual(20m, table[1][1]);
+        Assert.AreEqual(20, table[1][1]);
     }
 
     #endregion
@@ -110,12 +110,12 @@ public class InterpretationFunctionsFeatureTests
     public void Interpret_BasicBinary_ShouldParse()
     {
         var query = @"
-            binary Header { 
+            binary Header {
                 Magic: int le,
                 Version: byte
             };
             select h.Magic, h.Version from #test.bytes() b
-            cross apply Interpret(b.Content, 'Header') h";
+            cross apply Interpret<Header>(b.Content) h";
 
         var data = new byte[]
         {
@@ -142,16 +142,16 @@ public class InterpretationFunctionsFeatureTests
     public void Interpret_MultipleSchemas_ShouldSelectCorrect()
     {
         var query = @"
-            binary First { 
+            binary First {
                 Value: int le
             };
-            binary Second { 
+            binary Second {
                 A: short le,
                 B: short le
             };
             select f.Value, s.A, s.B from #test.bytes() b
-            cross apply Interpret(b.Content, 'First') f
-            cross apply Interpret(b.Content, 'Second') s";
+            cross apply Interpret<First>(b.Content) f
+            cross apply Interpret<Second>(b.Content) s";
 
         var data = new byte[] { 0x01, 0x00, 0x02, 0x00 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
@@ -179,12 +179,12 @@ public class InterpretationFunctionsFeatureTests
     public void Parse_BasicText_ShouldParse()
     {
         var query = @"
-            text Record { 
+            text Record {
                 Name: until ',',
                 Value: rest trim
             };
             select r.Name, r.Value from #test.lines() l
-            cross apply Parse(l.Line, 'Record') r";
+            cross apply Parse<Record>(l.Line) r";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "Key,Value123" } };
         var schemaProvider = new TextSchemaProvider(
@@ -206,17 +206,17 @@ public class InterpretationFunctionsFeatureTests
     public void Parse_MultipleTextSchemas_ShouldWork()
     {
         var query = @"
-            text CsvRow { 
+            text CsvRow {
                 Field1: until ',',
                 Field2: until ',',
                 Field3: rest
             };
-            text KeyValue { 
+            text KeyValue {
                 Key: until ':',
                 Value: rest
             };
             select c.Field1, c.Field2, c.Field3 from #test.lines() l
-            cross apply Parse(l.Line, 'CsvRow') c";
+            cross apply Parse<CsvRow>(l.Line) c";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "A,B,C" } };
         var schemaProvider = new TextSchemaProvider(
@@ -243,14 +243,14 @@ public class InterpretationFunctionsFeatureTests
     public void TryInterpret_ValidData_ShouldSucceed()
     {
         var query = @"
-            binary Data { 
+            binary Data {
                 Value: int le
             };
             select d.Value from #test.bytes() b
-            outer apply TryInterpret(b.Content, 'Data') d
+            outer apply TryInterpret<Data>(b.Content) d
             where d.Value is not null";
 
-        var data = new byte[] { 0x0A, 0x00, 0x00, 0x00 };
+        var data = "\n\u0000\u0000\u0000"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -270,11 +270,11 @@ public class InterpretationFunctionsFeatureTests
     public void TryInterpret_InsufficientData_ShouldReturnNull()
     {
         var query = @"
-            binary Data { 
+            binary Data {
                 Value: long le
             };
             select d.Value from #test.bytes() b
-            outer apply TryInterpret(b.Content, 'Data') d";
+            outer apply TryInterpret<Data>(b.Content) d";
 
         var data = new byte[] { 0x01, 0x02 };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
@@ -300,11 +300,11 @@ public class InterpretationFunctionsFeatureTests
     public void TryParse_ValidText_ShouldSucceed()
     {
         var query = @"
-            text Record { 
+            text Record {
                 Name: until ':'
             };
             select r.Name from #test.lines() l
-            outer apply TryParse(l.Line, 'Record') r
+            outer apply TryParse<Record>(l.Line) r
             where r.Name is not null";
 
         var entities = new[]
@@ -329,11 +329,11 @@ public class InterpretationFunctionsFeatureTests
     public void TryParse_MissingDelimiter_ShouldReturnNull()
     {
         var query = @"
-            text Record { 
+            text Record {
                 Name: until ':'
             };
             select l.Line, r.Name from #test.lines() l
-            outer apply TryParse(l.Line, 'Record') r";
+            outer apply TryParse<Record>(l.Line) r";
 
         var entities = new[]
         {
@@ -353,13 +353,15 @@ public class InterpretationFunctionsFeatureTests
         Assert.Contains("NoColonHere", lines);
 
         var foundHasRow = false;
-        for (var i = 0; i < table.Count; i++)
-            if (table[i][1] != null && table[i][1].ToString() == "Has")
+        foreach (var t in table)
+        {
+            if (t[1] != null && t[1].ToString() == "Has")
             {
-                Assert.AreEqual("Has:colon", table[i][0]);
+                Assert.AreEqual("Has:colon", t[0]);
                 foundHasRow = true;
                 break;
             }
+        }
 
         Assert.IsTrue(foundHasRow);
     }
@@ -375,11 +377,11 @@ public class InterpretationFunctionsFeatureTests
     public void InterpretAt_WithOffset_ShouldStartAtPosition()
     {
         var query = @"
-            binary Data { 
+            binary Data {
                 Value: int le
             };
             select d.Value from #test.bytes() b
-            cross apply InterpretAt(b.Content, 4, 'Data') d";
+            cross apply InterpretAt<Data>(b.Content, 4) d";
 
         var data = new byte[]
         {
@@ -405,13 +407,13 @@ public class InterpretationFunctionsFeatureTests
     public void InterpretAt_ZeroOffset_ShouldStartAtBeginning()
     {
         var query = @"
-            binary Data { 
+            binary Data {
                 Value: int le
             };
             select d.Value from #test.bytes() b
-            cross apply InterpretAt(b.Content, 0, 'Data') d";
+            cross apply InterpretAt<Data>(b.Content, 0) d";
 
-        var data = new byte[] { 0x0A, 0x00, 0x00, 0x00 };
+        var data = "\n\u0000\u0000\u0000"u8.ToArray();
         var entities = new[] { new BinaryEntity { Name = "test.bin", Data = data } };
         var schemaProvider = new BinarySchemaProvider(
             new Dictionary<string, IEnumerable<BinaryEntity>> { { "#test", entities } });
@@ -431,15 +433,15 @@ public class InterpretationFunctionsFeatureTests
     public void InterpretAt_DynamicOffset_ShouldUseFieldValue()
     {
         var query = @"
-            binary Header { 
+            binary Header {
                 DataOffset: int le
             };
-            binary Payload { 
+            binary Payload {
                 Value: short le
             };
             select h.DataOffset, p.Value from #test.bytes() b
-            cross apply Interpret(b.Content, 'Header') h
-            cross apply InterpretAt(b.Content, h.DataOffset, 'Payload') p";
+            cross apply Interpret<Header>(b.Content) h
+            cross apply InterpretAt<Payload>(b.Content, h.DataOffset) p";
 
         var data = new byte[]
         {

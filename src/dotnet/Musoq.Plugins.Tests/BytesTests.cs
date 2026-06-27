@@ -17,7 +17,7 @@ public class BytesTests : PluginsTestBase
         AssertLoop(BitConverter.GetBytes(5L), Library.GetBytes(5L)!);
         AssertLoop(BitConverter.GetBytes(true), Library.GetBytes(true)!);
 
-        AssertLoop(decimal.GetBits(5m).SelectMany(f => BitConverter.GetBytes(f)).ToArray(), Library.GetBytes(5m)!);
+        AssertLoop(decimal.GetBits(5m).SelectMany(BitConverter.GetBytes).ToArray(), Library.GetBytes(5m)!);
     }
 
     #endregion
@@ -292,7 +292,7 @@ public class BytesTests : PluginsTestBase
     {
         var result = Library.GetBytes(123.456m);
         Assert.IsNotNull(result);
-        var expected = decimal.GetBits(123.456m).SelectMany(f => BitConverter.GetBytes(f)).ToArray();
+        var expected = decimal.GetBits(123.456m).SelectMany(BitConverter.GetBytes).ToArray();
         AssertLoop(expected, result);
     }
 
@@ -301,7 +301,7 @@ public class BytesTests : PluginsTestBase
     {
         var result = Library.GetBytes(0m);
         Assert.IsNotNull(result);
-        var expected = decimal.GetBits(0m).SelectMany(f => BitConverter.GetBytes(f)).ToArray();
+        var expected = decimal.GetBits(0m).SelectMany(BitConverter.GetBytes).ToArray();
         AssertLoop(expected, result);
     }
 
@@ -310,7 +310,7 @@ public class BytesTests : PluginsTestBase
     {
         var result = Library.GetBytes(-123.456m);
         Assert.IsNotNull(result);
-        var expected = decimal.GetBits(-123.456m).SelectMany(f => BitConverter.GetBytes(f)).ToArray();
+        var expected = decimal.GetBits(-123.456m).SelectMany(BitConverter.GetBytes).ToArray();
         AssertLoop(expected, result);
     }
 

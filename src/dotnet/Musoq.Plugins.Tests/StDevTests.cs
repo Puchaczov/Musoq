@@ -1,50 +1,92 @@
-﻿using System;
+using System;
+using System.Numerics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class StDevTests : PluginsTestBase
+public class StDevTests
 {
     [TestMethod]
-    public void StdDevTest()
+    public void StDevAggregateKernel_ReturnsPopulationStandardDeviation()
     {
-        Library.SetStDev(Group, "test", 60000m);
-        Library.SetStDev(Group, "test", 80000m);
+        var state = new StDevAggregateKernel<decimal>.State();
 
-        var result = Library.StDev(Group, "test");
-        var difference = Math.Abs(result - 14142.13m);
-        Assert.IsLessThan(difference, 0.01m);
+        StDevAggregateKernel<decimal>.Set(ref state, 5m);
+        StDevAggregateKernel<decimal>.Set(ref state, 6m);
+        StDevAggregateKernel<decimal>.Set(ref state, 8m);
+        StDevAggregateKernel<decimal>.Set(ref state, 9m);
+
+        AssertClose(1.5811388300841898m, StDevAggregateKernel<decimal>.Get(in state));
     }
 
     [TestMethod]
-    public void StDevTest_2()
+    public void StDevAggregateKernel_SkipsNullInputs()
     {
-        Library.SetStDev(Group, "test", 5m);
-        Library.SetStDev(Group, "test", 6m);
-        Library.SetStDev(Group, "test", 8m);
-        Library.SetStDev(Group, "test", 9m);
+        var state = new StDevAggregateKernel<int>.State();
 
-        var result = Library.StDev(Group, "test");
-        var difference = Math.Abs(result - 1.8257m);
-        Assert.IsLessThan(difference, 0.001m);
+        StDevAggregateKernel<int>.Set(ref state, 60000);
+        StDevAggregateKernel<int>.Set(ref state, null);
+        StDevAggregateKernel<int>.Set(ref state, 80000);
+
+        AssertClose(10000m, StDevAggregateKernel<int>.Get(in state));
     }
 
     [TestMethod]
-    public void StDevTest_3()
+    public void StDevAggregateKernel_EmptyStateReturnsNull()
     {
-        Library.SetStDev(Group, "test", 4m);
-        Library.SetStDev(Group, "test", 9m);
-        Library.SetStDev(Group, "test", 11m);
-        Library.SetStDev(Group, "test", 12m);
-        Library.SetStDev(Group, "test", 17m);
-        Library.SetStDev(Group, "test", 5m);
-        Library.SetStDev(Group, "test", 8m);
-        Library.SetStDev(Group, "test", 12m);
-        Library.SetStDev(Group, "test", 14m);
+        var state = new StDevAggregateKernel<int>.State();
 
-        var result = Library.StDev(Group, "test");
-        var difference = Math.Abs(result - 3.94m);
-        Assert.IsLessThan(difference, 0.001m);
+        Assert.IsNull(StDevAggregateKernel<int>.Get(in state));
+    }
+
+    [TestMethod]
+    public void StDevAggregateKernel_MergeCombinesPartialStates()
+    {
+        var target = new StDevAggregateKernel<int>.State();
+        var source = new StDevAggregateKernel<int>.State();
+
+        StDevAggregateKernel<int>.Set(ref target, 4);
+        StDevAggregateKernel<int>.Set(ref target, 9);
+        StDevAggregateKernel<int>.Set(ref source, 11);
+        StDevAggregateKernel<int>.Set(ref source, 12);
+        StDevAggregateKernel<int>.Set(ref source, 17);
+        StDevAggregateKernel<int>.Set(ref source, 5);
+        StDevAggregateKernel<int>.Set(ref source, 8);
+        StDevAggregateKernel<int>.Set(ref source, 12);
+        StDevAggregateKernel<int>.Set(ref source, 14);
+        StDevAggregateKernel<int>.Merge(ref target, in source);
+
+        AssertClose(3.9377878103709665m, StDevAggregateKernel<int>.Get(in target));
+    }
+
+    [TestMethod]
+    public void StDevAggregateKernel_SupportsConcreteNumericInputTypes()
+    {
+        AssertStDev<byte>(1, 2, 0.5m);
+        AssertStDev<sbyte>(-1, 1, 1m);
+        AssertStDev<short>(1, 3, 1m);
+        AssertStDev<ushort>(1, 3, 1m);
+        AssertStDev<long>(1, 5, 2m);
+        AssertStDev<ulong>(1, 5, 2m);
+        AssertStDev(1.5f, 4.5f, 1.5m);
+        AssertStDev(1.5, 4.5, 1.5m);
+    }
+
+    private static void AssertStDev<T>(T first, T second, decimal expected)
+        where T : struct, INumber<T>
+    {
+        var state = new StDevAggregateKernel<T>.State();
+
+        StDevAggregateKernel<T>.Set(ref state, first);
+        StDevAggregateKernel<T>.Set(ref state, second);
+
+        AssertClose(expected, StDevAggregateKernel<T>.Get(in state));
+    }
+
+    private static void AssertClose(decimal expected, decimal? actual)
+    {
+        Assert.IsNotNull(actual);
+        Assert.IsLessThan(0.000000000001m, Math.Abs(actual.Value - expected));
     }
 }

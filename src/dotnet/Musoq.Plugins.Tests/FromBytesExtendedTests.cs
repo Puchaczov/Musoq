@@ -30,7 +30,7 @@ public class FromBytesExtendedTests : PluginsTestBase
         var bytes = BitConverter.GetBytes(true);
         var result = Library.FromBytesToBool(bytes);
         Assert.IsTrue(result.HasValue);
-        Assert.IsTrue(result.Value);
+        Assert.IsTrue(result.GetValueOrDefault());
     }
 
     [TestMethod]
@@ -39,7 +39,7 @@ public class FromBytesExtendedTests : PluginsTestBase
         var bytes = BitConverter.GetBytes(false);
         var result = Library.FromBytesToBool(bytes);
         Assert.IsTrue(result.HasValue);
-        Assert.IsFalse(result.Value);
+        Assert.IsFalse(result.GetValueOrDefault());
     }
 
     #endregion
@@ -176,7 +176,7 @@ public class FromBytesExtendedTests : PluginsTestBase
         var bytes = BitConverter.GetBytes(3.14f);
         var result = Library.FromBytesToFloat(bytes);
         Assert.IsTrue(result.HasValue);
-        Assert.AreEqual(3.14f, result.Value, 0.001f);
+        Assert.AreEqual(3.14f, result.GetValueOrDefault(), 0.001f);
     }
 
     [TestMethod]
@@ -185,7 +185,7 @@ public class FromBytesExtendedTests : PluginsTestBase
         var bytes = BitConverter.GetBytes(-3.14f);
         var result = Library.FromBytesToFloat(bytes);
         Assert.IsTrue(result.HasValue);
-        Assert.AreEqual(-3.14f, result.Value, 0.001f);
+        Assert.AreEqual(-3.14f, result.GetValueOrDefault(), 0.001f);
     }
 
     [TestMethod]
@@ -194,7 +194,7 @@ public class FromBytesExtendedTests : PluginsTestBase
         var bytes = BitConverter.GetBytes(0f);
         var result = Library.FromBytesToFloat(bytes);
         Assert.IsTrue(result.HasValue);
-        Assert.AreEqual(0f, result.Value);
+        Assert.AreEqual(0f, result.GetValueOrDefault());
     }
 
     #endregion
@@ -207,7 +207,7 @@ public class FromBytesExtendedTests : PluginsTestBase
         var bytes = BitConverter.GetBytes(3.14159265358979);
         var result = Library.FromBytesToDouble(bytes);
         Assert.IsTrue(result.HasValue);
-        Assert.AreEqual(3.14159265358979, result.Value, 0.0000001);
+        Assert.AreEqual(3.14159265358979, result.GetValueOrDefault(), 0.0000001);
     }
 
     [TestMethod]
@@ -216,7 +216,7 @@ public class FromBytesExtendedTests : PluginsTestBase
         var bytes = BitConverter.GetBytes(-3.14159265358979);
         var result = Library.FromBytesToDouble(bytes);
         Assert.IsTrue(result.HasValue);
-        Assert.AreEqual(-3.14159265358979, result.Value, 0.0000001);
+        Assert.AreEqual(-3.14159265358979, result.GetValueOrDefault(), 0.0000001);
     }
 
     #endregion

@@ -31,7 +31,7 @@ public class TextUntilFeatureTests
                 Value: rest 
             };
             select d.Key, d.Value from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "=value" } };
         var schemaProvider = new TextSchemaProvider(
@@ -62,7 +62,7 @@ public class TextUntilFeatureTests
                 Value: rest 
             };
             select k.Value from #test.lines() l
-            cross apply Parse(l.Line, 'KeyValue') k
+            cross apply Parse<KeyValue>(l.Line) k
             where k.Key = 'host'";
 
         var entities = new[]
@@ -97,7 +97,7 @@ public class TextUntilFeatureTests
                 Value: rest trim
             };
             select k.Key, k.Value from #test.lines() l
-            cross apply Parse(l.Line, 'KeyValue') k
+            cross apply Parse<KeyValue>(l.Line) k
             order by k.Key";
 
         var entities = new[]
@@ -136,7 +136,7 @@ public class TextUntilFeatureTests
                 Value: rest 
             };
             select k.Key, k.Value from #test.lines() l
-            cross apply Parse(l.Line, 'KeyValue') k";
+            cross apply Parse<KeyValue>(l.Line) k";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "name:John" } };
         var schemaProvider = new TextSchemaProvider(
@@ -164,7 +164,7 @@ public class TextUntilFeatureTests
                 Third: rest 
             };
             select w.First, w.Second, w.Third from #test.lines() l
-            cross apply Parse(l.Line, 'Words') w";
+            cross apply Parse<Words>(l.Line) w";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "one two three" } };
         var schemaProvider = new TextSchemaProvider(
@@ -192,7 +192,7 @@ public class TextUntilFeatureTests
                 After: rest 
             };
             select d.Before, d.After from #test.lines() l
-            cross apply Parse(l.Line, 'Data') d";
+            cross apply Parse<Data>(l.Line) d";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "header::body" } };
         var schemaProvider = new TextSchemaProvider(
@@ -225,7 +225,7 @@ public class TextUntilFeatureTests
                 Message: rest 
             };
             select e.Date, e.Time, e.Level, e.Message from #test.lines() l
-            cross apply Parse(l.Line, 'LogEntry') e";
+            cross apply Parse<LogEntry>(l.Line) e";
 
         var entities = new[]
             { new TextEntity { Name = "test.txt", Text = "2024-01-15 10:30:00 INFO:Application started" } };
@@ -256,7 +256,7 @@ public class TextUntilFeatureTests
                 Col3: rest 
             };
             select c.Col1, c.Col2, c.Col3 from #test.lines() l
-            cross apply Parse(l.Line, 'CsvRow') c";
+            cross apply Parse<CsvRow>(l.Line) c";
 
         var entities = new[] { new TextEntity { Name = "test.txt", Text = "apple,banana,cherry" } };
         var schemaProvider = new TextSchemaProvider(

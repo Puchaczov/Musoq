@@ -7,29 +7,23 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests.Schema.NegativeTests;
 
-public class NegativeTestSchema : SchemaBase
+public class NegativeTestSchema(IReadOnlyDictionary<string, (ISchemaTable Table, object Source)> tables)
+    : SchemaBase("test", CachedLibrary.Value)
 {
     private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
-    private readonly IReadOnlyDictionary<string, (ISchemaTable Table, RowSource Source)> _tables;
 
-    public NegativeTestSchema(IReadOnlyDictionary<string, (ISchemaTable Table, RowSource Source)> tables)
-        : base("test", CachedLibrary.Value)
+    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
     {
-        _tables = tables;
-    }
-
-    public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext, params object[] parameters)
-    {
-        if (_tables.TryGetValue(name, out var entry))
+        if (tables.TryGetValue(name, out var entry))
             return entry.Table;
 
         throw new TableNotFoundException(name);
     }
 
-    public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
     {
-        if (_tables.TryGetValue(name, out var entry))
-            return entry.Source;
+        if (tables.TryGetValue(name, out var entry))
+            return EnsureSourceType<T>(name, entry.Source);
 
         throw new SourceNotFoundException(name);
     }

@@ -1,169 +1,114 @@
-﻿using System;
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class CountTests : PluginsTestBase
+public class CountTests
 {
     [TestMethod]
-    public void CountIntTest()
+    public void CountAllKernel_WhenRowsAreAccumulated_ShouldCountEveryRow()
     {
-        Library.SetCount(Group, "test", 1);
-        Library.SetCount(Group, "test", 4);
-        Library.SetCount(Group, "test", 6);
-        Library.SetCount(Group, "test", (int?)null);
+        var state = new CountAllAggregateKernel.State();
 
-        Assert.AreEqual(3, Library.Count(Group, "test"));
+        CountAllAggregateKernel.Set(ref state);
+        CountAllAggregateKernel.Set(ref state);
+        CountAllAggregateKernel.Set(ref state);
+
+        Assert.AreEqual(3L, CountAllAggregateKernel.Get(in state));
     }
 
     [TestMethod]
-    public void CountIntParentTest()
+    public void CountAllKernel_WhenMerged_ShouldReturnCombinedCount()
     {
-        Library.SetCount(Group, "test", 1, 1);
-        Library.SetCount(Group, "test", 4, 1);
-        Library.SetCount(Group, "test", 6);
-        Library.SetCount(Group, "test", (int?)null);
+        var first = new CountAllAggregateKernel.State();
+        var second = new CountAllAggregateKernel.State();
 
-        Assert.AreEqual(2, Library.Count(Group, "test", 1));
-        Assert.AreEqual(1, Library.Count(Group, "test"));
+        CountAllAggregateKernel.Set(ref first);
+        CountAllAggregateKernel.Set(ref second);
+        CountAllAggregateKernel.Set(ref second);
+        CountAllAggregateKernel.Merge(ref first, in second);
+
+        Assert.AreEqual(3L, CountAllAggregateKernel.Get(in first));
     }
 
     [TestMethod]
-    public void CountLongTest()
+    public void CountNullableKernel_WhenValuesContainNulls_ShouldCountOnlyPresentValues()
     {
-        Library.SetCount(Group, "test", 1L);
-        Library.SetCount(Group, "test", 4L);
-        Library.SetCount(Group, "test", 6L);
-        Library.SetCount(Group, "test", (long?)null);
+        var state = new CountNullableAggregateKernel<int>.State();
 
-        Assert.AreEqual(3, Library.Count(Group, "test"));
+        CountNullableAggregateKernel<int>.Set(ref state, 1);
+        CountNullableAggregateKernel<int>.Set(ref state, null);
+        CountNullableAggregateKernel<int>.Set(ref state, 6);
+
+        Assert.AreEqual(2L, CountNullableAggregateKernel<int>.Get(in state));
     }
 
     [TestMethod]
-    public void CountLongParentTest()
+    public void CountNullableKernel_WhenMerged_ShouldReturnCombinedCount()
     {
-        Library.SetCount(Group, "test", 1L, 1);
-        Library.SetCount(Group, "test", 4L, 1);
-        Library.SetCount(Group, "test", 6L);
-        Library.SetCount(Group, "test", (int?)null, 1);
+        var first = new CountNullableAggregateKernel<decimal>.State();
+        var second = new CountNullableAggregateKernel<decimal>.State();
 
-        Assert.AreEqual(2, Library.Count(Group, "test", 1));
-        Assert.AreEqual(1, Library.Count(Group, "test"));
+        CountNullableAggregateKernel<decimal>.Set(ref first, 1m);
+        CountNullableAggregateKernel<decimal>.Set(ref first, null);
+        CountNullableAggregateKernel<decimal>.Set(ref second, 2m);
+        CountNullableAggregateKernel<decimal>.Set(ref second, 3m);
+        CountNullableAggregateKernel<decimal>.Merge(ref first, in second);
+
+        Assert.AreEqual(3L, CountNullableAggregateKernel<decimal>.Get(in first));
     }
 
     [TestMethod]
-    public void CountStringTest()
+    public void CountNullableKernel_WhenTemporalValuesContainNulls_ShouldCountOnlyPresentValues()
     {
-        Library.SetCount(Group, "test", "1");
-        Library.SetCount(Group, "test", "4");
-        Library.SetCount(Group, "test", "5");
-        Library.SetCount(Group, "test", (string?)null);
+        var offsetState = new CountNullableAggregateKernel<DateTimeOffset>.State();
+        var dateState = new CountNullableAggregateKernel<DateTime>.State();
 
-        Assert.AreEqual(3, Library.Count(Group, "test"));
+        CountNullableAggregateKernel<DateTimeOffset>.Set(ref offsetState, DateTimeOffset.Parse("01/01/2010"));
+        CountNullableAggregateKernel<DateTimeOffset>.Set(ref offsetState, null);
+        CountNullableAggregateKernel<DateTime>.Set(ref dateState, DateTime.Parse("01/01/2010"));
+        CountNullableAggregateKernel<DateTime>.Set(ref dateState, null);
+
+        Assert.AreEqual(1L, CountNullableAggregateKernel<DateTimeOffset>.Get(in offsetState));
+        Assert.AreEqual(1L, CountNullableAggregateKernel<DateTime>.Get(in dateState));
     }
 
     [TestMethod]
-    public void CountStringParentTest()
+    public void CountNullableKernel_WhenBooleanValuesContainNulls_ShouldCountOnlyPresentValues()
     {
-        Library.SetCount(Group, "test", "1", 1);
-        Library.SetCount(Group, "test", "4", 1);
-        Library.SetCount(Group, "test", "6");
-        Library.SetCount(Group, "test", (string?)null, 1);
+        var state = new CountNullableAggregateKernel<bool>.State();
 
-        Assert.AreEqual(2, Library.Count(Group, "test", 1));
-        Assert.AreEqual(1, Library.Count(Group, "test"));
+        CountNullableAggregateKernel<bool>.Set(ref state, true);
+        CountNullableAggregateKernel<bool>.Set(ref state, false);
+        CountNullableAggregateKernel<bool>.Set(ref state, null);
+
+        Assert.AreEqual(2L, CountNullableAggregateKernel<bool>.Get(in state));
     }
 
     [TestMethod]
-    public void CountDecimalTest()
+    public void CountReferenceKernel_WhenValuesContainNulls_ShouldCountOnlyNonNullValues()
     {
-        Library.SetCount(Group, "test", 1m);
-        Library.SetCount(Group, "test", 2m);
-        Library.SetCount(Group, "test", 3m);
-        Library.SetCount(Group, "test", (decimal?)null);
+        var state = new CountReferenceAggregateKernel<string>.State();
 
-        Assert.AreEqual(3, Library.Count(Group, "test"));
+        CountReferenceAggregateKernel<string>.Set(ref state, "first");
+        CountReferenceAggregateKernel<string>.Set(ref state, null);
+        CountReferenceAggregateKernel<string>.Set(ref state, "second");
+
+        Assert.AreEqual(2L, CountReferenceAggregateKernel<string>.Get(in state));
     }
 
     [TestMethod]
-    public void CountDecimalParentTest()
+    public void CountReferenceKernel_WhenMerged_ShouldReturnCombinedCount()
     {
-        Library.SetCount(Group, "test", 1m, 1);
-        Library.SetCount(Group, "test", 4m, 1);
-        Library.SetCount(Group, "test", 6m);
-        Library.SetCount(Group, "test", (decimal?)null, 1);
+        var first = new CountReferenceAggregateKernel<string>.State();
+        var second = new CountReferenceAggregateKernel<string>.State();
 
-        Assert.AreEqual(2, Library.Count(Group, "test", 1));
-        Assert.AreEqual(1, Library.Count(Group, "test"));
-    }
+        CountReferenceAggregateKernel<string>.Set(ref first, "first");
+        CountReferenceAggregateKernel<string>.Set(ref second, "second");
+        CountReferenceAggregateKernel<string>.Set(ref second, null);
+        CountReferenceAggregateKernel<string>.Merge(ref first, in second);
 
-    [TestMethod]
-    public void CountDateTimeOffsetTest()
-    {
-        Library.SetCount(Group, "test", DateTimeOffset.Parse("01/01/2010"));
-        Library.SetCount(Group, "test", DateTimeOffset.Parse("01/01/2010"));
-        Library.SetCount(Group, "test", DateTimeOffset.Parse("01/01/2010"));
-        Library.SetCount(Group, "test", (DateTimeOffset?)null);
-
-        Assert.AreEqual(3, Library.Count(Group, "test"));
-    }
-
-    [TestMethod]
-    public void CountDateTimeOffsetParentTest()
-    {
-        Library.SetCount(Group, "test", DateTimeOffset.Parse("01/01/2010"), 1);
-        Library.SetCount(Group, "test", DateTimeOffset.Parse("01/01/2010"), 1);
-        Library.SetCount(Group, "test", DateTimeOffset.Parse("01/01/2010"));
-        Library.SetCount(Group, "test", (DateTimeOffset?)null, 1);
-
-        Assert.AreEqual(2, Library.Count(Group, "test", 1));
-        Assert.AreEqual(1, Library.Count(Group, "test"));
-    }
-
-    [TestMethod]
-    public void CountDateTimeTest()
-    {
-        Library.SetCount(Group, "test", DateTime.Parse("01/01/2010"));
-        Library.SetCount(Group, "test", DateTime.Parse("01/01/2010"));
-        Library.SetCount(Group, "test", DateTime.Parse("01/01/2010"));
-        Library.SetCount(Group, "test", (DateTime?)null);
-
-        Assert.AreEqual(3, Library.Count(Group, "test"));
-    }
-
-    [TestMethod]
-    public void CountDateTimeParentTest()
-    {
-        Library.SetCount(Group, "test", DateTime.Parse("01/01/2010"), 1);
-        Library.SetCount(Group, "test", DateTime.Parse("01/01/2010"), 1);
-        Library.SetCount(Group, "test", DateTime.Parse("01/01/2010"));
-        Library.SetCount(Group, "test", (DateTime?)null, 1);
-
-        Assert.AreEqual(2, Library.Count(Group, "test", 1));
-        Assert.AreEqual(1, Library.Count(Group, "test"));
-    }
-
-    [TestMethod]
-    public void CountBooleanTest()
-    {
-        Library.SetCount(Group, "test", true);
-        Library.SetCount(Group, "test", false);
-        Library.SetCount(Group, "test", true);
-        Library.SetCount(Group, "test", (bool?)null);
-
-        Assert.AreEqual(3, Library.Count(Group, "test"));
-    }
-
-    [TestMethod]
-    public void CountBooleanParentTest()
-    {
-        Library.SetCount(Group, "test", true, 1);
-        Library.SetCount(Group, "test", false, 1);
-        Library.SetCount(Group, "test", true);
-        Library.SetCount(Group, "test", (bool?)null, 1);
-
-        Assert.AreEqual(2, Library.Count(Group, "test", 1));
-        Assert.AreEqual(1, Library.Count(Group, "test"));
+        Assert.AreEqual(2L, CountReferenceAggregateKernel<string>.Get(in first));
     }
 }

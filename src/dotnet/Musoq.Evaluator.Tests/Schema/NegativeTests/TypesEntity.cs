@@ -5,29 +5,25 @@ namespace Musoq.Evaluator.Tests.Schema.NegativeTests;
 
 public class TypesEntity
 {
-    public static readonly IReadOnlyDictionary<string, int> NameToIndexMap;
-    public static readonly IReadOnlyDictionary<int, Func<TypesEntity, object>> IndexToObjectAccessMap;
-
-    static TypesEntity()
+    public static readonly IReadOnlyDictionary<string, int> NameToIndexMap = new Dictionary<string, int>
     {
-        NameToIndexMap = new Dictionary<string, int>
-        {
-            { nameof(IntCol), 0 },
-            { nameof(LongCol), 1 },
-            { nameof(ShortCol), 2 },
-            { nameof(ByteCol), 3 },
-            { nameof(DecimalCol), 4 },
-            { nameof(DoubleCol), 5 },
-            { nameof(FloatCol), 6 },
-            { nameof(BoolCol), 7 },
-            { nameof(StringCol), 8 },
-            { nameof(DateTimeCol), 9 },
-            { nameof(DateTimeOffsetCol), 10 },
-            { nameof(GuidCol), 11 },
-            { nameof(NullableIntCol), 12 }
-        };
+        { nameof(IntCol), 0 },
+        { nameof(LongCol), 1 },
+        { nameof(ShortCol), 2 },
+        { nameof(ByteCol), 3 },
+        { nameof(DecimalCol), 4 },
+        { nameof(DoubleCol), 5 },
+        { nameof(FloatCol), 6 },
+        { nameof(BoolCol), 7 },
+        { nameof(StringCol), 8 },
+        { nameof(DateTimeCol), 9 },
+        { nameof(DateTimeOffsetCol), 10 },
+        { nameof(GuidCol), 11 },
+        { nameof(NullableIntCol), 12 }
+    };
 
-        IndexToObjectAccessMap = new Dictionary<int, Func<TypesEntity, object>>
+    public static readonly IReadOnlyDictionary<int, Func<TypesEntity, object?>> IndexToObjectAccessMap =
+        new Dictionary<int, Func<TypesEntity, object?>>
         {
             { 0, entity => entity.IntCol },
             { 1, entity => entity.LongCol },
@@ -43,7 +39,6 @@ public class TypesEntity
             { 11, entity => entity.GuidCol },
             { 12, entity => entity.NullableIntCol }
         };
-    }
 
     public int IntCol { get; set; }
 
@@ -61,7 +56,7 @@ public class TypesEntity
 
     public bool BoolCol { get; set; }
 
-    public string StringCol { get; set; }
+    public string StringCol { get; set; } = string.Empty;
 
     public DateTime DateTimeCol { get; set; }
 

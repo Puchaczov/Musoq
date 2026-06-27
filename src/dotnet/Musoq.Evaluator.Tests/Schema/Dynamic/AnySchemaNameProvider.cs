@@ -8,8 +8,8 @@ namespace Musoq.Evaluator.Tests.Schema.Dynamic;
 
 public class AnySchemaNameProvider(
     IReadOnlyDictionary<string, (IReadOnlyDictionary<string, Type> Schema, IEnumerable<dynamic> Values)> schemas,
-    Func<RuntimeContext, SchemaMethodInfo[]> getRawConstructors = null,
-    Func<string, RuntimeContext, SchemaMethodInfo[]> getRawConstructorsByName = null
+    Func<SourceMetadataContext, SchemaMethodInfo[]>? getRawConstructors = null,
+    Func<string, SourceMetadataContext, SchemaMethodInfo[]>? getRawConstructorsByName = null
 )
     : ISchemaProvider
 {

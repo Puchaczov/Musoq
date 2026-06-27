@@ -32,7 +32,7 @@ public class BinaryConditionalFeatureTests
                 Payload: byte[Length] when HasData <> 0
             };
             select d.HasData, d.Length, d.Payload from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0x01, 0x03, 0x00, 0x00, 0x00, 0xAA, 0xBB, 0xCC };
@@ -68,7 +68,7 @@ public class BinaryConditionalFeatureTests
                 Value: int le when HasValue <> 0
             };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d
+            cross apply Interpret<Data>(f.Content) d
             where d.Value is not null";
 
         var entities = new[]
@@ -103,7 +103,7 @@ public class BinaryConditionalFeatureTests
                 Value: int le when HasValue <> 0
             };
             select d.HasValue, d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[5];
@@ -135,7 +135,7 @@ public class BinaryConditionalFeatureTests
                 Value: int le when HasValue <> 0
             };
             select d.HasValue, d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0x00 };
@@ -168,7 +168,7 @@ public class BinaryConditionalFeatureTests
                 ErrorCode: short le when Type = 255
             };
             select m.Type, m.ErrorCode from #test.files() f
-            cross apply Interpret(f.Content, 'Message') m";
+            cross apply Interpret<Message>(f.Content) m";
 
 
         var testData = new byte[3];
@@ -200,7 +200,7 @@ public class BinaryConditionalFeatureTests
                 ErrorCode: short le when Type = 255
             };
             select m.Type, m.ErrorCode from #test.files() f
-            cross apply Interpret(f.Content, 'Message') m";
+            cross apply Interpret<Message>(f.Content) m";
 
 
         var testData = new byte[] { 0x01 };
@@ -234,7 +234,7 @@ public class BinaryConditionalFeatureTests
                 Checksum: int le when (Flags & 2) <> 0
             };
             select p.Flags, p.PayloadLen, p.Checksum from #test.files() f
-            cross apply Interpret(f.Content, 'Packet') p";
+            cross apply Interpret<Packet>(f.Content) p";
 
 
         var testData = new byte[9];
@@ -269,7 +269,7 @@ public class BinaryConditionalFeatureTests
                 Checksum: int le when (Flags & 2) <> 0
             };
             select p.Flags, p.PayloadLen, p.Checksum from #test.files() f
-            cross apply Interpret(f.Content, 'Packet') p";
+            cross apply Interpret<Packet>(f.Content) p";
 
 
         var testData = new byte[5];
@@ -306,7 +306,7 @@ public class BinaryConditionalFeatureTests
                 ExtendedData: int le when Version > 1
             };
             select d.Version, d.ExtendedData from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[5];
@@ -338,7 +338,7 @@ public class BinaryConditionalFeatureTests
                 LegacyField: short le when Version < 3
             };
             select d.Version, d.LegacyField from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[3];

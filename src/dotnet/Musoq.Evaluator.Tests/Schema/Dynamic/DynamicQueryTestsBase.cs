@@ -23,9 +23,10 @@ public class DynamicQueryTestsBase
     protected CompiledQuery CreateAndRunVirtualMachine(
         string script,
         IReadOnlyCollection<dynamic> values,
-        IReadOnlyDictionary<string, Type> schema = null)
+        IReadOnlyDictionary<string, Type>? schema = null,
+        CompilationOptions? compilationOptions = null)
     {
-        schema ??= ((IDictionary<string, object>)values.First()).ToDictionary(f => f.Key, f => f.Value?.GetType());
+        schema ??= ((IDictionary<string, object?>)values.First()).ToDictionary(f => f.Key, f => f.Value?.GetType() ?? typeof(object));
         return InstanceCreator.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
@@ -35,7 +36,7 @@ public class DynamicQueryTestsBase
                     { "dynamic", (schema, values) }
                 }),
             LoggerResolver,
-            TestCompilationOptions);
+            compilationOptions ?? TestCompilationOptions);
     }
 
     protected CompiledQuery CreateAndRunVirtualMachine(
@@ -93,10 +94,10 @@ public class DynamicQueryTestsBase
         return obj;
     }
 
-    protected IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>> CreateMockedEnvironmentVariables()
+    protected IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> CreateMockedEnvironmentVariables()
     {
-        var environmentVariablesMock = new Mock<IReadOnlyDictionary<uint, IReadOnlyDictionary<string, string>>>();
-        environmentVariablesMock.Setup(f => f[It.IsAny<uint>()]).Returns(new Dictionary<string, string>());
+        var environmentVariablesMock = new Mock<IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>();
+        environmentVariablesMock.Setup(f => f[It.IsAny<string>()]).Returns(new Dictionary<string, string>());
 
         return environmentVariablesMock.Object;
     }

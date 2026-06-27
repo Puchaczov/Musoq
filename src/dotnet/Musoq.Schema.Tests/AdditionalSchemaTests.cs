@@ -33,7 +33,7 @@ public class AdditionalSchemaTests
         var exception = new InjectSourceNullReferenceException(typeof(int));
 
         // Assert
-        Assert.IsInstanceOfType(exception, typeof(NullReferenceException));
+        Assert.IsInstanceOfType<NullReferenceException>(exception);
     }
 
     [TestMethod]
@@ -73,10 +73,10 @@ public class AdditionalSchemaTests
     public void MethodResolutionException_IsInvalidOperationException()
     {
         // Arrange & Act
-        var exception = new MethodResolutionException("Test", Array.Empty<string>(), Array.Empty<string>(), "msg");
+        var exception = new MethodResolutionException("Test", [], [], "msg");
 
         // Assert
-        Assert.IsInstanceOfType(exception, typeof(InvalidOperationException));
+        Assert.IsInstanceOfType<InvalidOperationException>(exception);
     }
 
     [TestMethod]
@@ -105,7 +105,7 @@ public class AdditionalSchemaTests
 
         // Act
         var exception =
-            MethodResolutionException.ForUnresolvedMethod(methodName, Array.Empty<string>(), Array.Empty<string>());
+            MethodResolutionException.ForUnresolvedMethod(methodName, [], []);
 
         // Assert
         Assert.Contains("no parameters", exception.Message);
@@ -116,7 +116,7 @@ public class AdditionalSchemaTests
     public void MethodResolutionException_ForUnresolvedMethod_NoAvailableSignatures_ShouldSayNoMethods()
     {
         // Arrange & Act
-        var exception = MethodResolutionException.ForUnresolvedMethod("Test", new[] { "int" }, Array.Empty<string>());
+        var exception = MethodResolutionException.ForUnresolvedMethod("Test", ["int"], []);
 
         // Assert
         Assert.Contains("No methods available with this name", exception.Message);
@@ -178,7 +178,7 @@ public class AdditionalSchemaTests
         var exception = new SchemaArgumentException("arg", "msg");
 
         // Assert
-        Assert.IsInstanceOfType(exception, typeof(ArgumentException));
+        Assert.IsInstanceOfType<ArgumentException>(exception);
     }
 
     [TestMethod]
@@ -252,7 +252,7 @@ public class AdditionalSchemaTests
         var exception = new SourceNotFoundException("test");
 
         // Assert
-        Assert.IsInstanceOfType(exception, typeof(Exception));
+        Assert.IsInstanceOfType<Exception>(exception);
     }
 
     #endregion
@@ -279,7 +279,7 @@ public class AdditionalSchemaTests
         var exception = new TableNotFoundException("test");
 
         // Assert
-        Assert.IsInstanceOfType(exception, typeof(Exception));
+        Assert.IsInstanceOfType<Exception>(exception);
     }
 
     #endregion
@@ -427,10 +427,10 @@ public class AdditionalSchemaTests
 
         // Act
         var usageAttribute =
-            (AttributeUsageAttribute)Attribute.GetCustomAttribute(attributeType, typeof(AttributeUsageAttribute));
+            (AttributeUsageAttribute?)Attribute.GetCustomAttribute(attributeType, typeof(AttributeUsageAttribute));
 
         // Assert
-        Assert.IsNotNull(usageAttribute);
+        usageAttribute = TestNullabilityGuards.Require(usageAttribute, "PluginSchemasAttribute usage");
         Assert.AreEqual(AttributeTargets.Assembly, usageAttribute.ValidOn);
     }
 
@@ -439,14 +439,15 @@ public class AdditionalSchemaTests
     #region SingleRowSource Tests
 
     [TestMethod]
-    public void SingleRowSource_Rows_ShouldEnumerateOneRow()
+    public void SingleRowSource_Chunks_ShouldEnumerateOneRow()
     {
         // Arrange
         var source = new SingleRowSource();
 
         // Act
         var rowCount = 0;
-        foreach (var row in source.Rows) rowCount++;
+        foreach (var chunk in source.Chunks)
+            rowCount += chunk.Count;
 
         // Assert
         Assert.AreEqual(1, rowCount);
@@ -459,16 +460,19 @@ public class AdditionalSchemaTests
         var source = new SingleRowSource();
 
         // Act
-        IObjectResolver firstRow = null;
-        foreach (var row in source.Rows)
+        string? firstRow = null;
+        foreach (var chunk in source.Chunks)
         {
-            firstRow = row;
+            if (chunk.Count == 0)
+                continue;
+
+            firstRow = chunk[0];
             break;
         }
 
         // Assert
         Assert.IsNotNull(firstRow);
-        Assert.IsTrue(firstRow.HasColumn("Column1"));
+        Assert.AreEqual(string.Empty, firstRow);
     }
 
     [TestMethod]
@@ -478,10 +482,13 @@ public class AdditionalSchemaTests
         var source = new SingleRowSource();
 
         // Act
-        object value = null;
-        foreach (var row in source.Rows)
+        object? value = null;
+        foreach (var chunk in source.Chunks)
         {
-            value = row["Column1"];
+            if (chunk.Count == 0)
+                continue;
+
+            value = chunk[0];
             break;
         }
 

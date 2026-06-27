@@ -1,0 +1,11 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Tests.Schema.Basic;
+
+namespace Musoq.Evaluator.Tests;
+
+[TestClass]
+public partial class SubqueryTests : BasicEntityTestBase
+{
+    public TestContext TestContext { get; set; }
+
+}

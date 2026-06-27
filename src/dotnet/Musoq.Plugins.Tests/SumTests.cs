@@ -1,316 +1,100 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Numerics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Plugins.Tests;
 
 [TestClass]
-public class SumTests : PluginsTestBase
+public class SumTests
 {
-    #region Existing Tests
-
     [TestMethod]
-    public void SumIntTest()
+    public void SumAggregateKernel_SumsConcreteNumericTypes()
     {
-        Library.SetSum(Group, "test", 1);
-        Library.SetSum(Group, "test", 4);
-        Library.SetSum(Group, "test", 6);
-        Library.SetSum(Group, "test", (int?)null);
-
-        Assert.AreEqual(11m, Library.Sum(Group, "test"));
+        AssertSum<byte>(10, 20, 30, 60);
+        AssertSum<sbyte>(10, -5, 15, 20);
+        AssertSum<short>(100, 200, -50, 250);
+        AssertSum<ushort>(100, 200, 300, 600);
+        AssertSum(1, 4, 6, 11);
+        AssertSum(1000u, 2000u, 3000u, 6000u);
+        AssertSum(1L, 4L, 6L, 11L);
+        AssertSum(10000UL, 20000UL, 30000UL, 60000UL);
+        AssertSum(1.5f, 2.5f, 3.0f, 7.0f);
+        AssertSum(1.5d, 2.5d, 3.0d, 7.0d);
+        AssertSum(1m, 2m, 3m, 6m);
     }
 
     [TestMethod]
-    public void SumIntParentTest()
+    public void SumAggregateKernel_EmptyStateReturnsNull()
     {
-        Library.SetSum(Group, "test", 1, 1);
-        Library.SetSum(Group, "test", 4, 1);
-        Library.SetSum(Group, "test", 6);
-        Library.SetSum(Group, "test", (int?)null);
+        var state = new SumAggregateKernel<int>.State();
 
-        Assert.AreEqual(5, Library.Sum(Group, "test", 1));
-        Assert.AreEqual(6, Library.Sum(Group, "test"));
+        Assert.IsNull(SumAggregateKernel<int>.Get(in state));
     }
 
     [TestMethod]
-    public void SumLongTest()
+    public void SumAggregateKernel_AllNullInputsReturnNull()
     {
-        Library.SetSum(Group, "test", 1L);
-        Library.SetSum(Group, "test", 4L);
-        Library.SetSum(Group, "test", 6L);
-        Library.SetSum(Group, "test", (long?)null);
-
-        Assert.AreEqual(11m, Library.Sum(Group, "test"));
+        AssertAllNullSum<int>();
+        AssertAllNullSum<decimal>();
     }
 
     [TestMethod]
-    public void SumLongParentTest()
+    public void SumAggregateKernel_MergeCombinesPartialStates()
     {
-        Library.SetSum(Group, "test", 1L, 1);
-        Library.SetSum(Group, "test", 4L, 1);
-        Library.SetSum(Group, "test", 6L);
-        Library.SetSum(Group, "test", (long?)null, 1);
+        var target = new SumAggregateKernel<int>.State();
+        var source = new SumAggregateKernel<int>.State();
 
-        Assert.AreEqual(5m, Library.Sum(Group, "test", 1));
-        Assert.AreEqual(6m, Library.Sum(Group, "test"));
+        SumAggregateKernel<int>.Set(ref target, 1);
+        SumAggregateKernel<int>.Set(ref target, 4);
+        SumAggregateKernel<int>.Set(ref source, 6);
+        SumAggregateKernel<int>.Merge(ref target, in source);
+
+        Assert.AreEqual(11, SumAggregateKernel<int>.Get(in target));
     }
 
     [TestMethod]
-    public void SumDecimalTest()
+    public void SumAggregateKernel_MergeIgnoresEmptyPartialState()
     {
-        Library.SetSum(Group, "test", 1m);
-        Library.SetSum(Group, "test", 2m);
-        Library.SetSum(Group, "test", 3m);
-        Library.SetSum(Group, "test", (decimal?)null);
+        var target = new SumAggregateKernel<decimal>.State();
+        var source = new SumAggregateKernel<decimal>.State();
 
-        Assert.AreEqual(6m, Library.Sum(Group, "test"));
+        SumAggregateKernel<decimal>.Set(ref target, 12m);
+        SumAggregateKernel<decimal>.Merge(ref target, in source);
+
+        Assert.AreEqual(12m, SumAggregateKernel<decimal>.Get(in target));
     }
 
     [TestMethod]
-    public void SumDecimalParentTest()
+    public void SumAggregateKernel_CheckedIntegralOverflowThrows()
     {
-        Library.SetSum(Group, "test", 1m, 1);
-        Library.SetSum(Group, "test", 4m, 1);
-        Library.SetSum(Group, "test", 6m);
-        Library.SetSum(Group, "test", (decimal?)null, 1);
+        var state = new SumAggregateKernel<int>.State();
 
-        Assert.AreEqual(5m, Library.Sum(Group, "test", 1));
-        Assert.AreEqual(6m, Library.Sum(Group, "test"));
+        SumAggregateKernel<int>.Set(ref state, int.MaxValue);
+
+        Assert.Throws<OverflowException>(() => SumAggregateKernel<int>.Set(ref state, 1));
     }
 
-    #endregion
-
-    #region Byte Tests
-
-    [TestMethod]
-    public void SumByteTest()
+    private static void AssertSum<T>(T first, T second, T third, T expected)
+        where T : struct, INumber<T>
     {
-        Library.SetSum(Group, "test", (byte)10);
-        Library.SetSum(Group, "test", (byte)20);
-        Library.SetSum(Group, "test", (byte)30);
-        Library.SetSum(Group, "test", (byte?)null);
+        var state = new SumAggregateKernel<T>.State();
 
-        Assert.AreEqual(60m, Library.Sum(Group, "test"));
+        SumAggregateKernel<T>.Set(ref state, first);
+        SumAggregateKernel<T>.Set(ref state, null);
+        SumAggregateKernel<T>.Set(ref state, second);
+        SumAggregateKernel<T>.Set(ref state, third);
+
+        Assert.AreEqual(expected, SumAggregateKernel<T>.Get(in state));
     }
 
-    [TestMethod]
-    public void SumByteParentTest()
+    private static void AssertAllNullSum<T>()
+        where T : struct, INumber<T>
     {
-        Library.SetSum(Group, "test", (byte)10, 1);
-        Library.SetSum(Group, "test", (byte)20, 1);
-        Library.SetSum(Group, "test", (byte)50);
-        Library.SetSum(Group, "test", (byte?)null, 1);
+        var state = new SumAggregateKernel<T>.State();
 
-        Assert.AreEqual(30m, Library.Sum(Group, "test", 1));
-        Assert.AreEqual(50m, Library.Sum(Group, "test"));
+        SumAggregateKernel<T>.Set(ref state, null);
+        SumAggregateKernel<T>.Set(ref state, null);
+
+        Assert.IsNull(SumAggregateKernel<T>.Get(in state));
     }
-
-    #endregion
-
-    #region SByte Tests
-
-    [TestMethod]
-    public void SumSByteTest()
-    {
-        Library.SetSum(Group, "test", 10);
-        Library.SetSum(Group, "test", -5);
-        Library.SetSum(Group, "test", 15);
-        Library.SetSum(Group, "test", null);
-
-        Assert.AreEqual(20m, Library.Sum(Group, "test"));
-    }
-
-    [TestMethod]
-    public void SumSByteParentTest()
-    {
-        Library.SetSum(Group, "test", 5, 1);
-        Library.SetSum(Group, "test", 10, 1);
-        Library.SetSum(Group, "test", 20);
-        Library.SetSum(Group, "test", null, 1);
-
-        Assert.AreEqual(15m, Library.Sum(Group, "test", 1));
-        Assert.AreEqual(20m, Library.Sum(Group, "test"));
-    }
-
-    #endregion
-
-    #region Short Tests
-
-    [TestMethod]
-    public void SumShortTest()
-    {
-        Library.SetSum(Group, "test", (short)100);
-        Library.SetSum(Group, "test", (short)200);
-        Library.SetSum(Group, "test", (short)-50);
-        Library.SetSum(Group, "test", (short?)null);
-
-        Assert.AreEqual(250m, Library.Sum(Group, "test"));
-    }
-
-    [TestMethod]
-    public void SumShortParentTest()
-    {
-        Library.SetSum(Group, "test", (short)50, 1);
-        Library.SetSum(Group, "test", (short)50, 1);
-        Library.SetSum(Group, "test", (short)100);
-        Library.SetSum(Group, "test", (short?)null, 1);
-
-        Assert.AreEqual(100m, Library.Sum(Group, "test", 1));
-        Assert.AreEqual(100m, Library.Sum(Group, "test"));
-    }
-
-    #endregion
-
-    #region UShort Tests
-
-    [TestMethod]
-    public void SumUShortTest()
-    {
-        Library.SetSum(Group, "test", (ushort)100);
-        Library.SetSum(Group, "test", (ushort)200);
-        Library.SetSum(Group, "test", (ushort)300);
-        Library.SetSum(Group, "test", (ushort?)null);
-
-        Assert.AreEqual(600m, Library.Sum(Group, "test"));
-    }
-
-    [TestMethod]
-    public void SumUShortParentTest()
-    {
-        Library.SetSum(Group, "test", (ushort)150, 1);
-        Library.SetSum(Group, "test", (ushort)150, 1);
-        Library.SetSum(Group, "test", (ushort)500);
-        Library.SetSum(Group, "test", (ushort?)null, 1);
-
-        Assert.AreEqual(300m, Library.Sum(Group, "test", 1));
-        Assert.AreEqual(500m, Library.Sum(Group, "test"));
-    }
-
-    #endregion
-
-    #region UInt Tests
-
-    [TestMethod]
-    public void SumUIntTest()
-    {
-        Library.SetSum(Group, "test", 1000u);
-        Library.SetSum(Group, "test", 2000u);
-        Library.SetSum(Group, "test", 3000u);
-        Library.SetSum(Group, "test", (uint?)null);
-
-        Assert.AreEqual(6000m, Library.Sum(Group, "test"));
-    }
-
-    [TestMethod]
-    public void SumUIntParentTest()
-    {
-        Library.SetSum(Group, "test", 500u, 1);
-        Library.SetSum(Group, "test", 500u, 1);
-        Library.SetSum(Group, "test", 1000u);
-        Library.SetSum(Group, "test", (uint?)null, 1);
-
-        Assert.AreEqual(1000m, Library.Sum(Group, "test", 1));
-        Assert.AreEqual(1000m, Library.Sum(Group, "test"));
-    }
-
-    #endregion
-
-    #region ULong Tests
-
-    [TestMethod]
-    public void SumULongTest()
-    {
-        Library.SetSum(Group, "test", 10000UL);
-        Library.SetSum(Group, "test", 20000UL);
-        Library.SetSum(Group, "test", 30000UL);
-        Library.SetSum(Group, "test", (ulong?)null);
-
-        Assert.AreEqual(60000m, Library.Sum(Group, "test"));
-    }
-
-    [TestMethod]
-    public void SumULongParentTest()
-    {
-        Library.SetSum(Group, "test", 5000UL, 1);
-        Library.SetSum(Group, "test", 5000UL, 1);
-        Library.SetSum(Group, "test", 15000UL);
-        Library.SetSum(Group, "test", (ulong?)null, 1);
-
-        Assert.AreEqual(10000m, Library.Sum(Group, "test", 1));
-        Assert.AreEqual(15000m, Library.Sum(Group, "test"));
-    }
-
-    #endregion
-
-    #region Float Tests
-
-    [TestMethod]
-    public void SumFloatTest()
-    {
-        Library.SetSum(Group, "test", 1.5f);
-        Library.SetSum(Group, "test", 2.5f);
-        Library.SetSum(Group, "test", 3.0f);
-        Library.SetSum(Group, "test", (float?)null);
-
-        Assert.AreEqual(7m, Library.Sum(Group, "test"));
-    }
-
-    [TestMethod]
-    public void SumFloatParentTest()
-    {
-        Library.SetSum(Group, "test", 10.5f, 1);
-        Library.SetSum(Group, "test", 10.5f, 1);
-        Library.SetSum(Group, "test", 25.0f);
-        Library.SetSum(Group, "test", (float?)null, 1);
-
-        Assert.AreEqual(21m, Library.Sum(Group, "test", 1));
-        Assert.AreEqual(25m, Library.Sum(Group, "test"));
-    }
-
-    [TestMethod]
-    public void SumFloatWithNegativeTest()
-    {
-        Library.SetSum(Group, "test", 10.0f);
-        Library.SetSum(Group, "test", -3.5f);
-        Library.SetSum(Group, "test", 5.5f);
-
-        Assert.AreEqual(12m, Library.Sum(Group, "test"));
-    }
-
-    #endregion
-
-    #region Double Tests
-
-    [TestMethod]
-    public void SumDoubleTest()
-    {
-        Library.SetSum(Group, "test", 1.5d);
-        Library.SetSum(Group, "test", 2.5d);
-        Library.SetSum(Group, "test", 3.0d);
-        Library.SetSum(Group, "test", (double?)null);
-
-        Assert.AreEqual(7m, Library.Sum(Group, "test"));
-    }
-
-    [TestMethod]
-    public void SumDoubleParentTest()
-    {
-        Library.SetSum(Group, "test", 100.25d, 1);
-        Library.SetSum(Group, "test", 100.25d, 1);
-        Library.SetSum(Group, "test", 500.50d);
-        Library.SetSum(Group, "test", (double?)null, 1);
-
-        Assert.AreEqual(200.5m, Library.Sum(Group, "test", 1));
-        Assert.AreEqual(500.5m, Library.Sum(Group, "test"));
-    }
-
-    [TestMethod]
-    public void SumDoubleWithNegativeTest()
-    {
-        Library.SetSum(Group, "test", 100.0d);
-        Library.SetSum(Group, "test", -25.5d);
-        Library.SetSum(Group, "test", 50.5d);
-
-        Assert.AreEqual(125m, Library.Sum(Group, "test"));
-    }
-
-    #endregion
 }

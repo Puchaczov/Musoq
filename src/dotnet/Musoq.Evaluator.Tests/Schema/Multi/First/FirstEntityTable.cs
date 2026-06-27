@@ -10,7 +10,7 @@ public class FirstEntityTable : ISchemaTable
         new SchemaColumn(nameof(FirstEntity.FirstItem), 0, typeof(string))
     ];
 
-    public ISchemaColumn GetColumnByName(string name)
+    public ISchemaColumn? GetColumnByName(string name)
     {
         return Columns[FirstEntity.TestNameToIndexMap[name]];
     }

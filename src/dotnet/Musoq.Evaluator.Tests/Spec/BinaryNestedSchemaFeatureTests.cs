@@ -32,7 +32,7 @@ public class BinaryNestedSchemaFeatureTests
                 Items: Item[Count] 
             };
             select i.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Container') c
+            cross apply Interpret<Container>(f.Content) c
             cross apply c.Items i
             order by i.Value";
 
@@ -71,7 +71,7 @@ public class BinaryNestedSchemaFeatureTests
                 Values: int[Count] le 
             };
             select v.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d
+            cross apply Interpret<Data>(f.Content) d
             cross apply d.Values v
             order by v.Value";
 
@@ -116,7 +116,7 @@ public class BinaryNestedSchemaFeatureTests
             };
             select f2.Head.Magic, f2.Head.Version, r.Id 
             from #test.files() f
-            cross apply Interpret(f.Content, 'File') f2
+            cross apply Interpret<File>(f.Content) f2
             cross apply f2.Records r
             order by r.Id";
 
@@ -163,7 +163,7 @@ public class BinaryNestedSchemaFeatureTests
                 t.Vertices[1].X as X1,
                 t.Vertices[2].Y as Y2
             from #test.files() f
-            cross apply Interpret(f.Content, 'Triangle') t";
+            cross apply Interpret<Triangle>(f.Content) t";
 
 
         var testData = new byte[24];
@@ -199,7 +199,7 @@ public class BinaryNestedSchemaFeatureTests
             binary Point { X: int le, Y: int le };
             binary Data { Origin: Point };
             select d.Origin.X, d.Origin.Y from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[8];
@@ -230,7 +230,7 @@ public class BinaryNestedSchemaFeatureTests
             binary Line { Start: Point, Finish: Point };
             select l.Start.X, l.Start.Y, l.Finish.X, l.Finish.Y 
             from #test.files() f
-            cross apply Interpret(f.Content, 'Line') l";
+            cross apply Interpret<Line>(f.Content) l";
 
         var testData = new byte[16];
         BitConverter.GetBytes(0).CopyTo(testData, 0);
@@ -264,7 +264,7 @@ public class BinaryNestedSchemaFeatureTests
             binary Container { Inner: Value };
             binary Wrapper { Middle: Container };
             select w.Middle.Inner.Data from #test.files() f
-            cross apply Interpret(f.Content, 'Wrapper') w";
+            cross apply Interpret<Wrapper>(f.Content) w";
 
         var testData = BitConverter.GetBytes(42);
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -293,7 +293,7 @@ public class BinaryNestedSchemaFeatureTests
             binary Point { X: short le, Y: short le };
             binary Data { Points: Point[3] };
             select p.X, p.Y from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d
+            cross apply Interpret<Data>(f.Content) d
             cross apply d.Points p
             order by p.X";
 
@@ -336,7 +336,7 @@ public class BinaryNestedSchemaFeatureTests
                 Points: Point[Count] 
             };
             select p.X from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d
+            cross apply Interpret<Data>(f.Content) d
             cross apply d.Points p";
 
         var testData = new byte[] { 0x00 };

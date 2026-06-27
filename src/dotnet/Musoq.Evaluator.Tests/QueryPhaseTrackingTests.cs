@@ -19,9 +19,9 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
 
         var phases = new List<(string QueryId, QueryPhase Phase)>();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        vm.PhaseChanged += (sender, args) => phases.Add((args.QueryId, args.Phase));
+        vm.PhaseChanged += (_, args) => phases.Add((args.QueryId, args.Phase));
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         Assert.IsTrue(phases.Any(p => p.Phase == QueryPhase.Begin));
         Assert.IsTrue(phases.Any(p => p.Phase == QueryPhase.From));
@@ -40,9 +40,9 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
 
         var phases = new List<(string QueryId, QueryPhase Phase)>();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        vm.PhaseChanged += (sender, args) => phases.Add((args.QueryId, args.Phase));
+        vm.PhaseChanged += (_, args) => phases.Add((args.QueryId, args.Phase));
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         Assert.IsTrue(phases.Any(p => p.Phase == QueryPhase.Begin));
         Assert.IsTrue(phases.Any(p => p.Phase == QueryPhase.From));
@@ -62,9 +62,9 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
 
         var phases = new List<(string QueryId, QueryPhase Phase)>();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        vm.PhaseChanged += (sender, args) => phases.Add((args.QueryId, args.Phase));
+        vm.PhaseChanged += (_, args) => phases.Add((args.QueryId, args.Phase));
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         Assert.IsTrue(phases.Any(p => p.Phase == QueryPhase.Begin));
         Assert.IsTrue(phases.Any(p => p.Phase == QueryPhase.GroupBy));
@@ -82,9 +82,9 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
 
         var phases = new List<(string QueryId, QueryPhase Phase)>();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        vm.PhaseChanged += (sender, args) => phases.Add((args.QueryId, args.Phase));
+        vm.PhaseChanged += (_, args) => phases.Add((args.QueryId, args.Phase));
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         Assert.IsTrue(phases.Any(p => p.Phase == QueryPhase.Begin));
         Assert.IsTrue(phases.Any(p => p.Phase == QueryPhase.GroupBy));
@@ -102,9 +102,9 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
 
         var phases = new List<QueryPhase>();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        vm.PhaseChanged += (sender, args) => phases.Add(args.Phase);
+        vm.PhaseChanged += (_, args) => phases.Add(args.Phase);
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         var beginIndex = phases.IndexOf(QueryPhase.Begin);
         var fromIndex = phases.IndexOf(QueryPhase.From);
@@ -129,9 +129,9 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
 
         var queryIds = new HashSet<string>();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        vm.PhaseChanged += (sender, args) => queryIds.Add(args.QueryId);
+        vm.PhaseChanged += (_, args) => queryIds.Add(args.QueryId);
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         Assert.IsNotEmpty(queryIds);
         Assert.IsTrue(queryIds.All(id => !string.IsNullOrEmpty(id)));
@@ -167,9 +167,9 @@ select Name from #A.Entities() where Name = '002'";
 
         var phases = new List<(string QueryId, QueryPhase Phase)>();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        vm.PhaseChanged += (sender, args) => phases.Add((args.QueryId, args.Phase));
+        vm.PhaseChanged += (_, args) => phases.Add((args.QueryId, args.Phase));
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         var beginCount = phases.Count(p => p.Phase == QueryPhase.Begin);
         var endCount = phases.Count(p => p.Phase == QueryPhase.End);
@@ -193,14 +193,14 @@ select Name from #A.Entities() where Name = '002'";
 
         var queryIdsByPhase = new Dictionary<QueryPhase, HashSet<string>>();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        vm.PhaseChanged += (sender, args) =>
+        vm.PhaseChanged += (_, args) =>
         {
             if (!queryIdsByPhase.ContainsKey(args.Phase))
                 queryIdsByPhase[args.Phase] = [];
             queryIdsByPhase[args.Phase].Add(args.QueryId);
         };
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         var beginQueryIds = queryIdsByPhase.GetValueOrDefault(QueryPhase.Begin, []);
         Assert.IsGreaterThanOrEqualTo(2, beginQueryIds.Count,
@@ -223,9 +223,9 @@ select Name from cte";
 
         var phases = new List<(string QueryId, QueryPhase Phase)>();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        vm.PhaseChanged += (sender, args) => phases.Add((args.QueryId, args.Phase));
+        vm.PhaseChanged += (_, args) => phases.Add((args.QueryId, args.Phase));
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         var beginCount = phases.Count(p => p.Phase == QueryPhase.Begin);
         var endCount = phases.Count(p => p.Phase == QueryPhase.End);
@@ -250,9 +250,9 @@ select Name from cte";
 
         var allQueryIds = new HashSet<string>();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        vm.PhaseChanged += (sender, args) => allQueryIds.Add(args.QueryId);
+        vm.PhaseChanged += (_, args) => allQueryIds.Add(args.QueryId);
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         Assert.IsGreaterThanOrEqualTo(2, allQueryIds.Count,
             "CTE query should have at least 2 unique query IDs (one for CTE, one for main query)");
@@ -276,9 +276,9 @@ select c1.Name from cte1 c1 inner join cte2 c2 on c1.Name = c2.Name";
 
         var allQueryIds = new HashSet<string>();
         var vm = CreateAndRunVirtualMachine(query, sources);
-        vm.PhaseChanged += (sender, args) => allQueryIds.Add(args.QueryId);
+        vm.PhaseChanged += (_, args) => allQueryIds.Add(args.QueryId);
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         Assert.IsGreaterThanOrEqualTo(3, allQueryIds.Count,
             "Multiple CTEs query should have at least 3 unique query IDs (one for each CTE and one for main query)");
@@ -293,19 +293,20 @@ select c1.Name from cte1 c1 inner join cte2 c2 on c1.Name = c2.Name";
             { "#A", [new BasicEntity("001")] }
         };
 
-        QueryPhaseEventArgs capturedArgs = null;
+        QueryPhaseEventArgs? capturedArgs = null;
         var vm = CreateAndRunVirtualMachine(query, sources);
-        vm.PhaseChanged += (sender, args) =>
+        vm.PhaseChanged += (_, args) =>
         {
             if (args.Phase == QueryPhase.Begin)
                 capturedArgs = args;
         };
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         Assert.IsNotNull(capturedArgs);
-        Assert.AreEqual(QueryPhase.Begin, capturedArgs.Phase);
-        Assert.IsFalse(string.IsNullOrEmpty(capturedArgs.QueryId));
+        var phaseArgs = capturedArgs ?? throw new AssertFailedException("Expected begin phase args.");
+        Assert.AreEqual(QueryPhase.Begin, phaseArgs.Phase);
+        Assert.IsFalse(string.IsNullOrEmpty(phaseArgs.QueryId));
     }
 
     [TestMethod]
@@ -317,18 +318,18 @@ select c1.Name from cte1 c1 inner join cte2 c2 on c1.Name = c2.Name";
             { "#A", [new BasicEntity("001")] }
         };
 
-        object capturedSender = null;
+        object? capturedSender = null;
         var vm = CreateAndRunVirtualMachine(query, sources);
-        vm.PhaseChanged += (sender, args) =>
+        vm.PhaseChanged += (sender, _) =>
         {
             if (capturedSender == null)
                 capturedSender = sender;
         };
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         Assert.IsNotNull(capturedSender);
-        Assert.IsInstanceOfType(capturedSender, typeof(IRunnable));
+        Assert.IsInstanceOfType<ITableRunnable>(capturedSender);
     }
 
     [TestMethod]
@@ -344,10 +345,10 @@ select c1.Name from cte1 c1 inner join cte2 c2 on c1.Name = c2.Name";
         var handler2Count = 0;
 
         var vm = CreateAndRunVirtualMachine(query, sources);
-        vm.PhaseChanged += (sender, args) => handler1Count++;
-        vm.PhaseChanged += (sender, args) => handler2Count++;
+        vm.PhaseChanged += (_, _) => handler1Count++;
+        vm.PhaseChanged += (_, _) => handler2Count++;
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         Assert.IsGreaterThan(0, handler1Count);
         Assert.AreEqual(handler1Count, handler2Count);
@@ -363,13 +364,13 @@ select c1.Name from cte1 c1 inner join cte2 c2 on c1.Name = c2.Name";
         };
 
         var handlerCount = 0;
-        QueryPhaseEventHandler handler = (sender, args) => handlerCount++;
+        QueryPhaseEventHandler handler = (_, _) => handlerCount++;
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         vm.PhaseChanged += handler;
         vm.PhaseChanged -= handler;
 
-        vm.Run();
+        _ = vm.Run().Count;
 
         Assert.AreEqual(0, handlerCount);
     }

@@ -1,12 +1,10 @@
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Generic;
-using Musoq.Parser.Diagnostics;
 using Musoq.Plugins.Attributes;
-using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -396,37 +394,37 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             new()
             {
                 Values =
-                [
+                {
                     new ComplexType2
                     {
                         Values =
-                        [
+                        {
                             new ComplexType3
                             {
-                                Values = [new ComplexType4 { Value = "Value1" }, new ComplexType4 { Value = "Value2" }]
+                                Values = { new ComplexType4 { Value = "Value1" }, new ComplexType4 { Value = "Value2" } }
                             },
                             new ComplexType3
                             {
-                                Values = [new ComplexType4 { Value = "Value3" }, new ComplexType4 { Value = "Value4" }]
+                                Values = { new ComplexType4 { Value = "Value3" }, new ComplexType4 { Value = "Value4" } }
                             }
-                        ]
+                        }
                     },
 
                     new ComplexType2
                     {
                         Values =
-                        [
+                        {
                             new ComplexType3
                             {
-                                Values = [new ComplexType4 { Value = "Value5" }, new ComplexType4 { Value = "Value6" }]
+                                Values = { new ComplexType4 { Value = "Value5" }, new ComplexType4 { Value = "Value6" } }
                             },
                             new ComplexType3
                             {
-                                Values = [new ComplexType4 { Value = "Value7" }, new ComplexType4 { Value = "Value8" }]
+                                Values = { new ComplexType4 { Value = "Value7" }, new ComplexType4 { Value = "Value8" } }
                             }
-                        ]
+                        }
                     }
-                ]
+                }
             }
         }.ToArray();
 
@@ -465,7 +463,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
     }
 
     [TestMethod]
-    public void CrossApplyProperty_AliasClashingWithCte_ShouldThrow()
+    public void CrossApplyProperty_AliasMatchingUnusedCte_ShouldPass()
     {
         const string query =
             """
@@ -477,17 +475,15 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var firstSource = new List<CrossApplyClass6>().ToArray();
 
-        var ex = Assert.Throws<MusoqQueryException>(() =>
-        {
-            var vm = CreateAndRunVirtualMachine(
-                query,
-                firstSource
-            );
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            firstSource
+        );
 
-            vm.Run(TestContext.CancellationToken);
-        });
+        var table = vm.Run(TestContext.CancellationToken);
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ3021_DuplicateAlias, DiagnosticPhase.Bind, "a");
+        Assert.AreEqual(1, table.Columns.Count());
+        Assert.AreEqual(0, table.Count);
     }
 
     [TestMethod]
@@ -506,7 +502,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             {
                 ComplexType = new ComplexType5
                 {
-                    PrimitiveValues = [1, 2]
+                    PrimitiveValues = { 1, 2 }
                 }
             }
         }.ToArray();
@@ -541,7 +537,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             {
                 ComplexType = new ComplexType5
                 {
-                    ComplexValues = [new ComplexType6 { Value = 1 }, new ComplexType6 { Value = 2 }]
+                    ComplexValues = { new ComplexType6 { Value = 1 }, new ComplexType6 { Value = 2 } }
                 }
             }
         }.ToArray();
@@ -579,7 +575,7 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
             {
                 ComplexType = new ComplexType5
                 {
-                    ComplexValues = [new ComplexType6 { Value = 1 }, new ComplexType6 { Value = 2 }]
+                    ComplexValues = { new ComplexType6 { Value = 1 }, new ComplexType6 { Value = 2 } }
                 }
             }
         }.ToArray();
@@ -598,82 +594,81 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
         Assert.AreEqual("System.Int32", table[0].Values[0]);
     }
 
-    private class CrossApplyClass1
+    private sealed class CrossApplyClass1
     {
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        public double[] Values { get; set; }
+        public double[] Values { get; set; } = [];
     }
 
-    private class CrossApplyClass2
+    private sealed class CrossApplyClass2
     {
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        public List<double> Values { get; set; }
+        public List<double> Values { get; set; } = [];
     }
 
     // ReSharper disable once MemberCanBePrivate.Global
     public class ComplexType1
     {
-        public string Value1 { get; set; }
+        public string Value1 { get; set; } = string.Empty;
 
         public int Value2 { get; set; }
     }
 
-    private class CrossApplyClass3
+    private sealed class CrossApplyClass3
     {
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        [BindablePropertyAsTable] public ComplexType1[] Values { get; set; }
+        [BindablePropertyAsTable] public ComplexType1[] Values { get; set; } = [];
     }
 
-    private class CrossApplyClass4
+    private sealed class CrossApplyClass4
     {
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        [BindablePropertyAsTable] public List<ComplexType1> Values { get; set; }
+        [BindablePropertyAsTable] public List<ComplexType1> Values { get; set; } = [];
     }
 
-    private class CrossApplyClass5
+    private sealed class CrossApplyClass5
     {
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        public double[] Values1 { get; set; }
-
-        public double[] Values2 { get; set; }
+        public double[] Values1 { get; set; } = [];
+        public double[] Values2 { get; set; } = [];
     }
 
     public class ComplexType4
     {
-        public string Value { get; set; }
+        public string Value { get; set; } = string.Empty;
     }
 
     public class ComplexType3
     {
-        public List<ComplexType4> Values { get; set; }
+        public List<ComplexType4> Values { get; } = [];
     }
 
     // ReSharper disable once MemberCanBePrivate.Global
     public class ComplexType2
     {
-        [BindablePropertyAsTable] public List<ComplexType3> Values { get; set; }
+        [BindablePropertyAsTable] public List<ComplexType3> Values { get; } = [];
     }
 
-    private class CrossApplyClass6
+    private sealed class CrossApplyClass6
     {
-        [BindablePropertyAsTable] public List<ComplexType2> Values { get; set; }
+        [BindablePropertyAsTable] public List<ComplexType2> Values { get; set; } = [];
     }
 
-    private class CrossApplyClass7
+    private sealed class CrossApplyClass7
     {
-        public ComplexType5 ComplexType { get; set; }
+        public ComplexType5? ComplexType { get; set; }
     }
 
     public class ComplexType5
     {
-        [BindablePropertyAsTable] public List<int> PrimitiveValues { get; set; }
+        [BindablePropertyAsTable] public List<int> PrimitiveValues { get; } = [];
 
-        [BindablePropertyAsTable] public List<ComplexType6> ComplexValues { get; set; }
+        [BindablePropertyAsTable] public List<ComplexType6> ComplexValues { get; } = [];
     }
 
     public class ComplexType6

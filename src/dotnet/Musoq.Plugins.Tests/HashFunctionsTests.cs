@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -24,7 +24,7 @@ public class HashFunctionsTests : PluginsTestBase
     [TestMethod]
     public void Md5_WhenBytesProvided_ShouldReturnHash()
     {
-        var bytes = Encoding.UTF8.GetBytes("test");
+        var bytes = "test"u8.ToArray();
         var result = Library.Md5(bytes);
 
         Assert.AreEqual("098F6BCD4621D373CADE4E832627B4F6", result);
@@ -66,7 +66,7 @@ public class HashFunctionsTests : PluginsTestBase
     [TestMethod]
     public void Sha1_WhenBytesProvided_ShouldReturnHash()
     {
-        var bytes = Encoding.UTF8.GetBytes("test");
+        var bytes = "test"u8.ToArray();
         var result = Library.Sha1(bytes);
 
         Assert.AreEqual("A94A8FE5CCB19BA61C4C0873D391E987982FBBD3", result);
@@ -108,7 +108,7 @@ public class HashFunctionsTests : PluginsTestBase
     [TestMethod]
     public void Sha256_WhenBytesProvided_ShouldReturnHash()
     {
-        var bytes = Encoding.UTF8.GetBytes("test");
+        var bytes = "test"u8.ToArray();
         var result = Library.Sha256(bytes);
 
         Assert.AreEqual("9F86D081884C7D659A2FEAA0C55AD015A3BF4F1B2B0B822CD15D6C15B0F00A08", result);
@@ -152,7 +152,7 @@ public class HashFunctionsTests : PluginsTestBase
     [TestMethod]
     public void Sha512_WhenBytesProvided_ShouldReturnHash()
     {
-        var bytes = Encoding.UTF8.GetBytes("test");
+        var bytes = "test"u8.ToArray();
         var result = Library.Sha512(bytes);
 
         Assert.AreEqual(

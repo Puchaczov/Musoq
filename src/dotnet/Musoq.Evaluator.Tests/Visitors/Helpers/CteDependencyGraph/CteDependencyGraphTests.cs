@@ -569,12 +569,12 @@ public class CteDependencyGraphTests
         // Outer references all three via nested joins
         var joinFromB = new InMemoryTableFromNode("cteB", "b", typeof(object));
         var joinCond1 = new BooleanNode(true);
-        var joinAB =
+        var joinAb =
             new JoinInMemoryWithSourceTableFromNode("cteA", joinFromB, joinCond1, JoinType.Inner, typeof(object));
 
         var joinFromC = new InMemoryTableFromNode("cteC", "c", typeof(object));
         var joinCond2 = new BooleanNode(true);
-        var joinFromOuter = new JoinFromNode(joinAB, joinFromC, joinCond2, JoinType.Inner, typeof(object));
+        var joinFromOuter = new JoinFromNode(joinAb, joinFromC, joinCond2, JoinType.Inner, typeof(object));
         var outerQuery = new JoinNode(joinFromOuter, typeof(object));
 
         var cteExpression = new CteExpressionNode([cteA, cteB, cteC], outerQuery);

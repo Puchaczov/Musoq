@@ -28,7 +28,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: byte };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
         var testData = new byte[] { 0xAB };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -52,7 +52,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: sbyte };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
         var testData = new byte[] { 0xFF };
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };
@@ -80,7 +80,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: short le };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0x34, 0x12 };
@@ -105,7 +105,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: ushort le };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0xFF, 0xFF };
@@ -130,7 +130,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: int le };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0x78, 0x56, 0x34, 0x12 };
@@ -155,7 +155,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: uint le };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF };
@@ -180,7 +180,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: long le };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01 };
@@ -205,7 +205,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: ulong le };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
@@ -234,7 +234,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: short be };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0x12, 0x34 };
@@ -259,7 +259,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: int be };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0x12, 0x34, 0x56, 0x78 };
@@ -284,7 +284,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: long be };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
@@ -313,7 +313,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: float le };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = BitConverter.GetBytes(3.14f);
@@ -338,7 +338,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: double le };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = BitConverter.GetBytes(3.141592653589793);
@@ -363,7 +363,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: float be };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var leBytes = BitConverter.GetBytes(3.14f);
@@ -399,7 +399,7 @@ public class BinaryPrimitivesFeatureTests
             };
             select h.Magic, h.Version, h.Flags, h.Reserved 
             from #test.files() f
-            cross apply Interpret(f.Content, 'Header') h";
+            cross apply Interpret<Header>(f.Content) h";
 
         var testData = new byte[]
         {
@@ -436,7 +436,7 @@ public class BinaryPrimitivesFeatureTests
             };
             select m.LittleValue, m.BigValue 
             from #test.files() f
-            cross apply Interpret(f.Content, 'MixedData') m";
+            cross apply Interpret<MixedData>(f.Content) m";
 
         var testData = new byte[]
         {
@@ -469,7 +469,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: int le };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
 
         var testData = BitConverter.GetBytes(-1);
@@ -494,7 +494,7 @@ public class BinaryPrimitivesFeatureTests
         var query = @"
             binary Data { Value: int le };
             select d.Value from #test.files() f
-            cross apply Interpret(f.Content, 'Data') d";
+            cross apply Interpret<Data>(f.Content) d";
 
         var testData = BitConverter.GetBytes(int.MinValue);
         var entities = new[] { new BinaryEntity { Name = "test.bin", Content = testData } };

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using System.Linq;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
@@ -8,28 +9,22 @@ namespace Musoq.Evaluator.Tests.Components;
 /// <summary>
 ///     Schema for text entities with string content.
 /// </summary>
-public class TextSchema : SchemaBase
+public class TextSchema(IEnumerable<TextEntity> entities) : SchemaBase("test", CreateLibrary())
 {
-    private readonly IEnumerable<TextEntity> _entities;
+    private readonly IReadOnlyList<TextEntity> _entities = entities as IReadOnlyList<TextEntity> ?? entities.ToArray();
 
-    public TextSchema(IEnumerable<TextEntity> entities)
-        : base("test", CreateLibrary())
-    {
-        _entities = entities;
-    }
-
-    public override ISchemaTable GetTableByName(string name, RuntimeContext runtimeContext,
-        params object[] parameters)
+    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
+        params object?[] parameters)
     {
         return new TextEntityTable();
     }
 
-    public override RowSource GetRowSource(string name, RuntimeContext runtimeContext, params object[] parameters)
+    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
     {
-        return new TestEntitySource<TextEntity>(
-            _entities,
+        return EnsureSourceType<T, TextEntity>(name, new TestEntitySource<TextEntity>(
+            [_entities],
             TextEntity.NameToIndexMap,
-            TextEntity.IndexToObjectAccessMap);
+            TextEntity.IndexToObjectAccessMap));
     }
 
     private static MethodsAggregator CreateLibrary()

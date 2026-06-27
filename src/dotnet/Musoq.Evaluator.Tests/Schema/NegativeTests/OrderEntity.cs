@@ -5,22 +5,18 @@ namespace Musoq.Evaluator.Tests.Schema.NegativeTests;
 
 public class OrderEntity
 {
-    public static readonly IReadOnlyDictionary<string, int> NameToIndexMap;
-    public static readonly IReadOnlyDictionary<int, Func<OrderEntity, object>> IndexToObjectAccessMap;
-
-    static OrderEntity()
+    public static readonly IReadOnlyDictionary<string, int> NameToIndexMap = new Dictionary<string, int>
     {
-        NameToIndexMap = new Dictionary<string, int>
-        {
-            { nameof(OrderId), 0 },
-            { nameof(PersonId), 1 },
-            { nameof(Amount), 2 },
-            { nameof(Status), 3 },
-            { nameof(OrderDate), 4 },
-            { nameof(Notes), 5 }
-        };
+        { nameof(OrderId), 0 },
+        { nameof(PersonId), 1 },
+        { nameof(Amount), 2 },
+        { nameof(Status), 3 },
+        { nameof(OrderDate), 4 },
+        { nameof(Notes), 5 }
+    };
 
-        IndexToObjectAccessMap = new Dictionary<int, Func<OrderEntity, object>>
+    public static readonly IReadOnlyDictionary<int, Func<OrderEntity, object?>> IndexToObjectAccessMap =
+        new Dictionary<int, Func<OrderEntity, object?>>
         {
             { 0, entity => entity.OrderId },
             { 1, entity => entity.PersonId },
@@ -29,7 +25,6 @@ public class OrderEntity
             { 4, entity => entity.OrderDate },
             { 5, entity => entity.Notes }
         };
-    }
 
     public int OrderId { get; set; }
 
@@ -37,9 +32,9 @@ public class OrderEntity
 
     public decimal Amount { get; set; }
 
-    public string Status { get; set; }
+    public string Status { get; set; } = string.Empty;
 
     public DateTime OrderDate { get; set; }
 
-    public string Notes { get; set; }
+    public string? Notes { get; set; } = string.Empty;
 }

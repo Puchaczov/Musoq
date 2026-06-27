@@ -32,27 +32,44 @@ public class MultiLibrary : LibraryBase
         return 1;
     }
 
-    [AggregationGetMethod]
-    public string AggregateMethodA([InjectGroup] Group group, string name)
+    [AggregateFunction(typeof(AggregateMethodAKernel), Name = nameof(AggregateMethodA), Inline = true)]
+    public string AggregateMethodA()
     {
-        var list = group.GetValue<List<int>>(name);
-
-        return string.Join(',', list);
-    }
-
-    [AggregationSetMethod]
-    public void SetAggregateMethodA([InjectGroup] Group group,
-        [InjectSpecificSource(typeof(FirstEntity))]
-        FirstEntity entity, string name)
-    {
-        var list = group.GetOrCreateValue(name, new List<int>());
-
-        list.Add(0);
+        return AggregateFunction.NotInvoked<string>();
     }
 
     [BindableMethod]
     public int MethodC([InjectSpecificSource(typeof(ICommonInterface))] ICommonInterface entity)
     {
         return 5;
+    }
+
+    public static class AggregateMethodAKernel
+    {
+        public struct State
+        {
+            public List<int>? Values;
+        }
+
+        public static void Set(ref State state)
+        {
+            (state.Values ??= []).Add(0);
+        }
+
+        public static string Get(in State state)
+        {
+            return state.Values is { Count: > 0 } values
+                ? string.Join(',', values)
+                : string.Empty;
+        }
+
+        public static void Merge(ref State target, in State source)
+        {
+            if (source.Values is null || source.Values.Count == 0)
+                return;
+
+            var values = target.Values ??= [];
+            values.AddRange(source.Values);
+        }
     }
 }

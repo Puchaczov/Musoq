@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Musoq.Evaluator;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
-using Musoq.Parser.Nodes.From;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Exceptions;
 using Musoq.Schema.Managers;
@@ -20,7 +18,7 @@ public class DefensiveProgrammingTests
     [TestMethod]
     public void Parser_Should_ThrowMeaningfulException_WhenNullInput()
     {
-        var exception = Assert.Throws<ParserValidationException>(() => new Lexer(null, true));
+        var exception = Assert.Throws<ParserValidationException>(() => new Lexer(null!, true));
         Assert.Contains("cannot be null", exception.Message);
         Assert.Contains("valid SQL query", exception.Message);
     }
@@ -48,7 +46,7 @@ public class DefensiveProgrammingTests
         var aggregator = new MethodsAggregator(methodManager);
 
 
-        var exception = Assert.Throws<SchemaArgumentException>(() => new TestSchema(null, aggregator));
+        var exception = Assert.Throws<SchemaArgumentException>(() => new TestSchema(null!, aggregator));
         Assert.Contains("cannot be empty", exception.Message);
         Assert.Contains("initializing a schema", exception.Message);
         Assert.AreEqual("name", exception.ParamName);
@@ -57,7 +55,7 @@ public class DefensiveProgrammingTests
     [TestMethod]
     public void SchemaBase_Should_ThrowMeaningfulException_WhenNullMethodsAggregator()
     {
-        var exception = Assert.Throws<SchemaArgumentException>(() => new TestSchema("test", null));
+        var exception = Assert.Throws<SchemaArgumentException>(() => new TestSchema("test", null!));
         Assert.Contains("cannot be null", exception.Message);
         Assert.Contains("initializing a schema", exception.Message);
         Assert.AreEqual("methodsAggregator", exception.ParamName);
@@ -70,7 +68,7 @@ public class DefensiveProgrammingTests
 
 
         var exception = Assert.Throws<SchemaArgumentException>(() =>
-            metadata.GetMethod(null, new Type[0], null));
+            metadata.GetMethod(null!, Type.EmptyTypes, null));
         Assert.Contains("cannot be empty", exception.Message);
         Assert.Contains("resolving a method", exception.Message);
         Assert.AreEqual("name", exception.ParamName);
@@ -83,7 +81,7 @@ public class DefensiveProgrammingTests
 
 
         var exception = Assert.Throws<SchemaArgumentException>(() =>
-            metadata.GetMethod("test", null, null));
+            metadata.GetMethod("test", null!, null));
         Assert.Contains("cannot be null", exception.Message);
         Assert.Contains("resolving a method", exception.Message);
         Assert.AreEqual("methodArgs", exception.ParamName);
@@ -134,39 +132,14 @@ public class DefensiveProgrammingTests
         var visitor = new TestDefensiveVisitor();
 
 
-        var exception = Assert.Throws<VisitorException>(() => visitor.TestSafeCast<StringNode>(null));
+        var exception = Assert.Throws<VisitorException>(() => visitor.TestSafeCast<StringNode>(null!));
         Assert.Contains("Expected 'StringNode' node but received null", exception.Message);
         Assert.Contains("AST processing error", exception.Message);
     }
 
-    [TestMethod]
-    public void ToCSharpRewriteTreeVisitor_Should_ThrowMeaningfulException_WhenNullAssemblies()
-    {
-        var exception = Assert.Throws<VisitorException>(() =>
-            new ToCSharpRewriteTreeVisitor(null, new Dictionary<string, int[]>(),
-                new Dictionary<SchemaFromNode, ISchemaColumn[]>(), "test", new CompilationOptions()));
-        Assert.Contains("cannot be null", exception.Message);
-        Assert.Contains("ToCSharpRewriteTreeVisitor", exception.Message);
-    }
+    private sealed class TestSchema(string name, MethodsAggregator methodsAggregator) : SchemaBase(name, methodsAggregator);
 
-    [TestMethod]
-    public void ToCSharpRewriteTreeVisitor_Should_ThrowMeaningfulException_WhenEmptyAssemblyName()
-    {
-        var exception = Assert.Throws<VisitorException>(() =>
-            new ToCSharpRewriteTreeVisitor([], new Dictionary<string, int[]>(),
-                new Dictionary<SchemaFromNode, ISchemaColumn[]>(), "", new CompilationOptions()));
-        Assert.Contains("cannot be null or empty", exception.Message);
-        Assert.Contains("assemblyName", exception.Message);
-    }
-
-    private class TestSchema : SchemaBase
-    {
-        public TestSchema(string name, MethodsAggregator methodsAggregator) : base(name, methodsAggregator)
-        {
-        }
-    }
-
-    private class TestDefensiveVisitor : DefensiveVisitorBase
+    private sealed class TestDefensiveVisitor : DefensiveVisitorBase
     {
         protected override string VisitorName => "TestDefensiveVisitor";
 

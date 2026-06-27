@@ -4,7 +4,6 @@ using System.Threading;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Schema;
-using Musoq.Schema.DataSources;
 using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Schema.NegativeTests;
@@ -118,53 +117,41 @@ public class NegativeTestsBase
     ];
 
     protected ISchemaProvider CreateSchemaProvider(
-        PersonEntity[] people = null,
-        OrderEntity[] orders = null,
-        TypesEntity[] types = null,
-        NestedEntity[] nested = null)
+        PersonEntity[]? people = null,
+        OrderEntity[]? orders = null,
+        TypesEntity[]? types = null,
+        NestedEntity[]? nested = null)
     {
         people ??= DefaultPeople;
         orders ??= DefaultOrders;
         types ??= DefaultTypes;
         nested ??= DefaultNested;
 
-        var tables = new Dictionary<string, (ISchemaTable Table, RowSource Source)>
+        var tables = new Dictionary<string, (ISchemaTable Table, object Source)>
         {
             {
                 "people",
-                (new PersonTable(),
-                    new NegativeTestRowSource<PersonEntity>(people, PersonEntity.NameToIndexMap,
-                        PersonEntity.IndexToObjectAccessMap))
+                (new PersonTable(), new NegativeTestRowSource<PersonEntity>(people))
             },
             {
                 "orders",
-                (new OrderTable(),
-                    new NegativeTestRowSource<OrderEntity>(orders, OrderEntity.NameToIndexMap,
-                        OrderEntity.IndexToObjectAccessMap))
+                (new OrderTable(), new NegativeTestRowSource<OrderEntity>(orders))
             },
             {
                 "empty",
-                (new PersonTable(),
-                    new NegativeTestRowSource<PersonEntity>(EmptyPeople, PersonEntity.NameToIndexMap,
-                        PersonEntity.IndexToObjectAccessMap))
+                (new PersonTable(), new NegativeTestRowSource<PersonEntity>(EmptyPeople))
             },
             {
                 "single",
-                (new PersonTable(),
-                    new NegativeTestRowSource<PersonEntity>(SinglePerson, PersonEntity.NameToIndexMap,
-                        PersonEntity.IndexToObjectAccessMap))
+                (new PersonTable(), new NegativeTestRowSource<PersonEntity>(SinglePerson))
             },
             {
                 "types",
-                (new TypesTable(),
-                    new NegativeTestRowSource<TypesEntity>(types, TypesEntity.NameToIndexMap,
-                        TypesEntity.IndexToObjectAccessMap))
+                (new TypesTable(), new NegativeTestRowSource<TypesEntity>(types))
             },
             {
                 "nested",
-                (new NestedTable(),
-                    new NegativeTestRowSource<NestedEntity>(nested, NestedEntity.NameToIndexMap,
-                        NestedEntity.IndexToObjectAccessMap))
+                (new NestedTable(), new NegativeTestRowSource<NestedEntity>(nested))
             }
         };
 
@@ -176,7 +163,7 @@ public class NegativeTestsBase
         });
     }
 
-    protected CompiledQuery CompileQuery(string query, ISchemaProvider schemaProvider = null)
+    protected CompiledQuery CompileQuery(string query, ISchemaProvider? schemaProvider = null)
     {
         schemaProvider ??= CreateSchemaProvider();
 

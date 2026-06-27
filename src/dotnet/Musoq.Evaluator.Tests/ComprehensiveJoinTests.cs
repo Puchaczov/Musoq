@@ -221,6 +221,86 @@ inner join #B.entities() b on a.Population <= b.Population";
     [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
+    public void InnerJoin_NonEqui_ReversedOperands_ShouldMatch(bool useSortMergeJoin)
+    {
+        var query = @"
+select
+    a.Name,
+    b.Name
+from #A.entities() a
+inner join #B.entities() b on b.Population < a.Population";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity { Name = "A1", Population = 100 },
+                    new BasicEntity { Name = "A2", Population = 200 }
+                ]
+            },
+            {
+                "#B", [
+                    new BasicEntity { Name = "B1", Population = 50 },
+                    new BasicEntity { Name = "B2", Population = 150 }
+                ]
+            }
+        };
+
+        var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
+        var vm = CreateAndRunVirtualMachine(query, sources, options);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(3, table.Count, $"Failed with UseSortMergeJoin={useSortMergeJoin}");
+
+        var rows = table.Select(r => $"{r[0]}-{r[1]}").OrderBy(x => x).ToList();
+        Assert.AreEqual("A1-B1", rows[0]);
+        Assert.AreEqual("A2-B1", rows[1]);
+        Assert.AreEqual("A2-B2", rows[2]);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void InnerJoin_NonEqui_ConstantOffset_ShouldMatch(bool useSortMergeJoin)
+    {
+        var query = @"
+select
+    a.Name,
+    b.Name
+from #A.entities() a
+inner join #B.entities() b on a.Population > b.Population + 25";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            {
+                "#A", [
+                    new BasicEntity { Name = "A1", Population = 100 },
+                    new BasicEntity { Name = "A2", Population = 200 }
+                ]
+            },
+            {
+                "#B", [
+                    new BasicEntity { Name = "B1", Population = 50 },
+                    new BasicEntity { Name = "B2", Population = 150 }
+                ]
+            }
+        };
+
+        var options = new CompilationOptions(useSortMergeJoin: useSortMergeJoin);
+        var vm = CreateAndRunVirtualMachine(query, sources, options);
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(3, table.Count, $"Failed with UseSortMergeJoin={useSortMergeJoin}");
+
+        var rows = table.Select(r => $"{r[0]}-{r[1]}").OrderBy(x => x).ToList();
+        Assert.AreEqual("A1-B1", rows[0]);
+        Assert.AreEqual("A2-B1", rows[1]);
+        Assert.AreEqual("A2-B2", rows[2]);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
     public void InnerJoin_Mixed_EquiAndNonEqui_ShouldMatch(bool useSortMergeJoin)
     {
         var query = @"
@@ -457,9 +537,9 @@ inner join #B.entities() b on a.Id = b.Id AND (a.Population > b.Population OR a.
         Assert.AreEqual("SameName-SameName", rows[1]);
     }
 
-    private class JoinTestCase
+    private sealed class JoinTestCase
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public int Id { get; set; }
         public int Value { get; set; }
     }
