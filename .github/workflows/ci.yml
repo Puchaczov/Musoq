@@ -82,7 +82,10 @@ jobs:
       - name: Pack release packages
         if: matrix.warning_ratchet == true
         shell: pwsh
-        run: ./scripts/release/Pack-Release.ps1 -AllPackages -OutputPath artifacts/ci-nupkgs
+        run: |
+          $packScript = Join-Path $env:GITHUB_WORKSPACE 'scripts/release/Pack-Release.ps1'
+          $outputPath = Join-Path $env:GITHUB_WORKSPACE 'artifacts/ci-nupkgs'
+          & $packScript -AllPackages -OutputPath $outputPath
 
       - name: Publish TRX artifacts
         if: always()
