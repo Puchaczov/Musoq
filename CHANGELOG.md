@@ -4,9 +4,19 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
-### Release Infrastructure
+## 17.0.0-alpha.2
 
-- Added secure tag-driven release planning for full-train and package-specific NuGet publishing.
+See [release-notes/v17.0.0-alpha.2.md](release-notes/v17.0.0-alpha.2.md) for the curated GitHub Release text.
+
+### Musoq.Parser
+
+- Added `MQ8002_CompiledArtifactIncompatible` diagnostics for runtime-v2 compiled artifact validation and loading failures.
+
+### Musoq.Converter
+
+- Added the runtime-v2 compiled artifact API for host-managed cross-process compiled query persistence.
+- Added artifact loading from bytes with an optional per-call custom runnable type loader for host-owned `AssemblyLoadContext` strategies.
+- Artifact loading now revalidates current script, schema, compilation options, and generated code shape before creating a fresh executable query.
 
 ## 17.0.0-alpha.1
 
@@ -14,6 +24,7 @@ See [release-notes/v17.0.0-alpha.1.md](release-notes/v17.0.0-alpha.1.md) for the
 
 ### Release Infrastructure
 
+- Added secure tag-driven release planning for full-train and package-specific NuGet publishing.
 - First alpha release train using tag-driven NuGet publishing.
 
 ### Musoq.Parser
