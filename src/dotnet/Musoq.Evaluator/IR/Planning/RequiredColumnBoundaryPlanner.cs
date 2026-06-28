@@ -46,7 +46,7 @@ internal static partial class RequiredColumnBoundaryPlanner
             blocked,
             CreateMappings(retained),
             plan.Confidence,
-            $"{plan.Kind} required-column boundary facts are diagnostic-only; no projection pruning was applied at this boundary.");
+            $"{plan.Kind} required-column boundary facts were mapped for runtime-v2 projection planning.");
     }
 
     private static bool TryMapBoundaryKind(BoundaryRowShapeKind source, out RequiredColumnBoundaryKind target)
@@ -77,7 +77,7 @@ internal static partial class RequiredColumnBoundaryPlanner
     private static PlanningDecision CreateDecision(RequiredColumnBoundaryPlan plan)
     {
         var outcome = plan.BlockedColumns.Length > 0
-            ? "DiagnosticOnly"
+            ? "MappedWithBlockedColumns"
             : plan.RequiredColumns.Length == 0
                 ? "NoRequiredColumns"
                 : "Mapped";

@@ -55,6 +55,6 @@ public sealed class RequiredColumnBoundaryFactTests : BasicEntityTestBase
         Assert.Contains("required:", planningText);
         Assert.Contains("retained:", planningText);
         Assert.Contains("blocked:", planningText);
-        Assert.Contains("diagnostic-only", planningText);
+        Assert.Contains("projection planning", planningText);
     }
 }

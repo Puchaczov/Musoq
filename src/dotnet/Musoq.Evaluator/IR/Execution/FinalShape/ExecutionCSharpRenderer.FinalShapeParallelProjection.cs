@@ -29,7 +29,7 @@ public sealed partial class ExecutionCSharpRenderer
             projectedShapeName,
             CreateQueryRowsFromShardsInvocation(projectedRowsName),
             StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(SyntaxFactory.IdentifierName(projectedShapeName))));
-        var serialStatements = RenderParallelLoopSerialFallback(parallelProject.SerialLoop);
+        var serialStatements = RenderParallelLoopSerialPath(parallelProject.SerialLoop);
 
         return
         [

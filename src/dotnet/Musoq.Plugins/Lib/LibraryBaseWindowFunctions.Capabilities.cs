@@ -15,7 +15,7 @@ public sealed partial class LibraryBaseWindowAggregateCapabilityProvider : IWind
     ///     Returns a built-in aggregate capability for supported numeric input/result shapes.
     /// </summary>
     /// <param name="context">Requested aggregate shape.</param>
-    /// <returns>A capability descriptor, or null when fallback plugin dispatch should be used.</returns>
+    /// <returns>A capability descriptor, or null when typed runtime-v2 lowering does not support the shape.</returns>
     public WindowAggregateCapability? GetCapability(WindowAggregateCapabilityContext context)
     {
         ArgumentNullException.ThrowIfNull(context);

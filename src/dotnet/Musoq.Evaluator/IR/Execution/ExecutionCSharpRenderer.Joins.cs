@@ -110,7 +110,7 @@ public sealed partial class ExecutionCSharpRenderer
                 .WithArgumentList(CreateArgumentList(
                     SyntaxFactory.IdentifierName(parallelProject.AppendRow.Table.Name),
                     SyntaxFactory.IdentifierName(projectedRowsName))));
-        var serialStatements = RenderParallelLoopSerialFallback(serialLoop);
+        var serialStatements = RenderParallelLoopSerialPath(serialLoop);
 
         return
         [
@@ -290,7 +290,7 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.Parameter(SyntaxFactory.Identifier(EscapeIdentifier(source.Name)))));
     }
 
-    private StatementSyntax[] RenderParallelLoopSerialFallback(ExecutionSourceLoop serialLoop)
+    private StatementSyntax[] RenderParallelLoopSerialPath(ExecutionSourceLoop serialLoop)
     {
         var previousStoredRowsCacheNames = _storedRowsCacheNames;
         _storedRowsCacheNames = new Dictionary<int, string>();

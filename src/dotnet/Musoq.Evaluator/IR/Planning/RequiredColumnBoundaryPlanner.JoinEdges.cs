@@ -190,7 +190,7 @@ internal static partial class RequiredColumnBoundaryPlanner
                 blocked,
                 CreateMappings(retained),
                 blocked.Length == 0 ? PlanningConfidence.Low : PlanningConfidence.Medium,
-                $"{kind} required-column facts are diagnostic-only; join-edge projection pruning is not applied in this wave.");
+                $"{kind} required-column facts were mapped for join-edge projection planning.");
         }
     }
 }

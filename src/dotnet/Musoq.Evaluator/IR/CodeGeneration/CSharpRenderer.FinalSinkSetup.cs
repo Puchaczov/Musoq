@@ -27,7 +27,7 @@ public sealed partial class CSharpRenderer
         metadata = default;
         if (!sinkPlan.IsAccepted)
         {
-            metadata = CreateTableFallbackMetadata(sinkPlan);
+            metadata = CreateMaterializedTableRowsMetadata(sinkPlan);
             return false;
         }
 

@@ -21,7 +21,7 @@ internal static class SetOperationStrategyPlanner
         if (node.Kind == SetOpKind.UnionAll)
         {
             return SetOperationStrategyDecision.RowComparer(
-                "UnionAll cannot stream because at least one arm is not a directly streamable row-source pipeline with optional filters and direct column or literal projections; the materialized row-comparer path preserves existing fallback behavior.");
+                "UnionAll uses the materialized comparer strategy because at least one arm is not a directly streamable row-source pipeline with optional filters and direct column or literal projections.");
         }
 
         if (TryGetNanSensitiveKeyType(node.FieldIndexes, node.FieldTypes, out var nanSensitiveType))
@@ -37,7 +37,7 @@ internal static class SetOperationStrategyPlanner
         }
 
         return SetOperationStrategyDecision.RowComparer(
-            "Set operation has no key fields, so the materialized row-comparer path preserves existing fallback behavior.");
+            "Set operation has no key fields, so the materialized comparer strategy compares complete rows.");
     }
 
     private static bool CanStreamUnionAll(PhysicalSetOperationNode node)

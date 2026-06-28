@@ -5,5 +5,5 @@ public enum TypedGeneratedRowsKind
     Unknown,
     DirectRows,
     ShardRows,
-    TableFallback
+    MaterializedTableRows
 }

@@ -74,7 +74,7 @@ public partial class SubqueryToCteRewriteVisitor
             if (correlation is { IsCorrelated: true })
                 throw SubqueryDiagnosticFactory.InvalidSubquery(
                     "scalar subquery validation",
-                    "Correlated scalar subqueries over set operators require APPLY fallback lowering and are not supported yet.",
+                    "Correlated scalar subqueries over set operators require APPLY lowering and are not supported yet.",
                     node);
 
             scalarRewrite = RewriteMaterializedUncorrelatedScalarSubquery(
@@ -116,7 +116,7 @@ public partial class SubqueryToCteRewriteVisitor
     {
         var valueExpression = query.Select.Fields[0].Expression;
         var valueContainsAggregate = ContainsAggregateMethod(valueExpression);
-        if (RequiresCorrelatedAggregateFallback(query))
+        if (RequiresCorrelatedAggregateApply(query))
             ThrowUnsupportedCorrelatedScalarResultMaterialization(node);
 
         var where = query.Where;
@@ -191,7 +191,7 @@ public partial class SubqueryToCteRewriteVisitor
                query.Select.IsDistinct;
     }
 
-    private static bool RequiresCorrelatedAggregateFallback(QueryNode query)
+    private static bool RequiresCorrelatedAggregateApply(QueryNode query)
     {
         return query.GroupBy != null ||
                query.OrderBy != null ||
@@ -246,7 +246,7 @@ public partial class SubqueryToCteRewriteVisitor
     {
         throw SubqueryDiagnosticFactory.InvalidSubquery(
             "correlated scalar subquery result materialization",
-            "Correlated scalar subqueries with DISTINCT, GROUP BY, ORDER BY, SKIP, TAKE, WINDOW, or QUALIFY inside the subquery body require APPLY fallback lowering and are not supported yet.",
+            "Correlated scalar subqueries with DISTINCT, GROUP BY, ORDER BY, SKIP, TAKE, WINDOW, or QUALIFY inside the subquery body require APPLY lowering and are not supported yet.",
             node);
     }
 

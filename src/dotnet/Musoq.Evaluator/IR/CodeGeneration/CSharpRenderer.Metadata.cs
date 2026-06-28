@@ -10,11 +10,11 @@ public sealed partial class CSharpRenderer
             false);
     }
 
-    private static QueryMethodRenderMetadata CreateTableFallbackMetadata(FinalProjectionSinkPlan? rejectedSinkPlan = null)
+    private static QueryMethodRenderMetadata CreateMaterializedTableRowsMetadata(FinalProjectionSinkPlan? rejectedSinkPlan = null)
     {
         return new QueryMethodRenderMetadata(
             FinalResultSinkKind.TableRowsMaterialized,
-            QueryResultRowPathKind.TableFallback,
+            QueryResultRowPathKind.MaterializedTableRows,
             true,
             rejectedSinkPlan?.RejectionKind ?? FinalProjectionSinkRejectionKind.None,
             rejectedSinkPlan?.RejectionReason);

@@ -132,7 +132,7 @@ internal static class SubqueryLoweringStrategyPlanner
         {
             JoinKind.LeftSemi => SubqueryLoweringKind.PredicateSemiJoin,
             JoinKind.LeftAntiSemi => SubqueryLoweringKind.PredicateAntiSemiJoin,
-            JoinKind.LeftOuter => SubqueryLoweringKind.PredicateOuterJoinFallback,
+            JoinKind.LeftOuter => SubqueryLoweringKind.PredicateLeftApply,
             _ => SubqueryLoweringKind.PredicateCte
         };
     }

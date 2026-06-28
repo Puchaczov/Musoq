@@ -6,7 +6,7 @@ namespace Musoq.Plugins;
 public interface IWindowAggregateCapabilityProvider
 {
     /// <summary>
-    ///     Returns a capability descriptor for the requested shape, or null when the shape should use fallback dispatch.
+    ///     Returns a capability descriptor for the requested shape, or null when typed runtime-v2 lowering does not support the shape.
     /// </summary>
     /// <param name="context">Requested function and type shape.</param>
     /// <returns>A supported capability descriptor, or null.</returns>

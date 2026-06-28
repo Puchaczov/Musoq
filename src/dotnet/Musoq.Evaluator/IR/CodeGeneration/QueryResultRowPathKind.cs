@@ -5,5 +5,5 @@ public enum QueryResultRowPathKind
     Unknown,
     DirectRows,
     ShardRows,
-    TableFallback
+    MaterializedTableRows
 }

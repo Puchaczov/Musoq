@@ -25,11 +25,13 @@ public sealed class GitInspectionTests : GitExampleTestBase
         StringAssert.Contains(inspection.PlanningText, "source plan diagnostic [TryPlanSource]: Warning");
         StringAssert.Contains(inspection.PlanningText, "Git stats columns are loaded lazily");
         Assert.IsTrue(inspection.Warnings.Any(warning =>
-            warning.Code == DiagnosticCode.MQ5012_OptimizationFallback &&
+            warning.Code == DiagnosticCode.MQ5013_SourceContractWarning &&
             warning.Message.Contains("GitPredicatePushdown", StringComparison.Ordinal)));
         Assert.IsTrue(inspection.Warnings.Any(warning =>
-            warning.Code == DiagnosticCode.MQ5012_OptimizationFallback &&
+            warning.Code == DiagnosticCode.MQ5013_SourceContractWarning &&
             warning.Message.Contains("GitSlicePushdown", StringComparison.Ordinal)));
+        Assert.IsFalse(inspection.Warnings.Any(warning =>
+            warning.Code == DiagnosticCode.MQ5012_OptimizationFallback));
     }
 
     [TestMethod]

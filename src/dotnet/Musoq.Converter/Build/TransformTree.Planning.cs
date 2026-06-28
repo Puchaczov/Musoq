@@ -80,9 +80,8 @@ public partial class TransformTree
             SourceContractDiagnosticReporter.Report(
                 planningResult,
                 items.DiagnosticContext);
-            OptimizationFallbackWarningReporter.ReportFallbackWarnings(
+            SourceOptimizationDiagnosticReporter.Report(
                 planningResult,
-                items.CompilationOptions,
                 items.DiagnosticContext);
 
             items.OptimizerTraceText = OptimizationTraceTextPrinter.Append(

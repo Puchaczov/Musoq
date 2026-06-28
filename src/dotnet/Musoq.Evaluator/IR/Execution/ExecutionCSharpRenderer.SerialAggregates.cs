@@ -27,7 +27,7 @@ public sealed partial class ExecutionCSharpRenderer
             {
                 QueryEmitter.GenerateCancellationCheck()
             };
-            bodyStatements.AddRange(RenderParallelLoopSerialFallback(serialLoop));
+            bodyStatements.AddRange(RenderParallelLoopSerialPath(serialLoop));
 
             return SyntaxFactory.MethodDeclaration(
                     SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),

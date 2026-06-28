@@ -162,7 +162,7 @@ public partial class QueryInspectionTests
             new CompilationOptions());
 
         Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> RowComparer", result.PlanningText);
-        Assert.Contains("UnionAll cannot stream because at least one arm is not a directly streamable row-source pipeline with optional filters and direct column or literal projections", result.PlanningText);
+        Assert.Contains("UnionAll uses the materialized comparer strategy because at least one arm is not a directly streamable row-source pipeline with optional filters and direct column or literal projections", result.PlanningText);
     }
 
     [TestMethod]
@@ -172,7 +172,7 @@ public partial class QueryInspectionTests
             "select l.Name as Name from #apply.items() l inner join #apply.items() r on l.Line = r.Line union all (Name) select i.Name as Name from #apply.items() i");
 
         Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> RowComparer", result.PlanningText);
-        Assert.Contains("UnionAll cannot stream because at least one arm is not a directly streamable row-source pipeline with optional filters and direct column or literal projections", result.PlanningText);
+        Assert.Contains("UnionAll uses the materialized comparer strategy because at least one arm is not a directly streamable row-source pipeline with optional filters and direct column or literal projections", result.PlanningText);
         Assert.IsFalse(result.PlanningText.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll", StringComparison.Ordinal));
     }
 
@@ -183,7 +183,7 @@ public partial class QueryInspectionTests
             "select r.Line as Line from #apply.items() i cross apply #apply.related(i.Name) r union all (Line) select j.Line as Line from #apply.items() j");
 
         Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> RowComparer", result.PlanningText);
-        Assert.Contains("UnionAll cannot stream because at least one arm is not a directly streamable row-source pipeline with optional filters and direct column or literal projections", result.PlanningText);
+        Assert.Contains("UnionAll uses the materialized comparer strategy because at least one arm is not a directly streamable row-source pipeline with optional filters and direct column or literal projections", result.PlanningText);
         Assert.IsFalse(result.PlanningText.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll", StringComparison.Ordinal));
     }
 

@@ -170,7 +170,7 @@ public partial class SubqueryTests
     }
 
     [TestMethod]
-    public void WhenExistsSubquery_IsInsideOrBranch_ShouldKeepOuterJoinFallback()
+    public void WhenExistsSubquery_IsInsideOrBranch_ShouldUsePredicateLeftApply()
     {
         const string query = @"
             SELECT a.City FROM #A.entities() a
@@ -186,7 +186,7 @@ public partial class SubqueryTests
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("PhysicalHashJoin [LeftOuter]", inspection.PhysicalPlanText);
-        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateOuterJoinFallback", inspection.PlanningText);
+        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateLeftApply", inspection.PlanningText);
         Assert.IsFalse(inspection.PhysicalPlanText.Contains("PhysicalHashJoin [LeftSemi]", StringComparison.Ordinal));
     }
 

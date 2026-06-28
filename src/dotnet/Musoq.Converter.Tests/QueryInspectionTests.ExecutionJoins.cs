@@ -290,14 +290,10 @@ public partial class QueryInspectionTests
     {
         var result = Inspect("select d.Dummy, e.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy != e.Dummy");
 
-        var warning = result.Warnings.Single(item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback);
-
         AssertUsesExecutionBackend(result);
         Assert.Contains("PhysicalNestedLoopJoin [Inner]", result.PhysicalPlanText);
         Assert.Contains("JoinStrategy [JoinStrategySelection] Inner -> NestedLoop", result.PlanningText);
-        Assert.Contains("Optimization fallback in JoinStrategySelection for Inner", warning.Message);
-        Assert.Contains("No hash or sort-merge strategy was eligible.", warning.Message);
-        Assert.Contains("Inner join remains a nested-loop join in the physical plan.", warning.Message);
+        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
         AssertExecutionPlanContains("ForEach [d in dRows]", result.ExecutionPlanText);
         AssertExecutionPlanContains("ForEach [e in eRowsBuffer]", result.ExecutionPlanText);
         Assert.Contains("If [(dummy <> dummy1)]", result.ExecutionPlanText);
@@ -329,19 +325,15 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenDynamicHashJoinLoweringFallsBackToNestedLoop_ShouldWarn()
+    public void CompileForInspection_WhenDynamicHashJoinLoweringUsesNestedLoop_ShouldNotWarn()
     {
         var result = Inspect(
             "select l.Name, r.Name from #dynamic.all() l inner join #dynamic.all() r on l.Team = r.Team",
             CreateDynamicRowsSchemaProvider());
 
-        var warning = result.Warnings.Single(item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback);
-
         Assert.Contains("PhysicalNestedLoopJoin [Inner]", result.PhysicalPlanText);
         Assert.Contains("dynamic or expando", result.PlanningText);
-        Assert.Contains("Optimization fallback in JoinStrategySelection for Inner", warning.Message);
-        Assert.Contains("dynamic or expando", warning.Message);
-        Assert.Contains("Inner join remains a nested-loop join in the physical plan.", warning.Message);
+        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
     }
 
     [TestMethod]

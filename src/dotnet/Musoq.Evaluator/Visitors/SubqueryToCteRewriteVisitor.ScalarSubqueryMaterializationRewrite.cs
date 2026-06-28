@@ -16,7 +16,7 @@ public partial class SubqueryToCteRewriteVisitor
         var valueExpression = query.Select.Fields[0].Expression;
         var valueContainsAggregate = ContainsAggregateMethod(valueExpression);
         if (RequiresResultMaterialization(query, valueExpression) &&
-            !(valueContainsAggregate && !RequiresCorrelatedAggregateFallback(query)))
+            !(valueContainsAggregate && !RequiresCorrelatedAggregateApply(query)))
         {
             return RewriteMaterializedUncorrelatedScalarSubquery(
                 query,

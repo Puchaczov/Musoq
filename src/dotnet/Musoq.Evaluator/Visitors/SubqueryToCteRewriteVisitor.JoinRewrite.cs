@@ -55,9 +55,9 @@ public partial class SubqueryToCteRewriteVisitor
         if (rewrite.CorrelationJoinExpression != null)
         {
             if (subqueryInfo.RequiresLeftJoin &&
-                !IsCardinalitySafeFallbackCorrelation(subqueryInfo, rewrite.CorrelationJoinExpression))
+                !IsCardinalitySafeApplyCorrelation(subqueryInfo, rewrite.CorrelationJoinExpression))
             {
-                ThrowUnsupportedPredicateFallbackCorrelation(subqueryInfo);
+                ThrowUnsupportedPredicateApplyCorrelation(subqueryInfo);
             }
 
             joinExpression = new AndNode(joinExpression, rewrite.CorrelationJoinExpression);

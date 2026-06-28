@@ -340,32 +340,42 @@ public sealed class GitSchema : SchemaBase
 
         if (residualPredicate != null && GitCommitPlan.ReferencesExpensiveColumn(residualPredicate))
         {
-            diagnostics.Add(OptimizationDiagnostic.FallbackWarning(
+            diagnostics.Add(CreateOptimizationWarning(
                 "GitPredicatePushdown",
                 target,
-                "Git stats columns are loaded lazily, so predicates over stats columns remain evaluator residual work.",
-                "Residual predicate remains in the physical plan."));
+                "Git stats columns are loaded lazily, so predicates over stats columns remain evaluator residual work."));
         }
 
         if (residualOrderBy.Any(order => GitCommitPlan.IsExpensiveColumn(order.Column.Name)))
         {
-            diagnostics.Add(OptimizationDiagnostic.FallbackWarning(
+            diagnostics.Add(CreateOptimizationWarning(
                 "GitOrderPushdown",
                 target,
-                "Git stats columns are loaded lazily, so ordering over stats columns remains evaluator residual work.",
-                "Residual ordering remains in the physical plan."));
+                "Git stats columns are loaded lazily, so ordering over stats columns remains evaluator residual work."));
         }
 
         if (residualSkip.HasValue || residualTake.HasValue)
         {
-            diagnostics.Add(OptimizationDiagnostic.FallbackWarning(
+            diagnostics.Add(CreateOptimizationWarning(
                 "GitSlicePushdown",
                 target,
-                "Git source planning cannot push down skip/take while residual predicate or ordering work can still change row membership or order.",
-                "Residual skip/take remains in the physical plan."));
+                "Git source planning cannot push down skip/take while residual predicate or ordering work can still change row membership or order."));
         }
 
         return diagnostics;
+    }
+
+    private static OptimizationDiagnostic CreateOptimizationWarning(
+        string optimization,
+        string target,
+        string reason)
+    {
+        return OptimizationDiagnostic.Warning(reason) with
+        {
+            Optimization = optimization,
+            Target = target,
+            Reason = reason
+        };
     }
 
     private static string FormatSourceTarget(SourceIdentity identity)

@@ -56,7 +56,7 @@ public partial class SubqueryToCteRewriteVisitor
             }
         }
 
-        var predicateFallbackRewrite = RewritePredicateFallbackSubqueries(
+        var predicateApplyRewrite = RewritePredicateApplySubqueries(
             select,
             currentFrom,
             remainingExpr,
@@ -66,13 +66,13 @@ public partial class SubqueryToCteRewriteVisitor
             qualify,
             analysis,
             cteInnerExpressions);
-        select = predicateFallbackRewrite.Select;
-        currentFrom = predicateFallbackRewrite.From;
-        remainingExpr = predicateFallbackRewrite.WhereExpression;
-        groupBy = predicateFallbackRewrite.GroupBy;
-        orderBy = predicateFallbackRewrite.OrderBy;
-        window = predicateFallbackRewrite.Window;
-        qualify = predicateFallbackRewrite.Qualify;
+        select = predicateApplyRewrite.Select;
+        currentFrom = predicateApplyRewrite.From;
+        remainingExpr = predicateApplyRewrite.WhereExpression;
+        groupBy = predicateApplyRewrite.GroupBy;
+        orderBy = predicateApplyRewrite.OrderBy;
+        window = predicateApplyRewrite.Window;
+        qualify = predicateApplyRewrite.Qualify;
 
         var scalarRewrite = RewriteScalarSubqueries(
             select,

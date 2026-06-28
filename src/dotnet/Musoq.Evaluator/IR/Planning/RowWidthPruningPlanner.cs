@@ -49,7 +49,7 @@ internal static class RowWidthPruningPlanner
             plan.FutureDroppableColumns,
             [],
             plan.Confidence,
-            $"{plan.Kind} row-width pruning remains diagnostic-only in v1; no physical pruning was applied.")
+            $"{plan.Kind} row-width pruning was recorded for analysis; no physical pruning was applied for this boundary.")
         {
             RetainedColumns = CreateRetainedColumns(plan)
         };

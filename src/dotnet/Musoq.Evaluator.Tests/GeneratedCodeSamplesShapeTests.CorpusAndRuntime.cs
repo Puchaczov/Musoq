@@ -322,20 +322,20 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains(ParallelProjectionRowsPattern, cseNoDuplicate);
         Assert.Contains(TableParallelProjectRowsPattern, cseNoDuplicate);
         Assert.Contains(AddRowsDirectPattern, cseNoDuplicate);
-        Assert.Contains("SerialFallback", cseNoDuplicate);
+        Assert.Contains("SerialPath", cseNoDuplicate);
 
         Assert.Contains(ParallelFilterProjectLoopPattern, stringFilter);
         Assert.Contains(ParallelProjectionRowsPattern, stringFilter);
         Assert.Contains(TableParallelProjectRowsPattern, stringFilter);
         Assert.Contains(AddRowsDirectPattern, stringFilter);
         Assert.Contains("new ResultRow0(firstName, ko3iko.LastName, email)", stringFilter);
-        Assert.Contains("SerialFallback", stringFilter);
+        Assert.Contains("SerialPath", stringFilter);
 
         Assert.Contains(ParallelFilterProjectLoopPattern, heavyProjection);
         Assert.Contains(ParallelProjectionRowsPattern, heavyProjection);
         Assert.Contains(TableParallelProjectRowsPattern, heavyProjection);
         Assert.Contains(AddRowsDirectPattern, heavyProjection);
-        Assert.Contains("SerialFallback", heavyProjection);
+        Assert.Contains("SerialPath", heavyProjection);
     }
 
     private static void AssertFragmentsInOrder(string value, params string[] fragments)

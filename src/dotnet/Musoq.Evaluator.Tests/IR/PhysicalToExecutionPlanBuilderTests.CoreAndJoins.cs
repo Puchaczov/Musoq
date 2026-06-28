@@ -123,7 +123,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.AreEqual("result", parallelProject.AppendRow.Table.Name);
         StringAssert.Contains(planText, "ParallelFilterProjectLoop [p in pRows where (p.Age > 18); threshold 4096");
         StringAssert.Contains(planText, "ParallelProject");
-        StringAssert.Contains(planText, "SerialFallback");
+        StringAssert.Contains(planText, "SerialPath");
         Assert.IsFalse(planText.Contains("CreateObjectCandidate", StringComparison.Ordinal));
         StringAssert.Contains(planText, "AppendShape [result <- ResultShape0(Name: ToUpper(p.Name))]");
     }

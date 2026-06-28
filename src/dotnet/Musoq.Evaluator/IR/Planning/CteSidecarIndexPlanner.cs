@@ -137,7 +137,7 @@ internal static partial class CteSidecarIndexPlanner
             ExecutionStrategyPipelineDecomposer.UnwrapSingleStatement(definition.Plan));
         if (pipeline == null)
         {
-            reason = "CTE output is not a supported direct filter/project table pipeline for V1 sidecar injection.";
+            reason = "CTE output is not a supported direct filter/project table pipeline for sidecar index production.";
             return false;
         }
 
@@ -155,7 +155,7 @@ internal static partial class CteSidecarIndexPlanner
 
         if (evaluateParallelFilterProject?.Invoke(pipeline) is { IsEligible: true })
         {
-            reason = "CTE output would use parallel filter/project lowering, whose append path is not sidecar-index safe in V1.";
+            reason = "CTE output uses parallel filter/project lowering, whose append path is not sidecar-index safe.";
             return false;
         }
 

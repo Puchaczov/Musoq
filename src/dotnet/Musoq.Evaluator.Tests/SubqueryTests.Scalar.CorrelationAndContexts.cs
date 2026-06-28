@@ -72,7 +72,7 @@ public partial class SubqueryTests
         Assert.IsTrue(exception.Envelopes.Any(envelope => envelope.Code == DiagnosticCode.MQ2024_InvalidSubquery));
         StringAssert.Contains(exception.Message, "Correlated scalar subqueries");
         StringAssert.Contains(exception.Message, "ORDER BY");
-        StringAssert.Contains(exception.Message, "APPLY fallback");
+        StringAssert.Contains(exception.Message, "APPLY lowering");
     }
 
     [TestMethod]

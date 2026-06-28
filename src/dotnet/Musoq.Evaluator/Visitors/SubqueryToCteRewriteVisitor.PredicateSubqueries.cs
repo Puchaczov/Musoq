@@ -8,7 +8,7 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class SubqueryToCteRewriteVisitor
 {
-    private PredicateRewriteResult RewritePredicateFallbackSubqueries(
+    private PredicateRewriteResult RewritePredicateApplySubqueries(
         SelectNode select,
         FromNode from,
         Node? whereExpression,
@@ -39,7 +39,7 @@ public partial class SubqueryToCteRewriteVisitor
             context.Qualify);
     }
 
-    private PredicateSubqueryJoin PreparePredicateFallbackSubquery(
+    private PredicateSubqueryJoin PreparePredicateApplySubquery(
         SubqueryInfo subqueryInfo,
         SubqueryCorrelationAnalysis analysis,
         List<CteInnerExpressionNode> cteInnerExpressions)
@@ -66,7 +66,7 @@ public partial class SubqueryToCteRewriteVisitor
 
             throw SubqueryDiagnosticFactory.InvalidSubquery(
                 "HAVING predicate subquery rewrite",
-                "Predicate subqueries in HAVING can be decorrelated before grouping only when they reference grouping keys. Predicates that depend on non-grouped row values require aggregate-phase APPLY fallback lowering.",
+                "Predicate subqueries in HAVING can be decorrelated before grouping only when they reference grouping keys. Predicates that depend on non-grouped row values require aggregate-phase APPLY lowering.",
                 subquery.PredicateNode);
         }
     }
@@ -230,7 +230,7 @@ public partial class SubqueryToCteRewriteVisitor
             if (_preparedSubqueries.TryGetValue(key, out var rewrite))
                 return rewrite;
 
-            rewrite = owner.PreparePredicateFallbackSubquery(
+            rewrite = owner.PreparePredicateApplySubquery(
                 subqueryInfo,
                 analysis,
                 cteInnerExpressions);

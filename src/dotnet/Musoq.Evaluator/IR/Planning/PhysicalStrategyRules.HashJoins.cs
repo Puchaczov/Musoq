@@ -78,13 +78,13 @@ internal static partial class PhysicalStrategyRules
 
         if (kind == JoinKind.Inner && left is PhysicalCteRefNode && right is PhysicalSchemaScanNode)
         {
-            reason = "Legacy inner-join rule keeps the CTE side as the hash build side.";
+            reason = "Runtime v2 build-side selector keeps the CTE side as the hash build side for this CTE-to-source inner join.";
             return true;
         }
 
         reason = kind is JoinKind.Inner or JoinKind.FullOuter
-            ? $"{reason} Using the legacy right-side hash build rule."
-            : "Cardinality build-side selection applies only to inner joins, so the legacy right-side hash build rule was used.";
+            ? $"{reason} Runtime v2 build-side selector used the stable right-side tie-breaker."
+            : "Runtime v2 build-side selector used the right side for this join kind.";
         return false;
     }
 

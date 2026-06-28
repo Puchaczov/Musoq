@@ -33,7 +33,7 @@ public sealed record TypedQueryInspectionResult(
         {
             TypedGeneratedRowsKind.DirectRows => QueryResultRowPathKind.DirectRows,
             TypedGeneratedRowsKind.ShardRows => QueryResultRowPathKind.ShardRows,
-            TypedGeneratedRowsKind.TableFallback => QueryResultRowPathKind.TableFallback,
+            TypedGeneratedRowsKind.MaterializedTableRows => QueryResultRowPathKind.MaterializedTableRows,
             _ => QueryResultRowPathKind.Unknown
         };
     }

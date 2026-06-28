@@ -137,33 +137,33 @@ public partial class SubqueryToCteRewriteVisitor
         };
     }
 
-    private static bool IsCardinalitySafeFallbackCorrelation(SubqueryInfo info, Node expression)
+    private static bool IsCardinalitySafeApplyCorrelation(SubqueryInfo info, Node expression)
     {
         return info.Correlation?.Facts is
                {
                    HasEqualityKeys: true,
                    NullSemantics: SubqueryCorrelationNullSemantics.EqualityComparison
                } &&
-               IsEqualityOnlyFallbackCorrelation(expression);
+               IsEqualityOnlyApplyCorrelation(expression);
     }
 
-    private static bool IsEqualityOnlyFallbackCorrelation(Node expression)
+    private static bool IsEqualityOnlyApplyCorrelation(Node expression)
     {
         return expression switch
         {
             EqualityNode => true,
-            AndNode and => IsEqualityOnlyFallbackCorrelation(and.Left) &&
-                           IsEqualityOnlyFallbackCorrelation(and.Right),
+            AndNode and => IsEqualityOnlyApplyCorrelation(and.Left) &&
+                           IsEqualityOnlyApplyCorrelation(and.Right),
             _ => false
         };
     }
 
-    private static void ThrowUnsupportedPredicateFallbackCorrelation(SubqueryInfo info)
+    private static void ThrowUnsupportedPredicateApplyCorrelation(SubqueryInfo info)
     {
         var predicateName = info.IsExists ? "EXISTS" : "IN";
         throw SubqueryDiagnosticFactory.InvalidSubquery(
-            $"fallback {predicateName} subquery rewrite",
-            $"Predicate {predicateName} subqueries used inside expression fallback contexts currently require equality-only correlation predicates. Non-equality correlated predicates require APPLY fallback lowering.",
+            $"{predicateName} subquery expression rewrite",
+            $"Predicate {predicateName} subqueries used inside expression contexts currently require equality-only correlation predicates. Non-equality correlated predicates require APPLY lowering.",
             info.PredicateNode);
     }
 }

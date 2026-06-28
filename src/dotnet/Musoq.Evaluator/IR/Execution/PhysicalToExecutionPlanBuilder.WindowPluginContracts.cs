@@ -21,7 +21,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
         if (TryGetBuiltInPluginWindowArgumentCount(registration.FunctionName) != null)
         {
-            return $"Execution IR window lowering requires a generated typed kernel for {registration.FunctionName}; object plugin helper fallback is disabled.";
+            return $"Execution IR window lowering requires a generated typed kernel for {registration.FunctionName}; object plugin helper dispatch is disabled.";
         }
 
         if (registration.Function == null)

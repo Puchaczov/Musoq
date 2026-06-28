@@ -11,7 +11,7 @@ internal enum SubqueryLoweringKind
 {
     PredicateSemiJoin,
     PredicateAntiSemiJoin,
-    PredicateOuterJoinFallback,
+    PredicateLeftApply,
     PredicateCte,
     ScalarLeftJoin,
     DerivedTableJoin,

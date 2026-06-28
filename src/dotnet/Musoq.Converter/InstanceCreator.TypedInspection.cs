@@ -125,7 +125,7 @@ public static partial class InstanceCreator
         {
             QueryResultRowPathKind.DirectRows => TypedGeneratedRowsKind.DirectRows,
             QueryResultRowPathKind.ShardRows => TypedGeneratedRowsKind.ShardRows,
-            QueryResultRowPathKind.TableFallback => TypedGeneratedRowsKind.TableFallback,
+            QueryResultRowPathKind.MaterializedTableRows => TypedGeneratedRowsKind.MaterializedTableRows,
             _ => TypedGeneratedRowsKind.Unknown
         };
     }

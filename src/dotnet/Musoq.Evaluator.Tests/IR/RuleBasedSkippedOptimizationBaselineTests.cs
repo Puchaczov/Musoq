@@ -119,7 +119,7 @@ public sealed class RuleBasedSkippedOptimizationBaselineTests : BasicEntityTestB
         var planningText = buildItems.RequirePlanningText();
 
         Assert.Contains("SubqueryStrategy", planningText);
-        Assert.Contains("PredicateOuterJoinFallback", planningText);
+        Assert.Contains("PredicateLeftApply", planningText);
     }
 
     [TestMethod]

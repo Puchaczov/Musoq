@@ -5,15 +5,13 @@ namespace Musoq.Converter.Tests;
 public partial class QueryInspectionTests
 {
     [TestMethod]
-    public void CompileForInspection_WhenCteSidecarIndexEnabledButHashBuildKeyIsNotSimpleColumn_ShouldWarn()
+    public void CompileForInspection_WhenCteSidecarIndexEnabledButHashBuildKeyIsNotSimpleColumn_ShouldNotWarn()
     {
         var result = Inspect(CreateCteSidecarIneligibleBuildKeyQuery(), CreateCteSidecarOptions());
 
-        var warning = FindFallbackWarning(result, "CteSidecarIndexStrategy");
-
         Assert.Contains("CteSidecarIndexStrategy", result.PlanningText);
-        Assert.Contains("The hash-build key is not a simple CTE output column reference.", warning.Message);
-        Assert.Contains("Post-materialization hash or keyset build remains for the CTE consumer.", warning.Message);
+        Assert.Contains("The hash-build key is not a simple CTE output column reference.", result.PlanningText);
+        AssertNoFallbackWarning(result, "CteSidecarIndexStrategy");
         AssertExecutionPlanDoesNotContain("StoreCteIndex [", result.ExecutionPlanText);
         AssertExecutionPlanDoesNotContain("LoadCteIndex [", result.ExecutionPlanText);
     }

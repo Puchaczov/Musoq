@@ -628,7 +628,7 @@ public sealed class ExpressionCseHoistingPassTests
     }
 
     [TestMethod]
-    public void Optimize_WhenParallelAggregateRepeatsExpression_ShouldHoistInSerialFallbackAndAggregateBody()
+    public void Optimize_WhenParallelAggregateRepeatsExpression_ShouldHoistInSerialPathAndAggregateBody()
     {
         var fieldRead = new ExecutionFieldRead("p", "Name", typeof(string));
         var aggregatePlan = CreateAggregatePlan();

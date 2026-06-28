@@ -343,7 +343,7 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         Assert.Contains("ParallelSingleKeyAggregateLoop [d in dRows by d.Dummy; threshold 4096, sample 8192/6144", result.ExecutionPlanText);
         Assert.Contains("ParallelAccumulate", result.ExecutionPlanText);
-        Assert.Contains("SerialFallback", result.ExecutionPlanText);
+        Assert.Contains("SerialPath", result.ExecutionPlanText);
         AssertGeneratedCSharpContains("EvaluationHelper.GetParallelAggregationRowsOrEmpty", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("EvaluationHelper.ShouldUseParallelSingleKeyAggregation", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("ParallelSingleKeyAggregate_0", result.GeneratedCSharpCode);

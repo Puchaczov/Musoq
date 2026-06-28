@@ -123,7 +123,6 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
         Assert.IsEmpty(
             offenders,
-            "Unsupported interpreter/codegen paths must fail fast instead of leaving TODO fallbacks: " +
-            string.Join(", ", offenders));
+            "Unsupported interpreter/codegen paths must fail fast instead of leaving TODO fallbacks: " + string.Join(", ", offenders));
     }
 }

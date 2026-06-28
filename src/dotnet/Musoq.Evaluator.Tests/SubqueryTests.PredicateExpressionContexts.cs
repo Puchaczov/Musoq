@@ -212,7 +212,7 @@ public partial class SubqueryTests
             exception.Envelopes.Any(envelope => envelope.Code == DiagnosticCode.MQ2024_InvalidSubquery),
             $"Expected MQ2024, got {string.Join(", ", exception.Envelopes.Select(envelope => envelope.Code))}.");
         StringAssert.Contains(exception.Message, "equality-only correlation");
-        StringAssert.Contains(exception.Message, "APPLY fallback");
+        StringAssert.Contains(exception.Message, "APPLY lowering");
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreatePredicateContextSources()

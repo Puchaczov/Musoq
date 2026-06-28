@@ -141,7 +141,7 @@ public sealed class ExecutionPlanOperatorCatalog
             "ParallelTask" or
             "ParallelMerge" or
             "ParallelProject" or
-            "SerialFallback" or
+            "SerialPath" or
             "ParallelAccumulate" or
             "HashProbeNoMatch" or
             "KeySetProbeNoMatch" or

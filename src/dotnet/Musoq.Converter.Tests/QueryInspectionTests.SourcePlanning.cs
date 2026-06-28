@@ -61,11 +61,12 @@ public partial class QueryInspectionTests
         Assert.Contains("source plan cardinality: Exact, exact=42, lower=42, upper=42, confidence=1, reason=test source knows its row count", result.PlanningText);
         Assert.Contains("source plan diagnostic [TryPlanSource]: Info - source estimate is exact", result.PlanningText);
         Assert.Contains("source plan diagnostic [TryPlanSource]: Warning - source declined ordering", result.PlanningText);
-        Assert.IsTrue(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsTrue(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5013_SourceContractWarning));
+        Assert.IsFalse(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5012_OptimizationFallback));
     }
 
     [TestMethod]
-    public void CompileWithDiagnostics_WhenSourceReportsOptimizationWarning_ShouldExposeFallbackWarning()
+    public void CompileWithDiagnostics_WhenSourceReportsOptimizationWarning_ShouldExposeSourceWarning()
     {
         var provider = new PlanningSchemaProvider(static request =>
         {
@@ -84,16 +85,16 @@ public partial class QueryInspectionTests
             provider,
             _loggerResolver);
 
-        var warning = result.Warnings.Single(item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback);
+        var warning = result.Warnings.Single(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning);
 
         Assert.IsTrue(result.Succeeded);
-        Assert.Contains("Optimization fallback in SourcePlan", warning.Message);
+        Assert.Contains("Source optimization warning", warning.Message);
         Assert.Contains("source declined ordering", warning.Message);
-        Assert.Contains("Inspect planning/logical/physical plan text", warning.Message);
+        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
     }
 
     [TestMethod]
-    public void CompileWithDiagnostics_WhenSourceReportsWarningAndLeavesResidualWork_ShouldDeduplicateFallbackWarning()
+    public void CompileWithDiagnostics_WhenSourceReportsWarningAndLeavesResidualWork_ShouldExposeSourceWarningOnly()
     {
         var provider = new PlanningSchemaProvider(static request =>
         {
@@ -112,10 +113,11 @@ public partial class QueryInspectionTests
             provider,
             _loggerResolver);
 
-        var warning = result.Warnings.Single(item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback);
+        var warning = result.Warnings.Single(item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning);
 
         Assert.IsTrue(result.Succeeded);
         Assert.Contains("source-specific reason for declined ordering", warning.Message);
+        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
     }
 
     [TestMethod]
@@ -228,7 +230,7 @@ public partial class QueryInspectionTests
 
         Assert.Contains("PhysicalTopN", inspection.PhysicalPlanText);
         Assert.Contains("source plan residual: orderBy=1, skip=null, take=2", inspection.PlanningText);
-        Assert.IsTrue(inspection.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(inspection.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5012_OptimizationFallback));
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("alpha", table[0][0]);
         Assert.AreEqual("bravo", table[1][0]);
@@ -240,14 +242,9 @@ public partial class QueryInspectionTests
         var provider = new PlanningSchemaProvider(static request => SourcePlanResult.RejectAll(request));
         var inspection = Inspect("select p.Name from #planning.items() p where p.Value > 1", provider);
 
-        var warning = inspection.Warnings.Single(item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback);
-
         Assert.Contains("PhysicalFilter", inspection.PhysicalPlanText);
         Assert.Contains("source plan residual: orderBy=0, skip=null, take=null, predicate=yes", inspection.PlanningText);
-        Assert.Contains("residual predicate work", warning.Message);
-        Assert.Contains("Requested predicate=yes, orderBy=0, skip=null, take=null", warning.Message);
-        Assert.Contains("accepted predicate=none, orderBy=0, skip=null, take=null", warning.Message);
-        Assert.Contains("residual predicate=yes, orderBy=0, skip=null, take=null", warning.Message);
+        Assert.IsFalse(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
     }
 
     [TestMethod]
@@ -260,22 +257,19 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenMovedPredicateCannotBeSourcePredicateDto_ShouldWarnAndKeepRuntimeFilter()
+    public void CompileForInspection_WhenMovedPredicateCannotBeSourcePredicateDto_ShouldKeepRuntimeFilterWithoutFallbackWarning()
     {
         var inspection = Inspect(
             "select d.Dummy from #system.dual() d inner join #system.dual() e on d.Dummy = e.Dummy and ToUpper(d.Dummy) = 'SINGLE'");
 
-        var warning = inspection.Warnings.Single(item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback);
-
-        Assert.Contains("SourcePredicateMovement", warning.Message);
-        Assert.Contains("cannot be represented by the source predicate DTO", warning.Message);
-        Assert.Contains("Moved predicate remains evaluated by runtime filter work.", warning.Message);
         Assert.Contains("SourcePredicateMovementExpansion", inspection.PlanningText);
+        Assert.Contains("cannot be represented by the source predicate DTO", inspection.PlanningText);
         Assert.Contains("PhysicalFilter [(ToUpper(d.Dummy) = 'SINGLE')]", inspection.PhysicalPlanText);
+        Assert.IsFalse(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
     }
 
     [TestMethod]
-    public void CompileWithDiagnostics_WhenCachedCompilationIsReused_ShouldKeepSourceFallbackWarning()
+    public void CompileWithDiagnostics_WhenCachedCompilationIsReused_ShouldKeepNoSourceFallbackWarning()
     {
         const string query = "select d.Dummy from #system.dual() d order by d.Dummy take 1";
         var assemblyName = Guid.NewGuid().ToString();
@@ -286,8 +280,8 @@ public partial class QueryInspectionTests
 
         Assert.IsTrue(first.Succeeded);
         Assert.IsTrue(second.Succeeded);
-        Assert.IsTrue(first.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
-        Assert.IsTrue(second.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(first.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(second.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
 
         var firstItems = GetBuildItems(first);
         var secondItems = GetBuildItems(second);
@@ -316,8 +310,10 @@ public partial class QueryInspectionTests
 
         Assert.Contains("source plan diagnostic [DescribeSource]: Info - descriptor found exact shape", inspection.PlanningText);
         Assert.Contains("source plan diagnostic [DescribeSource]: Warning - descriptor declined source-local optimization", inspection.PlanningText);
-        Assert.IsTrue(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
-        Assert.IsTrue(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsTrue(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
+        Assert.IsTrue(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
+        Assert.IsFalse(inspection.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
+        Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5012_OptimizationFallback));
     }
 
     [TestMethod]

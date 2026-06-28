@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Tests;
 public partial class SubqueryTests
 {
     [TestMethod]
-    public void Characterization_CteBodyPredicateFallback_ShouldUseCteLocalCorrelationOnly()
+    public void Characterization_CteBodyPredicateApply_ShouldUseCteLocalCorrelationOnly()
     {
         const string query = @"
             WITH matched AS (
@@ -36,7 +36,7 @@ public partial class SubqueryTests
             table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("-> PredicateOuterJoinFallback", inspection.PlanningText);
+        Assert.Contains("-> PredicateLeftApply", inspection.PlanningText);
         Assert.Contains("PhysicalHashJoin [LeftOuter]", inspection.PhysicalPlanText);
     }
 

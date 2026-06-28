@@ -7,15 +7,13 @@ namespace Musoq.Converter.Tests;
 public partial class QueryInspectionTests
 {
     [TestMethod]
-    public void CompileForInspection_WhenComputedUnionAllUsesRowComparer_ShouldWarn()
+    public void CompileForInspection_WhenComputedUnionAllUsesRowComparer_ShouldNotWarn()
     {
         var result = Inspect(CreateComputedUnionAllQuery(), new CompilationOptions());
 
-        var warning = FindFallbackWarning(result, "SetOperationStrategy");
-
         Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> RowComparer", result.PlanningText);
-        Assert.Contains("UnionAll cannot stream", warning.Message);
-        Assert.Contains("Materialized row-comparer set operation remains because streaming UnionAll lowering was not usable.", warning.Message);
+        Assert.Contains("UnionAll uses the materialized comparer strategy", result.PlanningText);
+        AssertNoFallbackWarning(result);
     }
 
     [TestMethod]
@@ -41,16 +39,14 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenSingleUseCteCannotFuseReadOnceProjection_ShouldWarn()
+    public void CompileForInspection_WhenSingleUseCteCannotFuseReadOnceProjection_ShouldNotWarn()
     {
         var result = Inspect(
             "with p as (select d.Dummy as Dummy from #system.dual() d) select p.Dummy from p order by p.Dummy");
 
-        var warning = FindFallbackWarning(result, "CteReuseStrategy");
-
         Assert.Contains("CteStrategy [CteReuseStrategy] cte:p -> MaterializeSingleUse", result.PlanningText);
-        Assert.Contains("Single-use CTE is not the terminal read-once projection candidate", warning.Message);
-        Assert.Contains("Materialized CTE table remains for the single-use CTE.", warning.Message);
+        Assert.Contains("Single-use CTE materializes because it is not the terminal read-once projection candidate.", result.PlanningText);
+        AssertNoFallbackWarning(result);
     }
 
     [TestMethod]
@@ -110,7 +106,7 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenPredicateSubqueryUsesOuterJoinFallback_ShouldWarn()
+    public void CompileForInspection_WhenPredicateSubqueryUsesLeftApply_ShouldNotWarn()
     {
         var result = Inspect(
             """
@@ -122,10 +118,8 @@ public partial class QueryInspectionTests
             ) or d.Dummy = 'missing'
             """);
 
-        var warning = FindFallbackWarning(result, "SubqueryLoweringStrategy");
-
-        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateOuterJoinFallback", result.PlanningText);
+        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateLeftApply", result.PlanningText);
         Assert.Contains("PhysicalHashJoin [LeftOuter]", result.PhysicalPlanText);
-        Assert.Contains("Predicate subquery remains lowered through an outer-join fallback.", warning.Message);
+        AssertNoFallbackWarning(result);
     }
 }
