@@ -21,6 +21,7 @@ internal static class CompiledQueryArtifactSupport
     public const string MetadataScriptSha256 = "ScriptSha256";
     public const string MetadataSemanticShapeSha256 = "SemanticShapeSha256";
     public const string MetadataGeneratedCodeSha256 = "GeneratedCodeSha256";
+    public const string MetadataRuntimeV2ContractSignature = "RuntimeV2ContractSignature";
     public const string ArtifactKindRuntimeV2Query = "RuntimeV2CompiledQuery";
 
     public static string CurrentEngineVersion { get; } = string.Join(
@@ -41,6 +42,7 @@ internal static class CompiledQueryArtifactSupport
         {
             [MetadataArtifactKind] = ArtifactKindRuntimeV2Query,
             [MetadataAssemblyName] = assemblyName,
+            [MetadataRuntimeV2ContractSignature] = RuntimeV2Contract.ContractSignature,
             [MetadataScriptSha256] = ComputeHash(script),
             [MetadataSemanticShapeSha256] = ComputeSemanticShapeHash(items, runnableTypeName),
             [MetadataGeneratedCodeSha256] = ComputeGeneratedCodeHash(compilation)
@@ -57,6 +59,7 @@ internal static class CompiledQueryArtifactSupport
         ArgumentNullException.ThrowIfNull(items);
 
         var builder = new StringBuilder();
+        builder.Append("RuntimeV2ContractSignature=").Append(RuntimeV2Contract.ContractSignature).AppendLine();
         builder.Append("RunnableTypeName=").Append(runnableTypeName).AppendLine();
         builder.Append("QueryResultMode=").Append(items.QueryResultMode).AppendLine();
         AppendType(builder, "OutputType", items.OutputType);

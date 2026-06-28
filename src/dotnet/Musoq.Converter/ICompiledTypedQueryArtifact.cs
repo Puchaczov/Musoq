@@ -15,6 +15,8 @@ public interface ICompiledTypedQueryArtifact
 
     string RuntimeVersion { get; }
 
+    string RuntimeContractSignature { get; }
+
     byte[] DllFile { get; }
 
     byte[]? PdbFile { get; }
@@ -34,6 +36,8 @@ public interface ICompiledTypedQueryArtifact
     IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; }
 
     IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; }
+
+    IReadOnlyList<ScriptParameterContract> ParameterContracts { get; }
 
     IReadOnlyList<TypedArtifactSourceSlotIdentity> SourceSlotIdentities { get; }
 }

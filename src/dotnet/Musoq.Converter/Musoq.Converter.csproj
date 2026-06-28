@@ -13,6 +13,9 @@
     <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Musoq.Converter.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Update="Build\BuildItems.Access.cs">
       <DependentUpon>BuildItems.cs</DependentUpon>
     </Compile>

@@ -29,14 +29,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var sourceArgument = samples[ScriptVariableSourceArgumentSampleFileName].Content;
         var sourceArgumentCode = ExtractGeneratedCodeSection(sourceArgument);
 
-        Assert.AreEqual(0, CountOccurrences(whereSelect, "ScriptParameterBinder."));
+        Assert.AreEqual(0, CountOccurrences(whereSelect, "ScriptParameterBinder.Get"));
         Assert.Contains("const string letCountry = \"Poland\";", whereSelect);
         Assert.Contains("const int letMinPopulation = 100;", whereSelect);
         Assert.Contains("if (((ko3iko.Country == letCountry) && (population > letMinPopulation)))", whereSelect);
         Assert.Contains("yield return new ResultShape0(ko3iko.Name, population, letCountry);", whereSelect);
         Assert.Contains("yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.Population, __musoqShapeRow.RequestedCountry);", whereSelect);
 
-        Assert.AreEqual(0, CountOccurrences(primitiveValues, "ScriptParameterBinder."));
+        Assert.AreEqual(0, CountOccurrences(primitiveValues, "ScriptParameterBinder.Get"));
         Assert.Contains("const bool letFlag = true;", primitiveValues);
         Assert.Contains("const char letCode = 'x';", primitiveValues);
         Assert.Contains("int? letLimit = default(int?);", primitiveValues);
@@ -45,7 +45,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("TimeSpan letElapsed = new TimeSpan(54000000000L);", primitiveValues);
         Assert.Contains("new ResultRow0(letFlag, letCode, letLimit, letId, letCreated, letElapsed)", primitiveValues);
 
-        Assert.AreEqual(0, CountOccurrences(sourceArgument, "ScriptParameterBinder."));
+        Assert.AreEqual(0, CountOccurrences(sourceArgument, "ScriptParameterBinder.Get"));
         Assert.IsFalse(sourceArgumentCode.Contains("const string letPrefix = \"KEY\";", StringComparison.Ordinal));
         Assert.Contains("const string letKey = \"KEY_1\";", sourceArgumentCode);
         Assert.Contains("new object[] { letKey }", sourceArgumentCode);
@@ -127,7 +127,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "var __musoqTableParallelRows = ");
 
         foreach (var sample in new[] { groupBy, join, cte, window, parallel })
-            Assert.IsFalse(sample.Contains("ScriptParameterBinder.", StringComparison.Ordinal));
+            Assert.IsFalse(sample.Contains("ScriptParameterBinder.Get", StringComparison.Ordinal));
     }
 
     private static void AssertScriptVariableBindingCount(string fileName, string content, int expectedCount)

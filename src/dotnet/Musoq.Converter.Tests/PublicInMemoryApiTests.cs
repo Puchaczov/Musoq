@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Tests.Components;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
+using Musoq.Schema;
 using Musoq.Tests.Common;
 using MusoqApi = Musoq.Converter.Musoq;
 using AmbiguousPerson = Musoq.Converter.Tests.TwoModeTestFixtures.AmbiguousPerson;
@@ -307,6 +308,8 @@ public class PublicInMemoryApiTests
         Assert.AreEqual(CompiledTypedQueryArtifact.CurrentArtifactVersion, artifact.ArtifactVersion);
         Assert.IsFalse(string.IsNullOrWhiteSpace(artifact.EngineVersion));
         Assert.IsFalse(string.IsNullOrWhiteSpace(artifact.RuntimeVersion));
+        Assert.AreEqual(RuntimeV2Contract.ContractSignature, artifact.RuntimeContractSignature);
+        Assert.IsEmpty(artifact.ParameterContracts);
         Assert.HasCount(1, artifact.SourceSlotIdentities);
         Assert.AreEqual("A", artifact.SourceSlotIdentities[0].SchemaName);
         Assert.AreEqual("entities", artifact.SourceSlotIdentities[0].SourceName);
@@ -399,6 +402,11 @@ public class PublicInMemoryApiTests
             .Query("param(minAge: int) select p.Name as Name from #A.entities() p where p.Age >= $minAge order by p.Name")
             .Source<Person>("#A", "entities")
             .Compile<NameDto>();
+        Assert.HasCount(1, compiled.ParameterContracts);
+        Assert.AreEqual("minAge", compiled.ParameterContracts[0].Name);
+        Assert.AreEqual("int", compiled.ParameterContracts[0].DeclaredTypeName);
+        Assert.AreEqual("int", compiled.ParameterContracts[0].CanonicalTypeName);
+        Assert.AreEqual(typeof(int), compiled.ParameterContracts[0].ClrType);
         compiled.Parameters["minAge"] = 30;
 
         var rows = compiled.Run(

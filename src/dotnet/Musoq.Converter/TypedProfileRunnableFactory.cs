@@ -30,6 +30,8 @@ internal sealed class TypedProfileRunnableFactory<TOut>
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions => _core.ParameterDefinitions;
 
+    public IReadOnlyList<ScriptParameterContract> ParameterContracts => _core.ParameterContracts;
+
     internal Type RunnableType => _core.RunnableType;
 
     public TypedQueryDiagnostics Diagnostics => _core.Diagnostics;

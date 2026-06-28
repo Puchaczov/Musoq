@@ -345,6 +345,11 @@ public static partial class InstanceCreator
             diagnostics);
         ValidateMetadataValue(
             artifact,
+            CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature,
+            RuntimeV2Contract.ContractSignature,
+            diagnostics);
+        ValidateMetadataValue(
+            artifact,
             CompiledQueryArtifactSupport.MetadataScriptSha256,
             CompiledQueryArtifactSupport.ComputeHash(script),
             diagnostics);

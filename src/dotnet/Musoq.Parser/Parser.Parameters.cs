@@ -105,27 +105,7 @@ public partial class Parser
 
     private static bool IsLikelyParameterTypeName(string value)
     {
-        return value.Equals("byte", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("sbyte", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("short", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("int", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("long", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("ushort", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("uint", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("ulong", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("string", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("char", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("boolean", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("bool", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("bit", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("float", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("double", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("decimal", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("money", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("datetime", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("datetimeoffset", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("timespan", StringComparison.OrdinalIgnoreCase) ||
-               value.Equals("guid", StringComparison.OrdinalIgnoreCase);
+        return ScriptParameterTypeCatalog.IsKnownScalarTypeName(value);
     }
 
 

@@ -16,6 +16,7 @@ public class CompiledQuery : IDisposable
     private ITableRunnable? _runnable;
     private IParameterizedRunnable? _parameterizedRunnable;
     private IReadOnlyList<ScriptParameterDefinition>? _parameterDefinitions;
+    private IReadOnlyList<ScriptParameterContract>? _parameterContracts;
     private IReadOnlyList<ScriptParameterDefinition>? _requiredParameters;
     private IDisposable? _lifetimeOwner;
     private bool _disposed;
@@ -31,6 +32,8 @@ public class CompiledQuery : IDisposable
         _parameterizedRunnable = runnable as IParameterizedRunnable;
         _parameterDefinitions = _parameterizedRunnable?.ParameterDefinitions.ToArray() ??
                                 Array.Empty<ScriptParameterDefinition>();
+        _parameterContracts = _parameterizedRunnable?.ParameterContracts.ToArray() ??
+                              _parameterDefinitions.Select(static definition => definition.Contract).ToArray();
         _requiredParameters = _parameterDefinitions.Where(definition => definition.IsRequired).ToArray();
         _lifetimeOwner = lifetimeOwner;
     }
@@ -71,6 +74,15 @@ public class CompiledQuery : IDisposable
         {
             EnsureNotDisposed();
             return _requiredParameters ?? Array.Empty<ScriptParameterDefinition>();
+        }
+    }
+
+    public IReadOnlyList<ScriptParameterContract> ParameterContracts
+    {
+        get
+        {
+            EnsureNotDisposed();
+            return _parameterContracts ?? Array.Empty<ScriptParameterContract>();
         }
     }
 

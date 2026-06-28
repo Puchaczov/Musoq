@@ -1,39 +1,12 @@
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Helpers;
 
 internal static class PrimitiveTypeResolver
 {
-    private static readonly FrozenDictionary<string, Type> Aliases =
-        new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["byte"] = typeof(byte),
-            ["sbyte"] = typeof(sbyte),
-            ["short"] = typeof(short),
-            ["int"] = typeof(int),
-            ["long"] = typeof(long),
-            ["ushort"] = typeof(ushort),
-            ["uint"] = typeof(uint),
-            ["ulong"] = typeof(ulong),
-            ["string"] = typeof(string),
-            ["char"] = typeof(char),
-            ["boolean"] = typeof(bool),
-            ["bool"] = typeof(bool),
-            ["bit"] = typeof(bool),
-            ["float"] = typeof(float),
-            ["double"] = typeof(double),
-            ["decimal"] = typeof(decimal),
-            ["money"] = typeof(decimal),
-            ["object"] = typeof(object),
-            ["datetime"] = typeof(DateTime),
-            ["datetimeoffset"] = typeof(DateTimeOffset),
-            ["timespan"] = typeof(TimeSpan),
-            ["guid"] = typeof(Guid)
-        }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-
     public static string RemapPrimitiveTypeName(string typeName)
     {
         ArgumentNullException.ThrowIfNull(typeName);
@@ -52,8 +25,8 @@ internal static class PrimitiveTypeResolver
             return $"System.Nullable`1[{baseType}]";
         }
 
-        return (Aliases.TryGetValue(typeName, out var type)
-            ? type.FullName
+        return (ScriptParameterTypeCatalog.TryResolveScalar(typeName, out var descriptor)
+            ? descriptor.ClrType.FullName
             : typeName) ?? throw new InvalidOperationException($"Failed to resolve type name for {typeName}.");
     }
 
@@ -164,6 +137,8 @@ internal static class PrimitiveTypeResolver
         if (string.IsNullOrWhiteSpace(typeName))
             return null;
 
-        return Aliases.TryGetValue(typeName, out var aliasedType) ? aliasedType : Type.GetType(typeName);
+        return ScriptParameterTypeCatalog.TryResolveScalar(typeName, out var descriptor)
+            ? descriptor.ClrType
+            : Type.GetType(typeName);
     }
 }

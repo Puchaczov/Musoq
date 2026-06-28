@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator;
 using Musoq.Schema;
 using Musoq.Schema.Optimization;
@@ -38,6 +39,10 @@ internal sealed class TypedRunnableFactoryCore<TRunnable>
     public Type RunnableType { get; }
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; }
+
+    public IReadOnlyList<ScriptParameterContract> ParameterContracts => ParameterDefinitions
+        .Select(static definition => definition.Contract)
+        .ToArray();
 
     public TypedQueryDiagnostics Diagnostics { get; }
 

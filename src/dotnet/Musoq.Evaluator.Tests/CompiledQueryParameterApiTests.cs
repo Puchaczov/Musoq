@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -81,6 +82,9 @@ public class CompiledQueryParameterApiTests
         public List<ScriptParameterDefinition> ParameterDefinitions { get; } = [];
 
         IReadOnlyList<ScriptParameterDefinition> IParameterizedRunnable.ParameterDefinitions => ParameterDefinitions;
+
+        IReadOnlyList<ScriptParameterContract> IParameterizedRunnable.ParameterContracts =>
+            ParameterDefinitions.Select(static definition => definition.Contract).ToArray();
 
         public event QueryPhaseEventHandler PhaseChanged
         {

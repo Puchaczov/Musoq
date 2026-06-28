@@ -209,4 +209,20 @@ public sealed class ScriptParameterBinderTests
         Assert.AreEqual(DiagnosticCode.MQ7004_ScriptParameterTypeMismatch, ex.Code);
         StringAssert.Contains(ex.Message, "int");
     }
+
+    [TestMethod]
+    public void ValidateNoUnknownParameters_WhenParameterIsNotDeclared_ShouldThrowDiagnosticException()
+    {
+        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["limit"] = 100,
+            ["extra"] = "value"
+        };
+
+        var ex = Assert.Throws<ScriptParameterBindingException>(() =>
+            ScriptParameterBinder.ValidateNoUnknownParameters(parameters, ["limit"]));
+
+        Assert.AreEqual(DiagnosticCode.MQ7006_UnknownScriptParameter, ex.Code);
+        Assert.AreEqual("Script parameter 'extra' was provided but is not declared.", ex.Message);
+    }
 }

@@ -56,6 +56,13 @@ public sealed class ScriptParameterBindingException : InvalidOperationException,
             $"Script parameter '{name}' expected a non-null value of type '{FormatType(expectedType)}'.");
     }
 
+    public static ScriptParameterBindingException Unknown(string name)
+    {
+        return new ScriptParameterBindingException(
+            DiagnosticCode.MQ7006_UnknownScriptParameter,
+            $"Script parameter '{name}' was provided but is not declared.");
+    }
+
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
         return Diagnostic.Error(Code, Message, Span ?? TextSpan.Empty);

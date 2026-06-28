@@ -25,6 +25,7 @@ public class ScriptParameterExecutionTests : EnvironmentVariablesTestBase
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
         Assert.IsEmpty(vm.ParameterDefinitions);
+        Assert.IsEmpty(vm.ParameterContracts);
         Assert.IsEmpty(vm.RequiredParameters);
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -41,6 +42,7 @@ public class ScriptParameterExecutionTests : EnvironmentVariablesTestBase
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
         Assert.IsEmpty(vm.ParameterDefinitions);
+        Assert.IsEmpty(vm.ParameterContracts);
         Assert.IsEmpty(vm.RequiredParameters);
 
         var table = vm.Run(TestContext.CancellationToken);
@@ -96,6 +98,111 @@ public class ScriptParameterExecutionTests : EnvironmentVariablesTestBase
         Assert.AreEqual(2, table.Count);
         Assert.AreEqual("lower", table[0][0]);
         Assert.AreEqual("upper", table[0][1]);
+    }
+
+    [TestMethod]
+    public void ParameterContracts_ShouldExposeCanonicalHostMetadataWithoutSqlParsing()
+    {
+        const string guidText = "2ffcf6fa-3369-4300-946a-bb131a037985";
+        const string dateTimeOffsetText = "2024-01-02T03:04:05+02:00";
+        const string timeSpanText = "01:02:03";
+        const string query = $"""
+            param(
+                id: guid = '{guidText}',
+                created: datetimeoffset = '{dateTimeOffsetText}',
+                delay: timespan = '{timeSpanText}',
+                price: money = 12.34,
+                flag: bit = true,
+                maybeCount: INT? = null,
+                ids: guid[]
+            )
+            select Key from #EnvironmentVariables.All()
+            """;
+        var vm = CompileWithProvider(query, new ParameterizedEnvironmentSchemaProvider());
+
+        Assert.HasCount(7, vm.ParameterDefinitions);
+        Assert.HasCount(7, vm.ParameterContracts);
+        CollectionAssert.AreEqual(
+            vm.ParameterDefinitions.Select(static definition => definition.Contract).ToArray(),
+            vm.ParameterContracts.ToArray());
+
+        AssertContract(
+            vm.ParameterContracts.Single(static contract => contract.Name == "id"),
+            "guid",
+            "guid",
+            typeof(Guid),
+            false,
+            false,
+            null,
+            null,
+            ScriptParameterDefaultKind.Literal,
+            Guid.Parse(guidText));
+        AssertContract(
+            vm.ParameterContracts.Single(static contract => contract.Name == "created"),
+            "datetimeoffset",
+            "datetimeoffset",
+            typeof(DateTimeOffset),
+            false,
+            false,
+            null,
+            null,
+            ScriptParameterDefaultKind.Literal,
+            DateTimeOffset.Parse(dateTimeOffsetText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind));
+        AssertContract(
+            vm.ParameterContracts.Single(static contract => contract.Name == "delay"),
+            "timespan",
+            "timespan",
+            typeof(TimeSpan),
+            false,
+            false,
+            null,
+            null,
+            ScriptParameterDefaultKind.Literal,
+            TimeSpan.Parse(timeSpanText, CultureInfo.InvariantCulture));
+        AssertContract(
+            vm.ParameterContracts.Single(static contract => contract.Name == "price"),
+            "money",
+            "decimal",
+            typeof(decimal),
+            false,
+            false,
+            null,
+            null,
+            ScriptParameterDefaultKind.Literal,
+            12.34m);
+        AssertContract(
+            vm.ParameterContracts.Single(static contract => contract.Name == "flag"),
+            "bit",
+            "bool",
+            typeof(bool),
+            false,
+            false,
+            null,
+            null,
+            ScriptParameterDefaultKind.Literal,
+            true);
+        AssertContract(
+            vm.ParameterContracts.Single(static contract => contract.Name == "maybeCount"),
+            "INT?",
+            "int?",
+            typeof(int?),
+            true,
+            false,
+            null,
+            null,
+            ScriptParameterDefaultKind.Null,
+            null);
+        AssertContract(
+            vm.ParameterContracts.Single(static contract => contract.Name == "ids"),
+            "guid[]",
+            "guid[]",
+            typeof(Guid[]),
+            false,
+            true,
+            typeof(Guid),
+            "guid",
+            ScriptParameterDefaultKind.None,
+            null);
     }
 
     [TestMethod]
@@ -175,6 +282,55 @@ public class ScriptParameterExecutionTests : EnvironmentVariablesTestBase
             ex,
             DiagnosticCode.MQ7003_RequiredScriptParameterMissing,
             "Required script parameter 'key' was not provided.");
+        Assert.AreEqual(0, provider.OpenCount);
+    }
+
+    [TestMethod]
+    public void WhenUnknownScriptParameterIsProvidedWithRequiredParameter_ShouldThrowBeforeOpeningSource()
+    {
+        const string query = "param(key: string) select Key, Value from #Parameterized.Items() where Key = $key";
+        var provider = new ParameterizedEnvironmentSchemaProvider();
+        var vm = CompileWithProvider(query, provider);
+        vm.Parameters["key"] = "KEY_1";
+        vm.Parameters["extra"] = "ignored";
+
+        var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
+        AssertRuntimeEnvelope(
+            ex,
+            DiagnosticCode.MQ7006_UnknownScriptParameter,
+            "Script parameter 'extra' was provided but is not declared.");
+        Assert.AreEqual(0, provider.OpenCount);
+    }
+
+    [TestMethod]
+    public void WhenNoScriptParametersAreDeclaredButRuntimeParameterIsProvided_ShouldThrowBeforeOpeningSource()
+    {
+        const string query = "select Key, Value from #Parameterized.Items()";
+        var provider = new ParameterizedEnvironmentSchemaProvider();
+        var vm = CompileWithProvider(query, provider);
+        vm.Parameters["extra"] = "ignored";
+
+        var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
+        AssertRuntimeEnvelope(
+            ex,
+            DiagnosticCode.MQ7006_UnknownScriptParameter,
+            "Script parameter 'extra' was provided but is not declared.");
+        Assert.AreEqual(0, provider.OpenCount);
+    }
+
+    [TestMethod]
+    public void WhenOptionalScriptParameterIsProvidedWithWrongCase_ShouldThrowUnknownBeforeOpeningSource()
+    {
+        const string query = "param(key: string = 'KEY_1') select Key, Value from #Parameterized.Items() where Key = $key";
+        var provider = new ParameterizedEnvironmentSchemaProvider();
+        var vm = CompileWithProvider(query, provider);
+        vm.Parameters["Key"] = "KEY_2";
+
+        var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
+        AssertRuntimeEnvelope(
+            ex,
+            DiagnosticCode.MQ7006_UnknownScriptParameter,
+            "Script parameter 'Key' was provided but is not declared.");
         Assert.AreEqual(0, provider.OpenCount);
     }
 
@@ -386,6 +542,30 @@ public class ScriptParameterExecutionTests : EnvironmentVariablesTestBase
         StringAssert.Contains(json, $"\"code\":\"{exception.Envelope.CodeString}\"");
         StringAssert.Contains(json, "\"phase\":\"runtime\"");
         StringAssert.Contains(json, expectedMessage);
+    }
+
+    private static void AssertContract(
+        ScriptParameterContract contract,
+        string declaredTypeName,
+        string canonicalTypeName,
+        Type clrType,
+        bool isNullable,
+        bool isCollection,
+        Type? elementClrType,
+        string? elementCanonicalTypeName,
+        ScriptParameterDefaultKind defaultKind,
+        object? defaultValue)
+    {
+        Assert.AreEqual(declaredTypeName, contract.DeclaredTypeName);
+        Assert.AreEqual(canonicalTypeName, contract.CanonicalTypeName);
+        Assert.AreEqual(clrType, contract.ClrType);
+        Assert.AreEqual(isNullable, contract.IsNullable);
+        Assert.AreEqual(isCollection, contract.IsCollection);
+        Assert.AreEqual(elementClrType, contract.ElementClrType);
+        Assert.AreEqual(elementCanonicalTypeName, contract.ElementCanonicalTypeName);
+        Assert.AreEqual(defaultKind, contract.DefaultKind);
+        Assert.AreEqual(defaultKind != ScriptParameterDefaultKind.None, contract.HasDefaultValue);
+        Assert.AreEqual(defaultValue, contract.DefaultValue);
     }
 
     private static Dictionary<string, IEnumerable<EnvironmentVariableEntity>> CreateEnvironmentVariableSources()

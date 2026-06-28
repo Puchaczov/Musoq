@@ -9,6 +9,7 @@ public sealed class TypedRunState
 {
     private readonly IDictionary<string, object?> _parameters;
     private readonly IReadOnlyList<ScriptParameterDefinition> _parameterDefinitions;
+    private readonly IReadOnlyList<ScriptParameterContract> _parameterContracts;
     private readonly IReadOnlyList<ScriptParameterDefinition> _requiredParameters;
     private event QueryPhaseEventHandler? PhaseChangedHandlers;
     private event DataSourceEventHandler? DataSourceProgressHandlers;
@@ -19,6 +20,9 @@ public sealed class TypedRunState
     {
         _parameters = parameters ?? new Dictionary<string, object?>(StringComparer.Ordinal);
         _parameterDefinitions = parameterDefinitions?.ToArray() ?? Array.Empty<ScriptParameterDefinition>();
+        _parameterContracts = _parameterDefinitions
+            .Select(static definition => definition.Contract)
+            .ToArray();
         _requiredParameters = _parameterDefinitions
             .Where(static definition => definition.IsRequired)
             .ToArray();
@@ -27,6 +31,8 @@ public sealed class TypedRunState
     public IDictionary<string, object?> Parameters => _parameters;
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions => _parameterDefinitions;
+
+    public IReadOnlyList<ScriptParameterContract> ParameterContracts => _parameterContracts;
 
     public IReadOnlyList<ScriptParameterDefinition> RequiredParameters => _requiredParameters;
 

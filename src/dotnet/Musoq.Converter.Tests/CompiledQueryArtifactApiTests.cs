@@ -42,6 +42,9 @@ public class CompiledQueryArtifactApiTests
         Assert.IsTrue(result.Artifact.Metadata.ContainsKey("ScriptSha256"));
         Assert.IsTrue(result.Artifact.Metadata.ContainsKey("SemanticShapeSha256"));
         Assert.IsTrue(result.Artifact.Metadata.ContainsKey("GeneratedCodeSha256"));
+        Assert.AreEqual(
+            RuntimeV2Contract.ContractSignature,
+            result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature]);
     }
 
     [TestMethod]
@@ -213,6 +216,25 @@ public class CompiledQueryArtifactApiTests
     }
 
     [TestMethod]
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenRuntimeV2ContractSignatureMismatch_ReturnsArtifactDiagnostic()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
+        var metadata = CopyMetadata(artifact);
+        metadata[CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature] = "runtime-v2=old";
+        var tampered = CopyArtifact(artifact, metadata: metadata);
+
+        var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            query,
+            tampered,
+            new ArtifactSchemaProvider(new ArtifactSchema("single")),
+            _loggerResolver);
+
+        AssertArtifactFailure(result);
+        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("RuntimeV2ContractSignature", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
     public void CreateExecutableFromArtifactWithDiagnostics_WhenSchemaShapeChanges_ReturnsArtifactDiagnostic()
     {
         const string query = "select i.Value from #artifact.items() i";
@@ -321,6 +343,37 @@ public class CompiledQueryArtifactApiTests
 
         AssertArtifactFailure(result);
         Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("GeneratedCodeSha256", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void CreateExecutionCompilationCacheKey_WhenRuntimeV2ContractIsPresent_ShouldIncludeSignature()
+    {
+        var signature = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
+            "select i.Value from #artifact.items() i",
+            new ArtifactSchemaProvider(new ArtifactSchema("single")),
+            new CompilationOptions());
+
+        StringAssert.Contains(signature, RuntimeV2Contract.ContractSignature);
+    }
+
+    [TestMethod]
+    public void CreateExecutionCompilationCacheKey_WhenCteSidecarIndexesChange_ShouldChangeSignature()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var provider = new ArtifactSchemaProvider(new ArtifactSchema("single"));
+
+        var withoutSidecars = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
+            query,
+            provider,
+            new CompilationOptions(useCteSidecarIndexes: false));
+        var withSidecars = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
+            query,
+            provider,
+            new CompilationOptions(useCteSidecarIndexes: true));
+
+        Assert.AreNotEqual(withoutSidecars, withSidecars);
+        StringAssert.Contains(withoutSidecars, "UseCteSidecarIndexes = False");
+        StringAssert.Contains(withSidecars, "UseCteSidecarIndexes = True");
     }
 
     [TestMethod]

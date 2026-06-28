@@ -160,7 +160,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains(
             "var paramMinPopulation = ScriptParameterBinder.GetOptional<int>(__musoqExecutionState.Parameters, \"minPopulation\", 100);",
             whereSelect);
-        Assert.AreEqual(2, CountOccurrences(whereSelect, "ScriptParameterBinder."));
+        Assert.AreEqual(2, CountOccurrences(whereSelect, "ScriptParameterBinder.Get"));
         Assert.Contains("if (((ko3iko.Country == paramCountry) && (population > paramMinPopulation)))", whereSelect);
         Assert.Contains("yield return new ResultShape0(ko3iko.Name, population, paramCountry);", whereSelect);
         Assert.Contains("yield return new ResultRow0(__musoqShapeRow.Name, __musoqShapeRow.Population, __musoqShapeRow.RequestedCountry);", whereSelect);
@@ -176,27 +176,27 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains(
             "var paramCreated = ScriptParameterBinder.GetOptional<DateTime>(__musoqExecutionState.Parameters, \"created\", new DateTime(638397614450000000L, DateTimeKind.Utc));",
             primitiveDefaults);
-        Assert.AreEqual(5, CountOccurrences(primitiveDefaults, "ScriptParameterBinder."));
+        Assert.AreEqual(5, CountOccurrences(primitiveDefaults, "ScriptParameterBinder.Get"));
         Assert.Contains(
             "new ResultRow0(paramFlag, paramCode, paramLimit, paramId, paramCreated)",
             primitiveDefaults);
 
         Assert.Contains("var paramKey = ScriptParameterBinder.GetOptional<string>(__musoqExecutionState.Parameters, \"key\", \"KEY_1\");", sourceArgument);
-        Assert.AreEqual(1, CountOccurrences(sourceArgument, "ScriptParameterBinder."));
+        Assert.AreEqual(1, CountOccurrences(sourceArgument, "ScriptParameterBinder.Get"));
         Assert.Contains("new object[] { paramKey }", sourceArgument);
         var parameterBindingIndex = sourceArgument.IndexOf("var paramKey = ", StringComparison.Ordinal);
         var sourceRowsIndex = sourceArgument.IndexOf("var __ko3ikoSchema = ", StringComparison.Ordinal);
         Assert.IsLessThan(sourceRowsIndex, parameterBindingIndex);
 
         Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"country\");", typedComparison);
-        Assert.AreEqual(1, CountOccurrences(typedComparison, "ScriptParameterBinder."));
+        Assert.AreEqual(1, CountOccurrences(typedComparison, "ScriptParameterBinder.Get"));
         Assert.Contains("if ((country == paramCountry))", typedComparison);
         Assert.DoesNotContain("TryConvertTo", typedComparison);
 
         Assert.Contains(
             "var paramMinPopulation = ScriptParameterBinder.GetRequired<int>(__musoqExecutionState.Parameters, \"minPopulation\");",
             numericWidening);
-        Assert.AreEqual(1, CountOccurrences(numericWidening, "ScriptParameterBinder."));
+        Assert.AreEqual(1, CountOccurrences(numericWidening, "ScriptParameterBinder.Get"));
         Assert.Contains("if ((population >= paramMinPopulation))", numericWidening);
         Assert.DoesNotContain("TryConvertTo", numericWidening);
         AssertTopLevelBindingBefore(

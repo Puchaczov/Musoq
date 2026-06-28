@@ -280,7 +280,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         new("src/dotnet/Musoq.Evaluator/IR/Logical", "LogicalPlanBuilder*.cs", 1878),
         new("src/dotnet/Musoq.Parser", "SchemaParser*.cs", 2068),
         new("src/dotnet/Musoq.Evaluator/IR/Expressions", "*.cs", 1697),
-        new("src/dotnet/Musoq.Parser/Diagnostics", "ErrorMetadataCatalog*.cs", 1460),
+        new("src/dotnet/Musoq.Parser/Diagnostics", "ErrorMetadataCatalog*.cs", 1470),
         new("src/dotnet/Musoq.Converter/Build", "*.cs", 1644),
         new("src/dotnet/Musoq.Evaluator/IR/Physical", "*.cs", 871),
         new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionNode*.cs", 849),

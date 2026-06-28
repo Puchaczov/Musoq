@@ -525,6 +525,7 @@ public static class ClassEmitter
         var loggerParam = MethodDeclarationHelper.CreatePublicProperty(nameof(ILogger), nameof(IQueryRunnable.Logger));
         var parametersParam = CreateParametersProperty();
         var parameterDefinitionsParam = CreateParameterDefinitionsProperty(parameterDefinitions);
+        var parameterContractsParam = CreateParameterContractsProperty(parameterDefinitions);
         var phaseChangedEvent = MethodDeclarationHelper.CreatePhaseChangedEvent();
         var onPhaseChangedMethod = MethodDeclarationHelper.CreateOnPhaseChangedMethod();
         var dataSourceProgressEvent = MethodDeclarationHelper.CreateDataSourceProgressEvent();
@@ -539,6 +540,7 @@ public static class ClassEmitter
         members.Add(loggerParam);
         members.Add(parametersParam);
         members.Add(parameterDefinitionsParam);
+        members.Add(parameterContractsParam);
         members.Add(phaseChangedEvent);
         members.Add(onPhaseChangedMethod);
         members.Add(dataSourceProgressEvent);
@@ -618,6 +620,24 @@ public static class ClassEmitter
             .WithInitializer(
                 SyntaxFactory.EqualsValueClause(
                     ScriptParameterSyntaxFactory.CreateDefinitionsInitializer(parameterDefinitions)))
+            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+    }
+
+    private static PropertyDeclarationSyntax CreateParameterContractsProperty(
+        IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions)
+    {
+        return SyntaxFactory.PropertyDeclaration(
+                SyntaxFactory.ParseTypeName("IReadOnlyList<ScriptParameterContract>"),
+                nameof(IParameterizedRunnable.ParameterContracts))
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+            .WithAccessorList(
+                SyntaxFactory.AccessorList(
+                    SyntaxFactory.SingletonList(
+                        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)))))
+            .WithInitializer(
+                SyntaxFactory.EqualsValueClause(
+                    ScriptParameterSyntaxFactory.CreateContractsInitializer(parameterDefinitions)))
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }
 }

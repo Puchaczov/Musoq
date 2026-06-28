@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
+using Musoq.Schema;
 using Musoq.Schema.Optimization;
 
 namespace Musoq.Converter;
@@ -70,10 +71,14 @@ public sealed class CompiledTypedQueryArtifact : ICompiledTypedQueryArtifact
         SourceExecutionPlans = ArtifactMetadataSnapshot.CopySourceExecutionPlans(
             sourceExecutionPlans ?? throw new ArgumentNullException(nameof(sourceExecutionPlans)));
         ParameterDefinitions = (parameterDefinitions ?? throw new ArgumentNullException(nameof(parameterDefinitions))).ToArray();
+        ParameterContracts = ParameterDefinitions
+            .Select(static definition => definition.Contract)
+            .ToArray();
         InMemorySourceSlots = (inMemorySourceSlots ?? throw new ArgumentNullException(nameof(inMemorySourceSlots))).ToArray();
         ArtifactVersion = CurrentArtifactVersion;
         EngineVersion = CurrentEngineVersion;
         RuntimeVersion = CurrentRuntimeVersion;
+        RuntimeContractSignature = RuntimeV2Contract.ContractSignature;
         _sourceSlotIdentities = Array.AsReadOnly(InMemorySourceSlots
             .Select(TypedArtifactSourceSlotIdentity.FromSlot)
             .ToArray());
@@ -84,6 +89,8 @@ public sealed class CompiledTypedQueryArtifact : ICompiledTypedQueryArtifact
     public string EngineVersion { get; }
 
     public string RuntimeVersion { get; }
+
+    public string RuntimeContractSignature { get; }
 
     public byte[] DllFile => CopyBytes(_dllFile);
 
@@ -104,6 +111,8 @@ public sealed class CompiledTypedQueryArtifact : ICompiledTypedQueryArtifact
     public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; }
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; }
+
+    public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; }
 
     public IReadOnlyList<TypedArtifactSourceSlotIdentity> SourceSlotIdentities => _sourceSlotIdentities;
 

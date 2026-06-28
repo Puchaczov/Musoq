@@ -37,6 +37,8 @@ public class CompiledTypedQuery<TOut>
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions => _runState.ParameterDefinitions;
 
+    public IReadOnlyList<ScriptParameterContract> ParameterContracts => _runState.ParameterContracts;
+
     public IReadOnlyList<ScriptParameterDefinition> RequiredParameters => _runState.RequiredParameters;
 
     public IEnumerable<TOut> Run()

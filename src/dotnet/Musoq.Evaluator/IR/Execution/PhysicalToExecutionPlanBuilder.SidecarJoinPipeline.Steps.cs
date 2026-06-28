@@ -15,6 +15,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         SidecarJoinPipelineStage stage,
         IReadOnlyDictionary<string, IrExpression>? currentProjectionMap,
         IReadOnlyDictionary<string, RowShape> activeLookup,
+        List<SidecarJoinRuntimeOperation> runtimeOperations,
         ref ProjectedField[]? finalFields,
         ref IReadOnlyDictionary<string, RowShape>? finalOutputLookup,
         out Dictionary<string, IrExpression>? projectedMap)
@@ -26,7 +27,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
         if (stage.Pipeline.Project.IsDistinct ||
             stage.Pipeline.PostOperations.Count != 0 ||
-            stage.Pipeline.Filter != null ||
             string.IsNullOrWhiteSpace(stage.ExpectedInputCteName) ||
             !string.Equals(cteRef.CteName, stage.ExpectedInputCteName, StringComparison.OrdinalIgnoreCase) ||
             currentProjectionMap == null)
@@ -40,6 +40,24 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteRef);
         if (rewrittenFields == null)
             return false;
+
+        var rewrittenFilter = RewriteSidecarJoinFilter(stage.Pipeline.Filter, currentProjectionMap, cteRef);
+        if (stage.Pipeline.Filter != null && rewrittenFilter == null)
+            return false;
+
+        if (rewrittenFilter != null)
+        {
+            if (!TryCreateSidecarJoinRuntimeGuard(
+                    rewrittenFilter.Predicate,
+                    activeLookup,
+                    runtimeOperations.Count,
+                    out var guard))
+            {
+                return false;
+            }
+
+            runtimeOperations.Add(guard);
+        }
 
         if (stage.OutputCteName == null)
         {

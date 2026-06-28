@@ -23,8 +23,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (_includeCteIndexResults)
             yield return CreateObjectLocalDeclaration(CteIndexResultsFieldName, CreateCteIndexResultsTypeSyntax());
 
-        if (_scriptParameterDefinitions.Count > 0)
-            yield return CreateExecutionStateLocalDeclaration();
+        yield return CreateExecutionStateLocalDeclaration();
     }
 
     private static LocalDeclarationStatementSyntax CreateTableResultsLocalDeclaration(int slotCount)

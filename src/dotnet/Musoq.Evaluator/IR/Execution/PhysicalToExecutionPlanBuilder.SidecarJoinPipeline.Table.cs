@@ -20,7 +20,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         int schemaFromIndex = DefaultSchemaFromIndex)
     {
         if (stages.Count == 0)
-            return null;
+            return UnsupportedSidecarJoinPipeline("no stages");
 
         var nodes = new List<ExecutionNode>();
         var shapes = new List<RowShape>();
@@ -38,6 +38,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     stage,
                     currentProjectionMap,
                     activeLookup,
+                    runtimeOperations,
                     ref finalFields,
                     ref finalOutputLookup,
                     out var projectedMap))
@@ -52,7 +53,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 !TryResolveSidecarBuildCteRef(join, out var buildCteRef, out var sidecar) ||
                 !IsSupportedSidecarPipelineJoin(join, sidecar))
             {
-                return null;
+                return UnsupportedSidecarJoinPipeline($"stage {stageIndex} is not a supported sidecar hash/keyset join");
             }
 
             var probeSourceNode = ReferenceEquals(join.Left, buildCteRef)
@@ -63,7 +64,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             if (stage.ExpectedInputCteName == null)
             {
                 if (baseSource != null)
-                    return null;
+                    return UnsupportedSidecarJoinPipeline($"stage {stageIndex} tried to create a second base source");
 
                 var source = BuildJoinSource(
                     probeSourceNode,
@@ -85,7 +86,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     !string.Equals(cteRef.CteName, stage.ExpectedInputCteName, StringComparison.OrdinalIgnoreCase) ||
                     currentProjectionMap == null)
                 {
-                    return null;
+                    return UnsupportedSidecarJoinPipeline($"stage {stageIndex} probe source is not the expected projected CTE");
                 }
 
                 probeCteRef = cteRef;
@@ -109,19 +110,19 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
             var stepLookup = CloneSourceLookup(activeLookup);
             if (!AddSourceShape(stepLookup, buildSource.Source.Shape))
-                return null;
+                return UnsupportedSidecarJoinPipeline($"stage {stageIndex} could not add build source shape");
 
             var rewrittenProbeKeys = RewriteSidecarJoinExpressions(join.ProbeKeys, currentProjectionMap, probeCteRef);
             if (rewrittenProbeKeys == null)
-                return null;
+                return UnsupportedSidecarJoinPipeline($"stage {stageIndex} could not rewrite probe keys");
 
             var rewrittenResidual = RewriteSidecarJoinExpression(join.Residual, currentProjectionMap, probeCteRef);
             if (join.Residual != null && rewrittenResidual == null)
-                return null;
+                return UnsupportedSidecarJoinPipeline($"stage {stageIndex} could not rewrite residual");
 
             var rewrittenFilter = RewriteSidecarJoinFilter(stage.Pipeline.Filter, currentProjectionMap, probeCteRef);
             if (stage.Pipeline.Filter != null && rewrittenFilter == null)
-                return null;
+                return UnsupportedSidecarJoinPipeline($"stage {stageIndex} could not rewrite filter");
 
             var outputLookup = join.Kind == JoinKind.Inner
                 ? stepLookup
@@ -131,7 +132,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 currentProjectionMap,
                 probeCteRef);
             if (rewrittenFields == null)
-                return null;
+                return UnsupportedSidecarJoinPipeline($"stage {stageIndex} could not rewrite projected fields");
 
             var indexVariable = CreateSidecarJoinIndexVariable(
                 resultTableName,
@@ -188,7 +189,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         }
 
         if (baseSource == null || finalFields == null || finalOutputLookup == null)
-            return null;
+            return UnsupportedSidecarJoinPipeline("pipeline did not produce a complete final table");
 
         var resultShape = CreateGeneratedShape(resultShapeName, finalFields, finalOutputLookup);
         var resultTable = new ExecutionVariable(resultTableName, typeof(object));
@@ -211,6 +212,11 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultShape,
             [],
             isDistinct: false);
+    }
+
+    private static TableBuildResult UnsupportedSidecarJoinPipeline(string reason)
+    {
+        return TableBuildResult.Unsupported($"Sidecar join pipeline failed: {reason}.");
     }
 
     private static ExecutionAppendRow CreateSidecarJoinAppendRow(

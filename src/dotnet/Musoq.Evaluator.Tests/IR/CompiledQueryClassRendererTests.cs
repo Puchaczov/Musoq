@@ -112,8 +112,11 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
         var code = Normalize(result);
 
         StringAssert.Contains(code, "public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = new ScriptParameterDefinition[]");
-        StringAssert.Contains(code, "new ScriptParameterDefinition(\"author\", typeof(string), false, null)");
-        StringAssert.Contains(code, "new ScriptParameterDefinition(\"limit\", typeof(int), true, 100)");
+        StringAssert.Contains(code, "public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = new ScriptParameterContract[]");
+        StringAssert.Contains(code, "new ScriptParameterDefinition(new ScriptParameterContract(\"author\", \"string\", \"string\", typeof(string), false, false, null, null, false, ScriptParameterDefaultKind.None, null))");
+        StringAssert.Contains(code, "new ScriptParameterDefinition(new ScriptParameterContract(\"limit\", \"int\", \"int\", typeof(int), false, false, null, null, true, ScriptParameterDefaultKind.Literal, 100))");
+        StringAssert.Contains(code, "new ScriptParameterContract(\"author\", \"string\", \"string\", typeof(string), false, false, null, null, false, ScriptParameterDefaultKind.None, null)");
+        StringAssert.Contains(code, "new ScriptParameterContract(\"limit\", \"int\", \"int\", typeof(int), false, false, null, null, true, ScriptParameterDefaultKind.Literal, 100)");
     }
 
     [TestMethod]
@@ -140,11 +143,11 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
         var result = renderer.Render("ab");
         var code = Normalize(result);
 
-        StringAssert.Contains(code, "new ScriptParameterDefinition(\"code\", typeof(char), true, 'x')");
-        StringAssert.Contains(code, "new ScriptParameterDefinition(\"id\", typeof(Guid), true, new Guid(\"2ffcf6fa-3369-4300-946a-bb131a037985\"))");
-        StringAssert.Contains(code, $"new ScriptParameterDefinition(\"created\", typeof(DateTime), true, new DateTime({dateTime.Ticks}L, DateTimeKind.Utc))");
-        StringAssert.Contains(code, $"new ScriptParameterDefinition(\"seen\", typeof(DateTimeOffset), true, new DateTimeOffset({dateTimeOffset.Ticks}L, new TimeSpan({dateTimeOffset.Offset.Ticks}L)))");
-        StringAssert.Contains(code, $"new ScriptParameterDefinition(\"elapsed\", typeof(TimeSpan), true, new TimeSpan({timeSpan.Ticks}L))");
+        StringAssert.Contains(code, "new ScriptParameterDefinition(new ScriptParameterContract(\"code\", \"char\", \"char\", typeof(char), false, false, null, null, true, ScriptParameterDefaultKind.Literal, 'x'))");
+        StringAssert.Contains(code, "new ScriptParameterDefinition(new ScriptParameterContract(\"id\", \"guid\", \"guid\", typeof(Guid), false, false, null, null, true, ScriptParameterDefaultKind.Literal, new Guid(\"2ffcf6fa-3369-4300-946a-bb131a037985\")))");
+        StringAssert.Contains(code, $"new ScriptParameterDefinition(new ScriptParameterContract(\"created\", \"datetime\", \"datetime\", typeof(DateTime), false, false, null, null, true, ScriptParameterDefaultKind.Literal, new DateTime({dateTime.Ticks}L, DateTimeKind.Utc)))");
+        StringAssert.Contains(code, $"new ScriptParameterDefinition(new ScriptParameterContract(\"seen\", \"datetimeoffset\", \"datetimeoffset\", typeof(DateTimeOffset), false, false, null, null, true, ScriptParameterDefaultKind.Literal, new DateTimeOffset({dateTimeOffset.Ticks}L, new TimeSpan({dateTimeOffset.Offset.Ticks}L))))");
+        StringAssert.Contains(code, $"new ScriptParameterDefinition(new ScriptParameterContract(\"elapsed\", \"timespan\", \"timespan\", typeof(TimeSpan), false, false, null, null, true, ScriptParameterDefaultKind.Literal, new TimeSpan({timeSpan.Ticks}L)))");
     }
 
     [TestMethod]

@@ -163,6 +163,7 @@ public enum DiagnosticCode
     MQ7003_RequiredScriptParameterMissing = 7003,
     MQ7004_ScriptParameterTypeMismatch = 7004,
     MQ7005_ScriptParameterNullNotAllowed = 7005,
+    MQ7006_UnknownScriptParameter = 7006,
 
     // Code Generation Errors (MQ8xxx)
     MQ8001_CodeGenerationFailed = 8001,

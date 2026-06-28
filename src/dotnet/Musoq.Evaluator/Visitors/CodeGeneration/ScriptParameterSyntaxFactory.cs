@@ -26,6 +26,23 @@ internal static class ScriptParameterSyntaxFactory
                     .Select(definition => (ExpressionSyntax)CreateDefinitionCreation(definition)))));
     }
 
+    public static ExpressionSyntax CreateContractsInitializer(
+        IReadOnlyList<ScriptParameterDefinition>? definitions)
+    {
+        if (definitions == null || definitions.Count == 0)
+            return SyntaxFactory.ParseExpression("Array.Empty<ScriptParameterContract>()");
+
+        return SyntaxFactory.ArrayCreationExpression(
+                SyntaxFactory.ArrayType(SyntaxFactory.IdentifierName(nameof(ScriptParameterContract)))
+                    .WithRankSpecifiers(SyntaxFactory.SingletonList(
+                        SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                            SyntaxFactory.OmittedArraySizeExpression())))))
+            .WithInitializer(SyntaxFactory.InitializerExpression(
+                SyntaxKind.ArrayInitializerExpression,
+                SyntaxFactory.SeparatedList(definitions
+                    .Select(definition => (ExpressionSyntax)CreateContractCreation(definition.Contract)))));
+    }
+
     public static ExpressionSyntax CreateDefaultArgumentExpression(
         Type parameterType,
         object? defaultValue)
@@ -43,15 +60,39 @@ internal static class ScriptParameterSyntaxFactory
     private static ObjectCreationExpressionSyntax CreateDefinitionCreation(ScriptParameterDefinition definition)
     {
         return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.IdentifierName(nameof(ScriptParameterDefinition)))
+            .WithArgumentList(CreateArgumentList(CreateContractCreation(definition.Contract)));
+    }
+
+    private static ObjectCreationExpressionSyntax CreateContractCreation(ScriptParameterContract contract)
+    {
+        return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.IdentifierName(nameof(ScriptParameterContract)))
             .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([
-                SyntaxFactory.Argument(CreateStringLiteral(definition.Name)),
-                SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(CreateTypeSyntax(definition.ParameterType))),
-                SyntaxFactory.Argument(definition.HasDefaultValue
+                SyntaxFactory.Argument(CreateStringLiteral(contract.Name)),
+                SyntaxFactory.Argument(CreateStringLiteral(contract.DeclaredTypeName)),
+                SyntaxFactory.Argument(CreateStringLiteral(contract.CanonicalTypeName)),
+                SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(CreateTypeSyntax(contract.ClrType))),
+                SyntaxFactory.Argument(contract.IsNullable
                     ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
                     : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)),
-                SyntaxFactory.Argument(definition.DefaultValue == null
+                SyntaxFactory.Argument(contract.IsCollection
+                    ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
+                    : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)),
+                SyntaxFactory.Argument(contract.ElementClrType == null
                     ? SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
-                    : CreateDefaultValueExpression(definition.DefaultValue))
+                    : SyntaxFactory.TypeOfExpression(CreateTypeSyntax(contract.ElementClrType))),
+                SyntaxFactory.Argument(contract.ElementCanonicalTypeName == null
+                    ? SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+                    : CreateStringLiteral(contract.ElementCanonicalTypeName)),
+                SyntaxFactory.Argument(contract.HasDefaultValue
+                    ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
+                    : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)),
+                SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName(nameof(ScriptParameterDefaultKind)),
+                    SyntaxFactory.IdentifierName(contract.DefaultKind.ToString()))),
+                SyntaxFactory.Argument(contract.DefaultValue == null
+                    ? SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
+                    : CreateDefaultValueExpression(contract.DefaultValue))
             ])));
     }
 

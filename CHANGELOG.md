@@ -4,6 +4,29 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.0-alpha.4
+
+See [release-notes/v17.0.0-alpha.4.md](release-notes/v17.0.0-alpha.4.md) for the curated GitHub Release text.
+
+### Musoq.Parser
+
+- Added canonical runtime-v2 script parameter type cataloging and `MQ7006_UnknownScriptParameter`.
+
+### Musoq.Schema
+
+- Added public runtime-v2 contract signature constants for artifact and cache compatibility.
+
+### Musoq.Evaluator
+
+- Added strict unknown runtime parameter validation while preserving missing/null/type-mismatch precedence.
+- Added canonical `ScriptParameterContract` metadata for declared type names, canonical engine type names, CLR types, nullability, collection elements, and defaults.
+- Fixed CTE sidecar join-chain lowering for final projection filters over aliases introduced by sidecar probes.
+
+### Musoq.Converter
+
+- Exposed canonical parameter contracts through compiled query, typed/profile query, generated runnable, and typed artifact APIs.
+- Included the runtime-v2 contract signature and CTE sidecar option in artifact validation, semantic hashes, and execution compilation cache keys.
+
 ## 17.0.0-alpha.3
 
 See [release-notes/v17.0.0-alpha.3.md](release-notes/v17.0.0-alpha.3.md) for the curated GitHub Release text.

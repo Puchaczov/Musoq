@@ -81,11 +81,12 @@ internal sealed class ScriptParameterMetadataBinder(
             throw new NotSupportedException(error);
         }
 
-        var definition = new ScriptParameterDefinition(
+        var definition = new ScriptParameterDefinition(ScriptParameterContract.Create(
             parameter.Name,
+            parameter.DeclaredTypeName,
             parameterType,
             parameter.HasDefaultValue,
-            defaultValue);
+            defaultValue));
 
         _definitions.Add(definition);
         _definitionsByName.Add(parameter.Name, definition);

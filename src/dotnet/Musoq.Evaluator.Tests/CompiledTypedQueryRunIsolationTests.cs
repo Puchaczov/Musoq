@@ -92,6 +92,9 @@ public sealed class CompiledTypedQueryRunIsolationTests
 
         public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; } = [];
 
+        public IReadOnlyList<ScriptParameterContract> ParameterContracts =>
+            ParameterDefinitions.Select(static definition => definition.Contract).ToArray();
+
         public event QueryPhaseEventHandler PhaseChanged
         {
             add => _phaseChanged += value;

@@ -15,6 +15,8 @@ public interface ICompiledTypedQuery<out TOut>
 
     IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions { get; }
 
+    IReadOnlyList<ScriptParameterContract> ParameterContracts { get; }
+
     IReadOnlyList<ScriptParameterDefinition> RequiredParameters { get; }
 
     TypedQueryDiagnostics Diagnostics { get; }

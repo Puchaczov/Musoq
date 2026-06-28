@@ -30,6 +30,8 @@ internal sealed class TypedRunnableFactory<TOut>
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions => _core.ParameterDefinitions;
 
+    public IReadOnlyList<ScriptParameterContract> ParameterContracts => _core.ParameterContracts;
+
     public TypedQueryDiagnostics Diagnostics => _core.Diagnostics;
 
     public CompiledTypedQuery<TOut> Create(ISchemaProvider provider)

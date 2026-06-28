@@ -84,7 +84,7 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.Contains("const string letTopic = \"important\";", code);
         Assert.Contains("DateTime letCreated = new DateTime(", code);
-        Assert.AreEqual(0, CountOccurrences(code, "ScriptParameterBinder."));
+        Assert.AreEqual(0, CountOccurrences(code, "ScriptParameterBinder.Get"));
     }
 
     [TestMethod]
@@ -142,7 +142,7 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.Contains("var paramAuthor = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"author\");", code);
         Assert.Contains("result.Add(new ResultRow0(paramAuthor));", code);
         Assert.AreEqual(1, CountOccurrences(code, "ExecutionState.Capture(Parameters)"));
-        Assert.AreEqual(1, CountOccurrences(code, "__musoqExecutionState.Parameters"));
+        Assert.AreEqual(2, CountOccurrences(code, "__musoqExecutionState.Parameters"));
     }
 
     [TestMethod]
@@ -174,7 +174,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var helperCode = RenderClassMembersCode(renderer, plan);
 
         Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"country\");", methodCode);
-        Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder."));
+        Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
         Assert.Contains("BuildHash(leftRows, hash, token, paramCountry);", methodCode);
         Assert.Contains("private static void BuildHash(IEnumerable<Musoq.Evaluator.Tables.Row> leftRows, Dictionary<string, HashJoinBucket<Musoq.Evaluator.Tables.Row>> hash, CancellationToken token, string paramCountry)", helperCode);
         Assert.Contains("token.ThrowIfCancellationRequested();", helperCode);
@@ -221,7 +221,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var helperCode = RenderClassMembersCode(renderer, plan);
 
         Assert.Contains("const string letCountry = \"PL\";", methodCode);
-        Assert.AreEqual(0, CountOccurrences(methodCode, "ScriptParameterBinder."));
+        Assert.AreEqual(0, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
         Assert.Contains("BuildHash(leftRows, hash, token, letCountry);", methodCode);
         Assert.Contains("private static void BuildHash(IEnumerable<Musoq.Evaluator.Tables.Row> leftRows, Dictionary<string, HashJoinBucket<Musoq.Evaluator.Tables.Row>> hash, CancellationToken token, string letCountry)", helperCode);
         Assert.Contains("token.ThrowIfCancellationRequested();", helperCode);
@@ -241,7 +241,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var helperCode = RenderClassMembersCode(renderer, plan);
 
         Assert.Contains("var paramLabel = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"label\");", methodCode);
-        Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder."));
+        Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
         Assert.Contains("AppendLeftJoinRows(rightRows, hash, result, token, paramLabel);", methodCode);
         Assert.Contains("private static void AppendLeftJoinRows(IEnumerable<Musoq.Evaluator.Tables.Row> rightRows, Dictionary<int, HashJoinBucket<Musoq.Evaluator.Tables.Row>> hash, Musoq.Evaluator.Tables.Table result, CancellationToken token, string paramLabel)", helperCode);
         Assert.Contains("token.ThrowIfCancellationRequested();", helperCode);
@@ -263,7 +263,7 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"country\");", methodCode);
         Assert.Contains("var paramInclude = ScriptParameterBinder.GetRequired<bool>(__musoqExecutionState.Parameters, \"include\");", methodCode);
-        Assert.AreEqual(2, CountOccurrences(methodCode, "ScriptParameterBinder."));
+        Assert.AreEqual(2, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
         Assert.Contains("PopulateResultSingleKeyGroups(rows, rootGroup, groupsToFinalize, groups, token, paramCountry);", methodCode);
         Assert.Contains("FinalizeResultSingleKeyGroups(result, groupsToFinalize, token, paramInclude);", methodCode);
         Assert.Contains("IEnumerable<Musoq.Evaluator.Tables.Row> rows", helperCode);
@@ -286,7 +286,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var helperCode = RenderClassMembersCode(renderer, plan);
 
         Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"country\");", methodCode);
-        Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder."));
+        Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
         Assert.Contains("ParallelSingleKeyAggregate_0(groupsToFinalizeParallelRows, 4, token, paramCountry)", methodCode);
         Assert.Contains("private static List<ResultAggregateGroup> ParallelSingleKeyAggregate_0(IReadOnlyList<Musoq.Evaluator.Tables.Row> rows, int maxDegreeOfParallelism, CancellationToken cancellationToken, string paramCountry)", helperCode);
         Assert.Contains("private readonly string _paramCountry;", helperCode);
@@ -310,7 +310,7 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.Contains("var paramInclude = ScriptParameterBinder.GetRequired<bool>(__musoqExecutionState.Parameters, \"include\");", methodCode);
         Assert.Contains("var paramLabel = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"label\");", methodCode);
-        Assert.AreEqual(2, CountOccurrences(methodCode, "ScriptParameterBinder."));
+        Assert.AreEqual(2, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
         Assert.Contains("PopulateResult(result, rows, token, paramInclude, paramLabel);", methodCode);
         Assert.Contains("private static void PopulateResult(Musoq.Evaluator.Tables.Table result, IEnumerable<Musoq.Evaluator.Tables.Row> rowRows, CancellationToken token, bool paramInclude, string paramLabel)", helperCode);
         Assert.Contains("if (paramInclude)", helperCode);
@@ -330,7 +330,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var helperCode = RenderClassMembersCode(renderer, plan);
 
         Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"country\");", methodCode);
-        Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder."));
+        Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
         Assert.Contains("BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults, paramCountry)", methodCode);
         Assert.IsLessThan(
             methodCode.IndexOf("BuildCte0(", StringComparison.Ordinal), methodCode.IndexOf("var paramCountry =", StringComparison.Ordinal));
@@ -354,7 +354,7 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.Contains("var paramCountry = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"country\");", methodCode);
         Assert.Contains("var paramSortLabel = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"sortLabel\");", methodCode);
-        Assert.AreEqual(2, CountOccurrences(methodCode, "ScriptParameterBinder."));
+        Assert.AreEqual(2, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
         Assert.Contains("ExtractRankingsWindowKeys(windowRows, rankingsPartitionKeys, rankingsOrderKeys, paramCountry, paramSortLabel);", methodCode);
         Assert.Contains("private static void ExtractRankingsWindowKeys(", helperCode);
         Assert.Contains("string paramCountry", helperCode);
@@ -376,7 +376,7 @@ public sealed partial class ExecutionCSharpRendererTests
         var helperCode = RenderClassMembersCode(renderer, plan);
 
         Assert.Contains("var paramLabel = ScriptParameterBinder.GetRequired<string>(__musoqExecutionState.Parameters, \"label\");", methodCode);
-        Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder."));
+        Assert.AreEqual(1, CountOccurrences(methodCode, "ScriptParameterBinder.Get"));
         Assert.Contains("AppendResultWindowRows(resultWindowRows, result, paramLabel);", methodCode);
         Assert.Contains("private static void AppendResultWindowRows(", helperCode);
         Assert.Contains("string paramLabel", helperCode);

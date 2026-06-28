@@ -86,6 +86,7 @@ public static partial class InstanceCreator
 
         return new ExecutionCompilationCacheKey(
             script,
+            RuntimeV2Contract.ContractSignature,
             providerType.AssemblyQualifiedName ?? providerType.FullName ?? providerType.Name,
             CreateProviderSignature(schemaProvider),
             options.ParallelizationMode,
@@ -95,9 +96,18 @@ public static partial class InstanceCreator
             options.UseConstantFolding,
             options.UsePrimitiveTypeValidation,
             options.UseCteParallelization,
+            options.UseCteSidecarIndexes,
             options.MaxDegreeOfParallelismOverride,
             options.InstrumentationMode,
             options.ForceTableResultMaterialization);
+    }
+
+    internal static string CreateExecutionCompilationCacheKeyTestSignature(
+        string script,
+        ISchemaProvider schemaProvider,
+        CompilationOptions options)
+    {
+        return CreateExecutionCompilationCacheKey(script, schemaProvider, options).ToString();
     }
 
     private static string CreateProviderSignature(ISchemaProvider schemaProvider)
@@ -228,6 +238,7 @@ public static partial class InstanceCreator
 
     private readonly record struct ExecutionCompilationCacheKey(
         string Script,
+        string RuntimeV2ContractSignature,
         string ProviderType,
         string ProviderSignature,
         ParallelizationMode ParallelizationMode,
@@ -237,6 +248,7 @@ public static partial class InstanceCreator
         bool UseConstantFolding,
         bool UsePrimitiveTypeValidation,
         bool UseCteParallelization,
+        bool UseCteSidecarIndexes,
         int? MaxDegreeOfParallelismOverride,
         QueryInstrumentationMode InstrumentationMode,
         bool ForceTableResultMaterialization);

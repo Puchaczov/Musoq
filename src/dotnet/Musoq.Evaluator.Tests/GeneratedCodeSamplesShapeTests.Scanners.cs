@@ -84,7 +84,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         Assert.AreEqual(
             expectedCount,
-            CountOccurrences(content, "ScriptParameterBinder."),
+            CountOccurrences(content, "ScriptParameterBinder.Get"),
             $"{fileName}: script parameters should be bound once in the top-level generated query method.");
     }
 

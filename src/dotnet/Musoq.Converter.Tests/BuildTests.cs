@@ -354,6 +354,8 @@ public class BuildTests
 
         public string RuntimeVersion => inner.RuntimeVersion;
 
+        public string RuntimeContractSignature => inner.RuntimeContractSignature;
+
         public byte[] DllFile => inner.DllFile;
 
         public byte[]? PdbFile => inner.PdbFile;
@@ -375,6 +377,8 @@ public class BuildTests
         public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans => inner.SourceExecutionPlans;
 
         public IReadOnlyList<global::Musoq.Evaluator.ScriptParameterDefinition> ParameterDefinitions => inner.ParameterDefinitions;
+
+        public IReadOnlyList<global::Musoq.Evaluator.ScriptParameterContract> ParameterContracts => inner.ParameterContracts;
 
         public IReadOnlyList<TypedArtifactSourceSlotIdentity> SourceSlotIdentities => inner.SourceSlotIdentities;
     }

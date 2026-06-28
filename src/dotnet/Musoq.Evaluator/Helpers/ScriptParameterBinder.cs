@@ -5,6 +5,24 @@ namespace Musoq.Evaluator.Helpers;
 
 public static class ScriptParameterBinder
 {
+    public static void ValidateNoUnknownParameters(
+        IReadOnlyDictionary<string, object?> parameters,
+        IReadOnlyCollection<string> declaredNames)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        ArgumentNullException.ThrowIfNull(declaredNames);
+
+        if (parameters.Count == 0)
+            return;
+
+        var declared = new HashSet<string>(declaredNames, StringComparer.Ordinal);
+        foreach (var parameter in parameters.Keys)
+        {
+            if (!declared.Contains(parameter))
+                throw ScriptParameterBindingException.Unknown(parameter);
+        }
+    }
+
     public static T GetRequired<T>(IReadOnlyDictionary<string, object?> parameters, string name)
     {
         ArgumentNullException.ThrowIfNull(parameters);

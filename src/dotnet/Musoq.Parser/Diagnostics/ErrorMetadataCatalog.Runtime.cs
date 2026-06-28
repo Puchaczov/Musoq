@@ -51,5 +51,14 @@ internal static class RuntimeErrorMetadataCatalog
                 "Declare the parameter as nullable, for example int?, if null is allowed."
             ],
             "Core Spec - Script Parameters");
+
+        yield return Entry(
+            DiagnosticCode.MQ7006_UnknownScriptParameter,
+            "The host supplied a runtime script parameter that is not declared by the query.",
+            [
+                "Remove the unknown parameter from the runtime parameter dictionary.",
+                "Add the parameter to the param(...) block if the query should accept it."
+            ],
+            "Core Spec - Script Parameters");
     }
 }

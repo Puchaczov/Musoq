@@ -47,6 +47,8 @@ internal sealed class PublicCompiledTypedProfileQuery<TOut> : ICompiledTypedProf
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions => _runState.ParameterDefinitions;
 
+    public IReadOnlyList<ScriptParameterContract> ParameterContracts => _runState.ParameterContracts;
+
     public IReadOnlyList<ScriptParameterDefinition> RequiredParameters => _runState.RequiredParameters;
 
     public TypedQueryDiagnostics Diagnostics => _factory.Diagnostics;

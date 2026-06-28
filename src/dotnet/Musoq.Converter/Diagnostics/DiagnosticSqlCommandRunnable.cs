@@ -34,6 +34,8 @@ internal sealed class DiagnosticSqlCommandRunnable(
 
     public IReadOnlyList<ScriptParameterDefinition> ParameterDefinitions => innerQuery.ParameterDefinitions;
 
+    public IReadOnlyList<ScriptParameterContract> ParameterContracts => innerQuery.ParameterContracts;
+
     public event QueryPhaseEventHandler PhaseChanged
     {
         add => innerQuery.PhaseChanged += value;
