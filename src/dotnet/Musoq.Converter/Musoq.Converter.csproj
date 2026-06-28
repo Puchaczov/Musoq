@@ -40,6 +40,9 @@
     <Compile Update="InstanceCreator.BuildChains.cs">
       <DependentUpon>InstanceCreator.cs</DependentUpon>
     </Compile>
+    <Compile Update="InstanceCreator.Artifacts.cs">
+      <DependentUpon>InstanceCreator.cs</DependentUpon>
+    </Compile>
     <Compile Update="InstanceCreator.DebugLoading.cs">
       <DependentUpon>InstanceCreator.cs</DependentUpon>
     </Compile>

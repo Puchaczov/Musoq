@@ -166,6 +166,7 @@ public enum DiagnosticCode
 
     // Code Generation Errors (MQ8xxx)
     MQ8001_CodeGenerationFailed = 8001,
+    MQ8002_CompiledArtifactIncompatible = 8002,
 
     // Internal/Unknown (MQ9xxx)
     MQ9999_Unknown = 9999
