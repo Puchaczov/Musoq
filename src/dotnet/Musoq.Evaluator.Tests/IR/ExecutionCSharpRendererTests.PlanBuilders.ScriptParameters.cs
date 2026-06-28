@@ -256,22 +256,6 @@ public sealed partial class ExecutionCSharpRendererTests
                     typeof(string),
                     aggregatePlan),
                 new ExecutionParallelSingleKeyAggregateLoop(
-                    new ExecutionForEach(
-                        row,
-                        new ExecutionVariableRead(rows),
-                        new ExecutionBlock(
-                        [
-                            new ExecutionGetOrAddSingleKeyAggregateGroup(
-                                rootGroup,
-                                groups,
-                                groupsToFinalize,
-                                group,
-                                new ExecutionScriptParameterRead("country", typeof(string)),
-                                "Country",
-                                typeof(string),
-                                null,
-                                aggregatePlan)
-                        ])),
                     row,
                     new ExecutionVariableRead(rows),
                     new ExecutionScriptParameterRead("country", typeof(string)),
@@ -333,19 +317,16 @@ public sealed partial class ExecutionCSharpRendererTests
             [
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionParallelFilterProjectLoop(
-                    new ExecutionForEach(
-                        row,
-                        new ExecutionVariableRead(rows),
-                        new ExecutionBlock(
-                        [
-                            new ExecutionIf(
-                                new ExecutionScriptParameterRead("include", typeof(bool)),
-                                new ExecutionBlock([appendRow]))
-                        ])),
                     row,
                     new ExecutionVariableRead(rows),
                     new ExecutionScriptParameterRead("include", typeof(bool)),
                     appendRow,
+                    new ExecutionBlock(
+                    [
+                        new ExecutionIf(
+                            new ExecutionScriptParameterRead("include", typeof(bool)),
+                            new ExecutionBlock([appendRow]))
+                    ]),
                     1,
                     4),
                 new ExecutionReturnTable(resultTable)

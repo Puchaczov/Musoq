@@ -48,7 +48,7 @@ internal static class FinalProjectionDirectProjectionAnalyzer
         if (target == FinalProjectionSinkTarget.TableRows &&
             loopNodes[0] is ExecutionParallelFilterProjectLoop parallelLoop &&
             FinalProjectionSinkPlanningHelpers.HasDuplicatedUncachedMethodCalls(parallelLoop) &&
-            !FinalProjectionSinkPlanningHelpers.CanRenderOptionalProjectionProjectorBody(parallelLoop.SequentialLoop.Body))
+            !FinalProjectionSinkPlanningHelpers.CanRenderOptionalProjectionProjectorBody(parallelLoop.ProjectionBody))
         {
             return FinalProjectionSinkPlan.Rejected(
                 FinalProjectionSinkRejectionKind.UnexpectedPlanNodes,

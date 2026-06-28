@@ -20,7 +20,6 @@ public sealed partial class ExecutionCSharpRenderer
             parallelProject,
             parallelRowsName,
             parallelProject.SourceRows);
-        var condition = ExecutionCSharpRenderer.CreateParallelRowsAvailableCondition(parallelRowsName);
         var projectedRowsDeclaration = CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             projectedRowsName,
@@ -29,15 +28,12 @@ public sealed partial class ExecutionCSharpRenderer
             projectedShapeName,
             CreateQueryRowsFromShardsInvocation(projectedRowsName),
             StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(SyntaxFactory.IdentifierName(projectedShapeName))));
-        var sequentialStatements = RenderParallelLoopSequentialKernel(parallelProject.SequentialLoop);
 
         return
         [
             parallelRowsDeclaration,
-            SyntaxFactory.IfStatement(
-                condition,
-                StatementEmitter.CreateBlock(projectedRowsDeclaration, appendProjectedShapes),
-                SyntaxFactory.ElseClause(StatementEmitter.CreateBlock(sequentialStatements)))
+            projectedRowsDeclaration,
+            appendProjectedShapes
         ];
     }
 

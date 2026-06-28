@@ -65,8 +65,10 @@ public sealed partial class CSharpRenderer
 
             statements.AddRange(CreateTableRowsParallelReturnStatements(resultInfo, executionRenderer, projectionLoop, sourceRowsName, closingPhaseStatements));
         }
-
-        statements.Add(CreateTableRowsSerialReturnStatement(resultInfo, executionRenderer, projectionLoop, sourceRowsName, closingPhaseStatements));
+        else
+        {
+            statements.Add(CreateTableRowsSerialReturnStatement(resultInfo, executionRenderer, projectionLoop, sourceRowsName, closingPhaseStatements));
+        }
 
         return SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.ParseTypeName($"IEnumerable<{resultInfo.RowTypeName}>"),
@@ -305,14 +307,11 @@ public sealed partial class CSharpRenderer
     {
         const string parallelRowsName = "__musoqTableParallelRows";
         yield return CreateParallelRowsProbeDeclaration(projectionLoop, sourceRowsName, parallelRowsName);
-
-        yield return SyntaxFactory.IfStatement(
-            CreateParallelRowsAvailableCondition(parallelRowsName),
-            SyntaxFactory.Block(SyntaxFactory.ReturnStatement(
-                CreateLifecycleTableRowsExpression(
-                    resultInfo.RowTypeName,
-                    CreateTableRowsParallelExpression(resultInfo, executionRenderer, projectionLoop, parallelRowsName),
-                    closingPhaseStatements))));
+        yield return SyntaxFactory.ReturnStatement(
+            CreateLifecycleTableRowsExpression(
+                resultInfo.RowTypeName,
+                CreateTableRowsParallelExpression(resultInfo, executionRenderer, projectionLoop, parallelRowsName),
+                closingPhaseStatements));
     }
 
     private static ReturnStatementSyntax CreateTableRowsSerialReturnStatement(

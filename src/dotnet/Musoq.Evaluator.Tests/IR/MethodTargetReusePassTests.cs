@@ -305,11 +305,11 @@ public sealed class MethodTargetReusePassTests
             rows,
             new ExecutionBlock([appendRow]));
         var plan = CreatePlan(new ExecutionParallelFilterProjectLoop(
-            sequentialLoop,
             source,
             rows,
             null,
             appendRow,
+            sequentialLoop.Body,
             1000,
             2));
 
@@ -318,15 +318,15 @@ public sealed class MethodTargetReusePassTests
         Assert.IsTrue(result.IsChanged);
         var createObject = (ExecutionCreateObject)result.Plan.Body.Nodes[0];
         var parallelLoop = (ExecutionParallelFilterProjectLoop)result.Plan.Body.Nodes[1];
-        var serialAppend = (ExecutionAppendRow)parallelLoop.SequentialLoop.Body.Nodes.Single();
-        var serialCall = (ExecutionMethodCall)serialAppend.Values.Single().Value;
+        var projectionAppend = (ExecutionAppendRow)parallelLoop.ProjectionBody.Nodes.Single();
+        var projectionCall = (ExecutionMethodCall)projectionAppend.Values.Single().Value;
         var projectorCall = (ExecutionMethodCall)parallelLoop.AppendRow.Values.Single().Value;
 
         Assert.AreEqual(typeof(LibraryBase), createObject.Target.Type);
-        Assert.AreSame(createObject.Target, serialCall.Target);
+        Assert.AreSame(createObject.Target, projectionCall.Target);
         Assert.AreSame(createObject.Target, projectorCall.Target);
         Assert.IsFalse(ExecutionIrAnalysis
-            .CollectNodes<ExecutionCreateObject>(parallelLoop.SequentialLoop.Body)
+            .CollectNodes<ExecutionCreateObject>(parallelLoop.ProjectionBody)
             .Any());
     }
 

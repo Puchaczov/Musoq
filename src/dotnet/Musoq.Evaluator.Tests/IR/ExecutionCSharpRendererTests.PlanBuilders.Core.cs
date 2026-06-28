@@ -150,11 +150,11 @@ public sealed partial class ExecutionCSharpRendererTests
                 new ExecutionSourceScan(source, sourceRows, sourceBinding),
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionParallelFilterProjectLoop(
-                    serialLoop,
                     source,
                     new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Chunks),
                     predicate,
                     appendRow,
+                    serialLoop.Body,
                     1,
                     4),
                 new ExecutionReturnTable(resultTable)
@@ -232,11 +232,11 @@ public sealed partial class ExecutionCSharpRendererTests
                 new ExecutionCreateObject(methodCall.Target!),
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionParallelFilterProjectLoop(
-                    serialLoop,
                     source,
                     new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Chunks),
                     predicate,
                     appendRow,
+                    serialLoop.Body,
                     1,
                     4),
                 new ExecutionReturnTable(resultTable)

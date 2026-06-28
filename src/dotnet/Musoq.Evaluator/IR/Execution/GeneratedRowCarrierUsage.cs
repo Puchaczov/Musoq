@@ -62,11 +62,9 @@ internal static class GeneratedRowCarrierUsage
                 break;
             case ExecutionParallelFilterProjectLoop loop:
                 AddVariable(loop.Source, aliases);
-                AddVariable(loop.SequentialLoop.Item, aliases);
                 break;
             case ExecutionParallelSingleKeyAggregateLoop loop:
                 AddVariable(loop.Source, aliases);
-                AddVariable(loop.SequentialLoop.Item, aliases);
                 break;
             case ExecutionMaterializeFilteredList materialize:
                 AddVariable(materialize.Item, aliases);

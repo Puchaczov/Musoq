@@ -75,51 +75,39 @@ internal abstract partial class ExecutionIrRewriter
 
     protected virtual ExecutionNode RewriteParallelFilterProjectLoop(ExecutionParallelFilterProjectLoop node)
     {
-        var sequentialLoop = RewriteSourceLoop(node.SequentialLoop);
         var sourceRows = RewriteExpression(node.SourceRows);
         var predicate = RewriteOptionalExpression(node.Predicate);
         var appendRow = (ExecutionAppendRow)RewriteAppendRow(node.AppendRow);
-        return ReferenceEquals(sequentialLoop, node.SequentialLoop) &&
-               ReferenceEquals(sourceRows, node.SourceRows) &&
+        var projectionBody = RewriteBlock(node.ProjectionBody);
+        return ReferenceEquals(sourceRows, node.SourceRows) &&
                ReferenceEquals(predicate, node.Predicate) &&
-               ReferenceEquals(appendRow, node.AppendRow)
+               ReferenceEquals(appendRow, node.AppendRow) &&
+               ReferenceEquals(projectionBody, node.ProjectionBody)
             ? node
             : node with
             {
-                SequentialLoop = sequentialLoop,
                 SourceRows = sourceRows,
                 Predicate = predicate,
-                AppendRow = appendRow
+                AppendRow = appendRow,
+                ProjectionBody = projectionBody
             };
     }
 
     protected virtual ExecutionNode RewriteParallelSingleKeyAggregateLoop(ExecutionParallelSingleKeyAggregateLoop node)
     {
-        var sequentialLoop = RewriteSourceLoop(node.SequentialLoop);
         var sourceRows = RewriteExpression(node.SourceRows);
         var key = RewriteExpression(node.Key);
         var aggregateBody = RewriteBlock(node.AggregateBody);
-        return ReferenceEquals(sequentialLoop, node.SequentialLoop) &&
-               ReferenceEquals(sourceRows, node.SourceRows) &&
+        return ReferenceEquals(sourceRows, node.SourceRows) &&
                ReferenceEquals(key, node.Key) &&
                ReferenceEquals(aggregateBody, node.AggregateBody)
             ? node
             : node with
             {
-                SequentialLoop = sequentialLoop,
                 SourceRows = sourceRows,
                 Key = key,
                 AggregateBody = aggregateBody
             };
-    }
-
-    private ExecutionSourceLoop RewriteSourceLoop(ExecutionSourceLoop loop)
-    {
-        return loop switch
-        {
-            ExecutionForEach forEach => (ExecutionSourceLoop)RewriteForEach(forEach),
-            _ => throw new NotSupportedException($"Execution source loop rewrite does not support '{loop.GetType().Name}'.")
-        };
     }
 
     protected virtual ExecutionNode RewriteLet(ExecutionLet node)

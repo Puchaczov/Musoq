@@ -769,9 +769,6 @@
     <Compile Update="IR\Execution\ExecutionCSharpRenderer.RowsAndShapes.cs">
       <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
     </Compile>
-    <Compile Update="IR\Execution\ExecutionCSharpRenderer.SerialAggregates.cs">
-      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
-    </Compile>
     <Compile Update="IR\Execution\ExecutionCSharpRenderer.SetOperations.cs">
       <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
     </Compile>
@@ -1742,9 +1739,6 @@
       <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
     </Compile>
     <Compile Update="IR\Execution\ExecutionCSharpRenderer.ScriptParameterLocalNames.cs">
-      <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
-    </Compile>
-    <Compile Update="IR\Execution\ExecutionCSharpRenderer.SerialAggregateHelperUtilities.cs">
       <DependentUpon>ExecutionCSharpRenderer.cs</DependentUpon>
     </Compile>
     <Compile Update="IR\Execution\ExecutionCSharpRenderer.SourceBoundaryProfilingRenderer.cs">

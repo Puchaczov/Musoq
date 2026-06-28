@@ -13,20 +13,15 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var parallelRowsName = $"{parallelAggregate.GroupsToFinalize.Name}ParallelRows";
         var parallelRowsDeclaration = CreateParallelAggregationRowsDeclaration(parallelAggregate, parallelRowsName);
-        var condition = CreateParallelAggregationRowsCondition(parallelAggregate, parallelRowsName);
         var parallelAssignment = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
             SyntaxKind.SimpleAssignmentExpression,
             SyntaxFactory.IdentifierName(parallelAggregate.GroupsToFinalize.Name),
             CreateParallelSingleKeyAggregateInvocation(parallelAggregate, parallelRowsName)));
-        var serialStatement = CreateSerialSingleKeyAggregateInvocation(parallelAggregate);
 
         return
         [
             parallelRowsDeclaration,
-            SyntaxFactory.IfStatement(
-                condition,
-                StatementEmitter.CreateBlock(parallelAssignment),
-                SyntaxFactory.ElseClause(StatementEmitter.CreateBlock(serialStatement)))
+            parallelAssignment
         ];
     }
     private LocalDeclarationStatementSyntax CreateParallelAggregationRowsDeclaration(
@@ -55,47 +50,6 @@ public sealed partial class ExecutionCSharpRenderer
                     .WithInitializer(SyntaxFactory.EqualsValueClause(initializer)))));
     }
 
-    private BinaryExpressionSyntax CreateParallelAggregationRowsCondition(
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        string parallelRowsName)
-    {
-        return SyntaxFactory.BinaryExpression(
-            SyntaxKind.LogicalAndExpression,
-            SyntaxFactory.BinaryExpression(
-                SyntaxKind.GreaterThanExpression,
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(parallelRowsName),
-                    SyntaxFactory.IdentifierName(nameof(IReadOnlyCollection<>.Count))),
-                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))),
-            CreateParallelAggregationCardinalityCheck(parallelAggregate, parallelRowsName));
-    }
-
-    private InvocationExpressionSyntax CreateParallelAggregationCardinalityCheck(
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        string parallelRowsName)
-    {
-        return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory.GenericName(nameof(EvaluationHelper.ShouldUseParallelSingleKeyAggregation))
-                        .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(
-                        [
-                            CreateVariableTypeSyntax(parallelAggregate.Source),
-                            CreateTypeSyntax(parallelAggregate.KeyType)
-                        ])))))
-            .WithArgumentList(CreateArgumentList(
-                SyntaxFactory.IdentifierName(parallelRowsName),
-                CreateParallelAggregateKeySelector(parallelAggregate),
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(parallelAggregate.CardinalitySampleSize)),
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(parallelAggregate.MaxDistinctSample))));
-    }
-
     private InvocationExpressionSyntax CreateParallelSingleKeyAggregateInvocation(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
         string parallelRowsName)
@@ -117,11 +71,4 @@ public sealed partial class ExecutionCSharpRenderer
             .WithArgumentList(CreateArgumentList(arguments));
     }
 
-    private ParenthesizedLambdaExpressionSyntax CreateParallelAggregateKeySelector(
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
-    {
-        return SyntaxFactory.ParenthesizedLambdaExpression(RenderExpression(parallelAggregate.Key))
-            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(
-                SyntaxFactory.Parameter(SyntaxFactory.Identifier(EscapeIdentifier(parallelAggregate.Source.Name))))));
-    }
 }

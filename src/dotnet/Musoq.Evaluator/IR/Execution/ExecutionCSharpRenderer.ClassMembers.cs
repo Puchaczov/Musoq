@@ -171,10 +171,6 @@ public sealed partial class ExecutionCSharpRenderer
             members.AddRange(uniqueParallelAggregateLoops.Select(CreateParallelSingleKeyAggregateFunction));
             members.AddRange(uniqueParallelAggregateLoops.Select(CreateParallelSingleKeyAggregateShardFunction));
             members.AddRange(uniqueParallelAggregateLoops.Select(CreateParallelSingleKeyAggregateWorkerClass));
-            members.AddRange(parallelAggregateLoops
-                .GroupBy(CreateSerialSingleKeyAggregateFunctionName)
-                .Select(static group => group.First())
-                .Select(CreateSerialSingleKeyAggregateFunction));
             members.AddRange(FlattenNodes(plan.Body)
                 .OfType<ExecutionOrderRecordList>()
                 .Where(order => renderedOrderComparers.Add(CreateOrderRecordComparerTypeName(order.RecordShape)))

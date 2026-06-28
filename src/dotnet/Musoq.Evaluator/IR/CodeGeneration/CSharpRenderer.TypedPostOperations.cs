@@ -67,7 +67,9 @@ public sealed partial class CSharpRenderer
         {
             const string parallelRowsName = "__musoqTypedPostParallelRows";
             statements.Add(CreateParallelRowsProbeDeclaration(projectionLoop, sourceRowsName, parallelRowsName));
-            statements.Add(CreateTypedPostParallelAssignment(resultInfo, executionRenderer, projectionLoop, sourceRowsName, projectedRowsName));
+            statements.Add(CreateTypedPostRowsAssignment(
+                projectedRowsName,
+                CreateRowShardedReturnExpression(resultInfo, executionRenderer, projectionLoop, parallelRowsName)));
         }
         else
         {
@@ -90,24 +92,6 @@ public sealed partial class CSharpRenderer
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
             .WithParameterList(MethodDeclarationHelper.CreateTypedRunContextParameterList())
             .WithBody(SyntaxFactory.Block(statements));
-    }
-
-    private static IfStatementSyntax CreateTypedPostParallelAssignment(
-        TableViaRowsResultInfo resultInfo,
-        ExecutionCSharpRenderer executionRenderer,
-        TypedProjectionLoop projectionLoop,
-        string sourceRowsName,
-        string projectedRowsName)
-    {
-        const string parallelRowsName = "__musoqTypedPostParallelRows";
-        return SyntaxFactory.IfStatement(
-            CreateParallelRowsAvailableCondition(parallelRowsName),
-            SyntaxFactory.Block(CreateTypedPostRowsAssignment(
-                projectedRowsName,
-                CreateRowShardedReturnExpression(resultInfo, executionRenderer, projectionLoop, parallelRowsName))))
-            .WithElse(SyntaxFactory.ElseClause(SyntaxFactory.Block(CreateTypedPostRowsAssignment(
-                projectedRowsName,
-                CreateProjectRowsSerialInvocation(resultInfo, executionRenderer, projectionLoop, sourceRowsName)))));
     }
 
     private static ExpressionStatementSyntax CreateTypedPostRowsAssignment(

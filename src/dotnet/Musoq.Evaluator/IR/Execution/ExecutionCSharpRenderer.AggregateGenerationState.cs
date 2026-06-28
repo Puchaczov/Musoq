@@ -13,7 +13,6 @@ public sealed partial class ExecutionCSharpRenderer
         _aggregateGroupTypeNames.Clear();
         _parallelFilterProjectFunctionNames.Clear();
         _parallelSingleKeyAggregateFunctionNames.Clear();
-        _serialSingleKeyAggregateFunctionNames.Clear();
 
         AssignAggregateGroupTypeNames(plan.Shapes.OfType<AggregateGroupShape>().ToArray());
         AssignParallelFilterProjectFunctionNames(CollectParallelFilterProjectLoops(plan.Body).ToArray());
@@ -54,7 +53,6 @@ public sealed partial class ExecutionCSharpRenderer
 
             var suffix = helperIndex.ToString(CultureInfo.InvariantCulture);
             _parallelSingleKeyAggregateFunctionNames[descriptor] = $"ParallelSingleKeyAggregate_{suffix}";
-            _serialSingleKeyAggregateFunctionNames[descriptor] = $"SerialSingleKeyAggregate_{suffix}";
             helperIndex++;
         }
     }
@@ -164,14 +162,6 @@ public sealed partial class ExecutionCSharpRenderer
         return _parallelSingleKeyAggregateFunctionNames.TryGetValue(descriptor, out var functionName)
             ? functionName
             : $"ParallelSingleKeyAggregate_{parallelAggregate.GroupsToFinalize.Name}";
-    }
-
-    private string CreateSerialSingleKeyAggregateFunctionName(ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
-    {
-        var descriptor = CreateParallelSingleKeyAggregateDescriptor(parallelAggregate);
-        return _serialSingleKeyAggregateFunctionNames.TryGetValue(descriptor, out var functionName)
-            ? functionName
-            : $"SerialSingleKeyAggregate_{parallelAggregate.GroupsToFinalize.Name}";
     }
 
     private string CreateParallelSingleKeyAggregateDescriptor(ExecutionParallelSingleKeyAggregateLoop parallelAggregate)

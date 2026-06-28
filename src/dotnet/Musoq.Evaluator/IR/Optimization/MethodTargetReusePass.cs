@@ -189,22 +189,22 @@ internal sealed class MethodTargetReusePass : IPlanOptimizationPass<ExecutionPla
             {
                 return RewriteWithDeferredMethodTargetDeclarations(() =>
                 {
-                    var sequentialLoop = RewriteParallelFilterProjectSequentialLoop(node.SequentialLoop);
                     var sourceRows = RewriteExpression(node.SourceRows);
                     var predicate = RewriteWithSuppressedMethodCache(() => RewriteOptionalExpression(node.Predicate));
                     var appendRow = (ExecutionAppendRow)RewriteWithSuppressedMethodCache(() => RewriteAppendRow(node.AppendRow));
+                    var projectionBody = RewriteBlock(node.ProjectionBody);
 
-                    return ReferenceEquals(sequentialLoop, node.SequentialLoop) &&
-                           ReferenceEquals(sourceRows, node.SourceRows) &&
+                    return ReferenceEquals(sourceRows, node.SourceRows) &&
                            ReferenceEquals(predicate, node.Predicate) &&
-                           ReferenceEquals(appendRow, node.AppendRow)
+                           ReferenceEquals(appendRow, node.AppendRow) &&
+                           ReferenceEquals(projectionBody, node.ProjectionBody)
                         ? node
                         : node with
                         {
-                            SequentialLoop = sequentialLoop,
                             SourceRows = sourceRows,
                             Predicate = predicate,
-                            AppendRow = appendRow
+                            AppendRow = appendRow,
+                            ProjectionBody = projectionBody
                         };
                 });
             });
@@ -432,15 +432,6 @@ internal sealed class MethodTargetReusePass : IPlanOptimizationPass<ExecutionPla
             {
                 _valueTypeMethodCacheScopeDepth--;
             }
-        }
-
-        private ExecutionSourceLoop RewriteParallelFilterProjectSequentialLoop(ExecutionSourceLoop loop)
-        {
-            var source = RewriteExpression(loop.Source);
-            var body = RewriteBlock(loop.Body);
-            return ReferenceEquals(source, loop.Source) && ReferenceEquals(body, loop.Body)
-                ? loop
-                : loop with { Source = source, Body = body };
         }
 
         private T RewriteWithHelperTargets<T>(

@@ -57,8 +57,10 @@ public sealed partial class CSharpRenderer
 
             statements.AddRange(CreateParallelReturnStatements(binding, executionRenderer, projectionLoop, sourceRowsName));
         }
-
-        statements.Add(CreateSerialReturnStatement(binding, executionRenderer, projectionLoop, sourceRowsName));
+        else
+        {
+            statements.Add(CreateSerialReturnStatement(binding, executionRenderer, projectionLoop, sourceRowsName));
+        }
 
         return SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.GenericName(nameof(IEnumerable<object>))
@@ -91,11 +93,8 @@ public sealed partial class CSharpRenderer
     {
         const string parallelRowsName = "__musoqTypedParallelRows";
         yield return CreateParallelRowsProbeDeclaration(projectionLoop, sourceRowsName, parallelRowsName);
-
-        yield return SyntaxFactory.IfStatement(
-            CreateParallelRowsAvailableCondition(parallelRowsName),
-            SyntaxFactory.Block(SyntaxFactory.ReturnStatement(
-                CreateShardedReturnExpression(binding, executionRenderer, projectionLoop, parallelRowsName))));
+        yield return SyntaxFactory.ReturnStatement(
+            CreateShardedReturnExpression(binding, executionRenderer, projectionLoop, parallelRowsName));
     }
 
     private static ReturnStatementSyntax CreateSerialReturnStatement(

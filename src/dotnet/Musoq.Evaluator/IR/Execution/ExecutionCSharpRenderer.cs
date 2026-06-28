@@ -18,7 +18,6 @@ public sealed partial class ExecutionCSharpRenderer
     private readonly Dictionary<string, string> _aggregateGroupTypeNames = new(StringComparer.Ordinal);
     private readonly Dictionary<ExecutionParallelFilterProjectLoop, string> _parallelFilterProjectFunctionNames = [];
     private readonly Dictionary<string, string> _parallelSingleKeyAggregateFunctionNames = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, string> _serialSingleKeyAggregateFunctionNames = new(StringComparer.Ordinal);
     private readonly IReadOnlyList<ScriptParameterDefinition> _scriptParameterDefinitions;
     private readonly IReadOnlyList<ScriptVariableDefinition> _scriptVariableDefinitions;
     private readonly IReadOnlyDictionary<string, string> _scriptParameterLocalNames;

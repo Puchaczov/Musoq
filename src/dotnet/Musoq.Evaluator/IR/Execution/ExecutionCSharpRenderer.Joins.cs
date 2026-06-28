@@ -42,7 +42,6 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var captures = CollectParallelFilterProjectCaptures(parallelProject);
         var rowsParameterName = CreateParallelFilterProjectRowsParameterName(parallelProject);
-        var helperLoop = CreateParallelFilterProjectHelperLoop(parallelProject, rowsParameterName);
         var previousProfileRecorderInScope = _profileRecorderInScope;
         _profileRecorderInScope = IsInstrumentationEnabled;
 
@@ -61,8 +60,7 @@ public sealed partial class ExecutionCSharpRenderer
                     new ExecutionVariableRead(new ExecutionVariable(
                         rowsParameterName,
                         typeof(object),
-                        parallelProject.Source.GeneratedRowTypeName)),
-                    helperLoop)));
+                        parallelProject.Source.GeneratedRowTypeName)))));
         }
         finally
         {
@@ -90,13 +88,11 @@ public sealed partial class ExecutionCSharpRenderer
 
     private IReadOnlyList<StatementSyntax> CreateParallelFilterProjectStatements(
         ExecutionParallelFilterProjectLoop parallelProject,
-        ExecutionExpression sourceRows,
-        ExecutionSourceLoop sequentialLoop)
+        ExecutionExpression sourceRows)
     {
         var parallelRowsName = $"{parallelProject.AppendRow.Table.Name}ParallelProjectRows";
         var projectedRowsName = $"{parallelProject.AppendRow.Table.Name}ParallelProjectedRows";
         var parallelRowsDeclaration = CreateParallelProjectionRowsDeclaration(parallelProject, parallelRowsName, sourceRows);
-        var condition = CreateParallelRowsAvailableCondition(parallelRowsName);
         var projectedRowsDeclaration = CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             projectedRowsName,
@@ -110,31 +106,13 @@ public sealed partial class ExecutionCSharpRenderer
                 .WithArgumentList(CreateArgumentList(
                     SyntaxFactory.IdentifierName(parallelProject.AppendRow.Table.Name),
                     SyntaxFactory.IdentifierName(projectedRowsName))));
-        var sequentialStatements = RenderParallelLoopSequentialKernel(sequentialLoop);
 
         return
         [
             parallelRowsDeclaration,
-            SyntaxFactory.IfStatement(
-                condition,
-                StatementEmitter.CreateBlock(projectedRowsDeclaration, appendProjectedRows),
-                SyntaxFactory.ElseClause(StatementEmitter.CreateBlock(sequentialStatements)))
+            projectedRowsDeclaration,
+            appendProjectedRows
         ];
-    }
-
-    private static ExecutionSourceLoop CreateParallelFilterProjectHelperLoop(
-        ExecutionParallelFilterProjectLoop parallelProject,
-        string rowsParameterName)
-    {
-        var rowsParameter = new ExecutionVariable(
-            rowsParameterName,
-            typeof(object),
-            parallelProject.Source.GeneratedRowTypeName);
-
-        return parallelProject.SequentialLoop with
-        {
-            Source = ExecutionRowStreams.RebindLike(parallelProject.SourceRows, rowsParameter)
-        };
     }
 
     private static TypeSyntax CreateParallelFilterProjectRowsParameterType(ExecutionParallelFilterProjectLoop parallelProject)
@@ -153,16 +131,15 @@ public sealed partial class ExecutionCSharpRenderer
             parallelProject.Source.Name,
             parallelProject.AppendRow.Table.Name,
             CreateParallelFilterProjectRowsParameterName(parallelProject),
-            "token",
-            parallelProject.SequentialLoop.Item.Name
+            "token"
         };
         AddProfileRecorderExcludedName(excludedNames);
 
-        foreach (var variableName in CollectDeclaredVariableNames(parallelProject.SequentialLoop.Body))
+        foreach (var variableName in CollectDeclaredVariableNames(parallelProject.ProjectionBody))
             excludedNames.Add(variableName);
 
         var captures = new Dictionary<string, CapturedLocal>(StringComparer.Ordinal);
-        AddHelperCaptures(parallelProject.SequentialLoop.Body, excludedNames, captures);
+        AddHelperCaptures(parallelProject.ProjectionBody, excludedNames, captures);
         return captures.Values.ToArray();
     }
 
@@ -192,17 +169,6 @@ public sealed partial class ExecutionCSharpRenderer
             ])));
 
         return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), parallelRowsName, initializer);
-    }
-
-    private static BinaryExpressionSyntax CreateParallelRowsAvailableCondition(string parallelRowsName)
-    {
-        return SyntaxFactory.BinaryExpression(
-            SyntaxKind.GreaterThanExpression,
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName(parallelRowsName),
-                SyntaxFactory.IdentifierName(nameof(IReadOnlyCollection<>.Count))),
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0)));
     }
 
     private InvocationExpressionSyntax CreateParallelProjectionInvocation(
@@ -241,7 +207,7 @@ public sealed partial class ExecutionCSharpRenderer
         Func<ExecutionAppendRow, ExpressionSyntax> createProjection)
     {
         var statements = CreateParallelProjectionProjectorStatements(
-            parallelProject.SequentialLoop.Body,
+            parallelProject.ProjectionBody,
             createProjection).ToList();
         statements.Add(SyntaxFactory.ReturnStatement(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
 
@@ -290,18 +256,4 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.Parameter(SyntaxFactory.Identifier(EscapeIdentifier(source.Name)))));
     }
 
-    private StatementSyntax[] RenderParallelLoopSequentialKernel(ExecutionSourceLoop sequentialLoop)
-    {
-        var previousStoredRowsCacheNames = _storedRowsCacheNames;
-        _storedRowsCacheNames = new Dictionary<int, string>();
-
-        try
-        {
-            return RenderSourceLoopStream(sequentialLoop);
-        }
-        finally
-        {
-            _storedRowsCacheNames = previousStoredRowsCacheNames;
-        }
-    }
 }

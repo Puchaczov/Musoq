@@ -22,7 +22,6 @@ internal static partial class ExecutionNodeFacts
                 break;
             case ExecutionParallelSingleKeyAggregateLoop parallelAggregate:
                 yield return parallelAggregate.AggregateBody;
-                yield return parallelAggregate.SequentialLoop.Body;
                 break;
             case ExecutionIf ifNode:
                 yield return ifNode.Body;
@@ -51,7 +50,7 @@ internal static partial class ExecutionNodeFacts
                 yield return parallel.Merge.Body;
                 break;
             case ExecutionParallelFilterProjectLoop parallelProject:
-                yield return parallelProject.SequentialLoop.Body;
+                yield return parallelProject.ProjectionBody;
                 break;
             case ExecutionFusedCteProducer or ExecutionSingleUsePipelineFusionCandidate or
                 ExecutionCteReadOnceFusionCandidate or ExecutionCteFusedProducerCandidate:

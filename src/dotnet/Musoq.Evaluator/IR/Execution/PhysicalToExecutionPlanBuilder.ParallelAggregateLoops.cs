@@ -10,7 +10,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     private ExecutionParallelSingleKeyAggregateLoop? TryCreateParallelSingleKeyAggregateLoop(
         SingleKeyAggregatePipeline pipeline,
         SingleKeyAggregateExecutionSource source,
-        ExecutionSourceLoop serialLoop,
         ExecutionExpression groupKey,
         ExecutionVariable currentGroup,
         ExecutionVariable rootGroup,
@@ -37,7 +36,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             return null;
 
         return new ExecutionParallelSingleKeyAggregateLoop(
-            serialLoop,
             source.ParallelSource,
             source.ParallelRows,
             groupKey,
@@ -100,11 +98,11 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             return null;
 
         return new ExecutionParallelFilterProjectLoop(
-            serialLoop,
             source,
             sourceRows,
             predicate,
             appendRow,
+            serialLoop.Body,
             ParallelFilterProjectRowThreshold,
             maxDegreeOfParallelism);
     }

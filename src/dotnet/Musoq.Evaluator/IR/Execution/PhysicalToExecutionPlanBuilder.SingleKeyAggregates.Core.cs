@@ -82,7 +82,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         ExecutionNode aggregateLoop = TryCreateParallelSingleKeyAggregateLoop(
             pipeline,
             source,
-            loop,
             groupKey,
             currentGroup,
             rootGroup,

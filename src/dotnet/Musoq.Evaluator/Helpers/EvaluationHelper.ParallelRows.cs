@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Musoq.Evaluator.Tables;
 
@@ -7,10 +8,6 @@ namespace Musoq.Evaluator.Helpers;
 
 public static partial class EvaluationHelper
 {
-    private const int ParallelAggregateMaxCardinalitySampleSize = 65536;
-
-    private const int ParallelAggregateCardinalitySampleDivisor = 256;
-
     public static TValue GetOrAddCachedMethod<TTarget, TKey, TValue>(
         ConcurrentDictionary<TKey, TValue> cache,
         TTarget target,
@@ -32,11 +29,10 @@ public static partial class EvaluationHelper
         int threshold)
     {
         ArgumentNullException.ThrowIfNull(source);
-        var effectiveThreshold = Math.Max(1, threshold);
         if (source is IReadOnlyList<T> indexedRows)
-            return indexedRows.Count >= effectiveThreshold ? indexedRows : Array.Empty<T>();
+            return indexedRows;
 
-        return Array.Empty<T>();
+        return source.ToArray();
     }
 
     public static IReadOnlyList<T> GetParallelAggregationRowsOrEmpty<T>(
@@ -44,10 +40,16 @@ public static partial class EvaluationHelper
         int threshold)
     {
         ArgumentNullException.ThrowIfNull(sourceChunks);
-        var effectiveThreshold = Math.Max(1, threshold);
 
-        if (!TryGetReusableChunks(sourceChunks, out var chunks, out var rowCount) || rowCount < effectiveThreshold)
-            return Array.Empty<T>();
+        if (!TryGetReusableChunks(sourceChunks, out var chunks, out var rowCount))
+            chunks = sourceChunks.ToArray();
+
+        rowCount = 0;
+        for (var index = 0; index < chunks.Count; index++)
+            checked
+            {
+                rowCount += chunks[index].Count;
+            }
 
         return chunks.Count switch
         {
@@ -270,42 +272,4 @@ public static partial class EvaluationHelper
         }
     }
 
-    public static bool ShouldUseParallelSingleKeyAggregation<TSource, TKey>(
-        IReadOnlyList<TSource> rows,
-        Func<TSource, TKey> keySelector,
-        int sampleSize,
-        int maxDistinctSample)
-    {
-        ArgumentNullException.ThrowIfNull(rows);
-        ArgumentNullException.ThrowIfNull(keySelector);
-        if (rows.Count == 0)
-            return false;
-
-        var baseSampleSize = Math.Max(1, sampleSize);
-
-        // The cardinality sample estimates how much the aggregation reduces the data.
-        // Parallel single-key aggregation only loses to the sequential kernel when keys are
-        // near-unique: each shard then holds almost as many groups as it scanned and
-        // the sequential merge dominates. The absolute number of distinct groups is the
-        // wrong signal - a few hundred groups over billions of rows parallelizes well.
-        // Scale the sample with the input so the proxy can separate genuine grouping
-        // (worth parallelizing) from near-unique keys (not worth it) on large datasets.
-        var nearUniqueRatio = Math.Clamp((double)maxDistinctSample / baseSampleSize, 0d, 1d);
-        var adaptiveSampleSize = (int)Math.Min(
-            rows.Count,
-            Math.Min(
-                ParallelAggregateMaxCardinalitySampleSize,
-                Math.Max(baseSampleSize, (long)rows.Count / ParallelAggregateCardinalitySampleDivisor)));
-        var distinctCutoff = Math.Max(1, (int)(adaptiveSampleSize * nearUniqueRatio));
-
-        var distinctKeys = new HashSet<TKey>();
-        for (var index = 0; index < adaptiveSampleSize; index++)
-        {
-            distinctKeys.Add(keySelector(rows[index]));
-            if (distinctKeys.Count > distinctCutoff)
-                return false;
-        }
-
-        return true;
-    }
 }

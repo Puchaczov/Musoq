@@ -131,7 +131,6 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             ["src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.OrderRecords.cs"] = 125,
             ["src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.Sources.cs"] = 37,
             ["src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.AggregateGenerationSignatures.cs"] = 104,
-            ["src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.SerialAggregates.cs"] = 138,
             ["src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.AggregateInlining.cs"] = 374,
             ["src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.Flow.Parallel.cs"] = 380,
             ["src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.JoinIndexes.cs"] = 345,

@@ -168,32 +168,20 @@ internal sealed partial class ExpressionCseHoistingPass : IPlanOptimizationPass<
 
         protected override ExecutionNode RewriteParallelSingleKeyAggregateLoop(ExecutionParallelSingleKeyAggregateLoop node)
         {
-            var sequentialLoop = RewriteSourceLoop(node.SequentialLoop);
             var sourceRows = RewriteExpression(node.SourceRows);
             var key = RewriteExpression(node.Key);
             var aggregateBody = RewriteBlock(node.AggregateBody);
 
-            return ReferenceEquals(sequentialLoop, node.SequentialLoop) &&
-                   ReferenceEquals(sourceRows, node.SourceRows) &&
+            return ReferenceEquals(sourceRows, node.SourceRows) &&
                    ReferenceEquals(key, node.Key) &&
                    ReferenceEquals(aggregateBody, node.AggregateBody)
                 ? node
                 : node with
                 {
-                    SequentialLoop = sequentialLoop,
                     SourceRows = sourceRows,
                     Key = key,
                     AggregateBody = aggregateBody
                 };
-        }
-
-        private ExecutionSourceLoop RewriteSourceLoop(ExecutionSourceLoop loop)
-        {
-            return loop switch
-            {
-                ExecutionForEach forEach => (ExecutionSourceLoop)RewriteForEach(forEach),
-                _ => throw new NotSupportedException($"Expression CSE source loop rewrite does not support '{loop.GetType().Name}'.")
-            };
         }
 
         private (ExecutionNode RewrittenNode, HoistedNode Hoisted) RewriteNodeWithHoisting(

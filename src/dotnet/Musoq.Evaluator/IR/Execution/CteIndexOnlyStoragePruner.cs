@@ -123,19 +123,12 @@ internal static class CteIndexOnlyStoragePruner
             case ExecutionParallelFilterProjectLoop parallelProject:
                 return parallelProject with
                 {
-                    SequentialLoop = parallelProject.SequentialLoop with
-                    {
-                        Body = RemoveIndexOnlyCteRowStorage(parallelProject.SequentialLoop.Body, tableName, rowTypeName, keepPayloadRows)
-                    }
+                    ProjectionBody = RemoveIndexOnlyCteRowStorage(parallelProject.ProjectionBody, tableName, rowTypeName, keepPayloadRows)
                 };
             case ExecutionParallelSingleKeyAggregateLoop parallelAggregate:
                 return parallelAggregate with
                 {
-                    AggregateBody = RemoveIndexOnlyCteRowStorage(parallelAggregate.AggregateBody, tableName, rowTypeName, keepPayloadRows),
-                    SequentialLoop = parallelAggregate.SequentialLoop with
-                    {
-                        Body = RemoveIndexOnlyCteRowStorage(parallelAggregate.SequentialLoop.Body, tableName, rowTypeName, keepPayloadRows)
-                    }
+                    AggregateBody = RemoveIndexOnlyCteRowStorage(parallelAggregate.AggregateBody, tableName, rowTypeName, keepPayloadRows)
                 };
             case ExecutionIf branch:
                 return branch with

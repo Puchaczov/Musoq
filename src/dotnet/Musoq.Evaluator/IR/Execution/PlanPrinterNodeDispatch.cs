@@ -236,14 +236,11 @@ public static partial class ExecutionPlanPrinter
             case ExecutionParallelSingleKeyAggregateLoop parallelAggregate:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}ParallelSingleKeyAggregateLoop [{parallelAggregate.Source.Name} in {FormatExpression(parallelAggregate.SourceRows)} by {FormatExpression(parallelAggregate.Key)}; threshold {parallelAggregate.Threshold.ToString(CultureInfo.InvariantCulture)}, sample {parallelAggregate.CardinalitySampleSize.ToString(CultureInfo.InvariantCulture)}/{parallelAggregate.MaxDistinctSample.ToString(CultureInfo.InvariantCulture)}, maxDegree {parallelAggregate.MaxDegreeOfParallelism.ToString(CultureInfo.InvariantCulture)}, group {parallelAggregate.GroupShape.TypeName}]");
                 AppendLabeledBlock(builder, prefix, "  ParallelAccumulate", parallelAggregate.AggregateBody, indentation + 4);
-                AppendLabeledBlock(builder, prefix, "  SequentialKernel", parallelAggregate.SequentialLoop.Body, indentation + 4);
                 break;
             case ExecutionParallelFilterProjectLoop parallelProject:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}ParallelFilterProjectLoop [{parallelProject.Source.Name} in {FormatExpression(parallelProject.SourceRows)}{FormatOptionalPredicate(parallelProject.Predicate)}; threshold {parallelProject.Threshold.ToString(CultureInfo.InvariantCulture)}, maxDegree {parallelProject.MaxDegreeOfParallelism.ToString(CultureInfo.InvariantCulture)}]");
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}  ParallelProject");
-                AppendNode(builder, parallelProject.AppendRow, indentation + 4);
-                builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}  SequentialKernel");
-                AppendBlock(builder, parallelProject.SequentialLoop.Body, indentation + 4);
+                AppendBlock(builder, parallelProject.ProjectionBody, indentation + 4);
                 break;
             case ExecutionFusedCteProducer or ExecutionCteFusedProducerCandidate: AppendCteProducerNode(builder, node, indentation, prefix); break;
             case ExecutionSingleUsePipelineFusionCandidate candidate: builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}SingleUseFusionCandidate [cte{candidate.RelatedTableIndex.ToString(CultureInfo.InvariantCulture)}]"); AppendBlock(builder, candidate.Body, indentation + 2); break;

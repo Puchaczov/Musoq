@@ -141,7 +141,6 @@ public sealed class ExecutionPlanOperatorCatalog
             "ParallelTask" or
             "ParallelMerge" or
             "ParallelProject" or
-            "SequentialKernel" or
             "ParallelAccumulate" or
             "HashProbeNoMatch" or
             "KeySetProbeNoMatch" or
@@ -231,17 +230,12 @@ public sealed class ExecutionPlanOperatorCatalog
     {
         foreach (var node in EnumeratePrinterOrder(parallelAggregate.AggregateBody))
             yield return node;
-
-        foreach (var node in EnumeratePrinterOrder(parallelAggregate.SequentialLoop.Body))
-            yield return node;
     }
 
     private static IEnumerable<ExecutionNode> EnumerateParallelFilterProjectLoop(
         ExecutionParallelFilterProjectLoop parallelProject)
     {
-        yield return parallelProject.AppendRow;
-
-        foreach (var node in EnumeratePrinterOrder(parallelProject.SequentialLoop.Body))
+        foreach (var node in EnumeratePrinterOrder(parallelProject.ProjectionBody))
             yield return node;
     }
 

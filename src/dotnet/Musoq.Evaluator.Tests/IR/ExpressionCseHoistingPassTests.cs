@@ -628,7 +628,7 @@ public sealed class ExpressionCseHoistingPassTests
     }
 
     [TestMethod]
-    public void Optimize_WhenParallelAggregateRepeatsExpression_ShouldHoistInSequentialKernelAndAggregateBody()
+    public void Optimize_WhenParallelAggregateRepeatsExpression_ShouldHoistInAggregateBody()
     {
         var fieldRead = new ExecutionFieldRead("p", "Name", typeof(string));
         var aggregatePlan = CreateAggregatePlan();
@@ -677,7 +677,6 @@ public sealed class ExpressionCseHoistingPassTests
                 capturedField)
         ]);
         var loop = new ExecutionParallelSingleKeyAggregateLoop(
-            sequentialLoop,
             source,
             new ExecutionVariableRead(sourceRows),
             fieldRead,
@@ -698,15 +697,6 @@ public sealed class ExpressionCseHoistingPassTests
 
         Assert.IsTrue(result.IsChanged);
         var rewrittenLoop = (ExecutionParallelSingleKeyAggregateLoop)result.Plan.Body.Nodes[0];
-        var let = (ExecutionLet)rewrittenLoop.SequentialLoop.Body.Nodes[0];
-        var getOrAdd = (ExecutionGetOrAddSingleKeyAggregateGroup)rewrittenLoop.SequentialLoop.Body.Nodes[1];
-        var capturedValue = (ExecutionAggregateCapturedValueSet)rewrittenLoop.SequentialLoop.Body.Nodes[2];
-        var getOrAddRead = (ExecutionVariableRead)getOrAdd.Key;
-        var capturedRead = (ExecutionVariableRead)capturedValue.Value;
-
-        Assert.AreEqual(fieldRead, let.Value);
-        Assert.AreSame(let.Variable, getOrAddRead.Variable);
-        Assert.AreSame(let.Variable, capturedRead.Variable);
         var aggregateLet = (ExecutionLet)rewrittenLoop.AggregateBody.Nodes[0];
         var firstAggregateSet = (ExecutionAggregateCapturedValueSet)rewrittenLoop.AggregateBody.Nodes[1];
         var secondAggregateSet = (ExecutionAggregateCapturedValueSet)rewrittenLoop.AggregateBody.Nodes[2];
