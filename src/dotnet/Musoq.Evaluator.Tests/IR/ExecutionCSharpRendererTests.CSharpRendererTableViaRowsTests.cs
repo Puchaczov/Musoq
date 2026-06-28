@@ -141,7 +141,7 @@ public sealed partial class ExecutionCSharpRendererTests
         StringAssert.Contains(code, "EvaluationHelper.ProjectChunkedRowsParallel<");
         StringAssert.Contains(code, "EvaluationHelper.GetParallelProjectionRowsOrEmpty<");
         StringAssert.Contains(code, "QueryRows.FromRowShards(EvaluationHelper.ProjectRowsParallel<");
-        StringAssert.Contains(code, "TableProjectionRows.ProjectRowsSerial<");
+        Assert.IsFalse(code.Contains("TableProjectionRows.ProjectRowsSerial<", StringComparison.Ordinal));
         StringAssert.Contains(code, "return new QueryTableEnumerable<ResultRow0>(");
         Assert.IsFalse(code.Contains("private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("TypedProjectionRows.ProjectValuesParallel<", StringComparison.Ordinal));
@@ -171,7 +171,7 @@ public sealed partial class ExecutionCSharpRendererTests
 
         StringAssert.Contains(code, "EvaluationHelper.ProjectChunkedRowsParallel<");
         StringAssert.Contains(code, "QueryRows.FromRowShards(EvaluationHelper.ProjectRowsParallel<");
-        StringAssert.Contains(code, "TableProjectionRows.ProjectOptionalRowsSerial<");
+        Assert.IsFalse(code.Contains("TableProjectionRows.ProjectOptionalRowsSerial<", StringComparison.Ordinal));
         StringAssert.Contains(code, "string upper = (string)libraryBase0.ToUpper(p.Name);");
         StringAssert.Contains(code, "return new ResultRow0(p.Name, upper);");
         Assert.IsFalse(code.Contains("private IEnumerable<ResultShape0> ComputeShapeRows_compiled_0(", StringComparison.Ordinal));
@@ -237,7 +237,7 @@ public sealed partial class ExecutionCSharpRendererTests
         StringAssert.Contains(code, "TypedProjectionRows.ProjectChunkedValuesParallel<");
         StringAssert.Contains(code, "EvaluationHelper.GetParallelProjectionRowsOrEmpty<");
         StringAssert.Contains(code, "QueryRows.FromShards(TypedProjectionRows.ProjectValuesParallel<");
-        StringAssert.Contains(code, "TypedProjectionRows.ProjectValuesSerial<");
+        Assert.IsFalse(code.Contains("TypedProjectionRows.ProjectValuesSerial<", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("private Table ComputeTable_compiled_0(", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("QueryRows.FromTable<ResultRow0>", StringComparison.Ordinal));
     }

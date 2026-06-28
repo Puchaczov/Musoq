@@ -89,13 +89,15 @@ public sealed class ProjectionRowsRuntimeTests
     }
 
     [TestMethod]
-    public void GetParallelProjectionRowsOrEmpty_WithIteratorChunksAboveThreshold_ShouldReturnEmpty()
+    public void GetParallelProjectionRowsOrEmpty_WithIteratorChunksAboveThreshold_ShouldMaterializeRows()
     {
         var chunks = CreateChunks();
 
         var rows = EvaluationHelper.GetParallelProjectionRowsOrEmpty(chunks, threshold: 4_096);
 
-        Assert.AreEqual(0, rows.Count);
+        Assert.AreEqual(4_096, rows.Count);
+        Assert.AreEqual(0, rows[0]);
+        Assert.AreEqual(4_095, rows[^1]);
 
         static IEnumerable<IReadOnlyList<int>> CreateChunks()
         {

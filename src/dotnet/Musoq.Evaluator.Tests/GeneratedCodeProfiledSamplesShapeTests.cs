@@ -372,8 +372,7 @@ public sealed class GeneratedCodeProfiledSamplesShapeTests
         var sample = ReadProfiledSample(GroupBySingleFullFileName);
         var aggregateContext = ResolveOperator(sample, GroupBySingleFullFileName, "CreateSingleKeyAggregateContext", "groups: string");
         var aggregateLoop = ResolveOperator(sample, GroupBySingleFullFileName, "ParallelSingleKeyAggregateLoop", "ko3iko in ko3ikoRows");
-        var aggregateLookup = ResolveOperator(sample, GroupBySingleFullFileName, "GetOrAddSingleKeyAggregateGroup", "groups[city]");
-        var aggregateSet = ResolveOperator(sample, GroupBySingleFullFileName, "TypedAggregateSet", "Set(group.__agg0, city)", occurrence: 1);
+        var aggregateSet = ResolveOperator(sample, GroupBySingleFullFileName, "TypedAggregateSet", "Set(group.__agg0, city)");
 
         AssertContainsAll(
             sample,
@@ -383,16 +382,12 @@ public sealed class GeneratedCodeProfiledSamplesShapeTests
                 "CreateSingleKeyAggregateContext [groups: string -> ResultAggregateGroup]",
                 "ParallelSingleKeyAggregateLoop [ko3iko in ko3ikoRows by ko3iko.City; threshold 4096, sample 8192/6144, maxDegree 24, group ResultAggregateGroup]",
                 "TypedAggregateSet [Set(group.__agg0, city)]",
-                "ParallelSingleKeyAggregate_0(groupsToFinalizeParallelRows, 24, token, profileRecorder);"
+                "ParallelSingleKeyAggregate_0(groupsToFinalizeParallelRows, 24, token);"
             ],
             GroupBySingleFullFileName);
         Assert.DoesNotContain("SerialSingleKeyAggregate", sample);
         AssertContainsBeginOperator(sample, GroupBySingleFullFileName, aggregateContext);
         AssertContainsBeginOperator(sample, GroupBySingleFullFileName, aggregateLoop);
-        AssertContainsCounterInputRows(sample, GroupBySingleFullFileName, aggregateLookup, "1");
-        AssertContainsCounterOutputRows(sample, GroupBySingleFullFileName, aggregateLookup, "1");
-        AssertDoesNotContainBeginOperator(sample, GroupBySingleFullFileName, aggregateLookup);
-        AssertContainsCounterOutputRows(sample, GroupBySingleFullFileName, aggregateSet, "1");
         AssertDoesNotContainBeginOperator(sample, GroupBySingleFullFileName, aggregateSet);
         AssertContainsOutputRows(sample, GroupBySingleFullFileName, aggregateLoop, "groupsToFinalize.Count");
     }
