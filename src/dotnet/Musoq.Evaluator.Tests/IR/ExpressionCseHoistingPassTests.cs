@@ -628,7 +628,7 @@ public sealed class ExpressionCseHoistingPassTests
     }
 
     [TestMethod]
-    public void Optimize_WhenParallelAggregateRepeatsExpression_ShouldHoistInSerialPathAndAggregateBody()
+    public void Optimize_WhenParallelAggregateRepeatsExpression_ShouldHoistInSequentialKernelAndAggregateBody()
     {
         var fieldRead = new ExecutionFieldRead("p", "Name", typeof(string));
         var aggregatePlan = CreateAggregatePlan();
@@ -639,7 +639,7 @@ public sealed class ExpressionCseHoistingPassTests
         var source = new ExecutionVariable("p", typeof(object));
         var sourceRows = new ExecutionVariable("pRows", typeof(object));
         var capturedField = new AggregateCapturedField("name", "__name", typeof(string));
-        var serialLoop = new ExecutionForEach(
+        var sequentialLoop = new ExecutionForEach(
             source,
             new ExecutionVariableRead(sourceRows),
             new ExecutionBlock(
@@ -677,7 +677,7 @@ public sealed class ExpressionCseHoistingPassTests
                 capturedField)
         ]);
         var loop = new ExecutionParallelSingleKeyAggregateLoop(
-            serialLoop,
+            sequentialLoop,
             source,
             new ExecutionVariableRead(sourceRows),
             fieldRead,
@@ -698,9 +698,9 @@ public sealed class ExpressionCseHoistingPassTests
 
         Assert.IsTrue(result.IsChanged);
         var rewrittenLoop = (ExecutionParallelSingleKeyAggregateLoop)result.Plan.Body.Nodes[0];
-        var let = (ExecutionLet)rewrittenLoop.SerialLoop.Body.Nodes[0];
-        var getOrAdd = (ExecutionGetOrAddSingleKeyAggregateGroup)rewrittenLoop.SerialLoop.Body.Nodes[1];
-        var capturedValue = (ExecutionAggregateCapturedValueSet)rewrittenLoop.SerialLoop.Body.Nodes[2];
+        var let = (ExecutionLet)rewrittenLoop.SequentialLoop.Body.Nodes[0];
+        var getOrAdd = (ExecutionGetOrAddSingleKeyAggregateGroup)rewrittenLoop.SequentialLoop.Body.Nodes[1];
+        var capturedValue = (ExecutionAggregateCapturedValueSet)rewrittenLoop.SequentialLoop.Body.Nodes[2];
         var getOrAddRead = (ExecutionVariableRead)getOrAdd.Key;
         var capturedRead = (ExecutionVariableRead)capturedValue.Value;
 

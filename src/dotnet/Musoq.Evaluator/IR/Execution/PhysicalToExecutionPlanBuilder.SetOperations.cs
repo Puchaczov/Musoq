@@ -233,8 +233,9 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     {
         return strategy.TableStrategy switch
         {
+            SetOperationTableStrategy.AppendLoop => ExecutionSetOperationStrategy.AppendLoop,
             SetOperationTableStrategy.HashSet => ExecutionSetOperationStrategy.HashSet,
-            SetOperationTableStrategy.RowComparer => ExecutionSetOperationStrategy.RowComparer,
+            SetOperationTableStrategy.GeneratedEqualityLoop => ExecutionSetOperationStrategy.GeneratedEqualityLoop,
             _ => throw new NotSupportedException($"Unsupported set-operation table strategy: {strategy.TableStrategy}")
         };
     }

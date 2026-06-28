@@ -137,4 +137,5 @@ public partial class QueryInspectionTests
             }
         ]);
     }
+
 }

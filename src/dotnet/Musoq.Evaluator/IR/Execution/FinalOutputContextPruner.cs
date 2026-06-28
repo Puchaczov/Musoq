@@ -302,7 +302,7 @@ internal static class GeneratedRowContextPruner
             ExecutionParallelFilterProjectLoop parallelProject => new[]
                 {
                     parallelProject.SourceRows,
-                    parallelProject.SerialLoop.Source
+                    parallelProject.SequentialLoop.Source
                 }
                 .Concat(parallelProject.Predicate == null ? [] : [parallelProject.Predicate])
                 .Concat(parallelProject.AppendRow.Values.Select(static value => value.Value)),

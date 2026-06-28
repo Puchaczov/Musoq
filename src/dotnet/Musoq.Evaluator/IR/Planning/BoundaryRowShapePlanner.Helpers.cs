@@ -51,7 +51,7 @@ internal static partial class BoundaryRowShapePlanner
     {
         var outcome = plan.BoundaryOnlyColumns.Length == 0 && plan.FutureDroppableColumns.Length == 0
             ? "NoOpportunity"
-            : "DiagnosticOnlyOpportunity";
+            : "PhysicalRewriteCandidate";
 
         return new PlanningDecision(
             PlanningDecisionCategory.BoundaryRowShape,

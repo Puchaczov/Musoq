@@ -63,7 +63,7 @@ public static partial class ExecutionPlanPrinter
 
     private static string FormatSetOperationStrategy(ExecutionSetOperationStrategy strategy)
     {
-        return strategy == ExecutionSetOperationStrategy.RowComparer
+        return strategy == ExecutionSetOperationStrategy.GeneratedEqualityLoop
             ? string.Empty
             : $", {strategy}";
     }

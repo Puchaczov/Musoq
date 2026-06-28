@@ -42,8 +42,8 @@ public sealed partial class ExecutionCSharpRenderer
                CanReferenceType(parallelAggregate.KeyType) &&
                CanRenderAggregateGroupShape(parallelAggregate.GroupShape) &&
                CanRenderBlock(parallelAggregate.AggregateBody) &&
-               CanRenderExpression(parallelAggregate.SerialLoop.Source) &&
-               CanRenderBlock(parallelAggregate.SerialLoop.Body);
+               CanRenderExpression(parallelAggregate.SequentialLoop.Source) &&
+               CanRenderBlock(parallelAggregate.SequentialLoop.Body);
     }
 
     private static bool CanRenderParallelFilterProjectLoop(ExecutionParallelFilterProjectLoop parallelProject)
@@ -56,8 +56,8 @@ public sealed partial class ExecutionCSharpRenderer
                    parallelProject.AppendRow.Values,
                    parallelProject.AppendRow.Contexts,
                    parallelProject.AppendRow.ContextLayout) &&
-               CanRenderExpression(parallelProject.SerialLoop.Source) &&
-               CanRenderBlock(parallelProject.SerialLoop.Body);
+               CanRenderExpression(parallelProject.SequentialLoop.Source) &&
+               CanRenderBlock(parallelProject.SequentialLoop.Body);
     }
 
     private static bool CanRenderParallelBlock(ExecutionParallelBlock parallel)

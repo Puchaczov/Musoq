@@ -10,4 +10,4 @@ public sealed record ExecutionSetOperation(
     SetOpKind Kind,
     IReadOnlyList<int> FieldIndexes,
     IReadOnlyList<Type> FieldTypes,
-    ExecutionSetOperationStrategy Strategy = ExecutionSetOperationStrategy.RowComparer) : ExecutionNode;
+    ExecutionSetOperationStrategy Strategy = ExecutionSetOperationStrategy.GeneratedEqualityLoop) : ExecutionNode;

@@ -91,7 +91,7 @@ public sealed partial class ExecutionCSharpRenderer
     private IReadOnlyList<StatementSyntax> CreateParallelFilterProjectStatements(
         ExecutionParallelFilterProjectLoop parallelProject,
         ExecutionExpression sourceRows,
-        ExecutionSourceLoop serialLoop)
+        ExecutionSourceLoop sequentialLoop)
     {
         var parallelRowsName = $"{parallelProject.AppendRow.Table.Name}ParallelProjectRows";
         var projectedRowsName = $"{parallelProject.AppendRow.Table.Name}ParallelProjectedRows";
@@ -110,7 +110,7 @@ public sealed partial class ExecutionCSharpRenderer
                 .WithArgumentList(CreateArgumentList(
                     SyntaxFactory.IdentifierName(parallelProject.AppendRow.Table.Name),
                     SyntaxFactory.IdentifierName(projectedRowsName))));
-        var serialStatements = RenderParallelLoopSerialPath(serialLoop);
+        var sequentialStatements = RenderParallelLoopSequentialKernel(sequentialLoop);
 
         return
         [
@@ -118,7 +118,7 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IfStatement(
                 condition,
                 StatementEmitter.CreateBlock(projectedRowsDeclaration, appendProjectedRows),
-                SyntaxFactory.ElseClause(StatementEmitter.CreateBlock(serialStatements)))
+                SyntaxFactory.ElseClause(StatementEmitter.CreateBlock(sequentialStatements)))
         ];
     }
 
@@ -131,7 +131,7 @@ public sealed partial class ExecutionCSharpRenderer
             typeof(object),
             parallelProject.Source.GeneratedRowTypeName);
 
-        return parallelProject.SerialLoop with
+        return parallelProject.SequentialLoop with
         {
             Source = ExecutionRowStreams.RebindLike(parallelProject.SourceRows, rowsParameter)
         };
@@ -154,15 +154,15 @@ public sealed partial class ExecutionCSharpRenderer
             parallelProject.AppendRow.Table.Name,
             CreateParallelFilterProjectRowsParameterName(parallelProject),
             "token",
-            parallelProject.SerialLoop.Item.Name
+            parallelProject.SequentialLoop.Item.Name
         };
         AddProfileRecorderExcludedName(excludedNames);
 
-        foreach (var variableName in CollectDeclaredVariableNames(parallelProject.SerialLoop.Body))
+        foreach (var variableName in CollectDeclaredVariableNames(parallelProject.SequentialLoop.Body))
             excludedNames.Add(variableName);
 
         var captures = new Dictionary<string, CapturedLocal>(StringComparer.Ordinal);
-        AddHelperCaptures(parallelProject.SerialLoop.Body, excludedNames, captures);
+        AddHelperCaptures(parallelProject.SequentialLoop.Body, excludedNames, captures);
         return captures.Values.ToArray();
     }
 
@@ -241,7 +241,7 @@ public sealed partial class ExecutionCSharpRenderer
         Func<ExecutionAppendRow, ExpressionSyntax> createProjection)
     {
         var statements = CreateParallelProjectionProjectorStatements(
-            parallelProject.SerialLoop.Body,
+            parallelProject.SequentialLoop.Body,
             createProjection).ToList();
         statements.Add(SyntaxFactory.ReturnStatement(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
 
@@ -290,14 +290,14 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.Parameter(SyntaxFactory.Identifier(EscapeIdentifier(source.Name)))));
     }
 
-    private StatementSyntax[] RenderParallelLoopSerialPath(ExecutionSourceLoop serialLoop)
+    private StatementSyntax[] RenderParallelLoopSequentialKernel(ExecutionSourceLoop sequentialLoop)
     {
         var previousStoredRowsCacheNames = _storedRowsCacheNames;
         _storedRowsCacheNames = new Dictionary<int, string>();
 
         try
         {
-            return RenderSourceLoopStream(serialLoop);
+            return RenderSourceLoopStream(sequentialLoop);
         }
         finally
         {

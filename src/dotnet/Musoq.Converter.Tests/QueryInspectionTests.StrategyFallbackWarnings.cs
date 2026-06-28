@@ -7,12 +7,14 @@ namespace Musoq.Converter.Tests;
 public partial class QueryInspectionTests
 {
     [TestMethod]
-    public void CompileForInspection_WhenComputedUnionAllUsesRowComparer_ShouldNotWarn()
+    public void CompileForInspection_WhenComputedUnionAllStreamsDirectly_ShouldNotWarn()
     {
         var result = Inspect(CreateComputedUnionAllQuery(), new CompilationOptions());
 
-        Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> RowComparer", result.PlanningText);
-        Assert.Contains("UnionAll uses the materialized comparer strategy", result.PlanningText);
+        Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll", result.PlanningText);
+        Assert.Contains("UnionAll arms use directly streamable row sources", result.PlanningText);
+        Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right", StringComparison.Ordinal));
+        Assert.IsFalse(result.GeneratedCSharpCode.Contains("UnionAll(left, right", StringComparison.Ordinal));
         AssertNoFallbackWarning(result);
     }
 

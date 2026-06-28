@@ -43,7 +43,7 @@ internal static partial class ExecutionNodeFacts
                 break;
             case ExecutionParallelFilterProjectLoop parallelProject:
                 yield return parallelProject.Source;
-                yield return parallelProject.SerialLoop.Item;
+                yield return parallelProject.SequentialLoop.Item;
                 break;
             case ExecutionCreateTable createTable:
                 yield return createTable.Table;
@@ -138,7 +138,7 @@ internal static partial class ExecutionNodeFacts
                 break;
             case ExecutionParallelSingleKeyAggregateLoop parallelAggregate:
                 yield return parallelAggregate.Source;
-                yield return parallelAggregate.SerialLoop.Item;
+                yield return parallelAggregate.SequentialLoop.Item;
                 yield return parallelAggregate.Group;
                 break;
             case ExecutionCreateValueTupleAggregateContext context:

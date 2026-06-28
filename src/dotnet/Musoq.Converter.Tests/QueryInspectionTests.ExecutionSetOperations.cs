@@ -123,7 +123,7 @@ public partial class QueryInspectionTests
         Assert.Contains("CreateRowBuffer [left: List<LeftRow0>]", result.ExecutionPlanText);
         Assert.Contains("AppendRowBuffer [left <- LeftRow0(Dummy: d.Dummy)]", result.ExecutionPlanText);
         Assert.Contains("AppendRowBuffer [left <- LeftRow0(Dummy: e.Dummy)]", result.ExecutionPlanText);
-        Assert.Contains("SetOperation [result = left UnionAll right]", result.ExecutionPlanText);
+        Assert.Contains("SetOperation [result = left UnionAll right, AppendLoop]", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [left = leftLeft UnionAll leftRight]", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("UnionAll(", StringComparison.Ordinal));
     }
@@ -156,34 +156,111 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenExecutionIrRendererIsEnabledForComputedUnionAll_ShouldExplainRowComparerStrategy()
+    public void CompileForExecution_WhenComputedEntityUnionAllIsUsed_ShouldStreamWithoutSetHelper()
+    {
+        const string query = """
+            SELECT a.City + ':' + a.Country AS Label FROM #A.entities() a
+            UNION ALL
+            SELECT b.City + ':' + b.Country AS Label FROM #B.entities() b
+            """;
+        var schemaProvider = CreateEntitySetSchemaProvider();
+        var result = Inspect(query, schemaProvider, new CompilationOptions());
+
+        Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll", result.PlanningText);
+        AssertNoSetOperationFallbackPath(result);
+        Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right", StringComparison.Ordinal), result.ExecutionPlanText);
+
+        var table = CompileForExecution(query, schemaProvider, new CompilationOptions()).Run();
+
+        Assert.AreEqual(4, table.Count);
+        Assert.AreEqual("Warsaw:PL", table[0][0]);
+        Assert.AreEqual("Berlin:DE", table[1][0]);
+        Assert.AreEqual("Krakow:PL", table[2][0]);
+        Assert.AreEqual("Munich:DE", table[3][0]);
+    }
+
+    [TestMethod]
+    public void CompileForExecution_WhenJoinedArmUnionAllIsUsed_ShouldAppendGeneratedArmRows()
+    {
+        const string query = """
+            SELECT a.City AS City FROM #A.entities() a
+            INNER JOIN #B.entities() b ON a.Country = b.Country
+            UNION ALL
+            SELECT c.City AS City FROM #C.entities() c
+            """;
+        var schemaProvider = CreateEntitySetSchemaProvider();
+        var result = Inspect(query, schemaProvider, new CompilationOptions());
+
+        Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> AppendLoop", result.PlanningText);
+        Assert.Contains("SetOperation [result = left UnionAll right, AppendLoop]", result.ExecutionPlanText);
+        AssertNoSetOperationFallbackPath(result);
+
+        var table = CompileForExecution(query, schemaProvider, new CompilationOptions()).Run();
+
+        Assert.AreEqual(3, table.Count);
+        Assert.AreEqual("Warsaw", table[0][0]);
+        Assert.AreEqual("Berlin", table[1][0]);
+        Assert.AreEqual("Prague", table[2][0]);
+    }
+
+    [TestMethod]
+    public void CompileForExecution_WhenNestedSortedAggregateUnionAllIsUsed_ShouldAppendGeneratedArmRows()
+    {
+        const string query = """
+            SELECT a.Country, Count(a.City) AS Cnt FROM #A.entities() a GROUP BY a.Country
+            UNION ALL (Country)
+            SELECT b.Country, Count(b.City) AS Cnt FROM #B.entities() b GROUP BY b.Country ORDER BY Cnt DESC
+            """;
+        var schemaProvider = CreateEntitySetSchemaProvider();
+        var result = Inspect(query, schemaProvider, new CompilationOptions());
+
+        Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> AppendLoop", result.PlanningText);
+        AssertNoSetOperationFallbackPath(result);
+
+        var table = CompileForExecution(query, schemaProvider, new CompilationOptions()).Run();
+
+        Assert.AreEqual(4, table.Count);
+        Assert.AreEqual("PL", table[0][0]);
+        Assert.AreEqual(1L, table[0][1]);
+        Assert.AreEqual("DE", table[1][0]);
+        Assert.AreEqual(1L, table[1][1]);
+        Assert.AreEqual("PL", table[2][0]);
+        Assert.AreEqual(1L, table[2][1]);
+        Assert.AreEqual("DE", table[3][0]);
+        Assert.AreEqual(1L, table[3][1]);
+    }
+
+    [TestMethod]
+    public void CompileForInspection_WhenExecutionIrRendererIsEnabledForComputedUnionAll_ShouldExplainStreamingStrategy()
     {
         var result = Inspect(CreateComputedUnionAllQuery(),
             new CompilationOptions());
 
-        Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> RowComparer", result.PlanningText);
-        Assert.Contains("UnionAll uses the materialized comparer strategy because at least one arm is not a directly streamable row-source pipeline with optional filters and direct column or literal projections", result.PlanningText);
+        Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll", result.PlanningText);
+        Assert.Contains("UnionAll arms use directly streamable row sources with optional filters, projected expressions, and no post-operations", result.PlanningText);
+        Assert.IsFalse(result.ExecutionPlanText.Contains("SetOperation [result = left UnionAll right", StringComparison.Ordinal));
+        Assert.IsFalse(result.GeneratedCSharpCode.Contains("UnionAll(left, right", StringComparison.Ordinal));
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenUnionAllArmUsesJoinSource_ShouldExplainRowComparerStrategy()
+    public void CompileForInspection_WhenUnionAllArmUsesJoinSource_ShouldExplainAppendLoopStrategy()
     {
         var result = CreateApplyInspection(
             "select l.Name as Name from #apply.items() l inner join #apply.items() r on l.Line = r.Line union all (Name) select i.Name as Name from #apply.items() i");
 
-        Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> RowComparer", result.PlanningText);
-        Assert.Contains("UnionAll uses the materialized comparer strategy because at least one arm is not a directly streamable row-source pipeline with optional filters and direct column or literal projections", result.PlanningText);
+        Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> AppendLoop", result.PlanningText);
+        Assert.Contains("UnionAll uses generated append lowering because at least one arm is not a directly streamable row-source pipeline with optional filters, projected expressions, and no post-operations", result.PlanningText);
         Assert.IsFalse(result.PlanningText.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll", StringComparison.Ordinal));
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenUnionAllArmUsesApplySource_ShouldExplainRowComparerStrategy()
+    public void CompileForInspection_WhenUnionAllArmUsesApplySource_ShouldExplainAppendLoopStrategy()
     {
         var result = CreateApplyInspection(
             "select r.Line as Line from #apply.items() i cross apply #apply.related(i.Name) r union all (Line) select j.Line as Line from #apply.items() j");
 
-        Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> RowComparer", result.PlanningText);
-        Assert.Contains("UnionAll uses the materialized comparer strategy because at least one arm is not a directly streamable row-source pipeline with optional filters and direct column or literal projections", result.PlanningText);
+        Assert.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> AppendLoop", result.PlanningText);
+        Assert.Contains("UnionAll uses generated append lowering because at least one arm is not a directly streamable row-source pipeline with optional filters, projected expressions, and no post-operations", result.PlanningText);
         Assert.IsFalse(result.PlanningText.Contains("SetOperationStrategy [SetOperationStrategy] UnionAll -> StreamingUnionAll", StringComparison.Ordinal));
     }
 
@@ -210,7 +287,7 @@ public partial class QueryInspectionTests
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
             result.ExecutionPlanText);
-        Assert.Contains("SetOperation [result = left UnionAll right]", result.ExecutionPlanText);
+        Assert.Contains("SetOperation [result = left UnionAll right, AppendLoop]", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("CreateAggregateLibrary [leftLibraryBase0: LibraryBase]", StringComparison.Ordinal));
         Assert.IsFalse(result.ExecutionPlanText.Contains("CreateAggregateLibrary [rightLibraryBase0: LibraryBase]", StringComparison.Ordinal));
         Assert.IsFalse(result.ExecutionPlanText.Contains("Statement0Row0", StringComparison.Ordinal));
@@ -228,7 +305,7 @@ public partial class QueryInspectionTests
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         Assert.Contains("SortRowBuffer [right -> rightSorted by Dummy ASC]", result.ExecutionPlanText);
-        Assert.Contains("SetOperation [result = left UnionAll rightSorted]", result.ExecutionPlanText);
+        Assert.Contains("SetOperation [result = left UnionAll rightSorted, AppendLoop]", result.ExecutionPlanText);
     }
 
     [TestMethod]
@@ -349,7 +426,7 @@ public partial class QueryInspectionTests
     [DataRow("union", "Union", "NullableFloatValue", "float?")]
     [DataRow("except", "Except", "NullableFloatValue", "float?")]
     [DataRow("intersect", "Intersect", "NullableFloatValue", "float?")]
-    public void ExecutionSetOperations_WhenNanSensitiveKeyIsUsed_ShouldUseRowComparerStrategy(
+    public void ExecutionSetOperations_WhenNanSensitiveKeyIsUsed_ShouldUseGeneratedEqualityLoopStrategy(
         string operation,
         string planKind,
         string columnName,
@@ -361,12 +438,12 @@ public partial class QueryInspectionTests
             new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains($"SetOperationStrategy [SetOperationStrategy] {planKind} -> RowComparer", result.PlanningText);
-        Assert.Contains("uses NaN equality semantics that must match the row-comparer path", result.PlanningText);
+        Assert.Contains($"SetOperationStrategy [SetOperationStrategy] {planKind} -> GeneratedEqualityLoop", result.PlanningText);
+        Assert.Contains("uses NaN-sensitive equality semantics, so Execution IR emits an explicit generated equality loop instead of HashSet lowering", result.PlanningText);
         Assert.Contains($"SetOperation [result = left {planKind} right]", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("HashSet", StringComparison.Ordinal), result.ExecutionPlanText);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains($"new HashSet<{hashSetTypeName}>", StringComparison.Ordinal), result.GeneratedCSharpCode);
-        Assert.Contains($"{planKind}(left, right", result.GeneratedCSharpCode);
+        Assert.IsFalse(result.GeneratedCSharpCode.Contains($"{planKind}(left, right", StringComparison.Ordinal), result.GeneratedCSharpCode);
     }
 
     [TestMethod]
@@ -382,7 +459,7 @@ public partial class QueryInspectionTests
     [DataRow("union", "NullableFloatValue", false, 2)]
     [DataRow("except", "NullableFloatValue", false, 1)]
     [DataRow("intersect", "NullableFloatValue", false, 0)]
-    public void ExecutionSetOperations_WhenNanSensitiveKeyIsUsed_ShouldKeepRowComparerNanSemantics(
+    public void ExecutionSetOperations_WhenNanSensitiveKeyIsUsed_ShouldKeepGeneratedEqualityNanSemantics(
         string operation,
         string columnName,
         bool expectDouble,
@@ -473,6 +550,15 @@ public partial class QueryInspectionTests
     private static string CreateWideSetOperationHashSetText(int keyCount)
     {
         return $"new HashSet<({string.Join(", ", Enumerable.Repeat("int", keyCount))})>(";
+    }
+
+    private static void AssertNoSetOperationFallbackPath(QueryInspectionResult result)
+    {
+        Assert.IsFalse(result.PlanningText.Contains("RowComparer", StringComparison.Ordinal), result.PlanningText);
+        Assert.IsFalse(result.GeneratedCSharpCode.Contains("UnionAll(left, right", StringComparison.Ordinal), result.GeneratedCSharpCode);
+        Assert.IsFalse(result.GeneratedCSharpCode.Contains("Union(left, right", StringComparison.Ordinal), result.GeneratedCSharpCode);
+        Assert.IsFalse(result.GeneratedCSharpCode.Contains("Except(left, right", StringComparison.Ordinal), result.GeneratedCSharpCode);
+        Assert.IsFalse(result.GeneratedCSharpCode.Contains("Intersect(left, right", StringComparison.Ordinal), result.GeneratedCSharpCode);
     }
 
 }

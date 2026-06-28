@@ -75,18 +75,18 @@ internal abstract partial class ExecutionIrRewriter
 
     protected virtual ExecutionNode RewriteParallelFilterProjectLoop(ExecutionParallelFilterProjectLoop node)
     {
-        var serialLoop = RewriteSourceLoop(node.SerialLoop);
+        var sequentialLoop = RewriteSourceLoop(node.SequentialLoop);
         var sourceRows = RewriteExpression(node.SourceRows);
         var predicate = RewriteOptionalExpression(node.Predicate);
         var appendRow = (ExecutionAppendRow)RewriteAppendRow(node.AppendRow);
-        return ReferenceEquals(serialLoop, node.SerialLoop) &&
+        return ReferenceEquals(sequentialLoop, node.SequentialLoop) &&
                ReferenceEquals(sourceRows, node.SourceRows) &&
                ReferenceEquals(predicate, node.Predicate) &&
                ReferenceEquals(appendRow, node.AppendRow)
             ? node
             : node with
             {
-                SerialLoop = serialLoop,
+                SequentialLoop = sequentialLoop,
                 SourceRows = sourceRows,
                 Predicate = predicate,
                 AppendRow = appendRow
@@ -95,18 +95,18 @@ internal abstract partial class ExecutionIrRewriter
 
     protected virtual ExecutionNode RewriteParallelSingleKeyAggregateLoop(ExecutionParallelSingleKeyAggregateLoop node)
     {
-        var serialLoop = RewriteSourceLoop(node.SerialLoop);
+        var sequentialLoop = RewriteSourceLoop(node.SequentialLoop);
         var sourceRows = RewriteExpression(node.SourceRows);
         var key = RewriteExpression(node.Key);
         var aggregateBody = RewriteBlock(node.AggregateBody);
-        return ReferenceEquals(serialLoop, node.SerialLoop) &&
+        return ReferenceEquals(sequentialLoop, node.SequentialLoop) &&
                ReferenceEquals(sourceRows, node.SourceRows) &&
                ReferenceEquals(key, node.Key) &&
                ReferenceEquals(aggregateBody, node.AggregateBody)
             ? node
             : node with
             {
-                SerialLoop = serialLoop,
+                SequentialLoop = sequentialLoop,
                 SourceRows = sourceRows,
                 Key = key,
                 AggregateBody = aggregateBody

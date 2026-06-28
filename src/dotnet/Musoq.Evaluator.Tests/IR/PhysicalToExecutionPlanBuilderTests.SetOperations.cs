@@ -55,7 +55,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.Contains("SourceScan [o: Order] -> right_oRows", planText);
         Assert.Contains("AppendRowBuffer [left <- LeftRow0(Name: o.Description)]", planText);
         Assert.Contains("CreateRowBuffer [right: List<RightRow0>]", planText);
-        Assert.Contains("SetOperation [result = left UnionAll right]", planText);
+        Assert.Contains("SetOperation [result = left UnionAll right, AppendLoop]", planText);
         Assert.IsFalse(planText.Contains("CreateTable [leftLeft:", StringComparison.Ordinal));
         Assert.IsFalse(planText.Contains("CreateTable [leftRight:", StringComparison.Ordinal));
         Assert.IsFalse(planText.Contains("SetOperation [left = leftLeft UnionAll leftRight]", StringComparison.Ordinal));

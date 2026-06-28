@@ -23,7 +23,7 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenParallelizationModeIsFullForUnsafeFilterProject_ShouldKeepSerialLoopWithoutFallbackWarning()
+    public void CompileForInspection_WhenParallelizationModeIsFullForUnsafeFilterProject_ShouldKeepSequentialLoopWithoutFallbackWarning()
     {
         var result = Inspect(
             "select Rand() as Value from #system.dual() d",

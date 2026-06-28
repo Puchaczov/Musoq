@@ -243,7 +243,8 @@ internal static class ExecutionTypedRowBufferResolver
                !blocked.Contains(setOperation.Left.Name) &&
                !blocked.Contains(setOperation.Right.Name) &&
                (setOperation.Kind == SetOpKind.UnionAll ||
-                setOperation.Strategy == ExecutionSetOperationStrategy.HashSet);
+                setOperation.Strategy == ExecutionSetOperationStrategy.HashSet ||
+                setOperation.Strategy == ExecutionSetOperationStrategy.GeneratedEqualityLoop);
     }
 
     private static HashSet<string> CreateBlockedSetOperationTypedRowBuffers(
@@ -256,7 +257,8 @@ internal static class ExecutionTypedRowBufferResolver
         {
             if (!tableStoredNames.Contains(setOperation.Target.Name) &&
                 (setOperation.Kind == SetOpKind.UnionAll ||
-                 setOperation.Strategy == ExecutionSetOperationStrategy.HashSet))
+                 setOperation.Strategy == ExecutionSetOperationStrategy.HashSet ||
+                 setOperation.Strategy == ExecutionSetOperationStrategy.GeneratedEqualityLoop))
             {
                 continue;
             }

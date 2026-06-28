@@ -29,7 +29,7 @@ public sealed partial class ExecutionCSharpRenderer
             projectedShapeName,
             CreateQueryRowsFromShardsInvocation(projectedRowsName),
             StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(SyntaxFactory.IdentifierName(projectedShapeName))));
-        var serialStatements = RenderParallelLoopSerialPath(parallelProject.SerialLoop);
+        var sequentialStatements = RenderParallelLoopSequentialKernel(parallelProject.SequentialLoop);
 
         return
         [
@@ -37,7 +37,7 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IfStatement(
                 condition,
                 StatementEmitter.CreateBlock(projectedRowsDeclaration, appendProjectedShapes),
-                SyntaxFactory.ElseClause(StatementEmitter.CreateBlock(serialStatements)))
+                SyntaxFactory.ElseClause(StatementEmitter.CreateBlock(sequentialStatements)))
         ];
     }
 

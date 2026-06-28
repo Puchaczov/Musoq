@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
@@ -15,19 +13,19 @@ internal static class SetOperationStrategyPlanner
         if (CanStreamUnionAll(node))
         {
             return SetOperationStrategyDecision.StreamingUnionAll(
-                "UnionAll arms use directly streamable row sources with optional filters, direct column or literal projections, and no post-operations, so Execution IR can append both arms directly into the result table.");
+                "UnionAll arms use directly streamable row sources with optional filters, projected expressions, and no post-operations, so Execution IR can append both arms directly into the result table.");
         }
 
         if (node.Kind == SetOpKind.UnionAll)
         {
-            return SetOperationStrategyDecision.RowComparer(
-                "UnionAll uses the materialized comparer strategy because at least one arm is not a directly streamable row-source pipeline with optional filters and direct column or literal projections.");
+            return SetOperationStrategyDecision.AppendLoop(
+                "UnionAll uses generated append lowering because at least one arm is not a directly streamable row-source pipeline with optional filters, projected expressions, and no post-operations.");
         }
 
         if (TryGetNanSensitiveKeyType(node.FieldIndexes, node.FieldTypes, out var nanSensitiveType))
         {
-            return SetOperationStrategyDecision.RowComparer(
-                $"Set operation key type '{FormatType(nanSensitiveType)}' uses NaN equality semantics that must match the row-comparer path, so HashSet lowering is skipped.");
+            return SetOperationStrategyDecision.GeneratedEqualityLoop(
+                $"Set operation key type '{FormatType(nanSensitiveType)}' uses NaN-sensitive equality semantics, so Execution IR emits an explicit generated equality loop instead of HashSet lowering.");
         }
 
         if (CanUseHashSetSetOperation(node.FieldIndexes))
@@ -36,8 +34,8 @@ internal static class SetOperationStrategyPlanner
                 $"Set operation has {node.FieldIndexes.Length.ToString(CultureInfo.InvariantCulture)} key field(s), so Execution IR can use the HashSet strategy.");
         }
 
-        return SetOperationStrategyDecision.RowComparer(
-            "Set operation has no key fields, so the materialized comparer strategy compares complete rows.");
+        return SetOperationStrategyDecision.GeneratedEqualityLoop(
+            "Set operation has no key fields, so Execution IR emits an explicit generated equality loop over complete rows.");
     }
 
     private static bool CanStreamUnionAll(PhysicalSetOperationNode node)
@@ -60,8 +58,7 @@ internal static class SetOperationStrategyPlanner
     {
         return CanStreamUnionAllSource(pipeline.Source) &&
                !pipeline.Project.IsDistinct &&
-               pipeline.PostOperations.Count == 0 &&
-               pipeline.Project.Fields.All(static field => field.Expression is ColumnRef or Literal);
+               pipeline.PostOperations.Count == 0;
     }
 
     private static bool CanStreamUnionAllSource(PhysicalNode source)

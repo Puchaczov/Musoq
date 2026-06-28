@@ -84,7 +84,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.Contains("ParallelSingleKeyAggregateLoop [p in pRows by p.Name; threshold 4096, sample 8192/6144", text);
         Assert.Contains("ParallelAccumulate", text);
         Assert.Contains("TypedAggregateSet [Set(group.__agg0, 1)]", text);
-        Assert.Contains("SerialPath", text);
+        Assert.Contains("SequentialKernel", text);
         Assert.Contains("GetOrAddSingleKeyAggregateGroup [group = groups[p.Name] by p.Name; typed: ResultAggregateGroup]", text);
     }
 

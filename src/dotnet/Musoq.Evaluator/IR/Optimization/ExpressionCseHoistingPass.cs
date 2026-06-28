@@ -168,19 +168,19 @@ internal sealed partial class ExpressionCseHoistingPass : IPlanOptimizationPass<
 
         protected override ExecutionNode RewriteParallelSingleKeyAggregateLoop(ExecutionParallelSingleKeyAggregateLoop node)
         {
-            var serialLoop = RewriteSourceLoop(node.SerialLoop);
+            var sequentialLoop = RewriteSourceLoop(node.SequentialLoop);
             var sourceRows = RewriteExpression(node.SourceRows);
             var key = RewriteExpression(node.Key);
             var aggregateBody = RewriteBlock(node.AggregateBody);
 
-            return ReferenceEquals(serialLoop, node.SerialLoop) &&
+            return ReferenceEquals(sequentialLoop, node.SequentialLoop) &&
                    ReferenceEquals(sourceRows, node.SourceRows) &&
                    ReferenceEquals(key, node.Key) &&
                    ReferenceEquals(aggregateBody, node.AggregateBody)
                 ? node
                 : node with
                 {
-                    SerialLoop = serialLoop,
+                    SequentialLoop = sequentialLoop,
                     SourceRows = sourceRows,
                     Key = key,
                     AggregateBody = aggregateBody

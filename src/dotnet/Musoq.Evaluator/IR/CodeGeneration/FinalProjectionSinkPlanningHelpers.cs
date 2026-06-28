@@ -33,7 +33,7 @@ internal static class FinalProjectionSinkPlanningHelpers
             case ExecutionParallelFilterProjectLoop parallel
                 when IsProjectionAppend(table, resultInfo, parallel.AppendRow):
                 var useOptionalProjector = HasDuplicatedUncachedMethodCalls(parallel) &&
-                                           CanRenderOptionalProjectionProjectorBody(parallel.SerialLoop.Body);
+                                           CanRenderOptionalProjectionProjectorBody(parallel.SequentialLoop.Body);
                 projectionLoop = new TypedProjectionLoop(
                     parallel.SourceRows,
                     parallel.Source,

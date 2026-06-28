@@ -38,7 +38,7 @@ public sealed partial class ExecutionCSharpRenderer
         var getOrAddGroup = GetSerialSingleKeyAggregateGroupAcquisition(parallelAggregate);
         var excludedNames = new HashSet<string>(StringComparer.Ordinal)
         {
-            parallelAggregate.SerialLoop.Item.Name,
+            parallelAggregate.SequentialLoop.Item.Name,
             SerialSingleKeyAggregateRowsParameterName,
             getOrAddGroup.RootGroup.Name,
             getOrAddGroup.Groups.Name,
@@ -50,11 +50,11 @@ public sealed partial class ExecutionCSharpRenderer
         if (getOrAddGroup.NullGroup is not null)
             excludedNames.Add(getOrAddGroup.NullGroup.Name);
 
-        foreach (var variableName in CollectDeclaredVariableNames(parallelAggregate.SerialLoop.Body))
+        foreach (var variableName in CollectDeclaredVariableNames(parallelAggregate.SequentialLoop.Body))
             excludedNames.Add(variableName);
 
         var captures = new Dictionary<string, CapturedLocal>(StringComparer.Ordinal);
-        AddHelperCaptures(parallelAggregate.SerialLoop.Body, excludedNames, captures);
+        AddHelperCaptures(parallelAggregate.SequentialLoop.Body, excludedNames, captures);
         return captures.Values.ToArray();
     }
 
@@ -66,7 +66,7 @@ public sealed partial class ExecutionCSharpRenderer
     private static ExecutionGetOrAddSingleKeyAggregateGroup GetSerialSingleKeyAggregateGroupAcquisition(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
     {
-        var getOrAddGroups = parallelAggregate.SerialLoop.Body.Nodes
+        var getOrAddGroups = parallelAggregate.SequentialLoop.Body.Nodes
             .OfType<ExecutionGetOrAddSingleKeyAggregateGroup>()
             .ToArray();
 

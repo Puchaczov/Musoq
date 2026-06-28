@@ -16,7 +16,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         ValidateParallelSingleKeyAggregateShape(parallelAggregate);
         var captures = CollectSerialSingleKeyAggregateCaptures(parallelAggregate);
-        var serialLoop = CreateSerialSingleKeyAggregateHelperLoop(parallelAggregate);
+        var sequentialLoop = CreateSerialSingleKeyAggregateHelperLoop(parallelAggregate);
         var previousProfileRecorderInScope = _profileRecorderInScope;
         var previousEmitChunkLoopCancellationChecks = _emitChunkLoopCancellationChecks;
         _profileRecorderInScope = IsInstrumentationEnabled;
@@ -27,7 +27,7 @@ public sealed partial class ExecutionCSharpRenderer
             {
                 QueryEmitter.GenerateCancellationCheck()
             };
-            bodyStatements.AddRange(RenderParallelLoopSerialPath(serialLoop));
+            bodyStatements.AddRange(RenderParallelLoopSequentialKernel(sequentialLoop));
 
             return SyntaxFactory.MethodDeclaration(
                     SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
@@ -81,7 +81,7 @@ public sealed partial class ExecutionCSharpRenderer
         var getOrAddGroup = GetSerialSingleKeyAggregateGroupAcquisition(parallelAggregate);
         var helperGetOrAddGroup = CreateSerialSingleKeyAggregateHelperGroupAcquisition(getOrAddGroup);
         var replacedGetOrAddGroup = false;
-        var nodes = parallelAggregate.SerialLoop.Body.Nodes
+        var nodes = parallelAggregate.SequentialLoop.Body.Nodes
             .Select(node =>
             {
                 if (node is not ExecutionGetOrAddSingleKeyAggregateGroup candidate || !Equals(candidate, getOrAddGroup))
@@ -103,7 +103,7 @@ public sealed partial class ExecutionCSharpRenderer
             typeof(object),
             parallelAggregate.Source.GeneratedRowTypeName);
 
-        return parallelAggregate.SerialLoop with
+        return parallelAggregate.SequentialLoop with
         {
             Source = ExecutionRowStreams.RebindLike(parallelAggregate.SourceRows, rowsParameter),
             Body = new ExecutionBlock(nodes)
@@ -115,7 +115,7 @@ public sealed partial class ExecutionCSharpRenderer
         var getOrAddGroup = GetSerialSingleKeyAggregateGroupAcquisition(parallelAggregate);
         var arguments = new List<ArgumentSyntax>
         {
-            SyntaxFactory.Argument(RenderExpression(parallelAggregate.SerialLoop.Source)),
+            SyntaxFactory.Argument(RenderExpression(parallelAggregate.SequentialLoop.Source)),
             SyntaxFactory.Argument(SyntaxFactory.IdentifierName(getOrAddGroup.Groups.Name)),
             SyntaxFactory.Argument(SyntaxFactory.IdentifierName(getOrAddGroup.GroupsToFinalize.Name))
         };

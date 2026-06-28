@@ -18,7 +18,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (setOperation.Strategy == ExecutionSetOperationStrategy.HashSet)
             return RenderHashSetSetOperation(setOperation);
 
-        return RenderRowComparerSetOperation(setOperation);
+        return RenderGeneratedEqualitySetOperation(setOperation);
     }
 
     private IEnumerable<StatementSyntax> RenderUnionAllAppendOperation(ExecutionSetOperation setOperation)
@@ -48,28 +48,6 @@ public sealed partial class ExecutionCSharpRenderer
                     setOperation,
                     rightRowName,
                     setOperation.Right)))
-        ];
-    }
-
-    private IEnumerable<StatementSyntax> RenderRowComparerSetOperation(ExecutionSetOperation setOperation)
-    {
-        var invocation = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(ResolveSetOperationMethodName(setOperation.Kind)))
-            .WithArgumentList(CreateArgumentList(
-                SyntaxFactory.IdentifierName(setOperation.Left.Name),
-                SyntaxFactory.IdentifierName(setOperation.Right.Name),
-                CreateSetComparer(setOperation.FieldIndexes, setOperation.FieldTypes)));
-
-        if (IsFinalShapeTarget(setOperation.Target))
-            return RenderFinalShapeRowsFromRowsExpression(
-                $"{setOperation.Target.Name}Rows",
-                CreateTableRowsReadExpression(invocation));
-
-        return
-        [
-            CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
-                setOperation.Target.Name,
-                invocation)
         ];
     }
 

@@ -189,19 +189,19 @@ internal sealed class MethodTargetReusePass : IPlanOptimizationPass<ExecutionPla
             {
                 return RewriteWithDeferredMethodTargetDeclarations(() =>
                 {
-                    var serialLoop = RewriteParallelFilterProjectSerialLoop(node.SerialLoop);
+                    var sequentialLoop = RewriteParallelFilterProjectSequentialLoop(node.SequentialLoop);
                     var sourceRows = RewriteExpression(node.SourceRows);
                     var predicate = RewriteWithSuppressedMethodCache(() => RewriteOptionalExpression(node.Predicate));
                     var appendRow = (ExecutionAppendRow)RewriteWithSuppressedMethodCache(() => RewriteAppendRow(node.AppendRow));
 
-                    return ReferenceEquals(serialLoop, node.SerialLoop) &&
+                    return ReferenceEquals(sequentialLoop, node.SequentialLoop) &&
                            ReferenceEquals(sourceRows, node.SourceRows) &&
                            ReferenceEquals(predicate, node.Predicate) &&
                            ReferenceEquals(appendRow, node.AppendRow)
                         ? node
                         : node with
                         {
-                            SerialLoop = serialLoop,
+                            SequentialLoop = sequentialLoop,
                             SourceRows = sourceRows,
                             Predicate = predicate,
                             AppendRow = appendRow
@@ -434,7 +434,7 @@ internal sealed class MethodTargetReusePass : IPlanOptimizationPass<ExecutionPla
             }
         }
 
-        private ExecutionSourceLoop RewriteParallelFilterProjectSerialLoop(ExecutionSourceLoop loop)
+        private ExecutionSourceLoop RewriteParallelFilterProjectSequentialLoop(ExecutionSourceLoop loop)
         {
             var source = RewriteExpression(loop.Source);
             var body = RewriteBlock(loop.Body);

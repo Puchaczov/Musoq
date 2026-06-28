@@ -33,9 +33,9 @@ internal static partial class ExecutionNodeFacts
             case ExecutionForEachWithOrdinality forEach:
                 return [forEach.Source];
             case ExecutionParallelSingleKeyAggregateLoop parallelAggregate:
-                return [parallelAggregate.SourceRows, parallelAggregate.Key, parallelAggregate.SerialLoop.Source];
+                return [parallelAggregate.SourceRows, parallelAggregate.Key, parallelAggregate.SequentialLoop.Source];
             case ExecutionParallelFilterProjectLoop parallelProject:
-                return new[] { parallelProject.SourceRows, parallelProject.SerialLoop.Source }
+                return new[] { parallelProject.SourceRows, parallelProject.SequentialLoop.Source }
                     .Concat(OptionalExpression(parallelProject.Predicate))
                     .Concat(parallelProject.AppendRow.Values.Select(static value => value.Value))
                     .Concat(parallelProject.AppendRow.Contexts)

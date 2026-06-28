@@ -284,9 +284,9 @@ public static partial class EvaluationHelper
         var baseSampleSize = Math.Max(1, sampleSize);
 
         // The cardinality sample estimates how much the aggregation reduces the data.
-        // Parallel single-key aggregation only loses to the serial path when keys are
+        // Parallel single-key aggregation only loses to the sequential kernel when keys are
         // near-unique: each shard then holds almost as many groups as it scanned and
-        // the serial merge dominates. The absolute number of distinct groups is the
+        // the sequential merge dominates. The absolute number of distinct groups is the
         // wrong signal - a few hundred groups over billions of rows parallelizes well.
         // Scale the sample with the input so the proxy can separate genuine grouping
         // (worth parallelizing) from near-unique keys (not worth it) on large datasets.

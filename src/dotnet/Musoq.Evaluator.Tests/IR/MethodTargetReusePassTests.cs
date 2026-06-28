@@ -300,12 +300,12 @@ public sealed class MethodTargetReusePassTests
                     typeof(string),
                     null))],
             ExecutionAppendMode.Direct);
-        var serialLoop = new ExecutionForEach(
+        var sequentialLoop = new ExecutionForEach(
             source,
             rows,
             new ExecutionBlock([appendRow]));
         var plan = CreatePlan(new ExecutionParallelFilterProjectLoop(
-            serialLoop,
+            sequentialLoop,
             source,
             rows,
             null,
@@ -318,7 +318,7 @@ public sealed class MethodTargetReusePassTests
         Assert.IsTrue(result.IsChanged);
         var createObject = (ExecutionCreateObject)result.Plan.Body.Nodes[0];
         var parallelLoop = (ExecutionParallelFilterProjectLoop)result.Plan.Body.Nodes[1];
-        var serialAppend = (ExecutionAppendRow)parallelLoop.SerialLoop.Body.Nodes.Single();
+        var serialAppend = (ExecutionAppendRow)parallelLoop.SequentialLoop.Body.Nodes.Single();
         var serialCall = (ExecutionMethodCall)serialAppend.Values.Single().Value;
         var projectorCall = (ExecutionMethodCall)parallelLoop.AppendRow.Values.Single().Value;
 
@@ -326,7 +326,7 @@ public sealed class MethodTargetReusePassTests
         Assert.AreSame(createObject.Target, serialCall.Target);
         Assert.AreSame(createObject.Target, projectorCall.Target);
         Assert.IsFalse(ExecutionIrAnalysis
-            .CollectNodes<ExecutionCreateObject>(parallelLoop.SerialLoop.Body)
+            .CollectNodes<ExecutionCreateObject>(parallelLoop.SequentialLoop.Body)
             .Any());
     }
 

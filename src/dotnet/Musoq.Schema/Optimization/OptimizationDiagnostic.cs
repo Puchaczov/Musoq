@@ -1,3 +1,5 @@
+using System;
+
 namespace Musoq.Schema.Optimization;
 
 public sealed record OptimizationDiagnostic(
@@ -12,6 +14,7 @@ public sealed record OptimizationDiagnostic(
 
     public string? Reason { get; init; }
 
+    [Obsolete("Runtime-v2 planning should report source-contract or concrete planning diagnostics instead of optimization fallback warnings.")]
     public string? Fallback { get; init; }
 
     public static OptimizationDiagnostic Info(string message)
@@ -24,6 +27,7 @@ public sealed record OptimizationDiagnostic(
         return new OptimizationDiagnostic(OptimizationDiagnosticSeverity.Warning, message);
     }
 
+    [Obsolete("Runtime-v2 planning should report source-contract or concrete planning diagnostics instead of optimization fallback warnings.")]
     public static OptimizationDiagnostic FallbackWarning(
         string optimization,
         string target,

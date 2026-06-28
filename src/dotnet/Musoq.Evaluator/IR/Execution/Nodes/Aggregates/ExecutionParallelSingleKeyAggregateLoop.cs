@@ -4,7 +4,7 @@ using System.Reflection;
 namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionParallelSingleKeyAggregateLoop(
-    ExecutionSourceLoop SerialLoop,
+    ExecutionSourceLoop SequentialLoop,
     ExecutionVariable Source,
     ExecutionExpression SourceRows,
     ExecutionExpression Key,
