@@ -139,17 +139,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("public Musoq.Plugins.CountReferenceAggregateKernel<string>.State __agg0", sample);
         Assert.Contains("ParallelSingleKeyAggregateLoop [ko3iko in ko3ikoRows by ko3iko.City; threshold 4096, sample 8192/6144", sample);
         Assert.Contains("EvaluationHelper.GetParallelAggregationRowsOrEmpty<", sample);
-        Assert.Contains("EvaluationHelper.ShouldUseParallelSingleKeyAggregation<", sample);
         Assert.Contains("ParallelSingleKeyAggregate_0", sample);
-        Assert.Contains("SerialSingleKeyAggregate_0", sample);
+        Assert.DoesNotContain("EvaluationHelper.ShouldUseParallelSingleKeyAggregation<", sample);
+        Assert.DoesNotContain("SerialSingleKeyAggregate", sample);
         Assert.Contains(
             "[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]",
             sample);
         Assert.Contains(
             "private static List<ResultAggregateGroup> ParallelSingleKeyAggregate_0(",
-            sample);
-        Assert.Contains(
-            "private static void SerialSingleKeyAggregate_0(",
             sample);
         Assert.Contains("var worker = new ParallelSingleKeyAggregateWorker_0(", sample);
         Assert.Contains("Parallel.For(0, workerCount, options, worker.Run);", sample);

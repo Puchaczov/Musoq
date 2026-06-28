@@ -45,11 +45,11 @@ internal static class RowWidthPruningPlanner
         return new RowWidthPruningPlan(
             plan.BoundaryId,
             plan.Kind,
-            RowWidthPruningStrategy.DiagnosticOnly,
+            RowWidthPruningStrategy.Blocked,
             plan.FutureDroppableColumns,
             [],
             plan.Confidence,
-            $"{plan.Kind} row-width pruning was recorded for analysis; no physical pruning was applied for this boundary.")
+            $"{plan.Kind} row-width pruning is blocked because this boundary has no supported physical rewrite for the droppable columns.")
         {
             RetainedColumns = CreateRetainedColumns(plan)
         };

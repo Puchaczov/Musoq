@@ -59,8 +59,6 @@ public partial class QueryInspectionTests
 
         Assert.Contains("CreateSingleKeyAggregateContext [groups: string ->", normalized);
         Assert.Contains("AggregateGroup [", normalized);
-        Assert.Contains("GetOrAddSingleKeyAggregateGroup [", normalized);
-        Assert.Contains("; typed:", normalized);
         Assert.Contains("TypedAggregateSet [", normalized);
     }
 

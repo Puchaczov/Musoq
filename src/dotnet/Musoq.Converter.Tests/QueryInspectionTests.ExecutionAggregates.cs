@@ -300,7 +300,8 @@ public partial class QueryInspectionTests
             new CompilationOptions());
 
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
-        AssertExecutionPlanContains("GetOrAddSingleKeyAggregateGroup [group = groups[d.Dummy] by d.Dummy; typed:", result.ExecutionPlanText);
+        AssertExecutionPlanContains("ParallelSingleKeyAggregateLoop [d in dRows by d.Dummy;", result.ExecutionPlanText);
+        AssertExecutionPlanContains("ParallelAccumulate", result.ExecutionPlanText);
         AssertExecutionPlanContains("finalGroup.d.Dummy", result.ExecutionPlanText);
         Assert.Contains("new Dictionary<string, ResultAggregateGroup>()", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("finalGroup.__key0", result.GeneratedCSharpCode);
@@ -327,7 +328,7 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
-        AssertExecutionPlanContains("GetOrAddSingleKeyAggregateGroup [group = groups[d.Dummy] by d.Dummy; typed:", result.ExecutionPlanText);
+        AssertExecutionPlanContains("ParallelSingleKeyAggregateLoop [d in dRows by d.Dummy;", result.ExecutionPlanText);
         Assert.Contains("new Dictionary<string, ResultAggregateGroup>()", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("finalGroup.__key0", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
@@ -343,11 +344,11 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         Assert.Contains("ParallelSingleKeyAggregateLoop [d in dRows by d.Dummy; threshold 4096, sample 8192/6144", result.ExecutionPlanText);
         Assert.Contains("ParallelAccumulate", result.ExecutionPlanText);
-        Assert.Contains("SequentialKernel", result.ExecutionPlanText);
+        Assert.IsFalse(result.ExecutionPlanText.Contains("SequentialKernel", StringComparison.Ordinal));
         AssertGeneratedCSharpContains("EvaluationHelper.GetParallelAggregationRowsOrEmpty", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("EvaluationHelper.ShouldUseParallelSingleKeyAggregation", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpDoesNotContain("EvaluationHelper.ShouldUseParallelSingleKeyAggregation", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("ParallelSingleKeyAggregate_0", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("SerialSingleKeyAggregate_0", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpDoesNotContain("SerialSingleKeyAggregate_0", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("Parallel.For(0, workerCount, options, worker.Run);", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("private static void ParallelSingleKeyAggregateShard_0", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("private sealed class ParallelSingleKeyAggregateWorker_0", result.GeneratedCSharpCode);
@@ -509,7 +510,7 @@ public partial class QueryInspectionTests
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
-        AssertExecutionPlanContains("GetOrAddSingleKeyAggregateGroup [group = groups[(d.Dummy || '!')] by d.Dummy + !; typed:", result.ExecutionPlanText);
+        AssertExecutionPlanContains("ParallelSingleKeyAggregateLoop [d in dRows by (d.Dummy || '!');", result.ExecutionPlanText);
         AssertGeneratedCSharpContains("finalGroup.__key0", result.GeneratedCSharpCode);
     }
 

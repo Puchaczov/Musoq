@@ -229,15 +229,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.AreEqual(1, CountOccurrences(sample, "private static List<AggregateGroup0> ParallelSingleKeyAggregate_0("));
         Assert.AreEqual(1, CountOccurrences(sample, "private static void ParallelSingleKeyAggregateShard_0("));
         Assert.AreEqual(1, CountOccurrences(sample, "private sealed class ParallelSingleKeyAggregateWorker_0"));
-        Assert.AreEqual(1, CountOccurrences(sample, "private static void SerialSingleKeyAggregate_0("));
         Assert.AreEqual(helperReferenceCount, CountOccurrences(sample, "ParallelSingleKeyAggregate_0("));
-        Assert.AreEqual(helperReferenceCount, CountOccurrences(sample, "SerialSingleKeyAggregate_0("));
+        Assert.AreEqual(0, CountOccurrences(sample, "SerialSingleKeyAggregate_0("));
         Assert.AreEqual(1, CountOccurrences(sample, "Parallel.For(0, workerCount, options, worker.Run);"));
         Assert.AreEqual(0, CountOccurrences(sample, "shardIndex =>"));
         Assert.AreEqual(0, CountOccurrences(sample, "ParallelSingleKeyAggregate_1"));
         Assert.AreEqual(0, CountOccurrences(sample, "ParallelSingleKeyAggregateShard_1"));
         Assert.AreEqual(0, CountOccurrences(sample, "ParallelSingleKeyAggregateWorker_1"));
-        Assert.AreEqual(0, CountOccurrences(sample, "SerialSingleKeyAggregate_1"));
         Assert.AreEqual(0, CountOccurrences(sample, "private sealed class LeftLeftAggregateGroup"));
         Assert.AreEqual(0, CountOccurrences(sample, "private sealed class LeftRightAggregateGroup"));
         Assert.AreEqual(0, CountOccurrences(sample, "private sealed class RightAggregateGroup"));

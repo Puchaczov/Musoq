@@ -300,9 +300,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (Regex.IsMatch(content, directLoopPattern))
             return true;
 
-        var serialAggregateHelperPattern =
-            $@"SerialSingleKeyAggregate_[0-9]+\([A-Za-z0-9_]*{Regex.Escape(expectation.Alias)}Rows,";
-        if (Regex.IsMatch(content, serialAggregateHelperPattern))
+        var parallelAggregateRowsPattern =
+            $@"EvaluationHelper\.GetParallelAggregationRowsOrEmpty<[^>]+>\([A-Za-z0-9_]*{Regex.Escape(expectation.Alias)}Rows,";
+        if (Regex.IsMatch(content, parallelAggregateRowsPattern))
             return true;
 
         var valueTupleAggregateHelperPattern =

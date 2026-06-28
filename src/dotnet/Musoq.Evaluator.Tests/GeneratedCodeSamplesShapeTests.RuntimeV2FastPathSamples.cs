@@ -263,7 +263,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("firstName.StartsWith(\"A\", StringComparison.OrdinalIgnoreCase)", sample);
         Assert.Contains("new ResultRow0(firstName, ko3iko.LastName, email)", sample);
         Assert.Contains("QueryRows.FromRowShards(", sample);
-        Assert.Contains("TableProjectionRows.ProjectOptionalRowsSerial<", sample);
+        Assert.Contains("EvaluationHelper.ProjectRowsParallel<", sample);
+        Assert.DoesNotContain("TableProjectionRows.ProjectOptionalRowsSerial<", sample);
         Assert.IsFalse(sample.Contains("CreateObject [__resultLibraryBase", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("new Musoq.Plugins.LibraryBase()", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("new Musoq.Plugins.LibraryBase().Contains", StringComparison.Ordinal));
@@ -297,8 +298,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("new ResultRow0(expensiveCompute, (expensiveCompute + 10), (expensiveCompute > 300) ? (string)\"High\" : (string)\"Low\")", sample);
         Assert.Contains("QueryRows.FromRowShards(", sample);
         Assert.Contains("EvaluationHelper.ProjectChunkedRowsParallel<", sample);
-        Assert.Contains("TableProjectionRows.ProjectOptionalRowsSerial<", sample);
-        Assert.AreEqual(3, CountOccurrences(sample, "int expensiveCompute = (int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(value);"));
+        Assert.Contains("EvaluationHelper.ProjectRowsParallel<", sample);
+        Assert.DoesNotContain("TableProjectionRows.ProjectOptionalRowsSerial<", sample);
+        Assert.AreEqual(2, CountOccurrences(sample, "int expensiveCompute = (int)__resultRuntimeV2RegressionLibrary0.ExpensiveCompute(value);"));
         Assert.IsFalse(sample.Contains("new Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2RegressionLibrary().ExpensiveCompute", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("EvaluationHelper.GetColumnValue(", StringComparison.Ordinal));

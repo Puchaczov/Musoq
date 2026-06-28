@@ -187,7 +187,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
     }
 
     [TestMethod]
-    public void Build_WhenProvidedRowWidthPlanIsDiagnosticOnlyForHiddenOrderKey_ShouldRejectPruning()
+    public void Build_WhenProvidedRowWidthPlanIsBlockedForHiddenOrderKey_ShouldRejectPruning()
     {
         var scan = CreateScan();
         var project = new PhysicalProjectNode(
@@ -202,15 +202,15 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             new RowWidthPruningPlan(
                 "top-n:0",
                 BoundaryRowShapeKind.TopN,
-                RowWidthPruningStrategy.DiagnosticOnly,
+                RowWidthPruningStrategy.Blocked,
                 ["p.Age"],
                 [],
                 PlanningConfidence.Medium,
-                "Test diagnostic-only row-width pruning plan.")
+                "Test blocked row-width pruning plan.")
         ]);
         var builder = CreateBuilder(strategies);
 
-        var result = builder.Build(topN, "Q_TopNHiddenOrderKeyDiagnosticOnly");
+        var result = builder.Build(topN, "Q_TopNHiddenOrderKeyBlocked");
 
         Assert.IsFalse(result.Supported);
         Assert.Contains("requires an applied RowWidthPruningPlan for TopN", RequireUnsupportedReason(result));

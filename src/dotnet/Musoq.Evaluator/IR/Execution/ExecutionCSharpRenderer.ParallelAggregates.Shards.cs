@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Visitors.CodeGeneration;
@@ -111,25 +112,36 @@ public sealed partial class ExecutionCSharpRenderer
         string groupKeyName,
         string cancellationTokenName)
     {
+        var aggregateBodyStatements = RenderBlock(parallelAggregate.AggregateBody).Statements.ToList();
+        var reuseGroupKeyLet = TryGetReusableGroupKeyLet(parallelAggregate, out var groupKeyLet);
         var body = new List<StatementSyntax>
         {
             CreatePeriodicCancellationCheck(indexName, cancellationTokenName),
             CreateLocalDeclaration(
                 CreateVariableTypeSyntax(parallelAggregate.Source),
                 parallelAggregate.Source.Name,
-                CreateElementAccess(SyntaxFactory.IdentifierName(rowsName), SyntaxFactory.IdentifierName(indexName))),
-            CreateLocalDeclaration(
-                CreateTypeSyntax(parallelAggregate.KeyType),
-                groupKeyName,
-                RenderExpression(parallelAggregate.Key))
+                CreateElementAccess(SyntaxFactory.IdentifierName(rowsName), SyntaxFactory.IdentifierName(indexName)))
         };
+
+        if (reuseGroupKeyLet)
+        {
+            body.Add(RenderLet(groupKeyLet!));
+            aggregateBodyStatements.RemoveAt(0);
+        }
+
+        body.Add(CreateLocalDeclaration(
+            CreateTypeSyntax(parallelAggregate.KeyType),
+            groupKeyName,
+            reuseGroupKeyLet
+                ? SyntaxFactory.IdentifierName(groupKeyLet!.Variable.Name)
+                : RenderExpression(parallelAggregate.Key)));
 
         body.AddRange(CreateParallelAggregateGroupAcquisitionStatements(
             parallelAggregate,
             groupsName,
             orderedGroupsName,
             groupKeyName));
-        body.AddRange(RenderBlock(parallelAggregate.AggregateBody).Statements);
+        body.AddRange(aggregateBodyStatements);
 
         return SyntaxFactory.ForStatement(StatementEmitter.CreateBlock(body))
             .WithDeclaration(SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
@@ -144,6 +156,22 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.PostfixUnaryExpression(
                     SyntaxKind.PostIncrementExpression,
                     SyntaxFactory.IdentifierName(indexName))));
+    }
+
+    private static bool TryGetReusableGroupKeyLet(
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
+        out ExecutionLet? groupKeyLet)
+    {
+        if (parallelAggregate.AggregateBody.Nodes.FirstOrDefault() is ExecutionLet let &&
+            let.Value.ReturnType == parallelAggregate.Key.ReturnType &&
+            ExecutionExpressionFingerprint.ForHoist(let.Value) == ExecutionExpressionFingerprint.ForHoist(parallelAggregate.Key))
+        {
+            groupKeyLet = let;
+            return true;
+        }
+
+        groupKeyLet = null;
+        return false;
     }
 
     private IReadOnlyList<StatementSyntax> CreateParallelAggregateGroupAcquisitionStatements(

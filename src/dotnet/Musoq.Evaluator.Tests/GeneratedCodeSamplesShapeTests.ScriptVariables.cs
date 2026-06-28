@@ -68,7 +68,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         AssertScriptVariableBindingCount(ScriptVariableGroupByHavingCaptureSampleFileName, groupBy, 2);
         Assert.Contains("ParallelSingleKeyAggregate_0(groupsToFinalizeParallelRows, 24, token, letSuffix);", groupBy);
-        Assert.Contains("SerialSingleKeyAggregate_0(ko3ikoRows, groups, groupsToFinalize, ref nullGroup, token, letSuffix);", groupBy);
+        Assert.DoesNotContain("SerialSingleKeyAggregate", groupBy);
         Assert.Contains("CancellationToken cancellationToken, string letSuffix)", groupBy);
         Assert.Contains("private readonly string _letSuffix;", groupBy);
         Assert.Contains("string groupKey = (ko3iko.Country + letSuffix);", groupBy);

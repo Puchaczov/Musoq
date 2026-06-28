@@ -86,8 +86,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("new ResultRow0(ko3iko.Id, tryConvertToDecimalComparison)", sample);
         Assert.Contains("QueryRows.FromRowShards(", sample);
         Assert.Contains("EvaluationHelper.ProjectChunkedRowsParallel<", sample);
-        Assert.Contains("TableProjectionRows.ProjectOptionalRowsSerial<", sample);
-        Assert.AreEqual(3, CountOccurrences(
+        Assert.Contains("EvaluationHelper.ProjectRowsParallel<", sample);
+        Assert.DoesNotContain("TableProjectionRows.ProjectOptionalRowsSerial<", sample);
+        Assert.AreEqual(2, CountOccurrences(
             sample,
             "decimal? tryConvertToDecimalComparison = (decimal?)__resultLibraryBase0.TryConvertToDecimalComparison(amount);"));
         Assert.IsFalse(sample.Contains("TryConvertToDecimalComparison((object)", StringComparison.Ordinal));

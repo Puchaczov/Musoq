@@ -281,8 +281,7 @@ public partial class QueryInspectionTests
             _schemaProvider,
             _loggerResolver);
 
-        AssertActualOperator(aggregate, "GetOrAddSingleKeyAggregateGroup");
-        AssertActualOperator(aggregate, "TypedAggregateSet");
+        AssertActualOperator(aggregate, "ParallelSingleKeyAggregateLoop");
 
         var cte = InstanceCreator.ExplainAnalyze(
             "with p as (select d.Dummy as Dummy from #system.dual() d), q as (select Dummy from p), r as (select Dummy from p) select q.Dummy, r.Dummy from q inner join r on q.Dummy = r.Dummy",
@@ -304,10 +303,10 @@ public partial class QueryInspectionTests
             _schemaProvider,
             _loggerResolver);
 
-        var lookup = AssertActualOperator(result, "GetOrAddSingleKeyAggregateGroup");
+        var lookup = AssertActualOperator(result, "AppendShape");
 
         Assert.IsFalse(lookup.HasElapsedTime);
-        StringAssert.Contains(result.ExplainAnalyzeText, "GetOrAddSingleKeyAggregateGroup");
+        StringAssert.Contains(result.ExplainAnalyzeText, "AppendShape");
         StringAssert.Contains(result.ExplainAnalyzeText, "elapsed=n/a");
     }
 

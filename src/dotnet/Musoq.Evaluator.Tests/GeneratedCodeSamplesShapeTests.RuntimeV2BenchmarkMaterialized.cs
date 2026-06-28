@@ -52,7 +52,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(mixedColumnMethod.Contains("System.Collections.Concurrent.ConcurrentDictionary<int, decimal>", StringComparison.Ordinal));
         Assert.Contains("StringTransform(name)", mixedColumnMethod);
         Assert.Contains("QueryRows.FromRowShards(", mixedColumnMethod);
-        Assert.Contains("TableProjectionRows.ProjectOptionalRowsSerial<", mixedColumnMethod);
+        Assert.Contains("EvaluationHelper.ProjectRowsParallel<", mixedColumnMethod);
+        Assert.DoesNotContain("TableProjectionRows.ProjectOptionalRowsSerial<", mixedColumnMethod);
         Assert.IsFalse(mixedColumnMethod.Contains("TypedProjectionRows.ProjectOptionalValuesParallel<", StringComparison.Ordinal));
         Assert.IsFalse(mixedColumnMethod.Contains("private IEnumerable<ResultShape0> ComputeShapeRows", StringComparison.Ordinal));
 
@@ -106,7 +107,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("decimal expensiveCompute = (decimal)__resultBenchmarkParityLibrary0.ExpensiveCompute(value);", sample);
         Assert.Contains("expensiveCompute > 50", sample);
         Assert.Contains("QueryRows.FromRowShards(", sample);
-        Assert.Contains("TableProjectionRows.ProjectOptionalRowsSerial<", sample);
+        Assert.Contains("EvaluationHelper.ProjectRowsParallel<", sample);
+        Assert.DoesNotContain("TableProjectionRows.ProjectOptionalRowsSerial<", sample);
         Assert.IsFalse(sample.Contains("__musoqFinalShapeRows", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("private IEnumerable<ResultShape0> ComputeShapeRows", StringComparison.Ordinal));
     }
