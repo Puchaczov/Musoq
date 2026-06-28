@@ -10,7 +10,7 @@ namespace Musoq.Converter;
 /// </summary>
 public sealed class CompiledQueryArtifact : ICompiledQueryArtifact
 {
-    public const string CurrentArtifactFormatVersion = "1";
+    public const string CurrentArtifactFormatVersion = "2";
 
     private readonly byte[] _assemblyBytes;
     private readonly byte[]? _symbolsBytes;

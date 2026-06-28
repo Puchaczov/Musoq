@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using Musoq.Converter.Build;
 using Musoq.Converter.Diagnostics;
 using Musoq.Converter.Exceptions;
@@ -81,6 +83,7 @@ public static partial class InstanceCreator
             CompiledQueryArtifactSupport.CreateMetadata(
                 assemblyName,
                 script,
+                items,
                 items.Compilation));
 
         return ArtifactBuildResult.Success(artifact, diagnostics);
@@ -94,6 +97,46 @@ public static partial class InstanceCreator
         CompilationOptions? compilationOptions = null,
         CompiledQueryArtifactTypeLoader? typeLoader = null)
     {
+        return CreateExecutableFromArtifactWithDiagnosticsCore(
+            script,
+            artifact,
+            schemaProvider,
+            loggerResolver,
+            compilationOptions,
+            loadOptions: null,
+            typeLoader == null
+                ? null
+                : loadedArtifact => new CompiledQueryArtifactLoadResult(typeLoader(loadedArtifact)));
+    }
+
+    public static BuildResult CreateExecutableFromArtifactWithDiagnostics(
+        string script,
+        ICompiledQueryArtifact artifact,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompiledQueryArtifactLoadOptions? loadOptions,
+        CompilationOptions? compilationOptions = null,
+        CompiledQueryArtifactLoader? loader = null)
+    {
+        return CreateExecutableFromArtifactWithDiagnosticsCore(
+            script,
+            artifact,
+            schemaProvider,
+            loggerResolver,
+            compilationOptions,
+            loadOptions,
+            loader);
+    }
+
+    private static BuildResult CreateExecutableFromArtifactWithDiagnosticsCore(
+        string script,
+        ICompiledQueryArtifact artifact,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions? compilationOptions,
+        CompiledQueryArtifactLoadOptions? loadOptions,
+        CompiledQueryArtifactLoader? loader)
+    {
         ArgumentNullException.ThrowIfNull(artifact);
         ArgumentNullException.ThrowIfNull(schemaProvider);
         ArgumentNullException.ThrowIfNull(loggerResolver);
@@ -103,6 +146,10 @@ public static partial class InstanceCreator
 
         var artifactDiagnostics = new List<Diagnostic>();
         if (!TryGetRequiredMetadata(artifact, CompiledQueryArtifactSupport.MetadataAssemblyName, artifactDiagnostics, out var assemblyName))
+            return BuildResult.Failure(artifactDiagnostics, script);
+
+        var effectiveLoadOptions = loadOptions ?? CompiledQueryArtifactLoadOptions.Default;
+        if (!TryValidateLoadOptions(effectiveLoadOptions, artifactDiagnostics))
             return BuildResult.Failure(artifactDiagnostics, script);
 
         var effectiveCompilationOptions = compilationOptions ?? new CompilationOptions();
@@ -121,6 +168,8 @@ public static partial class InstanceCreator
         var items = CreateBuildItems(script, assemblyName, schemaProvider, diagnosticContext);
         items.EmitPdb = false;
         items.CompilationOptions = effectiveCompilationOptions;
+        items.StopAfterPlanning =
+            effectiveLoadOptions.ValidationMode == CompiledQueryArtifactValidationMode.Fast;
 
         Exception? caughtException = null;
         try
@@ -143,15 +192,22 @@ public static partial class InstanceCreator
         if (diagnosticContext.HasErrors)
             return BuildResult.Failure(diagnostics, script, caughtException, items);
 
-        ValidateArtifactCompatibility(script, artifact, effectiveCompilationOptions, items, diagnostics);
+        ValidateArtifactCompatibility(
+            script,
+            artifact,
+            assemblyName,
+            effectiveCompilationOptions,
+            effectiveLoadOptions.ValidationMode,
+            items,
+            diagnostics);
         if (diagnostics.Any(static diagnostic => diagnostic.IsError))
             return BuildResult.Failure(diagnostics, script, buildItems: items);
 
-        Type runnableType;
+        CompiledQueryArtifactLoadResult loadResult;
         try
         {
-            runnableType = typeLoader != null
-                ? typeLoader(artifact)
+            loadResult = loader != null
+                ? loader(artifact)
                 : LoadRunnableTypeFromArtifactBytes(artifact);
         }
         catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
@@ -160,15 +216,24 @@ public static partial class InstanceCreator
             return BuildResult.Failure(diagnostics, script, ex, items);
         }
 
-        ValidateLoadedRunnableType(artifact, runnableType, diagnostics);
-        if (diagnostics.Any(static diagnostic => diagnostic.IsError))
+        if (loadResult == null)
+        {
+            diagnostics.Add(CreateArtifactDiagnostic("Compiled artifact loader returned a null load result."));
             return BuildResult.Failure(diagnostics, script, buildItems: items);
+        }
+
+        ValidateLoadedRunnableType(artifact, loadResult.RunnableType, diagnostics);
+        if (diagnostics.Any(static diagnostic => diagnostic.IsError))
+        {
+            DisposeArtifactLifetime(loadResult.LifetimeOwner);
+            return BuildResult.Failure(diagnostics, script, buildItems: items);
+        }
 
         ITableRunnable runnable;
         try
         {
             runnable = CreateRunnable(
-                runnableType,
+                loadResult.RunnableType,
                 items.SchemaProvider,
                 items.SourceRuntimeSettingsBySourceContextId,
                 items.SourceRuntimeSettingDescriptionsBySourceContextId,
@@ -177,14 +242,30 @@ public static partial class InstanceCreator
         }
         catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
         {
+            DisposeArtifactLifetime(loadResult.LifetimeOwner);
             diagnostics.Add(CreateArtifactDiagnostic($"Compiled artifact runnable creation failed: {ex.Message}"));
             return BuildResult.Failure(diagnostics, script, ex, items);
         }
 
-        return BuildResult.Success(new CompiledQuery(runnable), diagnostics, script, items);
+        return BuildResult.Success(new CompiledQuery(runnable, loadResult.LifetimeOwner), diagnostics, script, items);
     }
 
-    private static Type LoadRunnableTypeFromArtifactBytes(ICompiledQueryArtifact artifact)
+    private static bool TryValidateLoadOptions(
+        CompiledQueryArtifactLoadOptions loadOptions,
+        ICollection<Diagnostic> diagnostics)
+    {
+        if (loadOptions.ValidationMode is CompiledQueryArtifactValidationMode.Fast or
+            CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash)
+        {
+            return true;
+        }
+
+        diagnostics.Add(CreateArtifactDiagnostic(
+            $"Compiled artifact validation mode '{loadOptions.ValidationMode}' is not supported."));
+        return false;
+    }
+
+    private static CompiledQueryArtifactLoadResult LoadRunnableTypeFromArtifactBytes(ICompiledQueryArtifact artifact)
     {
         var assemblyBytes = artifact is CompiledQueryArtifact ownedArtifact
             ? ownedArtifact.AssemblyBytesUnsafe
@@ -196,17 +277,41 @@ public static partial class InstanceCreator
         if (assemblyBytes is not { Length: > 0 })
             throw new InvalidOperationException("Compiled artifact assembly bytes are empty.");
 
-        var assembly = symbolsBytes is { Length: > 0 }
-            ? Assembly.Load(assemblyBytes, symbolsBytes)
-            : Assembly.Load(assemblyBytes);
-        return assembly.GetType(artifact.RunnableTypeName)
-               ?? throw new InvalidOperationException($"Type {artifact.RunnableTypeName} was not found in artifact assembly {assembly.FullName}.");
+        var loadContext = new CompiledQueryArtifactAssemblyLoadContext($"musoq-artifact-{Guid.NewGuid()}");
+        try
+        {
+            using var assemblyStream = new MemoryStream(assemblyBytes, writable: false);
+            Assembly assembly;
+            if (symbolsBytes is { Length: > 0 })
+            {
+                using var symbolsStream = new MemoryStream(symbolsBytes, writable: false);
+                assembly = loadContext.LoadFromStream(assemblyStream, symbolsStream);
+            }
+            else
+            {
+                assembly = loadContext.LoadFromStream(assemblyStream);
+            }
+
+            var runnableType = assembly.GetType(artifact.RunnableTypeName)
+                               ?? throw new InvalidOperationException(
+                                   $"Type {artifact.RunnableTypeName} was not found in artifact assembly {assembly.FullName}.");
+            return new CompiledQueryArtifactLoadResult(
+                runnableType,
+                new CompiledQueryArtifactLoadContextLifetime(loadContext));
+        }
+        catch
+        {
+            loadContext.Unload();
+            throw;
+        }
     }
 
     private static void ValidateArtifactCompatibility(
         string script,
         ICompiledQueryArtifact artifact,
+        string assemblyName,
         CompilationOptions compilationOptions,
+        CompiledQueryArtifactValidationMode validationMode,
         BuildItems items,
         ICollection<Diagnostic> diagnostics)
     {
@@ -225,9 +330,11 @@ public static partial class InstanceCreator
             CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(compilationOptions),
             artifact.CompilationOptionsSignature,
             diagnostics);
+
+        var expectedRunnableTypeName = CompiledQueryArtifactSupport.GetRunnableTypeName(assemblyName);
         ValidateEqual(
             "runnable type name",
-            items.AccessToClassPath,
+            expectedRunnableTypeName,
             artifact.RunnableTypeName,
             diagnostics);
 
@@ -243,9 +350,18 @@ public static partial class InstanceCreator
             diagnostics);
         ValidateMetadataValue(
             artifact,
-            CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256,
-            CompiledQueryArtifactSupport.ComputeGeneratedCodeHash(items.Compilation),
+            CompiledQueryArtifactSupport.MetadataSemanticShapeSha256,
+            CompiledQueryArtifactSupport.ComputeSemanticShapeHash(items, expectedRunnableTypeName),
             diagnostics);
+
+        if (validationMode == CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash)
+        {
+            ValidateMetadataValue(
+                artifact,
+                CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256,
+                CompiledQueryArtifactSupport.ComputeGeneratedCodeHash(items.Compilation),
+                diagnostics);
+        }
 
         var assemblyBytes = artifact is CompiledQueryArtifact ownedArtifact
             ? ownedArtifact.AssemblyBytesUnsafe
@@ -317,6 +433,48 @@ public static partial class InstanceCreator
         if (!string.Equals(expected, actual, StringComparison.Ordinal))
             diagnostics.Add(CreateArtifactDiagnostic(
                 $"Compiled artifact {label} is incompatible. Expected '{expected}', got '{actual}'."));
+    }
+
+    private static void DisposeArtifactLifetime(IDisposable? lifetimeOwner)
+    {
+        try
+        {
+            lifetimeOwner?.Dispose();
+        }
+        catch
+        {
+            // The artifact load already failed; disposal best-effort avoids hiding the diagnostic cause.
+        }
+    }
+
+    private sealed class CompiledQueryArtifactAssemblyLoadContext(string name)
+        : AssemblyLoadContext(name, isCollectible: true)
+    {
+        protected override Assembly? Load(AssemblyName assemblyName)
+        {
+            foreach (var assembly in Default.Assemblies)
+            {
+                if (AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), assemblyName))
+                    return assembly;
+            }
+
+            return null;
+        }
+    }
+
+    private sealed class CompiledQueryArtifactLoadContextLifetime(AssemblyLoadContext loadContext) : IDisposable
+    {
+        private AssemblyLoadContext? _loadContext = loadContext;
+
+        public void Dispose()
+        {
+            var context = _loadContext;
+            if (context == null)
+                return;
+
+            _loadContext = null;
+            context.Unload();
+        }
     }
 
     private static IReadOnlyList<Diagnostic> CreateEmptyQueryDiagnostics(string? script)

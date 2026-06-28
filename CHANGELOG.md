@@ -4,6 +4,21 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.0-alpha.3
+
+See [release-notes/v17.0.0-alpha.3.md](release-notes/v17.0.0-alpha.3.md) for the curated GitHub Release text.
+
+### Musoq.Evaluator
+
+- `CompiledQuery` now supports disposal so artifact-loaded queries can release loader-owned lifetimes.
+
+### Musoq.Converter
+
+- Updated runtime-v2 compiled artifacts to format version `2` with planning-shape validation for fast artifact loads.
+- Added strict generated-code hash validation as an opt-in artifact load mode.
+- Added a lifecycle-aware artifact loader result API and collectible default artifact byte loader.
+- Strengthened persisted artifact engine signatures with informational versions and module IDs.
+
 ## 17.0.0-alpha.2
 
 See [release-notes/v17.0.0-alpha.2.md](release-notes/v17.0.0-alpha.2.md) for the curated GitHub Release text.

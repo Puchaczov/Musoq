@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Tests.Components;
@@ -35,8 +37,10 @@ public class CompiledQueryArtifactApiTests
         Assert.IsTrue(result.Artifact.AssemblyBytes.Length > 0);
         Assert.AreEqual("ArtifactBasic.CompiledQuery", result.Artifact.RunnableTypeName);
         Assert.AreEqual(CompiledQueryArtifact.CurrentArtifactFormatVersion, result.Artifact.ArtifactFormatVersion);
+        Assert.AreEqual("2", result.Artifact.ArtifactFormatVersion);
         Assert.IsTrue(result.Artifact.Metadata.ContainsKey("AssemblyName"));
         Assert.IsTrue(result.Artifact.Metadata.ContainsKey("ScriptSha256"));
+        Assert.IsTrue(result.Artifact.Metadata.ContainsKey("SemanticShapeSha256"));
         Assert.IsTrue(result.Artifact.Metadata.ContainsKey("GeneratedCodeSha256"));
     }
 
@@ -132,6 +136,50 @@ public class CompiledQueryArtifactApiTests
     }
 
     [TestMethod]
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenLifecycleLoaderIsProvided_DisposesOwnerWithQuery()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
+        TestLifetimeOwner? owner = null;
+
+        var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            query,
+            artifact,
+            new ArtifactSchemaProvider(new ArtifactSchema("single")),
+            _loggerResolver,
+            new CompiledQueryArtifactLoadOptions(),
+            loader: loadedArtifact =>
+            {
+                owner = new TestLifetimeOwner();
+                var assembly = Assembly.Load(loadedArtifact.AssemblyBytes);
+                return new CompiledQueryArtifactLoadResult(
+                    assembly.GetType(loadedArtifact.RunnableTypeName)!,
+                    owner);
+            });
+
+        Assert.IsTrue(result.Succeeded);
+        Assert.AreEqual("single", result.CompiledQuery.Run()[0][0]);
+        result.CompiledQuery.Dispose();
+        Assert.IsTrue(owner!.Disposed);
+        Assert.Throws<ObjectDisposedException>(() => result.CompiledQuery.Run());
+    }
+
+    [TestMethod]
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenDefaultLoaderIsUsed_LoadsCollectibleContext()
+    {
+        var weakReference = CreateDefaultLoadedContextWeakReference();
+
+        for (var i = 0; i < 10 && weakReference.IsAlive; i++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+
+        Assert.IsFalse(weakReference.IsAlive);
+    }
+
+    [TestMethod]
     public void CreateExecutableFromArtifactWithDiagnostics_WhenOptionsMismatch_ReturnsArtifactDiagnostic()
     {
         const string query = "select i.Value from #artifact.items() i where true";
@@ -177,6 +225,101 @@ public class CompiledQueryArtifactApiTests
             _loggerResolver);
 
         AssertArtifactFailure(result);
+        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("SemanticShapeSha256", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenReadModifiersChange_ReturnsSemanticShapeDiagnostic()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactReadModifierSchema("utf-8")));
+
+        var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            query,
+            artifact,
+            new ArtifactSchemaProvider(new ArtifactReadModifierSchema("ascii")),
+            _loggerResolver);
+
+        AssertArtifactFailure(result);
+        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("SemanticShapeSha256", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenIntendedTypeChanges_ReturnsSemanticShapeDiagnostic()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactIntendedTypeSchema(typeof(string).FullName!)));
+
+        var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            query,
+            artifact,
+            new ArtifactSchemaProvider(new ArtifactIntendedTypeSchema(typeof(object).FullName!)),
+            _loggerResolver);
+
+        AssertArtifactFailure(result);
+        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("SemanticShapeSha256", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenGeneratedHashIsMissing_FastModeStillLoads()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
+        var metadata = CopyMetadataWithout(artifact, "GeneratedCodeSha256");
+        var withoutGeneratedHash = CopyArtifact(artifact, metadata: metadata);
+
+        var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            query,
+            withoutGeneratedHash,
+            new ArtifactSchemaProvider(new ArtifactSchema("single")),
+            _loggerResolver);
+
+        Assert.IsTrue(result.Succeeded);
+        Assert.AreEqual("single", result.CompiledQuery.Run()[0][0]);
+    }
+
+    [TestMethod]
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenStrictModeGeneratedHashIsMissing_ReturnsArtifactDiagnostic()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
+        var metadata = CopyMetadataWithout(artifact, "GeneratedCodeSha256");
+        var withoutGeneratedHash = CopyArtifact(artifact, metadata: metadata);
+
+        var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            query,
+            withoutGeneratedHash,
+            new ArtifactSchemaProvider(new ArtifactSchema("single")),
+            _loggerResolver,
+            new CompiledQueryArtifactLoadOptions
+            {
+                ValidationMode = CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash
+            });
+
+        AssertArtifactFailure(result);
+        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("GeneratedCodeSha256", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenStrictModeGeneratedHashDiffers_ReturnsArtifactDiagnostic()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
+        var metadata = CopyMetadata(artifact);
+        metadata["GeneratedCodeSha256"] = "BAD";
+        var tampered = CopyArtifact(artifact, metadata: metadata);
+
+        var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            query,
+            tampered,
+            new ArtifactSchemaProvider(new ArtifactSchema("single")),
+            _loggerResolver,
+            new CompiledQueryArtifactLoadOptions
+            {
+                ValidationMode = CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash
+            });
+
+        AssertArtifactFailure(result);
         Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("GeneratedCodeSha256", StringComparison.Ordinal)));
     }
 
@@ -219,6 +362,47 @@ public class CompiledQueryArtifactApiTests
 
         AssertArtifactFailure(result);
         Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("type loading failed", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenArtifactFormatIsOld_ReturnsArtifactDiagnostic()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
+        var oldFormat = CopyArtifact(artifact, artifactFormatVersion: "1");
+
+        var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            query,
+            oldFormat,
+            new ArtifactSchemaProvider(new ArtifactSchema("single")),
+            _loggerResolver);
+
+        AssertArtifactFailure(result);
+        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("artifact format version", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenAssemblyBytesAreEmpty_ReturnsArtifactDiagnostic()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
+        var emptyBytes = new TestCompiledQueryArtifact(
+            [],
+            null,
+            artifact.RunnableTypeName,
+            artifact.EngineVersion,
+            artifact.ArtifactFormatVersion,
+            artifact.CompilationOptionsSignature,
+            artifact.Metadata);
+
+        var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            query,
+            emptyBytes,
+            new ArtifactSchemaProvider(new ArtifactSchema("single")),
+            _loggerResolver);
+
+        AssertArtifactFailure(result);
+        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains("assembly bytes are empty", StringComparison.Ordinal)));
     }
 
     [TestMethod]
@@ -282,6 +466,69 @@ public class CompiledQueryArtifactApiTests
         return result.Artifact;
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private WeakReference CreateDefaultLoadedContextWeakReference()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
+        var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            query,
+            artifact,
+            new ArtifactSchemaProvider(new ArtifactSchema("single")),
+            _loggerResolver);
+
+        Assert.IsTrue(result.Succeeded);
+        var runnable = GetRunnable(result.CompiledQuery);
+        var loadContext = AssemblyLoadContext.GetLoadContext(runnable.GetType().Assembly);
+        Assert.IsNotNull(loadContext);
+        Assert.IsTrue(loadContext.IsCollectible);
+        var weakReference = new WeakReference(loadContext);
+
+        result.CompiledQuery.Dispose();
+        Assert.Throws<ObjectDisposedException>(() => result.CompiledQuery.Run());
+
+        return weakReference;
+    }
+
+    private static ITableRunnable GetRunnable(CompiledQuery compiledQuery)
+    {
+        var field = typeof(CompiledQuery).GetField("_runnable", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.IsNotNull(field);
+        return (ITableRunnable)field.GetValue(compiledQuery)!;
+    }
+
+    private static Dictionary<string, string> CopyMetadata(ICompiledQueryArtifact artifact)
+    {
+        return new Dictionary<string, string>(artifact.Metadata, StringComparer.Ordinal);
+    }
+
+    private static Dictionary<string, string> CopyMetadataWithout(ICompiledQueryArtifact artifact, string key)
+    {
+        var metadata = CopyMetadata(artifact);
+        metadata.Remove(key);
+        return metadata;
+    }
+
+    private static ICompiledQueryArtifact CopyArtifact(
+        ICompiledQueryArtifact artifact,
+        byte[]? assemblyBytes = null,
+        byte[]? symbolsBytes = null,
+        string? runnableTypeName = null,
+        string? engineVersion = null,
+        string? artifactFormatVersion = null,
+        string? compilationOptionsSignature = null,
+        IReadOnlyDictionary<string, string>? metadata = null)
+    {
+        return new CompiledQueryArtifact(
+            assemblyBytes ?? artifact.AssemblyBytes,
+            symbolsBytes ?? artifact.SymbolsBytes,
+            runnableTypeName ?? artifact.RunnableTypeName,
+            engineVersion ?? artifact.EngineVersion,
+            artifactFormatVersion ?? artifact.ArtifactFormatVersion,
+            compilationOptionsSignature ?? artifact.CompilationOptionsSignature,
+            metadata ?? artifact.Metadata);
+    }
+
     private static void AssertArtifactFailure(BuildResult result)
     {
         Assert.IsFalse(result.Succeeded);
@@ -297,6 +544,41 @@ public sealed class ArtifactSchemaProvider(ISchema schema) : ISchemaProvider
     }
 }
 
+public sealed class TestLifetimeOwner : IDisposable
+{
+    public bool Disposed { get; private set; }
+
+    public void Dispose()
+    {
+        Disposed = true;
+    }
+}
+
+public sealed class TestCompiledQueryArtifact(
+    byte[] assemblyBytes,
+    byte[]? symbolsBytes,
+    string runnableTypeName,
+    string engineVersion,
+    string artifactFormatVersion,
+    string compilationOptionsSignature,
+    IReadOnlyDictionary<string, string> metadata)
+    : ICompiledQueryArtifact
+{
+    public byte[] AssemblyBytes { get; } = assemblyBytes;
+
+    public byte[]? SymbolsBytes { get; } = symbolsBytes;
+
+    public string RunnableTypeName { get; } = runnableTypeName;
+
+    public string EngineVersion { get; } = engineVersion;
+
+    public string ArtifactFormatVersion { get; } = artifactFormatVersion;
+
+    public string CompilationOptionsSignature { get; } = compilationOptionsSignature;
+
+    public IReadOnlyDictionary<string, string> Metadata { get; } = metadata;
+}
+
 public sealed class ArtifactSchema(string value) : SchemaBase("artifact", CreateLibrary())
 {
     public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
@@ -307,6 +589,54 @@ public sealed class ArtifactSchema(string value) : SchemaBase("artifact", Create
     public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
     {
         return EnsureSourceType<T, ArtifactRow>(name, new ArtifactRowSource(value));
+    }
+
+    public override SchemaMethodInfo[] GetConstructors()
+    {
+        return TypeHelper.GetSchemaMethodInfosForType<ArtifactRowSource>("items");
+    }
+
+    private static MethodsAggregator CreateLibrary()
+    {
+        var methodsManager = new MethodsManager();
+        return new MethodsAggregator(methodsManager);
+    }
+}
+
+public sealed class ArtifactReadModifierSchema(string modifierValue) : SchemaBase("artifact", CreateLibrary())
+{
+    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    {
+        return new ArtifactReadModifierTable(modifierValue);
+    }
+
+    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    {
+        return EnsureSourceType<T, ArtifactRow>(name, new ArtifactRowSource("single"));
+    }
+
+    public override SchemaMethodInfo[] GetConstructors()
+    {
+        return TypeHelper.GetSchemaMethodInfosForType<ArtifactRowSource>("items");
+    }
+
+    private static MethodsAggregator CreateLibrary()
+    {
+        var methodsManager = new MethodsManager();
+        return new MethodsAggregator(methodsManager);
+    }
+}
+
+public sealed class ArtifactIntendedTypeSchema(string intendedTypeName) : SchemaBase("artifact", CreateLibrary())
+{
+    public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
+    {
+        return new ArtifactIntendedTypeTable(intendedTypeName);
+    }
+
+    public override RowSource<T> GetRowSource<T>(string name, SourceExecutionContext executionContext, params object?[] parameters)
+    {
+        return EnsureSourceType<T, ArtifactRow>(name, new ArtifactRowSource("single"));
     }
 
     public override SchemaMethodInfo[] GetConstructors()
@@ -435,6 +765,50 @@ public sealed class ArtifactTable(Type rowType, Type columnType) : ISchemaTable
     }
 }
 
+public sealed class ArtifactReadModifierTable(string modifierValue) : ISchemaTable
+{
+    public ISchemaColumn[] Columns =>
+    [
+        new SchemaColumn(
+            "Value",
+            0,
+            typeof(string),
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["encoding"] = modifierValue
+            })
+    ];
+
+    public SchemaTableMetadata Metadata { get; } = new(typeof(ArtifactRow));
+
+    public ISchemaColumn? GetColumnByName(string name)
+    {
+        return Columns.SingleOrDefault(column => column.ColumnName == name);
+    }
+
+    public ISchemaColumn[] GetColumnsByName(string name)
+    {
+        return Columns.Where(column => column.ColumnName == name).ToArray();
+    }
+}
+
+public sealed class ArtifactIntendedTypeTable(string intendedTypeName) : ISchemaTable
+{
+    public ISchemaColumn[] Columns => [new SchemaColumn("Value", 0, typeof(string), intendedTypeName)];
+
+    public SchemaTableMetadata Metadata { get; } = new(typeof(ArtifactRow));
+
+    public ISchemaColumn? GetColumnByName(string name)
+    {
+        return Columns.SingleOrDefault(column => column.ColumnName == name);
+    }
+
+    public ISchemaColumn[] GetColumnsByName(string name)
+    {
+        return Columns.Where(column => column.ColumnName == name).ToArray();
+    }
+}
+
 public sealed class SettingsArtifactTable : ISchemaTable
 {
     public ISchemaColumn[] Columns => [new SchemaColumn("Token", 0, typeof(string))];
@@ -460,6 +834,11 @@ public sealed class ArtifactRow(string value)
 public sealed class ArtifactIntRow(int value)
 {
     public int Value { get; } = value;
+}
+
+public sealed class ArtifactObjectRow(object value)
+{
+    public object Value { get; } = value;
 }
 
 public sealed class SettingsArtifactRow(string token)
@@ -494,6 +873,21 @@ public sealed class ArtifactIntRowSource() : RowSourceBase<ArtifactIntRow>
     protected override void CollectChunks(IChunkWriter<ArtifactIntRow> writer)
     {
         writer.Write([new ArtifactIntRow(_value)]);
+    }
+}
+
+public sealed class ArtifactObjectRowSource() : RowSourceBase<ArtifactObjectRow>
+{
+    private readonly object _value = string.Empty;
+
+    public ArtifactObjectRowSource(object value) : this()
+    {
+        _value = value;
+    }
+
+    protected override void CollectChunks(IChunkWriter<ArtifactObjectRow> writer)
+    {
+        writer.Write([new ArtifactObjectRow(_value)]);
     }
 }
 
