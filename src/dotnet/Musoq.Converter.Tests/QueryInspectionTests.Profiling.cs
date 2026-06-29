@@ -638,6 +638,52 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
+    public void DiagnosticSqlCommand_WhenLetPreambleBeforeProfile_ShouldReturnDiagnosticsTextTable()
+    {
+        var table = CompileForExecution(
+            "let expected: string = 'single'; PROFILE select d.Dummy from #system.dual() d where d.Dummy = $expected")
+            .Run();
+        var text = ReadDiagnosticsText(table);
+
+        AssertDiagnosticTextTable(table);
+        StringAssert.Contains(text, "Musoq query profile");
+        StringAssert.Contains(text, "Rows read: 1");
+        Assert.IsFalse(table.Columns.Any(column => column.ColumnName == "d.Dummy"));
+    }
+
+    [TestMethod]
+    public void DiagnosticSqlCommand_WhenLetPreambleBeforeExplainAnalyze_ShouldReturnDiagnosticsTextTable()
+    {
+        var table = CompileForExecution(
+            "let expected: string = 'single'; EXPLAIN ANALYZE select d.Dummy from #system.dual() d where d.Dummy = $expected")
+            .Run();
+        var text = ReadDiagnosticsText(table);
+
+        AssertDiagnosticTextTable(table);
+        StringAssert.Contains(text, "Musoq explain analyze");
+        StringAssert.Contains(text, "[op1] ExecutionPlan");
+        StringAssert.Contains(text, "actual rows=");
+        Assert.IsFalse(table.Columns.Any(column => column.ColumnName == "d.Dummy"));
+    }
+
+    [TestMethod]
+    public void DiagnosticSqlCommand_WhenParamAndLetPreambleBeforeProfile_ShouldUseBothPreambles()
+    {
+        var query = CompileForExecution(
+            "param(expected: string); let marker: string = 'single'; PROFILE select d.Dummy from #system.dual() d where d.Dummy = $expected and d.Dummy = $marker");
+
+        query.Parameters["expected"] = "single";
+
+        var table = query.Run();
+        var text = ReadDiagnosticsText(table);
+
+        AssertDiagnosticTextTable(table);
+        StringAssert.Contains(text, "Musoq query profile");
+        StringAssert.Contains(text, "Rows read: 1");
+        Assert.IsFalse(table.Columns.Any(column => column.ColumnName == "d.Dummy"));
+    }
+
+    [TestMethod]
     public void ExplainAnalyzeSqlCommand_ShouldReuseInnerCompilationForExecutionPlan()
     {
         const string query = "select d.Dummy from #system.dual() d";
