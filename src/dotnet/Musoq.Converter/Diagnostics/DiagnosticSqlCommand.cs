@@ -1,5 +1,5 @@
 namespace Musoq.Converter.Diagnostics;
 
-internal sealed record DiagnosticSqlCommand(
+public sealed record DiagnosticSqlCommand(
     DiagnosticSqlCommandKind Kind,
     string InnerScript);

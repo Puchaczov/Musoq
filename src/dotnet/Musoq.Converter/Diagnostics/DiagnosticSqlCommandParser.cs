@@ -7,7 +7,7 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Converter.Diagnostics;
 
-internal static class DiagnosticSqlCommandParser
+public static class DiagnosticSqlCommandParser
 {
     public static bool TryParse(
         string script,

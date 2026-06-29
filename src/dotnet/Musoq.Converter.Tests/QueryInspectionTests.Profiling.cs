@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Musoq.Converter.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator;
 using Musoq.Evaluator.Diagnostics;
@@ -190,6 +191,98 @@ public partial class QueryInspectionTests
         StringAssert.Contains(result.ExplainAnalyzeText, "actual rows=");
         StringAssert.Contains(result.ExplainAnalyzeText, "elapsed=");
         Assert.IsTrue(result.Profile.Operators.Any(static operation => operation.HasActualStats));
+    }
+
+    [TestMethod]
+    public void DiagnosticSqlCommandParser_ShouldClassifyProfileExplainAnalyzeAndNormalScripts()
+    {
+        Assert.IsTrue(DiagnosticSqlCommandParser.TryParse(
+            "profile select d.Dummy from #system.dual() d",
+            out var profileCommand,
+            out var profileDiagnostics));
+        Assert.IsNotNull(profileCommand);
+        Assert.IsNull(profileDiagnostics);
+        Assert.AreEqual(DiagnosticSqlCommandKind.Profile, profileCommand.Kind);
+        Assert.AreEqual("select d.Dummy from #system.dual() d", profileCommand.InnerScript);
+
+        Assert.IsTrue(DiagnosticSqlCommandParser.TryParse(
+            "EXPLAIN ANALYZE select d.Dummy from #system.dual() d",
+            out var explainCommand,
+            out var explainDiagnostics));
+        Assert.IsNotNull(explainCommand);
+        Assert.IsNull(explainDiagnostics);
+        Assert.AreEqual(DiagnosticSqlCommandKind.ExplainAnalyze, explainCommand.Kind);
+        Assert.AreEqual("select d.Dummy from #system.dual() d", explainCommand.InnerScript);
+
+        Assert.IsFalse(DiagnosticSqlCommandParser.TryParse(
+            "select d.Dummy from #system.dual() d",
+            out var normalCommand,
+            out var normalDiagnostics));
+        Assert.IsNull(normalCommand);
+        Assert.IsNull(normalDiagnostics);
+    }
+
+    [TestMethod]
+    public void DiagnosticSqlCommandParser_WhenDiagnosticFormIsInvalid_ShouldReturnDiagnostics()
+    {
+        Assert.IsTrue(DiagnosticSqlCommandParser.TryParse(
+            "explain select d.Dummy from #system.dual() d",
+            out var command,
+            out var diagnostics));
+
+        Assert.IsNull(command);
+        Assert.IsNotNull(diagnostics);
+        Assert.IsGreaterThanOrEqualTo(1, diagnostics.Count);
+        StringAssert.Contains(diagnostics[0].Message, "EXPLAIN without ANALYZE");
+    }
+
+    [TestMethod]
+    public void CompileForExplainAnalyze_WhenParameterized_ShouldAllowParametersBeforeRun()
+    {
+        using var compiled = InstanceCreator.CompileForExplainAnalyze(
+            "param(expected: string) select d.Dummy from #system.dual() d where d.Dummy = $expected",
+            Guid.NewGuid().ToString(),
+            _schemaProvider,
+            _loggerResolver);
+
+        compiled.Parameters["expected"] = "single";
+
+        var result = compiled.Run();
+
+        Assert.AreEqual(1, result.Result.Count);
+        Assert.AreEqual("single", result.Result[0][0]);
+        Assert.AreEqual(1, compiled.ParameterDefinitions.Count);
+        Assert.AreEqual(1, compiled.ParameterContracts.Count);
+        StringAssert.Contains(result.ExplainAnalyzeText, "actual rows=");
+    }
+
+    [TestMethod]
+    public void CompileForExplainAnalyze_WhenCancellationIsRequestedBeforeRun_ShouldThrow()
+    {
+        using var cancellation = new CancellationTokenSource();
+        using var compiled = InstanceCreator.CompileForExplainAnalyze(
+            "select d.Dummy from #system.dual() d",
+            Guid.NewGuid().ToString(),
+            _schemaProvider,
+            _loggerResolver);
+        cancellation.Cancel();
+
+        Assert.Throws<OperationCanceledException>(() => compiled.Run(cancellation.Token));
+    }
+
+    [TestMethod]
+    public void CompileForExplainAnalyze_ShouldPassRuntimeCancellationToDatasource()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var provider = new CancellingSystemSchemaProvider(cancellation.Cancel);
+        using var compiled = InstanceCreator.CompileForExplainAnalyze(
+            "select d.Dummy from #system.dual() d",
+            Guid.NewGuid().ToString(),
+            provider,
+            _loggerResolver);
+
+        Assert.Throws<OperationCanceledException>(() => compiled.Run(cancellation.Token));
+        Assert.IsTrue(provider.TokenReachedSource);
     }
 
     [TestMethod]

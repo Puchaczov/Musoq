@@ -1,6 +1,6 @@
 namespace Musoq.Converter.Diagnostics;
 
-internal enum DiagnosticSqlCommandKind
+public enum DiagnosticSqlCommandKind
 {
     Profile,
     ExplainAnalyze

@@ -47,6 +47,32 @@ public static partial class InstanceCreator
         CompilationOptions? compilationOptions,
         CancellationToken token)
     {
+        using var query = CompileForExplainAnalyze(
+            script,
+            assemblyName,
+            schemaProvider,
+            loggerResolver,
+            compilationOptions);
+
+        return query.Run(token);
+    }
+
+    public static CompiledExplainAnalyzeQuery CompileForExplainAnalyze(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver)
+    {
+        return CompileForExplainAnalyze(script, assemblyName, schemaProvider, loggerResolver, null);
+    }
+
+    public static CompiledExplainAnalyzeQuery CompileForExplainAnalyze(
+        string script,
+        string assemblyName,
+        ISchemaProvider schemaProvider,
+        ILoggerResolver loggerResolver,
+        CompilationOptions? compilationOptions)
+    {
         var options = CreateExplainAnalyzeCompilationOptions(compilationOptions);
         var build = CompileWithDiagnostics(
             script,
@@ -63,18 +89,9 @@ public static partial class InstanceCreator
                 : new MusoqQueryException(build.ToEnvelopes());
         }
 
-        var profileResult = build.CompiledQuery.RunWithProfile(token, emitTelemetry: false);
-        var catalog = CreateOperatorCatalog(build.BuildItems);
-        var executionPlanText = catalog.AnnotatedExecutionPlanText;
-        var operators = ExecutionPlanOperatorIdAnnotator.CreateOperatorSnapshots(catalog, profileResult.Profile);
-        var profile = profileResult.Profile with { Operators = operators };
-        QueryProfileTelemetry.Emit(profile);
-
-        return new ExplainAnalyzeResult(
-            profileResult.Result,
-            profile,
-            executionPlanText,
-            ExplainAnalyzeTextPrinter.Print(executionPlanText, profile));
+        return new CompiledExplainAnalyzeQuery(
+            build.CompiledQuery,
+            CreateOperatorCatalog(build.BuildItems));
     }
 
     private static CompilationOptions CreateExplainAnalyzeCompilationOptions(CompilationOptions? compilationOptions)
