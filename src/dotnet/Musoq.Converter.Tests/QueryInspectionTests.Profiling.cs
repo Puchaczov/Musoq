@@ -223,6 +223,69 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
+    public void DiagnosticSqlCommandParser_ShouldSkipRuntimePreambleStatements()
+    {
+        var cases = new (string Name, string Script, DiagnosticSqlCommandKind ExpectedKind, string ExpectedInnerScript)[]
+        {
+            (
+                "param",
+                "param(expected: string); PROFILE select d.Dummy from #system.dual() d where d.Dummy = $expected",
+                DiagnosticSqlCommandKind.Profile,
+                "param(expected: string); select d.Dummy from #system.dual() d where d.Dummy = $expected"),
+            (
+                "let",
+                "let expected: string = 'single'; PROFILE select d.Dummy from #system.dual() d where d.Dummy = $expected",
+                DiagnosticSqlCommandKind.Profile,
+                "let expected: string = 'single'; select d.Dummy from #system.dual() d where d.Dummy = $expected"),
+            (
+                "table",
+                "table Items { Name: string }; PROFILE select d.Dummy from #system.dual() d",
+                DiagnosticSqlCommandKind.Profile,
+                "table Items { Name: string }; select d.Dummy from #system.dual() d"),
+            (
+                "table-couple",
+                "table Items { Name: string }; couple #test.whatever with table Items as Items; EXPLAIN ANALYZE select d.Dummy from #system.dual() d",
+                DiagnosticSqlCommandKind.ExplainAnalyze,
+                "table Items { Name: string }; couple #test.whatever with table Items as Items; select d.Dummy from #system.dual() d"),
+            (
+                "binary-schema",
+                "binary Rec { Len: byte }; PROFILE select d.Dummy from #system.dual() d",
+                DiagnosticSqlCommandKind.Profile,
+                "binary Rec { Len: byte }; select d.Dummy from #system.dual() d"),
+            (
+                "text-schema",
+                "text Data { Content: rest }; EXPLAIN ANALYZE select d.Dummy from #system.dual() d",
+                DiagnosticSqlCommandKind.ExplainAnalyze,
+                "text Data { Content: rest }; select d.Dummy from #system.dual() d")
+        };
+
+        foreach (var testCase in cases)
+        {
+            Assert.IsTrue(
+                DiagnosticSqlCommandParser.TryParse(
+                    testCase.Script,
+                    out var command,
+                    out var diagnostics),
+                testCase.Name);
+            Assert.IsNotNull(command, testCase.Name);
+            Assert.IsNull(diagnostics, testCase.Name);
+            Assert.AreEqual(testCase.ExpectedKind, command.Kind, testCase.Name);
+            Assert.AreEqual(testCase.ExpectedInnerScript, command.InnerScript, testCase.Name);
+        }
+    }
+
+    [TestMethod]
+    public void DiagnosticSqlCommandParser_WhenResultProducingStatementComesFirst_ShouldNotClassify()
+    {
+        Assert.IsFalse(DiagnosticSqlCommandParser.TryParse(
+            "select d.Dummy from #system.dual() d; PROFILE select e.Dummy from #system.dual() e",
+            out var command,
+            out var diagnostics));
+        Assert.IsNull(command);
+        Assert.IsNull(diagnostics);
+    }
+
+    [TestMethod]
     public void DiagnosticSqlCommandParser_WhenDiagnosticFormIsInvalid_ShouldReturnDiagnostics()
     {
         Assert.IsTrue(DiagnosticSqlCommandParser.TryParse(

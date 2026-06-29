@@ -4,6 +4,7 @@ using System.Linq;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Converter.Diagnostics;
 
@@ -56,7 +57,7 @@ public static class DiagnosticSqlCommandParser
 
         foreach (var statement in statements.Statements)
         {
-            if (statement.Node is ParameterBlockNode)
+            if (IsDiagnosticPreambleStatement(statement.Node))
                 continue;
 
             if (statement.Node is DiagnosticCommandNode diagnosticCommand)
@@ -69,6 +70,17 @@ public static class DiagnosticSqlCommandParser
         }
 
         return false;
+    }
+
+    private static bool IsDiagnosticPreambleStatement(Node? node)
+    {
+        return node is
+            ParameterBlockNode or
+            ScriptVariableDeclarationNode or
+            CreateTableNode or
+            CoupleNode or
+            BinarySchemaNode or
+            TextSchemaNode;
     }
 
     private static DiagnosticSqlCommandKind MapKind(DiagnosticCommandKind kind)
