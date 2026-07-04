@@ -4,7 +4,8 @@ using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Optimization;
-using LogicalCteUsageFacts = Musoq.Evaluator.IR.Optimization.LogicalCteUsageFacts;
+using Musoq.Evaluator.IR.Optimization.Logical;
+using LogicalCteUsageFacts = Musoq.Evaluator.IR.Optimization.Logical.LogicalCteUsageFacts;
 
 namespace Musoq.Evaluator.Tests.IR;
 

@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Musoq.Evaluator.IR.Execution;
-using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Planning.Cardinality;
 using Musoq.Evaluator.IR.Planning.Subqueries;
 
@@ -23,29 +21,29 @@ internal sealed class QueryPlanner
                 "Physical planning is routed through QueryPlanner.")
         };
 
-        var shapeResolver = new ExecutionShapeResolver(
-            context.Scope,
-            context.InferredColumns,
-            schemaRegistry: context.SchemaRegistry);
         var physicalPlanningResult = new PhysicalPlanningPipeline().Plan(
             context,
-            propertyResult.Properties,
-            shapeResolver);
+            propertyResult.Facts,
+            context.ShapeResolver);
         var physicalPlanningArtifacts = physicalPlanningResult.Artifacts;
         decisions.AddRange(physicalPlanningArtifacts.Decisions);
         var physicalPlan = physicalPlanningArtifacts.OptimizedPhysicalPlan;
-        var sourceRewrittenProperties = physicalPlanningArtifacts.OptimizedProperties;
+        var sourceRewrittenFacts = physicalPlanningArtifacts.OptimizedFacts;
         decisions.AddRange(SubqueryLoweringStrategyPlanner.Plan(physicalPlan).Decisions);
-        var rowShapePlanningResult = BoundaryRowShapePlanner.Plan(physicalPlan, sourceRewrittenProperties);
+        var rowShapePlanningResult = BoundaryRowShapePlanner.Plan(physicalPlan, sourceRewrittenFacts.RequiredColumns);
         var requiredColumnBoundaryResult = RequiredColumnBoundaryPlanner.Plan(physicalPlan, rowShapePlanningResult.Plans);
         var rowWidthPruningResult = RowWidthPruningPlanner.Plan(rowShapePlanningResult.Plans);
-        var cardinalityFactResult = CardinalityFactPlanner.Plan(physicalPlan, sourceRewrittenProperties);
-        var planProperties = sourceRewrittenProperties with
+        var cardinalityFactResult = CardinalityFactPlanner.Plan(physicalPlan, sourceRewrittenFacts.SourcePlanning);
+        var planFacts = sourceRewrittenFacts with
         {
-            RequiredColumnBoundaryPlans = requiredColumnBoundaryResult.Plans,
-            BoundaryRowShapePlans = rowShapePlanningResult.Plans,
-            RowWidthPruningPlans = rowWidthPruningResult.Plans,
-            CardinalityFacts = cardinalityFactResult.Facts
+            RequiredColumns = sourceRewrittenFacts.RequiredColumns with
+            {
+                RequiredColumnBoundaryPlans = requiredColumnBoundaryResult.Plans
+            },
+            BoundaryPruning = new BoundaryPruningFacts(
+                rowShapePlanningResult.Plans,
+                rowWidthPruningResult.Plans),
+            Cardinality = new CardinalityPlanningFacts(cardinalityFactResult.Facts)
         };
         decisions.AddRange(requiredColumnBoundaryResult.Decisions);
         decisions.AddRange(rowShapePlanningResult.Decisions);
@@ -56,12 +54,12 @@ internal sealed class QueryPlanner
             physicalPlan,
             context.CompilationOptions,
             context.CteExecutionPlan,
-            shapeResolver);
+            context.ShapeResolver);
         var executionStrategies = executionStrategyResult.Strategies
-            .WithSourceBoundaryStrategies(planProperties.SourceBoundaryStrategyPlans)
+            .WithSourceBoundaryStrategies(planFacts.SourcePlanning.SourceBoundaryStrategyPlans)
             .WithRowWidthPruningPlans(rowWidthPruningResult.Plans)
             .WithCardinalityFacts(cardinalityFactResult.Facts);
-        var executionPlanningArtifacts = new ExecutionPlanningArtifacts(executionStrategies, planProperties.SourceInteractionPlansBySourceId, executionStrategyResult.Decisions);
+        var executionPlanningArtifacts = new ExecutionPlanningArtifacts(executionStrategies, planFacts.SourcePlanning.SourceInteractionPlansBySourceId, executionStrategyResult.Decisions);
         decisions.AddRange(executionPlanningArtifacts.Decisions);
         decisions.AddRange(MaterializationPlanner.Plan(physicalPlan, executionPlanningArtifacts.ExecutionStrategies));
 
@@ -69,7 +67,7 @@ internal sealed class QueryPlanner
             context.LogicalArtifacts,
             physicalPlanningArtifacts,
             executionPlanningArtifacts,
-            planProperties,
+            planFacts,
             decisions);
     }
 }

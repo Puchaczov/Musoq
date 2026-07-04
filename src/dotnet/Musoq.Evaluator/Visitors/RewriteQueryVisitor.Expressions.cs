@@ -244,6 +244,12 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(WordNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        if (node is AggregateIdentifierNode aggregateIdentifier)
+        {
+            Nodes.Push(new AggregateIdentifierNode(aggregateIdentifier.Value, aggregateIdentifier.DisplayName));
+            return;
+        }
+
         Nodes.Push(new WordNode(node.Value, node.Span));
     }
 

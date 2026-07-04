@@ -118,6 +118,8 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
     {
         foreach (var arg in windowNode.FunctionCall.Arguments.Args)
             CollectColumnsFromExpression(arg);
+        if (windowNode.FunctionCall.FilterExpression != null)
+            CollectColumnsFromExpression(windowNode.FunctionCall.FilterExpression);
 
         if (windowNode.WindowSpecification == null)
             return;
@@ -145,6 +147,8 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
             case AccessMethodNode method:
                 foreach (var arg in method.Arguments.Args)
                     CollectColumnsFromExpression(arg);
+                if (method.FilterExpression != null)
+                    CollectColumnsFromExpression(method.FilterExpression);
                 return;
         }
     }

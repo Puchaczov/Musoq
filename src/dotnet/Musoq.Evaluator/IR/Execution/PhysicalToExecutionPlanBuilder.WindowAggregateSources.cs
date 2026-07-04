@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
+using Musoq.Evaluator.IR.Physical;
+using Musoq.Evaluator.IR.Physical.Nodes;
 using AggregateRefRewriter = Musoq.Evaluator.IR.Expressions.AggregateRefRewriter;
 
 namespace Musoq.Evaluator.IR.Execution;
@@ -9,9 +12,11 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 {
     private static ExecutionFieldRead? ResolveWindowAggregateSourceRead(
         IrExpression expression,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup,
+        IReadOnlyDictionary<string, string>? aggregateSourceFields = null)
     {
         var sourceField = GetWindowAggregateSourceIdentifiers(expression)
+            .SelectMany(identifier => GetWindowAggregateSourceFieldCandidates(identifier, aggregateSourceFields))
             .Select(identifier => ResolveWindowAggregateSourceField(identifier, sourceLookup))
             .FirstOrDefault(field => field != null);
 
@@ -25,17 +30,94 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             sourceField.Field.AccessStrategy);
     }
 
+    private static IReadOnlyDictionary<string, string> CreateWindowAggregateSourceFieldLookup(
+        PhysicalNode source)
+    {
+        var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var binding in GetWindowAggregateSourceBindings(source))
+        {
+            AddWindowAggregateSourceFieldLookup(lookup, binding.Identifier, binding.ColumnName);
+            AddWindowAggregateSourceFieldLookup(lookup, AggregateRefRewriter.NormalizeIdentifier(binding.Identifier), binding.ColumnName);
+            AddWindowAggregateSourceFieldLookup(lookup, binding.ColumnName, binding.ColumnName);
+            AddWindowAggregateSourceFieldLookup(lookup, AggregateRefRewriter.NormalizeIdentifier(binding.ColumnName), binding.ColumnName);
+            AddWindowAggregateSourceFieldLookup(lookup, binding.DisplayName, binding.ColumnName);
+            AddWindowAggregateSourceFieldLookup(lookup, AggregateRefRewriter.NormalizeIdentifier(binding.DisplayName), binding.ColumnName);
+        }
+
+        return lookup;
+    }
+
+    private static IEnumerable<AggregateBinding> GetWindowAggregateSourceBindings(PhysicalNode source)
+    {
+        return source switch
+        {
+            PhysicalHavingFilterNode having => GetWindowAggregateSourceBindings(having.Input),
+            PhysicalAggregateOnlyNode aggregate => aggregate.Bindings,
+            PhysicalSingleKeyAggregateNode aggregate => aggregate.Bindings,
+            PhysicalValueTupleAggregateNode aggregate => aggregate.Bindings,
+            _ => source.Children.SelectMany(GetWindowAggregateSourceBindings)
+        };
+    }
+
+    private static void AddWindowAggregateSourceFieldLookup(
+        IDictionary<string, string> lookup,
+        string? key,
+        string fieldName)
+    {
+        if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(fieldName))
+            return;
+
+        lookup.TryAdd(key, fieldName);
+    }
+
+    private static IEnumerable<string> GetWindowAggregateSourceFieldCandidates(
+        string identifier,
+        IReadOnlyDictionary<string, string>? aggregateSourceFields)
+    {
+        if (aggregateSourceFields != null &&
+            aggregateSourceFields.TryGetValue(identifier, out var fieldName) &&
+            !string.IsNullOrWhiteSpace(fieldName))
+        {
+            yield return fieldName;
+        }
+
+        var normalizedIdentifier = AggregateRefRewriter.NormalizeIdentifier(identifier);
+        if (aggregateSourceFields != null &&
+            !string.IsNullOrWhiteSpace(normalizedIdentifier) &&
+            aggregateSourceFields.TryGetValue(normalizedIdentifier, out fieldName) &&
+            !string.IsNullOrWhiteSpace(fieldName) &&
+            !string.Equals(fieldName, identifier, StringComparison.Ordinal))
+        {
+            yield return fieldName;
+        }
+
+        yield return identifier;
+    }
+
     private static IEnumerable<string> GetWindowAggregateSourceIdentifiers(IrExpression expression)
     {
         switch (expression)
         {
             case AggregateRef aggregateRef:
                 yield return aggregateRef.Identifier;
+                if (!string.IsNullOrWhiteSpace(aggregateRef.DisplayName) &&
+                    !string.Equals(aggregateRef.DisplayName, aggregateRef.Identifier, StringComparison.Ordinal))
+                {
+                    yield return aggregateRef.DisplayName;
+                }
                 break;
             case MethodCall methodCall when IsAggregateLikeMethodCall(methodCall):
                 var rawIdentifier = GetRawAggregateIdentifier(methodCall);
                 if (!string.IsNullOrWhiteSpace(rawIdentifier))
                     yield return rawIdentifier;
+
+                var displayName = AggregateRefRewriter.ExtractDisplayName(methodCall);
+                if (!string.IsNullOrWhiteSpace(displayName) &&
+                    !string.Equals(displayName, rawIdentifier, StringComparison.Ordinal))
+                {
+                    yield return displayName;
+                }
 
                 var normalizedIdentifier = AggregateRefRewriter.ExtractIdentifier(methodCall);
                 if (!string.IsNullOrWhiteSpace(normalizedIdentifier) &&

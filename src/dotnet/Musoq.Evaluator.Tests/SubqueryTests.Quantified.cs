@@ -18,9 +18,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "PARIS", "WARSAW" },
-            table.Select(row => (string)row.Values[0]).OrderBy(item => item).ToArray());
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("PhysicalHashJoin [LeftSemi]", inspection.PhysicalPlanText);
@@ -37,9 +36,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "PARIS", "WARSAW" },
-            table.Select(row => (string)row.Values[0]).OrderBy(item => item).ToArray());
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["PARIS"]);
     }
 
     [TestMethod]
@@ -53,9 +51,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN", "PARIS", "WARSAW" },
-            table.Select(row => (string)row.Values[0]).OrderBy(item => item).ToArray());
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["BERLIN"], ["PARIS"]);
     }
 
     [TestMethod]
@@ -69,8 +66,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"]);
     }
 
     [TestMethod]
@@ -85,7 +82,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
     [TestMethod]
@@ -100,7 +98,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["BERLIN"], ["PARIS"]);
     }
 
     [TestMethod]
@@ -130,7 +129,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
     [TestMethod]
@@ -161,8 +161,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("HAS_VALUE", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["HAS_VALUE"]);
     }
 
     [TestMethod]
@@ -177,9 +177,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateQuantifiedSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN", "PARIS", "WARSAW" },
-            table.Select(row => (string)row.Values[0]).OrderBy(item => item).ToArray());
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["BERLIN"], ["PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("PhysicalHashJoin [LeftAntiSemi]", inspection.PhysicalPlanText);

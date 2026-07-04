@@ -31,7 +31,12 @@ public sealed class TableColumnReadModifierExecutionTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, schemaProvider: provider).Run();
 
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Id", typeof(int?)),
+            ("Name", typeof(string)),
+            ("Payload", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1, "Zosia", "cGF5bG9hZA=="]);
         AssertReadModifiers(provider.Recorder.GetTableColumns.Last());
         AssertReadModifiers(provider.Recorder.DescriptorColumns.Single());
         AssertReadModifiers(provider.Recorder.ExecutionColumns.Single());

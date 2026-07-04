@@ -29,23 +29,17 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        // Integer sort: 1, 2, 3, 10, 20  (NOT string sort: "1", "10", "2", "20", "3")
-        Assert.AreEqual("1", table[0].Values[0]);
-        Assert.AreEqual(1, table[0].Values[1]);
-
-        Assert.AreEqual("2", table[1].Values[0]);
-        Assert.AreEqual(2, table[1].Values[1]);
-
-        Assert.AreEqual("3", table[2].Values[0]);
-        Assert.AreEqual(3, table[2].Values[1]);
-
-        Assert.AreEqual("10", table[3].Values[0]);
-        Assert.AreEqual(10, table[3].Values[1]);
-
-        Assert.AreEqual("20", table[4].Values[0]);
-        Assert.AreEqual(20, table[4].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("RawName", typeof(string)),
+            ("Name", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["1", 1],
+            ["2", 2],
+            ["3", 3],
+            ["10", 10],
+            ["20", 20]);
     }
 
     [TestMethod]
@@ -69,22 +63,17 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        Assert.AreEqual("20", table[0].Values[0]);
-        Assert.AreEqual(20, table[0].Values[1]);
-
-        Assert.AreEqual("10", table[1].Values[0]);
-        Assert.AreEqual(10, table[1].Values[1]);
-
-        Assert.AreEqual("3", table[2].Values[0]);
-        Assert.AreEqual(3, table[2].Values[1]);
-
-        Assert.AreEqual("2", table[3].Values[0]);
-        Assert.AreEqual(2, table[3].Values[1]);
-
-        Assert.AreEqual("1", table[4].Values[0]);
-        Assert.AreEqual(1, table[4].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("RawName", typeof(string)),
+            ("Name", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["20", 20],
+            ["10", 10],
+            ["3", 3],
+            ["2", 2],
+            ["1", 1]);
     }
 
     [TestMethod]
@@ -108,21 +97,16 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        Assert.AreEqual("1", table[0].Values[0]);
-        Assert.AreEqual(1, table[0].Values[1]);
-
-        Assert.AreEqual("2", table[1].Values[0]);
-        Assert.AreEqual(2, table[1].Values[1]);
-
-        Assert.AreEqual("3", table[2].Values[0]);
-        Assert.AreEqual(3, table[2].Values[1]);
-
-        Assert.AreEqual("10", table[3].Values[0]);
-        Assert.AreEqual(10, table[3].Values[1]);
-
-        Assert.AreEqual("20", table[4].Values[0]);
-        Assert.AreEqual(20, table[4].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("RawName", typeof(string)),
+            ("Name", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["1", 1],
+            ["2", 2],
+            ["3", 3],
+            ["10", 10],
+            ["20", 20]);
     }
 }

@@ -269,7 +269,7 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     public void WhenFilterWithInSubqueryInWhere_ShouldWork()
     {
         var query = @"
-            select a.Country,
+            select a.Country as Country,
                    a.Count(a.Country) filter (where a.Population > 100) as BigCount,
                    a.Count(a.Country) as AllCount
             from #A.entities() a
@@ -297,15 +297,15 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-
-        var pl = table.Single(r => (string)r.Values[0] == "PL");
-        Assert.AreEqual(1, Convert.ToInt32(pl.Values[1]));
-        Assert.AreEqual(1, Convert.ToInt32(pl.Values[2]));
-
-        var de = table.Single(r => (string)r.Values[0] == "DE");
-        Assert.AreEqual(0, Convert.ToInt32(de.Values[1]));
-        Assert.AreEqual(1, Convert.ToInt32(de.Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("BigCount", typeof(long)),
+            ("AllCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["PL", 1L, 1L],
+            ["DE", 0L, 1L]);
     }
 
     #endregion
@@ -468,7 +468,7 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     public void WhenAsOfJoinWithGroupByAndFilter_ShouldWork()
     {
         var query = @"
-            select a.Country,
+            select a.Country as Country,
                    Count(a.Name) as Total,
                    Count(a.Name) filter (where a.Population > 200) as BigCount
             from #A.entities() a
@@ -495,15 +495,15 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         // All 3 A rows match X(50). GROUP BY Country: PL(Alice+Bob), DE(Charlie)
-        Assert.AreEqual(2, table.Count);
-
-        var pl = table.Single(r => (string)r.Values[0] == "PL");
-        Assert.AreEqual(2, Convert.ToInt32(pl.Values[1]), "PL has Alice and Bob");
-        Assert.AreEqual(1, Convert.ToInt32(pl.Values[2]), "Only Alice(300) > 200 in PL");
-
-        var de = table.Single(r => (string)r.Values[0] == "DE");
-        Assert.AreEqual(1, Convert.ToInt32(de.Values[1]), "DE has Charlie");
-        Assert.AreEqual(1, Convert.ToInt32(de.Values[2]), "Charlie(500) > 200 in DE");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("Total", typeof(long)),
+            ("BigCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["PL", 2L, 1L],
+            ["DE", 1L, 1L]);
     }
 
     #endregion

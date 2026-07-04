@@ -15,87 +15,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         RowShape baseShape,
         ExecutionBlock continuation)
     {
-        var scheduled = TryScheduleSidecarJoinRuntimeOperations(operations, baseShape) ?? operations;
-        var body = continuation;
-
-        for (var index = scheduled.Count - 1; index >= 0; index--)
-            body = CreateSidecarJoinOperationBlock(scheduled[index], body);
-
-        return body;
-    }
-
-    private static IReadOnlyList<SidecarJoinRuntimeOperation>? TryScheduleSidecarJoinRuntimeOperations(
-        IReadOnlyList<SidecarJoinRuntimeOperation> operations,
-        RowShape baseShape)
-    {
-        if (operations.Count < 2)
-            return operations;
-
-        var activeAliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        AddSourceAlias(activeAliases, baseShape);
-        var remaining = operations.ToList();
-        var scheduled = new List<SidecarJoinRuntimeOperation>(operations.Count);
-
-        while (remaining.Count > 0)
-        {
-            var candidateIndex = FindNextSidecarJoinOperationIndex(remaining, activeAliases);
-            if (candidateIndex < 0)
-                return null;
-
-            var operation = remaining[candidateIndex];
-            remaining.RemoveAt(candidateIndex);
-            scheduled.Add(operation);
-
-            if (operation is not SidecarJoinRuntimeStep step)
-                continue;
-
-            foreach (var alias in step.IntroducedAliases)
-                activeAliases.Add(alias);
-        }
-
-        return scheduled;
-    }
-
-    private static int FindNextSidecarJoinOperationIndex(
-        IReadOnlyList<SidecarJoinRuntimeOperation> operations,
-        IReadOnlySet<string> activeAliases)
-    {
-        var firstReadyIndex = -1;
-
-        for (var index = 0; index < operations.Count; index++)
-        {
-            var operation = operations[index];
-            if (!operation.RequiredAliases.All(activeAliases.Contains))
-                continue;
-
-            firstReadyIndex = firstReadyIndex < 0 ? index : firstReadyIndex;
-            if (CanHoistSidecarJoinOperation(operation))
-                return index;
-        }
-
-        return firstReadyIndex;
-    }
-
-    private static bool CanHoistSidecarJoinOperation(SidecarJoinRuntimeOperation operation)
-    {
-        return operation switch
-        {
-            SidecarJoinRuntimeGuard => true,
-            SidecarJoinRuntimeStep { Sidecar.Kind: CteSidecarIndexKind.KeySet, Residual: null, Filter: null } => true,
-            _ => false
-        };
-    }
-
-    private static ExecutionBlock CreateSidecarJoinOperationBlock(
-        SidecarJoinRuntimeOperation operation,
-        ExecutionBlock continuation)
-    {
-        return operation switch
-        {
-            SidecarJoinRuntimeStep step => CreateSidecarJoinStepBlock(step, continuation),
-            SidecarJoinRuntimeGuard guard => CreateConditionalJoinBlock(guard.Predicate, guard.SourceLookup, continuation),
-            _ => throw new InvalidOperationException($"Sidecar join runtime operation '{operation.GetType().Name}' is not supported.")
-        };
+        return new SidecarJoinRuntimePlanner(
+                CreateSidecarJoinStepBlock,
+                static (guard, body) => CreateConditionalJoinBlock(guard.Predicate, guard.SourceLookup, body))
+            .CreateRuntimeBody(operations, baseShape, continuation);
     }
 
     private static IReadOnlySet<string> CreateSidecarJoinIntroducedAliases(

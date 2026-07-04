@@ -52,6 +52,12 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             foreach (var type in EnumerateReusableMethodTargetTypes(argument))
                 yield return type;
         }
+
+        if (binding.FilterPredicate == null)
+            yield break;
+
+        foreach (var type in EnumerateReusableMethodTargetTypes(binding.FilterPredicate))
+            yield return type;
     }
 
     private static IEnumerable<Type> EnumerateReusableMethodTargetTypes(IrExpression expression)
@@ -69,8 +75,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 }
                 break;
             case StrictCast strictCast:
-                if (StrictCastLibraryConversionFacts.NeedsLibraryTarget(strictCast.Expression.ReturnType, strictCast.ReturnType))
-                    yield return typeof(Musoq.Plugins.LibraryBase);
                 foreach (var type in EnumerateReusableMethodTargetTypes(strictCast.Expression))
                     yield return type;
                 break;

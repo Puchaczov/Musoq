@@ -20,16 +20,15 @@ public class PivotTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run();
 
-        Assert.AreEqual(2, table.Count);
-        AssertColumn(table, 0, "City", typeof(string));
-        AssertColumn(table, 1, "Jan", typeof(decimal?));
-        AssertColumn(table, 2, "Feb", typeof(decimal?));
-        Assert.AreEqual("LA", table[0][0]);
-        Assert.AreEqual(5m, table[0][1]);
-        Assert.AreEqual(15m, table[0][2]);
-        Assert.AreEqual("NY", table[1][0]);
-        Assert.AreEqual(10m, table[1][1]);
-        Assert.AreEqual(20m, table[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Jan", typeof(decimal?)),
+            ("Feb", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["LA", 5m, 15m],
+            ["NY", 10m, 20m]);
     }
 
     [TestMethod]
@@ -45,15 +44,17 @@ public class PivotTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run();
 
-        Assert.AreEqual(2, table.Count);
-        AssertColumn(table, 1, "Jan_Sales", typeof(decimal?));
-        AssertColumn(table, 2, "Jan_Orders", typeof(long));
-        AssertColumn(table, 3, "Feb_Sales", typeof(decimal?));
-        AssertColumn(table, 4, "Feb_Orders", typeof(long));
-        Assert.AreEqual(5m, table[0][1]);
-        Assert.AreEqual(1L, table[0][2]);
-        Assert.AreEqual(15m, table[0][3]);
-        Assert.AreEqual(1L, table[0][4]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Jan_Sales", typeof(decimal?)),
+            ("Jan_Orders", typeof(long)),
+            ("Feb_Sales", typeof(decimal?)),
+            ("Feb_Orders", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["LA", 5m, 1L, 15m, 1L],
+            ["NY", 10m, 1L, 20m, 1L]);
     }
 
     [TestMethod]
@@ -67,11 +68,11 @@ public class PivotTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run();
 
-        Assert.AreEqual(1, table.Count);
-        AssertColumn(table, 0, "Jan", typeof(decimal?));
-        AssertColumn(table, 1, "Feb", typeof(decimal?));
-        Assert.AreEqual(15m, table[0][0]);
-        Assert.AreEqual(35m, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Jan", typeof(decimal?)),
+            ("Feb", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [15m, 35m]);
     }
 
     [TestMethod]
@@ -89,10 +90,12 @@ public class PivotTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSourcesWithThreeCities()).Run();
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("NY", table[0][0]);
-        Assert.AreEqual(10m, table[0][1]);
-        Assert.AreEqual(20m, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Jan", typeof(decimal?)),
+            ("Feb", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["NY", 10m, 20m]);
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateSources()

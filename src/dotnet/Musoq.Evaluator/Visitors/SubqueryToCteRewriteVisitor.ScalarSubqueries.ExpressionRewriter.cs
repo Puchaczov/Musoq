@@ -7,20 +7,6 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class SubqueryToCteRewriteVisitor
 {
-    private sealed class AggregateMethodDetector : NoOpExpressionVisitor
-    {
-        public bool Found { get; private set; }
-
-        public override void Visit(AccessMethodNode node)
-        {
-            if (node.IsAggregate || IsAggregateMethodName(node.Name))
-                Found = true;
-        }
-    }
-
-    private sealed class AggregateMethodTraverser(AggregateMethodDetector visitor)
-        : RawTraverseVisitor<AggregateMethodDetector>(visitor);
-
     private sealed class ScalarSubqueryExpressionRewriter(
         SubqueryToCteRewriteVisitor owner,
         SubqueryCorrelationAnalysis analysis,

@@ -28,16 +28,16 @@ public partial class BuildMetadataAndInferTypesVisitor
             var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(accessColumnNode.Alias);
             if (tableSymbol != null)
             {
-                var column = tableSymbol.GetColumnByAliasAndName(accessColumnNode.Alias, arrayNode2.ObjectName);
-                if (column != null && IsIndexableType(column.ColumnType))
-                {
-                    var elementIntendedTypeName = GetArrayElementIntendedTypeName(column.IntendedTypeName);
-                    var columnAccessArrayNode =
-                        new AccessObjectArrayNode(arrayNode2.Token, column.ColumnType, accessColumnNode.Alias,
-                            elementIntendedTypeName);
-                    Nodes.Push(columnAccessArrayNode);
-                    return;
-                }
+                    var columnAccessArrayNode = _columnPropertyBindingService.TryCreateColumnArrayAccess(
+                        tableSymbol,
+                        accessColumnNode.Alias,
+                        arrayNode2,
+                        accessColumnNode.Alias);
+                    if (columnAccessArrayNode != null)
+                    {
+                        Nodes.Push(columnAccessArrayNode);
+                        return;
+                    }
             }
         }
 
@@ -48,16 +48,16 @@ public partial class BuildMetadataAndInferTypesVisitor
                 var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifierRoot.Name);
                 if (tableSymbol != null)
                 {
-                    var column = tableSymbol.GetColumnByAliasAndName(identifierRoot.Name, arrayNode3.ObjectName);
-                    if (column != null && IsIndexableType(column.ColumnType))
-                    {
-                        var elementIntendedTypeName = GetArrayElementIntendedTypeName(column.IntendedTypeName);
-                        var columnAccessArrayNode =
-                            new AccessObjectArrayNode(arrayNode3.Token, column.ColumnType, identifierRoot.Name,
-                                elementIntendedTypeName);
-                        Nodes.Push(columnAccessArrayNode);
-                        return;
-                    }
+                        var columnAccessArrayNode = _columnPropertyBindingService.TryCreateColumnArrayAccess(
+                            tableSymbol,
+                            identifierRoot.Name,
+                            arrayNode3,
+                            identifierRoot.Name);
+                        if (columnAccessArrayNode != null)
+                        {
+                            Nodes.Push(columnAccessArrayNode);
+                            return;
+                        }
                 }
             }
 
@@ -115,13 +115,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         else if (root.ReturnType == typeof(object))
         {
-            var expressionNode = exp;
-
-            if (exp is IdentifierNode identNode)
-                expressionNode = new PropertyValueNode(identNode.Name,
-                    new ExpandoObjectPropertyInfo(identNode.Name, typeof(object)));
-
-            newNode = new DotNode(root, expressionNode, node.IsTheMostInner, string.Empty, expressionNode.ReturnType);
+            newNode = _columnPropertyBindingService.CreateObjectBackedDotNode(root, exp, node);
         }
         else
         {

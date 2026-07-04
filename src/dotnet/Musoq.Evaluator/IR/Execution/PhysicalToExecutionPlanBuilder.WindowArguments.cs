@@ -11,17 +11,19 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 {
     private static ExecutionExpression ConvertWindowInputExpression(
         IrExpression expression,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup,
+        IReadOnlyDictionary<string, string> aggregateSourceFields)
     {
-        return ResolveWindowAggregateSourceRead(expression, sourceLookup) ??
+        return ResolveWindowAggregateSourceRead(expression, sourceLookup, aggregateSourceFields) ??
                ExecutionExpressionConverter.Convert(expression, sourceLookup);
     }
 
     private static PluginWindowArgumentsBuildResult CreatePluginWindowArguments(
         WindowRegistration registration,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup,
+        IReadOnlyDictionary<string, string> aggregateSourceFields)
     {
-        var value = ConvertWindowInputExpression(registration.ValueArguments[0], sourceLookup);
+        var value = ConvertWindowInputExpression(registration.ValueArguments[0], sourceLookup, aggregateSourceFields);
         if (value is ExecutionRawExpression)
         {
             return PluginWindowArgumentsBuildResult.Unsupported(
@@ -32,7 +34,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         var rowScopedArguments = new List<bool>(Math.Max(0, registration.ValueArguments.Length - 1));
         for (var index = 1; index < registration.ValueArguments.Length; index++)
         {
-            var argument = ConvertWindowInputExpression(registration.ValueArguments[index], sourceLookup);
+            var argument = ConvertWindowInputExpression(registration.ValueArguments[index], sourceLookup, aggregateSourceFields);
             if (argument is ExecutionRawExpression)
             {
                 return PluginWindowArgumentsBuildResult.Unsupported(
@@ -93,9 +95,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
     private static OffsetWindowArgumentsBuildResult CreateOffsetWindowArguments(
         WindowRegistration registration,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup,
+        IReadOnlyDictionary<string, string> aggregateSourceFields)
     {
-        var value = ConvertWindowInputExpression(registration.ValueArguments[0], sourceLookup);
+        var value = ConvertWindowInputExpression(registration.ValueArguments[0], sourceLookup, aggregateSourceFields);
         if (value is ExecutionRawExpression)
         {
             return OffsetWindowArgumentsBuildResult.Unsupported(
@@ -103,7 +106,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         }
 
         var offset = registration.ValueArguments.Length > 1
-            ? ConvertWindowInputExpression(registration.ValueArguments[1], sourceLookup)
+            ? ConvertWindowInputExpression(registration.ValueArguments[1], sourceLookup, aggregateSourceFields)
             : new ExecutionLiteral(1, typeof(int));
 
         if (offset is ExecutionRawExpression)
@@ -119,7 +122,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         }
 
         var defaultValue = registration.ValueArguments.Length > 2
-            ? ConvertWindowInputExpression(registration.ValueArguments[2], sourceLookup)
+            ? ConvertWindowInputExpression(registration.ValueArguments[2], sourceLookup, aggregateSourceFields)
             : new ExecutionLiteral(null, typeof(object));
 
         if (defaultValue is ExecutionRawExpression)

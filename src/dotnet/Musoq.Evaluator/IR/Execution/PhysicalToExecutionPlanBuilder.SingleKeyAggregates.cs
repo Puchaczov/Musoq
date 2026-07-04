@@ -2,21 +2,21 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
-
 namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
 {
-    private ExecutionPlanBuildResult BuildSingleKeyAggregatePipeline(SingleKeyAggregatePipeline pipeline, string identifier)
+    private ExecutionPlanBuildResult BuildSingleKeyAggregatePipeline(
+        SingleKeyAggregatePipeline pipeline,
+        string identifier,
+        PhysicalToExecutionLoweringSession session)
     {
         var cteIndexes = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        var table = BuildSingleKeyAggregateTable(pipeline, "result", "ResultRow0", cteIndexes);
+        var table = BuildSingleKeyAggregateTable(pipeline, "result", "ResultRow0", cteIndexes, session: session);
         if (!table.Supported)
             return ExecutionPlanBuildResult.CreateUnsupported(table.UnsupportedReason);
-
         return ExecutionPlanBuildResult.CreateSupported(CreateTableResultPlan(identifier, table));
     }
-
     private TableBuildResult BuildSingleKeyAggregateTable(
         SingleKeyAggregatePipeline pipeline,
         string resultTableName,
@@ -24,8 +24,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName = null,
         int schemaFromIndex = DefaultSchemaFromIndex,
-        bool scopeAggregateVariables = false)
+        bool scopeAggregateVariables = false,
+        PhysicalToExecutionLoweringSession? session = null)
     {
+        session ??= new PhysicalToExecutionLoweringSession(ResolveExecutionStrategies());
         if (pipeline.Source.Source is PhysicalNestedLoopApplyNode { Kind: ApplyKind.Cross } apply)
         {
             var chain = BuildCrossApplyChain(
@@ -34,7 +36,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 cteShapesByName,
                 schemaFromIndex,
                 new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase),
-                CreateSourceRowsScope(resultTableName));
+                CreateSourceRowsScope(resultTableName),
+                session);
             if (chain.Supported && !chain.Chain.Sources.Any(static source => source.OrdinalityVariable != null))
             {
                 return BuildSingleKeyAggregateTableFromApplyChain(
@@ -45,7 +48,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     scopeAggregateVariables);
             }
         }
-
         if (pipeline.Source.Source is PhysicalHashJoinNode { Kind: JoinKind.Inner } hashJoin)
         {
             var hashJoinSource = BuildSingleKeyAggregateHashJoinSource(
@@ -53,7 +55,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 resultTableName,
                 cteIndexes,
                 cteShapesByName,
-                schemaFromIndex);
+                schemaFromIndex,
+                session);
             if (hashJoinSource.Supported)
             {
                 return BuildSingleKeyAggregateTableCore(
@@ -64,14 +67,14 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     scopeAggregateVariables);
             }
         }
-
         var aggregateSource = BuildAggregateSource(
             pipeline.Source.Source,
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
             CreateSourceRowsScope(resultTableName),
-            "single-key aggregate");
+            "single-key aggregate",
+            session);
         if (!aggregateSource.Supported)
             return TableBuildResult.Unsupported(aggregateSource.UnsupportedReason);
 
@@ -83,7 +86,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             body => CreateSourceLoop(sourceShape, aggregateSource.Source.Rows, aggregateSource.Source.Variable, body),
             aggregateSource.Source.Variable,
             aggregateSource.Source.Rows);
-
         return BuildSingleKeyAggregateTableCore(
             pipeline,
             source,
@@ -91,5 +93,4 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultShapeName,
             scopeAggregateVariables);
     }
-
 }

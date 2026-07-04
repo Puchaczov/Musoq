@@ -74,7 +74,13 @@ public class AccessMethodNode : Node
     /// </summary>
     public bool HasFilter { get; set; }
 
+    public Node? FilterExpression { get; set; }
+
+    public string? FilterExpressionText { get; set; }
+
     public bool IsPivotGenerated { get; set; }
+
+    public bool IsScalarSubqueryValueWrapper { get; set; }
 
     public int ArgsCount => Arguments.Args.Length;
 

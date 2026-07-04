@@ -42,10 +42,11 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x12345678, table[0][0]); // Magic
-        Assert.AreEqual((byte)1, table[0][1]); // Version
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("d.Magic", typeof(int)),
+            ("d.Version", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [0x12345678, (byte)1]);
     }
 
     [TestMethod]
@@ -79,10 +80,11 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert - Row is present but Value is null due to failed parse
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("invalid.bin", table[0][0]);
-        Assert.IsNull(table[0][1]); // Value is null because TryInterpret failed
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("f.Name", typeof(string)),
+            ("d.Value", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { "invalid.bin", null });
     }
 
     [TestMethod]
@@ -122,11 +124,11 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert - Only one row (valid.bin) since invalid.bin's TryInterpret returns null
-        // which is filtered out by CROSS APPLY behavior
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("valid.bin", table[0][0]);
-        Assert.AreEqual(unchecked((int)0xDEADBEEF), table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("f.Name", typeof(string)),
+            ("d.Magic", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["valid.bin", unchecked((int)0xDEADBEEF)]);
     }
 
     [TestMethod]
@@ -167,12 +169,14 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert - Both rows present, invalid.bin has null Magic value
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("invalid.bin", table[0][0]);
-        Assert.IsNull(table[0][1]); // Magic is null for failed parse
-        Assert.AreEqual("valid.bin", table[1][0]);
-        Assert.AreEqual(unchecked((int)0xDEADBEEF), table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("f.Name", typeof(string)),
+            ("d.Magic", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "invalid.bin", null },
+            ["valid.bin", unchecked((int)0xDEADBEEF)]);
     }
 
     /// <summary>
@@ -200,9 +204,11 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("empty.bin", table[0][0]);
-        Assert.IsNull(table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("f.Name", typeof(string)),
+            ("d.Magic", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { "empty.bin", null });
     }
 
     /// <summary>
@@ -231,7 +237,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("d.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
     /// <summary>
@@ -262,8 +269,8 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2L, table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("ValidCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [2L]);
     }
 
     #endregion

@@ -49,12 +49,16 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(4, table.Count);
-        var keys = table.Select(r => (string)r[0]).ToList();
-        Assert.Contains("host", keys);
-        Assert.Contains("port", keys);
-        Assert.Contains("database", keys);
-        Assert.Contains("user", keys);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("c.Key", typeof(string)),
+            ("c.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["host", "localhost"],
+            ["port", "5432"],
+            ["database", "myapp"],
+            ["user", "admin"]);
     }
 
     /// <summary>
@@ -403,9 +407,14 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("e5f6a7b8", table[0][0]);
-        Assert.AreEqual("a3b4c5d6", table[1][0]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("g.Hash", typeof(string)),
+            ("g.Message", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["e5f6a7b8", "Fix null pointer exception in parser"],
+            ["a3b4c5d6", "Bug fix handle empty input gracefully"]);
     }
 
     /// <summary>

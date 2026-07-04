@@ -68,10 +68,23 @@ public sealed partial class RewriteQueryVisitor
                     newNodes.Add(selectRewriter.RewrittenNode);
                 }
 
+                Node? filterExpression = null;
+                if (method.FilterExpression != null)
+                {
+                    method.FilterExpression.Accept(selectTraverser);
+                    filterExpression = selectRewriter.RewrittenNode;
+                }
+
                 var newArgs = new ArgsListNode(newNodes.ToArray());
                 newRefreshMethods.Add(new AccessMethodNode(method.FunctionToken, newArgs,
                     method.ExtraAggregateArguments, method.CanSkipInjectSource, method.Method, method.Alias,
-                    default, method.IsDistinct) { HasFilter = method.HasFilter, IsPivotGenerated = method.IsPivotGenerated });
+                    default, method.IsDistinct)
+                {
+                    HasFilter = method.HasFilter,
+                    FilterExpression = filterExpression,
+                    FilterExpressionText = method.FilterExpressionText,
+                    IsPivotGenerated = method.IsPivotGenerated
+                });
             }
 
             refreshMethods = new RefreshNode(newRefreshMethods.ToArray());

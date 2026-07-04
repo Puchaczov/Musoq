@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Optimization;
+using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.IR.Planning.Printing;
 using Musoq.Evaluator.Visitors;
@@ -38,10 +40,10 @@ public partial class TransformTree
         return cteExpression == null ? null : CteParallelizationAnalyzer.CreatePlan(cteExpression);
     }
 
-    private static PlanningBuildArtifacts? BuildPlans(
+    private static PlanningStageBuildResult? BuildPlans(
         SemanticBuildArtifacts semantic,
         BuildMetadataAndInferTypesVisitor metadata,
-        BuildItems items)
+        TransformPipelineContext context)
     {
         try
         {
@@ -54,22 +56,22 @@ public partial class TransformTree
                 return null;
 
             var logicalOptimizer = new LogicalOptimizer(
-                items.CompilationOptions.UseConstantFolding,
-                items.DiagnosticContext);
+                context.CompilationOptions.UseConstantFolding,
+                context.DiagnosticContext);
             var logicalOptimizationResult = logicalOptimizer.Optimize(logicalTraverser.Result);
             var logicalArtifacts = new LogicalPlanningArtifacts(logicalOptimizationResult.InitialPlan, logicalOptimizationResult.OptimizedPlan, logicalOptimizationResult.Trace);
-
             var planningContext = new PlanningContext(
                 logicalArtifacts,
-                items.CompilationOptions,
-                items.SchemaProvider,
+                context.CompilationOptions,
+                context.SchemaProvider,
                 semantic.UsedColumns,
                 semantic.UsedWhereNodes,
                 semantic.SourcePlanRequestsPerSchema,
                 semantic.PipelineInferredColumns ?? aliasKeyedColumns,
                 semantic.PipelineUsedColumns ?? new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase),
                 semantic.PipelineScope,
-                items.SchemaRegistry,
+                context.SchemaRegistry,
+                ExecutionPlanningShapeResolverAdapter.Create(semantic.PipelineScope, semantic.PipelineInferredColumns ?? aliasKeyedColumns, schemaRegistry: context.SchemaRegistry),
                 semantic.CteExecutionPlan)
             {
                 SourceContractDiagnosticLocationsBySource = semantic.SourceContractDiagnosticLocationsPerSchema
@@ -79,20 +81,20 @@ public partial class TransformTree
             var planningResult = planner.Plan(planningContext);
             SourceContractDiagnosticReporter.Report(
                 planningResult,
-                items.DiagnosticContext);
+                context.DiagnosticContext);
             SourceOptimizationDiagnosticReporter.Report(
                 planningResult,
-                items.DiagnosticContext);
+                context.DiagnosticContext);
 
-            items.OptimizerTraceText = OptimizationTraceTextPrinter.Append(
-                items.OptimizerTraceText,
-                logicalArtifacts.OptimizerTrace);
-            items.OptimizerTraceText = OptimizationTraceTextPrinter.Append(
-                items.OptimizerTraceText,
-                planningResult.PhysicalArtifacts.OptimizerTrace);
-            items.UsedWhereNodes = ApplyPlannedWhereNodes(semantic.UsedWhereNodes, planningResult.Properties.SourcePredicatePlansBySourceId);
+            var updatedContext = context
+                .AppendTrace(logicalArtifacts.OptimizerTrace)
+                .AppendTrace(planningResult.PhysicalArtifacts.OptimizerTrace);
+            var updatedSemantic = semantic with
+            {
+                UsedWhereNodes = ApplyPlannedWhereNodes(semantic.UsedWhereNodes, planningResult.Properties.SourcePredicatePlansBySourceId)
+            };
 
-            return new PlanningBuildArtifacts
+            var artifacts = new PlanningBuildArtifacts
             {
                 InitialLogicalPlan = logicalArtifacts.InitialLogicalPlan,
                 OptimizedLogicalPlan = logicalArtifacts.OptimizedLogicalPlan,
@@ -103,6 +105,8 @@ public partial class TransformTree
                 OptimizedPhysicalPlan = planningResult.PhysicalArtifacts.OptimizedPhysicalPlan,
                 PhysicalPlan = planningResult.PhysicalArtifacts.OptimizedPhysicalPlan
             };
+
+            return new PlanningStageBuildResult(artifacts, updatedSemantic, updatedContext);
         }
         catch (IndexOutOfRangeException)
         {

@@ -16,48 +16,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         FieldBinding Binding,
         string PropertyPath);
 
-    private sealed record TableBuildResult(
-        bool Supported,
-        IReadOnlyList<RowShape> Shapes,
-        IReadOnlyList<ExecutionNode> Nodes,
-        ExecutionVariable Table,
-        GeneratedRowShape RowShape,
-        FinalShapeResult? FinalResult,
-        string UnsupportedReason)
-    {
-        public static TableBuildResult Success(
-            IReadOnlyList<RowShape> shapes,
-            IReadOnlyList<ExecutionNode> nodes,
-            ExecutionVariable table,
-            GeneratedRowShape rowShape)
-        {
-            return new TableBuildResult(
-                true,
-                shapes,
-                nodes,
-                table,
-                rowShape,
-                new FinalShapeResult(
-                    table.Name,
-                    table,
-                    rowShape,
-                    CreateColumnMetadata(table.Name, rowShape.Fields, ExecutionColumnMetadataKind.TableColumns)),
-                string.Empty);
-        }
-
-        public static TableBuildResult Unsupported(string reason)
-        {
-            return new TableBuildResult(
-                false,
-                [],
-                [],
-                new ExecutionVariable(string.Empty, typeof(object)),
-                new GeneratedRowShape(string.Empty, []),
-                null,
-                reason);
-        }
-    }
-
     private static ExecutionPlan CreateTableResultPlan(
         string identifier,
         TableBuildResult result)
@@ -110,22 +68,4 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         return ExecutionRowStreams.CreateMaterializeExpandoList(source, buffer, shape, predicate);
     }
 
-    private sealed record PostOperationResult(
-        bool Supported,
-        ExecutionNode Node,
-        ExecutionVariable Target,
-        string UnsupportedReason)
-    {
-        public static PostOperationResult Success(ExecutionNode node, ExecutionVariable target)
-        {
-            return new PostOperationResult(true, node, target, string.Empty);
-        }
-
-        public static PostOperationResult Unsupported(string reason)
-        {
-            var emptyTable = new ExecutionVariable(string.Empty, typeof(object));
-
-            return new PostOperationResult(false, new ExecutionReturnTable(emptyTable), emptyTable, reason);
-        }
-    }
 }

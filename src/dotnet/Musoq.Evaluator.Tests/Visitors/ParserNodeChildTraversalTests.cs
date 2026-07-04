@@ -31,6 +31,54 @@ public sealed class ParserNodeChildTraversalTests
     }
 
     [TestMethod]
+    public void TraversalRegistry_ShouldExposeDescriptorsForCanonicalTraversalNodes()
+    {
+        var queryDescriptor = ParserNodeTraversalRegistry.ResolveDescriptor(typeof(QueryNode));
+        var cteDescriptor = ParserNodeTraversalRegistry.ResolveDescriptor(typeof(CteExpressionNode));
+        var binaryDescriptor = ParserNodeTraversalRegistry.ResolveDescriptor(typeof(AddNode));
+
+        Assert.AreEqual(ParserNodeTraversalMode.SpecialOrder, queryDescriptor.Mode);
+        Assert.AreEqual(ParserNodeTraversalMode.SpecialOrder, cteDescriptor.Mode);
+        Assert.AreEqual(typeof(BinaryNode), binaryDescriptor.NodeType);
+        Assert.AreEqual(ParserNodeTraversalMode.Children, binaryDescriptor.Mode);
+    }
+
+    [TestMethod]
+    public void TraversalRegistry_ShouldCoverEveryConcreteParserNode()
+    {
+        var missing = typeof(Node).Assembly
+            .GetTypes()
+            .Where(static type => typeof(Node).IsAssignableFrom(type))
+            .Where(static type => !type.IsAbstract && !type.IsGenericTypeDefinition)
+            .Where(static type =>
+                ParserNodeTraversalRegistry.ResolveDescriptor(type).Mode == ParserNodeTraversalMode.Unsupported)
+            .Select(static type => type.FullName)
+            .OrderBy(static name => name)
+            .ToArray();
+
+        Assert.IsEmpty(
+            missing,
+            "Every concrete parser node should be covered by traversal registry descriptors or an explicit leaf descriptor: " +
+            string.Join(", ", missing));
+    }
+
+    [TestMethod]
+    public void EvaluatorParserSourceDerivatives_ShouldUseBaseParserTraversalDescriptors()
+    {
+        var schema = new Musoq.Evaluator.Parser.SchemaFromNode(
+            "schema",
+            "method",
+            ArgsListNode.Empty,
+            "alias",
+            0,
+            false);
+        var expression = new Musoq.Evaluator.Parser.ExpressionFromNode(schema);
+
+        AssertChildren(expression, schema);
+        AssertChildren(schema, schema.Parameters);
+    }
+
+    [TestMethod]
     public void SetAndCteChildren_ShouldUseCanonicalDependencyOrder()
     {
         var left = Id("left");

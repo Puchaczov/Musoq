@@ -12,11 +12,13 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private IEnumerable<StatementSyntax> RenderOperatorProfiledNode(
         ExecutionNode node,
-        IEnumerable<StatementSyntax> statements)
+        IEnumerable<StatementSyntax> statements,
+        ExecutionRenderContext context)
     {
         var renderedStatements = statements.ToArray();
-        if (!ShouldProfileOperatorNode(node) ||
-            !_operatorCatalog.TryGetDescriptor(node, out var descriptor))
+        if (!IsOperatorProfilingEnabledFor(context) ||
+            node is ExecutionReturnTable or ExecutionReturnDesc or ExecutionContinue or ExecutionBreak ||
+            !context.Session.OperatorCatalog.TryGetDescriptor(node, out var descriptor))
         {
             return renderedStatements;
         }
@@ -75,7 +77,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (!IsOperatorProfilingEnabled)
             return [];
 
-        return _operatorCatalog.NodeOperators
+        return RenderSession.OperatorCatalog.NodeOperators
             .Where(descriptor =>
                 usage.Contains(OperatorProfileCounterFacts.CreateHandleVariableName(descriptor)) ||
                 usage.Contains(OperatorProfileCounterFacts.CreateInputRowsVariableName(descriptor)) ||
@@ -89,7 +91,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (!IsOperatorProfilingEnabled)
             return [];
 
-        return _operatorCatalog.NodeOperators
+        return RenderSession.OperatorCatalog.NodeOperators
             .Where(OperatorProfileCounterFacts.IsCounterOnlyDescriptor)
             .SelectMany(descriptor => CreateOperatorCounterDeclarations(descriptor, usage))
             .ToArray();
@@ -206,19 +208,12 @@ public sealed partial class ExecutionCSharpRenderer
             : [CreateOperatorScopeDisposeStatement(descriptor)];
     }
 
-    private bool ShouldProfileOperatorNode(ExecutionNode node)
-    {
-        return IsOperatorProfilingEnabled &&
-               node is not ExecutionReturnTable and not ExecutionReturnDesc and not ExecutionContinue and not ExecutionBreak;
-    }
-
-
     private IEnumerable<StatementSyntax> CreateOperatorCounterFlushStatements(OperatorProfileUsage usage)
     {
         if (!IsOperatorProfilingEnabled)
             return [];
 
-        return _operatorCatalog.NodeOperators
+        return RenderSession.OperatorCatalog.NodeOperators
             .Where(OperatorProfileCounterFacts.IsCounterOnlyDescriptor)
             .SelectMany(descriptor => CreateOperatorCounterFlushStatements(descriptor, usage))
             .ToArray();

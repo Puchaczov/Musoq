@@ -11,7 +11,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultTableName,
         string resultShapeName,
         MultiStatementIndexes indexes,
-        bool scopeAggregateVariables)
+        bool scopeAggregateVariables,
+        PhysicalToExecutionLoweringSession session)
     {
         if (multiStatement.Statements.Length < 2)
             return null;
@@ -54,7 +55,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             multiStatement,
             producerIndex,
             indexes,
-            scopeAggregateVariables);
+            scopeAggregateVariables,
+            session);
         if (!prefix.Supported)
             return TableBuildResult.Unsupported(prefix.UnsupportedReason);
 
@@ -62,7 +64,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             producerPipeline with
             {
                 Project = rewrite.Project,
-                Filter = CombineProducerAndFinalFilters(
+                Filter = ReadOnceCteProjectionLowerer.CombineProducerAndFinalFilters(
                     producerPipeline.Filter,
                     rewrite.Filter,
                     producerPipeline.Source)
@@ -70,7 +72,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultTableName,
             resultShapeName,
             indexes.CteIndexes,
-            indexes.CteShapesByName);
+            indexes.CteShapesByName,
+            session: session);
         if (!result.Supported)
             return result;
 

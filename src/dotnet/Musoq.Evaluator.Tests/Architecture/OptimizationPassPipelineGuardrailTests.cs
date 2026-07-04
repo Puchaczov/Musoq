@@ -1,7 +1,18 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.IR.Execution;
+using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Optimization;
+using Musoq.Evaluator.IR.Optimization.Codegen;
+using Musoq.Evaluator.IR.Optimization.Execution;
+using Musoq.Evaluator.IR.Optimization.Logical;
+using Musoq.Evaluator.IR.Optimization.Physical;
+using Musoq.Evaluator.IR.Physical;
+using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Tests.Architecture;
 
@@ -63,12 +74,176 @@ public sealed class OptimizationPassPipelineGuardrailTests
         AssertPassesMatchSteps(CodegenReadabilityGroup.Pipeline);
     }
 
+    [TestMethod]
+    public void StageSpecificPassContracts_ShouldBindToExpectedPlanTypes()
+    {
+        AssertStageContract<IPreLogicalNormalizationPass, RootNode>();
+        AssertStageContract<ILogicalNormalizationPass, LogicalNode>();
+        AssertStageContract<ILogicalOptimizationPass, LogicalNode>();
+        AssertStageContract<IPhysicalOptimizationPass, PhysicalNode>();
+        AssertStageContract<IExecutionIrOptimizationPass, ExecutionPlan>();
+        AssertStageContract<ICodegenReadabilityOptimizationPass, CompilationUnitSyntax>();
+    }
+
+    [TestMethod]
+    public void PipelinePasses_ShouldImplementStageSpecificContracts()
+    {
+        AssertPassContracts(PreLogicalNormalizationGroup.Pipeline.Passes, typeof(IPreLogicalNormalizationPass));
+        AssertPassContracts(LogicalNormalizationGroup.Pipeline.Passes, typeof(ILogicalNormalizationPass));
+        AssertPassContracts(LogicalOptimizationGroup.Pipeline.Passes, typeof(ILogicalOptimizationPass));
+        AssertPassContracts(PhysicalOptimizationGroup.Pipeline.Passes, typeof(IPhysicalOptimizationPass));
+        AssertPassContracts(ExecutionIrOptimizationGroup.Pipeline.Passes, typeof(IExecutionIrOptimizationPass));
+        AssertPassContracts(CodegenReadabilityGroup.Pipeline.Passes, typeof(ICodegenReadabilityOptimizationPass));
+    }
+
+    [TestMethod]
+    public void LogicalOptimizationPasses_ShouldLiveUnderLogicalOwnershipFolder()
+    {
+        var repositoryRoot = RepositorySourceScan.RepositoryRoot();
+        var optimizationRoot = Path.Combine(
+            repositoryRoot,
+            "src",
+            "dotnet",
+            "Musoq.Evaluator",
+            "IR",
+            "Optimization");
+        var offenders = Directory
+            .EnumerateFiles(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
+            .Select(Path.GetFileName)
+            .Where(static name => name is not null)
+            .Where(static name =>
+                name!.StartsWith("Logical", System.StringComparison.Ordinal) ||
+                name.StartsWith("PreLogical", System.StringComparison.Ordinal) ||
+                name is "DeadCteEliminationLogicalPass.cs" ||
+                name is "DistinctToGroupByNormalizationPass.cs" ||
+                name is "SubqueryToCteNormalizationPass.cs")
+            .ToArray();
+
+        Assert.IsEmpty(
+            offenders,
+            "Logical and pre-logical optimizer ownership belongs under IR/Optimization/Logical: " +
+            string.Join(", ", offenders));
+    }
+
+    [TestMethod]
+    public void PhysicalOptimizationPasses_ShouldLiveUnderPhysicalOwnershipFolder()
+    {
+        var repositoryRoot = RepositorySourceScan.RepositoryRoot();
+        var optimizationRoot = Path.Combine(
+            repositoryRoot,
+            "src",
+            "dotnet",
+            "Musoq.Evaluator",
+            "IR",
+            "Optimization");
+        var offenders = Directory
+            .EnumerateFiles(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
+            .Select(Path.GetFileName)
+            .Where(static name => name is not null)
+            .Where(static name =>
+                name!.StartsWith("Physical", System.StringComparison.Ordinal) ||
+                name.StartsWith("ProjectionPruning", System.StringComparison.Ordinal) ||
+                name.StartsWith("AggregateStrategy", System.StringComparison.Ordinal) ||
+                name.StartsWith("PredicateMovementPhysical", System.StringComparison.Ordinal) ||
+                name.StartsWith("JoinStrategy", System.StringComparison.Ordinal) ||
+                name.StartsWith("OrderingStrategy", System.StringComparison.Ordinal) ||
+                name.StartsWith("WindowMaterialization", System.StringComparison.Ordinal) ||
+                name.StartsWith("SourcePredicate", System.StringComparison.Ordinal) ||
+                name.StartsWith("SourceProjection", System.StringComparison.Ordinal) ||
+                name.StartsWith("SourcePlanPhysical", System.StringComparison.Ordinal))
+            .ToArray();
+
+        Assert.IsEmpty(
+            offenders,
+            "Physical optimizer ownership belongs under IR/Optimization/Physical: " +
+            string.Join(", ", offenders));
+    }
+
+    [TestMethod]
+    public void ExecutionIrOptimizationPasses_ShouldLiveUnderExecutionOwnershipFolder()
+    {
+        var offenders = FindRootOptimizationFiles(
+            static name =>
+                name.StartsWith("Execution", System.StringComparison.Ordinal) ||
+                name.StartsWith("Expression", System.StringComparison.Ordinal) ||
+                name.StartsWith("MethodTarget", System.StringComparison.Ordinal) ||
+                name.StartsWith("Cte", System.StringComparison.Ordinal) ||
+                name.StartsWith("CapacityHint", System.StringComparison.Ordinal) ||
+                name.StartsWith("FieldExpression", System.StringComparison.Ordinal) ||
+                name.StartsWith("SingleUsePipeline", System.StringComparison.Ordinal));
+
+        Assert.IsEmpty(
+            offenders,
+            "Execution IR optimizer ownership belongs under IR/Optimization/Execution: " +
+            string.Join(", ", offenders));
+    }
+
+    [TestMethod]
+    public void CodegenReadabilityPasses_ShouldLiveUnderCodegenOwnershipFolder()
+    {
+        var offenders = FindRootOptimizationFiles(
+            static name =>
+                name.StartsWith("Codegen", System.StringComparison.Ordinal) ||
+                name.StartsWith("DeterministicMember", System.StringComparison.Ordinal) ||
+                name.StartsWith("LocalDeclaration", System.StringComparison.Ordinal) ||
+                name.StartsWith("DeadTemporary", System.StringComparison.Ordinal) ||
+                name.StartsWith("ControlFlow", System.StringComparison.Ordinal) ||
+                name.StartsWith("HelperExtraction", System.StringComparison.Ordinal) ||
+                name.StartsWith("ReadabilityDecision", System.StringComparison.Ordinal));
+
+        Assert.IsEmpty(
+            offenders,
+            "Codegen readability optimizer ownership belongs under IR/Optimization/Codegen: " +
+            string.Join(", ", offenders));
+    }
+
     private static void AssertPassesMatchSteps<TPlan>(OptimizationPassPipeline<TPlan> pipeline)
     {
         CollectionAssert.AreEqual(
             pipeline.Steps.Select(step => step.Pass).ToArray(),
             pipeline.Passes.ToArray(),
             $"Pipeline for stage {pipeline.Stage} exposes passes that diverge from its declared steps.");
+    }
+
+    private static void AssertStageContract<TContract, TPlan>()
+        where TContract : IPlanOptimizationPass<TPlan>
+    {
+        Assert.IsTrue(typeof(IPlanOptimizationPass<TPlan>).IsAssignableFrom(typeof(TContract)));
+    }
+
+    private static void AssertPassContracts<TPlan>(
+        IReadOnlyList<IPlanOptimizationPass<TPlan>> passes,
+        System.Type expectedContract)
+    {
+        var offenders = passes
+            .Where(pass => !expectedContract.IsInstanceOfType(pass))
+            .Select(pass => pass.GetType().Name)
+            .ToArray();
+
+        Assert.IsEmpty(
+            offenders,
+            $"Pipeline contains pass(es) that do not implement {expectedContract.Name}: " +
+            string.Join(", ", offenders));
+    }
+
+    private static string[] FindRootOptimizationFiles(Func<string, bool> isForbiddenFileName)
+    {
+        var repositoryRoot = RepositorySourceScan.RepositoryRoot();
+        var optimizationRoot = Path.Combine(
+            repositoryRoot,
+            "src",
+            "dotnet",
+            "Musoq.Evaluator",
+            "IR",
+            "Optimization");
+
+        return Directory
+            .EnumerateFiles(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
+            .Select(Path.GetFileName)
+            .Where(static name => name is not null)
+            .Select(static name => name!)
+            .Where(isForbiddenFileName)
+            .ToArray();
     }
 
     private static IReadOnlyList<string> AllStepReasons()

@@ -7,7 +7,10 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
 {
-    private ExecutionPlanBuildResult BuildMultiStatement(PhysicalMultiStatementNode multiStatement, string identifier)
+    private ExecutionPlanBuildResult BuildMultiStatement(
+        PhysicalMultiStatementNode multiStatement,
+        string identifier,
+        PhysicalToExecutionLoweringSession session)
     {
         var indexes = CreateMultiStatementIndexes(multiStatement);
         var result = BuildMultiStatementTable(
@@ -15,7 +18,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             "result",
             "ResultRow0",
             indexes,
-            scopeAggregateVariables: true);
+            scopeAggregateVariables: true,
+            session);
 
         if (!result.Supported)
             return ExecutionPlanBuildResult.CreateUnsupported(result.UnsupportedReason);
@@ -28,7 +32,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultTableName,
         string resultShapeName,
         MultiStatementIndexes indexes,
-        bool scopeAggregateVariables)
+        bool scopeAggregateVariables,
+        PhysicalToExecutionLoweringSession session)
     {
         var shapes = new List<RowShape>();
         var nodes = new List<ExecutionNode>();
@@ -40,7 +45,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultTableName,
             resultShapeName,
             indexes,
-            scopeAggregateVariables);
+            scopeAggregateVariables,
+            session);
         if (finalAggregateProjection != null)
             return finalAggregateProjection;
 
@@ -49,7 +55,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultTableName,
             resultShapeName,
             indexes,
-            scopeAggregateVariables);
+            scopeAggregateVariables,
+            session);
         if (finalJoinAggregateProjection != null)
             return finalJoinAggregateProjection;
 
@@ -57,7 +64,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             multiStatement,
             resultTableName,
             resultShapeName,
-            indexes);
+            indexes,
+            session);
         if (finalJoinProjection != null)
             return finalJoinProjection;
 
@@ -66,7 +74,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultTableName,
             resultShapeName,
             indexes,
-            scopeAggregateVariables);
+            scopeAggregateVariables,
+            session);
         if (finalSideEffectApplyProjection != null)
             return finalSideEffectApplyProjection;
 
@@ -74,7 +83,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             multiStatement,
             resultTableName,
             resultShapeName,
-            indexes);
+            indexes,
+            session);
         if (sidecarJoinChain != null)
             return sidecarJoinChain;
 
@@ -83,7 +93,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultTableName,
             resultShapeName,
             indexes,
-            scopeAggregateVariables);
+            scopeAggregateVariables,
+            session);
         if (finalProjectionChain != null)
             return finalProjectionChain;
 
@@ -102,7 +113,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 statementTableName,
                 statementShapeName,
                 indexes,
-                scopeAggregateVariables);
+                scopeAggregateVariables,
+                session);
 
             if (!result.Supported)
                 return result;
@@ -142,7 +154,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultTableName,
         string resultShapeName,
         MultiStatementIndexes indexes,
-        bool scopeAggregateVariables)
+        bool scopeAggregateVariables,
+        PhysicalToExecutionLoweringSession session)
     {
         return BuildPlanTable(
             statement,
@@ -150,6 +163,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultShapeName,
             indexes.CteIndexes,
             indexes.CteShapesByName,
-            scopeAggregateVariables: scopeAggregateVariables);
+            scopeAggregateVariables: scopeAggregateVariables,
+            session: session);
     }
 }

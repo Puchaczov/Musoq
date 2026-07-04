@@ -8,19 +8,19 @@ namespace Musoq.Evaluator.IR.Planning;
 
 internal static partial class BoundaryRowShapePlanner
 {
-    public static BoundaryRowShapePlanningResult Plan(PhysicalNode physicalPlan, PlanProperties properties)
+    public static BoundaryRowShapePlanningResult Plan(PhysicalNode physicalPlan, RequiredColumnFacts requiredColumns)
     {
         ArgumentNullException.ThrowIfNull(physicalPlan);
-        ArgumentNullException.ThrowIfNull(properties);
-        var state = new BoundaryRowShapePlanningState(properties);
+        ArgumentNullException.ThrowIfNull(requiredColumns);
+        var state = new BoundaryRowShapePlanningState(requiredColumns);
         state.Visit(physicalPlan, SchemaColumns(physicalPlan.OutputSchema));
 
         return new BoundaryRowShapePlanningResult(state.Plans, state.Decisions);
     }
 
-    private sealed partial class BoundaryRowShapePlanningState(PlanProperties properties)
+    private sealed partial class BoundaryRowShapePlanningState(RequiredColumnFacts requiredColumns)
     {
-        private readonly ColumnUsageIndex _usageIndex = ColumnUsageIndex.Create(properties);
+        private readonly ColumnUsageIndex _usageIndex = ColumnUsageIndex.Create(requiredColumns);
         private readonly List<BoundaryRowShapePlan> _plans = [];
         private readonly Dictionary<BoundaryRowShapeKind, int> _indexes = new();
 

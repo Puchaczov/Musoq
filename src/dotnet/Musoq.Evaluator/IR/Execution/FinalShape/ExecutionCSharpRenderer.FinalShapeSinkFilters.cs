@@ -42,14 +42,14 @@ public sealed partial class ExecutionCSharpRenderer
 
     private bool IsCurrentFinalShapeTargetOrSourceBuffer(string tableName)
     {
-        return _finalShapeYieldSink is { } sink &&
+        return RenderSession.FinalShapeYieldSink is { } sink &&
                (string.Equals(tableName, sink.TableName, StringComparison.Ordinal) ||
                 (sink.SourceBuffers?.ContainsKey(tableName) ?? false));
     }
 
     private bool IsCurrentFinalShapeSourceBuffer(string tableName)
     {
-        return _finalShapeYieldSink is { } sink &&
+        return RenderSession.FinalShapeYieldSink is { } sink &&
                (sink.SourceBuffers?.ContainsKey(tableName) ?? false);
     }
 }

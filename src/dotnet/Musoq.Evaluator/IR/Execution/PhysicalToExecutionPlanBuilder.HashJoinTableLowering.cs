@@ -6,13 +6,6 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
 {
-    private sealed record HashJoinTableLowering(
-        ExecutionVariable ResultTable,
-        GeneratedRowShape ResultShape,
-        ExecutionBlock MatchedBody,
-        ExecutionBlock? NoMatchBody = null,
-        ExecutionVariable? HasMatch = null);
-
     private TableBuildResult CompleteHashJoinTableBuild(
         HashJoinBuildContext context,
         HashJoinTableLowering lowering)

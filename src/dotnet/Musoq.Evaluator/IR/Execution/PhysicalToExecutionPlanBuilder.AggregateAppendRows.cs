@@ -11,20 +11,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 {
     private const int AggregateTableCompletionNodeCount = 5;
 
-    private sealed record AggregateTableCompletion(
-        IReadOnlyList<RowShape> SourceShapes,
-        IReadOnlyList<ExecutionNode> SourceSetup,
-        AggregateLoweringResources Aggregate,
-        ExecutionVariable ResultTable,
-        GeneratedRowShape ResultShape,
-        ExecutionNode ContextCreation,
-        ExecutionNode Accumulation,
-        ExecutionVariable GroupsToFinalize,
-        ExecutionVariable FinalGroup,
-        ExecutionBlock FinalBlock,
-        IReadOnlyList<PostOperation> PostOperations,
-        bool IsDistinct);
-
     private static TableBuildResult CompleteAggregateTableBuild(AggregateTableCompletion completion)
     {
         var nodes = new List<ExecutionNode>(

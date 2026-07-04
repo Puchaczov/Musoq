@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 
@@ -8,7 +7,7 @@ namespace Musoq.Evaluator.IR.Planning;
 internal sealed partial class ParallelStrategyPlanner(
     CompilationOptions compilationOptions,
     CteExecutionPlan? cteExecutionPlan,
-    ExecutionShapeResolver shapeResolver)
+    IPlanningShapeResolver shapeResolver)
 {
     private readonly HashSet<PhysicalSingleKeyAggregateNode> _aggregateCandidates = new(ReferenceComparer<PhysicalSingleKeyAggregateNode>.Instance);
     private readonly HashSet<PhysicalProjectNode> _filterProjectCandidates = new(ReferenceComparer<PhysicalProjectNode>.Instance);

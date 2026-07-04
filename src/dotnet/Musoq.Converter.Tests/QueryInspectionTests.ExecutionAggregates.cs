@@ -31,7 +31,7 @@ public partial class QueryInspectionTests
             new CompilationOptions());
 
         AssertTypedAggregateContext(result.ExecutionPlanText);
-        Assert.Contains("CountDistinct(", result.ExecutionPlanText);
+        Assert.Contains("d.Count(distinct d.Dummy)", result.ExecutionPlanText);
         AssertGeneratedCSharpContains(
             "CountDistinctReferenceAggregateKernel<string>.Set(ref group.__agg0",
             result.GeneratedCSharpCode);

@@ -273,7 +273,7 @@ public sealed partial class CSharpRenderer(RenderContext context)
         var rowsMethodName = QueryMethodNameResolver.ResolveRows(_context, queryIdentifier);
         var shapeRowsMethodName = QueryMethodNameResolver.ResolveShapeRows(_context, queryIdentifier);
 
-        using var queryRunContextScope = executionRenderer.EnterQueryRunContextRendering();
+        using var queryRunContextScope = executionRenderer.EnterQueryRunContextRenderContext();
         if (TryCreateTypedDirectProjectionMethod(
                 plan,
                 executionRenderer,

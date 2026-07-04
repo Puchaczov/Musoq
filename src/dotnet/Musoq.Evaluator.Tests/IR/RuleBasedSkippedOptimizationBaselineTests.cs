@@ -7,6 +7,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Optimization;
+using Musoq.Evaluator.IR.Optimization.Codegen;
+using Musoq.Evaluator.IR.Optimization.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -37,7 +39,11 @@ public sealed class RuleBasedSkippedOptimizationBaselineTests : BasicEntityTestB
             ],
             aggregate);
 
-        var result = new PhysicalOptimizer().Optimize(project, CreateEmptyProperties());
+        var result = new PhysicalOptimizer().Optimize(
+            project,
+            CreateEmptyProperties(),
+            new CompilationOptions(),
+            ConservativeTestPlanningShapeResolver.Instance);
         var projectionTrace = result.Trace.Entries.Single(static entry => entry.PassName == "ProjectionPruning");
 
         Assert.AreSame(project, result.OptimizedPlan);
@@ -153,26 +159,7 @@ public sealed class RuleBasedSkippedOptimizationBaselineTests : BasicEntityTestB
 
     private static PlanProperties CreateEmptyProperties()
     {
-        return new PlanProperties(
-            new Dictionary<string, SourcePlanProperties>(StringComparer.Ordinal),
-            new Dictionary<string, IrExpression[]>(StringComparer.Ordinal),
-            new Dictionary<string, string[]>(StringComparer.Ordinal),
-            new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal),
-            new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase),
-            new Dictionary<string, RequiredColumnUsage[]>(StringComparer.Ordinal),
-            [],
-            [],
-            new Dictionary<string, SourcePredicatePlan>(StringComparer.Ordinal),
-            new Dictionary<string, SourceInteractionPlan>(StringComparer.Ordinal),
-            new Dictionary<string, SourcePlanRequest>(StringComparer.Ordinal),
-            new Dictionary<string, SourcePlanResult>(StringComparer.Ordinal),
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            []);
+        return PlanPropertiesTestFactory.CreateEmpty();
     }
 
     private static string FindRepositoryFile(string fileName)

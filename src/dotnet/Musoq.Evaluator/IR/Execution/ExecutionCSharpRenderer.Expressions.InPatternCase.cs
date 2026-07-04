@@ -18,7 +18,7 @@ public sealed partial class ExecutionCSharpRenderer
             return RenderConstantSwitchInCheck(constantSet, inCheck.Expression);
 
         if (inCheck.ConstantSet != null &&
-            _constantInSetFieldNames.TryGetValue(inCheck.ConstantSet, out var fieldName))
+            RenderSession.ConstantInSetFieldNames.TryGetValue(inCheck.ConstantSet, out var fieldName))
         {
             return inCheck.ConstantSet.Kind is ExecutionConstantInSetKind.HashSet or ExecutionConstantInSetKind.FrozenSet
                 ? RenderConstantHashSetInCheck(fieldName, inCheck.Expression)

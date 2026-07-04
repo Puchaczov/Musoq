@@ -32,13 +32,13 @@ public sealed partial class ExecutionCSharpRenderer
         if (NeedsParallelTaskPhaseChanged(parallel))
             arguments.Add(SyntaxFactory.IdentifierName("OnPhaseChanged"));
 
-        if (_includeTableResults)
+        if (RenderSession.IncludeTableResults)
             arguments.Add(SyntaxFactory.IdentifierName("_tableResults"));
 
-        if (_includeCteRowResults)
+        if (RenderSession.IncludeCteRowResults)
             arguments.Add(SyntaxFactory.IdentifierName("_cteRowResults"));
 
-        if (_includeCteIndexResults)
+        if (RenderSession.IncludeCteIndexResults)
             arguments.Add(SyntaxFactory.IdentifierName("_cteIndexResults"));
 
         arguments.AddRange(captures.Select(CreateCapturedLocalArgument));
@@ -118,7 +118,7 @@ public sealed partial class ExecutionCSharpRenderer
                 "_onPhaseChanged",
                 SyntaxFactory.ParseTypeName("Action<string, QueryPhase>")));
 
-        if (_includeTableResults)
+        if (RenderSession.IncludeTableResults)
         {
             members.Add(new ParallelRunnerRuntimeMember("_tableResults", "_tableResults", SyntaxFactory.ArrayType(CreateTypeSyntax(typeof(Table)))
                 .WithRankSpecifiers(SyntaxFactory.SingletonList(
@@ -126,10 +126,10 @@ public sealed partial class ExecutionCSharpRenderer
                         SyntaxFactory.OmittedArraySizeExpression()))))));
         }
 
-        if (_includeCteRowResults)
+        if (RenderSession.IncludeCteRowResults)
             members.Add(new ParallelRunnerRuntimeMember("_cteRowResults", "_cteRowResults", CreateCteRowResultsTypeSyntax()));
 
-        if (_includeCteIndexResults)
+        if (RenderSession.IncludeCteIndexResults)
             members.Add(new ParallelRunnerRuntimeMember("_cteIndexResults", "_cteIndexResults", CreateCteIndexResultsTypeSyntax()));
 
         return members;

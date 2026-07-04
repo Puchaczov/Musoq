@@ -5,6 +5,7 @@ using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Optimization;
+using Musoq.Evaluator.IR.Optimization.Physical;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Schema;
@@ -47,7 +48,11 @@ public class PhysicalPlanBuilderTests
     private static PhysicalNode Optimize(PhysicalNode physical, CompilationOptions? options = null)
     {
         return new PhysicalOptimizer()
-            .Optimize(physical, CreateEmptyProperties(), options)
+            .Optimize(
+                physical,
+                CreateEmptyProperties(),
+                options ?? new CompilationOptions(),
+                ConservativeTestPlanningShapeResolver.Instance)
             .OptimizedPlan;
     }
 
@@ -59,26 +64,7 @@ public class PhysicalPlanBuilderTests
 
     private static PlanProperties CreateEmptyProperties()
     {
-        return new PlanProperties(
-            new Dictionary<string, SourcePlanProperties>(StringComparer.Ordinal),
-            new Dictionary<string, IrExpression[]>(StringComparer.Ordinal),
-            new Dictionary<string, string[]>(StringComparer.Ordinal),
-            new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal),
-            new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase),
-            new Dictionary<string, RequiredColumnUsage[]>(StringComparer.Ordinal),
-            [],
-            [],
-            new Dictionary<string, SourcePredicatePlan>(StringComparer.Ordinal),
-            new Dictionary<string, SourceInteractionPlan>(StringComparer.Ordinal),
-            new Dictionary<string, SourcePlanRequest>(StringComparer.Ordinal),
-            new Dictionary<string, SourcePlanResult>(StringComparer.Ordinal),
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            []);
+        return PlanPropertiesTestFactory.CreateEmpty();
     }
 
     [TestMethod]

@@ -290,11 +290,13 @@ internal abstract partial class ExecutionIrRewriter
         var partitionKey = RewriteOptionalExpression(node.PartitionKey);
         var orderKeys = RewriteWindowOrderKeys(node.OrderKeys);
         var value = RewriteExpression(node.Value);
+        var filterPredicate = RewriteOptionalExpression(node.FilterPredicate);
         return ReferenceEquals(partitionKey, node.PartitionKey) &&
                ReferenceEquals(orderKeys, node.OrderKeys) &&
-               ReferenceEquals(value, node.Value)
+               ReferenceEquals(value, node.Value) &&
+               ReferenceEquals(filterPredicate, node.FilterPredicate)
             ? node
-            : node with { PartitionKey = partitionKey, OrderKeys = orderKeys, Value = value };
+            : node with { PartitionKey = partitionKey, OrderKeys = orderKeys, Value = value, FilterPredicate = filterPredicate };
     }
 
     protected virtual ExecutionNode RewriteCreateHash(ExecutionCreateHash node)
@@ -432,11 +434,13 @@ internal abstract partial class ExecutionIrRewriter
     protected virtual ExecutionNode RewriteAggregateSet(ExecutionAggregateSet node)
     {
         var arguments = RewriteExpressionList(node.Arguments);
+        var filterPredicate = RewriteOptionalExpression(node.FilterPredicate);
         var accumulatorInput = RewriteOptionalExpression(node.AccumulatorInput);
         return ReferenceEquals(arguments, node.Arguments) &&
+               ReferenceEquals(filterPredicate, node.FilterPredicate) &&
                ReferenceEquals(accumulatorInput, node.AccumulatorInput)
             ? node
-            : node with { Arguments = arguments, AccumulatorInput = accumulatorInput };
+            : node with { Arguments = arguments, FilterPredicate = filterPredicate, AccumulatorInput = accumulatorInput };
     }
 
     protected virtual ExecutionNode RewriteAggregateCapturedValueSet(ExecutionAggregateCapturedValueSet node)

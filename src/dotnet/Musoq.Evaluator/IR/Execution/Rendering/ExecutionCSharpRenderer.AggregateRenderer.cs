@@ -5,13 +5,13 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private sealed class AggregateRenderer(ExecutionCSharpRenderer renderer)
+    private sealed class AggregateRenderer(ExecutionCSharpRenderer renderer, ExecutionRenderContext renderContext)
     {
         public bool TryRender(ExecutionNode node, out IEnumerable<StatementSyntax> statements)
         {
             statements = node switch
             {
-                ExecutionCreateAggregateLibrary library => [ExecutionCSharpRenderer.RenderCreateAggregateLibrary(library)],
+                ExecutionCreateAggregateLibrary library when renderContext.Session != null => [ExecutionCSharpRenderer.RenderCreateAggregateLibrary(library)],
                 ExecutionCreateAggregateContext context => renderer.RenderCreateAggregateContext(context),
                 ExecutionEnsureAggregateGroup ensureGroup => [renderer.RenderEnsureAggregateGroup(ensureGroup)],
                 ExecutionCreateSingleKeyAggregateContext context => renderer.RenderCreateSingleKeyAggregateContext(context),

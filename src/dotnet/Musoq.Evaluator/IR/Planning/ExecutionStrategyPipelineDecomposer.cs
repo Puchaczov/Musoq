@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
@@ -65,19 +64,6 @@ internal static class ExecutionStrategyPipelineDecomposer
             node = multiStatement.Statements[0];
 
         return node;
-    }
-
-    public static TableRowShape CreateTableRowShape(PhysicalCteRefNode cteRef)
-    {
-        return new TableRowShape(
-            cteRef.Alias,
-            cteRef.OutputSchema.Columns.Select(column => new FieldBinding(
-                column.Name,
-                $"{cteRef.Alias}.{column.Name}",
-                column.Index,
-                column.Type,
-                FieldNullability.Unknown,
-                new PositionalAccess(column.Index))).ToArray());
     }
 
 }

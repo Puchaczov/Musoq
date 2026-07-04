@@ -7,7 +7,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private sealed class TableControlFlowRenderer(ExecutionCSharpRenderer renderer)
+    private sealed class TableControlFlowRenderer(ExecutionCSharpRenderer renderer, ExecutionRenderContext renderContext)
     {
         public bool TryRender(ExecutionNode node, out IEnumerable<StatementSyntax> statements) {
             statements = node switch
@@ -20,12 +20,12 @@ public sealed partial class ExecutionCSharpRenderer
                 ExecutionCreateRecordList createList => [renderer.RenderCreateRecordList(createList)],
                 ExecutionCreateBoundedRecordList createList => [ExecutionCSharpRenderer.RenderCreateBoundedRecordList(createList)],
                 ExecutionEnsureTableCapacity ensureCapacity => [renderer.RenderEnsureTableCapacity(ensureCapacity)],
-                ExecutionForEach forEach => renderer.RenderForEachStream(forEach),
-                ExecutionForEachWithOrdinality forEach => renderer.RenderForEachWithOrdinalityStream(forEach),
-                ExecutionScopedBlock scopedBlock => [renderer.RenderBlock(scopedBlock.Body)],
-                ExecutionForEachIndexed forEachIndexed => [renderer.RenderForEachIndexed(forEachIndexed)],
-                ExecutionParallelBlock parallel => renderer.RenderParallelBlock(parallel),
-                ExecutionFusedCteProducer fusedCte => renderer.RenderFusedCteProducer(fusedCte),
+                ExecutionForEach forEach => renderer.RenderForEachStream(forEach, renderContext),
+                ExecutionForEachWithOrdinality forEach => renderer.RenderForEachWithOrdinalityStream(forEach, renderContext),
+                ExecutionScopedBlock scopedBlock => [renderer.RenderBlock(scopedBlock.Body, renderContext)],
+                ExecutionForEachIndexed forEachIndexed => [renderer.RenderForEachIndexed(forEachIndexed, renderContext)],
+                ExecutionParallelBlock parallel => renderer.RenderParallelBlock(parallel, renderContext),
+                ExecutionFusedCteProducer fusedCte => renderer.RenderFusedCteProducer(fusedCte, renderContext),
                 ExecutionLet let => [renderer.RenderLet(let)],
                 ExecutionAssign assign => [renderer.RenderAssign(assign)],
                 ExecutionCreateBooleanArray createArray => [ExecutionCSharpRenderer.RenderCreateBooleanArray(createArray)],
@@ -35,7 +35,7 @@ public sealed partial class ExecutionCSharpRenderer
                 ExecutionBreak => [SyntaxFactory.BreakStatement()],
                 ExecutionAdaptExpando adapt => [ExecutionCSharpRenderer.RenderAdaptExpando(adapt)],
                 ExecutionCreateObject createObject => [ExecutionCSharpRenderer.RenderCreateObject(createObject)],
-                ExecutionIf branch => [renderer.RenderIf(branch)],
+                ExecutionIf branch => [renderer.RenderIf(branch, renderContext)],
                 ExecutionCreateGeneratedRow createRow => [renderer.RenderCreateGeneratedRow(createRow)],
                 ExecutionAppendRow appendRow => [renderer.RenderAppendRow(appendRow)],
                 ExecutionAppendExistingRow appendRow => [renderer.RenderAppendExistingRow(appendRow)],

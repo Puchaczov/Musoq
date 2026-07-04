@@ -159,33 +159,25 @@ public partial class BuildMetadataAndInferTypesVisitor
             }
 
             var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_sourceBinding.Identifier);
-            var column = tableSymbol.GetColumnByAliasAndName(_sourceBinding.Identifier, node.Name);
-
-            if (column == null)
+            var binding = _columnPropertyBindingService.ResolveIdentifier(tableSymbol, node.Name);
+            if (binding.Kind == SemanticIdentifierBindingKind.Column)
             {
-                if (tableSymbol.IsCompoundTable)
-                {
-                    var (_, table, sourceAlias) = tableSymbol.GetTableByColumnName(node.Name);
-                    if (table != null && sourceAlias != null)
-                    {
-                        var columns = table.GetColumnsByName(node.Name);
-                        var singleCol = columns[0];
-                        Visit(new AccessColumnNode(singleCol.ColumnName, sourceAlias, singleCol.ColumnType,
-                            TextSpan.Empty, singleCol.IntendedTypeName));
-                        return;
-                    }
+                var column = binding.Column ?? throw VisitorException.CreateForProcessingFailure(
+                    VisitorName,
+                    VisitorOperationNames.VisitAccessColumnNode,
+                    $"Column binding for '{node.Name}' did not include a column.");
+                Visit(new AccessColumnNode(column.ColumnName, binding.SourceAlias ?? string.Empty, column.ColumnType,
+                    TextSpan.Empty, column.IntendedTypeName));
+                return;
+            }
 
-                    if (node.Name != _sourceBinding.Identifier && TryResolveIdentifierAsSingleColumnAlias(tableSymbol, node.Name))
-                        return;
-                }
-
-            if (node.Name == _sourceBinding.Identifier)
+            if (binding.Kind == SemanticIdentifierBindingKind.Identifier)
             {
                 Nodes.Push(new IdentifierNode(node.Name));
                 return;
             }
 
-            if (TryReportOrThrowUnknownColumn(node.Name, tableSymbol.GetColumns(), node))
+            if (TryReportOrThrowUnknownColumn(node.Name, binding.AvailableColumns, node))
                 return;
 
             throw VisitorException.CreateForProcessingFailure(
@@ -195,28 +187,6 @@ public partial class BuildMetadataAndInferTypesVisitor
                 "Verify that the column exists in the current query scope.");
         }
 
-            Visit(new AccessColumnNode(node.Name, string.Empty, column.ColumnType, TextSpan.Empty,
-                column.IntendedTypeName));
-            return;
-        }
-
         Nodes.Push(new IdentifierNode(node.Name));
-    }
-
-    private bool TryResolveIdentifierAsSingleColumnAlias(TableSymbol tableSymbol, string identifierName)
-    {
-        if (!tableSymbol.ContainsAlias(identifierName))
-            return false;
-
-        if (!tableSymbol.TryGetColumns(identifierName, out var aliasColumns))
-            return false;
-
-        if (aliasColumns is not { Length: 1 })
-            return false;
-
-        var onlyColumn = aliasColumns[0];
-        Visit(new AccessColumnNode(onlyColumn.ColumnName, identifierName, onlyColumn.ColumnType,
-            TextSpan.Empty, onlyColumn.IntendedTypeName));
-        return true;
     }
 }

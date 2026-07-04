@@ -13,29 +13,30 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlyList<FieldBinding>? finalShapeFields = null)
     {
         ArgumentNullException.ThrowIfNull(plan);
-        EnsureConstantInSetFields(plan);
-        EnsureStaticMetadataFields(plan);
-        EnsureAggregateGenerationState(plan);
+        var context = InitializeRenderContext(plan);
 
-        var previousIncludeCteIndexResults = _includeCteIndexResults;
-        var previousIncludeCteRowResults = _includeCteRowResults;
-        var previousIncludeTableResults = _includeTableResults;
-        var previousTypedStoredTableResults = _typedStoredTableResults;
-        var previousGeneratedRowConstructorUsagesByType = _generatedRowConstructorUsagesByType;
-        var previousGeneratedRowTypesUsedAsRowContexts = _generatedRowTypesUsedAsRowContexts;
-        var previousGeneratedRowTypesUsedAtPublicBoundary = _generatedRowTypesUsedAtPublicBoundary;
-        var previousGeneratedRowTypesRequiringRowBase = _generatedRowTypesRequiringRowBase;
-        var previousOperatorCatalog = _operatorCatalog;
-        var previousSingleKeyAggregateUpdateHelpersByBlock = _singleKeyAggregateUpdateHelpersByBlock;
-        var previousEnumerableTraversalHelpersByBlock = _enumerableTraversalHelpersByBlock;
-        var previousFinalShapeYieldSink = _finalShapeYieldSink;
-        var previousTypedRowBufferVariables = _typedRowBufferVariables;
+        return RenderClassMembers(
+            plan,
+            finalShapeTableName,
+            finalShapeTypeName,
+            finalShapeFields,
+            context);
+    }
+
+    private IReadOnlyList<MemberDeclarationSyntax> RenderClassMembers(
+        ExecutionPlan plan,
+        string? finalShapeTableName,
+        string? finalShapeTypeName,
+        IReadOnlyList<FieldBinding>? finalShapeFields,
+        ExecutionRenderContext context)
+    {
+        var session = context.Session;
         if (finalShapeTableName != null)
         {
             var sourceBuffers = finalShapeTypeName != null && finalShapeFields != null
                 ? CreateFinalShapeSourceBuffers(plan.Body, finalShapeTableName, finalShapeTypeName, finalShapeFields)
                 : null;
-            _finalShapeYieldSink = new FinalShapeYieldSink(
+            session.FinalShapeYieldSink = new FinalShapeYieldSink(
                 finalShapeTableName,
                 finalShapeTypeName ?? string.Empty,
                 finalShapeFields ?? [],
@@ -43,28 +44,26 @@ public sealed partial class ExecutionCSharpRenderer
                 sourceBuffers);
         }
 
-        _typedStoredTableResults = CreateTypedStoredTableResults(plan);
-        _includeCteIndexResults = PlanUsesCteIndexResults(plan);
-        _includeCteRowResults = _typedStoredTableResults.Count > 0;
-        _includeTableResults = PlanUsesTableResults(plan, _typedStoredTableResults);
-        _operatorCatalog = ExecutionPlanOperatorCatalog.Create(plan);
-        _typedRowBufferVariables = CreateTypedRowBufferVariables(plan.Body, finalShapeTableName);
-        _singleKeyAggregateUpdateHelpersByBlock = CollectSingleKeyAggregateUpdateHelpersByBlock(plan.Body);
-        _enumerableTraversalHelpersByBlock = finalShapeTableName == null
+        session.TypedStoredTableResults = CreateTypedStoredTableResults(plan);
+        session.IncludeCteIndexResults = PlanUsesCteIndexResults(plan);
+        session.IncludeCteRowResults = session.TypedStoredTableResults.Count > 0;
+        session.IncludeTableResults = PlanUsesTableResults(plan, session.TypedStoredTableResults);
+        session.OperatorCatalog = ExecutionPlanOperatorCatalog.Create(plan);
+        session.TypedRowBufferVariables = CreateTypedRowBufferVariables(plan.Body, finalShapeTableName);
+        session.SingleKeyAggregateUpdateHelpersByBlock = CollectSingleKeyAggregateUpdateHelpersByBlock(plan.Body);
+        session.EnumerableTraversalHelpersByBlock = finalShapeTableName == null
             ? CollectEnumerableTraversalHelpersByBlock(plan.Body)
             : CollectEnumerableTraversalHelpersByBlock(plan.Body)
                 .Where(pair => !CapturesCurrentFinalShapeTargetOrSourceBuffer(pair.Value))
                 .ToDictionary(static pair => pair.Key, static pair => pair.Value);
 
-        try
-        {
             var members = new List<MemberDeclarationSyntax>();
 
             var constructorUsages = CollectGeneratedRowConstructorUsages(plan.Body);
-            _generatedRowConstructorUsagesByType = constructorUsages;
-            _generatedRowTypesUsedAsRowContexts = CollectGeneratedRowTypesUsedAsRowContexts(plan.Body);
-            _generatedRowTypesUsedAtPublicBoundary = CollectGeneratedRowTypesUsedAtPublicBoundary(plan.Body);
-            _generatedRowTypesRequiringRowBase = GeneratedRowCarrierUsage.CollectTypesRequiringRowBase(plan.Body, constructorUsages);
+            session.GeneratedRowConstructorUsagesByType = constructorUsages;
+            session.GeneratedRowTypesUsedAsRowContexts = CollectGeneratedRowTypesUsedAsRowContexts(plan.Body);
+            session.GeneratedRowTypesUsedAtPublicBoundary = CollectGeneratedRowTypesUsedAtPublicBoundary(plan.Body);
+            session.GeneratedRowTypesRequiringRowBase = GeneratedRowCarrierUsage.CollectTypesRequiringRowBase(plan.Body, constructorUsages);
             var renderedGeneratedRows = new HashSet<string>(StringComparer.Ordinal);
             var renderedHashPayloads = new HashSet<string>(StringComparer.Ordinal);
             var renderedAggregateGroups = new HashSet<string>(StringComparer.Ordinal);
@@ -111,14 +110,14 @@ public sealed partial class ExecutionCSharpRenderer
                 members.Add(RenderFinalSelectShapeClass(plan.FinalResult));
 
             members.AddRange(CreateCteIndexResultMembers(plan));
-            members.AddRange(CreateCteRowResultMembers(_typedStoredTableResults));
-            members.AddRange(_constantInSetFields.Select(static field => CreateConstantInSetField(field)));
-            members.AddRange(_staticMetadataFields.Select(static field => CreateStaticMetadataField(field)));
+            members.AddRange(CreateCteRowResultMembers(session.TypedStoredTableResults));
+            members.AddRange(session.ConstantInSetFields.Select(static field => CreateConstantInSetField(field)));
+            members.AddRange(session.StaticMetadataFields.Select(static field => CreateStaticMetadataField(field)));
             AddCollectionParameterMembers(plan, members);
 
-            members.AddRange(_singleKeyAggregateUpdateHelpersByBlock.Values
+            members.AddRange(session.SingleKeyAggregateUpdateHelpersByBlock.Values
                 .Select(CreateSingleKeyAggregateUpdateFunction));
-            members.AddRange(_enumerableTraversalHelpersByBlock.Values
+            members.AddRange(session.EnumerableTraversalHelpersByBlock.Values
                 .Select(CreateEnumerableTraversalFunction));
             members.AddRange(CollectStoredTableBuilds(plan.Body).Select(CreateStoredTableBuildFunction));
             members.AddRange(CollectHashJoinHelperSets(plan.Body)
@@ -136,8 +135,8 @@ public sealed partial class ExecutionCSharpRenderer
             members.AddRange(CollectWindowAppendRowsHelpers(plan.Body)
                 .Where(CanUseWindowAppendRowsHelperInCurrentSink)
                 .Select(CreateWindowAppendRowsFunction));
-            var previousTableRowShapesByVariableName = _tableRowShapesByVariableName;
-            _tableRowShapesByVariableName = tableRowShapesByVariableName;
+            var previousTableRowShapesByVariableName = session.TableRowShapesByVariableName;
+            session.TableRowShapesByVariableName = tableRowShapesByVariableName;
             try
             {
                 members.AddRange(CollectSortedCopyHelpers(plan.Body)
@@ -146,7 +145,7 @@ public sealed partial class ExecutionCSharpRenderer
             }
             finally
             {
-                _tableRowShapesByVariableName = previousTableRowShapesByVariableName;
+                session.TableRowShapesByVariableName = previousTableRowShapesByVariableName;
             }
 
             members.AddRange(CollectValueTupleAggregateHelpers(plan.Body)
@@ -193,23 +192,6 @@ public sealed partial class ExecutionCSharpRenderer
             }
 
             return CodegenHelperExtractionMetadata.AnnotateCandidateMembers(members);
-        }
-        finally
-        {
-            _includeCteIndexResults = previousIncludeCteIndexResults;
-            _includeCteRowResults = previousIncludeCteRowResults;
-            _includeTableResults = previousIncludeTableResults;
-            _typedStoredTableResults = previousTypedStoredTableResults;
-            _generatedRowConstructorUsagesByType = previousGeneratedRowConstructorUsagesByType;
-            _generatedRowTypesUsedAsRowContexts = previousGeneratedRowTypesUsedAsRowContexts;
-            _generatedRowTypesUsedAtPublicBoundary = previousGeneratedRowTypesUsedAtPublicBoundary;
-            _generatedRowTypesRequiringRowBase = previousGeneratedRowTypesRequiringRowBase;
-            _operatorCatalog = previousOperatorCatalog;
-            _singleKeyAggregateUpdateHelpersByBlock = previousSingleKeyAggregateUpdateHelpersByBlock;
-            _enumerableTraversalHelpersByBlock = previousEnumerableTraversalHelpersByBlock;
-            _finalShapeYieldSink = previousFinalShapeYieldSink;
-            _typedRowBufferVariables = previousTypedRowBufferVariables;
-        }
     }
 
     private static bool PlanUsesCteIndexResults(ExecutionPlan plan)

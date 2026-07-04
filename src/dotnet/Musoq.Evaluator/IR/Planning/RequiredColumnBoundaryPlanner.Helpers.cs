@@ -53,7 +53,8 @@ internal static partial class RequiredColumnBoundaryPlanner
             .SelectMany(registration =>
                 CollectColumns(registration.PartitionKeys)
                     .Concat(CollectOrderColumns(registration.OrderKeys))
-                    .Concat(CollectColumns(registration.ValueArguments)))
+                    .Concat(CollectColumns(registration.ValueArguments))
+                    .Concat(OptionalColumns(registration.FilterPredicate)))
             .ToArray();
     }
 
@@ -70,7 +71,9 @@ internal static partial class RequiredColumnBoundaryPlanner
     private static string[] CollectAggregateColumns(IReadOnlyList<AggregateBinding> bindings)
     {
         return bindings
-            .SelectMany(binding => CollectColumns(binding.SetArguments).Concat(CollectColumns(binding.GetArguments)))
+            .SelectMany(binding => CollectColumns(binding.SetArguments)
+                .Concat(OptionalColumns(binding.FilterPredicate))
+                .Concat(CollectColumns(binding.GetArguments)))
             .ToArray();
     }
 
@@ -87,6 +90,11 @@ internal static partial class RequiredColumnBoundaryPlanner
     private static string[] CollectColumns(IrExpression expression)
     {
         return ColumnRefExtractor.Extract(expression).Select(FormatColumn).ToArray();
+    }
+
+    private static string[] OptionalColumns(IrExpression? expression)
+    {
+        return expression == null ? [] : CollectColumns(expression);
     }
 
     private static string FormatColumn(ColumnRef column)

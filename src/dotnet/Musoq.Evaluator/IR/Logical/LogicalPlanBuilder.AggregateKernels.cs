@@ -153,6 +153,7 @@ public sealed partial class LogicalPlanBuilder
     {
         var getParameters = GetRuntimeParameters(getMethod).ToArray();
         var setParameters = GetRuntimeParameters(refresh.SetMethod).ToArray();
+        var setArguments = GetAggregateRuntimeSetArguments(refresh.SetArguments);
         var arguments = new IrExpression[getParameters.Length];
         var usedSetArgumentIndexes = new HashSet<int>();
 
@@ -166,7 +167,7 @@ public sealed partial class LogicalPlanBuilder
                 getParameters[index],
                 setArgumentIndex,
                 methodCallArguments,
-                refresh.SetArguments,
+                setArguments,
                 usedSetArgumentIndexes,
                 index);
 
@@ -183,6 +184,14 @@ public sealed partial class LogicalPlanBuilder
         return arguments;
     }
 
+    private static IReadOnlyList<IrExpression> GetAggregateRuntimeSetArguments(
+        IReadOnlyList<IrExpression> setArguments)
+    {
+        return setArguments.Count > 0 && setArguments[0] is Literal { Value: string }
+            ? setArguments.Skip(1).ToArray()
+            : setArguments;
+    }
+
     private static IrExpression? ResolveAggregateGetArgument(
         ParameterInfo getParameter,
         int setArgumentIndex,
@@ -196,7 +205,8 @@ public sealed partial class LogicalPlanBuilder
             case >= 0 when setArgumentIndex < setArguments.Count:
             {
                 var setArgument = setArguments[setArgumentIndex];
-                if (CanRenderDuringAggregateFinalization(setArgument))
+                if (CanRenderDuringAggregateFinalization(setArgument) &&
+                    IsAssignableToParameter(setArgument.ReturnType, getParameter.ParameterType))
                 {
                     usedSetArgumentIndexes.Add(setArgumentIndex);
                     return setArgument;
@@ -217,8 +227,12 @@ public sealed partial class LogicalPlanBuilder
         if (fallbackIndex >= methodCallArguments.Count)
             return CreateDefaultArgumentOrNull(getParameter);
 
+        if (fallbackIndex == 0 && methodCallArguments[fallbackIndex] is Literal { Value: string })
+            return CreateDefaultArgumentOrNull(getParameter);
+
         var fallbackArgument = methodCallArguments[fallbackIndex];
-        if (!CanRenderDuringAggregateFinalization(fallbackArgument))
+        if (!CanRenderDuringAggregateFinalization(fallbackArgument) ||
+            !IsAssignableToParameter(fallbackArgument.ReturnType, getParameter.ParameterType))
             return CreateDefaultArgumentOrNull(getParameter);
 
         return fallbackArgument;

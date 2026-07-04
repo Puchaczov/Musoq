@@ -27,10 +27,14 @@ public class BinaryOrTextualSubstreamTests : BinaryOrTextualEvaluatorTestBase
         var data = new byte[] { 0x01, 0x03, 0xAA, 0xBB, 0xCC, 0x7F };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x01, table[0][0]);
-        CollectionAssert.AreEqual(new byte[] { 0xAA, 0xBB, 0xCC }, (byte[])table[0][1]);
-        Assert.AreEqual((byte)0x7F, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Kind", typeof(byte)),
+            ("p.Payload", typeof(byte[])),
+            ("p.Checksum", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [(byte)0x01, new byte[] { 0xAA, 0xBB, 0xCC }, (byte)0x7F]);
     }
 
     [TestMethod]
@@ -49,9 +53,11 @@ public class BinaryOrTextualSubstreamTests : BinaryOrTextualEvaluatorTestBase
         var data = new byte[] { 0x01, 0x00, 0x42 };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        CollectionAssert.AreEqual(new byte[0], (byte[])table[0][0]);
-        Assert.AreEqual((byte)0x42, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Payload", typeof(byte[])),
+            ("p.Checksum", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [Array.Empty<byte>(), (byte)0x42]);
     }
 
     [TestMethod]
@@ -74,10 +80,12 @@ public class BinaryOrTextualSubstreamTests : BinaryOrTextualEvaluatorTestBase
         var data = new byte[] { 0x01, 0x02, 0x0A, 0x0B, 0x7F };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x0A, table[0][0]);
-        Assert.AreEqual((byte)0x0B, table[0][1]);
-        Assert.AreEqual((byte)0x7F, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Payload.A", typeof(object)),
+            ("p.Payload.B", typeof(object)),
+            ("p.Checksum", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)0x0A, (byte)0x0B, (byte)0x7F]);
     }
 
     [TestMethod]
@@ -122,10 +130,12 @@ public class BinaryOrTextualSubstreamTests : BinaryOrTextualEvaluatorTestBase
         var data = new byte[] { 0x01, 0x03, 0x0A, 0x0B, 0xCC, 0x7F };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x0A, table[0][0]);
-        Assert.AreEqual((byte)0x0B, table[0][1]);
-        Assert.AreEqual((byte)0x7F, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Payload.A", typeof(object)),
+            ("p.Payload.B", typeof(object)),
+            ("p.Checksum", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)0x0A, (byte)0x0B, (byte)0x7F]);
     }
 
     [TestMethod]
@@ -144,10 +154,12 @@ public class BinaryOrTextualSubstreamTests : BinaryOrTextualEvaluatorTestBase
         var data = new byte[] { 0x01, 0x02, 0x0A, 0x0B, 0x7F };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x0A, table[0][0]);
-        Assert.AreEqual((byte)0x0B, table[0][1]);
-        Assert.AreEqual((byte)0x7F, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Payload.A", typeof(object)),
+            ("p.Payload.B", typeof(object)),
+            ("p.Checksum", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)0x0A, (byte)0x0B, (byte)0x7F]);
     }
 
     [TestMethod]
@@ -166,10 +178,12 @@ public class BinaryOrTextualSubstreamTests : BinaryOrTextualEvaluatorTestBase
         var data = new byte[] { 0x01, 0x03, 0x0A, 0x0B, 0xCC, 0x7F };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x0A, table[0][0]);
-        Assert.AreEqual((byte)0x0B, table[0][1]);
-        Assert.AreEqual((byte)0x7F, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Payload.A", typeof(object)),
+            ("p.Payload.B", typeof(object)),
+            ("p.Checksum", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)0x0A, (byte)0x0B, (byte)0x7F]);
     }
 
     [TestMethod]

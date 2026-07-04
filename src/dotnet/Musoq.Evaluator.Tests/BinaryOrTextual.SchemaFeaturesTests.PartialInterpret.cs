@@ -42,6 +42,12 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.ParsedFields", typeof(Dictionary<string, object?>)),
+            ("p.ErrorField", typeof(string)),
+            ("p.ErrorMessage", typeof(string)),
+            ("p.BytesConsumed", typeof(int)));
         Assert.AreEqual(1, table.Count);
         var parsedFields = (Dictionary<string, object?>)table[0][0]!;
         Assert.AreEqual(0x12345678, parsedFields["Magic"]);
@@ -80,6 +86,12 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.ParsedFields", typeof(Dictionary<string, object?>)),
+            ("p.ErrorField", typeof(string)),
+            ("p.ErrorMessage", typeof(string)),
+            ("p.BytesConsumed", typeof(int)));
         Assert.AreEqual(1, table.Count);
         Assert.IsInstanceOfType<Dictionary<string, object?>>(table[0][0]);
         Assert.AreEqual("Unknown", table[0][1]);

@@ -14,7 +14,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultShapeName,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex)
+        int schemaFromIndex,
+        PhysicalToExecutionLoweringSession session)
     {
         if (join.BuildKeys.Length != join.ProbeKeys.Length || join.BuildKeys.Length == 0)
             return TableBuildResult.Unsupported("Execution IR hash join lowering requires matching equality key counts.");
@@ -25,7 +26,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
-            CreateSourceRowsScope(resultTableName));
+            CreateSourceRowsScope(resultTableName),
+            session);
         if (!sources.Supported)
             return TableBuildResult.Unsupported(sources.UnsupportedReason);
 
@@ -44,7 +46,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             : TryResolveCteSidecarIndex(join, hashSides, CteSidecarIndexKind.Hash) ??
               TryResolveCteSidecarIndex(join, hashSides, CteSidecarIndexKind.KeySet);
         if (sidecarIndex is { Kind: CteSidecarIndexKind.Hash } &&
-            TryUseCteSidecarHashPayloadJoinSource(hashSides.Build, sidecarIndex, out var payloadBuildSource))
+            TryUseCteSidecarHashPayloadJoinSource(hashSides.Build, sidecarIndex, session, out var payloadBuildSource))
         {
             joinSources = ReferenceEquals(hashSides.Build, joinSources.Left)
                 ? joinSources with { Left = payloadBuildSource }
@@ -106,8 +108,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
     private ExecutionCapacityHint? CreateHashCapacityCandidate(ExecutionVariable hash, JoinSource buildSource)
     {
-        if (ExecutionStrategies.TryCreateCardinalityCapacityCandidate(buildSource.Node, hash, out var cardinalityHint))
-            return cardinalityHint;
+        if (ExecutionStrategies.TryResolveCardinalityCapacity(buildSource.Node, out var cardinalityCapacity))
+            return ExecutionCapacityHintCandidates.CreateConstantCandidate(hash, cardinalityCapacity);
 
         if (buildSource.Rows is ExecutionRowStream { Kind: ExecutionRowStreamKind.Rows } &&
             buildSource.Node is not (PhysicalHashJoinNode or PhysicalNestedLoopJoinNode or PhysicalSortMergeJoinNode))
@@ -120,8 +122,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
     private ExecutionCapacityHint? CreateJoinResultCapacityCandidate(ExecutionVariable resultTable, JoinSource probeSource)
     {
-        if (ExecutionStrategies.TryCreateCardinalityCapacityCandidate(probeSource.Node, resultTable, out var cardinalityHint))
-            return cardinalityHint;
+        if (ExecutionStrategies.TryResolveCardinalityCapacity(probeSource.Node, out var cardinalityCapacity))
+            return ExecutionCapacityHintCandidates.CreateConstantCandidate(resultTable, cardinalityCapacity);
 
         return CreateRowsCapacityCandidate(resultTable, probeSource.Rows);
     }

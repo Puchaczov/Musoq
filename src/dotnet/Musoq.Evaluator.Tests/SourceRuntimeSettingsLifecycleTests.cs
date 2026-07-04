@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Converter.Build;
+using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Diagnostics;
@@ -184,7 +185,10 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             new TestsLoggerResolver(),
             options);
 
-        Assert.AreEqual("blue-token", compiled.Run()[0][0]);
+        var table = compiled.Run();
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Token", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["blue-token"]);
         Assert.AreEqual("blue", resolver.ProfileNames.Single());
     }
 
@@ -202,7 +206,10 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             new TestsLoggerResolver(),
             options);
 
-        Assert.AreEqual("red-token", compiled.Run()[0][0]);
+        var table = compiled.Run();
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Token", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["red-token"]);
         Assert.AreEqual("red", resolver.ProfileNames.Single());
     }
 
@@ -216,14 +223,11 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             new TestsLoggerResolver());
 
         var table = compiled.Run();
-        var tokenRow = table.Single(row => (string)row["Name"] == "TOKEN");
-        var optionalRow = table.Single(row => (string)row["Name"] == "OPTIONAL_TOKEN");
 
-        Assert.AreEqual(true, tokenRow["Required"]);
-        Assert.AreEqual(true, tokenRow["Secret"]);
-        Assert.AreEqual("All", tokenRow["Phases"]);
-        Assert.AreEqual("Missing", tokenRow["Status"]);
-        Assert.AreEqual("Default", optionalRow["Status"]);
+        AssertDescSettingsRows(
+            table,
+            ["OPTIONAL_TOKEN", false, false, "All", "Default", "Optional token override."],
+            ["TOKEN", true, true, "All", "Missing", "Token used by the settings source."]);
         Assert.IsFalse(table.Rows.SelectMany(row => row.Values).Any(value => Equals(value, "blue-token")));
     }
 
@@ -243,10 +247,13 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             new CompilationOptions(sourceRuntimeSettingsResolver: resolver));
 
         var table = compiled.Run();
-        var optionalRow = table.Single(row => (string)row["Name"] == "OPTIONAL_TOKEN");
 
-        Assert.AreEqual("Provided", optionalRow["Status"]);
+        AssertDescSettingsRows(
+            table,
+            ["OPTIONAL_TOKEN", false, false, "All", "Provided", "Optional token override."],
+            ["TOKEN", true, true, "All", "Provided", "Token used by the settings source."]);
         Assert.IsFalse(table.Rows.SelectMany(row => row.Values).Any(value => Equals(value, "optional-value")));
+        Assert.IsFalse(table.Rows.SelectMany(row => row.Values).Any(value => Equals(value, "token-value")));
     }
 
     [TestMethod]
@@ -313,9 +320,11 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             new CompilationOptions(sourceRuntimeSettingsResolver: resolver));
 
         var table = compiled.Run();
-        var tokenRow = table.Single(row => (string)row["Name"] == "TOKEN");
 
-        Assert.AreEqual("Provided", tokenRow["Status"]);
+        AssertDescSettingsRows(
+            table,
+            ["OPTIONAL_TOKEN", false, false, "All", "Default", "Optional token override."],
+            ["TOKEN", true, true, "All", "Provided", "Token used by the settings source."]);
         Assert.IsFalse(table.Rows.SelectMany(row => row.Values).Any(value => Equals(value, "super-secret-token")));
     }
 
@@ -331,11 +340,26 @@ public sealed class SourceRuntimeSettingsLifecycleTests
             new CompilationOptions(sourceRuntimeSettingsResolver: resolver));
 
         var table = compiled.Run();
-        var tokenRow = table.Single(row => (string)row["Name"] == "TOKEN");
 
-        Assert.AreEqual("Provided", tokenRow["Status"]);
+        AssertDescSettingsRows(
+            table,
+            ["OPTIONAL_TOKEN", false, false, "All", "Default", "Optional token override."],
+            ["TOKEN", true, true, "All", "Provided", "Token used by the settings source."]);
         Assert.AreEqual("blue", resolver.ProfileNames.Single());
         Assert.IsFalse(table.Rows.SelectMany(row => row.Values).Any(value => Equals(value, "blue-token")));
+    }
+
+    private static void AssertDescSettingsRows(Table table, params object?[][] rows)
+    {
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Required", typeof(bool)),
+            ("Secret", typeof(bool)),
+            ("Phases", typeof(string)),
+            ("Status", typeof(string)),
+            ("Description", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, rows);
     }
 
     private static CompiledQuery CompileWithInitialSettings(

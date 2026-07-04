@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private sealed record SingleKeyAggregateUpdateHelper(
+    internal sealed record SingleKeyAggregateUpdateHelper(
         string FunctionName,
         ExecutionBlock Body,
         ExecutionGetOrAddSingleKeyAggregateGroup GroupAcquisition,
@@ -215,8 +215,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private MethodDeclarationSyntax CreateSingleKeyAggregateUpdateFunction(SingleKeyAggregateUpdateHelper helper)
     {
-        var previousSuppressAggregateUpdateHelpers = _suppressSingleKeyAggregateUpdateHelpers;
-        _suppressSingleKeyAggregateUpdateHelpers = true;
+        var previousSuppressAggregateUpdateHelpers = RenderSession.SuppressSingleKeyAggregateUpdateHelpers;
+        RenderSession.SuppressSingleKeyAggregateUpdateHelpers = true;
 
         try
         {
@@ -232,7 +232,7 @@ public sealed partial class ExecutionCSharpRenderer
         }
         finally
         {
-            _suppressSingleKeyAggregateUpdateHelpers = previousSuppressAggregateUpdateHelpers;
+            RenderSession.SuppressSingleKeyAggregateUpdateHelpers = previousSuppressAggregateUpdateHelpers;
         }
     }
 

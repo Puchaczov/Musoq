@@ -9,9 +9,12 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderForEach(ExecutionForEach forEach)
+    private IEnumerable<StatementSyntax> RenderForEach(
+        ExecutionForEach forEach,
+        ExecutionRenderContext context)
     {
-        if (TryCreateStoredGeneratedRowsIndexedLoop(forEach, out var storedGeneratedRowsLoop))
+        var session = context.Session;
+        if (TryCreateStoredGeneratedRowsIndexedLoop(forEach, context, out var storedGeneratedRowsLoop))
         {
             foreach (var statement in storedGeneratedRowsLoop)
                 yield return statement;
@@ -23,11 +26,11 @@ public sealed partial class ExecutionCSharpRenderer
             yield return cacheDeclaration;
 
         var bodyStatements = new List<StatementSyntax>();
-        if (_emitChunkLoopCancellationChecks)
+        if (session.EmitChunkLoopCancellationChecks)
             bodyStatements.Add(QueryEmitter.GenerateCancellationCheck());
 
-        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabled, _operatorCatalog, forEach));
-        bodyStatements.AddRange(RenderBlock(forEach.Body).Statements);
+        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
+        bodyStatements.AddRange(RenderBlock(forEach.Body, context).Statements);
 
         yield return StatementEmitter.CreateForeach(
             EscapeIdentifier(forEach.Item.Name),
@@ -35,7 +38,9 @@ public sealed partial class ExecutionCSharpRenderer
             StatementEmitter.CreateBlock(bodyStatements));
     }
 
-    private IEnumerable<StatementSyntax> RenderForEachWithOrdinality(ExecutionForEachWithOrdinality forEach)
+    private IEnumerable<StatementSyntax> RenderForEachWithOrdinality(
+        ExecutionForEachWithOrdinality forEach,
+        ExecutionRenderContext context)
     {
         var rowsVariableName = CreateIdentifierCandidate($"{forEach.Ordinal.Name}Rows", 0);
         var listVariableName = CreateIdentifierCandidate($"{forEach.Ordinal.Name}List", 0);
@@ -52,15 +57,17 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.DeclarationPattern(
                     SyntaxFactory.ParseTypeName($"IReadOnlyList<{itemType}>"),
                     SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(listVariableName)))),
-            RenderOrdinalityIndexedLoop(forEach, listVariableName, itemType),
-            RenderOrdinalityForeachLoop(forEach, rowsVariableName));
+            RenderOrdinalityIndexedLoop(forEach, listVariableName, itemType, context),
+            RenderOrdinalityForeachLoop(forEach, rowsVariableName, context));
     }
 
     private ForStatementSyntax RenderOrdinalityIndexedLoop(
         ExecutionForEachWithOrdinality forEach,
         string listVariableName,
-        TypeSyntax itemType)
+        TypeSyntax itemType,
+        ExecutionRenderContext context)
     {
+        var session = context.Session;
         var bodyStatements = new List<StatementSyntax>
         {
             CreateLocalDeclaration(
@@ -70,11 +77,11 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName(listVariableName),
                     SyntaxFactory.IdentifierName(forEach.Ordinal.Name)))
         };
-        if (_emitChunkLoopCancellationChecks)
+        if (session.EmitChunkLoopCancellationChecks)
             bodyStatements.Insert(0, CreatePeriodicCancellationCheck(forEach.Ordinal.Name));
 
-        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabled, _operatorCatalog, forEach));
-        bodyStatements.AddRange(RenderBlock(forEach.Body).Statements);
+        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
+        bodyStatements.AddRange(RenderBlock(forEach.Body, context).Statements);
 
         return StatementEmitter.CreateForLoop(
             forEach.Ordinal.Name,
@@ -94,14 +101,16 @@ public sealed partial class ExecutionCSharpRenderer
 
     private StatementSyntax RenderOrdinalityForeachLoop(
         ExecutionForEachWithOrdinality forEach,
-        string rowsVariableName)
+        string rowsVariableName,
+        ExecutionRenderContext context)
     {
+        var session = context.Session;
         var bodyStatements = new List<StatementSyntax>();
-        if (_emitChunkLoopCancellationChecks)
+        if (session.EmitChunkLoopCancellationChecks)
             bodyStatements.Add(QueryEmitter.GenerateCancellationCheck());
 
-        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabled, _operatorCatalog, forEach));
-        bodyStatements.AddRange(RenderBlock(forEach.Body).Statements);
+        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
+        bodyStatements.AddRange(RenderBlock(forEach.Body, context).Statements);
         bodyStatements.Add(SyntaxFactory.ExpressionStatement(
             SyntaxFactory.PrefixUnaryExpression(
                 SyntaxKind.PreIncrementExpression,
@@ -122,12 +131,15 @@ public sealed partial class ExecutionCSharpRenderer
 
     private bool TryCreateStoredGeneratedRowsIndexedLoop(
         ExecutionForEach forEach,
+        ExecutionRenderContext context,
         out IReadOnlyList<StatementSyntax> statements)
     {
+        var session = context.Session;
         statements = [];
 
         if (!TryCreateGeneratedRowsLoopSource(
                 forEach.Source,
+                context,
                 out var rowsVariable,
                 out var rowsDeclaration,
                 out var sourceAlreadyTyped))
@@ -150,11 +162,11 @@ public sealed partial class ExecutionCSharpRenderer
             forEach.Item.Name,
             itemInitializer);
         var bodyStatements = new List<StatementSyntax> { itemDeclaration };
-        if (_emitChunkLoopCancellationChecks)
+        if (session.EmitChunkLoopCancellationChecks)
             bodyStatements.Insert(0, CreatePeriodicCancellationCheck(indexVariable.Name));
 
-        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabled, _operatorCatalog, forEach));
-        bodyStatements.AddRange(RenderBlock(forEach.Body).Statements);
+        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
+        bodyStatements.AddRange(RenderBlock(forEach.Body, context).Statements);
 
         var loop = CreateIndexedForLoop(
             indexVariable.Name,
@@ -167,6 +179,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private bool TryCreateGeneratedRowsLoopSource(
         ExecutionExpression source,
+        ExecutionRenderContext context,
         out ExecutionVariable rowsVariable,
         out StatementSyntax? rowsDeclaration,
         out bool sourceAlreadyTyped)
@@ -176,7 +189,7 @@ public sealed partial class ExecutionCSharpRenderer
         sourceAlreadyTyped = false;
 
         if (source is ExecutionStoredTableRows storedRows &&
-            !_storedRowsCacheNames.ContainsKey(storedRows.TableIndex) &&
+            !context.Session.StoredRowsCacheNames.ContainsKey(storedRows.TableIndex) &&
             TryResolveStoredGeneratedRowsShape(storedRows, out var rowShape))
         {
             var nameDisambiguator = GetStoredGeneratedRowsLoopNameDisambiguator(storedRows.TableIndex);
@@ -221,8 +234,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private int GetStoredGeneratedRowsLoopNameDisambiguator(int tableIndex)
     {
-        _storedGeneratedRowsLoopNameCounts.TryGetValue(tableIndex, out var disambiguator);
-        _storedGeneratedRowsLoopNameCounts[tableIndex] = disambiguator + 1;
+        RenderSession.StoredGeneratedRowsLoopNameCounts.TryGetValue(tableIndex, out var disambiguator);
+        RenderSession.StoredGeneratedRowsLoopNameCounts[tableIndex] = disambiguator + 1;
         return disambiguator;
     }
 
@@ -248,8 +261,8 @@ public sealed partial class ExecutionCSharpRenderer
     private LocalDeclarationStatementSyntax? TryCreateStoredRowsCacheDeclaration(ExecutionExpression source)
     {
         if (source is not ExecutionStoredTableRows storedRows ||
-            !_storedRowsCacheNames.TryGetValue(storedRows.TableIndex, out var cacheName) ||
-            !_declaredStoredRowsCaches.Add(storedRows.TableIndex))
+            !RenderSession.StoredRowsCacheNames.TryGetValue(storedRows.TableIndex, out var cacheName) ||
+            !RenderSession.DeclaredStoredRowsCaches.Add(storedRows.TableIndex))
         {
             return null;
         }
@@ -260,10 +273,13 @@ public sealed partial class ExecutionCSharpRenderer
             CreateStoredTableRowsRead(storedRows));
     }
 
-    private ForStatementSyntax RenderForEachIndexed(ExecutionForEachIndexed forEachIndexed)
+    private ForStatementSyntax RenderForEachIndexed(
+        ExecutionForEachIndexed forEachIndexed,
+        ExecutionRenderContext context)
     {
+        var session = context.Session;
         var bodyStatements = new List<StatementSyntax>();
-        if (_emitChunkLoopCancellationChecks)
+        if (session.EmitChunkLoopCancellationChecks)
             bodyStatements.Add(CreatePeriodicCancellationCheck(forEachIndexed.Index.Name));
 
         bodyStatements.AddRange(CreateIndexedItemDeclarations(
@@ -271,8 +287,8 @@ public sealed partial class ExecutionCSharpRenderer
             forEachIndexed.Source,
             forEachIndexed.Index,
             forEachIndexed.RowAccessMode));
-        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabled, _operatorCatalog, forEachIndexed));
-        bodyStatements.AddRange(RenderBlock(forEachIndexed.Body).Statements);
+        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEachIndexed));
+        bodyStatements.AddRange(RenderBlock(forEachIndexed.Body, context).Statements);
 
         return CreateIndexedForLoop(
             forEachIndexed.Index.Name,

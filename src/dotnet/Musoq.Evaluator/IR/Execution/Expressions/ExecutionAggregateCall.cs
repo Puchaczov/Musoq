@@ -10,4 +10,5 @@ public sealed record ExecutionAggregateCall(
     MethodInfo Method,
     IReadOnlyList<ExecutionExpression> Arguments,
     Type ReturnType,
-    AggregateAccumulatorField Accumulator) : ExecutionExpression(ReturnType);
+    AggregateAccumulatorField Accumulator,
+    string? DisplayName = null) : ExecutionExpression(ReturnType);

@@ -10,7 +10,7 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private bool IsFinalShapeTarget(ExecutionVariable target)
     {
-        return _finalShapeYieldSink is { } sink &&
+        return RenderSession.FinalShapeYieldSink is { } sink &&
                string.Equals(target.Name, sink.TableName, StringComparison.Ordinal);
     }
 
@@ -18,8 +18,8 @@ public sealed partial class ExecutionCSharpRenderer
         string tableName,
         out FinalShapeSourceBuffer buffer)
     {
-        if (_finalShapeYieldSink?.SourceBuffers != null &&
-            _finalShapeYieldSink.SourceBuffers.TryGetValue(tableName, out buffer!))
+        if (RenderSession.FinalShapeYieldSink?.SourceBuffers != null &&
+            RenderSession.FinalShapeYieldSink.SourceBuffers.TryGetValue(tableName, out buffer!))
         {
             return true;
         }
@@ -101,7 +101,7 @@ public sealed partial class ExecutionCSharpRenderer
         string? rowsVariableName = null,
         IReadOnlyList<int>? renumberFieldIndexes = null)
     {
-        var sink = _finalShapeYieldSink ??
+        var sink = RenderSession.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         var renumberFieldIndexSet = CreateRenumberFieldIndexSet(renumberFieldIndexes);
         var arguments = Enumerable.Select<FieldBinding, ArgumentSyntax>(sink.Fields, (field, index) =>
@@ -128,7 +128,7 @@ public sealed partial class ExecutionCSharpRenderer
         string rowsVariableName,
         IReadOnlyList<int> renumberFieldIndexes)
     {
-        var sink = _finalShapeYieldSink ??
+        var sink = RenderSession.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         var renumberFieldIndexSet = CreateRenumberFieldIndexSet(renumberFieldIndexes);
         var arguments = Enumerable.Select<FieldBinding, ArgumentSyntax>(sink.Fields, (field, index) => SyntaxFactory.Argument(
@@ -204,7 +204,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private StatementSyntax CreateFinalShapeOutputStatement(ExpressionSyntax shapeCreation)
     {
-        var sink = _finalShapeYieldSink ??
+        var sink = RenderSession.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
 
         if (sink.BufferName == null)

@@ -157,6 +157,8 @@ internal static partial class RequiredColumnUsagePlanner
             foreach (var binding in bindings)
             {
                 AddExpressions(binding.SetArguments, RequiredColumnUsageReason.AggregateSetArgument);
+                if (binding.FilterPredicate != null)
+                    AddExpression(binding.FilterPredicate, RequiredColumnUsageReason.AggregateSetArgument);
                 AddExpressions(binding.GetArguments, RequiredColumnUsageReason.AggregateGetArgument);
             }
         }
@@ -168,6 +170,8 @@ internal static partial class RequiredColumnUsagePlanner
                 AddExpressions(registration.PartitionKeys, RequiredColumnUsageReason.WindowPartition);
                 AddOrderFields(registration.OrderKeys, RequiredColumnUsageReason.WindowOrder);
                 AddExpressions(registration.ValueArguments, RequiredColumnUsageReason.WindowValue);
+                if (registration.FilterPredicate != null)
+                    AddExpression(registration.FilterPredicate, RequiredColumnUsageReason.WindowValue);
             }
         }
 

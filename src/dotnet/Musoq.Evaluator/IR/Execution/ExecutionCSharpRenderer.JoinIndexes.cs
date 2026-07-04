@@ -106,7 +106,9 @@ public sealed partial class ExecutionCSharpRenderer
             invocation);
     }
 
-    private BlockSyntax RenderAsOfProbe(ExecutionAsOfProbe asOfProbe)
+    private BlockSyntax RenderAsOfProbe(
+        ExecutionAsOfProbe asOfProbe,
+        ExecutionRenderContext context)
     {
         var matchDeclaration = CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -117,10 +119,10 @@ public sealed partial class ExecutionCSharpRenderer
             CreateIdentifierName(asOfProbe.Match.Name),
             SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
         var elseStatement = asOfProbe.NoMatchBody is { Nodes.Count: > 0 }
-            ? RenderBlock(asOfProbe.NoMatchBody)
+            ? RenderBlock(asOfProbe.NoMatchBody, context)
             : null;
 
-        return StatementEmitter.CreateBlock(matchDeclaration, StatementEmitter.CreateIf(condition, RenderBlock(asOfProbe.Body), elseStatement));
+        return StatementEmitter.CreateBlock(matchDeclaration, StatementEmitter.CreateIf(condition, RenderBlock(asOfProbe.Body, context), elseStatement));
     }
 
     private InvocationExpressionSyntax CreateAsOfMatchInvocation(ExecutionAsOfProbe asOfProbe)
@@ -290,12 +292,14 @@ public sealed partial class ExecutionCSharpRenderer
             invocation);
     }
 
-    private ForEachStatementSyntax RenderRangeProbe(ExecutionRangeProbe rangeProbe)
+    private ForEachStatementSyntax RenderRangeProbe(
+        ExecutionRangeProbe rangeProbe,
+        ExecutionRenderContext context)
     {
         return StatementEmitter.CreateForeach(
             EscapeIdentifier(rangeProbe.Match.Name),
             CreateRangeIndexFindInvocation(rangeProbe),
-            RenderBlock(rangeProbe.Body));
+            RenderBlock(rangeProbe.Body, context));
     }
 
     private InvocationExpressionSyntax CreateRangeIndexFindInvocation(ExecutionRangeProbe rangeProbe)

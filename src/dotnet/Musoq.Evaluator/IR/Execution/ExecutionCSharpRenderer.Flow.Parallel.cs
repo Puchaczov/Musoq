@@ -19,7 +19,7 @@ public sealed partial class ExecutionCSharpRenderer
         string FieldName,
         TypeSyntax Type);
 
-    private IEnumerable<StatementSyntax> RenderParallelBlock(ExecutionParallelBlock parallel)
+    private IEnumerable<StatementSyntax> RenderParallelBlock(ExecutionParallelBlock parallel, ExecutionRenderContext context)
     {
         var captures = CollectParallelBlockCaptures(parallel);
 
@@ -57,7 +57,7 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName(CreateParallelTaskResultPropertyName(index)))));
         }
 
-        foreach (var statement in RenderBlock(parallel.Merge.Body).Statements)
+        foreach (var statement in RenderBlock(parallel.Merge.Body, context).Statements)
             yield return statement;
     }
 
@@ -106,10 +106,10 @@ public sealed partial class ExecutionCSharpRenderer
 
     private List<StatementSyntax> CreateParallelTaskBuildFunctionStatements(ExecutionParallelTask task)
     {
-        var previousTypedRowBufferVariables = _typedRowBufferVariables;
+        var previousTypedRowBufferVariables = RenderSession.TypedRowBufferVariables;
         if (TryGetParallelTaskTypedRowBuffer(task, out var table, out var rowShape))
         {
-            _typedRowBufferVariables = new Dictionary<string, GeneratedRowShape>(
+            RenderSession.TypedRowBufferVariables = new Dictionary<string, GeneratedRowShape>(
                 previousTypedRowBufferVariables,
                 StringComparer.Ordinal)
             {
@@ -135,7 +135,7 @@ public sealed partial class ExecutionCSharpRenderer
         }
         finally
         {
-            _typedRowBufferVariables = previousTypedRowBufferVariables;
+            RenderSession.TypedRowBufferVariables = previousTypedRowBufferVariables;
         }
     }
 
@@ -148,7 +148,7 @@ public sealed partial class ExecutionCSharpRenderer
         rowShape = null!;
 
         return task.RelatedTableIndex is { } tableIndex &&
-               _typedStoredTableResults.TryGetValue(tableIndex, out var typedResult) &&
+               RenderSession.TypedStoredTableResults.TryGetValue(tableIndex, out var typedResult) &&
                TypedStoredTableResultResolver.TryGetParallelTaskResultTable(task, out table) &&
                (rowShape = typedResult.RowShape) != null;
     }
@@ -340,8 +340,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private BlockSyntax RenderParallelTaskBody(ExecutionParallelTask task)
     {
-        var previousDeclaredStoredRowsCaches = _declaredStoredRowsCaches;
-        _declaredStoredRowsCaches = new HashSet<int>(previousDeclaredStoredRowsCaches);
+        var previousDeclaredStoredRowsCaches = RenderSession.DeclaredStoredRowsCaches;
+        RenderSession.DeclaredStoredRowsCaches = new HashSet<int>(previousDeclaredStoredRowsCaches);
 
         try
         {
@@ -354,7 +354,7 @@ public sealed partial class ExecutionCSharpRenderer
         }
         finally
         {
-            _declaredStoredRowsCaches = previousDeclaredStoredRowsCaches;
+            RenderSession.DeclaredStoredRowsCaches = previousDeclaredStoredRowsCaches;
         }
     }
 

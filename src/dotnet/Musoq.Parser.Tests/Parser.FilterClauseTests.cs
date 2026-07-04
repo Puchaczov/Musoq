@@ -8,85 +8,89 @@ namespace Musoq.Parser.Tests;
 public class ParserFilterClauseTests
 {
     [TestMethod]
-    public void FilterOnCount_ShouldRewriteArgToCaseWhen()
+    public void FilterOnCount_ShouldPreserveArgumentAndStorePredicate()
     {
-        var query = "select Count(Name) filter (where Name = 'ABBA') from #some.a()";
+        var accessMethod = ParseFirstAccessMethod("select Count(Name) filter (where Name = 'ABBA') from #some.a()");
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
-        var result = parser.ComposeAll();
-
-        var statementsArray = result.Expression as StatementsArrayNode;
-        Assert.IsNotNull(statementsArray);
-
-        var singleSet = statementsArray.Statements[0].Node as SingleSetNode;
-        Assert.IsNotNull(singleSet);
-
-        var select = singleSet.Query.Select;
-        var field = select.Fields[0];
-        var accessMethod = field.Expression as AccessMethodNode;
-
-        Assert.IsNotNull(accessMethod);
         Assert.AreEqual("Count", accessMethod.Name);
         Assert.AreEqual(1, accessMethod.ArgsCount);
-
-        var caseNode = accessMethod.Arguments.Args[0] as CaseNode;
-        Assert.IsNotNull(caseNode, "FILTER should rewrite the argument to a CaseNode");
-        Assert.HasCount(1, caseNode.WhenThenPairs);
-        Assert.IsInstanceOfType<WhenNode>(caseNode.WhenThenPairs[0].When);
-        Assert.IsInstanceOfType<ThenNode>(caseNode.WhenThenPairs[0].Then);
-        Assert.IsInstanceOfType<ElseNode>(caseNode.Else);
-        var elseNode = (ElseNode)caseNode.Else;
-        Assert.IsInstanceOfType<NullNode>(elseNode.Expression);
+        var identifierNode = accessMethod.Arguments.Args[0] as IdentifierNode;
+        Assert.IsNotNull(identifierNode);
+        Assert.AreEqual("Name", identifierNode.Name);
+        AssertFilterPredicate<EqualityNode>(accessMethod, "Name = 'ABBA'");
     }
 
     [TestMethod]
-    public void RegularCount_ShouldNotHaveCaseWhenWrapper()
+    public void RegularCount_ShouldNotHaveFilterPredicate()
     {
-        var query = "select Count(Name) from #some.a()";
+        var accessMethod = ParseFirstAccessMethod("select Count(Name) from #some.a()");
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
-        var result = parser.ComposeAll();
-
-        var statementsArray = result.Expression as StatementsArrayNode;
-        Assert.IsNotNull(statementsArray);
-
-        var singleSet = statementsArray.Statements[0].Node as SingleSetNode;
-        Assert.IsNotNull(singleSet);
-
-        var select = singleSet.Query.Select;
-        var field = select.Fields[0];
-        var accessMethod = field.Expression as AccessMethodNode;
-
-        Assert.IsNotNull(accessMethod);
+        Assert.IsFalse(accessMethod.HasFilter);
+        Assert.IsNull(accessMethod.FilterExpression);
+        Assert.IsNull(accessMethod.FilterExpressionText);
         Assert.IsNotInstanceOfType<CaseNode>(accessMethod.Arguments.Args[0]);
+    }
+
+    [TestMethod]
+    public void FilterOnCountWildcard_ShouldKeepWildcardAndStorePredicate()
+    {
+        var accessMethod = ParseFirstAccessMethod("select Count(*) filter (where Population > 200) from #some.a()");
+
+        Assert.AreEqual("Count", accessMethod.Name);
+        Assert.AreEqual(1, accessMethod.ArgsCount);
+        Assert.IsInstanceOfType<AllColumnsNode>(accessMethod.Arguments.Args[0]);
+        AssertFilterPredicate<GreaterNode>(accessMethod, "Population > 200");
+    }
+
+    [TestMethod]
+    public void FilterOnCountWithoutArguments_ShouldStayArgumentlessAndStorePredicate()
+    {
+        var accessMethod = ParseFirstAccessMethod("select Count() filter (where Population > 200) from #some.a()");
+
+        Assert.AreEqual("Count", accessMethod.Name);
+        Assert.AreEqual(0, accessMethod.ArgsCount);
+        AssertFilterPredicate<GreaterNode>(accessMethod, "Population > 200");
+    }
+
+    [TestMethod]
+    public void FilterOnCountDistinct_ShouldPreserveDistinctArgumentAndStorePredicate()
+    {
+        var accessMethod = ParseFirstAccessMethod("select Count(distinct City) filter (where Population > 200) from #some.a()");
+
+        Assert.IsTrue(accessMethod.IsDistinct);
+        Assert.AreEqual(1, accessMethod.ArgsCount);
+        var identifierNode = accessMethod.Arguments.Args[0] as IdentifierNode;
+        Assert.IsNotNull(identifierNode);
+        Assert.AreEqual("City", identifierNode.Name);
+        AssertFilterPredicate<GreaterNode>(accessMethod, "Population > 200");
+    }
+
+    [TestMethod]
+    public void RegularCountWithoutArguments_ShouldStayArgumentless()
+    {
+        var accessMethod = ParseFirstAccessMethod("select Count() from #some.a()");
+
+        Assert.AreEqual("Count", accessMethod.Name);
+        Assert.AreEqual(0, accessMethod.ArgsCount);
+    }
+
+    [TestMethod]
+    public void RegularCountWildcard_ShouldKeepWildcardArgument()
+    {
+        var accessMethod = ParseFirstAccessMethod("select Count(*) from #some.a()");
+
+        Assert.AreEqual("Count", accessMethod.Name);
+        Assert.AreEqual(1, accessMethod.ArgsCount);
+        Assert.IsInstanceOfType<AllColumnsNode>(accessMethod.Arguments.Args[0]);
     }
 
     [TestMethod]
     public void FilterCaseInsensitive_ShouldParse()
     {
-        var query = "select Count(Name) FILTER (WHERE Name = 'ABBA') from #some.a()";
+        var accessMethod = ParseFirstAccessMethod("select Count(Name) FILTER (WHERE Name = 'ABBA') from #some.a()");
 
-        var lexer = new Lexer(query, true);
-        var parser = new Parser(lexer);
-        var result = parser.ComposeAll();
-
-        var statementsArray = result.Expression as StatementsArrayNode;
-        Assert.IsNotNull(statementsArray);
-
-        var singleSet = statementsArray.Statements[0].Node as SingleSetNode;
-        Assert.IsNotNull(singleSet);
-
-        var select = singleSet.Query.Select;
-        var field = select.Fields[0];
-        var accessMethod = field.Expression as AccessMethodNode;
-
-        Assert.IsNotNull(accessMethod);
         Assert.AreEqual(1, accessMethod.ArgsCount);
-
-        var caseNode = accessMethod.Arguments.Args[0] as CaseNode;
-        Assert.IsNotNull(caseNode);
+        AssertFilterPredicate<EqualityNode>(accessMethod, "Name = 'ABBA'");
     }
 
     [TestMethod]
@@ -113,8 +117,7 @@ public class ParserFilterClauseTests
         Assert.IsNotNull(accessMethod);
         Assert.AreEqual("Count", accessMethod.Name);
 
-        var caseNode = accessMethod.Arguments.Args[0] as CaseNode;
-        Assert.IsNotNull(caseNode);
+        AssertFilterPredicate<GreaterNode>(accessMethod, "Population > 200");
     }
 
     [TestMethod]
@@ -137,11 +140,11 @@ public class ParserFilterClauseTests
 
         var countMethod = select.Fields[0].Expression as AccessMethodNode;
         Assert.IsNotNull(countMethod);
-        Assert.IsInstanceOfType<CaseNode>(countMethod.Arguments.Args[0]);
+        AssertFilterPredicate<GreaterNode>(countMethod, "Population > 200");
 
         var sumMethod = select.Fields[1].Expression as AccessMethodNode;
         Assert.IsNotNull(sumMethod);
-        Assert.IsInstanceOfType<CaseNode>(sumMethod.Arguments.Args[0]);
+        AssertFilterPredicate<EqualityNode>(sumMethod, "Country = 'Poland'");
     }
 
     [TestMethod]
@@ -163,12 +166,34 @@ public class ParserFilterClauseTests
         var accessMethod = select.Fields[0].Expression as AccessMethodNode;
         Assert.IsNotNull(accessMethod);
 
-        var caseNode = accessMethod.Arguments.Args[0] as CaseNode;
-        Assert.IsNotNull(caseNode);
-        Assert.HasCount(1, caseNode.WhenThenPairs);
+        Assert.AreEqual(1, accessMethod.ArgsCount);
+        Assert.IsInstanceOfType<IdentifierNode>(accessMethod.Arguments.Args[0]);
+        AssertFilterPredicate<AndNode>(accessMethod, "Population > 100 and Country = 'Poland'");
+    }
 
-        var whenNode = caseNode.WhenThenPairs[0].When as WhenNode;
-        Assert.IsNotNull(whenNode);
-        Assert.IsInstanceOfType<AndNode>(whenNode.Expression);
+    private static AccessMethodNode ParseFirstAccessMethod(string query)
+    {
+        var lexer = new Lexer(query, true);
+        var parser = new Parser(lexer);
+        var result = parser.ComposeAll();
+
+        var statementsArray = result.Expression as StatementsArrayNode;
+        Assert.IsNotNull(statementsArray);
+
+        var singleSet = statementsArray.Statements[0].Node as SingleSetNode;
+        Assert.IsNotNull(singleSet);
+
+        var field = singleSet.Query.Select.Fields[0];
+        var accessMethod = field.Expression as AccessMethodNode;
+        Assert.IsNotNull(accessMethod);
+        return accessMethod;
+    }
+
+    private static void AssertFilterPredicate<TPredicate>(AccessMethodNode accessMethod, string expectedText)
+        where TPredicate : Node
+    {
+        Assert.IsTrue(accessMethod.HasFilter);
+        Assert.IsInstanceOfType<TPredicate>(accessMethod.FilterExpression);
+        Assert.AreEqual(expectedText, accessMethod.FilterExpressionText);
     }
 }

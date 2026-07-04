@@ -11,6 +11,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         Func<FunctionToken, ArgsListNode, ArgsListNode?, MethodInfo, string, bool, AccessMethodNode> func)
     {
         var args = GetAndValidateArgs(node);
+        node.FilterExpression = node.FilterExpression is null
+            ? null
+            : SafePop(Nodes, nameof(VisitAccessMethod));
+
+        if (TryResolveDeferredScalarSubqueryValue(node, args))
+            return;
+
         var methodContext = ResolveMethodContext(node, args);
         var (method, canSkipInjectSource) = ResolveMethod(node, args, methodContext);
 

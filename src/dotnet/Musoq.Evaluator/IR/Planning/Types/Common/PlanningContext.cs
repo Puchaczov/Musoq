@@ -23,5 +23,6 @@ internal sealed partial record PlanningContext(
     IReadOnlyDictionary<string, IReadOnlySet<string>> UsedColumns,
     Scope? Scope,
     SchemaRegistry? SchemaRegistry,
+    IPlanningShapeResolver ShapeResolver,
     CteExecutionPlan? CteExecutionPlan)
 { public LogicalNode LogicalPlan => LogicalArtifacts.OptimizedLogicalPlan; }

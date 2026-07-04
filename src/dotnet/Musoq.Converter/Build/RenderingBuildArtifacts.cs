@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Musoq.Evaluator;
+using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Physical;
@@ -18,4 +19,16 @@ namespace Musoq.Converter.Build;
 /// Typed view of the rendering stage output: the compiled assembly inputs needed
 /// by the downstream compilation build link.
 /// </summary>
-internal sealed record RenderingBuildArtifacts(CSharpCompilation Compilation, string AccessToClassPath);
+internal sealed record RenderingBuildArtifacts(CSharpCompilation Compilation, string AccessToClassPath)
+{
+    public RenderingBuildArtifacts(
+        CSharpCompilation compilation,
+        string accessToClassPath,
+        QueryMethodRenderMetadata queryMethodRenderMetadata)
+        : this(compilation, accessToClassPath)
+    {
+        QueryMethodRenderMetadata = queryMethodRenderMetadata;
+    }
+
+    public QueryMethodRenderMetadata QueryMethodRenderMetadata { get; init; } = QueryMethodRenderMetadata.Unknown;
+}

@@ -218,7 +218,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExpressionSyntax rowsExpression,
         IReadOnlyList<int>? renumberFieldIndexes = null)
     {
-        var sink = _finalShapeYieldSink ??
+        var sink = RenderSession.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         var statements = new List<StatementSyntax>
         {
@@ -267,7 +267,7 @@ public sealed partial class ExecutionCSharpRenderer
     private SimpleLambdaExpressionSyntax CreateFinalShapeDistinctKeySelector()
     {
         const string rowName = "__musoqDistinctRow";
-        var sink = _finalShapeYieldSink ??
+        var sink = RenderSession.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         ExpressionSyntax keyExpression = sink.Fields.Count switch
         {
@@ -373,7 +373,7 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlyList<ExecutionOrderField> keys,
         out ExpressionSyntax comparer)
     {
-        var sink = _finalShapeYieldSink;
+        var sink = RenderSession.FinalShapeYieldSink;
         if (sink == null ||
             keys.Count == 0 ||
             keys.Any(key => key.OutputIndex < 0 || key.OutputIndex >= sink.Fields.Count))

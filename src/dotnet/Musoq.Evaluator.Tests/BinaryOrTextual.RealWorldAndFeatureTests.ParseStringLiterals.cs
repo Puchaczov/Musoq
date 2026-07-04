@@ -40,10 +40,12 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("2026-03-09", table[0][0]);
-        Assert.AreEqual("INFO", table[0][1]);
-        Assert.AreEqual("booted", table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("log.Timestamp", typeof(string)),
+            ("log.Level", typeof(string)),
+            ("log.Message", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["2026-03-09", "INFO", "booted"]);
     }
 
     [TestMethod]
@@ -71,8 +73,8 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1, table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("X", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1]);
     }
 
     [TestMethod]
@@ -101,9 +103,11 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("host", table[0][0]);
-        Assert.AreEqual("localhost", table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("kv.Key", typeof(string)),
+            ("kv.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["host", "localhost"]);
     }
 
     [TestMethod]
@@ -136,10 +140,12 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("2026-03-09", table[0][0]);
-        Assert.AreEqual("INFO", table[0][1]);
-        Assert.AreEqual("booted", table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("log.Timestamp", typeof(string)),
+            ("log.Level", typeof(string)),
+            ("log.Message", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["2026-03-09", "INFO", "booted"]);
     }
 
     [TestMethod]
@@ -170,8 +176,8 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("log.Timestamp", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { null });
     }
 
     #endregion

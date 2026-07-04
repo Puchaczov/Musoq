@@ -16,7 +16,10 @@ public partial class BuildMetadataAndInferTypesVisitor
                     default, node.IsDistinct)
                 {
                     HasFilter = node.HasFilter,
-                    IsPivotGenerated = node.IsPivotGenerated
+                    FilterExpression = node.FilterExpression,
+                    FilterExpressionText = node.FilterExpressionText,
+                    IsPivotGenerated = node.IsPivotGenerated,
+                    IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper
                 });
     }
 
@@ -81,7 +84,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         VisitAccessMethod(node,
             (token, node1, exArgs, arg3, alias, _) =>
                 new AccessRefreshAggregationScoreNode(token, node1, exArgs ?? ArgsListNode.Empty, node.CanSkipInjectSource,
-                    arg3, alias));
+                    arg3, alias)
+                {
+                    HasFilter = node.HasFilter,
+                    FilterExpression = node.FilterExpression,
+                    FilterExpressionText = node.FilterExpressionText,
+                    IsPivotGenerated = node.IsPivotGenerated,
+                    IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper
+                });
     }
 
     private void ThrowFilterOnNonAggregate(AccessMethodNode node)

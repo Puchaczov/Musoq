@@ -57,7 +57,10 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(string).Assembly);
-        Nodes.Push(new WordNode(node.Value));
+        var word = node is AggregateIdentifierNode aggregateIdentifier
+            ? new AggregateIdentifierNode(aggregateIdentifier.Value, aggregateIdentifier.DisplayName)
+            : new WordNode(node.Value);
+        Nodes.Push(word);
     }
 
     public override void Visit(NullNode node)

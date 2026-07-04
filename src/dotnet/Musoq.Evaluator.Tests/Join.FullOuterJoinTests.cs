@@ -27,7 +27,7 @@ public class JoinFullOuterJoinTests : BasicEntityTestBase
 
         var table = Run(query, sources);
 
-        Assert.AreEqual(1, table.Count);
+        AssertFullOuterIdColumns(table);
         AssertRows(table, (1, 1));
     }
 
@@ -47,7 +47,7 @@ public class JoinFullOuterJoinTests : BasicEntityTestBase
 
         var table = Run(query, sources);
 
-        Assert.AreEqual(3, table.Count);
+        AssertFullOuterIdColumns(table);
         AssertRows(table, (1, null), (2, 2), (null, 3));
     }
 
@@ -57,9 +57,8 @@ public class JoinFullOuterJoinTests : BasicEntityTestBase
         const string query = "select a.Id, b.Id from #A.entities() a full outer join #B.entities() b on a.Id = b.Id";
         var table = Run(query, CreateSources([], []));
 
-        Assert.AreEqual(0, table.Count);
-        AssertColumn(table, 0, "a.Id", typeof(int?));
-        AssertColumn(table, 1, "b.Id", typeof(int?));
+        AssertFullOuterIdColumns(table);
+        AssertRows(table);
     }
 
     [TestMethod]
@@ -68,7 +67,7 @@ public class JoinFullOuterJoinTests : BasicEntityTestBase
         const string query = "select a.Id, b.Id from #A.entities() a full outer join #B.entities() b on a.Id = b.Id";
         var table = Run(query, CreateSources([], [new BasicEntity("b") { Id = 7 }]));
 
-        Assert.AreEqual(1, table.Count);
+        AssertFullOuterIdColumns(table);
         AssertRows(table, (null, 7));
     }
 
@@ -78,7 +77,7 @@ public class JoinFullOuterJoinTests : BasicEntityTestBase
         const string query = "select a.Id, b.Id from #A.entities() a full outer join #B.entities() b on a.Id = b.Id";
         var table = Run(query, CreateSources([new BasicEntity("a") { Id = 5 }], []));
 
-        Assert.AreEqual(1, table.Count);
+        AssertFullOuterIdColumns(table);
         AssertRows(table, (5, null));
     }
 
@@ -101,7 +100,7 @@ full outer join #B.entities() b on a.Id = b.Id";
 
         var table = Run(query, sources);
 
-        Assert.AreEqual(4, table.Count);
+        AssertFullOuterNameColumns(table);
         AssertStringRows(table, ("a1", "b1"), ("a1", "b2"), ("a2", "b1"), ("a2", "b2"));
     }
 
@@ -121,7 +120,7 @@ full outer join #B.entities() b on a.Id = b.Id";
 
         var table = Run(query, sources);
 
-        Assert.AreEqual(3, table.Count);
+        AssertFullOuterIdColumns(table);
         AssertRows(table, (1, 2), (1, 4), (3, 4));
     }
 
@@ -150,7 +149,7 @@ full outer join cteB b on a.Id = b.Id";
 
         var table = Run(query, sources);
 
-        Assert.AreEqual(3, table.Count);
+        AssertFullOuterNameColumns(table);
         AssertStringRows(table, ("left", null), ("match-left", "match-right"), (null, "right"));
     }
 
@@ -160,8 +159,7 @@ full outer join cteB b on a.Id = b.Id";
         const string query = "select a.Id, b.Id from #A.entities() a full outer join #B.entities() b on a.Id = b.Id";
         var table = Run(query, CreateSources([new BasicEntity("a") { Id = 1 }], [new BasicEntity("b") { Id = 2 }]));
 
-        AssertColumn(table, 0, "a.Id", typeof(int?));
-        AssertColumn(table, 1, "b.Id", typeof(int?));
+        AssertFullOuterIdColumns(table);
     }
 
     [TestMethod]
@@ -195,7 +193,7 @@ full outer join cteB b on a.Id = b.Id";
         var table = Run(query, sources, new CompilationOptions(useHashJoin: false, useSortMergeJoin: false));
 
         Assert.Contains("PhysicalNestedLoopJoin [FullOuter]", inspection.PhysicalPlanText);
-        Assert.AreEqual(3, table.Count);
+        AssertFullOuterIdColumns(table);
         AssertRows(table, (1, null), (2, 2), (null, 3));
     }
 
@@ -218,7 +216,7 @@ full outer join #B.entities() b on a.Id = b.Id and a.City = b.City";
 
         var table = Run(query, sources);
 
-        Assert.AreEqual(3, table.Count);
+        AssertFullOuterIdColumns(table);
         AssertRows(table, (1, 1), (1, null), (null, 1));
     }
 
@@ -241,7 +239,7 @@ full outer join #B.entities() b on a.Id = b.Id and b.City = 'match'";
 
         var table = Run(query, sources);
 
-        Assert.AreEqual(3, table.Count);
+        AssertFullOuterIdColumns(table);
         AssertRows(table, (1, null), (null, 1), (2, 2));
     }
 
@@ -297,17 +295,31 @@ full outer join #B.entities() b on a.Id = b.Id and b.City = 'match'";
 
     private static void AssertRows(Table table, params (int? Left, int? Right)[] expected)
     {
-        var rows = table.Select(row => ((int?)row[0], (int?)row[1])).ToArray();
-
-        foreach (var expectedRow in expected)
-            Assert.Contains(expectedRow, rows);
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            expected.Select(static row => new object?[] { row.Left, row.Right }).ToArray());
     }
 
     private static void AssertStringRows(Table table, params (string? Left, string? Right)[] expected)
     {
-        var rows = table.Select(row => ((string?)row[0], (string?)row[1])).ToArray();
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            expected.Select(static row => new object?[] { row.Left, row.Right }).ToArray());
+    }
 
-        foreach (var expectedRow in expected)
-            Assert.Contains(expectedRow, rows);
+    private static void AssertFullOuterIdColumns(Table table)
+    {
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Id", typeof(int?)),
+            ("b.Id", typeof(int?)));
+    }
+
+    private static void AssertFullOuterNameColumns(Table table)
+    {
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("b.Name", typeof(string)));
     }
 }

@@ -12,6 +12,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         ExecutionVariable item,
         ExecutionRowAccessMode rowAccessMode,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
+        IReadOnlyDictionary<string, string> aggregateSourceFields,
         string resultTableName,
         IReadOnlyDictionary<int, long> qualifyUpperBounds)
     {
@@ -30,14 +31,14 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         foreach (var registrationResult in registrationResults)
         {
             var registration = registrationResult.Registration!;
-            var partitionKey = CreateWindowPartitionKey(registration.PartitionKeys, sourceLookup);
+            var partitionKey = CreateWindowPartitionKey(registration.PartitionKeys, sourceLookup, aggregateSourceFields);
             if (!partitionKey.Supported)
             {
                 return BuildResult<IReadOnlyList<WindowComputationBuildResult>>.Unsupported(
                     $"Execution IR window lowering cannot lower registration {registration.WindowIndex.ToString(CultureInfo.InvariantCulture)}. {partitionKey.UnsupportedReason}");
             }
 
-            var orderKeys = CreateWindowOrderKeys(registration.OrderKeys, sourceLookup);
+            var orderKeys = CreateWindowOrderKeys(registration.OrderKeys, sourceLookup, aggregateSourceFields);
             if (!orderKeys.Supported)
             {
                 return BuildResult<IReadOnlyList<WindowComputationBuildResult>>.Unsupported(
@@ -52,6 +53,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 partitionKey.Value,
                 orderKeys.Value,
                 sourceLookup,
+                aggregateSourceFields,
                 resultTableName,
                 resultNameMode,
                 keyArrays,
@@ -77,13 +79,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         }
 
         return BuildResult<IReadOnlyList<WindowComputationBuildResult>>.Success(computations);
-    }
-
-    private sealed class WindowPartitionSortUsage
-    {
-        public HashSet<string> SortedSignatures { get; } = new(StringComparer.Ordinal);
-
-        public bool HasUnsortedConsumer { get; set; }
     }
 
     private static WindowComputationBuildResult CreateWindowComputation(WindowComputationContext context)
@@ -118,7 +113,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
         if (context.RegistrationResult.OffsetFunction != null)
         {
-            var arguments = CreateOffsetWindowArguments(registration, context.SourceLookup);
+            var arguments = CreateOffsetWindowArguments(registration, context.SourceLookup, context.AggregateSourceFields);
             if (!arguments.Supported)
                 return WindowComputationBuildResult.Unsupported(arguments.UnsupportedReason);
 
@@ -156,13 +151,17 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 registration.FunctionName,
                 registration.WindowIndex,
                 context.ResultNameMode);
-            var arguments = CreatePluginWindowArguments(registration, context.SourceLookup);
+            var arguments = CreatePluginWindowArguments(registration, context.SourceLookup, context.AggregateSourceFields);
             if (!arguments.Supported)
                 return WindowComputationBuildResult.Unsupported(arguments.UnsupportedReason);
 
             var kernelComputation = CreateWindowAggregateKernel(context, arguments, resultsName);
             if (kernelComputation.Supported)
                 return kernelComputation.Computation;
+
+            if (registration.FilterPredicate != null)
+                return WindowComputationBuildResult.Unsupported(
+                    $"Execution IR filtered window aggregate lowering requires a typed aggregate kernel for {registration.FunctionName}.");
 
             var pluginContractUnsupportedReason = GetTypedPluginWindowDispatchUnsupportedReason(registration, arguments);
             if (pluginContractUnsupportedReason != null)

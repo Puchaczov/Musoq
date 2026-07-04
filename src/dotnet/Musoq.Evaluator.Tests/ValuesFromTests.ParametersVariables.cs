@@ -25,10 +25,11 @@ order by scores.Score";
         vm.Parameters["baseScore"] = 10;
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertColumn(table, 1, "scores.Score", typeof(int));
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(10, table[0][1]);
-        Assert.AreEqual(15, table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("scores.Name", typeof(string)),
+            ("scores.Score", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["first", 10], ["second", 15]);
     }
 
     [TestMethod]
@@ -46,9 +47,14 @@ order by scores.Name";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertColumn(table, 1, "scores.Score", typeof(int?));
-        Assert.IsNull(table[0][1]);
-        Assert.AreEqual(20, table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("scores.Name", typeof(string)),
+            ("scores.Score", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "first", null },
+            ["second", 20]);
     }
 
     [TestMethod]
@@ -67,12 +73,11 @@ order by scores.Score";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertColumn(table, 0, "scores.Name", typeof(string));
-        AssertColumn(table, 1, "scores.Score", typeof(int));
-        Assert.AreEqual("pkg-a", table[0][0]);
-        Assert.AreEqual(41, table[0][1]);
-        Assert.AreEqual("pkg-b", table[1][0]);
-        Assert.AreEqual(42, table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("scores.Name", typeof(string)),
+            ("scores.Score", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["pkg-a", 41], ["pkg-b", 42]);
     }
 
     [TestMethod]
@@ -91,9 +96,11 @@ order by scores.Score";
         vm.Parameters["baseScore"] = 12;
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertColumn(table, 1, "scores.Score", typeof(int));
-        Assert.AreEqual(7, table[0][1]);
-        Assert.AreEqual(12, table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("scores.Name", typeof(string)),
+            ("scores.Score", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["literal", 7], ["parameter", 12]);
     }
 
     [TestMethod]

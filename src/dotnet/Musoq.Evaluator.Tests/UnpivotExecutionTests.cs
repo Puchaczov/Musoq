@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Tests;
 public sealed class UnpivotExecutionTests : BasicEntityTestBase
 {
     [TestMethod]
-    public void Run_WhenUnpivotIsTopLevel_ShouldExpandRowsInSourceAndEntryOrder()
+    public void Run_WhenUnpivotIsTopLevel_ShouldExpandRowsWithKeepOnUsingColumns()
     {
         const string query = "unpivot #A.Entities() s on Metric in (s.Population as Population, s.Money as Money) using Amount keep s.Country as Country";
         var sources = CreateSingleSource(
@@ -20,15 +20,17 @@ public sealed class UnpivotExecutionTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(4, table.Count);
-        AssertColumn(table, 0, "Country", typeof(string));
-        AssertColumn(table, 1, "Metric", typeof(string));
-        AssertColumn(table, 2, "Amount", typeof(decimal));
-
-        AssertRow(table[0], "PL", "Population", 10m);
-        AssertRow(table[1], "PL", "Money", 1.5m);
-        AssertRow(table[2], "US", "Population", 20m);
-        AssertRow(table[3], "US", "Money", 2.5m);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("Metric", typeof(string)),
+            ("Amount", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["PL", "Population", 10m],
+            ["PL", "Money", 1.5m],
+            ["US", "Population", 20m],
+            ["US", "Money", 2.5m]);
     }
 
     [TestMethod]
@@ -42,15 +44,17 @@ public sealed class UnpivotExecutionTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(4, table.Count);
-        AssertColumn(table, 0, "Name", typeof(string));
-        AssertColumn(table, 1, "Metric", typeof(string));
-        AssertColumn(table, 2, "Value", typeof(int?));
-
-        AssertRow(table[0], "A", "NullableValue", 7);
-        AssertRow(table[1], "A", "ExplicitNull", null);
-        AssertRow(table[2], "B", "NullableValue", null);
-        AssertRow(table[3], "B", "ExplicitNull", null);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Metric", typeof(string)),
+            ("Value", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["A", "NullableValue", 7],
+            new object?[] { "A", "ExplicitNull", null },
+            new object?[] { "B", "NullableValue", null },
+            new object?[] { "B", "ExplicitNull", null });
     }
 
     [TestMethod]
@@ -63,11 +67,12 @@ public sealed class UnpivotExecutionTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(1, table.Count);
-        AssertColumn(table, 0, "Country", typeof(string));
-        AssertColumn(table, 1, "Metric", typeof(string));
-        AssertColumn(table, 2, "Amount", typeof(decimal));
-        AssertRow(table[0], "PL", "Population", 10m);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("Metric", typeof(string)),
+            ("Amount", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["PL", "Population", 10m]);
     }
 
     [TestMethod]
@@ -81,9 +86,15 @@ public sealed class UnpivotExecutionTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(2, table.Count);
-        AssertRow(table[0], "A", "Population", 10m);
-        AssertRow(table[1], "B", "Money", 2m);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Metric", typeof(string)),
+            ("Amount", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["A", "Population", 10m],
+            ["B", "Money", 2m]);
     }
 
     [TestMethod]
@@ -111,10 +122,4 @@ public sealed class UnpivotExecutionTests : BasicEntityTestBase
         Assert.Contains("CreateGeneratedRow [__unpivot <-", inspection.ExecutionPlanText);
     }
 
-    private static void AssertRow(Row row, object? first, object? second, object? third)
-    {
-        Assert.AreEqual(first, row[0]);
-        Assert.AreEqual(second, row[1]);
-        Assert.AreEqual(third, row[2]);
-    }
 }

@@ -5,10 +5,13 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
 {
-    private ExecutionPlanBuildResult BuildWindowPipeline(WindowPipeline pipeline, string identifier)
+    private ExecutionPlanBuildResult BuildWindowPipeline(
+        WindowPipeline pipeline,
+        string identifier,
+        PhysicalToExecutionLoweringSession session)
     {
         var cteIndexes = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        var table = BuildWindowTable(pipeline, "result", "ResultRow0", cteIndexes);
+        var table = BuildWindowTable(pipeline, "result", "ResultRow0", cteIndexes, session: session);
         if (!table.Supported)
             return ExecutionPlanBuildResult.CreateUnsupported(table.UnsupportedReason);
 
@@ -21,8 +24,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultShapeName,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName = null,
-        int schemaFromIndex = DefaultSchemaFromIndex)
+        int schemaFromIndex = DefaultSchemaFromIndex,
+        PhysicalToExecutionLoweringSession? session = null)
     {
+        session ??= new PhysicalToExecutionLoweringSession(ResolveExecutionStrategies());
         var registrationsResult = ResolveSupportedWindowRegistrations(pipeline.Registrations);
         if (!registrationsResult.Supported)
             return TableBuildResult.Unsupported(registrationsResult.UnsupportedReason);
@@ -32,12 +37,14 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
-            CreateSourceRowsScope(resultTableName));
+            CreateSourceRowsScope(resultTableName),
+            session);
         if (!windowSource.Supported)
             return TableBuildResult.Unsupported(windowSource.UnsupportedReason);
 
         var sourceShape = windowSource.Source.Shape;
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(sourceShape);
+        var aggregateSourceFields = CreateWindowAggregateSourceFieldLookup(pipeline.Source.Source);
         var projection = CreatePostOperationProjection(
             resultTableName,
             resultShapeName,
@@ -84,6 +91,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             source,
             rowAccessMode,
             sourceLookup,
+            aggregateSourceFields,
             resultTableName,
             qualifyTopRankPlan.UpperBounds);
 
@@ -100,6 +108,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultShape,
             postOperationProjection.MaterializedFields,
             sourceLookup,
+            aggregateSourceFields,
             windowResults,
             windowIndex,
             preserveWindowAppendContexts);
@@ -111,6 +120,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             qualifyTopRankPlan.Predicate,
             appendRow.Value,
             sourceLookup,
+            aggregateSourceFields,
             windowResults,
             windowIndex);
 

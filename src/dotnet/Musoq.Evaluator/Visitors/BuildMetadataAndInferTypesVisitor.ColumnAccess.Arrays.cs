@@ -28,11 +28,12 @@ public partial class BuildMetadataAndInferTypesVisitor
                 throw new UnknownPropertyException(node.TableAlias ?? _sourceBinding.Identifier, "unknown", span);
             }
 
-            var column = tableSymbol.GetColumnByAliasAndName(
+            var columnAccess = _columnPropertyBindingService.TryCreateColumnArrayAccess(
+                tableSymbol,
                 string.IsNullOrEmpty(node.TableAlias) ? _sourceBinding.Identifier : node.TableAlias,
-                node.ObjectName);
+                node);
 
-            if (column == null)
+            if (columnAccess == null)
             {
                 if (TryReportUnknownProperty(node.ObjectName, null, node))
                     return;
@@ -47,20 +48,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         var parentNode = Nodes.Count > 0 ? Nodes.Peek() : null;
         var parentNodeType = parentNode?.ReturnType;
 
-        var hasValidParentContext = parentNode != null && parentNodeType != null &&
-                                    !parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)) &&
-                                    !IsRowSourceType(parentNodeType) &&
-                                    !IsPrimitiveType(parentNodeType);
-
-        if (!hasValidParentContext)
+        if (!_columnPropertyBindingService.HasTypedParentForArrayAccess(parentNode))
         {
             var currentTableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_sourceBinding.Identifier);
-            var column = currentTableSymbol?.GetColumnByAliasAndName(_sourceBinding.Identifier, node.ObjectName);
-            if (column != null && IsIndexableType(column.ColumnType))
+            var columnAccessNode = _columnPropertyBindingService.TryCreateCurrentScopeArrayAccess(currentTableSymbol, node);
+            if (columnAccessNode != null)
             {
-                var elementIntendedTypeName = GetArrayElementIntendedTypeName(column.IntendedTypeName);
-                var columnAccessNode =
-                    new AccessObjectArrayNode(node.Token, column.ColumnType, null, elementIntendedTypeName);
                 Nodes.Push(columnAccessNode);
                 return;
             }
@@ -68,62 +61,37 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (parentNodeType != null && parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
-            var typeHintingAttributes = GetCachedTypeHintAttributes(parentNodeType);
-
-            foreach (var t in typeHintingAttributes)
-            {
-                if (t.Name != node.Name) continue;
-
-                Nodes.Push(new AccessObjectArrayNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
-                return;
-            }
-
-            var defaultTypeHintingAttributes =
-                parentNodeType.GetCustomAttribute<DynamicObjectPropertyDefaultTypeHintAttribute>();
-
-            if (defaultTypeHintingAttributes is not null)
-            {
-                Nodes.Push(new AccessObjectArrayNode(node.Token,
-                    new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
-                return;
-            }
-
-            var type = parentNodeType.GetProperty(node.Name)?.PropertyType ??
-                       (_resultShape.TheMostInnerIdentifier?.Name == node.Name
-                           ? typeof(object[])
-                           : typeof(ExpandoObject[]));
-            Nodes.Push(
-                new AccessObjectArrayNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, type)));
+            var propertyInfo = _columnPropertyBindingService.ResolveDynamicProperty(
+                parentNodeType,
+                node.Name,
+                typeof(object[]),
+                typeof(ExpandoObject[]));
+            Nodes.Push(new AccessObjectArrayNode(node.Token, propertyInfo));
         }
         else
         {
             var isNotRoot = parentNode is not AccessColumnNode;
-            bool isArray;
-            bool isIndexer;
 
             if (isNotRoot && parentNodeType != null)
             {
-                PropertyInfo? propertyAccess;
-                try
-                {
-                    propertyAccess = parentNodeType.GetProperty(node.Name);
-                }
-                catch (Exception ex) when (ex is AmbiguousMatchException or ArgumentException)
+                var propertyAccess = _columnPropertyBindingService.TryResolveTypedProperty(
+                    parentNodeType,
+                    node.Name,
+                    out var error);
+
+                if (error != null)
                 {
                     if (TryReportObjectNotArray(
-                            $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
+                            $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
                             node))
                         return;
                     var nodeSpan = node.SpanOrEmpty();
                     throw new ObjectIsNotAnArrayException(
-                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
                         nodeSpan);
                 }
 
-                isArray = propertyAccess?.PropertyType.IsArray == true;
-                isIndexer = HasIndexer(propertyAccess?.PropertyType);
-
-                if (!isArray && !isIndexer)
+                if (!_columnPropertyBindingService.CanUseAsArrayOrIndexer(propertyAccess))
                 {
                     if (TryReportObjectNotArray(
                             $"Object {parentNodeType.Name} property '{node.Name}' is not an array or indexable type.",
@@ -151,27 +119,24 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             if (parentNodeType != null)
             {
-                PropertyInfo? property;
-                try
-                {
-                    property = parentNodeType.GetProperty(node.Name);
-                }
-                catch (Exception ex) when (ex is AmbiguousMatchException or ArgumentException)
+                var property = _columnPropertyBindingService.TryResolveTypedProperty(
+                    parentNodeType,
+                    node.Name,
+                    out var error);
+
+                if (error != null)
                 {
                     if (TryReportObjectNotArray(
-                            $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
+                            $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
                             node))
                         return;
                     var exSpan = node.SpanOrEmpty();
                     throw new ObjectIsNotAnArrayException(
-                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
                         exSpan);
                 }
 
-                isArray = property?.PropertyType.IsArray == true;
-                isIndexer = HasIndexer(property?.PropertyType);
-
-                if (!isArray && !isIndexer)
+                if (!_columnPropertyBindingService.CanUseAsArrayOrIndexer(property))
                 {
                     if (TryReportObjectNotArray($"Object {node.Name} is not an array or indexable type.", node))
                         return;
@@ -202,16 +167,4 @@ public partial class BuildMetadataAndInferTypesVisitor
         }
     }
 
-    private static bool IsRowSourceType(Type? type)
-    {
-        while (type != null)
-        {
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(RowSource<>))
-                return true;
-
-            type = type.BaseType;
-        }
-
-        return false;
-    }
 }

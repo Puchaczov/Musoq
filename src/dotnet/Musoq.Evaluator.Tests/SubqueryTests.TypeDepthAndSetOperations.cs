@@ -81,8 +81,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", (string)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"]);
     }
 
     // ── MEDIUM PRIORITY: Aggregate in subquery ────────────────────────────────
@@ -115,8 +115,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", (string)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"]);
     }
 
     // ── MEDIUM PRIORITY: EXCEPT/INTERSECT error messages ──────────────────────
@@ -151,8 +151,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Only WARSAW should remain after EXCEPT removes BERLIN");
-        Assert.AreEqual("WARSAW", (string)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"]);
     }
 
     [TestMethod]
@@ -188,8 +188,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Only BERLIN should remain from the intersection");
-        Assert.AreEqual("BERLIN", (string)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["BERLIN"]);
     }
 
     // ── MEDIUM PRIORITY: OR at lower level (non-IN branches) ──────────────────
@@ -223,9 +223,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "BERLIN"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "PARIS"));
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["BERLIN"], ["PARIS"]);
     }
 
     // ── MEDIUM PRIORITY: Complex JOIN + multi-IN ──────────────────────────────

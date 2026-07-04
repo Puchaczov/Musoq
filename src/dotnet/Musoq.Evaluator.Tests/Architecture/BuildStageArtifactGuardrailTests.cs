@@ -14,7 +14,8 @@ public class BuildStageArtifactGuardrailTests
         "SemanticBuildArtifacts",
         "PlanningBuildArtifacts",
         "ExecutionBuildArtifacts",
-        "RenderingBuildArtifacts"
+        "RenderingBuildArtifacts",
+        "CompilationBuildArtifacts"
     ];
 
     [TestMethod]
@@ -26,7 +27,7 @@ public class BuildStageArtifactGuardrailTests
             "src", "dotnet", "Musoq.Converter", "Build");
         var source = string.Concat(
             Directory
-                .EnumerateFiles(artifactsDirectory, "*BuildArtifacts.cs")
+                .EnumerateFiles(artifactsDirectory, "*BuildArtifacts.cs", SearchOption.AllDirectories)
                 .Select(File.ReadAllText));
 
         var missing = StageArtifactRecords
@@ -44,7 +45,7 @@ public class BuildStageArtifactGuardrailTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var pipelineSource = string.Concat(
             RepositorySourceScan
-                .FilesUnder(repositoryRoot, "src/dotnet/Musoq.Converter/Build", "TransformTree*.cs")
+                .FilesUnder(repositoryRoot, "src/dotnet/Musoq.Converter/Build", "*.cs")
                 .Select(File.ReadAllText));
 
         var unused = StageArtifactRecords

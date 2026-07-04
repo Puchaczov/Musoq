@@ -14,7 +14,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         Dictionary<string, GeneratedRowShape> cteShapesByName,
         Dictionary<string, int> schemaFromIndexes,
         CteDefinitionPruningPlan pruningPlan,
-        bool applySidecarIndexes)
+        bool applySidecarIndexes,
+        PhysicalToExecutionLoweringSession session)
     {
         var shapes = new List<RowShape>();
         var nodes = new List<ExecutionNode>();
@@ -38,6 +39,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     cteReferenceClassifications,
                     shapes,
                     nodes,
+                    session,
                     out var fusedDefinitionCount))
             {
                 index += fusedDefinitionCount;
@@ -51,7 +53,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 cteIndexes,
                 cteShapesByName,
                 schemaFromIndexes[definition.Name],
-                pruningPlan);
+                pruningPlan,
+                session);
 
             if (applySidecarIndexes)
             {
@@ -62,6 +65,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     cteReferenceClassifications,
                     pruningPlan,
                     result,
+                    session,
                     out var storage);
 
                 if (!result.Supported)
@@ -102,6 +106,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, CteReferenceClassification> cteReferenceClassifications,
         List<RowShape> shapes,
         List<ExecutionNode> nodes,
+        PhysicalToExecutionLoweringSession session,
         out int definitionCount)
     {
         definitionCount = 0;
@@ -115,7 +120,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             schemaFromIndexes,
             pruningPlan,
             cteReferenceClassifications,
-            new Dictionary<string, FusedCteHashBuildSource>(StringComparer.OrdinalIgnoreCase));
+            new Dictionary<string, FusedCteHashBuildSource>(StringComparer.OrdinalIgnoreCase),
+            session);
 
         if (siblingFusion == null)
             return false;

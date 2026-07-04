@@ -32,7 +32,8 @@ public sealed partial class CSharpRenderer
                 binding,
                 executionRenderer,
                 setup.ProjectionLoop,
-                setup.SourceSetupStatements),
+                setup.SourceSetupStatements,
+                setup.RenderContext),
             out method,
             out metadata);
     }
@@ -42,24 +43,25 @@ public sealed partial class CSharpRenderer
         TypedOutputBinding binding,
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
-        IReadOnlyList<StatementSyntax> sourceSetupStatements)
+        IReadOnlyList<StatementSyntax> sourceSetupStatements,
+        ExecutionRenderContext renderContext)
     {
         const string sourceRowsName = "__musoqTypedSourceRows";
         var statements = new List<StatementSyntax>(sourceSetupStatements)
         {
-            CreateSourceRowsLocalDeclaration(executionRenderer, projectionLoop, sourceRowsName)
+            CreateSourceRowsLocalDeclaration(executionRenderer, projectionLoop, sourceRowsName, renderContext)
         };
 
         if (projectionLoop.CanUseParallel)
         {
             if (CanUseChunkedParallelProjection(projectionLoop))
-                statements.AddRange(CreateChunkedParallelReturnStatements(binding, executionRenderer, projectionLoop, sourceRowsName));
+                statements.AddRange(CreateChunkedParallelReturnStatements(binding, executionRenderer, projectionLoop, sourceRowsName, renderContext));
 
-            statements.AddRange(CreateParallelReturnStatements(binding, executionRenderer, projectionLoop, sourceRowsName));
+            statements.AddRange(CreateParallelReturnStatements(binding, executionRenderer, projectionLoop, sourceRowsName, renderContext));
         }
         else
         {
-            statements.Add(CreateSerialReturnStatement(binding, executionRenderer, projectionLoop, sourceRowsName));
+            statements.Add(CreateSerialReturnStatement(binding, executionRenderer, projectionLoop, sourceRowsName, renderContext));
         }
 
         return SyntaxFactory.MethodDeclaration(
@@ -77,34 +79,37 @@ public sealed partial class CSharpRenderer
         TypedOutputBinding binding,
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
-        string sourceRowsName)
+        string sourceRowsName,
+        ExecutionRenderContext renderContext)
     {
         yield return SyntaxFactory.IfStatement(
             CreateStreamingChunkedRowsCondition(projectionLoop, sourceRowsName),
             SyntaxFactory.Block(SyntaxFactory.ReturnStatement(
-                CreateChunkedParallelReturnExpression(binding, executionRenderer, projectionLoop, sourceRowsName))));
+                CreateChunkedParallelReturnExpression(binding, executionRenderer, projectionLoop, sourceRowsName, renderContext))));
     }
 
     private static IEnumerable<StatementSyntax> CreateParallelReturnStatements(
         TypedOutputBinding binding,
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
-        string sourceRowsName)
+        string sourceRowsName,
+        ExecutionRenderContext renderContext)
     {
         const string parallelRowsName = "__musoqTypedParallelRows";
         yield return CreateParallelRowsProbeDeclaration(projectionLoop, sourceRowsName, parallelRowsName);
         yield return SyntaxFactory.ReturnStatement(
-            CreateShardedReturnExpression(binding, executionRenderer, projectionLoop, parallelRowsName));
+            CreateShardedReturnExpression(binding, executionRenderer, projectionLoop, parallelRowsName, renderContext));
     }
 
     private static ReturnStatementSyntax CreateSerialReturnStatement(
         TypedOutputBinding binding,
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
-        string sourceRowsName)
+        string sourceRowsName,
+        ExecutionRenderContext renderContext)
     {
         return SyntaxFactory.ReturnStatement(
-            CreateProjectValuesSerialInvocation(binding, executionRenderer, projectionLoop, sourceRowsName));
+            CreateProjectValuesSerialInvocation(binding, executionRenderer, projectionLoop, sourceRowsName, renderContext));
     }
 
     private static InvocationExpressionSyntax CreateGetParallelRowsInvocation(
@@ -131,7 +136,8 @@ public sealed partial class CSharpRenderer
         TypedOutputBinding binding,
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
-        string parallelRowsName)
+        string parallelRowsName,
+        ExecutionRenderContext renderContext)
     {
         return CreateQueryRowsShardInvocation(
             nameof(QueryRows.FromShards),
@@ -139,35 +145,39 @@ public sealed partial class CSharpRenderer
                 binding,
                 executionRenderer,
                 projectionLoop,
-                parallelRowsName));
+                parallelRowsName,
+                renderContext));
     }
 
     private static InvocationExpressionSyntax CreateChunkedParallelReturnExpression(
         TypedOutputBinding binding,
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
-        string sourceRowsName)
+        string sourceRowsName,
+        ExecutionRenderContext renderContext)
     {
         return CreateProjectValuesChunkedParallelInvocation(
             binding,
             executionRenderer,
             projectionLoop,
-            sourceRowsName);
+            sourceRowsName,
+            renderContext);
     }
 
     private static InvocationExpressionSyntax CreateProjectValuesParallelInvocation(
         TypedOutputBinding binding,
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
-        string parallelRowsName)
+        string parallelRowsName,
+        ExecutionRenderContext renderContext)
     {
         return CreateFinalProjectionInvocation(new FinalProjectionInvocationSpec(
             FinalProjectionInvocationKind.TypedValuesParallel,
             CreateSourceTypeSyntax(projectionLoop.Source),
             ExecutionSyntaxFactory.CreateTypeSyntax(binding.OutputType),
             parallelRowsName,
-            CreatePredicateLambda(executionRenderer, projectionLoop),
-            CreateProjectionLambda(binding, executionRenderer, projectionLoop),
+            CreatePredicateLambda(executionRenderer, projectionLoop, renderContext),
+            CreateProjectionLambda(binding, executionRenderer, projectionLoop, renderContext),
             projectionLoop.MaxDegreeOfParallelism));
     }
 
@@ -175,15 +185,16 @@ public sealed partial class CSharpRenderer
         TypedOutputBinding binding,
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
-        string sourceRowsName)
+        string sourceRowsName,
+        ExecutionRenderContext renderContext)
     {
         return CreateFinalProjectionInvocation(new FinalProjectionInvocationSpec(
             FinalProjectionInvocationKind.TypedChunkedValuesParallel,
             CreateSourceTypeSyntax(projectionLoop.Source),
             ExecutionSyntaxFactory.CreateTypeSyntax(binding.OutputType),
             sourceRowsName,
-            CreatePredicateLambda(executionRenderer, projectionLoop),
-            CreateProjectionLambda(binding, executionRenderer, projectionLoop),
+            CreatePredicateLambda(executionRenderer, projectionLoop, renderContext),
+            CreateProjectionLambda(binding, executionRenderer, projectionLoop, renderContext),
             projectionLoop.MaxDegreeOfParallelism));
     }
 
@@ -191,24 +202,26 @@ public sealed partial class CSharpRenderer
         TypedOutputBinding binding,
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
-        string sourceRowsName)
+        string sourceRowsName,
+        ExecutionRenderContext renderContext)
     {
         return CreateFinalProjectionInvocation(new FinalProjectionInvocationSpec(
             FinalProjectionInvocationKind.TypedValuesSerial,
             CreateSourceTypeSyntax(projectionLoop.Source),
             ExecutionSyntaxFactory.CreateTypeSyntax(binding.OutputType),
             sourceRowsName,
-            CreatePredicateLambda(executionRenderer, projectionLoop),
-            CreateProjectionLambda(binding, executionRenderer, projectionLoop)));
+            CreatePredicateLambda(executionRenderer, projectionLoop, renderContext),
+            CreateProjectionLambda(binding, executionRenderer, projectionLoop, renderContext)));
     }
 
     private static ParenthesizedLambdaExpressionSyntax CreatePredicateLambda(
         ExecutionCSharpRenderer executionRenderer,
-        TypedProjectionLoop projectionLoop)
+        TypedProjectionLoop projectionLoop,
+        ExecutionRenderContext? renderContext = null)
     {
         var body = projectionLoop.Predicate == null
             ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
-            : executionRenderer.RenderExpressionForTypedSink(projectionLoop.Predicate);
+            : RenderTypedSinkExpression(executionRenderer, projectionLoop.Predicate, renderContext);
 
         return CreateSourceLambda(projectionLoop.Source, body);
     }
@@ -216,10 +229,11 @@ public sealed partial class CSharpRenderer
     private static ParenthesizedLambdaExpressionSyntax CreateProjectionLambda(
         TypedOutputBinding binding,
         ExecutionCSharpRenderer executionRenderer,
-        TypedProjectionLoop projectionLoop)
+        TypedProjectionLoop projectionLoop,
+        ExecutionRenderContext? renderContext = null)
     {
         var values = projectionLoop.AppendRow.Values
-            .Select(value => executionRenderer.RenderExpressionForTypedSink(value.Value))
+            .Select(value => RenderTypedSinkExpression(executionRenderer, value.Value, renderContext))
             .ToArray();
 
         return CreateSourceLambda(projectionLoop.Source, binding.CreateOutputExpression(values));

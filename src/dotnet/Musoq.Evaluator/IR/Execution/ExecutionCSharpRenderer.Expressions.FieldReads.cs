@@ -123,7 +123,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (string.IsNullOrWhiteSpace(fieldRead.Alias))
             throw new InvalidOperationException("Reflected member field reads require a source alias.");
 
-        var value = _reflectedMemberAccessorNames.TryGetValue(
+        var value = RenderSession.ReflectedMemberAccessorNames.TryGetValue(
             CreateReflectedMemberAccessorKey(fieldRead.Alias, reflectedMember.PropertyPath),
             out var accessorName)
             ? SyntaxFactory.InvocationExpression(CreateIdentifierName(accessorName))
@@ -218,7 +218,7 @@ public sealed partial class ExecutionCSharpRenderer
         value = null!;
         var row = CreateIdentifierName(alias);
 
-        if (!_generatedRowConstructorUsagesByType.TryGetValue(
+        if (!RenderSession.GeneratedRowConstructorUsagesByType.TryGetValue(
                 generatedContext.TypeName,
                 out var usedConstructors))
         {

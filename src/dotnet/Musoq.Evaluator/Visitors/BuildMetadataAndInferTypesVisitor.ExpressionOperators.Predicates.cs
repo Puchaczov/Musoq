@@ -7,6 +7,7 @@ using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils.Symbols;
 using static Musoq.Evaluator.Visitors.BinaryOperatorTypeRules;
+using static Musoq.Evaluator.Visitors.SemanticExpressionDiagnosticFacts;
 
 namespace Musoq.Evaluator.Visitors;
 

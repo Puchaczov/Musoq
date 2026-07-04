@@ -9,24 +9,28 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderForEachStream(ExecutionForEach forEach)
+    private IEnumerable<StatementSyntax> RenderForEachStream(
+        ExecutionForEach forEach,
+        ExecutionRenderContext context)
     {
         if (ExecutionRowStreams.IsScalar(forEach.Source))
-            return RenderScalarForEach(forEach);
+            return RenderScalarForEach(forEach, context);
 
         return ExecutionRowStreams.IsChunked(forEach.Source)
-            ? RenderChunkedForEach(forEach)
-            : RenderForEach(forEach);
+            ? RenderChunkedForEach(forEach, context)
+            : RenderForEach(forEach, context);
     }
 
-    private IEnumerable<StatementSyntax> RenderForEachWithOrdinalityStream(ExecutionForEachWithOrdinality forEach)
+    private IEnumerable<StatementSyntax> RenderForEachWithOrdinalityStream(
+        ExecutionForEachWithOrdinality forEach,
+        ExecutionRenderContext context)
     {
         if (ExecutionRowStreams.IsScalar(forEach.Source))
-            return [RenderScalarForEachWithOrdinality(forEach)];
+            return [RenderScalarForEachWithOrdinality(forEach, context)];
 
         return ExecutionRowStreams.IsChunked(forEach.Source)
-            ? RenderChunkedForEachWithOrdinality(forEach)
-            : RenderForEachWithOrdinality(forEach);
+            ? RenderChunkedForEachWithOrdinality(forEach, context)
+            : RenderForEachWithOrdinality(forEach, context);
     }
 
     private StatementSyntax RenderMaterializeListStream(ExecutionMaterializeList materialize)
@@ -52,25 +56,32 @@ public sealed partial class ExecutionCSharpRenderer
 
     private StatementSyntax[] RenderSourceLoopStream(ExecutionSourceLoop sourceLoop)
     {
+        var context = new ExecutionRenderContext(_renderOptions, RenderSession);
         return sourceLoop switch
         {
-            ExecutionForEach forEach => RenderForEachStream(forEach).ToArray(),
+            ExecutionForEach forEach => RenderForEachStream(forEach, context).ToArray(),
             _ => throw new InvalidOperationException(
                 $"Source loop renderer cannot render loop '{sourceLoop.GetType().Name}'.")
         };
     }
 
-    private IEnumerable<StatementSyntax> RenderChunkedForEach(ExecutionForEach forEach)
+    private IEnumerable<StatementSyntax> RenderChunkedForEach(
+        ExecutionForEach forEach,
+        ExecutionRenderContext context)
     {
-        yield return RenderChunkedForEachCore(forEach.Item, forEach.Source, forEach.Body, forEach);
+        yield return RenderChunkedForEachCore(forEach.Item, forEach.Source, forEach.Body, forEach, context);
     }
 
-    private IEnumerable<StatementSyntax> RenderScalarForEach(ExecutionForEach forEach)
+    private IEnumerable<StatementSyntax> RenderScalarForEach(
+        ExecutionForEach forEach,
+        ExecutionRenderContext context)
     {
-        yield return RenderScalarForEachCore(forEach.Item, forEach.Source, forEach.Body, forEach);
+        yield return RenderScalarForEachCore(forEach.Item, forEach.Source, forEach.Body, forEach, context);
     }
 
-    private StatementSyntax RenderScalarForEachWithOrdinality(ExecutionForEachWithOrdinality forEach)
+    private StatementSyntax RenderScalarForEachWithOrdinality(
+        ExecutionForEachWithOrdinality forEach,
+        ExecutionRenderContext context)
     {
         return StatementEmitter.CreateBlock(
             CreateLocalDeclaration(
@@ -79,27 +90,29 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.LiteralExpression(
                     SyntaxKind.NumericLiteralExpression,
                     SyntaxFactory.Literal(0))),
-            RenderScalarForEachCore(forEach.Item, forEach.Source, forEach.Body, forEach));
+            RenderScalarForEachCore(forEach.Item, forEach.Source, forEach.Body, forEach, context));
     }
 
     private StatementSyntax RenderScalarForEachCore(
         ExecutionVariable item,
         ExecutionExpression source,
         ExecutionBlock body,
-        ExecutionNode operatorNode)
+        ExecutionNode operatorNode,
+        ExecutionRenderContext context)
     {
+        var session = context.Session;
         var sourceExpression = RenderExpression(source);
         var bodyStatements = new List<StatementSyntax>();
 
-        if (_emitChunkLoopCancellationChecks)
+        if (session.EmitChunkLoopCancellationChecks)
             bodyStatements.Add(QueryEmitter.GenerateCancellationCheck());
 
         bodyStatements.Add(CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             item.Name,
             sourceExpression));
-        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabled, _operatorCatalog, operatorNode));
-        bodyStatements.AddRange(RenderBlock(body).Statements);
+        bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, operatorNode));
+        bodyStatements.AddRange(RenderBlock(body, context).Statements);
 
         if (operatorNode is ExecutionForEachWithOrdinality ordinality)
         {
@@ -117,25 +130,29 @@ public sealed partial class ExecutionCSharpRenderer
             StatementEmitter.CreateBlock(bodyStatements));
     }
 
-    private IEnumerable<StatementSyntax> RenderChunkedForEachWithOrdinality(ExecutionForEachWithOrdinality forEach)
+    private IEnumerable<StatementSyntax> RenderChunkedForEachWithOrdinality(
+        ExecutionForEachWithOrdinality forEach,
+        ExecutionRenderContext context)
     {
-        yield return RenderChunkedForEachWithOrdinalityCore(forEach.Item, forEach.Source, forEach.Ordinal, forEach.Body, forEach);
+        yield return RenderChunkedForEachWithOrdinalityCore(forEach.Item, forEach.Source, forEach.Ordinal, forEach.Body, forEach, context);
     }
 
     private StatementSyntax RenderChunkedForEachCore(
         ExecutionVariable item,
         ExecutionExpression source,
         ExecutionBlock body,
-        ExecutionNode operatorNode)
+        ExecutionNode operatorNode,
+        ExecutionRenderContext context)
     {
+        var session = context.Session;
         return CreateChunkedLoop(
             item,
             source,
             (itemAccessExpression, indexVariableName) =>
             {
                 var bodyStatements = CreateChunkedLoopBodyPrefix(item, itemAccessExpression, indexVariableName);
-                bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabled, _operatorCatalog, operatorNode));
-                bodyStatements.AddRange(RenderBlock(body).Statements);
+                bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, operatorNode));
+                bodyStatements.AddRange(RenderBlock(body, context).Statements);
                 return bodyStatements;
             });
     }
@@ -145,8 +162,10 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionExpression source,
         ExecutionVariable ordinal,
         ExecutionBlock body,
-        ExecutionNode operatorNode)
+        ExecutionNode operatorNode,
+        ExecutionRenderContext context)
     {
+        var session = context.Session;
         return StatementEmitter.CreateBlock(
             CreateLocalDeclaration(
                 CreateTypeSyntax(typeof(int)),
@@ -160,8 +179,8 @@ public sealed partial class ExecutionCSharpRenderer
                 (itemAccessExpression, indexVariableName) =>
                 {
                     var bodyStatements = CreateChunkedLoopBodyPrefix(item, itemAccessExpression, indexVariableName);
-                    bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabled, _operatorCatalog, operatorNode));
-                    bodyStatements.AddRange(RenderBlock(body).Statements);
+                    bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, operatorNode));
+                    bodyStatements.AddRange(RenderBlock(body, context).Statements);
                     bodyStatements.Add(SyntaxFactory.ExpressionStatement(
                         SyntaxFactory.PrefixUnaryExpression(
                             SyntaxKind.PreIncrementExpression,
@@ -188,7 +207,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var bodyStatements = new List<StatementSyntax>();
 
-        if (_emitChunkLoopCancellationChecks)
+        if (RenderSession.EmitChunkLoopCancellationChecks)
             bodyStatements.Add(CreatePeriodicCancellationCheck(indexVariableName));
 
         bodyStatements.Add(CreateLocalDeclaration(

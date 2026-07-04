@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Plugins.Attributes;
 
@@ -39,37 +38,25 @@ public sealed partial class AggregateRefRewriter : ExpressionArrayRewriter
         foreach (var argument in methodCall.Arguments)
         {
             if (argument is Literal { Value: string identifier })
-                return NormalizeIdentifier(identifier);
+                return identifier;
         }
 
         if (!IsAggregateMethod(methodCall.Method))
             return null;
 
-        var parts = new List<string>(methodCall.Arguments.Count);
+        return AggregateCallIdentity.Create(methodCall);
+    }
 
+    public static string? ExtractDisplayName(MethodCall methodCall)
+    {
+        ArgumentNullException.ThrowIfNull(methodCall);
         foreach (var argument in methodCall.Arguments)
         {
-            switch (argument)
-            {
-                case ColumnRef columnRef:
-                    parts.Add(ExtractUnqualifiedColumnName(columnRef.ColumnName));
-                    break;
-                case WildcardLiteral:
-                    parts.Add("*");
-                    break;
-                case Literal { Value: null }:
-                    parts.Add("null");
-                    break;
-                case Literal literal:
-                    parts.Add(literal.Value?.ToString() ?? "null");
-                    break;
-                default:
-                    parts.Add(IrExpressionPrinter.Print(argument));
-                    break;
-            }
+            if (argument is Literal { DisplayName.Length: > 0 } literal)
+                return literal.DisplayName;
         }
 
-        return NormalizeIdentifier($"{methodCall.Method.Name}({string.Join(", ", parts)})");
+        return null;
     }
 
     public static string? NormalizeIdentifier(string? identifier)
@@ -77,19 +64,11 @@ public sealed partial class AggregateRefRewriter : ExpressionArrayRewriter
         if (string.IsNullOrWhiteSpace(identifier))
             return identifier;
 
-        var withoutQualifier = Regex.Replace(identifier, @"\b[A-Za-z_][A-Za-z0-9_]*\.", string.Empty);
-        return Regex.Replace(withoutQualifier, @"\s+", string.Empty);
-    }
+        var builder = new System.Text.StringBuilder(identifier.Length);
+        foreach (var character in identifier)
+            if (!char.IsWhiteSpace(character))
+                builder.Append(character);
 
-    private static string ExtractUnqualifiedColumnName(string columnName)
-    {
-        if (string.IsNullOrWhiteSpace(columnName))
-            return columnName;
-
-        var lastDot = columnName.LastIndexOf('.');
-        if (lastDot < 0 || lastDot == columnName.Length - 1)
-            return columnName;
-
-        return columnName[(lastDot + 1)..];
+        return builder.Length == identifier.Length ? identifier : builder.ToString();
     }
 }

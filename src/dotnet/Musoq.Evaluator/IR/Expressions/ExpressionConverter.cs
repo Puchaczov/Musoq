@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Musoq.Evaluator.Visitors;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
@@ -20,6 +21,7 @@ public sealed partial class ExpressionConverter
             AccessColumnNode col => ConvertColumnAccess(col),
             ParameterReferenceNode parameter => new ScriptParameterRef(parameter.Name, RequireReturnType(parameter)),
             ScriptVariableReferenceNode variable => new ScriptVariableRef(variable.Name, RequireReturnType(variable)),
+            AggregateIdentifierNode n => new Literal(n.ObjValue, RequireReturnType(n), n.DisplayName),
             ConstantValueNode n => new Literal(n.ObjValue, RequireReturnType(n)),
             NullNode n => new Literal(null, RequireReturnType(n)),
             AddNode n => ConvertBinaryOp(n, n.ReturnType == typeof(string) ? BinaryOpKind.StringConcatenate : BinaryOpKind.Add),

@@ -10,6 +10,7 @@ public sealed record ExecutionWindowAggregateKernel(
     ExecutionExpression? PartitionKey,
     IReadOnlyList<ExecutionWindowOrderKey> OrderKeys,
     ExecutionExpression Value,
+    ExecutionExpression? FilterPredicate,
     ExecutionWindowFrame? Frame,
     ExecutionWindowAggregateKernelDescriptor Descriptor,
     ExecutionVariable Results,

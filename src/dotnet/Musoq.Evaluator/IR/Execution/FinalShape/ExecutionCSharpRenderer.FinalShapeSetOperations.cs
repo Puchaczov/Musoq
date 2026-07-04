@@ -56,7 +56,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private IEnumerable<StatementSyntax> RenderGeneratedEqualityUnionFinalShapeRows(ExecutionSetOperation setOperation)
     {
-        var sink = _finalShapeYieldSink ??
+        var sink = RenderSession.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         var seenRowsName = $"{setOperation.Target.Name}GeneratedSetRows";
         var seenRowName = $"{setOperation.Target.Name}GeneratedSetRow";
@@ -309,7 +309,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ExpressionSyntax CreateFinalShapeFieldRead(string rowName, int fieldIndex)
     {
-        var sink = _finalShapeYieldSink ??
+        var sink = RenderSession.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         if (fieldIndex < 0 || fieldIndex >= sink.Fields.Count)
             throw UnsupportedShape.Of($"Final shape set-operation field index {fieldIndex}");
@@ -339,7 +339,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (!TryGetTypedRowBufferShape(source.Name, out var sourceShape))
             return CreateFinalShapeCreationFromRow(rowVariableName);
 
-        var sink = _finalShapeYieldSink ??
+        var sink = RenderSession.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         var arguments = sink.Fields
             .Select((field, index) => SyntaxFactory.Argument(

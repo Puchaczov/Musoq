@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Plugins;
+using Musoq.Evaluator.Helpers;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -13,20 +13,14 @@ public sealed partial class ExecutionCSharpRenderer
         if (StrictCastLibraryConversionFacts.IsPassThrough(strictCast.Expression.ReturnType, strictCast.ReturnType))
             return CastExpressionIfNeeded(source, strictCast.ReturnType, strictCast.Expression.ReturnType);
 
-        if (strictCast.Expression.ReturnType == typeof(DBNull) ||
-            !StrictCastLibraryConversionFacts.CanUseLibraryConversion(strictCast.Expression.ReturnType, strictCast.ReturnType))
-        {
+        if (strictCast.Expression.ReturnType == typeof(DBNull))
             return CreateTypedNull(strictCast.ReturnType);
-        }
-
-        if (strictCast.Target == null)
-            throw UnsupportedShape.Of("Library-backed cast rendering requires a hoisted LibraryBase target.");
 
         var methodName = GetLibraryConversionMethodName(StrictCastLibraryConversionFacts.GetCastTargetType(strictCast.ReturnType));
         var invocation = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(strictCast.Target.Name),
+                    SyntaxFactory.ParseExpression($"global::{typeof(StrictCastRuntime).FullName}"),
                     SyntaxFactory.IdentifierName(methodName)))
             .WithArgumentList(CreateArgumentList(source));
 
@@ -51,41 +45,41 @@ public sealed partial class ExecutionCSharpRenderer
     private static string GetLibraryConversionMethodName(Type targetType)
     {
         if (targetType == typeof(bool))
-            return nameof(LibraryBase.ToBoolean);
+            return nameof(StrictCastRuntime.ToBoolean);
         if (targetType == typeof(byte))
-            return nameof(LibraryBase.ToByte);
+            return nameof(StrictCastRuntime.ToByte);
         if (targetType == typeof(sbyte))
-            return nameof(LibraryBase.ToSByte);
+            return nameof(StrictCastRuntime.ToSByte);
         if (targetType == typeof(short))
-            return nameof(LibraryBase.ToInt16);
+            return nameof(StrictCastRuntime.ToInt16);
         if (targetType == typeof(ushort))
-            return nameof(LibraryBase.ToUInt16);
+            return nameof(StrictCastRuntime.ToUInt16);
         if (targetType == typeof(int))
-            return nameof(LibraryBase.ToInt32);
+            return nameof(StrictCastRuntime.ToInt32);
         if (targetType == typeof(uint))
-            return nameof(LibraryBase.ToUInt32);
+            return nameof(StrictCastRuntime.ToUInt32);
         if (targetType == typeof(long))
-            return nameof(LibraryBase.ToInt64);
+            return nameof(StrictCastRuntime.ToInt64);
         if (targetType == typeof(ulong))
-            return nameof(LibraryBase.ToUInt64);
+            return nameof(StrictCastRuntime.ToUInt64);
         if (targetType == typeof(float))
-            return nameof(LibraryBase.ToSingle);
+            return nameof(StrictCastRuntime.ToSingle);
         if (targetType == typeof(double))
-            return nameof(LibraryBase.ToDouble);
+            return nameof(StrictCastRuntime.ToDouble);
         if (targetType == typeof(decimal))
-            return nameof(LibraryBase.ToDecimal);
+            return nameof(StrictCastRuntime.ToDecimal);
         if (targetType == typeof(char))
-            return nameof(LibraryBase.ToChar);
+            return nameof(StrictCastRuntime.ToChar);
         if (targetType == typeof(string))
-            return nameof(LibraryBase.ToString);
+            return nameof(StrictCastRuntime.ToString);
         if (targetType == typeof(DateTime))
-            return nameof(LibraryBase.ToDateTime);
+            return nameof(StrictCastRuntime.ToDateTime);
         if (targetType == typeof(DateTimeOffset))
-            return nameof(LibraryBase.ToDateTimeOffset);
+            return nameof(StrictCastRuntime.ToDateTimeOffset);
         if (targetType == typeof(TimeSpan))
-            return nameof(LibraryBase.ToTimeSpan);
+            return nameof(StrictCastRuntime.ToTimeSpan);
         if (targetType == typeof(Guid))
-            return nameof(LibraryBase.ToGuid);
+            return nameof(StrictCastRuntime.ToGuid);
 
         throw UnsupportedShape.Of($"Unsupported cast target '{targetType.Name}'.");
     }

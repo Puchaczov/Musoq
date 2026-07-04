@@ -96,6 +96,8 @@ public sealed partial class LogicalPlanBuilder
 
         foreach (var valueArgument in registration.ValueArguments)
             CollectBindingsFromExpression(valueArgument, null, refreshLookup, bindings, bindingsByIdentifier);
+
+        CollectBindingsFromExpression(registration.FilterPredicate, null, refreshLookup, bindings, bindingsByIdentifier);
     }
 
     private static void CollectBindingsFromExpression(
@@ -121,16 +123,18 @@ public sealed partial class LogicalPlanBuilder
                                  refresh.SetArguments.Skip(1).ToArray());
                 var binding = new AggregateBinding(
                     resolvedIdentifier,
-                    string.IsNullOrWhiteSpace(outputName) ? resolvedIdentifier : outputName,
+                    ResolveAggregateColumnName(outputName, refresh, resolvedIdentifier),
                     refresh.SetMethod,
                     [.. refresh.SetArguments],
+                    refresh.FilterPredicate,
                     methodCall.Method,
                     kernel is null
                         ? CreateAggregateGetArguments(methodCall.Method, methodCall.Arguments, refresh)
                         : [],
                     kernel?.ResultType ?? methodCall.ReturnType,
                     kernel,
-                    ResolveAggregateParentDepth(kernel, methodCall.Arguments));
+                    ResolveAggregateParentDepth(kernel, methodCall.Arguments),
+                    refresh.DisplayName);
 
                 bindings.Add(binding);
                 bindingsByIdentifier[resolvedIdentifier] = binding;
@@ -169,5 +173,18 @@ public sealed partial class LogicalPlanBuilder
                     CollectBindingsFromExpression(caseWhen.ElseExpression, outputName, refreshLookup, bindings, bindingsByIdentifier);
                 break;
         }
+    }
+
+    private static string ResolveAggregateColumnName(
+        string? outputName,
+        RefreshMethodCapture refresh,
+        string resolvedIdentifier)
+    {
+        if (!string.IsNullOrWhiteSpace(outputName))
+            return outputName;
+
+        return !string.IsNullOrWhiteSpace(refresh.DisplayName)
+            ? refresh.DisplayName
+            : resolvedIdentifier;
     }
 }

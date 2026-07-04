@@ -30,6 +30,15 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         if (!descriptor.Supported || descriptor.Descriptor is null)
             return (false, WindowComputationBuildResult.Unsupported(string.Empty));
 
+        var filterPredicate = registration.FilterPredicate == null
+            ? null
+            : ExecutionExpressionConverter.Convert(registration.FilterPredicate, context.SourceLookup);
+        if (filterPredicate is ExecutionRawExpression)
+        {
+            return (false, WindowComputationBuildResult.Unsupported(
+                $"Execution IR window aggregate lowering cannot convert FILTER predicate for {registration.FunctionName}."));
+        }
+
         var results = new ExecutionVariable(resultsName, descriptor.Descriptor.ResultType.MakeArrayType());
         var resources = CreateWindowComputationResources(
             context,
@@ -42,6 +51,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             context.PartitionKey,
             context.OrderKeys,
             arguments.Value,
+            filterPredicate,
             CreateWindowFrame(registration.Frame),
             descriptor.Descriptor,
             results,

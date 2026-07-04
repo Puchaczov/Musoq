@@ -9,6 +9,8 @@ using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Optimization;
+using Musoq.Evaluator.IR.Optimization.Physical;
+using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
 using Musoq.Schema;
@@ -29,7 +31,7 @@ public sealed class PhysicalOptimizerTests
             new OutputSchema([new ColumnSchema("Value", typeof(int), 0)]));
         var properties = CreateEmptyProperties();
 
-        var result = new PhysicalOptimizer().Optimize(plan, properties);
+        var result = Optimize(plan, properties);
 
         Assert.AreSame(plan, result.InitialPlan);
         Assert.AreSame(plan, result.OptimizedPlan);
@@ -63,7 +65,7 @@ public sealed class PhysicalOptimizerTests
             [],
             input);
 
-        var result = new PhysicalOptimizer().Optimize(candidate, CreateEmptyProperties());
+        var result = Optimize(candidate, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalSingleKeyAggregateNode>(result.OptimizedPlan);
         var aggregate = (PhysicalSingleKeyAggregateNode)result.OptimizedPlan;
@@ -90,7 +92,7 @@ public sealed class PhysicalOptimizerTests
             left,
             right);
 
-        var result = new PhysicalOptimizer().Optimize(candidate, CreateEmptyProperties());
+        var result = Optimize(candidate, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalHashJoinNode>(result.OptimizedPlan);
         var join = (PhysicalHashJoinNode)result.OptimizedPlan;
@@ -123,10 +125,10 @@ public sealed class PhysicalOptimizerTests
                 ["b"] = typeof(ExpandoObject)
             });
 
-        var result = new PhysicalOptimizer().Optimize(
+        var result = Optimize(
             candidate,
             CreateEmptyProperties(),
-            shapeResolver: shapeResolver);
+            shapeResolver: new ExecutionPlanningShapeResolverAdapter(shapeResolver));
 
         Assert.IsInstanceOfType<PhysicalNestedLoopJoinNode>(result.OptimizedPlan);
         Assert.AreEqual("NestedLoop", result.Decisions[0].Outcome);
@@ -154,10 +156,10 @@ public sealed class PhysicalOptimizerTests
                 ["b"] = typeof(ExpandoObject)
             });
 
-        var result = new PhysicalOptimizer().Optimize(
+        var result = Optimize(
             candidate,
             CreateEmptyProperties(),
-            shapeResolver: shapeResolver);
+            shapeResolver: new ExecutionPlanningShapeResolverAdapter(shapeResolver));
 
         Assert.IsInstanceOfType<PhysicalNestedLoopJoinNode>(result.OptimizedPlan);
         Assert.AreEqual("NestedLoop", result.Decisions[0].Outcome);
@@ -187,7 +189,7 @@ public sealed class PhysicalOptimizerTests
             left,
             right);
 
-        var result = new PhysicalOptimizer().Optimize(candidate, CreateEmptyProperties());
+        var result = Optimize(candidate, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalNestedLoopJoinNode>(result.OptimizedPlan);
         Assert.AreEqual("NestedLoop", result.Decisions[0].Outcome);
@@ -203,7 +205,7 @@ public sealed class PhysicalOptimizerTests
         var skip = new PhysicalSkipNode(2, sort);
         var take = new PhysicalTakeNode(5, skip);
 
-        var result = new PhysicalOptimizer().Optimize(take, CreateEmptyProperties());
+        var result = Optimize(take, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalTopOffsetNode>(result.OptimizedPlan);
         var topOffset = (PhysicalTopOffsetNode)result.OptimizedPlan;
@@ -231,7 +233,7 @@ public sealed class PhysicalOptimizerTests
             ],
             input);
 
-        var result = new PhysicalOptimizer().Optimize(window, CreateEmptyProperties());
+        var result = Optimize(window, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalWindowNode>(result.OptimizedPlan);
         var optimizedWindow = (PhysicalWindowNode)result.OptimizedPlan;
@@ -269,7 +271,7 @@ public sealed class PhysicalOptimizerTests
             }
         };
 
-        var result = new PhysicalOptimizer().Optimize(scan, properties);
+        var result = Optimize(scan, properties);
 
         Assert.IsInstanceOfType<PhysicalSchemaScanNode>(result.OptimizedPlan);
         var optimizedScan = (PhysicalSchemaScanNode)result.OptimizedPlan;
@@ -294,7 +296,7 @@ public sealed class PhysicalOptimizerTests
             ],
             inner);
 
-        var result = new PhysicalOptimizer().Optimize(outer, CreateEmptyProperties());
+        var result = Optimize(outer, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalProjectNode>(result.OptimizedPlan);
         var optimizedOuter = (PhysicalProjectNode)result.OptimizedPlan;
@@ -327,7 +329,7 @@ public sealed class PhysicalOptimizerTests
             ],
             inner);
 
-        var result = new PhysicalOptimizer().Optimize(outer, CreateEmptyProperties());
+        var result = Optimize(outer, CreateEmptyProperties());
 
         Assert.AreSame(outer, result.OptimizedPlan);
         Assert.IsFalse(result.Trace.Entries[2].IsChanged);
@@ -357,7 +359,7 @@ public sealed class PhysicalOptimizerTests
             ],
             filter);
 
-        var result = new PhysicalOptimizer().Optimize(outer, CreateEmptyProperties());
+        var result = Optimize(outer, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalProjectNode>(result.OptimizedPlan);
         var optimizedOuter = (PhysicalProjectNode)result.OptimizedPlan;
@@ -397,7 +399,7 @@ public sealed class PhysicalOptimizerTests
             ],
             sort);
 
-        var result = new PhysicalOptimizer().Optimize(outer, CreateEmptyProperties());
+        var result = Optimize(outer, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalProjectNode>(result.OptimizedPlan);
         var optimizedOuter = (PhysicalProjectNode)result.OptimizedPlan;
@@ -448,7 +450,7 @@ public sealed class PhysicalOptimizerTests
             [new ProjectedField("Name", new ColumnRef("a", "Name", typeof(string)), 0)],
             join);
 
-        var result = new PhysicalOptimizer().Optimize(project, CreateEmptyProperties());
+        var result = Optimize(project, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalProjectNode>(result.OptimizedPlan);
         var optimizedProject = (PhysicalProjectNode)result.OptimizedPlan;
@@ -497,7 +499,7 @@ public sealed class PhysicalOptimizerTests
             [new ProjectedField("Name", new ColumnRef("a", "Name", typeof(string)), 0)],
             join);
 
-        var result = new PhysicalOptimizer().Optimize(project, CreateEmptyProperties());
+        var result = Optimize(project, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalProjectNode>(result.OptimizedPlan);
         var optimizedProject = (PhysicalProjectNode)result.OptimizedPlan;
@@ -543,7 +545,7 @@ public sealed class PhysicalOptimizerTests
             ],
             input);
 
-        var result = new PhysicalOptimizer().Optimize(aggregate, CreateEmptyProperties());
+        var result = Optimize(aggregate, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalSingleKeyAggregateNode>(result.OptimizedPlan);
         var optimizedAggregate = (PhysicalSingleKeyAggregateNode)result.OptimizedPlan;
@@ -592,7 +594,7 @@ public sealed class PhysicalOptimizerTests
             ],
             window);
 
-        var result = new PhysicalOptimizer().Optimize(project, CreateEmptyProperties());
+        var result = Optimize(project, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalProjectNode>(result.OptimizedPlan);
         var optimizedProject = (PhysicalProjectNode)result.OptimizedPlan;
@@ -636,7 +638,7 @@ public sealed class PhysicalOptimizerTests
             [new ProjectedField("City", new ColumnRef("set", "City", typeof(string)), 0)],
             setOperation);
 
-        var result = new PhysicalOptimizer().Optimize(project, CreateEmptyProperties());
+        var result = Optimize(project, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalProjectNode>(result.OptimizedPlan);
         var optimizedProject = (PhysicalProjectNode)result.OptimizedPlan;
@@ -683,7 +685,7 @@ public sealed class PhysicalOptimizerTests
             [new ProjectedField("City", new ColumnRef("set", "City", typeof(string)), 0)],
             setOperation);
 
-        var result = new PhysicalOptimizer().Optimize(project, CreateEmptyProperties());
+        var result = Optimize(project, CreateEmptyProperties());
 
         Assert.AreSame(project, result.OptimizedPlan);
         Assert.IsFalse(result.Trace.Entries[2].IsChanged);
@@ -708,7 +710,7 @@ public sealed class PhysicalOptimizerTests
             [new PhysicalCteDefinition("people", definitionPlan)],
             query);
 
-        var result = new PhysicalOptimizer().Optimize(cte, CreateEmptyProperties());
+        var result = Optimize(cte, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalCteNode>(result.OptimizedPlan);
         var optimizedCte = (PhysicalCteNode)result.OptimizedPlan;
@@ -747,7 +749,7 @@ public sealed class PhysicalOptimizerTests
             [movedPredicate],
             []);
 
-        var result = new PhysicalOptimizer().Optimize(candidate, CreateEmptyProperties());
+        var result = Optimize(candidate, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalHashJoinNode>(result.OptimizedPlan);
         var join = (PhysicalHashJoinNode)result.OptimizedPlan;
@@ -795,7 +797,7 @@ public sealed class PhysicalOptimizerTests
             [new ProjectedField("Name", new ColumnRef("a", "Name", typeof(string)), 0)],
             candidate);
 
-        var result = new PhysicalOptimizer().Optimize(project, CreateEmptyProperties());
+        var result = Optimize(project, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalProjectNode>(result.OptimizedPlan);
         var optimizedProject = (PhysicalProjectNode)result.OptimizedPlan;
@@ -843,7 +845,7 @@ public sealed class PhysicalOptimizerTests
             left,
             right);
 
-        var result = new PhysicalOptimizer().Optimize(candidate, CreateEmptyProperties());
+        var result = Optimize(candidate, CreateEmptyProperties());
 
         Assert.IsInstanceOfType<PhysicalHashJoinNode>(result.OptimizedPlan);
         var join = (PhysicalHashJoinNode)result.OptimizedPlan;
@@ -864,6 +866,19 @@ public sealed class PhysicalOptimizerTests
     private static decimal GetAggregate()
     {
         return 0m;
+    }
+
+    private static PhysicalOptimizationResult Optimize(
+        PhysicalNode plan,
+        PlanProperties properties,
+        CompilationOptions? compilationOptions = null,
+        IPlanningShapeResolver? shapeResolver = null)
+    {
+        return new PhysicalOptimizer().Optimize(
+            plan,
+            properties,
+            compilationOptions ?? new CompilationOptions(),
+            shapeResolver ?? ConservativeTestPlanningShapeResolver.Instance);
     }
 
     private static PhysicalValuesScanNode CreateValuesScan(
@@ -899,26 +914,7 @@ public sealed class PhysicalOptimizerTests
 
     private static PlanProperties CreateEmptyProperties()
     {
-        return new PlanProperties(
-            new Dictionary<string, SourcePlanProperties>(StringComparer.Ordinal),
-            new Dictionary<string, IrExpression[]>(StringComparer.Ordinal),
-            new Dictionary<string, string[]>(StringComparer.Ordinal),
-            new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal),
-            new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase),
-            new Dictionary<string, RequiredColumnUsage[]>(StringComparer.Ordinal),
-            [],
-            [],
-            new Dictionary<string, SourcePredicatePlan>(StringComparer.Ordinal),
-            new Dictionary<string, SourceInteractionPlan>(StringComparer.Ordinal),
-            new Dictionary<string, SourcePlanRequest>(StringComparer.Ordinal),
-            new Dictionary<string, SourcePlanResult>(StringComparer.Ordinal),
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            []);
+        return PlanPropertiesTestFactory.CreateEmpty();
     }
 
     private static void AssertTraceEntriesAreMeaningful(

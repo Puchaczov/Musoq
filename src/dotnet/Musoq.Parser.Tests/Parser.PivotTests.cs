@@ -40,10 +40,8 @@ public class ParserPivotTests
         Assert.AreEqual("Sum", q1Measure.Name);
         Assert.IsTrue(q1Measure.HasFilter);
         Assert.HasCount(1, q1Measure.Arguments.Args);
-
-        var caseNode = AssertCase(q1Measure.Arguments.Args[0]);
-        var when = (WhenNode)caseNode.WhenThenPairs[0].When;
-        Assert.IsInstanceOfType<EqualityNode>(when.Expression);
+        Assert.IsInstanceOfType<IdentifierNode>(q1Measure.Arguments.Args[0]);
+        Assert.IsInstanceOfType<EqualityNode>(q1Measure.FilterExpression);
     }
 
     [TestMethod]
@@ -66,9 +64,9 @@ public class ParserPivotTests
         Assert.AreEqual("Q2_Orders", query.Select.Fields[4].FieldName);
 
         var countMeasure = AssertAccessMethod(query.Select.Fields[2].Expression);
-        var countCase = AssertCase(countMeasure.Arguments.Args[0]);
-        var then = (ThenNode)countCase.WhenThenPairs[0].Then;
-        Assert.IsInstanceOfType<IntegerNode>(then.Expression);
+        Assert.HasCount(1, countMeasure.Arguments.Args);
+        Assert.IsInstanceOfType<AllColumnsNode>(countMeasure.Arguments.Args[0]);
+        Assert.IsInstanceOfType<EqualityNode>(countMeasure.FilterExpression);
     }
 
     [TestMethod]
@@ -105,9 +103,8 @@ public class ParserPivotTests
         Assert.AreEqual("y2000_nl", query.Select.Fields[1].FieldName);
 
         var measure = AssertAccessMethod(query.Select.Fields[1].Expression);
-        var caseNode = AssertCase(measure.Arguments.Args[0]);
-        var when = (WhenNode)caseNode.WhenThenPairs[0].When;
-        Assert.IsInstanceOfType<AndNode>(when.Expression);
+        Assert.IsInstanceOfType<IdentifierNode>(measure.Arguments.Args[0]);
+        Assert.IsInstanceOfType<AndNode>(measure.FilterExpression);
     }
 
     [TestMethod]
@@ -121,10 +118,28 @@ public class ParserPivotTests
 
         var query = GetSingleQuery(root);
         var measure = AssertAccessMethod(query.Select.Fields[0].Expression);
-        var caseNode = AssertCase(measure.Arguments.Args[0]);
-        var when = (WhenNode)caseNode.WhenThenPairs[0].When;
 
-        Assert.IsInstanceOfType<IsNullNode>(when.Expression);
+        Assert.IsInstanceOfType<AllColumnsNode>(measure.Arguments.Args[0]);
+        Assert.IsInstanceOfType<IsNullNode>(measure.FilterExpression);
+    }
+
+    [TestMethod]
+    public void Pivot_WithExplicitMeasureFilter_ShouldCombineWithPivotPredicate()
+    {
+        var root = Parse("""
+                         pivot #sales.orders()
+                         on Quarter in ('Q1' as Q1)
+                         using Sum(Amount) filter (where Amount > 0) as Sales
+                         """);
+
+        var query = GetSingleQuery(root);
+        var measure = AssertAccessMethod(query.Select.Fields[0].Expression);
+
+        Assert.HasCount(1, measure.Arguments.Args);
+        Assert.IsInstanceOfType<IdentifierNode>(measure.Arguments.Args[0]);
+        var filter = Assert.IsInstanceOfType<AndNode>(measure.FilterExpression);
+        Assert.IsInstanceOfType<GreaterNode>(filter.Left);
+        Assert.IsInstanceOfType<EqualityNode>(filter.Right);
     }
 
     [TestMethod]
@@ -161,14 +176,4 @@ public class ParserPivotTests
         return (AccessMethodNode)node;
     }
 
-    private static CaseNode AssertCase(Node node)
-    {
-        Assert.IsInstanceOfType<CaseNode>(node);
-        var caseNode = (CaseNode)node;
-        Assert.HasCount(1, caseNode.WhenThenPairs);
-        Assert.IsInstanceOfType<WhenNode>(caseNode.WhenThenPairs[0].When);
-        Assert.IsInstanceOfType<ThenNode>(caseNode.WhenThenPairs[0].Then);
-        Assert.IsInstanceOfType<ElseNode>(caseNode.Else);
-        return caseNode;
-    }
 }

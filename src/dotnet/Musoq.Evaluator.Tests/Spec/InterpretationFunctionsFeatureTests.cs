@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
+using Musoq.Evaluator.Tests;
 using Musoq.Evaluator.Tests.Components;
 
 namespace Musoq.Evaluator.Tests.Spec;
@@ -50,10 +51,12 @@ public class InterpretationFunctionsFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("test.bin", table[0][0]);
-        Assert.AreEqual(10, table[0][1]);
-        Assert.AreEqual("Label", table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("b.Name", typeof(string)),
+            ("d.Value", typeof(int)),
+            ("TextName", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["test.bin", 10, "Label"]);
     }
 
     #endregion
@@ -92,11 +95,14 @@ public class InterpretationFunctionsFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(40, table[0][1]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual(20, table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("d.Category", typeof(byte)),
+            ("Total", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [(byte)1, 40],
+            [(byte)2, 20]);
     }
 
     #endregion
@@ -130,9 +136,11 @@ public class InterpretationFunctionsFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x44434241, table[0][0]);
-        Assert.AreEqual((byte)1, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.Magic", typeof(int)),
+            ("h.Version", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [0x44434241, (byte)1]);
     }
 
     /// <summary>
@@ -194,9 +202,11 @@ public class InterpretationFunctionsFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Key", table[0][0]);
-        Assert.AreEqual("Value123", table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("r.Name", typeof(string)),
+            ("r.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Key", "Value123"]);
     }
 
     /// <summary>
@@ -285,8 +295,8 @@ public class InterpretationFunctionsFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("d.Value", typeof(long?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { null });
     }
 
     #endregion
@@ -347,23 +357,14 @@ public class InterpretationFunctionsFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(2, table.Count);
-        var lines = new HashSet<string> { (string)table[0][0], (string)table[1][0] };
-        Assert.Contains("Has:colon", lines);
-        Assert.Contains("NoColonHere", lines);
-
-        var foundHasRow = false;
-        foreach (var t in table)
-        {
-            if (t[1] != null && t[1].ToString() == "Has")
-            {
-                Assert.AreEqual("Has:colon", t[0]);
-                foundHasRow = true;
-                break;
-            }
-        }
-
-        Assert.IsTrue(foundHasRow);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("l.Line", typeof(string)),
+            ("r.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Has:colon", "Has"],
+            new object?[] { "NoColonHere", null });
     }
 
     #endregion
@@ -457,9 +458,11 @@ public class InterpretationFunctionsFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(8, table[0][0]);
-        Assert.AreEqual((short)42, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.DataOffset", typeof(int)),
+            ("p.Value", typeof(short)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [8, (short)42]);
     }
 
     #endregion

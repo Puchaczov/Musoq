@@ -24,13 +24,13 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             pipeline.Filter != null ||
             pipeline.PostOperations.Count != 0 ||
             pipeline.Project.IsDistinct ||
-            pipeline.Source is not (PhysicalSchemaScanNode or PhysicalValuesScanNode))
+            !SingleUseHashBuildFusionPlanner.CanFuseProducerSource(pipeline.Source))
         {
             return false;
         }
 
         var producerShape = ResolveSourceShape(pipeline.Source, cteIndexes, cteShapesByName);
-        if (producerShape == null || producerShape is ExpandoAdapterShape)
+        if (!SingleUseHashBuildFusionPlanner.CanFuseProducerShape(producerShape) || producerShape == null)
             return false;
 
         var cteTableName = CreateCteTableName(definitionIndex, cteDefinitionNames);
@@ -68,11 +68,12 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         PhysicalCteRefNode cteRef,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
+        PhysicalToExecutionLoweringSession session,
         out JoinSource source)
     {
         source = null!;
-        if (_fusedCteHashBuildSources == null ||
-            !_fusedCteHashBuildSources.TryGetValue(cteRef.CteName, out var fusion))
+        if (session.FusedCteHashBuildSources == null ||
+            !session.FusedCteHashBuildSources.TryGetValue(cteRef.CteName, out var fusion))
         {
             return false;
         }

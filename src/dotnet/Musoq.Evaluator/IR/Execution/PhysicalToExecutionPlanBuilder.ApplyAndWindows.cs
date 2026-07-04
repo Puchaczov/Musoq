@@ -15,8 +15,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        IReadOnlyDictionary<string, RowShape>? inheritedSourceLookup = null)
+        IReadOnlyDictionary<string, RowShape>? inheritedSourceLookup = null,
+        PhysicalToExecutionLoweringSession? session = null)
     {
+        session ??= new PhysicalToExecutionLoweringSession(ResolveExecutionStrategies());
         if (apply.Kind is not (ApplyKind.Cross or ApplyKind.Outer))
         {
             return TableBuildResult.Unsupported(
@@ -34,7 +36,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 cteShapesByName,
                 schemaFromIndex,
                 inheritedLookup,
-                sourceRowsScope);
+                sourceRowsScope,
+                session);
             if (chain.Supported)
             {
                 return BuildCrossApplyChainTable(
@@ -51,7 +54,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteShapesByName,
             schemaFromIndex,
             inheritedLookup,
-            sourceRowsScope);
+            sourceRowsScope,
+            session);
         if (!leftSource.Supported)
             return TableBuildResult.Unsupported(leftSource.UnsupportedReason);
 
@@ -62,7 +66,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteShapesByName,
             schemaFromIndex + leftSource.Source.SchemaSourceCount,
             leftLookup,
-            sourceRowsScope);
+            sourceRowsScope,
+            session);
         if (!rightSource.Supported)
             return TableBuildResult.Unsupported(rightSource.UnsupportedReason);
 

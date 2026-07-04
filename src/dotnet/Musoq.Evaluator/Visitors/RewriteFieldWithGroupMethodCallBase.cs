@@ -60,7 +60,7 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
             if (IsAggregateDeclarationMethod(node))
             {
                 Nodes.Push(new AccessColumnNode(
-                    wordNode?.Value ?? node.ToString(),
+                    GetAggregateFieldName(node, wordNode),
                     string.Empty,
                     node.ReturnType,
                     TextSpan.Empty));
@@ -85,6 +85,13 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
         {
             base.Visit(node);
         }
+    }
+
+    private static string GetAggregateFieldName(AccessMethodNode aggregateMethod, WordNode? wordNode)
+    {
+        return wordNode is AggregateIdentifierNode aggregateIdentifier
+            ? aggregateIdentifier.DisplayName
+            : wordNode?.Value ?? aggregateMethod.ToString();
     }
 
     private static bool IsAggregateDeclarationMethod(AccessMethodNode node)

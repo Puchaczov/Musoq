@@ -11,7 +11,9 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderWindowKernelPlan(ExecutionWindowKernelPlan plan)
+    private IEnumerable<StatementSyntax> RenderWindowKernelPlan(
+        ExecutionWindowKernelPlan plan,
+        ExecutionRenderContext context)
     {
         if (plan.Kernels.All(static kernel => kernel is ExecutionComputeRankingWindow))
         {
@@ -19,7 +21,7 @@ public sealed partial class ExecutionCSharpRenderer
                 plan.Kernels.Cast<ExecutionComputeRankingWindow>().ToArray());
         }
 
-        return RenderBlock(new ExecutionBlock(plan.Kernels)).Statements;
+        return RenderBlock(new ExecutionBlock(plan.Kernels), context).Statements;
     }
 
     private List<StatementSyntax> RenderRankingWindowKernelPlan(

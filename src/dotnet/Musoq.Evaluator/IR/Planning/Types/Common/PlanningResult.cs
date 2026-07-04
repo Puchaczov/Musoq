@@ -12,4 +12,7 @@ using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Evaluator.IR.Planning;
 
-internal sealed record PlanningResult(LogicalPlanningArtifacts LogicalArtifacts, PhysicalPlanningArtifacts PhysicalArtifacts, ExecutionPlanningArtifacts ExecutionArtifacts, PlanProperties Properties, IReadOnlyList<PlanningDecision> Decisions);
+internal sealed record PlanningResult(LogicalPlanningArtifacts LogicalArtifacts, PhysicalPlanningArtifacts PhysicalArtifacts, ExecutionPlanningArtifacts ExecutionArtifacts, PlanningFacts Facts, IReadOnlyList<PlanningDecision> Decisions)
+{
+    public PlanProperties Properties => Facts.ToPlanProperties();
+}

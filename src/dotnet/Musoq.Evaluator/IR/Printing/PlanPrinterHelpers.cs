@@ -48,8 +48,50 @@ internal static class PlanPrinterHelpers
         for (var i = 0; i < bindings.Length; i++)
         {
             if (i > 0) sb.Append(", ");
-            sb.Append(bindings[i].Identifier);
+            sb.Append(FormatAggregateSummary(bindings[i].ColumnName));
         }
+    }
+
+    private static string FormatAggregateSummary(string displayName)
+    {
+        var builder = new StringBuilder(displayName.Length);
+        var inString = false;
+
+        for (var index = 0; index < displayName.Length; index++)
+        {
+            var current = displayName[index];
+            if (current == '\'')
+                inString = !inString;
+
+            if (!inString && IsIdentifierStart(current))
+            {
+                var start = index;
+                index++;
+                while (index < displayName.Length && IsIdentifierPart(displayName[index]))
+                    index++;
+
+                if (index < displayName.Length && displayName[index] == '.')
+                    continue;
+
+                builder.Append(displayName, start, index - start);
+                index--;
+                continue;
+            }
+
+            builder.Append(current);
+        }
+
+        return builder.ToString();
+    }
+
+    private static bool IsIdentifierStart(char value)
+    {
+        return char.IsLetter(value) || value == '_';
+    }
+
+    private static bool IsIdentifierPart(char value)
+    {
+        return char.IsLetterOrDigit(value) || value == '_';
     }
 
     public static void AppendOrderFields(StringBuilder sb, OrderField[] keys)
@@ -97,6 +139,8 @@ internal static class PlanPrinterHelpers
         AppendWindowExpressions(sb, "partition", registration.PartitionKeys);
         AppendWindowOrderFields(sb, registration.OrderKeys);
         AppendWindowExpressions(sb, "args", registration.ValueArguments);
+        if (registration.FilterPredicate is not null)
+            sb.Append("; filter: ").Append(IrExpressionPrinter.Print(registration.FilterPredicate));
 
         if (registration.Frame is not null)
             sb.Append(System.Globalization.CultureInfo.InvariantCulture, $"; frame: {GetWindowFrameText(registration.Frame)}");

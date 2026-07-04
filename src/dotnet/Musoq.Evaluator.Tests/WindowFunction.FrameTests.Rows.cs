@@ -22,15 +22,15 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(100m, Convert.ToDecimal(alice.Values[1]));
-        Assert.AreEqual(300m, Convert.ToDecimal(bob.Values[1]));
-        Assert.AreEqual(600m, Convert.ToDecimal(charlie.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 100m],
+            ["Bob", 300m],
+            ["Charlie", 600m]);
     }
 
     [TestMethod]
@@ -48,19 +48,15 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        // Sorted by Name: Alice(100), Bob(200), Charlie(300)
-        // Alice:   frame [Alice, Bob] = 100 + 200 = 300
-        // Bob:     frame [Alice, Bob, Charlie] = 100 + 200 + 300 = 600
-        // Charlie: frame [Bob, Charlie] = 200 + 300 = 500
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(300m, Convert.ToDecimal(alice.Values[1]));
-        Assert.AreEqual(600m, Convert.ToDecimal(bob.Values[1]));
-        Assert.AreEqual(500m, Convert.ToDecimal(charlie.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("SlideSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 300m],
+            ["Bob", 600m],
+            ["Charlie", 500m]);
     }
 
     [TestMethod]

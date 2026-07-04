@@ -19,9 +19,15 @@ public sealed class NullOrderingTests : BasicEntityTestBase
             new BasicEntity("Berlin") { City = "Berlin" },
             new BasicEntity("Athens") { City = "Athens" });
 
-        CollectionAssert.AreEqual(
-            new[] { "Athens", "Berlin", "Null" },
-            result.Select(row => (string)row[0]).ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Name", typeof(string)),
+            ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            result,
+            ["Athens", "Athens"],
+            ["Berlin", "Berlin"],
+            new object?[] { "Null", null });
     }
 
     [TestMethod]
@@ -33,9 +39,15 @@ public sealed class NullOrderingTests : BasicEntityTestBase
             new BasicEntity("Berlin") { City = "Berlin" },
             new BasicEntity("Athens") { City = "Athens" });
 
-        CollectionAssert.AreEqual(
-            new[] { "Null", "Berlin", "Athens" },
-            result.Select(row => (string)row[0]).ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Name", typeof(string)),
+            ("SortCity", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            result,
+            new object?[] { "Null", null },
+            ["Berlin", "Berlin"],
+            ["Athens", "Athens"]);
     }
 
     [TestMethod]
@@ -48,9 +60,17 @@ public sealed class NullOrderingTests : BasicEntityTestBase
             new BasicEntity("C") { Country = "PL", NullableValue = null },
             new BasicEntity("D") { Country = "US", NullableValue = 1 });
 
-        CollectionAssert.AreEqual(
-            new[] { "C", "A", "D", "B" },
-            result.Select(row => (string)row[0]).ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Name", typeof(string)),
+            ("Country", typeof(string)),
+            ("NullableValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            result,
+            new object?[] { "C", "PL", null },
+            ["A", "PL", 2],
+            ["D", "US", 1],
+            new object?[] { "B", null, 9 });
     }
 
     [TestMethod]
@@ -62,9 +82,15 @@ public sealed class NullOrderingTests : BasicEntityTestBase
             new BasicEntity("Berlin") { City = "Berlin" },
             new BasicEntity("Athens") { City = "Athens" });
 
-        Assert.AreEqual(1L, result.Single(row => (string)row[0] == "Null")[1]);
-        Assert.AreEqual(2L, result.Single(row => (string)row[0] == "Berlin")[1]);
-        Assert.AreEqual(3L, result.Single(row => (string)row[0] == "Athens")[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Name", typeof(string)),
+            ("RN", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            result,
+            ["Null", 1L],
+            ["Berlin", 2L],
+            ["Athens", 3L]);
     }
 
     [TestMethod]
@@ -76,9 +102,15 @@ public sealed class NullOrderingTests : BasicEntityTestBase
             new BasicEntity("Two") { NullableValue = 2, Population = 20 },
             new BasicEntity("One") { NullableValue = 1, Population = 30 });
 
-        Assert.AreEqual(30m, Convert.ToDecimal(result.Single(row => (string)row[0] == "One")[1]));
-        Assert.AreEqual(50m, Convert.ToDecimal(result.Single(row => (string)row[0] == "Two")[1]));
-        Assert.AreEqual(60m, Convert.ToDecimal(result.Single(row => (string)row[0] == "Null")[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("Name", typeof(string)),
+            ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            result,
+            ["One", 30m],
+            ["Two", 50m],
+            ["Null", 60m]);
     }
 
     private Musoq.Evaluator.Tables.Table Run(string query, params BasicEntity[] rows)

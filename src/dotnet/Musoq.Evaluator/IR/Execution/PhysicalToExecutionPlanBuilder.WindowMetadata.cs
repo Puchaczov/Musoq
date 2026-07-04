@@ -154,7 +154,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
     private static BuildResult<ExecutionExpression?> CreateWindowPartitionKey(
         IrExpression[] partitionKeys,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup,
+        IReadOnlyDictionary<string, string> aggregateSourceFields)
     {
         if (partitionKeys.Length == 0)
             return BuildResult<ExecutionExpression?>.Success(null);
@@ -162,7 +163,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         var parts = new List<ExecutionExpression>(partitionKeys.Length);
         foreach (var partitionKey in partitionKeys)
         {
-            var expression = ConvertWindowInputExpression(partitionKey, sourceLookup);
+            var expression = ConvertWindowInputExpression(partitionKey, sourceLookup, aggregateSourceFields);
             if (expression is ExecutionRawExpression)
             {
                 return BuildResult<ExecutionExpression?>.Unsupported(
@@ -184,12 +185,13 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
     private static BuildResult<IReadOnlyList<ExecutionWindowOrderKey>> CreateWindowOrderKeys(
         OrderField[] orderKeys,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        IReadOnlyDictionary<string, RowShape> sourceLookup,
+        IReadOnlyDictionary<string, string> aggregateSourceFields)
     {
         var keys = new List<ExecutionWindowOrderKey>(orderKeys.Length);
         foreach (var orderKey in orderKeys)
         {
-            var expression = ConvertWindowInputExpression(orderKey.Expression, sourceLookup);
+            var expression = ConvertWindowInputExpression(orderKey.Expression, sourceLookup, aggregateSourceFields);
             if (expression is ExecutionRawExpression)
             {
                 return BuildResult<IReadOnlyList<ExecutionWindowOrderKey>>.Unsupported(

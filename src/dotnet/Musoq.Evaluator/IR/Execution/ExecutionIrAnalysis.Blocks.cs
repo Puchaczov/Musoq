@@ -20,7 +20,7 @@ internal static partial class ExecutionIrAnalysis
 
     internal static IEnumerable<ExecutionBlock> GetChildBlocks(ExecutionNode node)
     {
-        return ExecutionNodeFacts.GetChildBlocks(node);
+        return ExecutionNodeRegistry.GetChildBlocks(node);
     }
 
     internal static IEnumerable<string> CollectDeclaredVariableNames(ExecutionBlock block)

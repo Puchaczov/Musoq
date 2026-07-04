@@ -21,9 +21,29 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateDerivedSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "PARIS", "WARSAW" },
-            table.Select(row => (string)row.Values[0]).ToArray());
+        TableMaterializationTestHelper.AssertColumns(table, ("d.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["PARIS"], ["WARSAW"]);
+    }
+
+    [TestMethod]
+    public void WhenDerivedTableProjectsAliases_ShouldExposeOnlyProjectedShapeToOuterQuery()
+    {
+        const string query = @"
+            SELECT d.Location, d.Score FROM (
+                SELECT a.City as Location, a.Population + 1 as Score
+                FROM #A.entities() a
+                WHERE a.Population >= 250
+            ) d
+            WHERE d.Score > 251
+            ORDER BY d.Location";
+
+        var table = CreateAndRunVirtualMachine(query, CreateDerivedSources()).Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("d.Location", typeof(string)),
+            ("d.Score", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["PARIS", 301m], ["WARSAW", 501m]);
     }
 
     [TestMethod]
@@ -38,9 +58,15 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateDerivedSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "PARIS:LYON", "WARSAW:GDANSK", "WARSAW:KRAKOW" },
-            table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("d.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["PARIS", "LYON"],
+            ["WARSAW", "GDANSK"],
+            ["WARSAW", "KRAKOW"]);
     }
 
     [TestMethod]
@@ -58,9 +84,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateDerivedSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "PARIS", "WARSAW" },
-            table.Select(row => (string)row.Values[0]).ToArray());
+        TableMaterializationTestHelper.AssertColumns(table, ("d.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["PARIS"], ["WARSAW"]);
     }
 
     [TestMethod]
@@ -95,9 +120,15 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateDerivedSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "PARIS:LYON", "WARSAW:GDANSK", "WARSAW:KRAKOW" },
-            table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("d.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["PARIS", "LYON"],
+            ["WARSAW", "GDANSK"],
+            ["WARSAW", "KRAKOW"]);
     }
 
     [TestMethod]
@@ -113,9 +144,16 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateDerivedSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN:", "PARIS:LYON", "WARSAW:GDANSK", "WARSAW:KRAKOW" },
-            table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("d.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            new object?[] { "BERLIN", null },
+            ["PARIS", "LYON"],
+            ["WARSAW", "GDANSK"],
+            ["WARSAW", "KRAKOW"]);
     }
 
     [TestMethod]
@@ -134,9 +172,18 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateDerivedSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN:MUNICH", "PARIS:LYON", "PARIS:NICE", "WARSAW:GDANSK", "WARSAW:KRAKOW", "WARSAW:POZNAN" },
-            table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("d.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["BERLIN", "MUNICH"],
+            ["PARIS", "LYON"],
+            ["PARIS", "NICE"],
+            ["WARSAW", "GDANSK"],
+            ["WARSAW", "KRAKOW"],
+            ["WARSAW", "POZNAN"]);
     }
 
     [TestMethod]
@@ -173,9 +220,15 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateDerivedSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "PARIS:LYON", "WARSAW:GDANSK", "WARSAW:KRAKOW" },
-            table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("d.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["PARIS", "LYON"],
+            ["WARSAW", "GDANSK"],
+            ["WARSAW", "KRAKOW"]);
     }
 
     [TestMethod]

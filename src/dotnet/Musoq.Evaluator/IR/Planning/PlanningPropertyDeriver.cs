@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Nodes;
@@ -68,26 +69,34 @@ internal static partial class PlanningPropertyDeriver
             sourcePredicatePlanningResult.PlansBySourceId);
         decisions.AddRange(sourcePlanningResult.Decisions);
 
-        var properties = SourceContractDiagnosticLocationPlanner.WithLocations(new PlanProperties(
+        var facts = new PlanningFacts(
+            new SourcePlanningFacts(
                 sources,
                 pushedPredicates,
                 projectedColumns,
                 projectedSchemaColumns,
-                requiredColumnsByAlias,
-                requiredColumnUsageResult.UsagesBySourceId,
-                requiredColumnMappingPlans,
-                [],
                 sourcePredicatePlanningResult.PlansBySourceId,
                 sourceInteractionPlanningResult.PlansBySourceId,
                 sourcePlanningResult.RequestsBySourceId,
                 sourcePlanningResult.ResultsBySourceId,
                 sourceInteractionPlanningResult.BoundaryPlans,
                 sourceInteractionPlanningResult.BoundaryStrategyPlans,
-                [],
-                [],
-                [],
+                new Dictionary<string, SourceContractDiagnosticLocationMap>(StringComparer.Ordinal)),
+            new RequiredColumnFacts(
+                requiredColumnsByAlias,
+                requiredColumnUsageResult.UsagesBySourceId,
+                requiredColumnMappingPlans,
+                []),
+            new PhysicalStrategyFacts(
                 predicatePlacementPlanningResult.Plans,
-                predicateMovementPlanningResult.Plans), context, scans);
+                predicateMovementPlanningResult.Plans),
+            new BoundaryPruningFacts(
+                [],
+                []),
+            new CardinalityPlanningFacts([]));
+        var factsWithLocations = SourceContractDiagnosticLocationPlanner
+            .WithLocations(facts.ToPlanProperties(), context, scans)
+            .ToFacts();
 
         decisions.Add(new PlanningDecision(
             PlanningDecisionCategory.PlanProperties,
@@ -97,7 +106,7 @@ internal static partial class PlanningPropertyDeriver
             PlanningConfidence.High,
             $"Derived properties for {sources.Count} source scan(s)."));
 
-        return new PlanningPropertyResult(properties, decisions);
+        return new PlanningPropertyResult(factsWithLocations, decisions);
     }
 
     private static Dictionary<string, ISchemaColumn[]> CreateProjectedSchemaColumns(

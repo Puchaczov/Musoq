@@ -17,6 +17,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
                     arg.Accept(this);
             }
 
+            node.FunctionCall.FilterExpression?.Accept(this);
             node.WindowSpecification?.Accept(this);
             node.Accept(Visitor);
         }

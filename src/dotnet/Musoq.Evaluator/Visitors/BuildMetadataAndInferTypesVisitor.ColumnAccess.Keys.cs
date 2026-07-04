@@ -30,58 +30,37 @@ public partial class BuildMetadataAndInferTypesVisitor
             );
         if (parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
-            var typeHintingAttributes = GetCachedTypeHintAttributes(parentNodeType);
-
-            foreach (var t in typeHintingAttributes)
-            {
-                if (t.Name != node.Name) continue;
-
-                Nodes.Push(new AccessObjectKeyNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
-                return;
-            }
-
-            var defaultTypeHintingAttributes =
-                parentNodeType.GetCustomAttribute<DynamicObjectPropertyDefaultTypeHintAttribute>();
-
-            if (defaultTypeHintingAttributes is not null)
-            {
-                Nodes.Push(new AccessObjectKeyNode(node.Token,
-                    new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
-                return;
-            }
-
-            var type = parentNodeType.GetProperty(node.Name)?.PropertyType ??
-                       (_resultShape.TheMostInnerIdentifier?.Name == node.Name ? typeof(object) : typeof(ExpandoObject));
-            Nodes.Push(
-                new AccessObjectKeyNode(node.Token, new ExpandoObjectPropertyInfo(node.Name, type)));
+            var propertyInfo = _columnPropertyBindingService.ResolveDynamicProperty(
+                parentNodeType,
+                node.Name,
+                typeof(object),
+                typeof(ExpandoObject));
+            Nodes.Push(new AccessObjectKeyNode(node.Token, propertyInfo));
         }
         else
         {
             var isRoot = parentNode is AccessColumnNode;
-            bool isIndexer;
 
             if (!isRoot)
             {
-                PropertyInfo? propertyAccess = null;
-                try
-                {
-                    propertyAccess = parentNodeType.GetProperty(node.Name);
-                }
-                catch (Exception ex) when (ex is AmbiguousMatchException or ArgumentException)
+                var propertyAccess = _columnPropertyBindingService.TryResolveTypedProperty(
+                    parentNodeType,
+                    node.Name,
+                    out var error);
+
+                if (error != null)
                 {
                     if (TryReportNoIndexer(
-                            $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
+                            $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
                             node))
                         return;
                     var exSpan1 = node.SpanOrEmpty();
                     throw new ObjectDoesNotImplementIndexerException(
-                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
                         exSpan1);
                 }
 
-                isIndexer = HasIndexer(propertyAccess?.PropertyType);
-
-                if (!isIndexer)
+                if (!_columnPropertyBindingService.CanUseAsIndexer(propertyAccess))
                 {
                     if (TryReportNoIndexer(
                             $"Object {parentNodeType.Name} property '{node.Name}' does not implement indexer.", node))
@@ -105,24 +84,22 @@ public partial class BuildMetadataAndInferTypesVisitor
                 return;
             }
 
-            PropertyInfo? property = null;
-            try
-            {
-                property = parentNodeType.GetProperty(node.Name);
-            }
-            catch (Exception ex) when (ex is AmbiguousMatchException or ArgumentException)
+            var property = _columnPropertyBindingService.TryResolveTypedProperty(
+                parentNodeType,
+                node.Name,
+                out var rootError);
+
+            if (rootError != null)
             {
                 if (TryReportNoIndexer(
-                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}", node))
+                        $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {rootError.Message}", node))
                     return;
                 var exSpan2 = node.SpanOrEmpty();
                 throw new ObjectDoesNotImplementIndexerException(
-                    $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}", exSpan2);
+                    $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {rootError.Message}", exSpan2);
             }
 
-            isIndexer = HasIndexer(property?.PropertyType);
-
-            if (!isIndexer)
+            if (!_columnPropertyBindingService.CanUseAsIndexer(property))
             {
                 if (TryReportNoIndexer($"Object {node.Name} does not implement indexer.", node))
                     return;

@@ -22,13 +22,15 @@ public class PivotIntegrationTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run();
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("LA", table[0][0]);
-        Assert.AreEqual(5m, table[0][1]);
-        Assert.AreEqual(15m, table[0][2]);
-        Assert.AreEqual("NY", table[1][0]);
-        Assert.AreEqual(10m, table[1][1]);
-        Assert.AreEqual(20m, table[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Jan", typeof(decimal?)),
+            ("Feb", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["LA", 5m, 15m],
+            ["NY", 10m, 20m]);
     }
 
     [TestMethod]
@@ -47,11 +49,14 @@ public class PivotIntegrationTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run();
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("LA", table[0][0]);
-        Assert.AreEqual(5m, table[0][1]);
-        Assert.AreEqual("NY", table[1][0]);
-        Assert.AreEqual(10m, table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.City", typeof(string)),
+            ("p.Jan", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["LA", 5m],
+            ["NY", 10m]);
     }
 
     [TestMethod]
@@ -72,13 +77,15 @@ public class PivotIntegrationTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSourcesWithLookup()).Run();
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("LA", table[0][0]);
-        Assert.AreEqual(5m, table[0][1]);
-        Assert.AreEqual("USA-West", table[0][2]);
-        Assert.AreEqual("NY", table[1][0]);
-        Assert.AreEqual(10m, table[1][1]);
-        Assert.AreEqual("USA-East", table[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.City", typeof(string)),
+            ("p.Jan", typeof(decimal?)),
+            ("c.Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["LA", 5m, "USA-West"],
+            ["NY", 10m, "USA-East"]);
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateSources()

@@ -29,10 +29,8 @@ order by pairs.Label";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("different", table[0][0]);
-        Assert.AreEqual("left-null", table[1][0]);
-        Assert.AreEqual("right-null", table[2][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("pairs.Label", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["different"], ["left-null"], ["right-null"]);
     }
 
     [TestMethod]
@@ -53,9 +51,8 @@ order by pairs.Label";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("both-null", table[0][0]);
-        Assert.AreEqual("equal", table[1][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("pairs.Label", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["both-null"], ["equal"]);
     }
 
     [TestMethod]
@@ -74,9 +71,8 @@ order by pairs.Label";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("alpha", table[0][0]);
-        Assert.AreEqual("both-null", table[1][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("pairs.Label", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["alpha"], ["both-null"]);
     }
 
     [TestMethod]

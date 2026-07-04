@@ -11,16 +11,18 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultShapeName,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName = null,
-        int schemaFromIndex = DefaultSchemaFromIndex)
+        int schemaFromIndex = DefaultSchemaFromIndex,
+        PhysicalToExecutionLoweringSession? session = null)
     {
+        session ??= new PhysicalToExecutionLoweringSession(ResolveExecutionStrategies());
         if (pipeline.Source is PhysicalUnpivotNode unpivot)
-            return BuildUnpivotTable(unpivot, pipeline, resultTableName, resultShapeName, cteIndexes, cteShapesByName, schemaFromIndex);
+            return BuildUnpivotTable(unpivot, pipeline, resultTableName, resultShapeName, cteIndexes, cteShapesByName, schemaFromIndex, session);
 
         if (pipeline.Source is PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode)
-            return BuildJoinTable(pipeline, resultTableName, resultShapeName, cteIndexes, cteShapesByName, schemaFromIndex);
+            return BuildJoinTable(pipeline, resultTableName, resultShapeName, cteIndexes, cteShapesByName, schemaFromIndex, session);
 
         if (pipeline.Source is PhysicalNestedLoopApplyNode apply)
-            return BuildApplyTable(apply, pipeline, resultTableName, resultShapeName, cteIndexes, cteShapesByName, schemaFromIndex);
+            return BuildApplyTable(apply, pipeline, resultTableName, resultShapeName, cteIndexes, cteShapesByName, schemaFromIndex, session: session);
 
         var sourceShape = ResolveSourceShape(pipeline.Source, cteIndexes, cteShapesByName);
         if (sourceShape == null)

@@ -21,9 +21,11 @@ tie break by b.Name asc";
 
         var table = CreateAndRunVirtualMachine(query, CreateTieBreakSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B-Alpha", table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B-Alpha"]);
     }
 
     [TestMethod]
@@ -37,9 +39,11 @@ tie break by b.Name desc";
 
         var table = CreateAndRunVirtualMachine(query, CreateTieBreakSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B-Zulu", table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B-Zulu"]);
     }
 
     [TestMethod]
@@ -64,8 +68,11 @@ tie break by b.NullableValue asc nulls last";
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("B-Value", table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B-Value"]);
     }
 
     [TestMethod]
@@ -95,13 +102,15 @@ order by a.Name";
         };
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
-        var rows = table.ToList();
 
-        Assert.AreEqual(2, rows.Count);
-        Assert.AreEqual("A1", rows[0][0]);
-        Assert.AreEqual("B-Zulu", rows[0][1]);
-        Assert.AreEqual("A2", rows[1][0]);
-        Assert.IsNull(rows[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["A1", "B-Zulu"],
+            new object?[] { "A2", null });
     }
 
     [TestMethod]
@@ -114,8 +123,11 @@ asof join #B.entities() b on a.Population >= b.Population";
 
         var table = CreateAndRunVirtualMachine(query, CreateTieBreakSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("B-Zulu", table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B-Zulu"]);
     }
 
     [TestMethod]

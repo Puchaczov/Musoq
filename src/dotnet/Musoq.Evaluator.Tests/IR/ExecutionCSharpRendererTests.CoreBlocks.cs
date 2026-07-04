@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
@@ -26,6 +27,157 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.Contains("if ((pIndex & 1023) == 0)", code);
         Assert.Contains("token.ThrowIfCancellationRequested();", code);
         Assert.Contains("result.Add(new ResultRow0(p.Name));", code);
+    }
+
+    [TestMethod]
+    public void RenderMethod_WhenRendererIsReusedAcrossDifferentPlanFamilies_ShouldKeepMethodStateIndependent()
+    {
+        var renderer = new ExecutionCSharpRenderer();
+        var first = renderer.RenderMethod(CreatePlan(), "ExecutePlain").NormalizeWhitespace().ToFullString();
+        var second = renderer.RenderMethod(CreateParallelProjectionPlan(), "ExecuteParallel").NormalizeWhitespace().ToFullString();
+
+        Assert.Contains("ExecutePlain", first);
+        Assert.IsFalse(first.Contains("PopulateResult(result, pRows, token)", StringComparison.Ordinal));
+        Assert.Contains("ExecuteParallel", second);
+        Assert.Contains("PopulateResult(result, pRows, token)", second);
+    }
+
+    [TestMethod]
+    public void ExecutionRenderContext_WhenCreated_ShouldExposeOptionsAndSession()
+    {
+        var options = ExecutionRenderOptions.Create(null, null, QueryInstrumentationMode.Disabled);
+        var session = new ExecutionRenderSession();
+
+        var context = new ExecutionRenderContext(options, session);
+
+        Assert.AreSame(options, context.Options);
+        Assert.AreSame(session, context.Session);
+    }
+
+    [TestMethod]
+    public void RenderMethod_AfterBufferedFinalShapeRowsRender_ShouldNotLeakFinalShapeSinkState()
+    {
+        var renderer = new ExecutionCSharpRenderer();
+        var plan = CreatePlan();
+        var finalResult = plan.FinalResult!;
+        var finalRowsMethod = renderer
+            .RenderFinalShapeRowsMethod(
+                plan,
+                "EnumerateRows",
+                "Q_FinalRows",
+                finalResult.TableName,
+                finalResult.Shape.TypeName,
+                finalResult.Shape.Fields,
+                bufferFinalShapes: true)
+            .NormalizeWhitespace()
+            .ToFullString();
+
+        var regularMethod = renderer
+            .RenderMethod(plan, "ExecutePlain")
+            .NormalizeWhitespace()
+            .ToFullString();
+
+        Assert.Contains("__musoqFinalShapeRows", finalRowsMethod);
+        Assert.IsFalse(regularMethod.Contains("__musoqFinalShapeRows", StringComparison.Ordinal));
+        Assert.Contains("result.Add(new ResultRow0(p.Name));", regularMethod);
+    }
+
+    [TestMethod]
+    public void TypedSinkContext_WhenFinalShapeRowsRenderIsNested_ShouldRemainUsable()
+    {
+        var renderer = new ExecutionCSharpRenderer();
+        var plan = CreatePlan();
+        var finalResult = plan.FinalResult!;
+
+        using var typedSinkScope = renderer.EnterTypedSinkRenderContext(plan);
+        var typedSinkContext = typedSinkScope.Context;
+        var typedSinkEntryCount = renderer.CreateTypedSinkEntryStatements(plan, typedSinkContext).Count;
+        var finalRowsMethod = renderer
+            .RenderFinalShapeRowsMethod(
+                plan,
+                "EnumerateRows",
+                "Q_FinalRows",
+                finalResult.TableName,
+                finalResult.Shape.TypeName,
+                finalResult.Shape.Fields,
+                bufferFinalShapes: true)
+            .NormalizeWhitespace()
+            .ToFullString();
+        var typedSinkExpression = renderer
+            .RenderExpressionForTypedSink(new ExecutionFieldRead("p", "Name", typeof(string)), typedSinkContext)
+            .NormalizeWhitespace()
+            .ToFullString();
+
+        Assert.Contains("__musoqFinalShapeRows", finalRowsMethod);
+        Assert.AreEqual(typedSinkEntryCount, renderer.CreateTypedSinkEntryStatements(plan, typedSinkContext).Count);
+        Assert.AreEqual("p.Name", typedSinkExpression);
+    }
+
+    [TestMethod]
+    public void RenderMethod_WhenQueryRunContextScopeIsDisposed_ShouldNotLeakRunContextAliases()
+    {
+        var renderer = new ExecutionCSharpRenderer();
+        string scopedMethod;
+
+        using (renderer.EnterQueryRunContextRendering())
+        {
+            scopedMethod = renderer
+                .RenderMethod(CreatePlan(), "ExecuteScoped")
+                .NormalizeWhitespace()
+                .ToFullString();
+        }
+
+        var regularMethod = renderer
+            .RenderMethod(CreatePlan(), "ExecutePlain")
+            .NormalizeWhitespace()
+            .ToFullString();
+
+        Assert.Contains("var token = queryContext.CancellationToken;", scopedMethod);
+        Assert.IsFalse(regularMethod.Contains("queryContext.CancellationToken", StringComparison.Ordinal));
+        Assert.Contains("ExecutePlain", regularMethod);
+    }
+
+    [TestMethod]
+    public async Task RenderMethod_WhenSeparateRendererInstancesRunInParallel_ShouldKeepMethodStateIndependent()
+    {
+        var firstTask = Task.Run(() => new ExecutionCSharpRenderer()
+            .RenderMethod(CreatePlan(), "ExecutePlain")
+            .NormalizeWhitespace()
+            .ToFullString());
+        var secondTask = Task.Run(() => new ExecutionCSharpRenderer()
+            .RenderMethod(CreateParallelProjectionPlan(), "ExecuteParallel")
+            .NormalizeWhitespace()
+            .ToFullString());
+
+        var first = await firstTask.ConfigureAwait(false);
+        var second = await secondTask.ConfigureAwait(false);
+
+        Assert.Contains("ExecutePlain", first);
+        Assert.IsFalse(first.Contains("PopulateResult(result, pRows, token)", StringComparison.Ordinal));
+        Assert.Contains("ExecuteParallel", second);
+        Assert.Contains("PopulateResult(result, pRows, token)", second);
+    }
+
+    [TestMethod]
+    public async Task RenderMethod_WhenSameRendererInstanceRunsInParallel_ShouldKeepMethodStateIndependent()
+    {
+        var renderer = new ExecutionCSharpRenderer();
+        var firstTask = Task.Run(() => renderer
+            .RenderMethod(CreatePlan(), "ExecutePlain")
+            .NormalizeWhitespace()
+            .ToFullString());
+        var secondTask = Task.Run(() => renderer
+            .RenderMethod(CreateParallelProjectionPlan(), "ExecuteParallel")
+            .NormalizeWhitespace()
+            .ToFullString());
+
+        var first = await firstTask.ConfigureAwait(false);
+        var second = await secondTask.ConfigureAwait(false);
+
+        Assert.Contains("ExecutePlain", first);
+        Assert.IsFalse(first.Contains("PopulateResult(result, pRows, token)", StringComparison.Ordinal));
+        Assert.Contains("ExecuteParallel", second);
+        Assert.Contains("PopulateResult(result, pRows, token)", second);
     }
 
     [TestMethod]

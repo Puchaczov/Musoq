@@ -34,7 +34,8 @@ public sealed partial class CSharpRenderer
                 executionRenderer,
                 setup.ProjectionLoop,
                 setup.SinkPlan.PostOperations,
-                setup.SourceSetupStatements),
+                setup.SourceSetupStatements,
+                setup.RenderContext),
             out method,
             out metadata);
     }
@@ -46,14 +47,15 @@ public sealed partial class CSharpRenderer
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
         IReadOnlyList<TypedPostOperation> postOperations,
-        IReadOnlyList<StatementSyntax> sourceSetupStatements)
+        IReadOnlyList<StatementSyntax> sourceSetupStatements,
+        ExecutionRenderContext renderContext)
     {
         const string sourceRowsName = "__musoqTypedPostSourceRows";
         const string projectedRowsName = "__musoqTypedPostRows";
         var rowType = SyntaxFactory.ParseTypeName(resultInfo.RowTypeName);
         var statements = new List<StatementSyntax>(sourceSetupStatements)
         {
-            CreateSourceRowsLocalDeclaration(executionRenderer, projectionLoop, sourceRowsName),
+            CreateSourceRowsLocalDeclaration(executionRenderer, projectionLoop, sourceRowsName, renderContext),
             SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.VariableDeclaration(
                         SyntaxFactory.GenericName(nameof(IEnumerable<object>))
@@ -69,13 +71,13 @@ public sealed partial class CSharpRenderer
             statements.Add(CreateParallelRowsProbeDeclaration(projectionLoop, sourceRowsName, parallelRowsName));
             statements.Add(CreateTypedPostRowsAssignment(
                 projectedRowsName,
-                CreateRowShardedReturnExpression(resultInfo, executionRenderer, projectionLoop, parallelRowsName)));
+                CreateRowShardedReturnExpression(resultInfo, executionRenderer, projectionLoop, parallelRowsName, renderContext)));
         }
         else
         {
             statements.Add(CreateTypedPostRowsAssignment(
                 projectedRowsName,
-                CreateProjectRowsSerialInvocation(resultInfo, executionRenderer, projectionLoop, sourceRowsName)));
+                CreateProjectRowsSerialInvocation(resultInfo, executionRenderer, projectionLoop, sourceRowsName, renderContext)));
         }
 
         foreach (var operation in postOperations)

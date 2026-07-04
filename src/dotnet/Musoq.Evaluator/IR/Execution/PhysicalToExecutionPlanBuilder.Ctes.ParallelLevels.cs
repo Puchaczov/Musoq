@@ -17,7 +17,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         Dictionary<string, GeneratedRowShape> cteShapesByName,
         Dictionary<string, int> schemaFromIndexes,
         CteDefinitionPruningPlan pruningPlan,
-        IReadOnlyDictionary<string, CteReferenceClassification> cteReferenceClassifications)
+        IReadOnlyDictionary<string, CteReferenceClassification> cteReferenceClassifications,
+        PhysicalToExecutionLoweringSession session)
     {
         var shapes = new List<RowShape>();
         var tasks = new List<ExecutionParallelTask>();
@@ -34,7 +35,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 cteIndexes,
                 cteShapesByName,
                 schemaFromIndexes[definition.Name],
-                pruningPlan);
+                pruningPlan,
+                session);
             var sidecarSpecs = ExecutionStrategies.GetCteSidecarIndexSpecs(cte, definition.Name);
             result = ApplyCteSidecarOptimizations(
                 definition.Name,
@@ -42,6 +44,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 cteReferenceClassifications,
                 pruningPlan,
                 result,
+                session,
                 out var storage);
 
             if (!result.Supported)

@@ -45,13 +45,13 @@ public partial class CloneQueryVisitor
         ArgumentNullException.ThrowIfNull(node);
         Nodes.Push(new BooleanNode(node.Value, node.Span));
     }
-
     public override void Visit(WordNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new WordNode(node.Value, node.Span));
+        Nodes.Push(node is AggregateIdentifierNode aggregateIdentifier
+            ? new AggregateIdentifierNode(aggregateIdentifier.Value, aggregateIdentifier.DisplayName)
+            : new WordNode(node.Value, node.Span));
     }
-
     public override void Visit(NullNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
@@ -94,9 +94,16 @@ public partial class CloneQueryVisitor
     public override void Visit(AccessMethodNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new AccessMethodNode(node.FunctionToken, (ArgsListNode)Nodes.Pop(), null, node.CanSkipInjectSource,
+        var args = (ArgsListNode)Nodes.Pop();
+        var filterExpression = node.FilterExpression is null ? null : Nodes.Pop();
+        Nodes.Push(new AccessMethodNode(node.FunctionToken, args, null, node.CanSkipInjectSource,
             node.Method, node.Alias, node.Span, node.IsDistinct)
-        { HasFilter = node.HasFilter, IsPivotGenerated = node.IsPivotGenerated });
+        {
+            HasFilter = node.HasFilter,
+            FilterExpression = filterExpression,
+            FilterExpressionText = node.FilterExpressionText,
+            IsPivotGenerated = node.IsPivotGenerated, IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper
+        });
     }
 
     public override void Visit(AccessRawIdentifierNode node)

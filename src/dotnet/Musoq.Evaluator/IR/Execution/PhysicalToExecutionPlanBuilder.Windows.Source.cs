@@ -13,7 +13,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        string? sourceRowsScope)
+        string? sourceRowsScope,
+        PhysicalToExecutionLoweringSession session)
     {
         if (IsAggregateSource(source))
         {
@@ -23,7 +24,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 "WindowSourceRow0",
                 cteIndexes,
                 cteShapesByName,
-                schemaFromIndex);
+                schemaFromIndex,
+                session: session);
             if (!table.Supported)
                 return SourceBuildResult.Unsupported(table.UnsupportedReason);
 
@@ -55,11 +57,12 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 cteShapesByName,
                 schemaFromIndex,
                 new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase),
+                session,
                 NestedApplyGeneratedRowPreservation.Enabled);
         }
 
         if (source is PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode)
-            return BuildNestedJoinSource(source, cteIndexes, cteShapesByName, schemaFromIndex);
+            return BuildNestedJoinSource(source, cteIndexes, cteShapesByName, schemaFromIndex, session);
 
         var shape = ResolveSourceShape(source, cteIndexes, cteShapesByName);
         if (shape == null)

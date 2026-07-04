@@ -14,8 +14,13 @@ public partial class Parser
         {
             Consume(TokenType.Function);
             (args, isDistinct) = ComposeArgsWithDistinct();
-            var (hasFilter, filteredArgs) = TryApplyFilterClause(args);
-            return new AccessMethodNode(func, filteredArgs, null, false, null, alias, isDistinct) { HasFilter = hasFilter };
+            var (hasFilter, filterExpression, filterExpressionText) = TryApplyFilterClause();
+            return new AccessMethodNode(func, args, null, false, null, alias, isDistinct)
+            {
+                HasFilter = hasFilter,
+                FilterExpression = filterExpression,
+                FilterExpressionText = filterExpressionText
+            };
         }
 
         if (Current is MethodAccessToken)
@@ -24,10 +29,15 @@ public partial class Parser
             Consume(TokenType.Dot);
             var token = (FunctionToken)ConsumeAndGetToken(TokenType.Function);
             (args, isDistinct) = ComposeArgsWithDistinct();
-            var (hasFilter2, filteredArgs2) = TryApplyFilterClause(args);
+            var (hasFilter2, filterExpression2, filterExpressionText2) = TryApplyFilterClause();
 
-            return new AccessMethodNode(token, filteredArgs2, null, false,
-                null, alias, default, isDistinct) { HasFilter = hasFilter2 };
+            return new AccessMethodNode(token, args, null, false,
+                null, alias, default, isDistinct)
+            {
+                HasFilter = hasFilter2,
+                FilterExpression = filterExpression2,
+                FilterExpressionText = filterExpressionText2
+            };
         }
 
         throw new NotSupportedException(
@@ -35,10 +45,10 @@ public partial class Parser
     }
 
 
-    private (bool HasFilter, ArgsListNode Args) TryApplyFilterClause(ArgsListNode args)
+    private (bool HasFilter, Node? FilterExpression, string? FilterExpressionText) TryApplyFilterClause()
     {
         if (!IsContextualKeyword("filter"))
-            return (false, args);
+            return (false, null, null);
 
         Consume(Current.TokenType);
         Consume(TokenType.LeftParenthesis);
@@ -46,15 +56,6 @@ public partial class Parser
         var filterExpression = ComposeOperations();
         Consume(TokenType.RightParenthesis);
 
-        var wrappedArgs = new Node[args.Args.Length];
-        for (var i = 0; i < args.Args.Length; i++)
-        {
-            wrappedArgs[i] = new CaseNode(
-                [(new WhenNode(filterExpression), new ThenNode(args.Args[i]))],
-                new ElseNode(new NullNode()));
-        }
-
-        return (true, new ArgsListNode(wrappedArgs));
+        return (true, filterExpression, filterExpression.ToString());
     }
-
 }

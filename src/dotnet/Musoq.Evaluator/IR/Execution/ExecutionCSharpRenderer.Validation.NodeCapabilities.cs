@@ -3,7 +3,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static bool CanRenderNode(ExecutionNode node) {
+    internal static bool CanRenderNode(ExecutionNode node) {
         return node switch
         {
             ExecutionSourceScan sourceScan => CanRenderExpressions(sourceScan.Binding.Arguments),

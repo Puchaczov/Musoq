@@ -3,7 +3,7 @@ using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Optimization;
-using LogicalConstantFoldingPass = Musoq.Evaluator.IR.Optimization.LogicalConstantFoldingPass;
+using LogicalConstantFoldingPass = Musoq.Evaluator.IR.Optimization.Logical.LogicalConstantFoldingPass;
 
 namespace Musoq.Evaluator.Tests.Architecture;
 
@@ -33,6 +33,14 @@ public sealed class OptimizerContextOptionGuardrailTests
 
         Assert.AreSame(options, context.Options);
         Assert.AreSame(state, context.State);
+    }
+
+    [TestMethod]
+    public void OptimizationContext_ShouldNotExposeRawPropertiesBag()
+    {
+        Assert.IsNull(
+            typeof(OptimizationContext).GetProperty("Properties"),
+            "Optimizer state must flow through OptimizationOptions and OptimizationContextState, not a raw property bag.");
     }
 
     [TestMethod]

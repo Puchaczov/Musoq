@@ -21,7 +21,8 @@ public sealed partial class ExecutionCSharpRenderer
                CanReferenceType(kernel.Descriptor.InputType) &&
                CanReferenceType(kernel.Descriptor.ResultType) &&
                CanRenderWindowAggregateFunction(kernel.Descriptor.Function) &&
-               CanRenderExpression(kernel.Value);
+               CanRenderExpression(kernel.Value) &&
+               (kernel.FilterPredicate == null || CanRenderExpression(kernel.FilterPredicate));
     }
 
     private static bool CanRenderWindowAggregateMode(ExecutionWindowAggregateKernel kernel)

@@ -121,7 +121,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             result.ExecutionPlanText);
         Assert.Contains("CreateSingleKeyAggregateContext [", result.ExecutionPlanText);
         AssertUsesTypedAggregateState(result, "SetSum", "SetDistinctAggregate");
-        Assert.Contains("SumDistinct(", result.ExecutionPlanText);
+        Assert.Contains("inm.Sum(distinct n.Value)", result.ExecutionPlanText);
         Assert.Contains("SortShapeRows [", result.ExecutionPlanText);
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, GetColumnValuePattern));
@@ -165,8 +165,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             result.ExecutionPlanText);
         Assert.Contains("CreateSingleKeyAggregateContext [", result.ExecutionPlanText);
         AssertUsesTypedAggregateState(result, "SetMin", "SetMax", "SetDistinctAggregate");
-        Assert.Contains("MinDistinct(", result.ExecutionPlanText);
-        Assert.Contains("MaxDistinct(", result.ExecutionPlanText);
+        Assert.Contains("inm.Min(distinct n.Value)", result.ExecutionPlanText);
+        Assert.Contains("inm.Max(distinct n.Value)", result.ExecutionPlanText);
         Assert.Contains("SortShapeRows [", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("ComputeRowNumberWindow [", StringComparison.Ordinal));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
@@ -215,7 +215,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             result.ExecutionPlanText);
         Assert.Contains("CreateSingleKeyAggregateContext [", result.ExecutionPlanText);
         AssertUsesTypedAggregateState(result, "SetAvg", "SetDistinctAggregate");
-        Assert.Contains("AvgDistinct(", result.ExecutionPlanText);
+        Assert.Contains("inm.Avg(distinct n.Value)", result.ExecutionPlanText);
         Assert.Contains("SortShapeRows [", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("ComputeRowNumberWindow [", StringComparison.Ordinal));
         Assert.AreEqual(0, CountOccurrences(result.GeneratedCSharpCode, SmartForEachPattern));
@@ -258,8 +258,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         AssertUsesExecutionBackendWithoutRetiredHelperPatterns(result);
         Assert.Contains("CreateSingleKeyAggregateContext [", result.ExecutionPlanText);
         AssertUsesTypedAggregateState(result, "SetMin", "SetMax", "SetDistinctAggregate");
-        Assert.Contains("MinDistinct(", result.ExecutionPlanText);
-        Assert.Contains("MaxDistinct(", result.ExecutionPlanText);
+        Assert.Contains("inm.Min(distinct n.Value)", result.ExecutionPlanText);
+        Assert.Contains("inm.Max(distinct n.Value)", result.ExecutionPlanText);
         Assert.Contains("MinDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
         Assert.Contains("MaxDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
@@ -305,7 +305,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         AssertUsesExecutionBackendWithoutRetiredHelperPatterns(result);
         Assert.Contains("CreateSingleKeyAggregateContext [", result.ExecutionPlanText);
         AssertUsesTypedAggregateState(result, "SetAvg", "SetDistinctAggregate");
-        Assert.Contains("AvgDistinct(", result.ExecutionPlanText);
+        Assert.Contains("inm.Avg(distinct n.Value)", result.ExecutionPlanText);
         Assert.Contains("AvgDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
     }

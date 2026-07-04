@@ -6,7 +6,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private sealed class ExpressionRenderer(ExecutionCSharpRenderer renderer)
+    private sealed class ExpressionRenderer(ExecutionCSharpRenderer renderer, ExecutionRenderSession session)
     {
         public ExpressionSyntax Render(ExecutionExpression expression) =>
             expression switch
@@ -33,7 +33,7 @@ public sealed partial class ExecutionCSharpRenderer
                 ExecutionCaseWhen caseWhen => renderer.RenderCaseWhen(caseWhen),
                 ExecutionCoalesce coalesce => renderer.RenderCoalesce(coalesce),
                 ExecutionRowStream { Kind: ExecutionRowStreamKind.Rows, RowsAccess: ExecutionRowStreamRowsAccess.TableRows } rows =>
-                    renderer.TryGetTypedRowBufferShape(rows.Variable.Name, out _)
+                    session.TypedRowBufferVariables.ContainsKey(rows.Variable.Name)
                         ? CreateIdentifierName(rows.Variable.Name)
                         : ExecutionCSharpRenderer.CreateTableRowsRead(rows.Variable.Name),
                 ExecutionRowStream rows => SyntaxFactory.IdentifierName(rows.Variable.Name),

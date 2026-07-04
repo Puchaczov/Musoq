@@ -163,7 +163,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
 
     private static ExecutionStrategyPlan CreateExecutionStrategies(IReadOnlyList<RowWidthPruningPlan> rowWidthPruningPlans)
     {
-        var strategies = new ExecutionStrategyPlan(
+        var strategies = ExecutionStrategyPlan.Create(
+            PhysicalNodeIdentityMap.Empty,
             new HashSet<PhysicalSingleKeyAggregateNode>(),
             new HashSet<PhysicalProjectNode>(),
             new Dictionary<PhysicalCteNode, IReadOnlyList<PlannedParallelCteLevel>>(),

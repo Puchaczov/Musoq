@@ -1471,10 +1471,10 @@
     <Compile Update="IR\Logical\Rewriting\LogicalPlanRewriter.Expressions.cs">
       <DependentUpon>LogicalPlanRewriter.cs</DependentUpon>
     </Compile>
-    <Compile Update="IR\Optimization\LogicalConstantExpressionFolder.Binary.cs">
+    <Compile Update="IR\Optimization\Logical\LogicalConstantExpressionFolder.Binary.cs">
       <DependentUpon>LogicalConstantExpressionFolder.cs</DependentUpon>
     </Compile>
-    <Compile Update="IR\Optimization\LogicalConstantExpressionFolder.Unary.cs">
+    <Compile Update="IR\Optimization\Logical\LogicalConstantExpressionFolder.Unary.cs">
       <DependentUpon>LogicalConstantExpressionFolder.cs</DependentUpon>
     </Compile>
     <Compile Update="IR\Physical\PhysicalPlanBuilder.CteStatements.cs">
@@ -1869,21 +1869,6 @@
     </Compile>
     <Compile Update="Visitors\ScriptVariableInitializerEvaluator.ScriptVariableNullSafeComparisonEvaluator.cs">
       <DependentUpon>ScriptVariableInitializerEvaluator.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SemanticDiagnosticReporter.cs">
-      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SemanticMethodBindingService.cs">
-      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SemanticQueryValidationService.cs">
-      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SemanticResultShapeBindingService.cs">
-      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SemanticSourceBindingService.cs">
-      <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>
     </Compile>
     <Compile Update="Visitors\BuildMetadataAndInferTypesVisitor.SemanticVisitorServices.cs">
       <DependentUpon>BuildMetadataAndInferTypesVisitor.cs</DependentUpon>

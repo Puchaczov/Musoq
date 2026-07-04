@@ -14,9 +14,7 @@ public partial class SubqueryToCteRewriteVisitor
         List<CteInnerExpressionNode> cteInnerExpressions)
     {
         var valueExpression = query.Select.Fields[0].Expression;
-        var valueContainsAggregate = ContainsAggregateMethod(valueExpression);
-        if (RequiresResultMaterialization(query, valueExpression) &&
-            !(valueContainsAggregate && !RequiresCorrelatedAggregateApply(query)))
+        if (RequiresResultMaterialization(query))
         {
             return RewriteMaterializedUncorrelatedScalarSubquery(
                 query,
@@ -30,7 +28,7 @@ public partial class SubqueryToCteRewriteVisitor
         {
             new FieldNode(new IntegerNode(1), 0, keyColumnName),
             new FieldNode(
-                valueContainsAggregate ? valueExpression : CreateScalarAggregate(valueExpression),
+                CreateDeferredScalarAggregate(valueExpression),
                 1,
                 valueColumnName)
         };

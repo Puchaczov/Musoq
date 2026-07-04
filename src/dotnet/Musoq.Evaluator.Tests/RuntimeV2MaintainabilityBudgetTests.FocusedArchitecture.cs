@@ -1,9 +1,11 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
+using Musoq.Evaluator.Visitors;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -262,7 +264,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "src/dotnet/Musoq.Evaluator/IR/Planning/QueryPlanner.cs"));
         var physicalPipelineText = File.ReadAllText(ToAbsolutePath(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Optimization/PhysicalPlanningPipeline.cs"));
+            "src/dotnet/Musoq.Evaluator/IR/Planning/Physical/PhysicalPlanningPipeline.cs"));
         var executionIrText = File.ReadAllText(ToAbsolutePath(
             repositoryRoot,
             "src/dotnet/Musoq.Converter/Build/TransformTree.ExecutionIr.cs"));
@@ -305,11 +307,16 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var visitorsDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/Visitors");
         string[] expectedServiceFiles =
         [
-            "BuildMetadataAndInferTypesVisitor.SemanticSourceBindingService.cs",
-            "BuildMetadataAndInferTypesVisitor.SemanticMethodBindingService.cs",
-            "BuildMetadataAndInferTypesVisitor.SemanticResultShapeBindingService.cs",
-            "BuildMetadataAndInferTypesVisitor.SemanticQueryValidationService.cs",
-            "BuildMetadataAndInferTypesVisitor.SemanticDiagnosticReporter.cs"
+            "SemanticAnalysisState.cs",
+            "SemanticSourceBindingService.cs",
+            "SemanticMethodBindingService.cs",
+            "Semantics/SemanticResultShapeBindingService.cs",
+            "Semantics/SemanticQueryValidationService.cs",
+            "Semantics/SemanticDiagnosticReporter.cs",
+            "Semantics/SemanticExpressionDiagnosticFacts.cs",
+            "Semantics/SemanticExpressionBindingService.cs",
+            "Semantics/SemanticColumnPropertyBindingService.cs",
+            "Semantics/SemanticSetOperatorFactService.cs"
         ];
 
         var missing = expectedServiceFiles
@@ -326,19 +333,56 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var servicesText = File.ReadAllText(ToAbsolutePath(
             repositoryRoot,
             "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.SemanticVisitorServices.cs"));
+        var stateFacadeText = File.ReadAllText(ToAbsolutePath(
+            repositoryRoot,
+            "src/dotnet/Musoq.Evaluator/Visitors/SemanticVisitorState.cs"));
         var validationText = File.ReadAllText(ToAbsolutePath(
             repositoryRoot,
             "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.QueryValidation.cs"));
 
+        Assert.Contains("SemanticAnalysisState _semanticState", stateFacadeText);
+        Assert.DoesNotContain("private sealed record", stateFacadeText);
         Assert.Contains("new SemanticSourceBindingService", visitorText);
+        Assert.Contains("new SemanticColumnPropertyBindingService", visitorText);
+        Assert.Contains("new SemanticExpressionBindingService", visitorText);
         Assert.Contains("new SemanticMethodBindingService", visitorText);
         Assert.Contains("new SemanticResultShapeBindingService", visitorText);
         Assert.Contains("new SemanticQueryValidationService", visitorText);
         Assert.Contains("new SemanticDiagnosticReporter", visitorText);
         Assert.Contains("_sourceBindingService", servicesText);
+        Assert.Contains("_columnPropertyBindingService", servicesText);
+        Assert.Contains("_expressionBindingService", servicesText);
         Assert.Contains("_methodBindingService", servicesText);
         Assert.Contains("_resultShapeBindingService", servicesText);
         Assert.Contains("_queryValidationService.ValidateExpressionIsBoolean", validationText);
+    }
+
+    [TestMethod]
+    public void FocusedArchitecture_SemanticServices_ShouldNotReturnAsVisitorPrivateNestedTypes()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var visitorsDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/Visitors");
+        var legacyServiceFiles = Directory
+            .EnumerateFiles(visitorsDirectory, "BuildMetadataAndInferTypesVisitor.Semantic*.cs", SearchOption.TopDirectoryOnly)
+            .Where(file => !Path.GetFileName(file).Equals(
+                "BuildMetadataAndInferTypesVisitor.SemanticVisitorServices.cs",
+                StringComparison.Ordinal))
+            .Select(file => Path.GetRelativePath(repositoryRoot, file).Replace(Path.DirectorySeparatorChar, '/'))
+            .ToArray();
+        var nestedSemanticTypes = typeof(BuildMetadataAndInferTypesVisitor)
+            .GetNestedTypes(BindingFlags.NonPublic | BindingFlags.Public)
+            .Where(static type => type.Name.StartsWith("Semantic", StringComparison.Ordinal))
+            .Select(static type => type.Name)
+            .ToArray();
+
+        Assert.IsEmpty(
+            legacyServiceFiles,
+            "Semantic services must stay as directly testable internal services, not visitor partial artifacts: " +
+            string.Join(", ", legacyServiceFiles));
+        Assert.IsEmpty(
+            nestedSemanticTypes,
+            "BuildMetadataAndInferTypesVisitor should remain a traversal/delegation facade, not own private semantic services: " +
+            string.Join(", ", nestedSemanticTypes));
     }
 
     [TestMethod]

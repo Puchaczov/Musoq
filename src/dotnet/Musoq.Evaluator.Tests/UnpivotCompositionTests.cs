@@ -25,9 +25,15 @@ public sealed class UnpivotCompositionTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
             new BasicEntity { Name = "A", Population = 10m, Money = 1m })).Run();
 
-        Assert.AreEqual(2, table.Count);
-        AssertRow(table[0], "A", "Money", 1m);
-        AssertRow(table[1], "A", "Population", 10m);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Metric", typeof(string)),
+            ("Amount", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["A", "Money", 1m],
+            ["A", "Population", 10m]);
     }
 
     [TestMethod]
@@ -47,9 +53,15 @@ public sealed class UnpivotCompositionTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
             new BasicEntity { Name = "A", Population = 10m, Money = 1m })).Run();
 
-        Assert.AreEqual(2, table.Count);
-        AssertRow(table[0], "A", "Money", 1m);
-        AssertRow(table[1], "A", "Population", 10m);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("u.Name", typeof(string)),
+            ("u.Metric", typeof(string)),
+            ("u.Amount", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["A", "Money", 1m],
+            ["A", "Population", 10m]);
     }
 
     [TestMethod]
@@ -76,9 +88,15 @@ public sealed class UnpivotCompositionTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, sources).Run();
 
-        Assert.AreEqual(2, table.Count);
-        AssertRow(table[0], "GDA", "Money", "PL");
-        AssertRow(table[1], "GDA", "Population", "PL");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("u.City", typeof(string)),
+            ("u.Metric", typeof(string)),
+            ("l.Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["GDA", "Money", "PL"],
+            ["GDA", "Population", "PL"]);
     }
 
     [TestMethod]
@@ -101,19 +119,16 @@ public sealed class UnpivotCompositionTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, sources).Run();
 
-        Assert.AreEqual(2, table.Count);
-        AssertColumn(table, 0, "City", typeof(string));
-        AssertColumn(table, 1, "Country", typeof(string));
-        AssertColumn(table, 2, "Metric", typeof(string));
-        AssertColumn(table, 3, "Amount", typeof(decimal));
-        Assert.AreEqual("GDA", table[0][0]);
-        Assert.AreEqual("PL", table[0][1]);
-        Assert.AreEqual("LookupMoney", table[0][2]);
-        Assert.AreEqual(2m, table[0][3]);
-        Assert.AreEqual("GDA", table[1][0]);
-        Assert.AreEqual("PL", table[1][1]);
-        Assert.AreEqual("Population", table[1][2]);
-        Assert.AreEqual(10m, table[1][3]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Metric", typeof(string)),
+            ("Amount", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["GDA", "PL", "LookupMoney", 2m],
+            ["GDA", "PL", "Population", 10m]);
     }
 
     [TestMethod]
@@ -172,9 +187,15 @@ public sealed class UnpivotCompositionTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, sources).Run();
 
-        Assert.AreEqual(2, table.Count);
-        AssertRow(table[0], "A", "Population", 10m);
-        AssertRow(table[1], "B", "Money", 2m);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Metric", typeof(string)),
+            ("Amount", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["A", "Population", 10m],
+            ["B", "Money", 2m]);
     }
 
     [TestMethod]
@@ -190,14 +211,12 @@ public sealed class UnpivotCompositionTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
             new BasicEntity { Name = "A", Country = "PL", Population = 10m })).Run();
 
-        Assert.AreEqual(1, table.Count);
-        AssertRow(table[0], "A:PL", "Population", 10m);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Label", typeof(string)),
+            ("Metric", typeof(string)),
+            ("Amount", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A:PL", "Population", 10m]);
     }
 
-    private static void AssertRow(Tables.Row row, object? first, object? second, object? third)
-    {
-        Assert.AreEqual(first, row[0]);
-        Assert.AreEqual(second, row[1]);
-        Assert.AreEqual(third, row[2]);
-    }
 }

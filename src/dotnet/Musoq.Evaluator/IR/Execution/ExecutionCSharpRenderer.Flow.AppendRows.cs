@@ -13,7 +13,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         appendRow = NormalizeLazyContextSegments(appendRow);
 
-        if (_finalShapeYieldSink is { } finalShapeYieldSink &&
+        if (RenderSession.FinalShapeYieldSink is { } finalShapeYieldSink &&
             string.Equals(appendRow.Table.Name, finalShapeYieldSink.TableName, StringComparison.Ordinal))
         {
             return CreateFinalShapeOutputStatement(CreateFinalShapeCreation(finalShapeYieldSink.ShapeTypeName, appendRow));
@@ -35,7 +35,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private StatementSyntax RenderAppendExistingRow(ExecutionAppendExistingRow appendRow)
     {
-        if (_finalShapeYieldSink is { } finalShapeYieldSink &&
+        if (RenderSession.FinalShapeYieldSink is { } finalShapeYieldSink &&
             string.Equals(appendRow.Table.Name, finalShapeYieldSink.TableName, StringComparison.Ordinal))
         {
             return CreateFinalShapeOutputStatement(CreateFinalShapeCreationFromRow(appendRow.Row.Name));
@@ -59,16 +59,30 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ObjectCreationExpressionSyntax CreateGeneratedRowCreation(ExecutionAppendRow appendRow)
     {
+        return CreateGeneratedRowCreation(appendRow, new ExecutionRenderContext(_renderOptions, RenderSession));
+    }
+
+    private ObjectCreationExpressionSyntax CreateGeneratedRowCreation(ExecutionAppendRow appendRow, ExecutionRenderContext context)
+    {
         return CreateGeneratedRowCreation(
             appendRow.RowShape,
             appendRow.Values,
             appendRow.Contexts,
-            appendRow.ContextLayout);
+            appendRow.ContextLayout,
+            context);
     }
 
     private ExpressionSyntax RenderRowConstructorValue(
         ExecutionExpression expression,
         Type targetType)
+    {
+        return RenderRowConstructorValue(expression, targetType, new ExecutionRenderContext(_renderOptions, RenderSession));
+    }
+
+    private ExpressionSyntax RenderRowConstructorValue(
+        ExecutionExpression expression,
+        Type targetType,
+        ExecutionRenderContext context)
     {
         return expression is ExecutionBinary binary &&
                RequiresNullableTemporalSubtraction(binary) &&
@@ -76,8 +90,8 @@ public sealed partial class ExecutionCSharpRenderer
             ? RenderNullableTemporalSubtractionValue(binary)
             : expression is ExecutionBinary nullableBinary &&
               CanRenderBinaryAsNullableTarget(nullableBinary, targetType)
-                ? RenderExpression(nullableBinary with { ReturnType = targetType })
-            : RenderExpression(expression);
+                ? RenderExpression(nullableBinary with { ReturnType = targetType }, context)
+            : RenderExpression(expression, context);
     }
 
     private static bool CanRenderBinaryAsNullableTarget(ExecutionBinary binary, Type targetType)

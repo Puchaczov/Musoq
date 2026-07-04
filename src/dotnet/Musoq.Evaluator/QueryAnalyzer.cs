@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.IR.Optimization;
+using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;

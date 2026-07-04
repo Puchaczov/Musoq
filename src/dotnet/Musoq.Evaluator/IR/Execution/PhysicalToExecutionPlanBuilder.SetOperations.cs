@@ -8,10 +8,13 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
 {
-    private ExecutionPlanBuildResult BuildSetOperation(SetOperationPipeline pipeline, string identifier)
+    private ExecutionPlanBuildResult BuildSetOperation(
+        SetOperationPipeline pipeline,
+        string identifier,
+        PhysicalToExecutionLoweringSession session)
     {
         var cteIndexes = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        var table = BuildSetOperationTable(pipeline, "result", "ResultRow0", cteIndexes);
+        var table = BuildSetOperationTable(pipeline, "result", "ResultRow0", cteIndexes, session: session);
         if (!table.Supported)
             return ExecutionPlanBuildResult.CreateUnsupported(table.UnsupportedReason);
 
@@ -24,15 +27,18 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultShapeName,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName = null,
-        int schemaFromIndex = DefaultSchemaFromIndex)
+        int schemaFromIndex = DefaultSchemaFromIndex,
+        PhysicalToExecutionLoweringSession? session = null)
     {
+        session ??= new PhysicalToExecutionLoweringSession(ResolveExecutionStrategies());
         var table = BuildSetOperationTable(
             pipeline.SetOperation,
             resultTableName,
             resultShapeName,
             cteIndexes,
             cteShapesByName,
-            schemaFromIndex);
+            schemaFromIndex,
+            session);
 
         if (!table.Supported)
             return table;
@@ -51,8 +57,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultShapeName,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName = null,
-        int schemaFromIndex = DefaultSchemaFromIndex)
+        int schemaFromIndex = DefaultSchemaFromIndex,
+        PhysicalToExecutionLoweringSession? session = null)
     {
+        session ??= new PhysicalToExecutionLoweringSession(ResolveExecutionStrategies());
         var strategy = ExecutionStrategies.GetSetOperationStrategy(setOperation);
         var streamingUnionAll = TryBuildStreamingUnionAllTable(
             strategy,
@@ -61,7 +69,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultShapeName,
             cteIndexes,
             cteShapesByName,
-            schemaFromIndex);
+            schemaFromIndex,
+            session);
         if (streamingUnionAll != null)
             return streamingUnionAll;
 
@@ -76,7 +85,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
-            scopeAggregateVariables: true);
+            scopeAggregateVariables: true,
+            session: session);
         if (!left.Supported)
             return TableBuildResult.Unsupported(left.UnsupportedReason);
 
@@ -88,7 +98,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteIndexes,
             cteShapesByName,
             schemaFromIndex + rightSchemaFromIndex,
-            scopeAggregateVariables: true);
+            scopeAggregateVariables: true,
+            session: session);
         if (!right.Supported)
             return TableBuildResult.Unsupported(right.UnsupportedReason);
 
@@ -117,7 +128,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultShapeName,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex)
+        int schemaFromIndex,
+        PhysicalToExecutionLoweringSession session)
     {
         if (!strategy.CanStreamUnionAll)
             return null;
@@ -137,7 +149,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultShape,
             cteIndexes,
             cteShapesByName,
-            schemaFromIndex);
+            schemaFromIndex,
+            session);
         if (!left.Supported)
             return TableBuildResult.Unsupported(
                 $"Planner selected streaming UnionAll, but the left arm could not be lowered: {left.UnsupportedReason}");
@@ -150,7 +163,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultShape,
             cteIndexes,
             cteShapesByName,
-            rightSchemaFromIndex);
+            rightSchemaFromIndex,
+            session);
         if (!right.Supported)
             return TableBuildResult.Unsupported(
                 $"Planner selected streaming UnionAll, but the right arm could not be lowered: {right.UnsupportedReason}");
@@ -180,7 +194,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         GeneratedRowShape resultShape,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex)
+        int schemaFromIndex,
+        PhysicalToExecutionLoweringSession session)
     {
         var sourceShape = ResolveSourceShape(pipeline.Source, cteIndexes, cteShapesByName);
         if (sourceShape == null)

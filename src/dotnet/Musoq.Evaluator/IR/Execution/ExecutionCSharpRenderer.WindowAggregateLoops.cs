@@ -141,6 +141,13 @@ public sealed partial class ExecutionCSharpRenderer
                 RenderExpression(kernel.Value))
         };
         var valuePresent = CreateWindowAggregateValuePresentExpression(valueName, kernel.Descriptor.InputType);
+        if (kernel.FilterPredicate != null)
+        {
+            valuePresent = SyntaxFactory.BinaryExpression(
+                SyntaxKind.LogicalAndExpression,
+                CreateBooleanCondition(RenderExpression(kernel.FilterPredicate), kernel.FilterPredicate.ReturnType),
+                valuePresent);
+        }
 
         if (RequiresWindowAggregateSumPrefix(kernel))
         {

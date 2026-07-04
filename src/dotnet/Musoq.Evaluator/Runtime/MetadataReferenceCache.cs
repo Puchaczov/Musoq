@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis;
 
 namespace Musoq.Evaluator.Runtime;
@@ -9,13 +8,12 @@ namespace Musoq.Evaluator.Runtime;
 /// </summary>
 public static class MetadataReferenceCache
 {
-    private static readonly ConcurrentDictionary<string, MetadataReference> Cache =
-        new(StringComparer.OrdinalIgnoreCase);
+    internal static IMetadataReferenceCache Default { get; } = new DefaultMetadataReferenceCache();
 
     /// <summary>
     ///     Gets the current number of cached references.
     /// </summary>
-    public static int Count => Cache.Count;
+    public static int Count => Default.Count;
 
     /// <summary>
     ///     Gets or creates a MetadataReference for the given assembly path.
@@ -24,10 +22,7 @@ public static class MetadataReferenceCache
     /// <returns>A cached or newly created MetadataReference.</returns>
     public static MetadataReference GetOrCreate(string assemblyPath)
     {
-        if (string.IsNullOrEmpty(assemblyPath))
-            throw new ArgumentNullException(nameof(assemblyPath));
-
-        return Cache.GetOrAdd(assemblyPath, path => MetadataReference.CreateFromFile(path));
+        return Default.GetOrCreate(assemblyPath);
     }
 
     /// <summary>
@@ -35,6 +30,6 @@ public static class MetadataReferenceCache
     /// </summary>
     public static void Clear()
     {
-        Cache.Clear();
+        Default.Clear();
     }
 }

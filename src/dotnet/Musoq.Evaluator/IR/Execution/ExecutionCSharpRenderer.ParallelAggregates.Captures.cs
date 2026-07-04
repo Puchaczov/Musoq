@@ -63,7 +63,10 @@ public sealed partial class ExecutionCSharpRenderer
                 AddCaptures(branch.Body, excludedNames, captures);
                 break;
             case ExecutionAggregateSet aggregateSet:
-                AddCaptures(aggregateSet.Arguments, excludedNames, captures);
+                AddCaptures(
+                    AggregateKernelArgumentSelector.SelectValueArgumentsAfterGroup(aggregateSet.Arguments),
+                    excludedNames,
+                    captures);
                 AddCaptures(aggregateSet.AccumulatorInput, excludedNames, captures);
                 break;
             case ExecutionAggregateCapturedValueSet capturedValueSet:

@@ -140,12 +140,17 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
 
     private AccessMethodNode RewriteFunctionCall(AccessMethodNode funcCall)
     {
-        if (funcCall.Arguments == null || funcCall.Arguments.Args.Length == 0)
+        if (funcCall.Arguments.Args.Length == 0 &&
+            funcCall.FilterExpression == null)
             return funcCall;
 
         var newArgs = new Node[funcCall.Arguments.Args.Length];
         for (var i = 0; i < newArgs.Length; i++)
             newArgs[i] = RewriteExpressionNode(funcCall.Arguments.Args[i]);
+
+        var filterExpression = funcCall.FilterExpression == null
+            ? null
+            : RewriteExpressionNode(funcCall.FilterExpression);
 
         return new AccessMethodNode(
             funcCall.FunctionToken,
@@ -158,7 +163,10 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
             funcCall.IsDistinct)
         {
             HasFilter = funcCall.HasFilter,
-            IsPivotGenerated = funcCall.IsPivotGenerated
+            FilterExpression = filterExpression,
+            FilterExpressionText = funcCall.FilterExpressionText,
+            IsPivotGenerated = funcCall.IsPivotGenerated,
+            IsScalarSubqueryValueWrapper = funcCall.IsScalarSubqueryValueWrapper
         };
     }
 

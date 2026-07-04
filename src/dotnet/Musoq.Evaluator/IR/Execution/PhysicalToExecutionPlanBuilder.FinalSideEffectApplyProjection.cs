@@ -12,7 +12,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultTableName,
         string resultShapeName,
         MultiStatementIndexes indexes,
-        bool scopeAggregateVariables)
+        bool scopeAggregateVariables,
+        PhysicalToExecutionLoweringSession session)
     {
         if (multiStatement.Statements.Length < 2)
             return null;
@@ -55,7 +56,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             multiStatement,
             producerIndex,
             indexes,
-            scopeAggregateVariables);
+            scopeAggregateVariables,
+            session);
         if (!prefix.Supported)
             return TableBuildResult.Unsupported(prefix.UnsupportedReason);
 
@@ -68,7 +70,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultTableName,
             resultShapeName,
             indexes.CteIndexes,
-            indexes.CteShapesByName);
+            indexes.CteShapesByName,
+            session: session);
         if (!result.Supported)
             return result;
 
@@ -90,7 +93,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         PhysicalMultiStatementNode multiStatement,
         int exclusiveEndIndex,
         MultiStatementIndexes indexes,
-        bool scopeAggregateVariables)
+        bool scopeAggregateVariables,
+        PhysicalToExecutionLoweringSession session)
     {
         var shapes = new List<RowShape>();
         var nodes = new List<ExecutionNode>();
@@ -102,7 +106,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 CreateStatementTableName(indexes.StatementNamePrefix, index),
                 CreateStatementShapeName(indexes.StatementNamePrefix, index),
                 indexes,
-                scopeAggregateVariables);
+                scopeAggregateVariables,
+                session);
             if (!result.Supported)
                 return CteDefinitionPrefixBuildResult.Unsupported(result.UnsupportedReason);
 

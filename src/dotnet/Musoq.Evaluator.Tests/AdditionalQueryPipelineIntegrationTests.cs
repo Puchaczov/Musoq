@@ -23,10 +23,11 @@ public class AdditionalQueryPipelineIntegrationTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(2, table.Count);
-        var values = new HashSet<string> { (string)table[0][0], (string)table[1][0] };
-        Assert.Contains("Test1", values, "Expected Test1 to be in results");
-        Assert.Contains("Test2", values, "Expected Test2 to be in results");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Test1"],
+            ["Test2"]);
     }
 
     [TestMethod]

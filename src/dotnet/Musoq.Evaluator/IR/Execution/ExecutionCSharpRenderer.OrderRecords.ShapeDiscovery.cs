@@ -6,7 +6,7 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private bool TryGetGeneratedRowShape(ExecutionVariable table, out GeneratedRowShape rowShape)
     {
-        return _tableRowShapesByVariableName.TryGetValue(table.Name, out rowShape!);
+        return RenderSession.TableRowShapesByVariableName.TryGetValue(table.Name, out rowShape!);
     }
 
     private static Dictionary<string, GeneratedRowShape> CreateTableRowShapeMap(ExecutionBlock block)

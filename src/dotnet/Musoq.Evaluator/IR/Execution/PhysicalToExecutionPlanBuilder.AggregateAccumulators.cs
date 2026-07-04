@@ -22,8 +22,12 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         foreach (var binding in bindings)
         {
             var arguments = ConvertAggregateArguments(binding.SetArguments, sourceLookup, libraries);
+            var filterPredicate = binding.FilterPredicate == null
+                ? null
+                : ExecutionExpressionConverter.Convert(binding.FilterPredicate, sourceLookup);
 
-            if (arguments.Any(argument => argument is ExecutionRawExpression))
+            if (arguments.Any(argument => argument is ExecutionRawExpression) ||
+                filterPredicate is ExecutionRawExpression)
             {
                 return AggregateSetBuildResult.Unsupported(
                     $"Execution IR aggregate-only lowering cannot convert arguments for aggregate '{binding.Identifier}'.");
@@ -45,6 +49,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 group,
                 binding.SetMethod,
                 arguments,
+                filterPredicate,
                 accumulator,
                 accumulatorInput));
             AddTypedAccumulatorKeys(typedAccumulators, binding, accumulator);

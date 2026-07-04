@@ -18,7 +18,7 @@ public sealed partial class ExecutionCSharpRenderer
             keyName => CreateHashBucketAddOrCreateStatement(hashAdd, keyName, hashAdd.BucketVariableName ?? "matches"));
     }
 
-    private List<StatementSyntax> RenderHashProbe(ExecutionHashProbe hashProbe)
+    private List<StatementSyntax> RenderHashProbe(ExecutionHashProbe hashProbe, ExecutionRenderContext context)
     {
         return RenderKeyProbe(
             hashProbe.Key,
@@ -27,7 +27,8 @@ public sealed partial class ExecutionCSharpRenderer
             hashProbe.NoMatchBody,
             hashProbe.MatchFound,
             hashProbe.KeyVariableName ?? "key",
-            keyName => CreateHashTryGetValueExpression(hashProbe.Hash.Name, keyName, hashProbe.Matches.Name));
+            keyName => CreateHashTryGetValueExpression(hashProbe.Hash.Name, keyName, hashProbe.Matches.Name),
+            context);
     }
 
     private List<StatementSyntax> RenderKeySetAdd(ExecutionKeySetAdd keySetAdd)
@@ -41,7 +42,7 @@ public sealed partial class ExecutionCSharpRenderer
             keyName => CreateKeySetAddStatement(keySetAdd.Set.Name, keyName));
     }
 
-    private List<StatementSyntax> RenderKeySetProbe(ExecutionKeySetProbe keySetProbe)
+    private List<StatementSyntax> RenderKeySetProbe(ExecutionKeySetProbe keySetProbe, ExecutionRenderContext context)
     {
         return RenderKeyProbe(
             keySetProbe.Key,
@@ -50,7 +51,8 @@ public sealed partial class ExecutionCSharpRenderer
             keySetProbe.NoMatchBody,
             keySetProbe.MatchFound,
             keySetProbe.KeyVariableName ?? "key",
-            keyName => CreateKeySetContainsExpression(keySetProbe.Set.Name, keyName));
+            keyName => CreateKeySetContainsExpression(keySetProbe.Set.Name, keyName),
+            context);
     }
 
     private List<StatementSyntax> RenderKeyBuild(
@@ -80,13 +82,9 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private List<StatementSyntax> RenderKeyProbe(
-        ExecutionExpression key,
-        Type keyType,
-        ExecutionBlock body,
-        ExecutionBlock? noMatchBody,
-        ExecutionVariable? matchFound,
-        string keyVariableName,
-        Func<string, ExpressionSyntax> createLookupExpression)
+        ExecutionExpression key, Type keyType, ExecutionBlock body, ExecutionBlock? noMatchBody,
+        ExecutionVariable? matchFound, string keyVariableName,
+        Func<string, ExpressionSyntax> createLookupExpression, ExecutionRenderContext context)
     {
         var statements = new List<StatementSyntax>();
         if (matchFound is not null)
@@ -99,16 +97,16 @@ public sealed partial class ExecutionCSharpRenderer
         var lookupExpression = createLookupExpression(keyVariableName);
         var condition = CreateKeyProbeCondition(keyLocal, keyType, keyVariableName, lookupExpression);
         var elseStatement = noMatchBody is { Nodes.Count: > 0 }
-            ? RenderBlock(noMatchBody)
+            ? RenderBlock(noMatchBody, context)
             : null;
 
         if (matchFound is null)
         {
-            statements.Add(StatementEmitter.CreateIf(condition, RenderBlock(body), elseStatement));
+            statements.Add(StatementEmitter.CreateIf(condition, RenderBlock(body, context), elseStatement));
             return statements;
         }
 
-        statements.Add(StatementEmitter.CreateIf(condition, RenderBlock(body)));
+        statements.Add(StatementEmitter.CreateIf(condition, RenderBlock(body, context)));
         if (elseStatement is not null)
         {
             statements.Add(StatementEmitter.CreateIf(

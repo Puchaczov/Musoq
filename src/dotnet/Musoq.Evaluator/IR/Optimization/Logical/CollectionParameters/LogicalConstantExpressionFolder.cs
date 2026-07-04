@@ -1,0 +1,18 @@
+using System.Collections.Generic;
+using Musoq.Evaluator.IR.Expressions;
+using Musoq.Evaluator.IR.Expressions.CollectionParameters;
+using Musoq.Evaluator.IR.Optimization;
+
+namespace Musoq.Evaluator.IR.Optimization.Logical;
+
+internal sealed partial class LogicalConstantExpressionFolder
+{
+    protected override IrExpression VisitCollectionInCheck(CollectionInCheck node)
+    {
+        var expression = Visit(node.Expression);
+        return ReferenceEquals(expression, node.Expression)
+            ? node
+            : node with { Expression = expression };
+    }
+}
+

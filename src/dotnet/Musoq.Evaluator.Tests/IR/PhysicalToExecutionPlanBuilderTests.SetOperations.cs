@@ -175,7 +175,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         PhysicalSetOperationNode setOperation,
         SetOperationStrategyDecision decision)
     {
-        return new ExecutionStrategyPlan(
+        return ExecutionStrategyPlan.Create(
+            PhysicalNodeIdentityMap.Build(setOperation),
             new HashSet<PhysicalSingleKeyAggregateNode>(),
             new HashSet<PhysicalProjectNode>(),
             new Dictionary<PhysicalCteNode, IReadOnlyList<PlannedParallelCteLevel>>(),

@@ -16,9 +16,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        string? sourceRowsScope)
+        string? sourceRowsScope,
+        PhysicalToExecutionLoweringSession session)
     {
-        var leftSource = BuildJoinSource(left, cteIndexes, cteShapesByName, schemaFromIndex, sourceRowsScope);
+        var leftSource = BuildJoinSource(left, cteIndexes, cteShapesByName, schemaFromIndex, sourceRowsScope, session);
         if (!leftSource.Supported)
             return JoinSourcesBuildResult.Unsupported(leftSource.UnsupportedReason);
 
@@ -27,7 +28,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteIndexes,
             cteShapesByName,
             schemaFromIndex + leftSource.Source.SchemaSourceCount,
-            sourceRowsScope);
+            sourceRowsScope,
+            session);
         if (!rightSource.Supported)
             return JoinSourcesBuildResult.Unsupported(rightSource.UnsupportedReason);
 
@@ -39,19 +41,20 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        string? sourceRowsScope)
+        string? sourceRowsScope,
+        PhysicalToExecutionLoweringSession session)
     {
         if (source is PhysicalCteRefNode cteRef &&
-            TryBuildFusedCteHashBuildJoinSource(cteRef, cteIndexes, cteShapesByName, out var fusedSource))
+            TryBuildFusedCteHashBuildJoinSource(cteRef, cteIndexes, cteShapesByName, session, out var fusedSource))
         {
             return SourceBuildResult.Success(fusedSource);
         }
 
         if (source is PhysicalFilterNode filter)
-            return BuildFilteredJoinSource(filter, cteIndexes, cteShapesByName, schemaFromIndex, sourceRowsScope);
+            return BuildFilteredJoinSource(filter, cteIndexes, cteShapesByName, schemaFromIndex, sourceRowsScope, session);
 
         if (source is PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode)
-            return BuildNestedJoinSource(source, cteIndexes, cteShapesByName, schemaFromIndex);
+            return BuildNestedJoinSource(source, cteIndexes, cteShapesByName, schemaFromIndex, session);
 
         if (source is not (PhysicalSchemaScanNode or PhysicalCteRefNode or PhysicalValuesScanNode))
         {
@@ -76,10 +79,11 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        string? sourceRowsScope)
+        string? sourceRowsScope,
+        PhysicalToExecutionLoweringSession session)
     {
         var filterSource = CollectFilterPredicate(filter);
-        var baseSource = BuildJoinSource(filterSource.Source, cteIndexes, cteShapesByName, schemaFromIndex, sourceRowsScope);
+        var baseSource = BuildJoinSource(filterSource.Source, cteIndexes, cteShapesByName, schemaFromIndex, sourceRowsScope, session);
         if (!baseSource.Supported)
             return baseSource;
 
@@ -127,13 +131,12 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         return new FilteredSource(source, predicate);
     }
 
-    private sealed record FilteredSource(PhysicalNode Source, IrExpression Predicate);
-
     private SourceBuildResult BuildNestedJoinSource(
         PhysicalNode join,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex)
+        int schemaFromIndex,
+        PhysicalToExecutionLoweringSession session)
     {
         var projection = CreateNestedSourceProjectionFields(join, cteIndexes, cteShapesByName);
         if (!projection.Supported)
@@ -150,7 +153,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             shapeName,
             cteIndexes,
             cteShapesByName,
-            schemaFromIndex);
+            schemaFromIndex,
+            session);
 
         if (!table.Supported)
             return SourceBuildResult.Unsupported(table.UnsupportedReason);

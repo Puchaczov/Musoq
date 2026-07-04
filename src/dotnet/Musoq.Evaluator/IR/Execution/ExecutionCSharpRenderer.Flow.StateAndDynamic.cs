@@ -130,9 +130,11 @@ public sealed partial class ExecutionCSharpRenderer
             : field.Name;
     }
 
-    private IfStatementSyntax RenderIf(ExecutionIf branch)
+    private IfStatementSyntax RenderIf(
+        ExecutionIf branch,
+        ExecutionRenderContext context)
     {
-        return StatementEmitter.CreateIf(RenderExpression(branch.Condition), RenderBlock(branch.Body));
+        return StatementEmitter.CreateIf(RenderExpression(branch.Condition), RenderBlock(branch.Body, context));
     }
 
     private IfStatementSyntax RenderContinueIf(ExecutionContinueIf continueIf)

@@ -18,13 +18,15 @@ public class GroupByAllTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Berlin", table[0][0]);
-        Assert.AreEqual(2L, table[0][1]);
-        Assert.AreEqual("Paris", table[1][0]);
-        Assert.AreEqual(2L, table[1][1]);
-        Assert.AreEqual("Warsaw", table[2][0]);
-        Assert.AreEqual(2L, table[2][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("C", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Berlin", 2L],
+            ["Paris", 2L],
+            ["Warsaw", 2L]);
     }
 
     [TestMethod]
@@ -34,16 +36,16 @@ public class GroupByAllTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("DE", table[0][0]);
-        Assert.AreEqual("Berlin", table[0][1]);
-        Assert.AreEqual(250m, table[0][2]);
-        Assert.AreEqual("FR", table[1][0]);
-        Assert.AreEqual("Paris", table[1][1]);
-        Assert.AreEqual(100m, table[1][2]);
-        Assert.AreEqual("PL", table[2][0]);
-        Assert.AreEqual("Warsaw", table[2][1]);
-        Assert.AreEqual(250m, table[2][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("City", typeof(string)),
+            ("Total", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["DE", "Berlin", 250m],
+            ["FR", "Paris", 100m],
+            ["PL", "Warsaw", 250m]);
     }
 
     [TestMethod]
@@ -161,16 +163,16 @@ public class GroupByAllTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Berlin", table[0][0]);
-        Assert.AreEqual("DE", table[0][1]);
-        Assert.AreEqual(2L, table[0][2]);
-        Assert.AreEqual("Paris", table[1][0]);
-        Assert.AreEqual("FR", table[1][1]);
-        Assert.AreEqual(2L, table[1][2]);
-        Assert.AreEqual("Warsaw", table[2][0]);
-        Assert.AreEqual("PL", table[2][1]);
-        Assert.AreEqual(2L, table[2][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("C", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Berlin", "DE", 2L],
+            ["Paris", "FR", 2L],
+            ["Warsaw", "PL", 2L]);
     }
 
     [TestMethod]
@@ -201,11 +203,14 @@ public class GroupByAllTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreatePopulationSources()).Run(TokenSource.Token);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(11m, table[0][0]);
-        Assert.AreEqual(2L, table[0][1]);
-        Assert.AreEqual(21m, table[1][0]);
-        Assert.AreEqual(1L, table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Population", typeof(decimal)),
+            ("C", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [11m, 2L],
+            [21m, 1L]);
     }
 
     [TestMethod]
@@ -224,13 +229,15 @@ public class GroupByAllTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, CreateSources()).Run(TokenSource.Token);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("DE", table[0][0]);
-        Assert.AreEqual(2L, Convert.ToInt64(table[0][1]));
-        Assert.AreEqual("FR", table[1][0]);
-        Assert.AreEqual(2L, Convert.ToInt64(table[1][1]));
-        Assert.AreEqual("PL", table[2][0]);
-        Assert.AreEqual(2L, Convert.ToInt64(table[2][1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("Total", typeof(long?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["DE", 2L],
+            ["FR", 2L],
+            ["PL", 2L]);
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateSources()

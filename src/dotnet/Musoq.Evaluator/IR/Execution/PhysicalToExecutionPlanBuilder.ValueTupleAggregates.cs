@@ -6,10 +6,13 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
 {
-    private ExecutionPlanBuildResult BuildValueTupleAggregatePipeline(ValueTupleAggregatePipeline pipeline, string identifier)
+    private ExecutionPlanBuildResult BuildValueTupleAggregatePipeline(
+        ValueTupleAggregatePipeline pipeline,
+        string identifier,
+        PhysicalToExecutionLoweringSession session)
     {
         var cteIndexes = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        var table = BuildValueTupleAggregateTable(pipeline, "result", "ResultRow0", cteIndexes);
+        var table = BuildValueTupleAggregateTable(pipeline, "result", "ResultRow0", cteIndexes, session: session);
         if (!table.Supported)
             return ExecutionPlanBuildResult.CreateUnsupported(table.UnsupportedReason);
 
@@ -23,8 +26,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName = null,
         int schemaFromIndex = DefaultSchemaFromIndex,
-        bool scopeAggregateVariables = false)
+        bool scopeAggregateVariables = false,
+        PhysicalToExecutionLoweringSession? session = null)
     {
+        session ??= new PhysicalToExecutionLoweringSession(ResolveExecutionStrategies());
         if (pipeline.GroupKeys.Length <= 1)
             return TableBuildResult.Unsupported(
                 $"Execution IR value-tuple aggregate lowering supports at least 2 group keys. Found {pipeline.GroupKeys.Length.ToString(CultureInfo.InvariantCulture)} keys.");
@@ -35,7 +40,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteShapesByName,
             schemaFromIndex,
             CreateSourceRowsScope(resultTableName),
-            "value-tuple aggregate");
+            "value-tuple aggregate",
+            session);
         if (!aggregateSource.Supported)
             return TableBuildResult.Unsupported(aggregateSource.UnsupportedReason);
 

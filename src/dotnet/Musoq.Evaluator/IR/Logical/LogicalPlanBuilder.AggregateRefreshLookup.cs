@@ -73,5 +73,9 @@ public sealed partial class LogicalPlanBuilder
         Dictionary<string, RefreshMethodCapture> Captures,
         HashSet<string> AmbiguousNormalizedIdentifiers);
 
-    private sealed record RefreshMethodCapture(MethodInfo SetMethod, IReadOnlyList<IrExpression> SetArguments);
+    private sealed record RefreshMethodCapture(
+        MethodInfo SetMethod,
+        IReadOnlyList<IrExpression> SetArguments,
+        IrExpression? FilterPredicate,
+        string? DisplayName);
 }

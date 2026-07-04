@@ -115,7 +115,6 @@ public partial class SubqueryToCteRewriteVisitor
         ScalarSubqueryNode node)
     {
         var valueExpression = query.Select.Fields[0].Expression;
-        var valueContainsAggregate = ContainsAggregateMethod(valueExpression);
         if (RequiresCorrelatedAggregateApply(query))
             ThrowUnsupportedCorrelatedScalarResultMaterialization(node);
 
@@ -155,7 +154,7 @@ public partial class SubqueryToCteRewriteVisitor
         }
 
         fields[^1] = new FieldNode(
-            valueContainsAggregate ? valueExpression : CreateScalarAggregate(valueExpression),
+            CreateDeferredScalarAggregate(valueExpression),
             fields.Length - 1,
             valueColumnName);
 
@@ -179,10 +178,9 @@ public partial class SubqueryToCteRewriteVisitor
         return new ScalarSubqueryRewrite(rewritten, joinPredicate);
     }
 
-    private static bool RequiresResultMaterialization(QueryNode query, Node valueExpression)
+    private static bool RequiresResultMaterialization(QueryNode query)
     {
-        return ContainsAggregateMethod(valueExpression) ||
-               query.GroupBy != null ||
+        return query.GroupBy != null ||
                query.OrderBy != null ||
                query.Skip != null ||
                query.Take != null ||
@@ -202,27 +200,6 @@ public partial class SubqueryToCteRewriteVisitor
                query.Select.IsDistinct;
     }
 
-    private static bool ContainsAggregateMethod(Node expression)
-    {
-        var detector = new AggregateMethodDetector();
-        expression.Accept(new AggregateMethodTraverser(detector));
-        return detector.Found;
-    }
-
-    private static bool IsAggregateMethodName(string name)
-    {
-        return name.Equals("AggregateValues", StringComparison.OrdinalIgnoreCase) ||
-               name.Equals("Avg", StringComparison.OrdinalIgnoreCase) ||
-               name.Equals("Count", StringComparison.OrdinalIgnoreCase) ||
-               name.Equals("Max", StringComparison.OrdinalIgnoreCase) ||
-               name.Equals("Min", StringComparison.OrdinalIgnoreCase) ||
-               name.Equals("StDev", StringComparison.OrdinalIgnoreCase) ||
-               name.Equals("Sum", StringComparison.OrdinalIgnoreCase) ||
-               name.Equals("SumIncome", StringComparison.OrdinalIgnoreCase) ||
-               name.Equals("SumOutcome", StringComparison.OrdinalIgnoreCase) ||
-               name.Equals("Window", StringComparison.OrdinalIgnoreCase);
-    }
-
     private static AccessMethodNode CreateScalarAggregate(Node expression)
     {
         return new AccessMethodNode(
@@ -230,6 +207,18 @@ public partial class SubqueryToCteRewriteVisitor
             new ArgsListNode([expression]),
             null,
             false);
+    }
+
+    private static AccessMethodNode CreateDeferredScalarAggregate(Node expression)
+    {
+        return new AccessMethodNode(
+            new FunctionToken(ScalarSubqueryAggregateName, default),
+            new ArgsListNode([expression]),
+            null,
+            false)
+        {
+            IsScalarSubqueryValueWrapper = true
+        };
     }
 
     [DoesNotReturn]

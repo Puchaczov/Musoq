@@ -76,10 +76,12 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         SchemaRegistry = schemaRegistry;
         DiagnosticContext = diagnosticContext;
         _diagnosticReporter = new SemanticDiagnosticReporter(DiagnosticContext);
+        _columnPropertyBindingService = new SemanticColumnPropertyBindingService(_sourceBinding, _resultShape);
+        _expressionBindingService = new SemanticExpressionBindingService(_diagnosticReporter);
         _sourceBindingService = new SemanticSourceBindingService(_sourceBinding);
         _methodBindingService = new SemanticMethodBindingService(AddAssembly);
         _resultShapeBindingService = new SemanticResultShapeBindingService(_resultShape);
-        _queryValidationService = new SemanticQueryValidationService(_diagnosticReporter);
+        _queryValidationService = new SemanticQueryValidationService(_diagnosticReporter, _compilationOptions);
         _sourceRuntimeSettingsResolutionService =
             new SourceRuntimeSettingsResolutionService(_compilationOptions, DiagnosticContext);
         _scriptParameters = new ScriptParameterMetadataBinder(TryReportScriptParameterError, AddAssembly);

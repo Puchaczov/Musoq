@@ -42,7 +42,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             binding.GetMethod,
             arguments,
             binding.GetMethod.ReturnType,
-            accumulator));
+            accumulator,
+            binding.DisplayName));
     }
 
     private static int? TryGetGroupKeyExpressionIndex(

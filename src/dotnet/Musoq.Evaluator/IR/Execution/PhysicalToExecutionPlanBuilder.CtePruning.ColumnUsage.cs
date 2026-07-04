@@ -178,6 +178,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         {
             foreach (var argument in binding.SetArguments)
                 yield return argument;
+            if (binding.FilterPredicate != null)
+                yield return binding.FilterPredicate;
             foreach (var argument in binding.GetArguments)
                 yield return argument;
         }
@@ -193,6 +195,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 yield return key.Expression;
             foreach (var argument in registration.ValueArguments)
                 yield return argument;
+            if (registration.FilterPredicate != null)
+                yield return registration.FilterPredicate;
         }
     }
 

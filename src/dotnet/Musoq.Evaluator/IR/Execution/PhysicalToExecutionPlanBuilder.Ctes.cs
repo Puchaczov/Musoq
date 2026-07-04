@@ -8,7 +8,10 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
 {
-    private ExecutionPlanBuildResult BuildCte(PhysicalCteNode cte, string identifier)
+    private ExecutionPlanBuildResult BuildCte(
+        PhysicalCteNode cte,
+        string identifier,
+        PhysicalToExecutionLoweringSession session)
     {
         var cteIndexes = CreateCteIndexes(cte);
         var cteDefinitionNames = cte.Definitions.Select(static definition => definition.Name).ToArray();
@@ -41,7 +44,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteShapesByName,
             schemaFromIndexes,
             parallelLevels,
-            pruningPlan);
+            pruningPlan,
+            session);
         if (readOnceProjection != null)
         {
             if (!readOnceProjection.Supported)
@@ -59,7 +63,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteShapesByName,
             schemaFromIndexes,
             parallelLevels,
-            pruningPlan);
+            pruningPlan,
+            session);
         if (readOnceSidecarJoin != null)
         {
             if (!readOnceSidecarJoin.Supported)
@@ -99,7 +104,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     schemaFromIndexes,
                     pruningPlan,
                     cteReferenceClassifications,
-                    fusedHashBuildSources);
+                    fusedHashBuildSources,
+                    session);
                 if (siblingFusion != null)
                 {
                     foreach (var (name, rowShape) in siblingFusion.RowShapesByName)
@@ -125,7 +131,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     cteIndexes,
                     cteShapesByName,
                     schemaFromIndexes[definition.Name],
-                    pruningPlan);
+                    pruningPlan,
+                    session);
                 var sidecarSpecs = ExecutionStrategies.GetCteSidecarIndexSpecs(cte, definition.Name);
                 result = ApplyCteSidecarOptimizations(
                     definition.Name,
@@ -133,6 +140,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     cteReferenceClassifications,
                     pruningPlan,
                     result,
+                    session,
                     out var storage);
 
                 if (!result.Supported)
@@ -161,7 +169,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                         cteIndexes,
                         cteShapesByName,
                         schemaFromIndexes[definition.Name],
-                        pruningPlan);
+                        pruningPlan,
+                        session);
                     var sidecarSpecs = ExecutionStrategies.GetCteSidecarIndexSpecs(cte, definition.Name);
                     result = ApplyCteSidecarOptimizations(
                         definition.Name,
@@ -169,6 +178,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                         cteReferenceClassifications,
                         pruningPlan,
                         result,
+                        session,
                         out var storage);
 
                     if (!result.Supported)
@@ -191,7 +201,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     cteShapesByName,
                     schemaFromIndexes,
                     pruningPlan,
-                    cteReferenceClassifications);
+                    cteReferenceClassifications,
+                    session);
 
                 if (!parallelResult.Supported)
                     return ExecutionPlanBuildResult.CreateUnsupported(parallelResult.UnsupportedReason);
@@ -201,24 +212,17 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             }
         }
 
-        var previousFusedHashBuildSources = _fusedCteHashBuildSources;
-        _fusedCteHashBuildSources = MergeFusedCteHashBuildSources(previousFusedHashBuildSources, fusedHashBuildSources);
-        TableBuildResult queryResult;
-        try
-        {
-            queryResult = BuildPlanTable(
-                cte.Query,
-                "result",
-                "ResultRow0",
-                cteIndexes,
-                cteShapesByName,
-                querySchemaFromIndex,
-                scopeAggregateVariables: true);
-        }
-        finally
-        {
-            _fusedCteHashBuildSources = previousFusedHashBuildSources;
-        }
+        var querySession = session.WithFusedCteHashBuildSources(
+            MergeFusedCteHashBuildSources(session.FusedCteHashBuildSources, fusedHashBuildSources));
+        var queryResult = BuildPlanTable(
+            cte.Query,
+            "result",
+            "ResultRow0",
+            cteIndexes,
+            cteShapesByName,
+            querySchemaFromIndex,
+            scopeAggregateVariables: true,
+            session: querySession);
 
         if (!queryResult.Supported)
             return ExecutionPlanBuildResult.CreateUnsupported(queryResult.UnsupportedReason);
@@ -241,7 +245,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
         int schemaFromIndex,
-        CteDefinitionPruningPlan pruningPlan)
+        CteDefinitionPruningPlan pruningPlan,
+        PhysicalToExecutionLoweringSession session)
     {
         definition = ApplyCteDefinitionPruning(definition, pruningPlan);
         var cteName = CreateCteTableName(index, cteDefinitionNames);
@@ -252,7 +257,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
-            scopeAggregateVariables: true);
+            scopeAggregateVariables: true,
+            session: session);
 
         return _compilationOptions.UseCteSidecarIndexes
             ? ApplyCteRowBufferCapacity(result)

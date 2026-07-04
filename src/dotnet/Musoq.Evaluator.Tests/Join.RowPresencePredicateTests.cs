@@ -30,7 +30,11 @@ left join #B.entities() b on a.Id = b.Id";
             [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
             [new BasicEntity { Id = 2 }]));
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("State", typeof(string)),
+            ("a.Id", typeof(int)),
+            ("b.Id", typeof(int?)));
         AssertRows(table, ("LeftOnly", 1, null), ("Matched", 2, 2));
     }
 
@@ -49,7 +53,11 @@ right join #B.entities() b on a.Id = b.Id";
             [new BasicEntity { Id = 2 }],
             [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }]));
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("State", typeof(string)),
+            ("a.Id", typeof(int?)),
+            ("b.Id", typeof(int)));
         AssertRows(table, ("RightOnly", null, 1), ("Matched", 2, 2));
     }
 
@@ -72,7 +80,11 @@ full outer join #B.entities() b on a.Id = b.Id";
             [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
             [new BasicEntity { Id = 2 }, new BasicEntity { Id = 3 }]));
 
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("State", typeof(string)),
+            ("a.Id", typeof(int?)),
+            ("b.Id", typeof(int?)));
         AssertRows(table, ("LeftOnly", 1, null), ("Matched", 2, 2), ("RightOnly", null, 3));
     }
 
@@ -100,7 +112,11 @@ left join #B.entities() b on a.Id = b.Id";
                 new BasicEntity { Id = 1, NullableValue = null }
             ]));
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Id", typeof(int)),
+            ("State", typeof(string)),
+            ("b.NullableValue", typeof(int?)));
         AssertRows(table, (1, "Present", null), (2, "Missing", null));
     }
 
@@ -117,7 +133,7 @@ where b is missing";
             [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
             [new BasicEntity { Id = 2 }, new BasicEntity { Id = 3 }]));
 
-        Assert.AreEqual(1, table.Count);
+        AssertFullOuterIdColumns(table);
         AssertRows(table, (1, null));
     }
 
@@ -143,9 +159,15 @@ where b is present";
         var missing = Run(missingQuery, sources);
         var present = Run(presentQuery, sources);
 
-        Assert.AreEqual(1, missing.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            missing,
+            ("a.Id", typeof(int)),
+            ("b.Id", typeof(int?)));
         AssertRows(missing, (1, null));
-        Assert.AreEqual(1, present.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            present,
+            ("a.Id", typeof(int)),
+            ("b.Id", typeof(int?)));
         AssertRows(present, (2, 2));
     }
 
@@ -171,9 +193,15 @@ where a is present";
         var missing = Run(missingQuery, sources);
         var present = Run(presentQuery, sources);
 
-        Assert.AreEqual(1, missing.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            missing,
+            ("a.Id", typeof(int?)),
+            ("b.Id", typeof(int)));
         AssertRows(missing, (null, 1));
-        Assert.AreEqual(1, present.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            present,
+            ("a.Id", typeof(int?)),
+            ("b.Id", typeof(int)));
         AssertRows(present, (2, 2));
     }
 
@@ -199,9 +227,9 @@ where a is present and b is present";
         var leftMissing = Run(leftMissingQuery, sources);
         var bothPresent = Run(bothPresentQuery, sources);
 
-        Assert.AreEqual(1, leftMissing.Count);
+        AssertFullOuterIdColumns(leftMissing);
         AssertRows(leftMissing, (null, 3));
-        Assert.AreEqual(1, bothPresent.Count);
+        AssertFullOuterIdColumns(bothPresent);
         AssertRows(bothPresent, (2, 2));
     }
 
@@ -232,9 +260,15 @@ where b is present";
         var missing = Run(missingQuery, sources);
         var present = Run(presentQuery, sources);
 
-        Assert.AreEqual(1, missing.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            missing,
+            ("a.Name", typeof(string)),
+            ("b.Name", typeof(string)));
         AssertRows(missing, ("A2", null));
-        Assert.AreEqual(1, present.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            present,
+            ("a.Name", typeof(string)),
+            ("b.Name", typeof(string)));
         AssertRows(present, ("A1", "B1"));
     }
 
@@ -341,9 +375,15 @@ where b is present";
             [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
             [new BasicEntity { Id = 10 }]));
 
-        Assert.AreEqual(2, missing.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            missing,
+            ("a.Id", typeof(int)),
+            ("b.Id", typeof(int?)));
         AssertRows(missing, (1, null), (2, null));
-        Assert.AreEqual(2, present.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            present,
+            ("a.Id", typeof(int)),
+            ("b.Id", typeof(int?)));
         AssertRows(present, (1, 10), (2, 10));
     }
 
@@ -386,7 +426,11 @@ where b is missing";
             [new BasicEntity { Id = 2 }],
             [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }]));
 
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Id", typeof(int)),
+            ("b.Id", typeof(int?)),
+            ("c.Id", typeof(int)));
         AssertThreeWayRows(table, (1, null, 1));
     }
 
@@ -405,7 +449,11 @@ where b is missing";
             [],
             [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }]));
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Id", typeof(int)),
+            ("b.Id", typeof(int?)),
+            ("c.Id", typeof(int)));
         AssertThreeWayRows(table, (1, null, 1), (2, null, 2));
     }
 
@@ -425,8 +473,8 @@ select Id from leftOnly";
             [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
             [new BasicEntity { Id = 2 }]));
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1, table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1]);
     }
 
     [TestMethod]
@@ -486,42 +534,45 @@ left join #B.entities() b on a.Id = b.Id";
 
     private static void AssertRows(Table table, params (string State, int? LeftId, int? RightId)[] expected)
     {
-        var rows = table.Select(row => ((string)row[0], (int?)row[1], (int?)row[2])).ToArray();
-
-        foreach (var expectedRow in expected)
-            Assert.Contains(expectedRow, rows);
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            expected.Select(static row => new object?[] { row.State, row.LeftId, row.RightId }).ToArray());
     }
 
     private static void AssertRows(Table table, params (int? LeftId, int? RightId)[] expected)
     {
-        var rows = table.Select(row => ((int?)row[0], (int?)row[1])).ToArray();
-
-        foreach (var expectedRow in expected)
-            Assert.Contains(expectedRow, rows);
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            expected.Select(static row => new object?[] { row.LeftId, row.RightId }).ToArray());
     }
 
     private static void AssertRows(Table table, params (int Id, string State, int? NullableValue)[] expected)
     {
-        var rows = table.Select(row => ((int)row[0], (string)row[1], (int?)row[2])).ToArray();
-
-        foreach (var expectedRow in expected)
-            Assert.Contains(expectedRow, rows);
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            expected.Select(static row => new object?[] { row.Id, row.State, row.NullableValue }).ToArray());
     }
 
     private static void AssertThreeWayRows(Table table, params (int LeftId, int? RightId, int ThirdId)[] expected)
     {
-        var rows = table.Select(row => ((int)row[0], (int?)row[1], (int)row[2])).ToArray();
-
-        foreach (var expectedRow in expected)
-            Assert.Contains(expectedRow, rows);
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            expected.Select(static row => new object?[] { row.LeftId, row.RightId, row.ThirdId }).ToArray());
     }
 
     private static void AssertRows(Table table, params (string? LeftName, string? RightName)[] expected)
     {
-        var rows = table.Select(row => ((string?)row[0], (string?)row[1])).ToArray();
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            expected.Select(static row => new object?[] { row.LeftName, row.RightName }).ToArray());
+    }
 
-        foreach (var expectedRow in expected)
-            Assert.Contains(expectedRow, rows);
+    private static void AssertFullOuterIdColumns(Table table)
+    {
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Id", typeof(int?)),
+            ("b.Id", typeof(int?)));
     }
 
     private void AssertAlwaysPresentAliasRejected(string query, string alias)

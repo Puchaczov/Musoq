@@ -9,7 +9,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultTableName,
         string resultShapeName,
         MultiStatementIndexes indexes,
-        bool scopeAggregateVariables)
+        bool scopeAggregateVariables,
+        PhysicalToExecutionLoweringSession session)
     {
         if (multiStatement.Statements.Length != 3)
             return null;
@@ -102,7 +103,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultShapeName,
             indexes.CteIndexes,
             indexes.CteShapesByName,
-            scopeAggregateVariables: scopeAggregateVariables);
+            scopeAggregateVariables: scopeAggregateVariables,
+            session: session);
     }
 
     private TableBuildResult? TryBuildFinalAggregateProjectionTable(
@@ -110,7 +112,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultTableName,
         string resultShapeName,
         MultiStatementIndexes indexes,
-        bool scopeAggregateVariables)
+        bool scopeAggregateVariables,
+        PhysicalToExecutionLoweringSession session)
     {
         if (multiStatement.Statements.Length != 2)
             return null;
@@ -151,7 +154,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 resultShapeName,
                 indexes.CteIndexes,
                 indexes.CteShapesByName,
-                scopeAggregateVariables: scopeAggregateVariables);
+                scopeAggregateVariables: scopeAggregateVariables,
+                session: session);
         }
 
         var singleKeyAggregate = DecomposeSingleKeyAggregatePipeline(producer);
@@ -180,7 +184,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 resultShapeName,
                 indexes.CteIndexes,
                 indexes.CteShapesByName,
-                scopeAggregateVariables: scopeAggregateVariables);
+                scopeAggregateVariables: scopeAggregateVariables,
+                session: session);
         }
 
         var valueTupleAggregate = DecomposeValueTupleAggregatePipeline(producer);
@@ -209,7 +214,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 resultShapeName,
                 indexes.CteIndexes,
                 indexes.CteShapesByName,
-                scopeAggregateVariables: scopeAggregateVariables);
+                scopeAggregateVariables: scopeAggregateVariables,
+                session: session);
         }
 
         return null;

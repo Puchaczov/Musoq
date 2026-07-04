@@ -14,13 +14,13 @@ public sealed partial class ExecutionCSharpRenderer
 
     private IEnumerable<StatementSyntax> CreateExecutionStateDeclarations(ExecutionPlan plan)
     {
-        if (_includeTableResults)
+        if (RenderSession.IncludeTableResults)
             yield return CreateTableResultsLocalDeclaration(CountExecutionTableSlots(plan.Body));
 
-        if (_includeCteRowResults)
+        if (RenderSession.IncludeCteRowResults)
             yield return CreateObjectLocalDeclaration(CteRowResultsFieldName, CreateCteRowResultsTypeSyntax());
 
-        if (_includeCteIndexResults)
+        if (RenderSession.IncludeCteIndexResults)
             yield return CreateObjectLocalDeclaration(CteIndexResultsFieldName, CreateCteIndexResultsTypeSyntax());
 
         yield return CreateExecutionStateLocalDeclaration();
@@ -77,7 +77,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ExpressionSyntax CreateExecutionStateParametersSource()
     {
-        return SyntaxFactory.IdentifierName(_useQueryRunContext
+        return SyntaxFactory.IdentifierName(RenderSession.UseQueryRunContext
             ? "__musoqRuntimeParameters"
             : nameof(IParameterizedRunnable.Parameters));
     }

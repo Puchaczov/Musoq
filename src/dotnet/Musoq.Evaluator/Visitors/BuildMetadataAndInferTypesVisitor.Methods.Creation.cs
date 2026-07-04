@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.IR.Bindings;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
-using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 
@@ -75,16 +75,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         MethodResolutionContext context,
         [NotNullWhen(true)] out MethodInfo? method)
     {
-        if (IsCountWildcardCall(methodName, args) &&
-            context.SchemaTablePair.Schema.TryResolveAggregationMethod(
-                methodName,
-                Type.EmptyTypes,
-                context.EntityType,
-                IsAggregateDeclarationMethod,
-                out method))
-        {
+        if (TryResolveWildcardAggregateAsArgumentless(methodName, args, context, out method))
             return true;
-        }
 
         if (context.SchemaTablePair.Schema.TryResolveAggregationMethod(
                 methodName,
@@ -101,10 +93,25 @@ public partial class BuildMetadataAndInferTypesVisitor
         return false;
     }
 
-    private static bool IsCountWildcardCall(string methodName, ArgsListNode args)
+    private static bool TryResolveWildcardAggregateAsArgumentless(
+        string methodName,
+        ArgsListNode args,
+        MethodResolutionContext context,
+        [NotNullWhen(true)] out MethodInfo? method)
     {
-        return string.Equals(methodName, nameof(LibraryBase.Count), StringComparison.OrdinalIgnoreCase) &&
-               args.Args is [AllColumnsNode];
+        if (args.Args is [AllColumnsNode] &&
+            context.SchemaTablePair.Schema.TryResolveAggregationMethod(
+                methodName,
+                Type.EmptyTypes,
+                context.EntityType,
+                IsAggregateDeclarationMethod,
+                out method))
+        {
+            return true;
+        }
+
+        method = null;
+        return false;
     }
 
     private static bool CanUseAggregateDeclarationForArguments(MethodInfo method, ArgsListNode args)
@@ -129,8 +136,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         Func<FunctionToken, ArgsListNode, ArgsListNode?, MethodInfo, string, bool, AccessMethodNode> func)
     {
         var accessMethod = func(node.FunctionToken, args, node.ExtraAggregateArguments, method, context.Alias, false);
+        accessMethod.HasFilter = node.HasFilter;
+        accessMethod.FilterExpression = node.FilterExpression;
+        accessMethod.FilterExpressionText = node.FilterExpressionText;
+        accessMethod.IsPivotGenerated = node.IsPivotGenerated;
+        accessMethod.IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper;
         var identifier = CreateAggregateIdentifier(accessMethod, node.IsDistinct);
-        var refreshArgs = new List<Node> { new WordNode(identifier) };
+        var displayName = CreateAggregateDisplayName(accessMethod, node.IsDistinct);
+        var refreshArgs = new List<Node> { new AggregateIdentifierNode(identifier, displayName) };
         refreshArgs.AddRange(GetAggregateDeclarationValueArguments(method, args));
 
         var refreshMethodNode = func(
@@ -140,11 +153,16 @@ public partial class BuildMetadataAndInferTypesVisitor
             method,
             context.Alias,
             false);
+        refreshMethodNode.HasFilter = node.HasFilter;
+        refreshMethodNode.FilterExpression = node.FilterExpression;
+        refreshMethodNode.FilterExpressionText = node.FilterExpressionText;
+        refreshMethodNode.IsPivotGenerated = node.IsPivotGenerated;
+        refreshMethodNode.IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper;
 
         _methodResolution.RefreshMethods.Add(refreshMethodNode);
         var result = func(
             node.FunctionToken,
-            new ArgsListNode(CreateAggregateDeclarationResultArguments(method, args, identifier)),
+            new ArgsListNode(CreateAggregateDeclarationResultArguments(method, args, identifier, displayName)),
             null,
             method,
             context.Alias,
@@ -156,12 +174,13 @@ public partial class BuildMetadataAndInferTypesVisitor
     private static Node[] CreateAggregateDeclarationResultArguments(
         MethodInfo method,
         ArgsListNode args,
-        string identifier)
+        string identifier,
+        string displayName)
     {
         if (!TryGetAggregateDeclarationParentArgument(method, args, out var parentArgument))
-            return [new WordNode(identifier)];
+            return [new AggregateIdentifierNode(identifier, displayName)];
 
-        return [new WordNode(identifier), parentArgument];
+        return [new AggregateIdentifierNode(identifier, displayName), parentArgument];
     }
 
     private static IEnumerable<Node> GetAggregateDeclarationValueArguments(MethodInfo method, ArgsListNode args)
@@ -200,16 +219,28 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private static string CreateAggregateIdentifier(AccessMethodNode accessMethod, bool isDistinct)
     {
+        return AggregateCallIdentity.Create(accessMethod, isDistinct);
+    }
+
+    private static string CreateAggregateDisplayName(AccessMethodNode accessMethod, bool isDistinct)
+    {
         var identifier = accessMethod.ToString();
 
-        if (!isDistinct)
+        if (isDistinct)
+        {
+            var argumentsStart = identifier.IndexOf('(', StringComparison.Ordinal);
+            if (argumentsStart >= 0 && argumentsStart < identifier.Length - 1)
+                identifier = $"{identifier[..(argumentsStart + 1)]}distinct {identifier[(argumentsStart + 1)..]}";
+        }
+
+        if (accessMethod.FilterExpression == null)
             return identifier;
 
-        var argumentsStart = identifier.IndexOf('(', StringComparison.Ordinal);
-        if (argumentsStart < 0 || argumentsStart == identifier.Length - 1)
-            return identifier;
+        var filterExpressionText = !string.IsNullOrWhiteSpace(accessMethod.FilterExpressionText)
+            ? accessMethod.FilterExpressionText
+            : accessMethod.FilterExpression.Id;
 
-        return $"{identifier[..(argumentsStart + 1)]}distinct {identifier[(argumentsStart + 1)..]}";
+        return $"{identifier} filter (where {filterExpressionText})";
     }
 
     private void FinalizeMethodVisit(MethodInfo method, AccessMethodNode accessMethod)

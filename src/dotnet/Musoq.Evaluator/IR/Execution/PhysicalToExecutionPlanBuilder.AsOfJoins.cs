@@ -4,7 +4,6 @@ using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Parser.Nodes;
-
 namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
@@ -16,7 +15,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultShapeName,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex)
+        int schemaFromIndex,
+        PhysicalToExecutionLoweringSession session)
     {
         var sources = BuildJoinSources(
             join.Left,
@@ -24,10 +24,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
-            CreateSourceRowsScope(resultTableName));
+            CreateSourceRowsScope(resultTableName),
+            session);
         if (!sources.Supported)
             return TableBuildResult.Unsupported(sources.UnsupportedReason);
-
         var joinSources = sources.Source;
         if (!CanUseAsOfProbeSource(joinSources.Right.Shape, joinSources.Right.Variable.Type))
         {
@@ -48,7 +48,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             : CreateLeftAsOfProbe(joinSources, predicate.Value, join.TieBreak, pipeline, resultTable, resultShapeName, sourceLookup);
         if (!asOfProbe.Supported)
             return TableBuildResult.Unsupported(asOfProbe.UnsupportedReason);
-
         var nodes = CreateJoinPrelude(joinSources, resultTable, asOfProbe.ResultShape);
         var asOfIndex = CreateAsOfIndex(resultTableName, asOfProbe.Probe);
         var indexedProbe = asOfProbe.Probe with { Index = asOfIndex.Index };

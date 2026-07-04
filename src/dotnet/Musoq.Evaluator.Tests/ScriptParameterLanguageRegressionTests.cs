@@ -219,9 +219,8 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
-        Assert.AreEqual("Cara", table[1][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Alice"], ["Cara"]);
     }
 
     [TestMethod]
@@ -238,9 +237,8 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Bob", table[0][0]);
-        Assert.AreEqual("Dora", table[1][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Bob"], ["Dora"]);
     }
 
     [TestMethod]
@@ -256,8 +254,8 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Cara", table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Cara"]);
     }
 
     [TestMethod]
@@ -274,9 +272,8 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
-        Assert.AreEqual("Dora", table[1][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Alice"], ["Dora"]);
     }
 
     [TestMethod]
@@ -293,9 +290,8 @@ public class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Bob", table[0][0]);
-        Assert.AreEqual("Dora", table[1][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Bob"], ["Dora"]);
     }
 
     [TestMethod]

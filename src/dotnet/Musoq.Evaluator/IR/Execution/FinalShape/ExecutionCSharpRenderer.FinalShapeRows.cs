@@ -25,59 +25,48 @@ public sealed partial class ExecutionCSharpRenderer
         ArgumentException.ThrowIfNullOrWhiteSpace(queryIdentifier);
         ArgumentException.ThrowIfNullOrWhiteSpace(finalTableName);
         ArgumentException.ThrowIfNullOrWhiteSpace(shapeTypeName);
-        EnsureConstantInSetFields(plan);
-        EnsureStaticMetadataFields(plan);
-        EnsureAggregateGenerationState(plan);
-
-        var previousIncludeCteIndexResults = _includeCteIndexResults;
-        var previousIncludeCteRowResults = _includeCteRowResults;
-        var previousIncludeTableResults = _includeTableResults;
-        var previousTypedStoredTableResults = _typedStoredTableResults;
-        var previousGeneratedRowConstructorUsagesByType = _generatedRowConstructorUsagesByType;
-        var previousSingleKeyAggregateUpdateHelpersByBlock = _singleKeyAggregateUpdateHelpersByBlock;
-        var previousEnumerableTraversalHelpersByBlock = _enumerableTraversalHelpersByBlock;
-        var previousFinalShapeYieldSink = _finalShapeYieldSink;
-        using var queryRunContextScope = useQueryRunContext
-            ? EnterQueryRunContextRendering()
-            : null;
-
-        _typedStoredTableResults = CreateTypedStoredTableResults(plan);
-        _includeCteIndexResults = ExecutionCSharpRenderer.PlanUsesCteIndexResults(plan);
-        _includeCteRowResults = _typedStoredTableResults.Count > 0;
-        _includeTableResults = ExecutionCSharpRenderer.PlanUsesTableResults(plan, _typedStoredTableResults);
-        _generatedRowConstructorUsagesByType = ExecutionCSharpRenderer.CollectGeneratedRowConstructorUsages(plan.Body);
-        var finalShapeBufferName = bufferFinalShapes ? "__musoqFinalShapeRows" : null;
-        var finalShapeSourceBuffers = CreateFinalShapeSourceBuffers(plan.Body, finalTableName, shapeTypeName, shapeFields);
-        _finalShapeYieldSink = new FinalShapeYieldSink(
-            finalTableName,
-            shapeTypeName,
-            shapeFields,
-            finalShapeBufferName,
-            finalShapeSourceBuffers);
-        _singleKeyAggregateUpdateHelpersByBlock = CollectSingleKeyAggregateUpdateHelpersByBlock(plan.Body);
-        _enumerableTraversalHelpersByBlock = Enumerable
-            .Where<KeyValuePair<ExecutionBlock, ExecutionCSharpRenderer.EnumerableTraversalHelper>>(CollectEnumerableTraversalHelpersByBlock(plan.Body), pair => !CapturesCurrentFinalShapeTargetOrSourceBuffer(pair.Value))
-            .ToDictionary(static pair => pair.Key, static pair => pair.Value);
+        var context = InitializeRenderContext(plan);
+        var session = context.Session;
+        var previousUseQueryRunContext = session.UseQueryRunContext;
+        if (useQueryRunContext)
+            session.UseQueryRunContext = true;
 
         try
         {
+            session.TypedStoredTableResults = CreateTypedStoredTableResults(plan);
+            session.IncludeCteIndexResults = ExecutionCSharpRenderer.PlanUsesCteIndexResults(plan);
+            session.IncludeCteRowResults = session.TypedStoredTableResults.Count > 0;
+            session.IncludeTableResults = ExecutionCSharpRenderer.PlanUsesTableResults(plan, session.TypedStoredTableResults);
+            session.GeneratedRowConstructorUsagesByType = ExecutionCSharpRenderer.CollectGeneratedRowConstructorUsages(plan.Body);
+            var finalShapeBufferName = bufferFinalShapes ? "__musoqFinalShapeRows" : null;
+            var finalShapeSourceBuffers = CreateFinalShapeSourceBuffers(plan.Body, finalTableName, shapeTypeName, shapeFields);
+            session.FinalShapeYieldSink = new FinalShapeYieldSink(
+                finalTableName,
+                shapeTypeName,
+                shapeFields,
+                finalShapeBufferName,
+                finalShapeSourceBuffers);
+            session.SingleKeyAggregateUpdateHelpersByBlock = CollectSingleKeyAggregateUpdateHelpersByBlock(plan.Body);
+            session.EnumerableTraversalHelpersByBlock = Enumerable
+                .Where<KeyValuePair<ExecutionBlock, ExecutionCSharpRenderer.EnumerableTraversalHelper>>(CollectEnumerableTraversalHelpersByBlock(plan.Body), pair => !CapturesCurrentFinalShapeTargetOrSourceBuffer(pair.Value))
+                .ToDictionary(static pair => pair.Key, static pair => pair.Value);
+
             return SyntaxFactory.MethodDeclaration(
                     SyntaxFactory.ParseTypeName($"IEnumerable<{shapeTypeName}>"),
                     SyntaxFactory.Identifier(methodName))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
                 .WithParameterList(CreateFinalShapeRowsParameterList(useQueryRunContext, includeProfileRecorderParameter))
-                .WithBody(RenderFinalShapeRowsMethodBody(plan, queryIdentifier, finalTableName, shapeTypeName, finalShapeBufferName));
+                .WithBody(RenderFinalShapeRowsMethodBody(
+                    plan,
+                    queryIdentifier,
+                    finalTableName,
+                    shapeTypeName,
+                    finalShapeBufferName,
+                    context));
         }
         finally
         {
-            _includeCteIndexResults = previousIncludeCteIndexResults;
-            _includeCteRowResults = previousIncludeCteRowResults;
-            _includeTableResults = previousIncludeTableResults;
-            _typedStoredTableResults = previousTypedStoredTableResults;
-            _generatedRowConstructorUsagesByType = previousGeneratedRowConstructorUsagesByType;
-            _singleKeyAggregateUpdateHelpersByBlock = previousSingleKeyAggregateUpdateHelpersByBlock;
-            _enumerableTraversalHelpersByBlock = previousEnumerableTraversalHelpersByBlock;
-            _finalShapeYieldSink = previousFinalShapeYieldSink;
+            session.UseQueryRunContext = previousUseQueryRunContext;
         }
     }
 
@@ -99,34 +88,26 @@ public sealed partial class ExecutionCSharpRenderer
         string queryIdentifier,
         string finalTableName,
         string shapeTypeName,
-        string? finalShapeBufferName)
+        string? finalShapeBufferName,
+        ExecutionRenderContext context)
     {
+        var session = context.Session;
         var block = plan.Body;
-        var previousStoredRowsCacheNames = _storedRowsCacheNames;
-        var previousDeclaredStoredRowsCaches = _declaredStoredRowsCaches;
-        var previousReflectedMemberAccessorNames = _reflectedMemberAccessorNames;
-        var previousTableRowShapesByVariableName = _tableRowShapesByVariableName;
-        var previousStoredGeneratedRowsLoopNameCounts = _storedGeneratedRowsLoopNameCounts;
-        var previousTypedRowBufferVariables = _typedRowBufferVariables;
-        var previousOperatorCatalog = _operatorCatalog;
-        var previousProfileRecorderInScope = _profileRecorderInScope;
         var reflectedAccessors = ExecutionCSharpRenderer.CollectReflectedMemberAccessors(plan);
-        _storedRowsCacheNames = ExecutionCSharpRenderer.CreateStoredRowsCacheNames(block);
-        _declaredStoredRowsCaches = [];
-        _reflectedMemberAccessorNames = reflectedAccessors.ToDictionary(
+        session.StoredRowsCacheNames = ExecutionCSharpRenderer.CreateStoredRowsCacheNames(block);
+        session.DeclaredStoredRowsCaches = [];
+        session.ReflectedMemberAccessorNames = reflectedAccessors.ToDictionary(
             static accessor => accessor.Key,
             static accessor => accessor.VariableName,
             StringComparer.Ordinal);
-        _tableRowShapesByVariableName = ExecutionCSharpRenderer.CreateTableRowShapeMap(block);
-        _storedGeneratedRowsLoopNameCounts = [];
-        _typedRowBufferVariables = CreateTypedRowBufferVariables(block, finalTableName);
-        _operatorCatalog = ExecutionPlanOperatorCatalog.Create(plan);
-        _profileRecorderInScope = IsInstrumentationEnabled;
+        session.TableRowShapesByVariableName = ExecutionCSharpRenderer.CreateTableRowShapeMap(block);
+        session.StoredGeneratedRowsLoopNameCounts = [];
+        session.TypedRowBufferVariables = CreateTypedRowBufferVariables(block, finalTableName);
+        session.OperatorCatalog = ExecutionPlanOperatorCatalog.Create(plan);
+        session.ProfileRecorderInScope = IsInstrumentationEnabled;
 
-        try
-        {
             var statements = new List<StatementSyntax>();
-            if (_useQueryRunContext)
+            if (session.UseQueryRunContext)
                 statements.AddRange(ExecutionCSharpRenderer.CreateQueryRunContextAliasStatements());
 
             statements.AddRange(ExecutionCSharpRenderer.CreateOpeningPhaseStatements(block, queryIdentifier));
@@ -148,7 +129,7 @@ public sealed partial class ExecutionCSharpRenderer
                         .WithArgumentList(SyntaxFactory.ArgumentList())));
             }
 
-            var bodyStatements = RenderMethodStatements(RemoveFinalTableBoundary(block, finalTableName))
+            var bodyStatements = RenderMethodStatements(RemoveFinalTableBoundary(block, finalTableName), context)
                 .Select(statement => RewriteRemovedFinalTableCount(statement, finalTableName, finalShapeBufferName))
                 .ToList();
             if (finalShapeBufferName != null)
@@ -162,18 +143,6 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.Block(ExecutionCSharpRenderer.CreateClosingPhaseStatements(block, queryIdentifier)))));
 
             return CreateProfileExceptionBoundaryBlock(statements, includeExceptionBoundary: finalShapeBufferName != null);
-        }
-        finally
-        {
-            _storedRowsCacheNames = previousStoredRowsCacheNames;
-            _declaredStoredRowsCaches = previousDeclaredStoredRowsCaches;
-            _reflectedMemberAccessorNames = previousReflectedMemberAccessorNames;
-            _tableRowShapesByVariableName = previousTableRowShapesByVariableName;
-            _storedGeneratedRowsLoopNameCounts = previousStoredGeneratedRowsLoopNameCounts;
-            _typedRowBufferVariables = previousTypedRowBufferVariables;
-            _operatorCatalog = previousOperatorCatalog;
-            _profileRecorderInScope = previousProfileRecorderInScope;
-        }
     }
 
     private static StatementSyntax RewriteRemovedFinalTableCount(

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
-
 namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
@@ -12,11 +11,11 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
         string? sourceRowsScope,
-        string aggregateKind)
+        string aggregateKind,
+        PhysicalToExecutionLoweringSession session)
     {
         if (source is PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode)
-            return BuildNestedJoinSource(source, cteIndexes, cteShapesByName, schemaFromIndex);
-
+            return BuildNestedJoinSource(source, cteIndexes, cteShapesByName, schemaFromIndex, session);
         if (source is PhysicalNestedLoopApplyNode apply)
         {
             return BuildNestedApplySource(
@@ -24,9 +23,9 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 cteIndexes,
                 cteShapesByName,
                 schemaFromIndex,
-                new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase));
+                new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase),
+                session);
         }
-
         var shape = ResolveSourceShape(source, cteIndexes, cteShapesByName);
         if (shape == null)
         {

@@ -37,8 +37,12 @@ internal static partial class LogicalPlanRewriter
             var binding = bindings[index];
             var setArguments = RewriteExpressions(binding.SetArguments, rewriteExpression, out var setChanged);
             var getArguments = RewriteExpressions(binding.GetArguments, rewriteExpression, out var getChanged);
-            rewritten[index] = setChanged || getChanged
-                ? binding with { SetArguments = setArguments, GetArguments = getArguments }
+            var filterPredicate = binding.FilterPredicate == null
+                ? null
+                : rewriteExpression(binding.FilterPredicate);
+            var filterChanged = !ReferenceEquals(filterPredicate, binding.FilterPredicate);
+            rewritten[index] = setChanged || getChanged || filterChanged
+                ? binding with { SetArguments = setArguments, FilterPredicate = filterPredicate, GetArguments = getArguments }
                 : binding;
             changed |= !ReferenceEquals(rewritten[index], binding);
         }
@@ -133,12 +137,17 @@ internal static partial class LogicalPlanRewriter
             var partitionKeys = RewriteExpressions(registration.PartitionKeys, rewriteExpression, out var partitionChanged);
             var orderKeys = RewriteOrderFields(registration.OrderKeys, rewriteExpression, out var orderChanged);
             var valueArguments = RewriteExpressions(registration.ValueArguments, rewriteExpression, out var valueChanged);
-            rewritten[index] = partitionChanged || orderChanged || valueChanged
+            var filterPredicate = registration.FilterPredicate == null
+                ? null
+                : rewriteExpression(registration.FilterPredicate);
+            var filterChanged = !ReferenceEquals(filterPredicate, registration.FilterPredicate);
+            rewritten[index] = partitionChanged || orderChanged || valueChanged || filterChanged
                 ? registration with
                 {
                     PartitionKeys = partitionKeys,
                     OrderKeys = orderKeys,
-                    ValueArguments = valueArguments
+                    ValueArguments = valueArguments,
+                    FilterPredicate = filterPredicate
                 }
                 : registration;
             changed |= !ReferenceEquals(rewritten[index], registration);

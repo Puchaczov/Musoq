@@ -19,7 +19,7 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateObjectCreation(GetAggregateGroupTypeName(shape), [..owners, ..keys]);
     }
 
-    private sealed record ConstantInSetField(string Name, ExecutionConstantInSet ConstantSet);
+    internal sealed record ConstantInSetField(string Name, ExecutionConstantInSet ConstantSet);
 
-    private sealed record StaticMetadataField(string Name, ExecutionColumnMetadata Metadata);
+    internal sealed record StaticMetadataField(string Name, ExecutionColumnMetadata Metadata);
 }

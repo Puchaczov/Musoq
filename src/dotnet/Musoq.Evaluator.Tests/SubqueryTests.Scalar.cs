@@ -18,10 +18,15 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        CollectionAssert.AreEqual(
-            new[] { "PARIS", "PARIS", "PARIS" },
-            table.Select(row => (string)row.Values[1]).ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("MatchCity", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW", "PARIS"],
+            ["BERLIN", "PARIS"],
+            ["PARIS", "PARIS"]);
     }
 
     [TestMethod]
@@ -36,8 +41,12 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => row.Values[0] == null));
+        TableMaterializationTestHelper.AssertColumns(table, ("MissingCity", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            new object?[] { null },
+            new object?[] { null },
+            new object?[] { null });
     }
 
     [TestMethod]
@@ -67,8 +76,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => Convert.ToDecimal(row.Values[0]) == 210m));
+        TableMaterializationTestHelper.AssertColumns(table, ("TotalPopulation", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [210m], [210m], [210m]);
     }
 
     [TestMethod]
@@ -82,8 +91,52 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => Convert.ToInt64(row.Values[1]) == 3L));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("Total", typeof(long?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW", 3L],
+            ["BERLIN", 3L],
+            ["PARIS", 3L]);
+    }
+
+    [TestMethod]
+    public void WhenScalarSubquery_HasUncorrelatedCustomAggregate_ShouldReturnAggregateValue()
+    {
+        const string query = @"
+            SELECT a.City, (
+                SELECT CustomRowCount() FROM #B.entities() b
+            ) AS Total
+            FROM #A.entities() a";
+
+        var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("Total", typeof(long?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW", 3L],
+            ["BERLIN", 3L],
+            ["PARIS", 3L]);
+    }
+
+    [TestMethod]
+    public void WhenScalarSubquery_HasScalarFunctionProjectionWithMultipleRows_ShouldThrow()
+    {
+        const string query = @"
+            SELECT (
+                SELECT DoNothing(b.City) FROM #B.entities() b
+                WHERE b.Country = 'POLAND'
+            ) AS City
+            FROM #A.entities() a";
+
+        var vm = CreateAndRunVirtualMachine(query, CreateScalarSources());
+
+        Assert.Throws<InvalidOperationException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
     }
 
     [TestMethod]
@@ -99,8 +152,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => (string)row.Values[0] == "PARIS"));
+        TableMaterializationTestHelper.AssertColumns(table, ("TopCity", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["PARIS"], ["PARIS"], ["PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("_sm_1", inspection.PhysicalPlanText);
@@ -121,8 +174,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => (string)row.Values[0] == "GDANSK"));
+        TableMaterializationTestHelper.AssertColumns(table, ("SecondCity", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["GDANSK"], ["GDANSK"], ["GDANSK"]);
     }
 
     [TestMethod]
@@ -138,8 +191,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => (string)row.Values[0] == "PARIS"));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["PARIS"], ["PARIS"], ["PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("_sm_1", inspection.PhysicalPlanText);
@@ -174,8 +227,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => (string)row.Values[0] == "POLAND"));
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["POLAND"], ["POLAND"], ["POLAND"]);
     }
 
     [TestMethod]
@@ -205,8 +258,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => Convert.ToDecimal(row.Values[0]) == 210m));
+        TableMaterializationTestHelper.AssertColumns(table, ("TotalPopulation", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [210m], [210m], [210m]);
     }
 
     [TestMethod]
@@ -236,8 +289,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("PARIS", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["PARIS"]);
     }
 
 }

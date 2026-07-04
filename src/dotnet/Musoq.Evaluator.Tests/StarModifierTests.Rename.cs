@@ -48,15 +48,14 @@ public partial class StarModifierTests
     [TestMethod]
     public void WhenStarLikeExcludeRename_ShouldComposeInOrder()
     {
-        const string query = "select * like 'C%' exclude (Country) rename (City as Location) from #A.entities()";
+        const string query = "select * like 'C%' exclude (Country) replace (City + '-x' as City) rename (City as Location) from #A.entities()";
 
         var source = new BasicEntity("january", 50m) { City = "London", Country = "UK" };
         var vm = CreateAndRunVirtualMachine(query, CreateSingleEntitySource(source));
         var table = vm.Run(TestContext.CancellationToken);
 
-        var columnNames = table.Columns.Select(c => c.ColumnName).ToArray();
-        CollectionAssert.AreEqual(new[] { "Location" }, columnNames);
-        Assert.AreEqual("London", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Location", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["London-x"]);
     }
 
     [TestMethod]

@@ -101,6 +101,18 @@ public partial class BuildItems
         {
             Compilation = value.Compilation;
             AccessToClassPath = value.AccessToClassPath;
+            QueryMethodRenderMetadata = value.QueryMethodRenderMetadata;
+        }
+    }
+
+    internal CompilationBuildArtifacts CompilationArtifacts
+    {
+        get => new(EmitResult, DllFile, PdbFile);
+        set
+        {
+            EmitResult = value.EmitResult;
+            DllFile = value.DllFile;
+            PdbFile = value.PdbFile;
         }
     }
 }

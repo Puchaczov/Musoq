@@ -142,8 +142,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             var binding = bindings[index];
 
             yield return new ProjectedField(
-                binding.Identifier,
-                new AggregateRef(binding.Identifier, binding.ReturnType),
+                binding.ColumnName,
+                new AggregateRef(binding.Identifier, binding.ReturnType, binding.DisplayName),
                 startIndex + index);
         }
     }

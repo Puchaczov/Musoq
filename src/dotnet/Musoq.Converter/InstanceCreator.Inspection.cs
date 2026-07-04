@@ -19,9 +19,17 @@ public static partial class InstanceCreator
         var physicalPlan = items.PhysicalPlan ?? throw new InvalidOperationException(
             "Physical plan inspection failed because the compilation pipeline did not produce a physical plan.");
 
-        if (!items.ContainsKey("COMPILATION"))
+        Microsoft.CodeAnalysis.CSharp.CSharpCompilation compilation;
+        try
+        {
+            compilation = items.Compilation;
+        }
+        catch (System.Collections.Generic.KeyNotFoundException ex)
+        {
             throw new InvalidOperationException(
-                "Generated C# inspection failed because the compilation pipeline did not produce a C# compilation.");
+                "Generated C# inspection failed because the compilation pipeline did not produce a C# compilation.",
+                ex);
+        }
 
         var executionPlanText = items.ExecutionPlanText ??
             ExecutionPlanPrinter.PrintUnsupported("Execution IR inspection was not produced by the compilation pipeline.");
@@ -43,7 +51,7 @@ public static partial class InstanceCreator
             physicalPlan,
             LogicalPlanPrinter.Print(logicalPlan),
             PhysicalPlanPrinter.Print(physicalPlan),
-            ExtractGeneratedCSharpCode(items.Compilation))
+            ExtractGeneratedCSharpCode(compilation))
         {
             PlanningText = planningText,
             ExecutionPlanText = executionPlanText,

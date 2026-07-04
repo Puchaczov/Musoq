@@ -19,12 +19,12 @@ public sealed partial class ExecutionCSharpRenderer
             if (constantSet.Kind is ExecutionConstantInSetKind.Switch)
                 continue;
 
-            if (_constantInSetFieldNames.ContainsKey(constantSet))
+            if (RenderSession.ConstantInSetFieldNames.ContainsKey(constantSet))
                 continue;
 
-            var fieldName = CreateIdentifierCandidate($"__inSet_{plan.Identifier}_{_constantInSetFields.Count}", 0);
-            _constantInSetFieldNames.Add(constantSet, fieldName);
-            _constantInSetFields.Add(new ConstantInSetField(fieldName, constantSet));
+            var fieldName = CreateIdentifierCandidate($"__inSet_{plan.Identifier}_{RenderSession.ConstantInSetFields.Count}", 0);
+            RenderSession.ConstantInSetFieldNames.Add(constantSet, fieldName);
+            RenderSession.ConstantInSetFields.Add(new ConstantInSetField(fieldName, constantSet));
         }
     }
 
@@ -37,23 +37,23 @@ public sealed partial class ExecutionCSharpRenderer
     private void EnsureStaticMetadataField(string planIdentifier, ExecutionColumnMetadata metadata)
     {
         var key = CreateStaticMetadataKey(metadata);
-        if (_staticMetadataFieldNames.ContainsKey(key))
+        if (RenderSession.StaticMetadataFieldNames.ContainsKey(key))
             return;
 
         var prefix = metadata.Kind == ExecutionColumnMetadataKind.TableColumns
             ? "__columns"
             : "__schemaColumns";
         var fieldName = CreateIdentifierCandidate(
-            $"{prefix}_{planIdentifier}_{metadata.ReferenceName}_{_staticMetadataFields.Count}",
+            $"{prefix}_{planIdentifier}_{metadata.ReferenceName}_{RenderSession.StaticMetadataFields.Count}",
             0);
 
-        _staticMetadataFieldNames.Add(key, fieldName);
-        _staticMetadataFields.Add(new StaticMetadataField(fieldName, metadata));
+        RenderSession.StaticMetadataFieldNames.Add(key, fieldName);
+        RenderSession.StaticMetadataFields.Add(new StaticMetadataField(fieldName, metadata));
     }
 
     private bool TryGetStaticMetadataFieldName(ExecutionColumnMetadata metadata, out string fieldName)
     {
-        return _staticMetadataFieldNames.TryGetValue(CreateStaticMetadataKey(metadata), out fieldName!);
+        return RenderSession.StaticMetadataFieldNames.TryGetValue(CreateStaticMetadataKey(metadata), out fieldName!);
     }
 
     internal bool TryGetTableColumnMetadataFieldName(

@@ -10,52 +10,60 @@ public class TurnQueryIntoRunnableCode(BuildChain? successor) : BuildChain(succe
     public override void Build(BuildItems items)
     {
         ArgumentNullException.ThrowIfNull(items);
-        var emitPdb = items.EmitPdb;
+        var artifacts = Compile(items.RenderingArtifacts, items.EmitPdb);
+        items.CompilationArtifacts = artifacts;
 
+        if (!artifacts.EmitResult.Success)
+            throw new CompilationException(CreateCompilationErrorText(artifacts.EmitResult));
+
+        Successor?.Build(items);
+    }
+
+    private static CompilationBuildArtifacts Compile(RenderingBuildArtifacts rendering, bool emitPdb)
+    {
         using var dllStream = new MemoryStream();
         using var pdbStream = emitPdb ? new MemoryStream() : null;
 
         var result = emitPdb
-            ? items.Compilation.Emit(dllStream, pdbStream,
+            ? rendering.Compilation.Emit(dllStream, pdbStream,
                 options: new EmitOptions(false, DebugInformationFormat.PortablePdb))
-            : items.Compilation.Emit(dllStream);
-
-        items.EmitResult = result;
+            : rendering.Compilation.Emit(dllStream);
 
         if (!result.Success)
-        {
-            var all = new StringBuilder();
+            return new CompilationBuildArtifacts(result, null, null);
 
-            foreach (var diagnostic in result.Diagnostics)
-            {
-                all.AppendLine(diagnostic.ToString());
-                AppendDiagnosticSourceSnippet(all, diagnostic);
-            }
-
-            items.DllFile = null;
-            items.PdbFile = null;
-
-            throw new CompilationException(all.ToString());
-        }
-
+        byte[]? pdbFile;
         if (emitPdb)
         {
             if (!pdbStream!.TryGetBuffer(out var pdbBuffer))
                 pdbBuffer = new ArraySegment<byte>(pdbStream.ToArray());
 
-            items.PdbFile = pdbBuffer.Count == pdbBuffer.Array!.Length ? pdbBuffer.Array : pdbBuffer.ToArray();
+            pdbFile = pdbBuffer.Count == pdbBuffer.Array!.Length ? pdbBuffer.Array : pdbBuffer.ToArray();
         }
         else
         {
-            items.PdbFile = null;
+            pdbFile = null;
         }
 
         if (!dllStream.TryGetBuffer(out var dllBuffer))
             dllBuffer = new ArraySegment<byte>(dllStream.ToArray());
 
-        items.DllFile = dllBuffer.Count == dllBuffer.Array!.Length ? dllBuffer.Array : dllBuffer.ToArray();
+        var dllFile = dllBuffer.Count == dllBuffer.Array!.Length ? dllBuffer.Array : dllBuffer.ToArray();
 
-        Successor?.Build(items);
+        return new CompilationBuildArtifacts(result, dllFile, pdbFile);
+    }
+
+    private static string CreateCompilationErrorText(EmitResult result)
+    {
+        var all = new StringBuilder();
+
+        foreach (var diagnostic in result.Diagnostics)
+        {
+            all.AppendLine(diagnostic.ToString());
+            AppendDiagnosticSourceSnippet(all, diagnostic);
+        }
+
+        return all.ToString();
     }
 
     private static void AppendDiagnosticSourceSnippet(StringBuilder builder, Microsoft.CodeAnalysis.Diagnostic diagnostic)

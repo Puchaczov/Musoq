@@ -8,20 +8,37 @@ public sealed partial class ExecutionCSharpRenderer
 {
     internal IDisposable EnterTypedSinkRendering(ExecutionPlan plan)
     {
-        return new TypedSinkRenderingScope(this, plan);
+        return EnterTypedSinkRenderContext(plan);
+    }
+
+    internal RenderContextScope EnterTypedSinkRenderContext(ExecutionPlan plan)
+    {
+        return new RenderContextScope(new TypedSinkRenderingScope(this, plan));
     }
 
     internal IDisposable EnterQueryRunContextRendering()
     {
-        return new QueryRunContextRenderingScope(this);
+        return EnterQueryRunContextRenderContext();
+    }
+
+    internal RenderContextScope EnterQueryRunContextRenderContext()
+    {
+        return new RenderContextScope(new QueryRunContextRenderingScope(this));
     }
 
     internal IReadOnlyList<StatementSyntax> CreateTypedSinkEntryStatements(ExecutionPlan plan)
     {
+        return CreateTypedSinkEntryStatements(plan, new ExecutionRenderContext(_renderOptions, RenderSession));
+    }
+
+    internal IReadOnlyList<StatementSyntax> CreateTypedSinkEntryStatements(
+        ExecutionPlan plan,
+        ExecutionRenderContext context)
+    {
         var statements = new List<StatementSyntax>();
         var reflectedAccessors = CollectReflectedMemberAccessors(plan);
 
-        if (_useQueryRunContext)
+        if (context.Session.UseQueryRunContext)
             statements.AddRange(CreateQueryRunContextAliasStatements());
 
         statements.AddRange(CreateExecutionStateDeclarations(plan));
@@ -36,15 +53,36 @@ public sealed partial class ExecutionCSharpRenderer
 
     internal ExpressionSyntax RenderExpressionForTypedSink(ExecutionExpression expression)
     {
-        return RenderExpression(expression);
+        return RenderExpressionForTypedSink(expression, new ExecutionRenderContext(_renderOptions, RenderSession));
+    }
+
+    internal ExpressionSyntax RenderExpressionForTypedSink(
+        ExecutionExpression expression,
+        ExecutionRenderContext context)
+    {
+        return RenderExpression(expression, context);
     }
 
     internal IReadOnlyList<StatementSyntax> RenderSourceScanForTypedSink(ExecutionSourceScan sourceScan)
+    {
+        return RenderSourceScanForTypedSink(sourceScan, new ExecutionRenderContext(_renderOptions, RenderSession));
+    }
+
+    internal IReadOnlyList<StatementSyntax> RenderSourceScanForTypedSink(
+        ExecutionSourceScan sourceScan,
+        ExecutionRenderContext context)
     {
         return RenderSourceScan(sourceScan);
     }
 
     internal IReadOnlyList<StatementSyntax> RenderSetupNodeForTypedSink(ExecutionNode node)
+    {
+        return RenderSetupNodeForTypedSink(node, new ExecutionRenderContext(_renderOptions, RenderSession));
+    }
+
+    internal IReadOnlyList<StatementSyntax> RenderSetupNodeForTypedSink(
+        ExecutionNode node,
+        ExecutionRenderContext context)
     {
         return node switch
         {
@@ -55,21 +93,61 @@ public sealed partial class ExecutionCSharpRenderer
 
     internal ObjectCreationExpressionSyntax RenderGeneratedRowCreationForTypedSink(ExecutionAppendRow appendRow)
     {
+        return RenderGeneratedRowCreationForTypedSink(appendRow, new ExecutionRenderContext(_renderOptions, RenderSession));
+    }
+
+    internal ObjectCreationExpressionSyntax RenderGeneratedRowCreationForTypedSink(
+        ExecutionAppendRow appendRow,
+        ExecutionRenderContext context)
+    {
         appendRow = NormalizeLazyContextSegments(appendRow);
-        return CreateGeneratedRowCreation(appendRow);
+        return CreateGeneratedRowCreation(appendRow, context);
     }
 
     internal ParenthesizedLambdaExpressionSyntax RenderOptionalGeneratedRowProjectionForTypedSink(
         ExecutionParallelFilterProjectLoop parallelProject)
     {
-        return CreateParallelProjectionProjector(
+        return RenderOptionalGeneratedRowProjectionForTypedSink(
             parallelProject,
-            appendRow => RenderGeneratedRowCreationForTypedSink(appendRow));
+            new ExecutionRenderContext(_renderOptions, RenderSession));
     }
 
-    private sealed class TypedSinkRenderingScope : IDisposable
+    internal ParenthesizedLambdaExpressionSyntax RenderOptionalGeneratedRowProjectionForTypedSink(
+        ExecutionParallelFilterProjectLoop parallelProject,
+        ExecutionRenderContext context)
+    {
+        return CreateParallelProjectionProjector(
+            parallelProject,
+            appendRow => RenderGeneratedRowCreationForTypedSink(appendRow, context));
+    }
+
+    internal sealed class RenderContextScope : IDisposable
+    {
+        private readonly IRenderContextScope _scope;
+
+        internal RenderContextScope(IRenderContextScope scope)
+        {
+            _scope = scope;
+            Context = scope.Context;
+        }
+
+        internal ExecutionRenderContext Context { get; }
+
+        public void Dispose()
+        {
+            _scope.Dispose();
+        }
+    }
+
+    internal interface IRenderContextScope : IDisposable
+    {
+        ExecutionRenderContext Context { get; }
+    }
+
+    private sealed class TypedSinkRenderingScope : IRenderContextScope
     {
         private readonly ExecutionCSharpRenderer _renderer;
+        private readonly ExecutionRenderSession? _previousRenderSession;
         private readonly bool _previousIncludeCteIndexResults;
         private readonly bool _previousIncludeCteRowResults;
         private readonly bool _previousIncludeTableResults;
@@ -87,62 +165,65 @@ public sealed partial class ExecutionCSharpRenderer
         public TypedSinkRenderingScope(ExecutionCSharpRenderer renderer, ExecutionPlan plan)
         {
             _renderer = renderer;
-            renderer.EnsureConstantInSetFields(plan);
-            renderer.EnsureStaticMetadataFields(plan);
-            renderer.EnsureAggregateGenerationState(plan);
+            _previousRenderSession = RenderSessionSlot.Value;
+            renderer.InitializeRenderSession(plan);
+            Context = new ExecutionRenderContext(renderer._renderOptions, renderer.RenderSession);
 
-            _previousIncludeCteIndexResults = renderer._includeCteIndexResults;
-            _previousIncludeCteRowResults = renderer._includeCteRowResults;
-            _previousIncludeTableResults = renderer._includeTableResults;
-            _previousTypedStoredTableResults = renderer._typedStoredTableResults;
-            _previousGeneratedRowConstructorUsagesByType = renderer._generatedRowConstructorUsagesByType;
-            _previousStoredRowsCacheNames = renderer._storedRowsCacheNames;
-            _previousDeclaredStoredRowsCaches = renderer._declaredStoredRowsCaches;
-            _previousReflectedMemberAccessorNames = renderer._reflectedMemberAccessorNames;
-            _previousTableRowShapesByVariableName = renderer._tableRowShapesByVariableName;
-            _previousStoredGeneratedRowsLoopNameCounts = renderer._storedGeneratedRowsLoopNameCounts;
-            _previousTypedRowBufferVariables = renderer._typedRowBufferVariables;
-            _previousOperatorCatalog = renderer._operatorCatalog;
-            _previousProfileRecorderInScope = renderer._profileRecorderInScope;
+            _previousIncludeCteIndexResults = renderer.RenderSession.IncludeCteIndexResults;
+            _previousIncludeCteRowResults = renderer.RenderSession.IncludeCteRowResults;
+            _previousIncludeTableResults = renderer.RenderSession.IncludeTableResults;
+            _previousTypedStoredTableResults = renderer.RenderSession.TypedStoredTableResults;
+            _previousGeneratedRowConstructorUsagesByType = renderer.RenderSession.GeneratedRowConstructorUsagesByType;
+            _previousStoredRowsCacheNames = renderer.RenderSession.StoredRowsCacheNames;
+            _previousDeclaredStoredRowsCaches = renderer.RenderSession.DeclaredStoredRowsCaches;
+            _previousReflectedMemberAccessorNames = renderer.RenderSession.ReflectedMemberAccessorNames;
+            _previousTableRowShapesByVariableName = renderer.RenderSession.TableRowShapesByVariableName;
+            _previousStoredGeneratedRowsLoopNameCounts = renderer.RenderSession.StoredGeneratedRowsLoopNameCounts;
+            _previousTypedRowBufferVariables = renderer.RenderSession.TypedRowBufferVariables;
+            _previousOperatorCatalog = renderer.RenderSession.OperatorCatalog;
+            _previousProfileRecorderInScope = renderer.RenderSession.ProfileRecorderInScope;
 
             var reflectedAccessors = CollectReflectedMemberAccessors(plan);
-            renderer._typedStoredTableResults = CreateTypedStoredTableResults(plan);
-            renderer._includeCteIndexResults = PlanUsesCteIndexResults(plan);
-            renderer._includeCteRowResults = renderer._typedStoredTableResults.Count > 0;
-            renderer._includeTableResults = PlanUsesTableResults(plan, renderer._typedStoredTableResults);
-            renderer._generatedRowConstructorUsagesByType = CollectGeneratedRowConstructorUsages(plan.Body);
-            renderer._storedRowsCacheNames = CreateStoredRowsCacheNames(plan.Body);
-            renderer._declaredStoredRowsCaches = [];
-            renderer._reflectedMemberAccessorNames = reflectedAccessors.ToDictionary(
+            renderer.RenderSession.TypedStoredTableResults = CreateTypedStoredTableResults(plan);
+            renderer.RenderSession.IncludeCteIndexResults = PlanUsesCteIndexResults(plan);
+            renderer.RenderSession.IncludeCteRowResults = renderer.RenderSession.TypedStoredTableResults.Count > 0;
+            renderer.RenderSession.IncludeTableResults = PlanUsesTableResults(plan, renderer.RenderSession.TypedStoredTableResults);
+            renderer.RenderSession.GeneratedRowConstructorUsagesByType = CollectGeneratedRowConstructorUsages(plan.Body);
+            renderer.RenderSession.StoredRowsCacheNames = CreateStoredRowsCacheNames(plan.Body);
+            renderer.RenderSession.DeclaredStoredRowsCaches = [];
+            renderer.RenderSession.ReflectedMemberAccessorNames = reflectedAccessors.ToDictionary(
                 static accessor => accessor.Key,
                 static accessor => accessor.VariableName,
                 StringComparer.Ordinal);
-            renderer._tableRowShapesByVariableName = CreateTableRowShapeMap(plan.Body);
-            renderer._storedGeneratedRowsLoopNameCounts = [];
-            renderer._typedRowBufferVariables = CreateTypedRowBufferVariables(plan.Body);
-            renderer._operatorCatalog = ExecutionPlanOperatorCatalog.Create(plan);
-            renderer._profileRecorderInScope = renderer.IsInstrumentationEnabled;
+            renderer.RenderSession.TableRowShapesByVariableName = CreateTableRowShapeMap(plan.Body);
+            renderer.RenderSession.StoredGeneratedRowsLoopNameCounts = [];
+            renderer.RenderSession.TypedRowBufferVariables = CreateTypedRowBufferVariables(plan.Body);
+            renderer.RenderSession.OperatorCatalog = ExecutionPlanOperatorCatalog.Create(plan);
+            renderer.RenderSession.ProfileRecorderInScope = renderer.IsInstrumentationEnabled;
         }
+
+        public ExecutionRenderContext Context { get; }
 
         public void Dispose()
         {
-            _renderer._includeCteIndexResults = _previousIncludeCteIndexResults;
-            _renderer._includeCteRowResults = _previousIncludeCteRowResults;
-            _renderer._includeTableResults = _previousIncludeTableResults;
-            _renderer._typedStoredTableResults = _previousTypedStoredTableResults;
-            _renderer._generatedRowConstructorUsagesByType = _previousGeneratedRowConstructorUsagesByType;
-            _renderer._storedRowsCacheNames = _previousStoredRowsCacheNames;
-            _renderer._declaredStoredRowsCaches = _previousDeclaredStoredRowsCaches;
-            _renderer._reflectedMemberAccessorNames = _previousReflectedMemberAccessorNames;
-            _renderer._tableRowShapesByVariableName = _previousTableRowShapesByVariableName;
-            _renderer._storedGeneratedRowsLoopNameCounts = _previousStoredGeneratedRowsLoopNameCounts;
-            _renderer._typedRowBufferVariables = _previousTypedRowBufferVariables;
-            _renderer._operatorCatalog = _previousOperatorCatalog;
-            _renderer._profileRecorderInScope = _previousProfileRecorderInScope;
+            _renderer.RenderSession.IncludeCteIndexResults = _previousIncludeCteIndexResults;
+            _renderer.RenderSession.IncludeCteRowResults = _previousIncludeCteRowResults;
+            _renderer.RenderSession.IncludeTableResults = _previousIncludeTableResults;
+            _renderer.RenderSession.TypedStoredTableResults = _previousTypedStoredTableResults;
+            _renderer.RenderSession.GeneratedRowConstructorUsagesByType = _previousGeneratedRowConstructorUsagesByType;
+            _renderer.RenderSession.StoredRowsCacheNames = _previousStoredRowsCacheNames;
+            _renderer.RenderSession.DeclaredStoredRowsCaches = _previousDeclaredStoredRowsCaches;
+            _renderer.RenderSession.ReflectedMemberAccessorNames = _previousReflectedMemberAccessorNames;
+            _renderer.RenderSession.TableRowShapesByVariableName = _previousTableRowShapesByVariableName;
+            _renderer.RenderSession.StoredGeneratedRowsLoopNameCounts = _previousStoredGeneratedRowsLoopNameCounts;
+            _renderer.RenderSession.TypedRowBufferVariables = _previousTypedRowBufferVariables;
+            _renderer.RenderSession.OperatorCatalog = _previousOperatorCatalog;
+            _renderer.RenderSession.ProfileRecorderInScope = _previousProfileRecorderInScope;
+            RenderSessionSlot.Value = _previousRenderSession;
         }
     }
 
-    private sealed class QueryRunContextRenderingScope : IDisposable
+    private sealed class QueryRunContextRenderingScope : IRenderContextScope
     {
         private readonly ExecutionCSharpRenderer _renderer;
         private readonly bool _previousUseQueryRunContext;
@@ -150,13 +231,16 @@ public sealed partial class ExecutionCSharpRenderer
         public QueryRunContextRenderingScope(ExecutionCSharpRenderer renderer)
         {
             _renderer = renderer;
-            _previousUseQueryRunContext = renderer._useQueryRunContext;
-            renderer._useQueryRunContext = true;
+            _previousUseQueryRunContext = renderer.RenderSession.UseQueryRunContext;
+            renderer.RenderSession.UseQueryRunContext = true;
+            Context = new ExecutionRenderContext(renderer._renderOptions, renderer.RenderSession);
         }
+
+        public ExecutionRenderContext Context { get; }
 
         public void Dispose()
         {
-            _renderer._useQueryRunContext = _previousUseQueryRunContext;
+            _renderer.RenderSession.UseQueryRunContext = _previousUseQueryRunContext;
         }
     }
 }

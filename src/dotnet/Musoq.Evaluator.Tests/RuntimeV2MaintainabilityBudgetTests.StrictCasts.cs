@@ -52,7 +52,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     }
 
     [TestMethod]
-    public void StrictCastGeneratedCode_WhenSourceTypesAreKnown_ShouldUseLibraryCallsWithoutFallbackOrBoxing()
+    public void StrictCastGeneratedCode_WhenSourceTypesAreKnown_ShouldUseStrictRuntimeCallsWithoutFallbackOrBoxing()
     {
         string[] sampleFileNames =
         [
@@ -64,7 +64,6 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         ];
         string[] forbiddenPatterns =
         [
-            "StrictCastRuntime",
             "System.Reflection",
             "MethodInfo",
             ".GetMethod(",
@@ -89,8 +88,14 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
         Assert.IsEmpty(
             failures,
-            "Known typed postfix casts should render direct LibraryBase calls, without reflection/fallback/boxing patterns: " +
+            "Known typed postfix casts should render direct strict runtime calls, without reflection/fallback/boxing patterns: " +
             string.Join(", ", failures));
+
+        foreach (var fileName in sampleFileNames)
+        {
+            var code = CompileGeneratedSampleForInspection(fileName).GeneratedCSharpCode;
+            Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.", code);
+        }
     }
 
     [TestMethod]

@@ -91,8 +91,12 @@ public sealed partial class ExecutionCSharpRenderer
         builder.Append(aggregateSet.AccumulatorInput is null
             ? "<null>"
             : ExecutionExpressionFingerprint.ForParallelAggregate(aggregateSet.AccumulatorInput, parallelAggregate));
+        builder.Append(":filter=");
+        builder.Append(aggregateSet.FilterPredicate is null
+            ? "<null>"
+            : ExecutionExpressionFingerprint.ForParallelAggregate(aggregateSet.FilterPredicate, parallelAggregate));
         builder.Append(":args=");
-        foreach (var argument in aggregateSet.Arguments)
+        foreach (var argument in AggregateKernelArgumentSelector.SelectValueArgumentsAfterGroup(aggregateSet.Arguments))
         {
             builder
                 .Append(ExecutionExpressionFingerprint.ForParallelAggregate(argument, parallelAggregate))

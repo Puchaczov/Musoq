@@ -189,7 +189,7 @@ public sealed class RowWidthPruningPlannerTests
             [new ProjectedField("Name", new ColumnRef("a", "Name", typeof(string)), 0)],
             join);
 
-        var rowShape = BoundaryRowShapePlanner.Plan(project, CreateEmptyProperties());
+        var rowShape = BoundaryRowShapePlanner.Plan(project, CreateEmptyProperties().RequiredColumns);
         var pruning = RowWidthPruningPlanner.Plan(rowShape.Plans);
         var plan = pruning.Plans.Single(static item => item.Kind == BoundaryRowShapeKind.HashJoinBuild);
 
@@ -221,7 +221,7 @@ public sealed class RowWidthPruningPlannerTests
             [new ProjectedField("Id", new ColumnRef("b", "Id", typeof(int)), 0)],
             join);
 
-        var rowShape = BoundaryRowShapePlanner.Plan(project, CreateEmptyProperties());
+        var rowShape = BoundaryRowShapePlanner.Plan(project, CreateEmptyProperties().RequiredColumns);
         var probePlan = rowShape.Plans.Single(static item => item.Kind == BoundaryRowShapeKind.HashJoinProbe);
         var pruning = RowWidthPruningPlanner.Plan(rowShape.Plans);
         var pruningPlan = pruning.Plans.Single(static item => item.Kind == BoundaryRowShapeKind.HashJoinProbe);
@@ -248,25 +248,6 @@ public sealed class RowWidthPruningPlannerTests
 
     private static PlanProperties CreateEmptyProperties()
     {
-        return new PlanProperties(
-            new Dictionary<string, SourcePlanProperties>(StringComparer.Ordinal),
-            new Dictionary<string, IrExpression[]>(StringComparer.Ordinal),
-            new Dictionary<string, string[]>(StringComparer.Ordinal),
-            new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal),
-            new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase),
-            new Dictionary<string, RequiredColumnUsage[]>(StringComparer.Ordinal),
-            [],
-            [],
-            new Dictionary<string, SourcePredicatePlan>(StringComparer.Ordinal),
-            new Dictionary<string, SourceInteractionPlan>(StringComparer.Ordinal),
-            new Dictionary<string, SourcePlanRequest>(StringComparer.Ordinal),
-            new Dictionary<string, SourcePlanResult>(StringComparer.Ordinal),
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            []);
+        return PlanPropertiesTestFactory.CreateEmpty();
     }
 }

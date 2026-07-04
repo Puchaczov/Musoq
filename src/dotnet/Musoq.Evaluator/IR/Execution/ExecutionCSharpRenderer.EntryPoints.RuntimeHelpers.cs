@@ -38,13 +38,13 @@ public sealed partial class ExecutionCSharpRenderer
         if (IsInstrumentationEnabled)
             arguments.Add(SyntaxFactory.IdentifierName(ProfileRecorderVariableName));
 
-        if (_includeTableResults)
+        if (RenderSession.IncludeTableResults)
             arguments.Add(SyntaxFactory.IdentifierName("_tableResults"));
 
-        if (_includeCteRowResults)
+        if (RenderSession.IncludeCteRowResults)
             arguments.Add(SyntaxFactory.IdentifierName("_cteRowResults"));
 
-        if (_includeCteIndexResults)
+        if (RenderSession.IncludeCteIndexResults)
             arguments.Add(SyntaxFactory.IdentifierName("_cteIndexResults"));
 
         return arguments;
@@ -75,7 +75,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (IsInstrumentationEnabled)
             parameters.Add(CreateParameter(ProfileRecorderVariableName, CreateTypeSyntax(typeof(QueryProfileRecorder))));
 
-        if (_includeTableResults)
+        if (RenderSession.IncludeTableResults)
         {
             parameters.Add(CreateParameter("_tableResults", SyntaxFactory.ArrayType(CreateTypeSyntax(typeof(Table)))
                 .WithRankSpecifiers(SyntaxFactory.SingletonList(
@@ -83,10 +83,10 @@ public sealed partial class ExecutionCSharpRenderer
                         SyntaxFactory.OmittedArraySizeExpression()))))));
         }
 
-        if (_includeCteRowResults)
+        if (RenderSession.IncludeCteRowResults)
             parameters.Add(CreateParameter("_cteRowResults", CreateCteRowResultsTypeSyntax()));
 
-        if (_includeCteIndexResults)
+        if (RenderSession.IncludeCteIndexResults)
         {
             parameters.Add(CreateParameter("_cteIndexResults", CreateCteIndexResultsTypeSyntax()));
         }
@@ -133,13 +133,13 @@ public sealed partial class ExecutionCSharpRenderer
         if (IsInstrumentationEnabled)
             names.Add(ProfileRecorderVariableName);
 
-        if (_includeTableResults)
+        if (RenderSession.IncludeTableResults)
             names.Add("_tableResults");
 
-        if (_includeCteRowResults)
+        if (RenderSession.IncludeCteRowResults)
             names.Add("_cteRowResults");
 
-        if (_includeCteIndexResults)
+        if (RenderSession.IncludeCteIndexResults)
             names.Add("_cteIndexResults");
 
         return names;

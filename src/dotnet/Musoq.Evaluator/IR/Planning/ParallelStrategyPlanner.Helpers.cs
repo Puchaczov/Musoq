@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
-using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
@@ -44,13 +43,12 @@ internal sealed partial class ParallelStrategyPlanner
 
     private static ParallelEligibilityCheck CanUseParallelFilterProjectPredicate(
         PhysicalFilterNode? filter,
-        RowShape sourceShape)
+        PlanningRowShape sourceShape)
     {
         if (filter == null)
             return ParallelEligibilityCheck.Enabled;
 
-        var predicate = ExecutionExpressionConverter.Convert(filter.Predicate, sourceShape);
-        var predicateEligibility = ParallelExecutionEligibilityRules.CanUseFilterProjectExpression(predicate);
+        var predicateEligibility = ParallelPlanningEligibilityRules.CanUseFilterProjectExpression(filter.Predicate, sourceShape);
         if (predicateEligibility.IsEligible)
             return ParallelEligibilityCheck.Enabled;
 
@@ -59,12 +57,11 @@ internal sealed partial class ParallelStrategyPlanner
 
     private static ParallelEligibilityCheck CanUseParallelFilterProjectFields(
         IReadOnlyList<ProjectedField> fields,
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
+        PlanningRowShape sourceShape)
     {
         foreach (var field in fields)
         {
-            var expression = ExecutionExpressionConverter.Convert(field.Expression, sourceLookup);
-            var fieldEligibility = ParallelExecutionEligibilityRules.CanUseFilterProjectExpression(expression);
+            var fieldEligibility = ParallelPlanningEligibilityRules.CanUseFilterProjectExpression(field.Expression, sourceShape);
             if (fieldEligibility.IsEligible)
                 continue;
 
@@ -76,18 +73,18 @@ internal sealed partial class ParallelStrategyPlanner
 
     private ParallelSourceShapeResolution ResolveParallelSourceShape(PhysicalNode source)
     {
-        var sourceShape = source switch
+        var resolution = source switch
         {
-            PhysicalSchemaScanNode scan => shapeResolver.ResolveSourceShape(scan),
-            PhysicalCteRefNode cteRef => ExecutionStrategyPipelineDecomposer.CreateTableRowShape(cteRef),
-            PhysicalInterpretSourceNode interpret => shapeResolver.ResolveInterpretSourceShape(interpret),
-            PhysicalPropertySourceNode property => shapeResolver.ResolvePropertySourceShape(property),
-            PhysicalAccessMethodSourceNode accessMethod => shapeResolver.ResolveAccessMethodSourceShape(accessMethod),
+            PhysicalSchemaScanNode scan => ParallelSourceShapeResolution.Resolved(shapeResolver.ResolveSourceShape(scan)),
+            PhysicalCteRefNode cteRef => ParallelSourceShapeResolution.Resolved(shapeResolver.ResolveCteRefShape(cteRef)),
+            PhysicalInterpretSourceNode interpret => ParallelSourceShapeResolution.Resolved(shapeResolver.ResolveInterpretSourceShape(interpret)),
+            PhysicalPropertySourceNode property => ParallelSourceShapeResolution.Resolved(shapeResolver.ResolvePropertySourceShape(property)),
+            PhysicalAccessMethodSourceNode accessMethod => ParallelSourceShapeResolution.Resolved(shapeResolver.ResolveAccessMethodSourceShape(accessMethod)),
             _ => null!
         };
 
-        if (sourceShape != null)
-            return ParallelSourceShapeResolution.Resolved(sourceShape);
+        if (resolution != null)
+            return resolution;
 
         return ParallelSourceShapeResolution.Unresolved(
             $"Unsupported row source {source.GetType().Name}; planner cannot resolve a stable source row shape.");
@@ -100,8 +97,8 @@ internal sealed partial class ParallelStrategyPlanner
 
     private static bool HasParallelWorthyMethodCall(SupportedPipeline pipeline)
     {
-        return (pipeline.Filter != null && ParallelExecutionEligibilityRules.ContainsMethodCall(pipeline.Filter.Predicate)) ||
-               pipeline.Project.Fields.Any(static field => ParallelExecutionEligibilityRules.ContainsMethodCall(field.Expression));
+        return (pipeline.Filter != null && ParallelPlanningEligibilityRules.ContainsMethodCall(pipeline.Filter.Predicate)) ||
+               pipeline.Project.Fields.Any(static field => ParallelPlanningEligibilityRules.ContainsMethodCall(field.Expression));
     }
 
     private static int ResolveMaxDegreeOfParallelism(int taskCount)

@@ -5,7 +5,7 @@ public sealed partial class AggregateRefRewriter
     protected override IrExpression VisitColumnRef(ColumnRef node)
     {
         if (TryResolveColumnAggregate(node, out var binding))
-            return new AggregateRef(binding.Identifier, binding.ReturnType);
+            return CreateAggregateRef(binding);
 
         return node;
     }
@@ -80,12 +80,12 @@ public sealed partial class AggregateRefRewriter
         if (identifier is not null &&
             _bindingsByIdentifier.TryGetValue(identifier, out var binding) &&
             ShouldRewriteToAggregateRef(node.Method, binding))
-            return new AggregateRef(identifier, binding.ReturnType);
+            return CreateAggregateRef(binding);
 
         if (identifier is null &&
             IsAggregateMethod(node.Method) &&
             TryResolveFallbackBinding(node.Method, out var fallbackBinding))
-            return new AggregateRef(fallbackBinding.Identifier, fallbackBinding.ReturnType);
+            return CreateAggregateRef(fallbackBinding);
 
         var arguments = RewriteExpressions(node.Arguments, out var changed);
 
@@ -167,4 +167,9 @@ public sealed partial class AggregateRefRewriter
     protected override IrExpression VisitWindowFunctionRef(WindowFunctionRef node) => node;
 
     protected override IrExpression VisitCteTableRef(CteTableRef node) => node;
+
+    private static AggregateRef CreateAggregateRef(Musoq.Evaluator.IR.Bindings.AggregateBinding binding)
+    {
+        return new AggregateRef(binding.Identifier, binding.ReturnType, binding.DisplayName);
+    }
 }

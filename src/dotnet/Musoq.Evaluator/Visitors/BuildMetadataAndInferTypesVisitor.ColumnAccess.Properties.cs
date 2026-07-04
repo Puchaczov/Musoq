@@ -34,54 +34,27 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (parentNodeType == typeof(object) || parentNodeType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)))
         {
-            var typeHintingAttributes = GetCachedTypeHintAttributes(parentNodeType);
-
-            foreach (var t in typeHintingAttributes)
-            {
-                if (t.Name != node.Name) continue;
-
-                Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, t.Type)));
-                return;
-            }
-
-            var defaultTypeHintingAttributes =
-                parentNodeType.GetCustomAttribute<DynamicObjectPropertyDefaultTypeHintAttribute>();
-
-            if (defaultTypeHintingAttributes is not null)
-            {
-                Nodes.Push(new PropertyValueNode(node.Name,
-                    new ExpandoObjectPropertyInfo(node.Name, defaultTypeHintingAttributes.Type)));
-                return;
-            }
-
-            Type type;
-            try
-            {
-                var propertyInfo = parentNode.ReturnType.GetProperty(node.Name);
-                type = propertyInfo?.PropertyType ??
-                       (_resultShape.TheMostInnerIdentifier?.Name == node.Name ? typeof(object) : typeof(ExpandoObject));
-            }
-            catch (Exception ex) when (ex is AmbiguousMatchException or ArgumentException)
-            {
-                type = _resultShape.TheMostInnerIdentifier?.Name == node.Name ? typeof(object) : typeof(ExpandoObject);
-            }
-
-            Nodes.Push(new PropertyValueNode(node.Name, new ExpandoObjectPropertyInfo(node.Name, type)));
+            var propertyInfo = _columnPropertyBindingService.ResolveDynamicProperty(
+                parentNodeType,
+                node.Name,
+                typeof(object),
+                typeof(ExpandoObject));
+            Nodes.Push(new PropertyValueNode(node.Name, propertyInfo));
         }
         else
         {
-            PropertyInfo? propertyInfo = null;
-            try
-            {
-                propertyInfo = parentNodeType.GetProperty(node.Name);
-            }
-            catch (Exception ex) when (ex is AmbiguousMatchException or ArgumentException)
+            var propertyInfo = _columnPropertyBindingService.TryResolveTypedProperty(
+                parentNodeType,
+                node.Name,
+                out var error);
+
+            if (error != null)
             {
                 throw new VisitorException(
                     VisitorName,
                     VisitorOperationNames.VisitPropertyValueNode,
-                    $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {ex.Message}",
-                    ex);
+                    $"Failed to access property '{node.Name}' on object {parentNodeType.Name}: {error.Message}",
+                    error);
             }
 
             if (propertyInfo == null)

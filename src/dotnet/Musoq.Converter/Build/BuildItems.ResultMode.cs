@@ -7,17 +7,13 @@ public partial class BuildItems
 {
     public QueryResultMode QueryResultMode
     {
-        get => TryGetValue(BuildItemKeys.QueryResultMode, out var value) && value is QueryResultMode mode
-            ? mode
-            : QueryResultMode.Table;
+        get => GetValueOrDefault(BuildItemKeys.QueryResultMode, QueryResultMode.Table);
         set => SetRequired(BuildItemKeys.QueryResultMode, value);
     }
 
     public QueryMethodRenderMetadata QueryMethodRenderMetadata
     {
-        get => TryGetValue(BuildItemKeys.QueryMethodRenderMetadata, out var value) && value is QueryMethodRenderMetadata metadata
-            ? metadata
-            : QueryMethodRenderMetadata.Unknown;
+        get => GetValueOrDefault(BuildItemKeys.QueryMethodRenderMetadata, QueryMethodRenderMetadata.Unknown);
         set => SetRequired(BuildItemKeys.QueryMethodRenderMetadata, value);
     }
 

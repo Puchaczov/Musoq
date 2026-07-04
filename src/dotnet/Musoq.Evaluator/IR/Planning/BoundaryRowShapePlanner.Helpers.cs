@@ -13,11 +13,11 @@ internal static partial class BoundaryRowShapePlanner
     {
         private readonly HashSet<string> _requiredColumns = new(StringComparer.OrdinalIgnoreCase);
 
-        public static ColumnUsageIndex Create(PlanProperties properties)
+        public static ColumnUsageIndex Create(RequiredColumnFacts requiredColumns)
         {
             var index = new ColumnUsageIndex();
 
-            foreach (var usage in properties.RequiredColumnUsagesBySourceId.Values.SelectMany(static usages => usages))
+            foreach (var usage in requiredColumns.RequiredColumnUsagesBySourceId.Values.SelectMany(static usages => usages))
                 index.AddUsage(usage);
 
             return index;
@@ -135,7 +135,8 @@ internal static partial class BoundaryRowShapePlanner
             .SelectMany(registration =>
                 CollectColumns(registration.PartitionKeys)
                     .Concat(CollectOrderColumns(registration.OrderKeys))
-                    .Concat(CollectColumns(registration.ValueArguments)))
+                    .Concat(CollectColumns(registration.ValueArguments))
+                    .Concat(OptionalColumns(registration.FilterPredicate)))
             .ToArray();
     }
     private static string[] CollectAggregateColumns(IrExpression groupKey, IReadOnlyList<AggregateBinding> bindings)
@@ -150,7 +151,9 @@ internal static partial class BoundaryRowShapePlanner
     private static string[] CollectAggregateColumns(IReadOnlyList<AggregateBinding> bindings)
     {
         return bindings
-            .SelectMany(binding => CollectColumns(binding.SetArguments).Concat(CollectColumns(binding.GetArguments)))
+            .SelectMany(binding => CollectColumns(binding.SetArguments)
+                .Concat(OptionalColumns(binding.FilterPredicate))
+                .Concat(CollectColumns(binding.GetArguments)))
             .ToArray();
     }
 
@@ -199,6 +202,11 @@ internal static partial class BoundaryRowShapePlanner
     private static string[] CollectColumns(IrExpression expression)
     {
         return ColumnRefExtractor.Extract(expression).Select(FormatColumn).ToArray();
+    }
+
+    private static string[] OptionalColumns(IrExpression? expression)
+    {
+        return expression == null ? [] : CollectColumns(expression);
     }
 
     private static string FormatColumn(ColumnRef column)

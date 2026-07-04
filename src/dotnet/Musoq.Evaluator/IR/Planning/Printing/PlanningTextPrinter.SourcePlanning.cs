@@ -7,10 +7,10 @@ internal static partial class PlanningTextPrinter
 {
     private static void AppendSourceInteractionPlan(
         StringBuilder builder,
-        PlanProperties properties,
+        SourcePlanningFacts sourcePlanning,
         string sourceContextId)
     {
-        if (!properties.SourceInteractionPlansBySourceId.TryGetValue(sourceContextId, out var plan))
+        if (!sourcePlanning.SourceInteractionPlansBySourceId.TryGetValue(sourceContextId, out var plan))
         {
             builder.AppendLine("      interaction: none");
             return;
@@ -25,16 +25,16 @@ internal static partial class PlanningTextPrinter
 
     private static void AppendSourcePlanResult(
         StringBuilder builder,
-        PlanProperties properties,
+        SourcePlanningFacts sourcePlanning,
         string sourceContextId)
     {
-        if (!properties.SourcePlanResultsBySourceId.TryGetValue(sourceContextId, out var plan))
+        if (!sourcePlanning.SourcePlanResultsBySourceId.TryGetValue(sourceContextId, out var plan))
         {
             builder.AppendLine("      source plan: none");
             return;
         }
 
-        if (properties.SourcePlanRequestsBySourceId.TryGetValue(sourceContextId, out var request))
+        if (sourcePlanning.SourcePlanRequestsBySourceId.TryGetValue(sourceContextId, out var request))
         {
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"      source plan requested: columns={FormatColumnRefs(request.RequiredColumns)}, orderBy={request.OrderBy.Count}, skip={FormatHintValue(request.Skip)}, take={FormatHintValue(request.Take)}, predicate={FormatPredicate(request.Predicate)}");
             AppendSourceCapabilityDiagnostics(builder, request, plan);

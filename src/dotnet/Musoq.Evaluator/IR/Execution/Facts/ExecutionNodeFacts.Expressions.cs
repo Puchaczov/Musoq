@@ -108,9 +108,9 @@ internal static partial class ExecutionNodeFacts
             case ExecutionGetOrAddValueTupleAggregateGroup getOrAdd:
                 return getOrAdd.Keys;
             case ExecutionAggregateSet aggregateSet:
-                return aggregateSet.AccumulatorInput == null
-                    ? aggregateSet.Arguments
-                    : aggregateSet.Arguments.Concat([aggregateSet.AccumulatorInput]);
+                return AggregateKernelArgumentSelector.SelectValueArgumentsAfterGroup(aggregateSet.Arguments)
+                    .Concat(OptionalExpression(aggregateSet.FilterPredicate))
+                    .Concat(OptionalExpression(aggregateSet.AccumulatorInput));
             case ExecutionAggregateCapturedValueSet capturedValueSet:
                 return [capturedValueSet.Value];
             case ExecutionReturnDesc returnDesc:
@@ -133,7 +133,8 @@ internal static partial class ExecutionNodeFacts
             ExecutionComputeRankingWindow => keyExpressions,
             ExecutionComputeOffsetWindow offset => keyExpressions.Concat([offset.Value, offset.Offset, offset.DefaultValue]),
             ExecutionComputePluginWindow plugin => keyExpressions.Concat([plugin.Value]).Concat(plugin.Arguments),
-            ExecutionWindowAggregateKernel kernel => keyExpressions.Concat([kernel.Value]),
+            ExecutionWindowAggregateKernel kernel => keyExpressions.Concat([kernel.Value])
+                .Concat(OptionalExpression(kernel.FilterPredicate)),
             _ => keyExpressions
         };
     }

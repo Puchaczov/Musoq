@@ -54,7 +54,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ExpressionStatementSyntax CreateStoredTableBuildInvocation(StoredTableBuild build)
     {
-        if (_typedStoredTableResults.ContainsKey(build.TableIndex))
+        if (RenderSession.TypedStoredTableResults.ContainsKey(build.TableIndex))
         {
             return SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
@@ -93,10 +93,10 @@ public sealed partial class ExecutionCSharpRenderer
 
     private MethodDeclarationSyntax CreateStoredTableBuildFunction(StoredTableBuild build)
     {
-        var previousTypedRowBufferVariables = _typedRowBufferVariables;
-        if (_typedStoredTableResults.TryGetValue(build.TableIndex, out var typedResult))
+        var previousTypedRowBufferVariables = RenderSession.TypedRowBufferVariables;
+        if (RenderSession.TypedStoredTableResults.TryGetValue(build.TableIndex, out var typedResult))
         {
-            _typedRowBufferVariables = new Dictionary<string, GeneratedRowShape>(StringComparer.Ordinal)
+            RenderSession.TypedRowBufferVariables = new Dictionary<string, GeneratedRowShape>(StringComparer.Ordinal)
             {
                 [build.Table.Name] = typedResult.RowShape
             };
@@ -120,13 +120,13 @@ public sealed partial class ExecutionCSharpRenderer
         }
         finally
         {
-            _typedRowBufferVariables = previousTypedRowBufferVariables;
+            RenderSession.TypedRowBufferVariables = previousTypedRowBufferVariables;
         }
     }
 
     private TypeSyntax CreateStoredTableBuildReturnType(StoredTableBuild build)
     {
-        return _typedStoredTableResults.TryGetValue(build.TableIndex, out var typedResult)
+        return RenderSession.TypedStoredTableResults.TryGetValue(build.TableIndex, out var typedResult)
             ? CreateCteRowResultSlotTypeSyntax(typedResult.RowShape)
             : CreateTypeSyntax(typeof(Table));
     }

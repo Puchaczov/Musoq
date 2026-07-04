@@ -19,26 +19,16 @@ using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Converter.Build;
 
+/// <summary>
+/// Public build artifact bag retained for compatibility with existing callers.
+/// </summary>
+/// <remarks>
+/// The raw dictionary surface is a legacy compatibility shell. Production pipeline code should use
+/// typed properties, typed stage artifacts, or explicit stage contexts instead of treating this as an
+/// active string-keyed contract.
+/// </remarks>
 public partial class BuildItems : Dictionary<string, object>
 {
-    private T? GetOptional<T>(string key)
-        where T : class
-    {
-        return TryGetValue(key, out var value) ? (T)value : null;
-    }
-
-    private void SetOptional<T>(string key, T? value)
-        where T : class
-    {
-        if (value == null)
-        {
-            Remove(key);
-            return;
-        }
-
-        this[key] = value;
-    }
-
     public byte[]? DllFile
     {
         get => GetOptional<byte[]>(BuildItemKeys.DllFile);
@@ -65,7 +55,7 @@ public partial class BuildItems : Dictionary<string, object>
 
     public string RawQuery
     {
-        get => TryGetValue(BuildItemKeys.RawQuery, out var value) && value is string str
+        get => TryGetArtifact<string>(BuildItemKeys.RawQuery, out var str)
             ? str
             : throw AstValidationException.ForInvalidNodeStructure("BuildItems", "RawQuery access",
                 "RawQuery is not set or is null");
@@ -74,7 +64,7 @@ public partial class BuildItems : Dictionary<string, object>
             if (string.IsNullOrWhiteSpace(value))
                 throw AstValidationException.ForInvalidNodeStructure("BuildItems", "RawQuery setting",
                     "RawQuery cannot be null or whitespace");
-            this[BuildItemKeys.RawQuery] = value;
+            SetRequired(BuildItemKeys.RawQuery, value);
         }
     }
 
@@ -176,8 +166,8 @@ public partial class BuildItems : Dictionary<string, object>
     {
         get
         {
-            if (!ContainsKey(BuildItemKeys.CompilationOptions))
-                this[BuildItemKeys.CompilationOptions] = new CompilationOptions(ParallelizationMode.Full);
+            if (!ContainsArtifact<CompilationOptions>(BuildItemKeys.CompilationOptions))
+                SetRequired(BuildItemKeys.CompilationOptions, new CompilationOptions(ParallelizationMode.Full));
 
             return GetRequired<CompilationOptions>(BuildItemKeys.CompilationOptions);
         }
@@ -253,7 +243,7 @@ public partial class BuildItems : Dictionary<string, object>
     public DiagnosticContext DiagnosticContext
     {
         get => GetRequired<DiagnosticContext>(BuildItemKeys.DiagnosticContext);
-        init => this[BuildItemKeys.DiagnosticContext] = value;
+        init => SetRequired(BuildItemKeys.DiagnosticContext, value);
     }
 
     public bool EmitPdb

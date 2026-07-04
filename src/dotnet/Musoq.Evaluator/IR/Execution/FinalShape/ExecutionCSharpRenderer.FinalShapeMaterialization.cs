@@ -53,7 +53,7 @@ public sealed partial class ExecutionCSharpRenderer
             return SyntaxFactory.Argument(value);
         });
 
-        var sink = _finalShapeYieldSink ??
+        var sink = RenderSession.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         return CreateFinalShapeCreation(sink.ShapeTypeName, arguments);
     }

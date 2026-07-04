@@ -73,7 +73,7 @@ public sealed partial class ExecutionCSharpRenderer
         int tableIndex,
         out TypedStoredTableResult result)
     {
-        return _typedStoredTableResults.TryGetValue(tableIndex, out result!);
+        return RenderSession.TypedStoredTableResults.TryGetValue(tableIndex, out result!);
     }
 
     private bool TryGetTypedStoredTableResult(
@@ -89,7 +89,7 @@ public sealed partial class ExecutionCSharpRenderer
         string variableName,
         out GeneratedRowShape rowShape)
     {
-        return _typedRowBufferVariables.TryGetValue(variableName, out rowShape!);
+        return RenderSession.TypedRowBufferVariables.TryGetValue(variableName, out rowShape!);
     }
 
     private static string CreateCteRowResultSlotFieldName(int tableIndex)

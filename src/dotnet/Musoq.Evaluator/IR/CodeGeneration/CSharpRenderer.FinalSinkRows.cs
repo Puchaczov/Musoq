@@ -13,7 +13,8 @@ public sealed partial class CSharpRenderer
         TableViaRowsResultInfo resultInfo,
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
-        string parallelRowsName)
+        string parallelRowsName,
+        ExecutionRenderContext? renderContext = null)
     {
         return CreateQueryRowsShardInvocation(
             nameof(QueryRows.FromRowShards),
@@ -21,22 +22,24 @@ public sealed partial class CSharpRenderer
                 resultInfo,
                 executionRenderer,
                 projectionLoop,
-                parallelRowsName));
+                parallelRowsName,
+                renderContext));
     }
 
     private static InvocationExpressionSyntax CreateProjectRowsParallelInvocation(
         TableViaRowsResultInfo resultInfo,
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
-        string parallelRowsName)
+        string parallelRowsName,
+        ExecutionRenderContext? renderContext = null)
     {
         return CreateFinalProjectionInvocation(new FinalProjectionInvocationSpec(
             FinalProjectionInvocationKind.TableRowsParallel,
             CreateSourceTypeSyntax(projectionLoop.Source),
             SyntaxFactory.ParseTypeName(resultInfo.RowTypeName),
             parallelRowsName,
-            CreatePredicateLambda(executionRenderer, projectionLoop),
-            CreateTableProjectionLambda(executionRenderer, projectionLoop),
+            CreatePredicateLambda(executionRenderer, projectionLoop, renderContext),
+            CreateTableProjectionLambda(executionRenderer, projectionLoop, renderContext),
             projectionLoop.MaxDegreeOfParallelism));
     }
 
@@ -44,23 +47,27 @@ public sealed partial class CSharpRenderer
         TableViaRowsResultInfo resultInfo,
         ExecutionCSharpRenderer executionRenderer,
         TypedProjectionLoop projectionLoop,
-        string sourceRowsName)
+        string sourceRowsName,
+        ExecutionRenderContext? renderContext = null)
     {
         return CreateFinalProjectionInvocation(new FinalProjectionInvocationSpec(
             FinalProjectionInvocationKind.TableRowsSerial,
             CreateSourceTypeSyntax(projectionLoop.Source),
             SyntaxFactory.ParseTypeName(resultInfo.RowTypeName),
             sourceRowsName,
-            CreatePredicateLambda(executionRenderer, projectionLoop),
-            CreateTableProjectionLambda(executionRenderer, projectionLoop)));
+            CreatePredicateLambda(executionRenderer, projectionLoop, renderContext),
+            CreateTableProjectionLambda(executionRenderer, projectionLoop, renderContext)));
     }
 
     private static ParenthesizedLambdaExpressionSyntax CreateTableProjectionLambda(
         ExecutionCSharpRenderer executionRenderer,
-        TypedProjectionLoop projectionLoop)
+        TypedProjectionLoop projectionLoop,
+        ExecutionRenderContext? renderContext = null)
     {
         return CreateSourceLambda(
             projectionLoop.Source,
-            executionRenderer.RenderGeneratedRowCreationForTypedSink(projectionLoop.AppendRow));
+            renderContext == null
+                ? executionRenderer.RenderGeneratedRowCreationForTypedSink(projectionLoop.AppendRow)
+                : executionRenderer.RenderGeneratedRowCreationForTypedSink(projectionLoop.AppendRow, renderContext));
     }
 }

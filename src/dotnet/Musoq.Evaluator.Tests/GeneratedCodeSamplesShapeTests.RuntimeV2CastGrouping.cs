@@ -24,7 +24,6 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var samples = ReadRuntimeV2CastGroupingFeatureSamples();
         var forbiddenPatterns = new[]
         {
-            "StrictCastRuntime",
             "MethodInfo",
             "GetMethod",
             "Convert.ChangeType",
@@ -55,7 +54,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     }
 
     [TestMethod]
-    public void RuntimeV2CastSamples_WhenCheckedIn_ShouldRenderLibraryBackedCasts()
+    public void RuntimeV2CastSamples_WhenCheckedIn_ShouldRenderStrictRuntimeCasts()
     {
         var samples = ReadRuntimeV2CastGroupingFeatureSamples();
         var projection = samples[RuntimeV2CastProjectionSampleFileName];
@@ -65,30 +64,30 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("SELECT Population::Int32 as PopulationInt", projection);
         Assert.Contains("SourceScan [ko3iko: RuntimeV2CastGroupingFeatureEntity] -> ko3ikoRows", projection);
         Assert.Contains("GetRowSource<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2CastGroupingFeatureEntity>", projection);
-        Assert.Contains("CreateObject [__resultLibraryBase0: LibraryBase]", projection);
-        Assert.Contains("__resultLibraryBase0.ToInt32(ko3iko.Population)", projection);
-        Assert.Contains("__resultLibraryBase0.ToDecimal(ko3iko.Amount)", projection);
-        Assert.Contains("__resultLibraryBase0.ToGuid(ko3iko.Id)", projection);
+        Assert.DoesNotContain("CreateObject [__resultLibraryBase0: LibraryBase]", projection);
+        Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(ko3iko.Population)", projection);
+        Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(ko3iko.Amount)", projection);
+        Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToGuid(ko3iko.Id)", projection);
 
         Assert.Contains("SELECT (Quantity + 1)::Int64 as QuantityNext", expressions);
-        Assert.Contains("CreateObject [__resultOrderRecordsLibraryBase0: LibraryBase]", expressions);
-        Assert.Contains("__resultOrderRecordsLibraryBase0.ToInt64((ko3iko.Quantity + 1))", expressions);
+        Assert.DoesNotContain("CreateObject [__resultOrderRecordsLibraryBase0: LibraryBase]", expressions);
+        Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt64((ko3iko.Quantity + 1))", expressions);
         Assert.Contains("Let [populationInt32: int? = population::Int32]", expressions);
-        Assert.Contains("int? populationInt32 = __resultOrderRecordsLibraryBase0.ToInt32(population);", expressions);
-        Assert.Contains("__resultOrderRecordsLibraryBase0.ToString(populationInt32)", expressions);
-        Assert.DoesNotContain("__resultOrderRecordsLibraryBase0.ToString(__resultOrderRecordsLibraryBase0.ToInt32(", expressions);
-        Assert.AreEqual(3, CountOccurrences(expressions, "__resultOrderRecordsLibraryBase0.ToInt32("));
-        Assert.Contains("__resultOrderRecordsLibraryBase0.ToDateTimeOffset(ko3iko.CreatedAt)", expressions);
-        Assert.Contains("__resultOrderRecordsLibraryBase0.ToDecimal(ko3iko.Amount)", expressions);
+        Assert.Contains("int? populationInt32 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population);", expressions);
+        Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToString(populationInt32)", expressions);
+        Assert.DoesNotContain("StrictCastRuntime.ToString(global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(", expressions);
+        Assert.AreEqual(3, CountOccurrences(expressions, "global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32("));
+        Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDateTimeOffset(ko3iko.CreatedAt)", expressions);
+        Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(ko3iko.Amount)", expressions);
 
         Assert.Contains("Sum(Amount::Decimal) as TotalAmount", aggregate);
-        Assert.Contains("CreateAggregateLibrary [libraryBase0: LibraryBase]", aggregate);
+        Assert.DoesNotContain("CreateAggregateLibrary [libraryBase0: LibraryBase]", aggregate);
         Assert.Contains("Let [amountDecimal: decimal? = amount::Decimal]", aggregate);
         Assert.Contains("TypedAggregateSet [Set(group.__agg0, amountDecimal)]", aggregate);
-        Assert.Contains("decimal? amountDecimal = libraryBase0.ToDecimal(amount);", aggregate);
+        Assert.Contains("decimal? amountDecimal = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(amount);", aggregate);
         Assert.Contains("var __agg0Input = (decimal?)amountDecimal;", aggregate);
-        Assert.AreEqual(1, CountOccurrences(aggregate, "libraryBase0.ToDecimal(amount)"));
-        Assert.Contains("libraryBase0.ToDecimal(\"10.00\")", aggregate);
+        Assert.AreEqual(1, CountOccurrences(aggregate, "global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(amount)"));
+        Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(\"10.00\")", aggregate);
     }
 
     [TestMethod]
@@ -110,7 +109,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("GROUP BY ALL", groupByAll);
         Assert.Contains("Aggregate [keys: ko3iko.City, ko3iko.Population::Int32] [aggs: Count(*)]", groupByAll);
         Assert.Contains("CreateValueTupleAggregateContext [groups: (string, int?) -> ResultAggregateGroup]", groupByAll);
-        Assert.Contains("int? groupKey1 = __resultLibraryBase0.ToInt32(ko3iko.Population);", groupByAll);
+        Assert.Contains("int? groupKey1 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(ko3iko.Population);", groupByAll);
 
         Assert.Contains("WHERE c <> ''", alias);
         Assert.Contains("Filter [(ko3iko.City <> '')]", alias);
@@ -130,9 +129,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("HAVING cnt > 1 AND total > '10.00'::Decimal", combined);
         Assert.Contains("CreateValueTupleAggregateContext [groups: (string, int?) -> ResultAggregateGroup]", combined);
         Assert.Contains("Dictionary<(string, int?), ResultAggregateGroup>", combined);
-        Assert.Contains("int? populationInt32 = libraryBase0.ToInt32(population);", combined);
+        Assert.Contains("int? populationInt32 = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population);", combined);
         Assert.Contains("int? groupKey1 = populationInt32;", combined);
-        Assert.AreEqual(3, CountOccurrences(combined, "libraryBase0.ToInt32(population)"));
+        Assert.AreEqual(3, CountOccurrences(combined, "global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(population)"));
         Assert.Contains("finalGroup.__agg1.Count > 1", combined);
         Assert.Contains("result.Add(new ResultShape0(finalGroup.__key0, finalGroup.__key1, finalGroup.__agg1.Count", combined);
         Assert.Contains("__musoqFinalShapeRows.Add(resultSortedRowsRow);", combined);

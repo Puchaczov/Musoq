@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Utils.Symbols;
+using Musoq.Evaluator.Visitors;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
@@ -265,6 +266,10 @@ public static class FieldProcessingHelper
 
     private static string GetAggregateFieldName(AccessMethodNode aggregateMethod)
     {
+        if (aggregateMethod.Arguments.Args.Length > 0 &&
+            aggregateMethod.Arguments.Args[0] is AggregateIdentifierNode aggregateIdentifier)
+            return aggregateIdentifier.DisplayName;
+
         if (aggregateMethod.Arguments.Args.Length > 0 &&
             aggregateMethod.Arguments.Args[0] is WordNode nameArg)
             return nameArg.Value;

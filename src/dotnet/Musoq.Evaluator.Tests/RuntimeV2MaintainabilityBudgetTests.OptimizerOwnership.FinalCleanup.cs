@@ -86,9 +86,9 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         string[] allowedPaths =
         [
-            "src/dotnet/Musoq.Evaluator/IR/Optimization/PreLogicalNormalizer.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Optimization/DistinctToGroupByNormalizationPass.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Optimization/SubqueryToCteNormalizationPass.cs"
+            "src/dotnet/Musoq.Evaluator/IR/Optimization/Logical/PreLogicalNormalizer.cs",
+            "src/dotnet/Musoq.Evaluator/IR/Optimization/Logical/DistinctToGroupByNormalizationPass.cs",
+            "src/dotnet/Musoq.Evaluator/IR/Optimization/Logical/SubqueryToCteNormalizationPass.cs"
         ];
         var files = EnumerateProductionSourceFiles(repositoryRoot)
             .Where(file => !allowedPaths.Contains(
@@ -141,8 +141,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         var allowedPaths = new HashSet<string>(StringComparer.Ordinal)
         {
-            "src/dotnet/Musoq.Evaluator/IR/Optimization/HelperExtractionReadabilityPass.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Optimization/HelperExtractionReadabilityApproval.cs"
+            "src/dotnet/Musoq.Evaluator/IR/Optimization/Codegen/HelperExtractionReadabilityPass.cs",
+            "src/dotnet/Musoq.Evaluator/IR/Optimization/Codegen/HelperExtractionReadabilityApproval.cs"
         };
         var files = EnumerateProductionSourceFiles(repositoryRoot)
             .Where(file => !allowedPaths.Contains(

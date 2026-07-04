@@ -66,6 +66,20 @@ public class PredicateQuantifierExecutionTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void AllLike_WithThreeFields_ShouldRequireEveryFieldToMatch()
+    {
+        const string query = "select a.Id from #A.Entities() a where all(a.Name, a.City, a.Country) like '%target%' order by a.Id";
+
+        AssertResultIds(
+            query,
+            CreateSingleSource(
+                new BasicEntity { Id = 1, Name = "target name", City = "target city", Country = "target country" },
+                new BasicEntity { Id = 2, Name = "target name", City = "target city", Country = "plain" },
+                new BasicEntity { Id = 3, Name = "target name", City = "plain", Country = "target country" }),
+            1);
+    }
+
+    [TestMethod]
     public void AnyLike_WithMethodExpressions_ShouldExecuteExpandedPredicates()
     {
         const string query = "select a.Id from #A.Entities() a where any(ToUpper(a.Name), ToUpper(a.City)) like '%TARGET%' order by a.Id";
@@ -88,11 +102,11 @@ public class PredicateQuantifierExecutionTests : BasicEntityTestBase
     {
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
-        var actualIds = Enumerable.Range(0, table.Count)
-            .Select(rowIndex => Convert.ToInt32(table[rowIndex][0]))
-            .ToArray();
 
-        CollectionAssert.AreEqual(expectedIds, actualIds);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Id", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            expectedIds.Select(static id => new object?[] { id }).ToArray());
     }
 
     private static IDictionary<string, IEnumerable<BasicEntity>> CreateTruthTableSource()

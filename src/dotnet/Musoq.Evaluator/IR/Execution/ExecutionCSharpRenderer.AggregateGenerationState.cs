@@ -10,9 +10,9 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private void EnsureAggregateGenerationState(ExecutionPlan plan)
     {
-        _aggregateGroupTypeNames.Clear();
-        _parallelFilterProjectFunctionNames.Clear();
-        _parallelSingleKeyAggregateFunctionNames.Clear();
+        RenderSession.AggregateGroupTypeNames.Clear();
+        RenderSession.ParallelFilterProjectFunctionNames.Clear();
+        RenderSession.ParallelSingleKeyAggregateFunctionNames.Clear();
 
         AssignAggregateGroupTypeNames(plan.Shapes.OfType<AggregateGroupShape>().ToArray());
         AssignParallelFilterProjectFunctionNames(CollectParallelFilterProjectLoops(plan.Body).ToArray());
@@ -31,13 +31,13 @@ public sealed partial class ExecutionCSharpRenderer
             var groupShapes = group.ToArray();
             if (groupShapes.Length == 1)
             {
-                _aggregateGroupTypeNames[group.Key] = groupShapes[0].TypeName;
+                RenderSession.AggregateGroupTypeNames[group.Key] = groupShapes[0].TypeName;
                 continue;
             }
 
             var typeName = CreateSharedAggregateGroupTypeName(usedNames, duplicateIndex++);
             foreach (var shape in groupShapes)
-                _aggregateGroupTypeNames[CreateAggregateGroupShapeSignature(shape)] = typeName;
+                RenderSession.AggregateGroupTypeNames[CreateAggregateGroupShapeSignature(shape)] = typeName;
         }
     }
 
@@ -48,11 +48,11 @@ public sealed partial class ExecutionCSharpRenderer
         foreach (var loop in loops)
         {
             var descriptor = CreateParallelSingleKeyAggregateDescriptor(loop);
-            if (_parallelSingleKeyAggregateFunctionNames.ContainsKey(descriptor))
+            if (RenderSession.ParallelSingleKeyAggregateFunctionNames.ContainsKey(descriptor))
                 continue;
 
             var suffix = helperIndex.ToString(CultureInfo.InvariantCulture);
-            _parallelSingleKeyAggregateFunctionNames[descriptor] = $"ParallelSingleKeyAggregate_{suffix}";
+            RenderSession.ParallelSingleKeyAggregateFunctionNames[descriptor] = $"ParallelSingleKeyAggregate_{suffix}";
             helperIndex++;
         }
     }
@@ -63,18 +63,18 @@ public sealed partial class ExecutionCSharpRenderer
 
         foreach (var loop in loops)
         {
-            if (_parallelFilterProjectFunctionNames.ContainsKey(loop))
+            if (RenderSession.ParallelFilterProjectFunctionNames.ContainsKey(loop))
                 continue;
 
             var baseName = $"Populate{CreatePascalIdentifier(loop.AppendRow.Table.Name)}";
             var functionName = CreateUniqueHelperName(baseName, usedNames);
-            _parallelFilterProjectFunctionNames.Add(loop, functionName);
+            RenderSession.ParallelFilterProjectFunctionNames.Add(loop, functionName);
         }
     }
 
     private string CreateParallelFilterProjectFunctionName(ExecutionParallelFilterProjectLoop parallelProject)
     {
-        return _parallelFilterProjectFunctionNames.TryGetValue(parallelProject, out var functionName)
+        return RenderSession.ParallelFilterProjectFunctionNames.TryGetValue(parallelProject, out var functionName)
             ? functionName
             : $"Populate{CreatePascalIdentifier(parallelProject.AppendRow.Table.Name)}";
     }
@@ -140,7 +140,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private string GetAggregateGroupTypeName(AggregateGroupShape shape)
     {
-        return _aggregateGroupTypeNames.TryGetValue(CreateAggregateGroupShapeSignature(shape), out var typeName)
+        return RenderSession.AggregateGroupTypeNames.TryGetValue(CreateAggregateGroupShapeSignature(shape), out var typeName)
             ? typeName
             : shape.TypeName;
     }
@@ -159,7 +159,7 @@ public sealed partial class ExecutionCSharpRenderer
     private string CreateParallelSingleKeyAggregateFunctionName(ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
     {
         var descriptor = CreateParallelSingleKeyAggregateDescriptor(parallelAggregate);
-        return _parallelSingleKeyAggregateFunctionNames.TryGetValue(descriptor, out var functionName)
+        return RenderSession.ParallelSingleKeyAggregateFunctionNames.TryGetValue(descriptor, out var functionName)
             ? functionName
             : $"ParallelSingleKeyAggregate_{parallelAggregate.GroupsToFinalize.Name}";
     }

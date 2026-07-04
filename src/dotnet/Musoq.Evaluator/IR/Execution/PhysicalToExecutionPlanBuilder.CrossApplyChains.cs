@@ -14,7 +14,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
         IReadOnlyDictionary<string, RowShape> inheritedSourceLookup,
-        string? sourceRowsScope)
+        string? sourceRowsScope,
+        PhysicalToExecutionLoweringSession session)
     {
         var physicalSources = new List<ApplyChainPhysicalSource>();
         if (!CollectCrossApplySources(apply, physicalSources))
@@ -35,7 +36,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 cteShapesByName,
                 currentSchemaFromIndex,
                 sourceLookup,
-                sourceRowsScope);
+                sourceRowsScope,
+                session);
             if (!source.Supported)
                 return ApplyChainBuildResult.Unsupported(source.UnsupportedReason);
 

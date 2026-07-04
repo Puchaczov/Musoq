@@ -11,7 +11,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         if (!IsInstrumentationEnabled)
         {
-            return _useQueryRunContext
+            return RenderSession.UseQueryRunContext
                 ? SyntaxFactory.MethodDeclaration(SyntaxFactory.IdentifierName("Table"), SyntaxFactory.Identifier(methodName))
                     .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
                     .WithParameterList(MethodDeclarationHelper.CreateTypedRunContextParameterList())

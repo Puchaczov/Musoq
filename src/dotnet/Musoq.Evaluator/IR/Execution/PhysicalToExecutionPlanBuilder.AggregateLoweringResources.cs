@@ -6,26 +6,6 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
 {
-    private sealed record AggregateLoweringResourceRequest(
-        string ResultTableName,
-        string AggregateScopeName,
-        IReadOnlyList<AggregateBinding> Bindings,
-        ProjectedField[] OutputFields,
-        IrExpression? HavingPredicate,
-        IReadOnlyList<PostOperation> PostOperations,
-        AggregateFinalizationGroupKeys FinalizationGroupKeys,
-        ExecutionVariable CurrentGroup,
-        ExecutionVariable FinalGroup,
-        IReadOnlyDictionary<string, RowShape> SourceLookup,
-        string AggregateKind);
-
-    private sealed record AggregateLoweringResources(
-        AggregateGroupLowering Group,
-        IReadOnlyList<ExecutionNode> LibraryNodes,
-        AggregateSetBuildResult SetNodes,
-        AggregateGroupValueCaptureBuildResult ValueCapture,
-        AggregateFinalizationContext FinalizationContext);
-
     private static BuildResult<AggregateLoweringResources> CreateAggregateLoweringResources(AggregateLoweringResourceRequest request)
     {
         if (!TryCreateAggregateGroupLowering(

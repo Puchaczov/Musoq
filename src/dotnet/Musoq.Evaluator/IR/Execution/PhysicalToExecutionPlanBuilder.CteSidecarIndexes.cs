@@ -8,14 +8,10 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
 {
-    private sealed record CteSidecarIndexBuild(
-        CteSidecarIndexSpec Spec,
-        ExecutionVariable Index,
-        HashPayloadShape? PayloadShape);
-
     private TableBuildResult ApplyCteSidecarIndexes(
         TableBuildResult result,
-        IReadOnlyList<CteSidecarIndexSpec> specs)
+        IReadOnlyList<CteSidecarIndexSpec> specs,
+        PhysicalToExecutionLoweringSession session)
     {
         if (specs.Count == 0)
             return result;
@@ -44,7 +40,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         var canUseHashPayloads = CanUseCteSidecarHashPayloads(block, result.Table.Name, result.RowShape);
         var builds = specs
             .OrderBy(static spec => spec.IndexSlot)
-            .Select(spec => CreateCteSidecarIndexBuild(result.Table.Name, result.RowShape, spec, canUseHashPayloads))
+            .Select(spec => CreateCteSidecarIndexBuild(result.Table.Name, result.RowShape, spec, canUseHashPayloads, session))
             .ToArray();
         var transformed = TransformCteSidecarAppendBlock(
             new ExecutionBlock(nodes),
@@ -273,13 +269,4 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         }
     }
 
-    private sealed record CteSidecarAppendTransformResult(
-        ExecutionBlock Block,
-        int AppendCount,
-        ExecutionCapacityHint? CapacityHint);
-
-    private sealed record CteSidecarAppendNodeTransformResult(
-        ExecutionNode Node,
-        int AppendCount,
-        ExecutionCapacityHint? CapacityHint);
 }

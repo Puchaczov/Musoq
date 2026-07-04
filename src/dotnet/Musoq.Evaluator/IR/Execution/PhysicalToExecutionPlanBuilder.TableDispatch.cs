@@ -13,8 +13,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName = null,
         int schemaFromIndex = DefaultSchemaFromIndex,
-        bool scopeAggregateVariables = false)
+        bool scopeAggregateVariables = false,
+        PhysicalToExecutionLoweringSession? session = null)
     {
+        session ??= new PhysicalToExecutionLoweringSession(ResolveExecutionStrategies());
         var unwrapped = UnwrapSingleStatement(plan);
         var tableContext = new PhysicalToExecutionTableLoweringContext(
             unwrapped,
@@ -23,7 +25,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
-            scopeAggregateVariables);
+            scopeAggregateVariables,
+            session);
         if (unwrapped is PhysicalMultiStatementNode multiStatement && CanBuildTableProducingMultiStatement(multiStatement))
         {
             var multiStatementIndexes = CreateMultiStatementIndexes(
@@ -37,7 +40,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 resultTableName,
                 resultShapeName,
                 multiStatementIndexes,
-                scopeAggregateVariables);
+                scopeAggregateVariables,
+                session);
         }
 
         var setOperationPipeline = DecomposeSetOperationPipeline(unwrapped);
@@ -49,10 +53,11 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 resultShapeName,
                 cteIndexes,
                 cteShapesByName,
-                schemaFromIndex);
+                schemaFromIndex,
+                session);
         }
 
-        if (new WindowLoweringCoordinator(this).TryBuildTable(tableContext, out var windowResult))
+        if (CreateWindowLoweringCoordinator().TryBuildTable(tableContext, out var windowResult))
             return windowResult;
 
         var pipeline = DecomposeSupportedPipeline(unwrapped);
@@ -64,10 +69,11 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 resultShapeName,
                 cteIndexes,
                 cteShapesByName,
-                schemaFromIndex);
+                schemaFromIndex,
+                session);
         }
 
-        if (new AggregateLoweringCoordinator(this).TryBuildTable(tableContext, out var aggregateResult))
+        if (CreateAggregateLoweringCoordinator().TryBuildTable(tableContext, out var aggregateResult))
             return aggregateResult;
 
         return TableBuildResult.Unsupported(CreateUnsupported(unwrapped).UnsupportedReason!);

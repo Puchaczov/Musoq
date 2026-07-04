@@ -10,10 +10,19 @@ public sealed partial class ExecutionCSharpRenderer
     private IEnumerable<StatementSyntax> CreateWindowAggregateAccumulateStatements(
         ExecutionWindowAggregateKernel kernel)
     {
-        if (Nullable.GetUnderlyingType(kernel.Descriptor.InputType) != null)
-            return CreateNullableWindowAggregateAccumulateStatements(kernel);
+        IReadOnlyList<StatementSyntax> statements = Nullable.GetUnderlyingType(kernel.Descriptor.InputType) != null
+            ? CreateNullableWindowAggregateAccumulateStatements(kernel)
+            : [.. CreateNonNullableWindowAggregateAccumulateStatements(kernel)];
 
-        return CreateNonNullableWindowAggregateAccumulateStatements(kernel);
+        if (kernel.FilterPredicate == null)
+            return statements;
+
+        return
+        [
+            StatementEmitter.CreateIf(
+                CreateBooleanCondition(RenderExpression(kernel.FilterPredicate), kernel.FilterPredicate.ReturnType),
+                StatementEmitter.CreateBlock(statements))
+        ];
     }
 
     private IEnumerable<StatementSyntax> CreateNonNullableWindowAggregateAccumulateStatements(

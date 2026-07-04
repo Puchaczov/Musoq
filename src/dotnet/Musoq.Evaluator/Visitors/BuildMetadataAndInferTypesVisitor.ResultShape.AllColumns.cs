@@ -10,30 +10,6 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private void AddAllColumnsFields(List<FieldNode> fields, AllColumnsNode allColumnsNode, ref int positionCounter)
-    {
-        var identifier = !string.IsNullOrWhiteSpace(allColumnsNode.Alias)
-            ? allColumnsNode.Alias
-            : _sourceBinding.Identifier;
-
-        if (_resultShape.GeneratedColumns.TryGetValue(identifier, out var generatedColumns))
-        {
-            foreach (var column in generatedColumns)
-                fields.Add(new FieldNode(column.Expression, positionCounter++, column.FieldName, column.HasExplicitFieldName));
-        }
-        else if (string.IsNullOrWhiteSpace(allColumnsNode.Alias))
-        {
-            var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_sourceBinding.Identifier);
-            foreach (var compoundTableIdentifier in tableSymbol.CompoundTables)
-            {
-                if (!_resultShape.GeneratedColumns.TryGetValue(compoundTableIdentifier, out var compoundColumns)) continue;
-
-                foreach (var column in compoundColumns)
-                    fields.Add(new FieldNode(column.Expression, positionCounter++, column.FieldName, column.HasExplicitFieldName));
-            }
-        }
-    }
-
     private void ProcessSingleTable(AllColumnsNode node, TableSymbol tableSymbol, string identifier, Node[]? inferredReplaceExpressions)
     {
         var generatedColumnIdentifier = node.Alias ?? identifier;

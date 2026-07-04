@@ -11,6 +11,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         GeneratedRowShape resultShape,
         ProjectedField[] fields,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
+        IReadOnlyDictionary<string, string> aggregateSourceFields,
         IReadOnlyDictionary<int, ExecutionVariable> windowResults,
         ExecutionVariable windowIndex,
         bool preserveContexts)
@@ -19,7 +20,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
         foreach (var field in fields)
         {
-            var expression = ConvertWindowProjectionExpression(field, sourceLookup, windowResults, windowIndex);
+            var expression = ConvertWindowProjectionExpression(field, sourceLookup, aggregateSourceFields, windowResults, windowIndex);
             if (!expression.Supported)
                 return BuildResult<ExecutionAppendRow>.Unsupported(expression.UnsupportedReason);
 
@@ -39,13 +40,14 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IrExpression? qualifyPredicate,
         ExecutionAppendRow appendRow,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
+        IReadOnlyDictionary<string, string> aggregateSourceFields,
         IReadOnlyDictionary<int, ExecutionVariable> windowResults,
         ExecutionVariable windowIndex)
     {
         if (qualifyPredicate == null)
             return BuildResult<ExecutionBlock>.Success(CreateAppendBlock(appendRow));
 
-        var condition = ConvertWindowExpression(qualifyPredicate, sourceLookup, windowResults, windowIndex);
+        var condition = ConvertWindowExpression(qualifyPredicate, sourceLookup, aggregateSourceFields, windowResults, windowIndex);
         if (!condition.Supported)
             return BuildResult<ExecutionBlock>.Unsupported(condition.UnsupportedReason);
 

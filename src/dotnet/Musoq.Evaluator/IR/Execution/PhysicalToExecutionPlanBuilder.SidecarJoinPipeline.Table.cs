@@ -17,8 +17,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultShapeName,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex = DefaultSchemaFromIndex)
+        int schemaFromIndex = DefaultSchemaFromIndex,
+        PhysicalToExecutionLoweringSession? session = null)
     {
+        session ??= new PhysicalToExecutionLoweringSession(ResolveExecutionStrategies());
         if (stages.Count == 0)
             return UnsupportedSidecarJoinPipeline("no stages");
 
@@ -71,7 +73,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     cteIndexes,
                     cteShapesByName,
                     schemaFromIndex,
-                    CreateSourceRowsScope(resultTableName));
+                    CreateSourceRowsScope(resultTableName),
+                    session);
                 if (!source.Supported)
                     return TableBuildResult.Unsupported(source.UnsupportedReason);
 
@@ -97,11 +100,12 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 cteIndexes,
                 cteShapesByName,
                 schemaFromIndex,
-                CreateSourceRowsScope(resultTableName));
+                CreateSourceRowsScope(resultTableName),
+                session);
             if (!buildSource.Supported)
                 return TableBuildResult.Unsupported(buildSource.UnsupportedReason);
 
-            if (TryUseCteSidecarHashPayloadJoinSource(buildSource.Source, sidecar, out var payloadBuildSource))
+            if (TryUseCteSidecarHashPayloadJoinSource(buildSource.Source, sidecar, session, out var payloadBuildSource))
                 buildSource = SourceBuildResult.Success(payloadBuildSource);
 
             nodes.AddRange(buildSource.Source.Setup);

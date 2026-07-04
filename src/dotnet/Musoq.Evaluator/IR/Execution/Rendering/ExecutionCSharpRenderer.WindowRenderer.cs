@@ -5,13 +5,13 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private sealed class WindowRenderer(ExecutionCSharpRenderer renderer)
+    private sealed class WindowRenderer(ExecutionCSharpRenderer renderer, ExecutionRenderContext renderContext)
     {
         public bool TryRender(ExecutionNode node, out IEnumerable<StatementSyntax> statements)
         {
             statements = node switch
             {
-                ExecutionWindowKernelPlan plan => renderer.RenderWindowKernelPlan(plan),
+                ExecutionWindowKernelPlan plan when renderContext.Session != null => renderer.RenderWindowKernelPlan(plan, renderContext),
                 ExecutionComputeRankingWindow ranking => renderer.RenderComputeRankingWindow(ranking),
                 ExecutionComputeOffsetWindow offset => renderer.RenderComputeOffsetWindow(offset),
                 ExecutionComputePluginWindow plugin => renderer.RenderComputePluginWindow(plugin),

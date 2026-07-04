@@ -5,10 +5,13 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
 {
-    private ExecutionPlanBuildResult BuildAggregateOnlyPipeline(AggregateOnlyPipeline pipeline, string identifier)
+    private ExecutionPlanBuildResult BuildAggregateOnlyPipeline(
+        AggregateOnlyPipeline pipeline,
+        string identifier,
+        PhysicalToExecutionLoweringSession session)
     {
         var cteIndexes = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        var table = BuildAggregateOnlyTable(pipeline, "result", "ResultRow0", cteIndexes);
+        var table = BuildAggregateOnlyTable(pipeline, "result", "ResultRow0", cteIndexes, session: session);
         if (!table.Supported)
             return ExecutionPlanBuildResult.CreateUnsupported(table.UnsupportedReason);
 
@@ -22,15 +25,18 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName = null,
         int schemaFromIndex = DefaultSchemaFromIndex,
-        bool scopeAggregateVariables = false)
+        bool scopeAggregateVariables = false,
+        PhysicalToExecutionLoweringSession? session = null)
     {
+        session ??= new PhysicalToExecutionLoweringSession(ResolveExecutionStrategies());
         var aggregateSource = BuildAggregateSource(
             pipeline.Source.Source,
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
             CreateSourceRowsScope(resultTableName),
-            "aggregate-only");
+            "aggregate-only",
+            session);
         if (!aggregateSource.Supported)
             return TableBuildResult.Unsupported(aggregateSource.UnsupportedReason);
 

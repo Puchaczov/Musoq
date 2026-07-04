@@ -133,7 +133,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             failures);
 
         foreach (var methodName in distinctAggregateFinalizers)
-            if (!content.Contains($"{methodName}(", StringComparison.Ordinal))
+            if (!content.Contains($"{methodName}AggregateKernel<int>.Get", StringComparison.Ordinal))
                 failures.Add($"{fileName}: missing {methodName} finalization");
 
         if (content.Contains("AggregateGroup : Group", StringComparison.Ordinal))
@@ -164,7 +164,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             failures);
 
         foreach (var methodName in distinctAggregateFinalizers)
-            if (!content.Contains($"{methodName}(", StringComparison.Ordinal))
+            if (!content.Contains($"{methodName}AggregateKernel<int>.Get", StringComparison.Ordinal))
                 failures.Add($"{fileName}: missing {methodName} finalization");
 
         if (content.Contains("AggregateGroup : Group", StringComparison.Ordinal))

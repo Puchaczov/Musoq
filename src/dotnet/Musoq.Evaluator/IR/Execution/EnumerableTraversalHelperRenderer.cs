@@ -11,7 +11,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private sealed record EnumerableTraversalHelper(
+    internal sealed record EnumerableTraversalHelper(
         string FunctionName,
         ExecutionBlock Block,
         ExecutionEnumerableSource Source,
@@ -236,7 +236,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private MethodDeclarationSyntax CreateEnumerableTraversalFunction(EnumerableTraversalHelper helper)
     {
-        _suppressedEnumerableTraversalHelperBlocks.Add(helper.Block);
+        RenderSession.SuppressedEnumerableTraversalHelperBlocks.Add(helper.Block);
         try
         {
             return SyntaxFactory.MethodDeclaration(
@@ -255,7 +255,7 @@ public sealed partial class ExecutionCSharpRenderer
         }
         finally
         {
-            _suppressedEnumerableTraversalHelperBlocks.Remove(helper.Block);
+            RenderSession.SuppressedEnumerableTraversalHelperBlocks.Remove(helper.Block);
         }
     }
 

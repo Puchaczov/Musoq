@@ -4,8 +4,7 @@ using Musoq.Evaluator;
 namespace Musoq.Evaluator.IR.Optimization;
 
 /// <summary>
-/// Typed optimizer switches that replace the deprecated stringly-typed
-/// <see cref="OptimizationContext.Properties"/> flags.
+/// Typed optimizer switches that replace stringly-typed optimizer flags.
 /// </summary>
 internal sealed record OptimizationOptions
 {

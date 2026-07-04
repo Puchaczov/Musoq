@@ -10,10 +10,11 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     private static BuildResult<ExecutionExpression> ConvertWindowCollectionInCheck(
         CollectionInCheck collectionInCheck,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
+        IReadOnlyDictionary<string, string> aggregateSourceFields,
         IReadOnlyDictionary<int, ExecutionVariable> windowResults,
         ExecutionVariable windowIndex)
     {
-        var expression = ConvertWindowExpression(collectionInCheck.Expression, sourceLookup, windowResults, windowIndex);
+        var expression = ConvertWindowExpression(collectionInCheck.Expression, sourceLookup, aggregateSourceFields, windowResults, windowIndex);
         return expression.Supported
             ? BuildResult<ExecutionExpression>.Success(new ExecutionCollectionInCheck(
                 expression.Value,

@@ -18,6 +18,9 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
 
     protected override string VisitLiteral(Literal node)
     {
+        if (!string.IsNullOrWhiteSpace(node.DisplayName))
+            return node.DisplayName;
+
         if (node.Value is null)
             return "NULL";
 
@@ -165,7 +168,7 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
 
     protected override string VisitAggregateRef(AggregateRef node)
     {
-        return $"AggRef({node.Identifier})";
+        return $"AggRef({node.DisplayName ?? node.Identifier})";
     }
 
     protected override string VisitWindowFunctionRef(WindowFunctionRef node)

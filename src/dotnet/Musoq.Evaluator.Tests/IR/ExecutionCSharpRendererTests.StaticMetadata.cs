@@ -81,6 +81,19 @@ public sealed partial class ExecutionCSharpRendererTests
     }
 
     [TestMethod]
+    public void RenderClassMembers_WhenRendererIsReused_ShouldNotLeakConstantInSetFields()
+    {
+        var renderer = new ExecutionCSharpRenderer();
+        _ = renderer.RenderClassMembers(CreateConstantInCheckPlan("Q_InCheckFirst", 3));
+
+        var members = renderer.RenderClassMembers(CreatePlan());
+        var code = string.Join(Environment.NewLine, members.Select(member => member.NormalizeWhitespace().ToFullString()));
+
+        Assert.IsFalse(code.Contains("__inSet_Q_InCheckFirst_0", StringComparison.Ordinal));
+        Assert.IsFalse(code.Contains("new string[]", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
     public void RenderMethod_WhenPlanContainsSmallConstantInCheck_ShouldReadStaticArrayField()
     {
         var renderer = new ExecutionCSharpRenderer();
@@ -191,6 +204,20 @@ public sealed partial class ExecutionCSharpRendererTests
         Assert.Contains("new Table(\"result\", __columns_Q_Metadata_result_1)", code);
         Assert.IsFalse(code.Contains("new Column[]", StringComparison.Ordinal));
         Assert.IsFalse(code.Contains("new ISchemaColumn[]", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public void RenderMethod_WhenRendererIsReused_ShouldNotLeakStaticMetadataNames()
+    {
+        var renderer = new ExecutionCSharpRenderer();
+        _ = renderer.RenderMethod(CreateConstantInCheckPlan("Q_MetadataFirst", 3), "ExecutePlan");
+
+        var method = renderer.RenderMethod(CreatePlan(), "ExecutePlain");
+        var code = method.NormalizeWhitespace().ToFullString();
+
+        Assert.IsFalse(code.Contains("Q_MetadataFirst", StringComparison.Ordinal));
+        Assert.IsFalse(code.Contains("__schemaColumns_Q_MetadataFirst", StringComparison.Ordinal));
+        Assert.IsFalse(code.Contains("__columns_Q_MetadataFirst", StringComparison.Ordinal));
     }
 
     [TestMethod]

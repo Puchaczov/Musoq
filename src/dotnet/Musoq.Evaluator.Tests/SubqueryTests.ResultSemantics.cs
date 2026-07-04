@@ -35,9 +35,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "WARSAW"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "BERLIN"));
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["BERLIN"]);
     }
 
     [TestMethod]
@@ -67,8 +66,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Duplicates in subquery should not multiply outer rows");
-        Assert.AreEqual("WARSAW", (string)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"]);
     }
 
     [TestMethod]
@@ -93,7 +92,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
     [TestMethod]
@@ -118,7 +118,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
     [TestMethod]
@@ -145,8 +146,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", (string)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"]);
     }
 
     [TestMethod]
@@ -176,15 +177,15 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(r =>
-            (string)r.Values[0] == "WARSAW" &&
-            (string)r.Values[1] == "POLAND" &&
-            (decimal)r.Values[2] == 500m));
-        Assert.IsTrue(table.Any(r =>
-            (string)r.Values[0] == "PARIS" &&
-            (string)r.Values[1] == "FRANCE" &&
-            (decimal)r.Values[2] == 300m));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("a.Country", typeof(string)),
+            ("a.Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW", "POLAND", 500m],
+            ["PARIS", "FRANCE", 300m]);
     }
 
     [TestMethod]
@@ -213,8 +214,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", (string)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"]);
     }
 
 }

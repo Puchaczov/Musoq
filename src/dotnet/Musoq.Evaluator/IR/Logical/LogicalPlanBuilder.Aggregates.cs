@@ -5,7 +5,6 @@ using Musoq.Parser.Nodes;
 using IrNodes = Musoq.Evaluator.IR.Logical.Nodes;
 
 namespace Musoq.Evaluator.IR.Logical;
-
 public sealed partial class LogicalPlanBuilder
 {
     public void Visit(AccessRefreshAggregationScoreNode node)
@@ -15,8 +14,10 @@ public sealed partial class LogicalPlanBuilder
         var setArgs = new List<IrExpression>();
         foreach (var arg in node.Arguments.Args)
             setArgs.Add(_converter.Convert(arg));
+        var filterPredicate = node.FilterExpression == null ? null : _converter.Convert(node.FilterExpression);
+        var displayName = GetAggregateDisplayName(node);
 
-        _refreshMethods.Add(new RefreshMethodCapture(setMethod, setArgs));
+        _refreshMethods.Add(new RefreshMethodCapture(setMethod, setArgs, filterPredicate, displayName));
     }
 
     public void Visit(RefreshNode node)
@@ -30,11 +31,14 @@ public sealed partial class LogicalPlanBuilder
             var setArgs = new List<IrExpression>();
             foreach (var arg in methodNode.Arguments.Args)
                 setArgs.Add(_converter.Convert(arg));
+            var filterPredicate = methodNode.FilterExpression == null
+                ? null
+                : _converter.Convert(methodNode.FilterExpression);
+            var displayName = GetAggregateDisplayName(methodNode);
 
-            _refreshMethods.Add(new RefreshMethodCapture(setMethod, setArgs));
+            _refreshMethods.Add(new RefreshMethodCapture(setMethod, setArgs, filterPredicate, displayName));
         }
     }
-
     private LogicalNode ExtractAggregateBindings(LogicalNode source)
     {
         var (aggregateNode, wrapperFactory) = FindAggregateNode(source);

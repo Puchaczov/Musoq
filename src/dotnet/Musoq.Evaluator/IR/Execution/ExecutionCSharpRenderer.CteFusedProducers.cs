@@ -7,9 +7,12 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderFusedCteProducer(ExecutionFusedCteProducer producer)
+    private IEnumerable<StatementSyntax> RenderFusedCteProducer(
+        ExecutionFusedCteProducer producer,
+        ExecutionRenderContext context)
     {
-        var previousTypedRowBufferVariables = _typedRowBufferVariables;
+        var session = context.Session;
+        var previousTypedRowBufferVariables = session.TypedRowBufferVariables;
         var typedRowBufferVariables = new Dictionary<string, GeneratedRowShape>(
             previousTypedRowBufferVariables,
             StringComparer.Ordinal);
@@ -17,16 +20,16 @@ public sealed partial class ExecutionCSharpRenderer
         foreach (var output in producer.Outputs)
             typedRowBufferVariables[output.Table.Name] = output.RowShape;
 
-        _typedRowBufferVariables = typedRowBufferVariables;
+        session.TypedRowBufferVariables = typedRowBufferVariables;
 
         try
         {
-            foreach (var statement in RenderBlock(producer.Body).Statements)
+            foreach (var statement in RenderBlock(producer.Body, context).Statements)
                 yield return statement;
         }
         finally
         {
-            _typedRowBufferVariables = previousTypedRowBufferVariables;
+            session.TypedRowBufferVariables = previousTypedRowBufferVariables;
         }
 
         foreach (var output in producer.Outputs.Where(static output => output.StoreRows))
@@ -35,7 +38,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private StatementSyntax CreateFusedCteOutputAssignment(ExecutionFusedCteOutput output)
     {
-        ExpressionSyntax target = _typedStoredTableResults.ContainsKey(output.TableIndex)
+        ExpressionSyntax target = RenderSession.TypedStoredTableResults.ContainsKey(output.TableIndex)
             ? CreateCteRowResultSlotAccess(output.TableIndex)
             : CreateElementAccess(
                 SyntaxFactory.IdentifierName("_tableResults"),

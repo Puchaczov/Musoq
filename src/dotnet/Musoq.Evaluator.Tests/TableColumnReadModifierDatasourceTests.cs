@@ -33,8 +33,11 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
 
         var table = Run(query, rows);
 
-        Assert.AreEqual("Za\u017c\u00f3\u0142\u0107", table[0][0]);
-        Assert.AreEqual("\u0141\u00f3d\u017a", table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Utf8Name", typeof(string)),
+            ("Utf16Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Za\u017c\u00f3\u0142\u0107", "\u0141\u00f3d\u017a"]);
     }
 
     [TestMethod]
@@ -51,8 +54,11 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
 
         var table = Run(query, rows);
 
-        Assert.AreEqual("Ada", table[0][0]);
-        Assert.AreEqual(12.50m, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Amount", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Ada", 12.50m]);
     }
 
     [TestMethod]
@@ -71,11 +77,14 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
 
         var table = Run(query, rows);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Mid", table[0][0]);
-        Assert.AreEqual(2.40m, table[0][1]);
-        Assert.AreEqual("High", table[1][0]);
-        Assert.AreEqual(10.50m, table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Amount", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Mid", 2.40m],
+            ["High", 10.50m]);
     }
 
     [TestMethod]
@@ -93,10 +102,14 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
 
         var table = Run(query, rows);
 
-        Assert.AreEqual("Older", table[0][0]);
-        Assert.AreEqual(new DateTime(2023, 12, 31), table[0][1]);
-        Assert.AreEqual("Newer", table[1][0]);
-        Assert.AreEqual(new DateTime(2024, 1, 2), table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Label", typeof(string)),
+            ("EventDate", typeof(DateTime?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Older", new DateTime(2023, 12, 31)],
+            ["Newer", new DateTime(2024, 1, 2)]);
     }
 
     [TestMethod]
@@ -111,7 +124,8 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
 
         var table = Run(query, rows);
 
-        Assert.AreEqual("payload text", table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Payload", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["payload text"]);
     }
 
     [TestMethod]
@@ -135,7 +149,8 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
         Assert.IsTrue(result.Succeeded);
         Assert.IsFalse(result.Warnings.Any(static item => item.Code == DiagnosticCode.MQ5013_SourceContractWarning));
         Assert.IsFalse(result.Errors.Any(static item => item.Code == DiagnosticCode.MQ3071_SourceContractError));
-        Assert.AreEqual("Default text", table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Default text"]);
     }
 
     [TestMethod]
@@ -160,7 +175,9 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
         Assert.Contains("column=Name", warning.Message);
         Assert.Contains("modifier=encoding", warning.Message);
         Assert.AreEqual(CreateExpectedSpan(query, "encoding 'windows-1250'"), warning.Span);
-        Assert.AreEqual("Lenient text", result.CompiledQuery!.Run()[0][0]);
+        var table = result.CompiledQuery!.Run();
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Lenient text"]);
     }
 
     [TestMethod]
@@ -301,8 +318,11 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
 
         var table = CreateAndRunVirtualMachine(query, schemaProvider: provider).Run();
 
-        Assert.AreEqual("API text", table[0][0]);
-        Assert.AreEqual("payload", table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Payload", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["API text", "payload"]);
         AssertColumnModifier(provider.Recorder.GetTableColumns.Last(), "Name", ColumnReadModifiers.Encoding, "utf-8");
         AssertColumnModifier(provider.Recorder.GetTableColumns.Last(), "Name", ColumnReadModifiers.Trim, "true");
         AssertColumnModifier(provider.Recorder.DescriptorColumns.Single(), "Payload", "source.codec", "base64");
@@ -328,7 +348,8 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, schemaProvider: provider).Run();
         var request = provider.Recorder.PlanRequests.Single();
 
-        Assert.AreEqual("Name only", table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Name only"]);
         Assert.AreEqual(1, request.RequiredColumns.Count);
         Assert.AreEqual("Name", request.RequiredColumns[0].Name);
         Assert.AreEqual("utf-8", request.RequiredColumns[0].ReadModifiers[ColumnReadModifiers.Encoding]);
@@ -343,7 +364,7 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
             "table RecordsShape { Id: int, Category: string encoding 'utf-8' trim, Amount: decimal culture 'pl-PL' trim };" +
             "couple #readmods.records with table RecordsShape as Records;" +
             "with filtered as (select Id, Category, Amount from Records() where Amount > 1) " +
-            "select f.Category, Count(r.Id) from filtered f inner join Records() r on f.Category = r.Category " +
+            "select f.Category, Count(r.Id) as C from filtered f inner join Records() r on f.Category = r.Category " +
             "group by f.Category order by f.Category";
         var rows = new[]
         {
@@ -356,10 +377,14 @@ public sealed class TableColumnReadModifierDatasourceTests : BasicEntityTestBase
         var table = CreateAndRunVirtualMachine(query, schemaProvider: provider).Run();
         var requiredColumns = provider.Recorder.PlanRequests.SelectMany(static request => request.RequiredColumns).ToArray();
 
-        Assert.AreEqual("A", table[0][0]);
-        Assert.AreEqual(4L, table[0][1]);
-        Assert.AreEqual("B", table[1][0]);
-        Assert.AreEqual(1L, table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("f.Category", typeof(string)),
+            ("C", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["A", 4L],
+            ["B", 1L]);
         Assert.IsTrue(requiredColumns.Any(column =>
             column.Name == "Amount" &&
             column.ReadModifiers.TryGetValue(ColumnReadModifiers.Culture, out var culture) &&

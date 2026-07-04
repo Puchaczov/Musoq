@@ -25,7 +25,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         foreach (var field in reorderedList)
             if (field.Expression is AllColumnsNode allColumnsNode)
-                AddAllColumnsFields(fields, allColumnsNode, ref positionCounter);
+                _resultShapeBindingService.AddAllColumnsFields(_sourceBinding, fields, allColumnsNode, ref positionCounter);
             else
                 fields.Add(new FieldNode(field.Expression, positionCounter++, field.FieldName, field.HasExplicitFieldName));
 

@@ -1,9 +1,10 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Optimization;
+using Musoq.Evaluator.IR.Optimization.Codegen;
+using Musoq.Evaluator.IR.Optimization.Execution;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Visitors;
 using Musoq.Evaluator.Visitors.CodeGeneration;
@@ -14,80 +15,86 @@ namespace Musoq.Converter.Build;
 
 public partial class TransformTree
 {
-    private static RenderingBuildArtifacts BuildWithIrRenderer(
-        BuildItems items,
+    private static RenderingStageBuildResult BuildWithIrRenderer(
+        TransformPipelineContext context,
         SemanticBuildArtifacts semantic,
+        PlanningBuildArtifacts planning,
+        ExecutionBuildArtifacts execution,
         BuildMetadataAndInferTypesVisitor metadata,
         BuildMetadataAndInferTypesTraverseVisitor metadataTraverser)
     {
-        var assemblyName = items.AssemblyName;
+        var assemblyName = context.AssemblyName;
         var safeNamespaceName = SanitizeNameForNamespace(assemblyName);
         var generator = RoslynSharedFactory.Generator;
 
-        var context = new RenderContext(
+        var renderContext = new RenderContext(
             generator,
             new RenderContextOptions(
                 Scope: metadataTraverser.Scope,
                 AssemblyName: safeNamespaceName,
                 ScriptParameterDefinitions: semantic.ScriptParameterDefinitions,
                 ScriptVariableDefinitions: semantic.ScriptVariableDefinitions,
-                InstrumentationMode: items.CompilationOptions.InstrumentationMode,
-                ResultMode: items.QueryResultMode,
-                FinalResultSinkKind: ResolveFinalResultSinkKind(items.QueryResultMode),
-                OutputType: items.OutputType,
-                ForceTableResultMaterialization: items.CompilationOptions.ForceTableResultMaterialization));
+                InstrumentationMode: context.CompilationOptions.InstrumentationMode,
+                ResultMode: context.QueryResultMode,
+                FinalResultSinkKind: ResolveFinalResultSinkKind(context.QueryResultMode),
+                OutputType: context.OutputType,
+                ForceTableResultMaterialization: context.CompilationOptions.ForceTableResultMaterialization));
 
-        var renderer = new CSharpRenderer(context);
+        var renderer = new CSharpRenderer(renderContext);
         var queryIdentifier = "compiled";
-        if (items.PhysicalPlan is null)
+        if (planning.PhysicalPlan is null)
             throw new InvalidOperationException(
                 "IR cutover requires a physical plan, but none was produced for the query.");
 
-        var executionQueryResult = RenderExecutionQueryMethod(items, renderer, queryIdentifier);
-        items.QueryMethodRenderMetadata = executionQueryResult.Metadata;
-        context.AddClassMember(executionQueryResult.MethodDeclaration);
+        var executionQueryResult = RenderExecutionQueryMethod(execution, renderer, queryIdentifier);
+        renderContext.AddClassMember(executionQueryResult.MethodDeclaration);
         var compilationUnit = renderer.RenderCompilationUnit(
             queryIdentifier,
-            CountExecutionTableSlots(items.ExecutionPlan),
-            CountExecutionCteIndexSlots(items.ExecutionPlan));
+            ExecutionPlanInventory.CountTableSlots(execution.ExecutionPlan),
+            ExecutionPlanInventory.CountCteIndexSlots(execution.ExecutionPlan));
         var readabilityResult = new CodegenReadabilityOptimizer().Optimize(compilationUnit);
-        items.OptimizerTraceText = OptimizationTraceTextPrinter.Append(items.OptimizerTraceText, readabilityResult.Trace);
+        var updatedContext = context.AppendTrace(readabilityResult.Trace) with
+        {
+            QueryMethodRenderMetadata = executionQueryResult.Metadata
+        };
         compilationUnit = readabilityResult.OptimizedCode;
 
         var compilationContext = new CompilationContextManager(
             RoslynSharedFactory.CreateCompilation(assemblyName));
         compilationContext.InitializeDefaults();
-        foreach (var referenceType in items.AdditionalReferenceTypes)
+        foreach (var referenceType in updatedContext.AdditionalReferenceTypes)
         {
             if (!metadata.Assemblies.Contains(referenceType.Assembly))
                 metadata.Assemblies.Add(referenceType.Assembly);
         }
 
-        if (items.OutputType?.Assembly is { } outputAssembly && !metadata.Assemblies.Contains(outputAssembly))
+        if (updatedContext.OutputType?.Assembly is { } outputAssembly && !metadata.Assemblies.Contains(outputAssembly))
             metadata.Assemblies.Add(outputAssembly);
 
         compilationContext.InitializeCoreReferences(metadata.Assemblies);
         compilationContext.AddSyntaxTree(ClassEmitter.CreateSyntaxTreeDirect(compilationUnit));
-        if (!string.IsNullOrEmpty(items.InterpreterSourceCode))
+        if (!string.IsNullOrEmpty(updatedContext.InterpreterSourceCode))
         {
             compilationContext.TrackNamespace("Musoq.Generated.Interpreters");
             compilationContext.AddSyntaxTree(CSharpSyntaxTree.ParseText(
-                items.InterpreterSourceCode,
+                updatedContext.InterpreterSourceCode,
                 new CSharpParseOptions(LanguageVersion.CSharp11)));
         }
 
-        return new RenderingBuildArtifacts(
+        var artifacts = new RenderingBuildArtifacts(
             compilationContext.GetCompilation(),
-            $"{safeNamespaceName}.CompiledQuery");
+            $"{safeNamespaceName}.CompiledQuery",
+            updatedContext.QueryMethodRenderMetadata);
+        return new RenderingStageBuildResult(artifacts, updatedContext);
     }
 
     private static QueryMethodRenderResult RenderExecutionQueryMethod(
-        BuildItems items,
+        ExecutionBuildArtifacts execution,
         CSharpRenderer renderer,
         string queryIdentifier)
     {
-        if (items.ExecutionPlanBuildResult is not { Supported: true, ExecutionPlan: { } executionPlan })
-            throw CreateUnsupportedExecutionIrException(items.ExecutionPlanBuildResult?.UnsupportedReason);
+        if (execution.ExecutionPlanBuildResult is not { Supported: true, ExecutionPlan: { } executionPlan })
+            throw CreateUnsupportedExecutionIrException(execution.ExecutionPlanBuildResult?.UnsupportedReason);
 
         var outcome = renderer.TryRenderExecutionQueryMethod(executionPlan, queryIdentifier);
         if (outcome.Method is { } renderedMethod)
@@ -97,7 +104,6 @@ public partial class TransformTree
             ? "Execution IR C# backend did not produce a query method."
             : outcome.UnsupportedReason;
 
-        RecordExecutionRenderUnsupported(items, reason);
         throw CreateUnsupportedExecutionIrException(reason);
     }
 
@@ -121,138 +127,61 @@ public partial class TransformTree
             $"Execution IR does not support this query shape and old physical rendering is disabled: {reason}");
     }
 
-    private static void RecordExecutionRenderUnsupported(BuildItems items, string unsupportedReason)
+    private static ExecutionStageBuildResult BuildExecutionInspection(
+        TransformPipelineContext context,
+        SemanticBuildArtifacts semantic,
+        PlanningBuildArtifacts planning)
     {
-        items.ExecutionPlanBuildResult = ExecutionPlanBuildResult.CreateUnsupported(unsupportedReason);
-        items.ExecutionPlan = null;
-        if (items.EmitExecutionPlanText)
-            items.ExecutionPlanText = ExecutionPlanPrinter.PrintUnsupported(unsupportedReason);
-    }
-
-    private static ExecutionBuildArtifacts BuildExecutionInspection(BuildItems items)
-    {
-        if (items.PhysicalPlan == null)
-            return new ExecutionBuildArtifacts();
+        if (planning.PhysicalPlan == null)
+            return new ExecutionStageBuildResult(new ExecutionBuildArtifacts(), context);
 
         var shapeResolver = new ExecutionShapeResolver(
-            items.PipelineScope,
-            items.PipelineInferredColumns ?? new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal),
-            schemaRegistry: items.SchemaRegistry);
+            semantic.PipelineScope,
+            semantic.PipelineInferredColumns ?? new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal),
+            schemaRegistry: context.SchemaRegistry);
         var builder = new PhysicalToExecutionPlanBuilder(
             shapeResolver,
-            items.SchemaRegistry,
-            items.CompilationOptions,
-            items.CteExecutionPlan,
-            items.PlanningResult?.ExecutionArtifacts ??
+            context.SchemaRegistry,
+            context.CompilationOptions,
+            semantic.CteExecutionPlan,
+            planning.PlanningResult?.ExecutionArtifacts ??
             throw new InvalidOperationException("Execution IR lowering requires planner-owned execution artifacts from QueryPlanner."));
-        var result = builder.Build(items.PhysicalPlan);
+        var result = builder.Build(planning.PhysicalPlan);
 
         if (result is { Supported: true, ExecutionPlan: not null })
         {
-            var optimizationResult = new ExecutionIrOptimizer().Optimize(result.ExecutionPlan, items.CompilationOptions);
-            items.OptimizerTraceText = OptimizationTraceTextPrinter.Append(items.OptimizerTraceText, optimizationResult.Trace);
+            var optimizationResult = new ExecutionIrOptimizer().Optimize(result.ExecutionPlan, context.CompilationOptions);
+            var updatedContext = context.AppendTrace(optimizationResult.Trace);
             var optimizedPlan = optimizationResult.OptimizedPlan;
 
-            return new ExecutionBuildArtifacts
+            var artifacts = new ExecutionBuildArtifacts
             {
                 ExecutionPlanBuildResult = result with { ExecutionPlan = optimizedPlan },
                 InitialExecutionPlan = optimizationResult.InitialPlan,
                 OptimizedExecutionPlan = optimizedPlan,
                 ExecutionPlan = optimizedPlan,
-                ExecutionPlanText = items.EmitExecutionPlanText && optimizedPlan != null
+                ExecutionPlanText = context.EmitExecutionPlanText && optimizedPlan != null
                     ? ExecutionPlanPrinter.Print(optimizedPlan)
                     : null
             };
+
+            return new ExecutionStageBuildResult(artifacts, updatedContext);
         }
 
-        return new ExecutionBuildArtifacts
+        var unsupportedArtifacts = new ExecutionBuildArtifacts
         {
             ExecutionPlanBuildResult = result,
             InitialExecutionPlan = result.ExecutionPlan,
             OptimizedExecutionPlan = result.ExecutionPlan,
             ExecutionPlan = result.ExecutionPlan,
-            ExecutionPlanText = items.EmitExecutionPlanText
+            ExecutionPlanText = context.EmitExecutionPlanText
                 ? result.ExecutionPlan != null
                     ? ExecutionPlanPrinter.Print(result.ExecutionPlan)
                     : ExecutionPlanPrinter.PrintUnsupported(result.UnsupportedReason ?? "Execution IR lowering did not produce a plan.")
                 : null
         };
+
+        return new ExecutionStageBuildResult(unsupportedArtifacts, context);
     }
 
-    private static int CountExecutionTableSlots(ExecutionPlan? executionPlan)
-    {
-        if (executionPlan == null)
-            return 0;
-
-        return FindMaxExecutionTableIndex(executionPlan.Body) + 1;
-    }
-
-    private static int CountExecutionCteIndexSlots(ExecutionPlan? executionPlan)
-    {
-        if (executionPlan == null)
-            return 0;
-
-        return FindMaxExecutionCteIndexSlot(executionPlan.Body) + 1;
-    }
-
-    private static int FindMaxExecutionTableIndex(ExecutionBlock block)
-    {
-        var maxIndex = -1;
-
-        foreach (var node in block.Nodes)
-            maxIndex = Math.Max(maxIndex, FindMaxExecutionTableIndex(node));
-
-        return maxIndex;
-    }
-
-    private static int FindMaxExecutionTableIndex(ExecutionNode node)
-    {
-        return node switch
-        {
-            ExecutionStoreTable store => store.TableIndex,
-            ExecutionForEach forEach => FindMaxExecutionTableIndex(forEach.Body),
-            ExecutionForEachWithOrdinality forEach => FindMaxExecutionTableIndex(forEach.Body),
-            ExecutionIf branch => FindMaxExecutionTableIndex(branch.Body),
-            ExecutionHashProbe probe => FindMaxExecutionTableIndex(probe.Body),
-            ExecutionKeySetProbe probe => Math.Max(
-                FindMaxExecutionTableIndex(probe.Body),
-                probe.NoMatchBody == null ? -1 : FindMaxExecutionTableIndex(probe.NoMatchBody)),
-            ExecutionParallelBlock parallel => Math.Max(
-                FindMaxExecutionTableIndex(parallel.Merge.Body),
-                parallel.Tasks.Select(task => FindMaxExecutionTableIndex(task.Body)).DefaultIfEmpty(-1).Max()),
-            _ => -1
-        };
-    }
-
-    private static int FindMaxExecutionCteIndexSlot(ExecutionBlock block)
-    {
-        var maxIndex = -1;
-
-        foreach (var node in block.Nodes)
-            maxIndex = Math.Max(maxIndex, FindMaxExecutionCteIndexSlot(node));
-
-        return maxIndex;
-    }
-
-    private static int FindMaxExecutionCteIndexSlot(ExecutionNode node)
-    {
-        return node switch
-        {
-            ExecutionStoreCteIndex store => store.IndexSlot,
-            ExecutionLoadCteIndex load => load.IndexSlot,
-            ExecutionForEach forEach => FindMaxExecutionCteIndexSlot(forEach.Body),
-            ExecutionForEachWithOrdinality forEach => FindMaxExecutionCteIndexSlot(forEach.Body),
-            ExecutionIf branch => FindMaxExecutionCteIndexSlot(branch.Body),
-            ExecutionHashProbe probe => Math.Max(
-                FindMaxExecutionCteIndexSlot(probe.Body),
-                probe.NoMatchBody == null ? -1 : FindMaxExecutionCteIndexSlot(probe.NoMatchBody)),
-            ExecutionKeySetProbe probe => Math.Max(
-                FindMaxExecutionCteIndexSlot(probe.Body),
-                probe.NoMatchBody == null ? -1 : FindMaxExecutionCteIndexSlot(probe.NoMatchBody)),
-            ExecutionParallelBlock parallel => Math.Max(
-                FindMaxExecutionCteIndexSlot(parallel.Merge.Body),
-                parallel.Tasks.Select(task => FindMaxExecutionCteIndexSlot(task.Body)).DefaultIfEmpty(-1).Max()),
-            _ => -1
-        };
-    }
 }

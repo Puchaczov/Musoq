@@ -43,7 +43,7 @@ public partial class QueryInspectionTests
         AssertChainedApplyStreamsWithoutFirstTransition(result.ExecutionPlanText);
         AssertChainedApplyDoesNotMaterializeFinalApplyTable(result.ExecutionPlanText);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
-        Assert.Contains("If [(Count('Count(1)') > 1)]", result.ExecutionPlanText);
+        Assert.Contains("If [(inm.Count(1) > 1)]", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
 
@@ -113,7 +113,7 @@ public partial class QueryInspectionTests
         AssertChainedApplyDoesNotMaterializeFinalApplyTable(result.ExecutionPlanText);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
-        Assert.Contains("partition by windowSource.Count(1)", result.ExecutionPlanText);
+        Assert.Contains("partition by windowSource.inm.Count(1)", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
 
@@ -139,7 +139,7 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
-        Assert.Contains("CASE WHEN", result.ExecutionPlanText);
+        Assert.Contains("TypedAggregateSet [Set(group.__agg0, value) filter (m.Value > 1)]", result.ExecutionPlanText);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -151,7 +151,7 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
-        Assert.Contains("Sum(Value,0): int?", result.ExecutionPlanText);
+        Assert.Contains("inm.Sum(n.Value, 0): int?", result.ExecutionPlanText);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -196,8 +196,8 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".SetDistinctAggregate(", StringComparison.Ordinal));
-        Assert.Contains("MaxDistinct(", result.ExecutionPlanText);
-        Assert.Contains("MinDistinct(", result.ExecutionPlanText);
+        Assert.Contains("inm.Max(distinct n.Value): int?", result.ExecutionPlanText);
+        Assert.Contains("inm.Min(distinct n.Value): int?", result.ExecutionPlanText);
         Assert.Contains("MaxDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
         Assert.Contains("MinDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
@@ -212,7 +212,8 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".SetDistinctAggregate(", StringComparison.Ordinal));
-        Assert.Contains("SumDistinct(", result.ExecutionPlanText);
+        Assert.Contains("DistinctSum: int?", result.ExecutionPlanText);
+        Assert.Contains("SumDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -225,7 +226,8 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".SetDistinctAggregate(", StringComparison.Ordinal));
-        Assert.Contains("SumDistinct(", result.ExecutionPlanText);
+        Assert.Contains("DistinctSum: int?", result.ExecutionPlanText);
+        Assert.Contains("SumDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
         Assert.Contains("SortShapeRows [", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -238,8 +240,8 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".SetDistinctAggregate(", StringComparison.Ordinal));
-        Assert.Contains("MinDistinct(", result.ExecutionPlanText);
-        Assert.Contains("MaxDistinct(", result.ExecutionPlanText);
+        Assert.Contains("DistinctMin: int?", result.ExecutionPlanText);
+        Assert.Contains("DistinctMax: int?", result.ExecutionPlanText);
         Assert.Contains("MinDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
         Assert.Contains("MaxDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
         Assert.Contains("SortShapeRows [", result.ExecutionPlanText);
@@ -255,7 +257,7 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".SetDistinctAggregate(", StringComparison.Ordinal));
-        Assert.Contains("AvgDistinct(", result.ExecutionPlanText);
+        Assert.Contains("DistinctAvg: int?", result.ExecutionPlanText);
         Assert.Contains("AvgDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
         Assert.Contains("SortShapeRows [", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("ComputeRowNumberWindow [", StringComparison.Ordinal));
@@ -270,8 +272,8 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".SetDistinctAggregate(", StringComparison.Ordinal));
-        Assert.Contains("MinDistinct(", result.ExecutionPlanText);
-        Assert.Contains("MaxDistinct(", result.ExecutionPlanText);
+        Assert.Contains("DistinctMin: int?", result.ExecutionPlanText);
+        Assert.Contains("DistinctMax: int?", result.ExecutionPlanText);
         Assert.Contains("MinDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
         Assert.Contains("MaxDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
@@ -286,7 +288,7 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains(".SetDistinctAggregate(", StringComparison.Ordinal));
-        Assert.Contains("AvgDistinct(", result.ExecutionPlanText);
+        Assert.Contains("DistinctAvg: int?", result.ExecutionPlanText);
         Assert.Contains("AvgDistinctAggregateKernel<int>.Set", result.GeneratedCSharpCode);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
@@ -299,7 +301,7 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
-        Assert.Contains("Avg(Value,0): int?", result.ExecutionPlanText);
+        Assert.Contains("inm.Avg(n.Value, 0): int?", result.ExecutionPlanText);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }
@@ -311,8 +313,8 @@ public partial class QueryInspectionTests
 
         AssertUsesExecutionBackend(result);
         AssertTypedSingleKeyAggregateContext(result.ExecutionPlanText);
-        Assert.Contains("Max(Value,0): int?", result.ExecutionPlanText);
-        Assert.Contains("Min(Value,0): int?", result.ExecutionPlanText);
+        Assert.Contains("inm.Max(n.Value, 0): int?", result.ExecutionPlanText);
+        Assert.Contains("inm.Min(n.Value, 0): int?", result.ExecutionPlanText);
         Assert.Contains("ComputeRowNumberWindow [", result.ExecutionPlanText);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.SmartForEach", result.GeneratedCSharpCode);
     }

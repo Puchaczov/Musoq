@@ -22,9 +22,7 @@ public partial class SetsOperatorsTests
         var table = CreateAndRunVirtualMachine(query, CreateSameNameDifferentCitySources())
             .Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        AssertContainsRow(table, "001", "Warsaw");
-        AssertContainsRow(table, "001", "Berlin");
+        AssertNameCityRows(table, ["001", "Warsaw"], ["001", "Berlin"]);
     }
 
     [TestMethod]
@@ -38,9 +36,7 @@ public partial class SetsOperatorsTests
         var table = CreateAndRunVirtualMachine(query, CreateSameNameDifferentCitySources())
             .Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        AssertContainsRow(table, "001", "Warsaw");
-        AssertContainsRow(table, "001", "Berlin");
+        AssertNameCityRows(table, ["001", "Warsaw"], ["001", "Berlin"]);
     }
 
     [TestMethod]
@@ -54,9 +50,7 @@ public partial class SetsOperatorsTests
         var table = CreateAndRunVirtualMachine(query, CreateSameNameDifferentCitySources())
             .Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        AssertContainsRow(table, "001", "Warsaw");
-        AssertContainsRow(table, "001", "Berlin");
+        AssertNameCityRows(table, ["001", "Warsaw"], ["001", "Berlin"]);
     }
 
     [TestMethod]
@@ -70,9 +64,28 @@ public partial class SetsOperatorsTests
         var table = CreateAndRunVirtualMachine(query, CreateSameNameDifferentCitySources())
             .Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        AssertContainsRow(table, "001", "Warsaw");
-        AssertContainsRow(table, "001", "Berlin");
+        AssertNameCityRows(table, ["001", "Warsaw"], ["001", "Berlin"]);
+
+    }
+
+    [TestMethod]
+    public void UnionAllWithExplicitKeys_ShouldAppendRowsAndPreserveDuplicates()
+    {
+        var query = @"
+            select Name, City from #A.Entities()
+            union all (Name)
+            select Name, City from #B.Entities()";
+
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            { "#A", [new BasicEntity("001") { City = "Warsaw" }] },
+            { "#B", [new BasicEntity("001") { City = "Warsaw" }] }
+        };
+
+        var table = CreateAndRunVirtualMachine(query, sources)
+            .Run(TestContext.CancellationToken);
+
+        AssertNameCityRows(table, ["001", "Warsaw"], ["001", "Warsaw"]);
     }
 
     [TestMethod]
@@ -86,8 +99,7 @@ public partial class SetsOperatorsTests
         var table = CreateAndRunVirtualMachine(query, CreateSameNameDifferentCitySources())
             .Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        AssertContainsRow(table, "001", "Warsaw");
+        AssertNameCityRows(table, ["001", "Warsaw"]);
     }
 
     [TestMethod]
@@ -101,8 +113,7 @@ public partial class SetsOperatorsTests
         var table = CreateAndRunVirtualMachine(query, CreateSameNameDifferentCitySources())
             .Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        AssertContainsRow(table, "001", "Warsaw");
+        AssertNameCityRows(table, ["001", "Warsaw"]);
     }
 
     [TestMethod]
@@ -116,7 +127,7 @@ public partial class SetsOperatorsTests
         var table = CreateAndRunVirtualMachine(query, CreateSameNameDifferentCitySources())
             .Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0, table.Count);
+        AssertNameCityRows(table);
     }
 
     [TestMethod]
@@ -130,7 +141,7 @@ public partial class SetsOperatorsTests
         var table = CreateAndRunVirtualMachine(query, CreateSameNameDifferentCitySources())
             .Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0, table.Count);
+        AssertNameCityRows(table);
     }
 
     [TestMethod]
@@ -144,8 +155,7 @@ public partial class SetsOperatorsTests
         var table = CreateAndRunVirtualMachine(query, CreateSameNameDifferentCitySources())
             .Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        AssertContainsRow(table, "001", "Warsaw");
+        AssertNameCityRows(table, ["001", "Warsaw"]);
     }
 
     [TestMethod]
@@ -163,10 +173,14 @@ public partial class SetsOperatorsTests
         var table = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("001")))
             .Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.Values[0]) == 1 && (string)row.Values[1] == "A"));
-        Assert.IsTrue(table.Any(row => Convert.ToInt32(row.Values[0]) == 1 && (string)row.Values[1] == "B"));
-        Assert.IsFalse(table.Any(row => (string)row.Values[1] == "C"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Id", typeof(int)),
+            ("Tag", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [1, "A"],
+            [1, "B"]);
     }
 
     [TestMethod]
@@ -200,9 +214,14 @@ public partial class SetsOperatorsTests
         var table = CreateAndRunVirtualMachine(query, sources)
             .Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "001" && row.Values[1] == null));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "001" && (string)row.Values[1] == "Warsaw"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            new object?[] { "001", null },
+            ["001", "Warsaw"]);
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateSameNameDifferentCitySources()
@@ -214,10 +233,12 @@ public partial class SetsOperatorsTests
         };
     }
 
-    private static void AssertContainsRow(Musoq.Evaluator.Tables.Table table, string name, string city)
+    private static void AssertNameCityRows(Musoq.Evaluator.Tables.Table table, params object?[][] rows)
     {
-        Assert.IsTrue(
-            table.Any(row => (string)row.Values[0] == name && (string)row.Values[1] == city),
-            $"Expected row ({name}, {city}).");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, rows);
     }
 }

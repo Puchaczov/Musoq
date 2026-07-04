@@ -5,24 +5,24 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private sealed class JoinRenderer(ExecutionCSharpRenderer renderer)
+    private sealed class JoinRenderer(ExecutionCSharpRenderer renderer, ExecutionRenderContext renderContext)
     {
         public bool TryRender(ExecutionNode node, out IEnumerable<StatementSyntax> statements)
         {
             statements = node switch
             {
-                ExecutionParallelFilterProjectLoop parallelProject => renderer.RenderParallelFilterProjectLoop(parallelProject),
+                ExecutionParallelFilterProjectLoop parallelProject when renderContext.Session != null => renderer.RenderParallelFilterProjectLoop(parallelProject),
                 ExecutionCreateHashPayload createPayload => [renderer.RenderCreateHashPayload(createPayload)],
                 ExecutionCreateHash createHash => [renderer.RenderCreateHash(createHash)],
                 ExecutionHashAdd hashAdd => renderer.RenderHashAdd(hashAdd),
-                ExecutionHashProbe hashProbe => renderer.RenderHashProbe(hashProbe),
+                ExecutionHashProbe hashProbe => renderer.RenderHashProbe(hashProbe, renderContext),
                 ExecutionCreateKeySet createKeySet => [renderer.RenderCreateKeySet(createKeySet)],
                 ExecutionKeySetAdd keySetAdd => renderer.RenderKeySetAdd(keySetAdd),
-                ExecutionKeySetProbe keySetProbe => renderer.RenderKeySetProbe(keySetProbe),
+                ExecutionKeySetProbe keySetProbe => renderer.RenderKeySetProbe(keySetProbe, renderContext),
                 ExecutionCreateAsOfIndex createAsOfIndex => [renderer.RenderCreateAsOfIndex(createAsOfIndex)],
-                ExecutionAsOfProbe asOfProbe => [renderer.RenderAsOfProbe(asOfProbe)],
+                ExecutionAsOfProbe asOfProbe => [renderer.RenderAsOfProbe(asOfProbe, renderContext)],
                 ExecutionCreateRangeIndex createRangeIndex => [renderer.RenderCreateRangeIndex(createRangeIndex)],
-                ExecutionRangeProbe rangeProbe => [renderer.RenderRangeProbe(rangeProbe)],
+                ExecutionRangeProbe rangeProbe => [renderer.RenderRangeProbe(rangeProbe, renderContext)],
                 _ => null!
             };
 

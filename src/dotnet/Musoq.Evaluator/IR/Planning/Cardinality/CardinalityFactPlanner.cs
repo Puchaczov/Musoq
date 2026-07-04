@@ -6,18 +6,18 @@ namespace Musoq.Evaluator.IR.Planning.Cardinality;
 
 internal static class CardinalityFactPlanner
 {
-    public static CardinalityFactPlanningResult Plan(PhysicalNode physicalPlan, PlanProperties properties)
+    public static CardinalityFactPlanningResult Plan(PhysicalNode physicalPlan, SourcePlanningFacts sourcePlanning)
     {
         ArgumentNullException.ThrowIfNull(physicalPlan);
-        ArgumentNullException.ThrowIfNull(properties);
+        ArgumentNullException.ThrowIfNull(sourcePlanning);
 
-        var state = new State(properties);
+        var state = new State(sourcePlanning);
         state.Visit(physicalPlan);
 
         return new CardinalityFactPlanningResult(state.Facts, state.Decisions);
     }
 
-    private sealed class State(PlanProperties properties)
+    private sealed class State(SourcePlanningFacts sourcePlanning)
     {
         private readonly List<CardinalityFact> _facts = [];
         private readonly List<PlanningDecision> _decisions = [];
@@ -166,7 +166,7 @@ internal static class CardinalityFactPlanner
         {
             fact = null!;
             if (string.IsNullOrWhiteSpace(scan.SourceContextId) ||
-                !properties.SourcePlanResultsBySourceId.TryGetValue(scan.SourceContextId, out var result) ||
+                !sourcePlanning.SourcePlanResultsBySourceId.TryGetValue(scan.SourceContextId, out var result) ||
                 result.Cardinality == null ||
                 result.Cardinality.Kind == CardinalityKind.Unknown)
             {

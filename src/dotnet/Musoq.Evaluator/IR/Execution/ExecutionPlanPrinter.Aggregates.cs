@@ -8,6 +8,9 @@ public static partial class ExecutionPlanPrinter
 {
     private static string FormatAggregateCall(ExecutionAggregateCall aggregateCall)
     {
+        if (!string.IsNullOrWhiteSpace(aggregateCall.DisplayName))
+            return aggregateCall.DisplayName;
+
         if (aggregateCall.Arguments.Count == 0 &&
             aggregateCall.Accumulator is { Identifier.Length: > 0 } accumulator)
         {
@@ -29,8 +32,11 @@ public static partial class ExecutionPlanPrinter
         var arguments = string.IsNullOrEmpty(input)
             ? state
             : $"{state}, {input}";
+        var filter = aggregateSet.FilterPredicate == null
+            ? string.Empty
+            : $" filter {FormatExpression(aggregateSet.FilterPredicate)}";
 
-        return $"TypedAggregateSet [Set({arguments})]";
+        return $"TypedAggregateSet [Set({arguments}){filter}]";
     }
 
     private static string FormatCompositeKey(ExecutionCompositeKey compositeKey)

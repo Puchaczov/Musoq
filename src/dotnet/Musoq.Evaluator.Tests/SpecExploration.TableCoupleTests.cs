@@ -33,12 +33,8 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item1, item2]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Alice"),
-            "Row with 'Alice' not found");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Bob"),
-            "Row with 'Bob' not found");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice"], ["Bob"]);
     }
 
     #endregion
@@ -68,7 +64,14 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Should only include countries with Population > 100");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("Population", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Poland", 38000000m],
+            ["Vatican", 800m]);
     }
 
     #endregion
@@ -101,7 +104,14 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Only items with Id > 10 should pass through CTE");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Id", typeof(int?)),
+            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [15, "High"],
+            [25, "Higher"]);
     }
 
     #endregion
@@ -124,8 +134,12 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("hello", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Col1", typeof(string)),
+            ("Col2", typeof(int?)),
+            ("Col3", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["hello", 42, 3.14m]);
     }
 
     #endregion
@@ -148,7 +162,12 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Id", typeof(int?)),
+            ("Name", typeof(string)),
+            ("IsActive", typeof(bool?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1, "Test", true]);
     }
 
     #endregion
@@ -161,7 +180,7 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
         const string query =
             "table Sales { Product: string, Amount: decimal };" +
             "couple #test.whatever with table Sales as SalesData;" +
-            "select Product, Sum(Amount) from SalesData() group by Product";
+            "select Product, Sum(Amount) as Total from SalesData() group by Product";
 
         dynamic item1 = new ExpandoObject();
         item1.Product = "Widget";
@@ -178,7 +197,14 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item1, item2, item3]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Should have 2 groups: Widget and Gizmo");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Product", typeof(string)),
+            ("Total", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Widget", 300m],
+            ["Gizmo", 50m]);
     }
 
     #endregion
@@ -200,7 +226,8 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Col1", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["value"]);
     }
 
     #endregion
@@ -221,8 +248,8 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(42, table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [42]);
     }
 
     [TestMethod]
@@ -239,8 +266,8 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.IsTrue((bool?)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Active", typeof(bool?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [true]);
     }
 
     [TestMethod]
@@ -257,8 +284,8 @@ public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
         var vm = CreateAndRunVirtualMachine(query, [item]);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(99.99m, table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Price", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [99.99m]);
     }
 
     #endregion

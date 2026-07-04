@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
@@ -12,12 +11,13 @@ internal static class ExecutionStrategyPlanner
         PhysicalNode physicalPlan,
         CompilationOptions compilationOptions,
         CteExecutionPlan? cteExecutionPlan,
-        ExecutionShapeResolver shapeResolver)
+        IPlanningShapeResolver shapeResolver)
     {
         ArgumentNullException.ThrowIfNull(physicalPlan);
         ArgumentNullException.ThrowIfNull(compilationOptions);
         ArgumentNullException.ThrowIfNull(shapeResolver);
-        var state = new ExecutionStrategyPlanningState(compilationOptions, cteExecutionPlan, shapeResolver);
+        var identityMap = PhysicalNodeIdentityMap.Build(physicalPlan);
+        var state = new ExecutionStrategyPlanningState(compilationOptions, cteExecutionPlan, shapeResolver, identityMap);
         state.Visit(physicalPlan);
 
         return new ExecutionStrategyPlanningResult(state.CreatePlan(), state.Decisions);
@@ -26,7 +26,8 @@ internal static class ExecutionStrategyPlanner
     private sealed class ExecutionStrategyPlanningState(
         CompilationOptions compilationOptions,
         CteExecutionPlan? cteExecutionPlan,
-        ExecutionShapeResolver shapeResolver)
+        IPlanningShapeResolver shapeResolver,
+        PhysicalNodeIdentityMap identityMap)
     {
         private readonly ParallelStrategyPlanner _parallelStrategyPlanner = new(
             compilationOptions,
@@ -64,7 +65,8 @@ internal static class ExecutionStrategyPlanner
 
         public ExecutionStrategyPlan CreatePlan()
         {
-            return new ExecutionStrategyPlan(
+            return ExecutionStrategyPlan.Create(
+                identityMap,
                 _parallelStrategyPlanner.AggregateCandidates,
                 _parallelStrategyPlanner.FilterProjectCandidates,
                 _parallelStrategyPlanner.CteLevels,

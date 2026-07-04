@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.Visitors;
+using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
 
@@ -26,10 +27,10 @@ public partial class TransformTree
     }
 
     private static SemanticBuildArtifacts BuildSemanticArtifacts(
-        BuildItems items,
         RootNode transformedQueryTree,
         BuildMetadataAndInferTypesVisitor metadata,
-        BuildMetadataAndInferTypesTraverseVisitor metadataTraverser)
+        BuildMetadataAndInferTypesTraverseVisitor metadataTraverser,
+        CteExecutionPlan? cteExecutionPlan)
     {
         return new SemanticBuildArtifacts
         {
@@ -48,23 +49,23 @@ public partial class TransformTree
             PipelineScope = metadataTraverser.Scope,
             PipelineInferredColumns = CreateAliasKeyedInferredColumns(metadata),
             PipelineUsedColumns = CreateAliasKeyedUsedColumns(metadata),
-            CteExecutionPlan = items.CteExecutionPlan
+            CteExecutionPlan = cteExecutionPlan
         };
     }
 
     private BuildMetadataAndInferTypesVisitor CreateMetadataVisitor(
-        BuildItems items,
+        TransformPipelineContext context,
         IReadOnlyDictionary<string, string[]> columns)
     {
-        return items.CreateBuildMetadataAndInferTypesVisitor?.Invoke(
-            items.SchemaProvider, columns, items.CompilationOptions, items.SchemaRegistry, loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>()) ??
+        return context.CreateBuildMetadataAndInferTypesVisitor?.Invoke(
+            context.SchemaProvider, columns, context.CompilationOptions, context.SchemaRegistry, loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>()) ??
                new BuildMetadataAndInferTypesVisitor(
-                   items.SchemaProvider,
+                   context.SchemaProvider,
                    columns,
                    loggerResolver.ResolveLogger<BuildMetadataAndInferTypesVisitor>(),
-                   items.DiagnosticContext,
-                   items.CompilationOptions,
-                   items.SchemaRegistry);
+                   context.DiagnosticContext,
+                   context.CompilationOptions,
+                   context.SchemaRegistry);
     }
 
     private static Dictionary<string, ISchemaColumn[]> CreateAliasKeyedInferredColumns(

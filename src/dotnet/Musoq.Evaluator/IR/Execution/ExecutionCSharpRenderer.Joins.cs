@@ -14,7 +14,7 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private IEnumerable<StatementSyntax> RenderParallelFilterProjectLoop(ExecutionParallelFilterProjectLoop parallelProject)
     {
-        if (_finalShapeYieldSink is { } sink &&
+        if (RenderSession.FinalShapeYieldSink is { } sink &&
             string.Equals(parallelProject.AppendRow.Table.Name, sink.TableName, StringComparison.Ordinal))
         {
             return RenderFinalShapeParallelFilterProjectLoop(parallelProject, sink);
@@ -42,8 +42,8 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var captures = CollectParallelFilterProjectCaptures(parallelProject);
         var rowsParameterName = CreateParallelFilterProjectRowsParameterName(parallelProject);
-        var previousProfileRecorderInScope = _profileRecorderInScope;
-        _profileRecorderInScope = IsInstrumentationEnabled;
+        var previousProfileRecorderInScope = RenderSession.ProfileRecorderInScope;
+        RenderSession.ProfileRecorderInScope = IsInstrumentationEnabled;
 
         try
         {
@@ -64,7 +64,7 @@ public sealed partial class ExecutionCSharpRenderer
         }
         finally
         {
-            _profileRecorderInScope = previousProfileRecorderInScope;
+            RenderSession.ProfileRecorderInScope = previousProfileRecorderInScope;
         }
     }
 

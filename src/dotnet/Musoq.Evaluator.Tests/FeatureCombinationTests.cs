@@ -464,20 +464,31 @@ public class FeatureCombinationTests : NegativeTestsBase
     #region 11. Error/Behavior Validation: Edge Cases
 
     [TestMethod]
-    [Description("FILTER on window aggregate compiles and runs — validates combined behavior")]
-    public void CF301_FilterOnWindowAggregate_ShouldCompileAndRun()
+    [Description("FILTER on window aggregate returns exact running filtered results")]
+    public void CF301_FilterOnWindowAggregate_ShouldReturnExactRunningFilteredResults()
     {
         var query = @"
             SELECT Name,
                    Sum(Age) filter (where Age > 25) over (order by Name) as FilteredWindowSum
-            FROM #test.people()";
+            FROM #test.people()
+            ORDER BY Name";
 
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
         // Order by Name: Alice(25), Bob(35), Charlie(28), Diana(42), Eve(31)
         // Filter keeps only Age > 25 values in the running sum
-        Assert.AreEqual(5, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("FilteredWindowSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Alice", 0m],
+            ["Bob", 35m],
+            ["Charlie", 63m],
+            ["Diana", 105m],
+            ["Eve", 136m]);
     }
 
     [TestMethod]

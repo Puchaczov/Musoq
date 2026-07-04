@@ -79,6 +79,15 @@ public class Library : LibraryBase
         return Interlocked.Increment(ref _nextValue);
     }
 
+    [AggregateFunction(
+        typeof(CustomRowCountAggregateKernel),
+        Name = nameof(CustomRowCount),
+        EmptyResultBehavior = AggregateEmptyResultBehavior.Zero)]
+    public long CustomRowCount()
+    {
+        return AggregateFunction.NotInvoked<long>();
+    }
+
     [BindableMethod]
     public decimal GetOne()
     {
@@ -223,5 +232,28 @@ public class Library : LibraryBase
         }
 
         public decimal GetValue() => _product;
+    }
+
+    public static class CustomRowCountAggregateKernel
+    {
+        public struct State
+        {
+            public long Count;
+        }
+
+        public static void Set(ref State state)
+        {
+            state.Count = checked(state.Count + 1);
+        }
+
+        public static long Get(in State state)
+        {
+            return state.Count;
+        }
+
+        public static void Merge(ref State target, in State source)
+        {
+            target.Count = checked(target.Count + source.Count);
+        }
     }
 }

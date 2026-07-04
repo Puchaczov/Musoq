@@ -12,4 +12,7 @@ using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Evaluator.IR.Planning;
 
-internal sealed record PhysicalPlanningArtifacts(PhysicalNode InitialPhysicalPlan, PhysicalNode OptimizedPhysicalPlan, PlanProperties OptimizedProperties, IReadOnlyList<PlanningDecision> Decisions, OptimizationTrace OptimizerTrace);
+internal sealed record PhysicalPlanningArtifacts(PhysicalNode InitialPhysicalPlan, PhysicalNode OptimizedPhysicalPlan, PlanningFacts OptimizedFacts, IReadOnlyList<PlanningDecision> Decisions, OptimizationTrace OptimizerTrace)
+{
+    public PlanProperties OptimizedProperties => OptimizedFacts.ToPlanProperties();
+}

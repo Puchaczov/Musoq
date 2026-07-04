@@ -66,22 +66,17 @@ internal static class PivotQueryBuilder
 
     private static AccessMethodNode CreateFilteredMeasure(Node[] keys, Node[] values, AccessMethodNode method)
     {
-        var arguments = GetAggregateArguments(method);
-        var wrappedArguments = new Node[arguments.Length];
         var predicate = CreatePivotPredicate(keys, values);
+        var filterExpression = method.FilterExpression is null
+            ? predicate
+            : new AndNode(method.FilterExpression, predicate);
 
-        for (var index = 0; index < arguments.Length; index += 1)
-        {
-            var thenExpression = arguments[index] is AllColumnsNode ? new IntegerNode(1) : arguments[index];
-            wrappedArguments[index] = new CaseNode(
-                [(new WhenNode(predicate), new ThenNode(thenExpression))],
-                new ElseNode(new NullNode()));
-        }
-
-        return new AccessMethodNode(method.FunctionToken, new ArgsListNode(wrappedArguments), method.ExtraAggregateArguments,
+        return new AccessMethodNode(method.FunctionToken, method.Arguments, method.ExtraAggregateArguments,
             method.CanSkipInjectSource, null, method.Alias, method.Span, method.IsDistinct)
         {
             HasFilter = true,
+            FilterExpression = filterExpression,
+            FilterExpressionText = filterExpression.ToString(),
             IsPivotGenerated = true
         };
     }
@@ -101,13 +96,6 @@ internal static class PivotQueryBuilder
         return value is NullNode
             ? new IsNullNode(key, false)
             : new EqualityNode(key, value);
-    }
-
-    private static Node[] GetAggregateArguments(AccessMethodNode method)
-    {
-        return method.Arguments.Args.Length == 0 && method.Name.Equals("count", StringComparison.OrdinalIgnoreCase)
-            ? [new IntegerNode(1)]
-            : method.Arguments.Args;
     }
 
     private static void AddOutputName(HashSet<string> outputNames, string outputName, TextSpan span, string queryPart)

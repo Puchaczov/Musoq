@@ -16,6 +16,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         var spec = node.WindowSpecification != null
             ? SafePop(Nodes, "Visit(WindowFunctionNode).WindowSpec") as WindowSpecificationNode
             : null;
+        var filterExpression = node.FunctionCall.FilterExpression != null
+            ? SafePop(Nodes, "Visit(WindowFunctionNode).FilterExpression")
+            : null;
 
         var funcArgCount = node.FunctionCall.Arguments?.Args.Length ?? 0;
         var funcArgs = new Node[funcArgCount];
@@ -36,7 +39,10 @@ public partial class BuildMetadataAndInferTypesVisitor
             node.FunctionCall.IsDistinct)
         {
             HasFilter = node.FunctionCall.HasFilter,
-            IsPivotGenerated = node.FunctionCall.IsPivotGenerated
+            FilterExpression = filterExpression,
+            FilterExpressionText = node.FunctionCall.FilterExpressionText,
+            IsPivotGenerated = node.FunctionCall.IsPivotGenerated,
+            IsScalarSubqueryValueWrapper = node.FunctionCall.IsScalarSubqueryValueWrapper
         };
 
         WindowFunctionNode result;

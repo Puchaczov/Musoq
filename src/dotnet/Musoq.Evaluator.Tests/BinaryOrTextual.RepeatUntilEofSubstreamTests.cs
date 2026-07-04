@@ -28,9 +28,13 @@ public class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextualEvalua
         var data = new byte[] { 0x03, 0xAA, 0xBB, 0xCC, 0x99 };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        CollectionAssert.AreEqual(new byte[] { 0xAA, 0xBB, 0xCC }, (byte[])table[0][0]);
-        Assert.AreEqual((byte)0x99, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("f.Payload.Bytes", typeof(object)),
+            ("f.Trailer", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [new byte[] { 0xAA, 0xBB, 0xCC }, (byte)0x99]);
     }
 
     [TestMethod]
@@ -51,9 +55,11 @@ public class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextualEvalua
         var data = new byte[] { 0x00, 0x42 };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        CollectionAssert.AreEqual(Array.Empty<byte>(), (byte[])table[0][0]);
-        Assert.AreEqual((byte)0x42, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("f.Payload.Bytes", typeof(object)),
+            ("f.Trailer", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [Array.Empty<byte>(), (byte)0x42]);
     }
 
     [TestMethod]
@@ -74,9 +80,11 @@ public class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextualEvalua
         var data = new byte[] { 0x04, 0x41, 0x42, 0x43, 0x44, 0x7F };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        CollectionAssert.AreEqual(new[] { "AB", "CD" }, (string[])table[0][0]);
-        Assert.AreEqual((byte)0x7F, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("f.Payload.Chunks", typeof(object)),
+            ("f.Trailer", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [new[] { "AB", "CD" }, (byte)0x7F]);
     }
 
     [TestMethod]
@@ -100,6 +108,10 @@ public class BinaryOrTextualRepeatUntilEofSubstreamTests : BinaryOrTextualEvalua
         var data = new byte[] { 0x03, 0x0A, 0x0B, 0x0C, 0x55 };
         var table = RunQuery(query, data);
 
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("f.Payload.Items", typeof(object)),
+            ("f.Trailer", typeof(byte)));
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual(3, ((object[])table[0][0]).Length);
         Assert.AreEqual((byte)0x55, table[0][1]);

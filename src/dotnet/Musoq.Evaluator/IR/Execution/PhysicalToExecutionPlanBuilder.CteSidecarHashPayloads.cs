@@ -40,13 +40,14 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string tableName,
         GeneratedRowShape rowShape,
         CteSidecarIndexSpec spec,
-        bool canUseHashPayloads)
+        bool canUseHashPayloads,
+        PhysicalToExecutionLoweringSession session)
     {
         var payloadShape = spec.Kind == CteSidecarIndexKind.Hash && canUseHashPayloads
             ? CreateCteSidecarHashPayloadShape(rowShape, spec)
             : null;
         if (payloadShape != null)
-            _cteSidecarHashPayloadsBySlot[spec.IndexSlot] = payloadShape;
+            session.CteSidecarHashPayloadsBySlot[spec.IndexSlot] = payloadShape;
 
         return new CteSidecarIndexBuild(
             spec,
@@ -88,12 +89,13 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     private bool TryUseCteSidecarHashPayloadJoinSource(
         JoinSource source,
         CteSidecarIndexSpec sidecar,
+        PhysicalToExecutionLoweringSession session,
         out JoinSource payloadSource)
     {
         payloadSource = source;
         if (sidecar.Kind != CteSidecarIndexKind.Hash ||
             source.Shape is not TableRowShape tableRow ||
-            !_cteSidecarHashPayloadsBySlot.TryGetValue(sidecar.IndexSlot, out var payloadShape))
+            !session.CteSidecarHashPayloadsBySlot.TryGetValue(sidecar.IndexSlot, out var payloadShape))
         {
             return false;
         }

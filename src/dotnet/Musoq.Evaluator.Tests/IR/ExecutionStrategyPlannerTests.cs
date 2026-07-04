@@ -157,12 +157,17 @@ public sealed class ExecutionStrategyPlannerTests
 
     private static ExecutionStrategyPlanningResult Plan(PhysicalNode node, CompilationOptions options)
     {
-        return ExecutionStrategyPlanner.Plan(node, options, null, CreateShapeResolver(typeof(Person)));
+        return ExecutionStrategyPlanner.Plan(node, options, null, CreatePlanningShapeResolver(typeof(Person)));
     }
 
     private static ExecutionStrategyPlanningResult Plan(PhysicalNode node, ExecutionShapeResolver shapeResolver)
     {
-        return ExecutionStrategyPlanner.Plan(node, new CompilationOptions(), null, shapeResolver);
+        return ExecutionStrategyPlanner.Plan(node, new CompilationOptions(), null, new ExecutionPlanningShapeResolverAdapter(shapeResolver));
+    }
+
+    private static IPlanningShapeResolver CreatePlanningShapeResolver(Type entityType)
+    {
+        return new ExecutionPlanningShapeResolverAdapter(CreateShapeResolver(entityType));
     }
 
     private static void AssertOutcome(

@@ -105,6 +105,9 @@ public sealed partial class LogicalPlanBuilder
         AppendOrderFields(builder, registration.OrderKeys);
         builder.Append('\u001E');
         AppendExpressions(builder, registration.ValueArguments);
+        builder.Append('\u001E');
+        if (registration.FilterPredicate != null)
+            builder.Append(IrExpressionPrinter.Print(registration.FilterPredicate));
         return builder.ToString();
     }
 
@@ -147,6 +150,9 @@ public sealed partial class LogicalPlanBuilder
         var partitionKeys = ConvertPartitionKeys(specification);
         var orderKeys = ConvertOrderKeys(specification);
         var valueArguments = ConvertWindowValueArguments(node);
+        var filterPredicate = node.FunctionCall.FilterExpression == null
+            ? null
+            : _converter.Convert(node.FunctionCall.FilterExpression);
         var returnType = node.ReturnType ??
                          throw new InvalidOperationException($"Window function '{functionName}' has no inferred return type.");
 
@@ -156,6 +162,7 @@ public sealed partial class LogicalPlanBuilder
             partitionKeys,
             orderKeys,
             valueArguments,
+            filterPredicate,
             windowIndex,
             returnType,
             specification?.Frame));

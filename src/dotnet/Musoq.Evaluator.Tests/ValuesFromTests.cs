@@ -24,12 +24,11 @@ select packages.Name, packages.Score";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        AssertColumn(table, 0, "packages.Name", typeof(string));
-        AssertColumn(table, 1, "packages.Score", typeof(int));
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Legacy.Package", table[0][0]);
-        Assert.AreEqual(20, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("packages.Name", typeof(string)),
+            ("packages.Score", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Legacy.Package", 20]);
     }
 
     [TestMethod]

@@ -15,11 +15,18 @@ from #A.entities() a
 cross join #B.entities() b
 where b.Id = 1";
         var table = RunJoinQuery(query);
-        var rows = table.Select(row => $"{row[0]}-{row[1]}").OrderBy(row => row).ToArray();
-
-        CollectionAssert.AreEqual(
-            new[] { "A1-B1", "A1-B1Duplicate", "A2-B1", "A2-B1Duplicate", "A3-B1", "A3-B1Duplicate" },
-            rows);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["A1", "B1"],
+            ["A1", "B1Duplicate"],
+            ["A2", "B1"],
+            ["A2", "B1Duplicate"],
+            ["A3", "B1"],
+            ["A3", "B1Duplicate"]);
     }
 
     [TestMethod]
@@ -30,7 +37,8 @@ where b.Id = 1";
             "select a.Name from #A.entities() a cross join #B.entities() b",
             sources).Run(TokenSource.Token);
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
     [TestMethod]
@@ -43,10 +51,15 @@ cross join #B.entities() b
 join #C.entities() c on b.Id = c.Id
 where a.Id = 1";
         var table = CreateAndRunVirtualMachine<BasicEntity>(query, CreateThreeWayJoinSources()).Run(TokenSource.Token);
-        var rows = table.Select(row => $"{row[0]}-{row[1]}-{row[2]}").OrderBy(row => row).ToArray();
-
-        CollectionAssert.AreEqual(
-            new[] { "A1-B1-C1", "A1-B1Duplicate-C1", "A1-B3-C3" },
-            rows);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("b.Name", typeof(string)),
+            ("c.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["A1", "B1", "C1"],
+            ["A1", "B1Duplicate", "C1"],
+            ["A1", "B3", "C3"]);
     }
 }

@@ -6,8 +6,11 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private List<StatementSyntax> RenderMethodStatements(ExecutionBlock block)
+    private List<StatementSyntax> RenderMethodStatements(
+        ExecutionBlock block,
+        ExecutionRenderContext context)
     {
+        var session = context.Session;
         var statements = new List<StatementSyntax>();
         var pending = new List<ExecutionNode>();
         var nodes = block.Nodes;
@@ -49,28 +52,28 @@ public sealed partial class ExecutionCSharpRenderer
             var node = nodes[index];
             if (hashBuildHelpersByIndex.TryGetValue(index, out var hashBuildHelper))
             {
-                FlushPendingMethodNodes(statements, pending);
+                FlushPendingMethodNodes(statements, pending, context);
                 statements.Add(CreateHashBuildInvocation(hashBuildHelper));
                 continue;
             }
 
             if (hashProbeHelpersByIndex.TryGetValue(index, out var hashProbeHelper))
             {
-                FlushPendingMethodNodes(statements, pending);
+                FlushPendingMethodNodes(statements, pending, context);
                 statements.Add(CreateHashProbeInvocation(hashProbeHelper));
                 continue;
             }
 
             if (keySetBuildHelpersByIndex.TryGetValue(index, out var keySetBuildHelper))
             {
-                FlushPendingMethodNodes(statements, pending);
+                FlushPendingMethodNodes(statements, pending, context);
                 statements.Add(CreateKeySetBuildInvocation(keySetBuildHelper));
                 continue;
             }
 
             if (keySetProbeHelpersByIndex.TryGetValue(index, out var keySetProbeHelper))
             {
-                FlushPendingMethodNodes(statements, pending);
+                FlushPendingMethodNodes(statements, pending, context);
                 statements.Add(CreateKeySetProbeInvocation(keySetProbeHelper));
                 continue;
             }
@@ -83,8 +86,8 @@ public sealed partial class ExecutionCSharpRenderer
 
             if (node is ExecutionParallelBlock)
             {
-                FlushPendingMethodNodes(statements, pending);
-                statements.AddRange(RenderNode(node));
+                FlushPendingMethodNodes(statements, pending, context);
+                statements.AddRange(RenderNode(node, context));
                 continue;
             }
 
@@ -95,8 +98,8 @@ public sealed partial class ExecutionCSharpRenderer
                 aggregateHelper = AssignValueTupleAggregateHelperNames(aggregateHelper, valueTupleAggregateHelperIndex);
                 valueTupleAggregateHelperIndex++;
 
-                FlushPendingMethodNodes(statements, pending);
-                statements.AddRange(RenderNode(aggregateHelper.Context));
+                FlushPendingMethodNodes(statements, pending, context);
+                statements.AddRange(RenderNode(aggregateHelper.Context, context));
                 statements.Add(CreateHelperInvocation(
                     aggregateHelper.PopulateFunctionName,
                     CreateValueTuplePopulateArguments(aggregateHelper)));
@@ -116,8 +119,8 @@ public sealed partial class ExecutionCSharpRenderer
                     singleKeyAggregateHelperIndex);
                 singleKeyAggregateHelperIndex++;
 
-                FlushPendingMethodNodes(statements, pending);
-                statements.AddRange(RenderNode(singleKeyAggregateHelper.Context));
+                FlushPendingMethodNodes(statements, pending, context);
+                statements.AddRange(RenderNode(singleKeyAggregateHelper.Context, context));
                 statements.Add(CreateHelperInvocationWithArguments(
                     singleKeyAggregateHelper.PopulateFunctionName,
                     CreateSingleKeyPopulateArguments(singleKeyAggregateHelper)));
@@ -130,14 +133,14 @@ public sealed partial class ExecutionCSharpRenderer
 
             if (windowAppendHelpersByIndex.TryGetValue(index, out var windowAppendHelper))
             {
-                FlushPendingMethodNodes(statements, pending);
+                FlushPendingMethodNodes(statements, pending, context);
                 statements.Add(CreateWindowAppendRowsInvocation(windowAppendHelper));
                 continue;
             }
 
             if (sortedCopyHelpersByIndex.TryGetValue(index, out var sortedCopyHelper))
             {
-                FlushPendingMethodNodes(statements, pending);
+                FlushPendingMethodNodes(statements, pending, context);
                 statements.Add(CreateSortedCopyInvocation(sortedCopyHelper));
                 continue;
             }
@@ -158,19 +161,20 @@ public sealed partial class ExecutionCSharpRenderer
             pending.Add(node);
         }
 
-        FlushPendingMethodNodes(statements, pending);
+        FlushPendingMethodNodes(statements, pending, context);
 
         return statements;
     }
 
     private void FlushPendingMethodNodes(
         List<StatementSyntax> statements,
-        List<ExecutionNode> pending)
+        List<ExecutionNode> pending,
+        ExecutionRenderContext context)
     {
         if (pending.Count == 0)
             return;
 
-        statements.AddRange(RenderBlock(new ExecutionBlock(pending)).Statements);
+        statements.AddRange(RenderBlock(new ExecutionBlock(pending), context).Statements);
         pending.Clear();
     }
 
@@ -180,14 +184,14 @@ public sealed partial class ExecutionCSharpRenderer
         bool emitChunkLoopCancellationChecks = false,
         IEnumerable<StatementSyntax>? trailingStatements = null)
     {
-        var previousDeclaredStoredRowsCaches = _declaredStoredRowsCaches;
-        var previousStoredGeneratedRowsLoopNameCounts = _storedGeneratedRowsLoopNameCounts;
-        var previousProfileRecorderInScope = _profileRecorderInScope;
-        var previousEmitChunkLoopCancellationChecks = _emitChunkLoopCancellationChecks;
-        _declaredStoredRowsCaches = new HashSet<int>(previousDeclaredStoredRowsCaches);
-        _storedGeneratedRowsLoopNameCounts = [];
-        _profileRecorderInScope = profileRecorderInScope;
-        _emitChunkLoopCancellationChecks = emitChunkLoopCancellationChecks;
+        var previousDeclaredStoredRowsCaches = RenderSession.DeclaredStoredRowsCaches;
+        var previousStoredGeneratedRowsLoopNameCounts = RenderSession.StoredGeneratedRowsLoopNameCounts;
+        var previousProfileRecorderInScope = RenderSession.ProfileRecorderInScope;
+        var previousEmitChunkLoopCancellationChecks = RenderSession.EmitChunkLoopCancellationChecks;
+        RenderSession.DeclaredStoredRowsCaches = new HashSet<int>(previousDeclaredStoredRowsCaches);
+        RenderSession.StoredGeneratedRowsLoopNameCounts = [];
+        RenderSession.ProfileRecorderInScope = profileRecorderInScope;
+        RenderSession.EmitChunkLoopCancellationChecks = emitChunkLoopCancellationChecks;
 
         try
         {
@@ -198,10 +202,10 @@ public sealed partial class ExecutionCSharpRenderer
         }
         finally
         {
-            _declaredStoredRowsCaches = previousDeclaredStoredRowsCaches;
-            _storedGeneratedRowsLoopNameCounts = previousStoredGeneratedRowsLoopNameCounts;
-            _profileRecorderInScope = previousProfileRecorderInScope;
-            _emitChunkLoopCancellationChecks = previousEmitChunkLoopCancellationChecks;
+            RenderSession.DeclaredStoredRowsCaches = previousDeclaredStoredRowsCaches;
+            RenderSession.StoredGeneratedRowsLoopNameCounts = previousStoredGeneratedRowsLoopNameCounts;
+            RenderSession.ProfileRecorderInScope = previousProfileRecorderInScope;
+            RenderSession.EmitChunkLoopCancellationChecks = previousEmitChunkLoopCancellationChecks;
         }
     }
 
@@ -220,13 +224,13 @@ public sealed partial class ExecutionCSharpRenderer
             bool enabled)
         {
             _renderer = renderer;
-            _previous = renderer._emitChunkLoopCancellationChecks;
-            _renderer._emitChunkLoopCancellationChecks = enabled;
+            _previous = renderer.RenderSession.EmitChunkLoopCancellationChecks;
+            _renderer.RenderSession.EmitChunkLoopCancellationChecks = enabled;
         }
 
         public void Dispose()
         {
-            _renderer._emitChunkLoopCancellationChecks = _previous;
+            _renderer.RenderSession.EmitChunkLoopCancellationChecks = _previous;
         }
     }
 }

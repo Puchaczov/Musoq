@@ -5,5 +5,8 @@ using Musoq.Schema;
 namespace Musoq.Evaluator.IR.Planning;
 
 internal sealed record PlanningPropertyResult(
-    PlanProperties Properties,
-    IReadOnlyList<PlanningDecision> Decisions);
+    PlanningFacts Facts,
+    IReadOnlyList<PlanningDecision> Decisions)
+{
+    public PlanProperties Properties => Facts.ToPlanProperties();
+}

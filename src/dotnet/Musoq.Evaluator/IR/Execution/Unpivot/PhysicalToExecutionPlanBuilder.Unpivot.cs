@@ -9,18 +9,19 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
 {
-    private PhysicalToExecutionPlanBuilder.TableBuildResult BuildUnpivotTable(
+    private TableBuildResult BuildUnpivotTable(
         PhysicalUnpivotNode unpivot,
-        PhysicalToExecutionPlanBuilder.SupportedPipeline pipeline,
+        SupportedPipeline pipeline,
         string resultTableName,
         string resultShapeName,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex)
+        int schemaFromIndex,
+        PhysicalToExecutionLoweringSession session)
     {
         if (ResolveSourceShape(unpivot, cteIndexes, cteShapesByName) is not ValuesRowShape unpivotShape)
         {
-            return PhysicalToExecutionPlanBuilder.TableBuildResult.Unsupported(
+            return TableBuildResult.Unsupported(
                 $"Execution IR unpivot lowering cannot resolve generated row shape for alias '{unpivot.Alias}'.");
         }
 
@@ -30,9 +31,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
-            sourceRowsScope);
+            sourceRowsScope,
+            session);
         if (!inputSource.Supported)
-            return PhysicalToExecutionPlanBuilder.TableBuildResult.Unsupported(inputSource.UnsupportedReason);
+            return TableBuildResult.Unsupported(inputSource.UnsupportedReason);
 
         var unpivotLookup = RowShapeLookup.CreateSourceShapeLookup(unpivotShape);
         var projection = CreatePostOperationProjection(
@@ -42,7 +44,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             pipeline.PostOperations,
             unpivotLookup);
         if (!projection.Supported)
-            return PhysicalToExecutionPlanBuilder.TableBuildResult.Unsupported(projection.UnsupportedReason);
+            return TableBuildResult.Unsupported(projection.UnsupportedReason);
 
         var postOperationProjection = projection.Value
             ?? throw new InvalidOperationException("Supported post-operation projection requires projection data.");
@@ -70,20 +72,21 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             postOperationProjection.FinalProjection);
     }
 
-    private PhysicalToExecutionPlanBuilder.SourceBuildResult BuildUnpivotInputSource(
+    private SourceBuildResult BuildUnpivotInputSource(
         PhysicalNode source,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
-        string? sourceRowsScope)
+        string? sourceRowsScope,
+        PhysicalToExecutionLoweringSession session)
     {
         if (source is PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode)
-            return BuildNestedJoinSource(source, cteIndexes, cteShapesByName, schemaFromIndex);
+            return BuildNestedJoinSource(source, cteIndexes, cteShapesByName, schemaFromIndex, session);
 
         var inputShape = ResolveSourceShape(source, cteIndexes, cteShapesByName);
         if (inputShape == null)
         {
-            return PhysicalToExecutionPlanBuilder.SourceBuildResult.Unsupported(
+            return SourceBuildResult.Unsupported(
                 $"Execution IR unpivot lowering cannot resolve source shape for {source.GetType().Name}.");
         }
 
@@ -92,7 +95,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         var rows = PhysicalToExecutionPlanBuilder.CreateSourceRowsExpression(source, inputShape, cteIndexes, cteShapesByName, sourceRowsScope);
         var schemaSourceCount = source is PhysicalSchemaScanNode ? 1 : PhysicalToExecutionPlanBuilder.CountSchemaScans(source);
 
-        return PhysicalToExecutionPlanBuilder.SourceBuildResult.Success(new PhysicalToExecutionPlanBuilder.JoinSource(
+        return SourceBuildResult.Success(new JoinSource(
             source,
             inputShape,
             input,

@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Musoq.Evaluator.Visitors.CodeGeneration;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -34,7 +35,7 @@ public sealed partial class ExecutionCSharpRenderer
             setParameters,
             useExplicitAccumulatorInput);
         if (inlineSet is not null)
-            return inlineSet;
+            return WrapAggregateSetWithFilter(aggregateSet.FilterPredicate, inlineSet);
 
         var arguments = new List<ArgumentSyntax>
         {
@@ -65,7 +66,31 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName("Set")))
             .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)));
 
-        return SyntaxFactory.ExpressionStatement(kernelInvocation);
+        return WrapAggregateSetWithFilter(
+            aggregateSet.FilterPredicate,
+            SyntaxFactory.ExpressionStatement(kernelInvocation));
+    }
+
+    private StatementSyntax WrapAggregateSetWithFilter(
+        ExecutionExpression? filterPredicate,
+        StatementSyntax statement)
+    {
+        if (filterPredicate == null)
+            return statement;
+
+        return StatementEmitter.CreateIf(
+            CreateBooleanCondition(RenderExpression(filterPredicate), filterPredicate.ReturnType),
+            StatementEmitter.CreateBlock(statement));
+    }
+
+    private static ExpressionSyntax CreateBooleanCondition(ExpressionSyntax expression, Type type)
+    {
+        return Nullable.GetUnderlyingType(type) == typeof(bool)
+            ? SyntaxFactory.BinaryExpression(
+                SyntaxKind.EqualsExpression,
+                SyntaxFactory.ParenthesizedExpression(expression),
+                SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression))
+            : expression;
     }
 
     private ExpressionStatementSyntax RenderAggregateCapturedValueSet(ExecutionAggregateCapturedValueSet capturedValueSet)

@@ -18,7 +18,7 @@ public sealed partial class ExecutionCSharpRenderer
             shape,
             ResolveGeneratedRowCarrierBoundary(shape),
             ResolveGeneratedRowContextCarrierKind(shape, usedConstructors),
-            _generatedRowTypesRequiringRowBase.Contains(shape.TypeName));
+            RenderSession.GeneratedRowTypesRequiringRowBase.Contains(shape.TypeName));
 
         if (!shape.RequiresRowBase)
             return RenderGeneratedRowCarrierClass(shape, usedConstructors);
@@ -72,10 +72,10 @@ public sealed partial class ExecutionCSharpRenderer
 
     private GeneratedRowCarrierBoundary ResolveGeneratedRowCarrierBoundary(GeneratedRowShape shape)
     {
-        if (_generatedRowTypesUsedAtPublicBoundary.Contains(shape.TypeName))
+        if (RenderSession.GeneratedRowTypesUsedAtPublicBoundary.Contains(shape.TypeName))
             return GeneratedRowCarrierBoundary.Public;
 
-        return _typedStoredTableResults.Values.Any(result =>
+        return RenderSession.TypedStoredTableResults.Values.Any(result =>
             string.Equals(result.RowShape.TypeName, shape.TypeName, StringComparison.Ordinal))
                 ? GeneratedRowCarrierBoundary.Internal
                 : GeneratedRowCarrierBoundary.Public;
@@ -85,7 +85,7 @@ public sealed partial class ExecutionCSharpRenderer
         GeneratedRowShape shape,
         IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors)
     {
-        if (_generatedRowTypesUsedAsRowContexts.Contains(shape.TypeName))
+        if (RenderSession.GeneratedRowTypesUsedAsRowContexts.Contains(shape.TypeName))
             return GeneratedRowContextCarrierKind.RequiresRowContexts;
 
         var constructors = GetGeneratedRowConstructors(usedConstructors);

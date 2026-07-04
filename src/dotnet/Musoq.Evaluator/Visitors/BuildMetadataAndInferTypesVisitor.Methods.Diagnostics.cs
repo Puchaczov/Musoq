@@ -5,6 +5,7 @@ using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins.Attributes;
+using static Musoq.Evaluator.Visitors.SemanticExpressionDiagnosticFacts;
 
 namespace Musoq.Evaluator.Visitors;
 

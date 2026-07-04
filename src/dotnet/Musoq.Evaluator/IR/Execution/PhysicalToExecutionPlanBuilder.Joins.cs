@@ -10,15 +10,17 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultShapeName,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex)
+        int schemaFromIndex,
+        PhysicalToExecutionLoweringSession session)
     {
-        return new JoinLoweringCoordinator(this).Build(
+        return CreateJoinLoweringCoordinator().Build(
             pipeline,
             resultTableName,
             resultShapeName,
             cteIndexes,
             cteShapesByName,
-            schemaFromIndex);
+            schemaFromIndex,
+            session);
     }
 
 }

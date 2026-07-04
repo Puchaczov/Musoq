@@ -49,6 +49,7 @@ public sealed partial class RewriteQueryVisitor
     private void VisitAccessMethod(AccessMethodNode node)
     {
         var args = Nodes.Pop() as ArgsListNode ?? ArgsListNode.Empty;
+        var filterExpression = node.FilterExpression is null ? null : Nodes.Pop();
 
         var functionName = node.FunctionToken.Value;
         var typeParameter = node.TypeParameter;
@@ -99,7 +100,10 @@ public sealed partial class RewriteQueryVisitor
             node.Alias, default, node.IsDistinct)
         {
             HasFilter = node.HasFilter,
-            IsPivotGenerated = node.IsPivotGenerated
+            FilterExpression = filterExpression,
+            FilterExpressionText = node.FilterExpressionText,
+            IsPivotGenerated = node.IsPivotGenerated,
+            IsScalarSubqueryValueWrapper = node.IsScalarSubqueryValueWrapper
         });
     }
 

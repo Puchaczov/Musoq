@@ -17,19 +17,22 @@ public sealed partial class ExecutionCSharpRenderer
                 createRow.RowShape,
                 createRow.Values,
                 createRow.Contexts,
-                createRow.ContextLayout));
+                createRow.ContextLayout,
+                new ExecutionRenderContext(_renderOptions, RenderSession)));
     }
 
     private ObjectCreationExpressionSyntax CreateGeneratedRowCreation(
         GeneratedRowShape rowShape,
         IReadOnlyList<ExecutionRowValue> values,
         IReadOnlyList<ExecutionExpression> contexts,
-        ExecutionContextLayout? contextLayout)
+        ExecutionContextLayout? contextLayout,
+        ExecutionRenderContext context)
     {
         var rowValues = values
             .Select((value, index) => RenderRowConstructorValue(
                 value.Value,
-                rowShape.Fields[index].Type));
+                rowShape.Fields[index].Type,
+                context));
 
         if (rowShape.Contexts.Count == 0 || !GeneratedRowTypeUsesContextConstructor(rowShape.TypeName))
             return CreateObjectCreation(rowShape.TypeName, rowValues.ToArray());
@@ -42,12 +45,12 @@ public sealed partial class ExecutionCSharpRenderer
 
         return CreateObjectCreation(
             rowShape.TypeName,
-            [.. rowValues, CreateArrayCreation("object", contexts.Select(RenderExpression))]);
+            [.. rowValues, CreateArrayCreation("object", contexts.Select(item => RenderExpression(item, context)))]);
     }
 
     private bool GeneratedRowTypeUsesContextConstructor(string typeName)
     {
-        return _generatedRowConstructorUsagesByType.TryGetValue(typeName, out var usedConstructors) &&
+        return RenderSession.GeneratedRowConstructorUsagesByType.TryGetValue(typeName, out var usedConstructors) &&
                RequiresGeneratedRowContextOverride(usedConstructors);
     }
 }

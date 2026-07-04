@@ -21,10 +21,11 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
-        string? sourceRowsScope)
+        string? sourceRowsScope,
+        PhysicalToExecutionLoweringSession session)
     {
         if (source is PhysicalNestedLoopApplyNode apply)
-            return BuildNestedApplySource(apply, cteIndexes, cteShapesByName, schemaFromIndex, sourceLookup);
+            return BuildNestedApplySource(apply, cteIndexes, cteShapesByName, schemaFromIndex, sourceLookup, session);
 
         if (source is not (PhysicalSchemaScanNode or PhysicalCteRefNode or PhysicalInterpretSourceNode or PhysicalPropertySourceNode or PhysicalAccessMethodSourceNode or PhysicalValuesScanNode))
         {
@@ -66,6 +67,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
         int schemaFromIndex,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
+        PhysicalToExecutionLoweringSession session,
         NestedApplyGeneratedRowPreservation generatedRowPreservation = NestedApplyGeneratedRowPreservation.Disabled)
     {
         var shouldPreserveGeneratedRows = generatedRowPreservation == NestedApplyGeneratedRowPreservation.Enabled;
@@ -86,7 +88,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
-            sourceLookup);
+            sourceLookup,
+            session);
 
         if (!table.Supported)
             return SourceBuildResult.Unsupported(table.UnsupportedReason);
@@ -187,43 +190,12 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         ExecutionExpression expression,
         string rightAlias)
     {
-        var normalized = NormalizeOuterApplyBooleanOperand(expression);
+        var normalized = OuterApplyNullSubstitutionService.NormalizeBooleanOperand(expression);
         if (normalized.Supported)
             return normalized;
 
         return BuildResult<ExecutionExpression>.Unsupported(
             $"Execution IR outer apply lowering produced non-boolean unmatched filter expression for right apply alias '{rightAlias}'.");
-    }
-
-    private static BuildResult<ExecutionExpression> NormalizeOuterApplyBooleanOperand(ExecutionExpression expression)
-    {
-        if (expression.ReturnType == typeof(bool))
-            return BuildResult<ExecutionExpression>.Success(expression);
-
-        if (Nullable.GetUnderlyingType(expression.ReturnType) == typeof(bool))
-        {
-            return BuildResult<ExecutionExpression>.Success(new ExecutionBinary(
-                BinaryOpKind.Equal,
-                expression,
-                new ExecutionLiteral(true, typeof(bool)),
-                typeof(bool)));
-        }
-
-        return BuildResult<ExecutionExpression>.Unsupported(
-            $"Execution IR outer apply lowering expected a boolean expression but found {FormatTypeName(expression.ReturnType)}.");
-    }
-
-    private static ExecutionLiteral CreateOuterApplyNullLiteral(Type returnType)
-    {
-        return new ExecutionLiteral(null, LiftOuterApplyNullSubstitutionType(returnType));
-    }
-
-    private static Type LiftOuterApplyNullSubstitutionType(Type type)
-    {
-        if (!type.IsValueType || Nullable.GetUnderlyingType(type) != null)
-            return type;
-
-        return typeof(Nullable<>).MakeGenericType(type);
     }
 
     private static string FormatTypeName(Type type)

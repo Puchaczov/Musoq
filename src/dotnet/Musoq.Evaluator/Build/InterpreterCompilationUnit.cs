@@ -5,7 +5,6 @@ using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Musoq.Evaluator.Runtime;
-using Musoq.Schema.Interpreters;
 
 namespace Musoq.Evaluator.Build;
 
@@ -14,6 +13,9 @@ namespace Musoq.Evaluator.Build;
 /// </summary>
 public class InterpreterCompilationUnit
 {
+    private readonly ICSharpCompilationFactory _compilationFactory;
+    private readonly IInterpreterReferenceProvider _interpreterReferenceProvider;
+    private readonly IAssemblyLoader _assemblyLoader;
     private byte[]? _assemblyBytes;
     private CSharpCompilation? _compilation;
 
@@ -23,9 +25,27 @@ public class InterpreterCompilationUnit
     /// <param name="assemblyName">The name for the generated assembly.</param>
     /// <param name="sourceCode">The C# source code to compile.</param>
     public InterpreterCompilationUnit(string assemblyName, string sourceCode)
+        : this(
+            assemblyName,
+            sourceCode,
+            RoslynSharedFactory.Default,
+            new DefaultInterpreterReferenceProvider(MetadataReferenceCache.Default),
+            DefaultAssemblyLoader.Instance)
+    {
+    }
+
+    internal InterpreterCompilationUnit(
+        string assemblyName,
+        string sourceCode,
+        ICSharpCompilationFactory compilationFactory,
+        IInterpreterReferenceProvider interpreterReferenceProvider,
+        IAssemblyLoader assemblyLoader)
     {
         AssemblyName = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
         SourceCode = sourceCode ?? throw new ArgumentNullException(nameof(sourceCode));
+        _compilationFactory = compilationFactory ?? throw new ArgumentNullException(nameof(compilationFactory));
+        _interpreterReferenceProvider = interpreterReferenceProvider ?? throw new ArgumentNullException(nameof(interpreterReferenceProvider));
+        _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
     }
 
     /// <summary>
@@ -61,13 +81,12 @@ public class InterpreterCompilationUnit
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(SourceCode);
 
-
-        _compilation = RoslynSharedFactory.CreateCompilation(AssemblyName);
+        _compilation = _compilationFactory.CreateCompilation(AssemblyName);
         _compilation = _compilation.AddSyntaxTrees(syntaxTree);
 
-
-        _compilation = _compilation.AddReferences(GetInterpreterReferences());
-
+        var interpreterReferences = _interpreterReferenceProvider.GetReferences();
+        if (interpreterReferences.Count > 0)
+            _compilation = _compilation.AddReferences(interpreterReferences);
 
         using var ms = new MemoryStream();
         var result = _compilation.Emit(ms);
@@ -77,7 +96,7 @@ public class InterpreterCompilationUnit
         if (!result.Success) return false;
 
         _assemblyBytes = ms.ToArray();
-        CompiledAssembly = Assembly.Load(_assemblyBytes);
+        CompiledAssembly = _assemblyLoader.Load(_assemblyBytes);
 
         return true;
     }
@@ -138,37 +157,6 @@ public class InterpreterCompilationUnit
         return Diagnostics
             .Where(d => d.Severity == DiagnosticSeverity.Error)
             .Select(d => d.ToString());
-    }
-
-    private static List<MetadataReference> GetInterpreterReferences()
-    {
-        var references = new List<MetadataReference>();
-
-
-        var schemaAssembly = typeof(IBytesInterpreter<>).Assembly;
-        references.Add(MetadataReference.CreateFromFile(schemaAssembly.Location));
-
-
-        var runtimeDir = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
-        var additionalAssemblies = new[]
-        {
-            "System.Memory.dll",
-            "System.Buffers.dll",
-            "System.Text.RegularExpressions.dll",
-            "System.Dynamic.Runtime.dll",
-            "System.Linq.Expressions.dll",
-            "System.ObjectModel.dll",
-            "System.Collections.dll"
-        };
-
-        foreach (var assemblyName in additionalAssemblies)
-        {
-            var assemblyPath = Path.Combine(runtimeDir, assemblyName);
-            if (File.Exists(assemblyPath))
-                references.Add(MetadataReference.CreateFromFile(assemblyPath));
-        }
-
-        return references;
     }
 
     /// <summary>

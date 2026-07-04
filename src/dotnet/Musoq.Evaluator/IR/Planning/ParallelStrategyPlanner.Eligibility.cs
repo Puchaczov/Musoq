@@ -1,4 +1,3 @@
-using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Planning;
@@ -17,7 +16,7 @@ internal sealed partial class ParallelStrategyPlanner
         if (sourceShapeResolution.SourceShape is not { } sourceShape)
             return ParallelPlanEligibility.Skipped(sourceShapeResolution.Reason);
 
-        if (sourceShape is ExpandoAdapterShape)
+        if (sourceShape.Kind == PlanningRowShapeKind.ExpandoAdapter)
             return ParallelPlanEligibility.Skipped("Source shape is dynamic, so parallel single-key aggregate cannot use stable row access.");
 
         if (!CanUseParallelSourceRows(pipeline.Source))
@@ -27,9 +26,7 @@ internal sealed partial class ParallelStrategyPlanner
         if (!aggregateBindingsEligibility.IsEligible)
             return ParallelPlanEligibility.Skipped(aggregateBindingsEligibility.Reason);
 
-        var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(sourceShape);
-        var groupKey = ExecutionExpressionConverter.Convert(pipeline.Aggregate.GroupKey, sourceLookup);
-        var groupKeyEligibility = ParallelExecutionEligibilityRules.CanUseAggregateGroupKeyExpression(groupKey);
+        var groupKeyEligibility = ParallelPlanningEligibilityRules.CanUseAggregateGroupKeyExpression(pipeline.Aggregate.GroupKey);
         if (!groupKeyEligibility.IsEligible)
             return ParallelPlanEligibility.Skipped($"Group key is not parallel-safe: {groupKeyEligibility.Reason}");
 
@@ -57,18 +54,17 @@ internal sealed partial class ParallelStrategyPlanner
         if (sourceShapeResolution.SourceShape is not { } sourceShape)
             return ParallelPlanEligibility.Skipped(sourceShapeResolution.Reason);
 
-        if (sourceShape is ExpandoAdapterShape)
+        if (sourceShape.Kind == PlanningRowShapeKind.ExpandoAdapter)
             return ParallelPlanEligibility.Skipped("Source shape is dynamic, so parallel filter/project cannot use stable field access.");
 
         if (!CanUseParallelSourceRows(pipeline.Source))
             return ParallelPlanEligibility.Skipped($"Unsupported row source {pipeline.Source.GetType().Name}; parallel filter/project requires enumerable or stored-table rows.");
 
-        var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(sourceShape);
         var predicateEligibility = CanUseParallelFilterProjectPredicate(pipeline.Filter, sourceShape);
         if (!predicateEligibility.IsEligible)
             return ParallelPlanEligibility.Skipped(predicateEligibility.Reason);
 
-        var fieldsEligibility = CanUseParallelFilterProjectFields(pipeline.Project.Fields, sourceLookup);
+        var fieldsEligibility = CanUseParallelFilterProjectFields(pipeline.Project.Fields, sourceShape);
         if (!fieldsEligibility.IsEligible)
             return ParallelPlanEligibility.Skipped(fieldsEligibility.Reason);
 

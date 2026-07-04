@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
-using Musoq.Evaluator.IR.Planning;
-namespace Musoq.Evaluator.IR.Execution;
+
+namespace Musoq.Evaluator.IR.Planning;
 internal static partial class SingleUseMaterializationPlanner
 {
     private static Dictionary<string, int> CountTrackedCteReferences(

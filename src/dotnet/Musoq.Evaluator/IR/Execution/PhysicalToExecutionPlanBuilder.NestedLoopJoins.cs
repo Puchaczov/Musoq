@@ -14,7 +14,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultShapeName,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName,
-        int schemaFromIndex)
+        int schemaFromIndex,
+        PhysicalToExecutionLoweringSession session)
     {
         if (join.Kind is JoinKind.AsofInner or JoinKind.AsofLeft)
         {
@@ -25,7 +26,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 resultShapeName,
                 cteIndexes,
                 cteShapesByName,
-                schemaFromIndex);
+                schemaFromIndex,
+                session);
         }
 
         var sources = BuildJoinSources(
@@ -34,7 +36,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             cteIndexes,
             cteShapesByName,
             schemaFromIndex,
-            CreateSourceRowsScope(resultTableName));
+            CreateSourceRowsScope(resultTableName),
+            session);
         if (!sources.Supported)
             return TableBuildResult.Unsupported(sources.UnsupportedReason);
 

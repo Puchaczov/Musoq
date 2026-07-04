@@ -3,6 +3,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Optimization;
+using Musoq.Evaluator.IR.Optimization.Codegen;
+using Musoq.Evaluator.IR.Optimization.Execution;
+using Musoq.Evaluator.IR.Optimization.Logical;
+using Musoq.Evaluator.IR.Optimization.Physical;
 
 namespace Musoq.Evaluator.Tests.Architecture;
 
@@ -17,8 +21,8 @@ namespace Musoq.Evaluator.Tests.Architecture;
 public sealed class LooseContractGuardrailTests
 {
     private const int BuildItemsInlineKeyCeiling = 46;
-    private const int ExternalRawBuildItemAccessCeiling = 1;
-    private const int OptimizationContextPropertiesUsageCeiling = 3;
+    private const int ExternalRawBuildItemAccessCeiling = 0;
+    private const int OptimizationContextPropertiesUsageCeiling = 0;
     private const int ExecutionIrDynamicObjectBoundaryCeiling = 8;
     private const int UnsupportedShapeDiagnosticCeiling = 26;
 

@@ -97,7 +97,10 @@ public sealed partial class LogicalPlanBuilder
         {
             PartitionKeys = RewriteExpressionsWithAggregateRefs(registration.PartitionKeys, bindingsByIdentifier),
             OrderKeys = RewriteOrderFieldsWithAggregateRefs(registration.OrderKeys, bindingsByIdentifier),
-            ValueArguments = RewriteExpressionsWithAggregateRefs(registration.ValueArguments, bindingsByIdentifier)
+            ValueArguments = RewriteExpressionsWithAggregateRefs(registration.ValueArguments, bindingsByIdentifier),
+            FilterPredicate = registration.FilterPredicate == null
+                ? null
+                : AggregateRefRewriter.Rewrite(registration.FilterPredicate, bindingsByIdentifier)
         };
     }
 

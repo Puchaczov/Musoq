@@ -9,8 +9,37 @@ public sealed record AggregateBinding(
     string ColumnName,
     MethodInfo SetMethod,
     IrExpression[] SetArguments,
+    IrExpression? FilterPredicate,
     MethodInfo GetMethod,
     IrExpression[] GetArguments,
     Type ReturnType,
     AggregateKernelDescriptor? Kernel = null,
-    int ParentDepth = 0);
+    int ParentDepth = 0,
+    string? DisplayName = null)
+{
+    public AggregateBinding(
+        string identifier,
+        string columnName,
+        MethodInfo setMethod,
+        IrExpression[] setArguments,
+        MethodInfo getMethod,
+        IrExpression[] getArguments,
+        Type returnType,
+        AggregateKernelDescriptor? kernel = null,
+        int parentDepth = 0,
+        string? displayName = null)
+        : this(
+            identifier,
+            columnName,
+            setMethod,
+            setArguments,
+            null,
+            getMethod,
+            getArguments,
+            returnType,
+            kernel,
+            parentDepth,
+            displayName)
+    {
+    }
+}

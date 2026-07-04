@@ -85,6 +85,21 @@ public sealed class NullCoalescingOperatorTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void WhenNullCoalescingChainsReferenceValues_ShouldEvaluateRightAssociatively()
+    {
+        const string query = "select Name ?? City ?? 'fallback' as Label from #A.Entities() order by Id";
+        var sources = CreateSingleSource(
+            new BasicEntity { Id = 1, Name = null, City = null },
+            new BasicEntity { Id = 2, Name = null, City = "Paris" },
+            new BasicEntity { Id = 3, Name = "Alice", City = "Warsaw" });
+
+        var table = CreateAndRunVirtualMachine(query, sources).Run();
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Label", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["fallback"], ["Paris"], ["Alice"]);
+    }
+
+    [TestMethod]
     public void WhenLiteralNullIsLeft_ShouldUseRightExpression()
     {
         const string query = "select null ?? Name from #A.Entities()";

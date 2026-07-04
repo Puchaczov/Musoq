@@ -1,6 +1,7 @@
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.IR.Optimization;
+using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.Visitors;
 
 namespace Musoq.Converter.Build;
@@ -10,21 +11,29 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
     public override void Build(BuildItems items)
     {
         ArgumentNullException.ThrowIfNull(items);
-        items.SchemaProvider = new TransitionSchemaProvider(items.SchemaProvider);
+        var context = TransformPipelineContext.From(items) with
+        {
+            SchemaProvider = new TransitionSchemaProvider(items.SchemaProvider)
+        };
+        items.SchemaProvider = context.SchemaProvider;
 
         ParseBuildArtifacts parseArtifacts = items.ParseArtifacts;
         var queryTree = parseArtifacts.RawQueryTree;
 
         var preLogicalNormalization = new PreLogicalNormalizer().Normalize(queryTree);
         queryTree = preLogicalNormalization.NormalizedRoot;
-        items.OptimizerTraceText = OptimizationTraceTextPrinter.Print(preLogicalNormalization.Trace);
+        context = context with
+        {
+            OptimizerTraceText = OptimizationTraceTextPrinter.Print(preLogicalNormalization.Trace)
+        };
+        items.OptimizerTraceText = context.OptimizerTraceText;
 
         var extractColumnsVisitor = new ExtractRawColumnsVisitor();
         var extractRawColumnsTraverseVisitor = new ExtractRawColumnsTraverseVisitor(extractColumnsVisitor);
 
         queryTree.Accept(extractRawColumnsTraverseVisitor);
 
-        var metadataVisitor = CreateMetadataVisitor(items, extractColumnsVisitor.Columns);
+        var metadataVisitor = CreateMetadataVisitor(context, extractColumnsVisitor.Columns);
         var metadataTraverserVisitor = new BuildMetadataAndInferTypesTraverseVisitor(metadataVisitor);
 
         try
@@ -34,35 +43,61 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
         }
         catch (Exception ex)
         {
-            if (!items.DiagnosticContext.HasErrors)
-                items.DiagnosticContext.ReportException(ex);
+            if (!context.DiagnosticContext.HasErrors)
+                context.DiagnosticContext.ReportException(ex);
         }
 
-        if (items.DiagnosticContext.HasErrors)
+        if (context.DiagnosticContext.HasErrors)
             return;
 
-        if (items.CompilationOptions.UseCteParallelization)
-            items.CteExecutionPlan = ComputeCteExecutionPlan(queryTree);
+        var cteExecutionPlan = context.CompilationOptions.UseCteParallelization
+            ? ComputeCteExecutionPlan(queryTree)
+            : null;
+        items.CteExecutionPlan = cteExecutionPlan;
 
-        var rewriter = new RewriteQueryVisitor(items.CompilationOptions);
+        var rewriter = new RewriteQueryVisitor(context.CompilationOptions);
         var rewriteTraverser = new RewriteQueryTraverseVisitor(rewriter, new ScopeWalker(metadataTraverserVisitor.Scope));
 
         queryTree.Accept(rewriteTraverser);
 
         queryTree = rewriter.RootScript;
 
-        var semanticArtifacts = BuildSemanticArtifacts(items, queryTree, metadataVisitor, metadataTraverserVisitor);
+        var semanticArtifacts = BuildSemanticArtifacts(queryTree, metadataVisitor, metadataTraverserVisitor, cteExecutionPlan);
         items.SemanticArtifacts = semanticArtifacts;
 
-        var planningArtifacts = BuildPlans(semanticArtifacts, metadataVisitor, items);
-        if (planningArtifacts != null)
+        var planningStage = BuildPlans(semanticArtifacts, metadataVisitor, context);
+        PlanningBuildArtifacts? planningArtifacts = null;
+        if (planningStage != null)
+        {
+            context = planningStage.Context;
+            semanticArtifacts = planningStage.SemanticArtifacts;
+            planningArtifacts = planningStage.Artifacts;
+            items.OptimizerTraceText = context.OptimizerTraceText;
+            items.SemanticArtifacts = semanticArtifacts;
             items.PlanningArtifacts = planningArtifacts;
+        }
 
-        if (items.DiagnosticContext is { HasErrors: true } || items.StopAfterPlanning)
+        if (context.DiagnosticContext is { HasErrors: true } || context.StopAfterPlanning)
             return;
 
-        items.ExecutionArtifacts = BuildExecutionInspection(items);
-        items.RenderingArtifacts = BuildWithIrRenderer(items, semanticArtifacts, metadataVisitor, metadataTraverserVisitor);
+        if (planningArtifacts == null)
+            return;
+
+        var executionStage = BuildExecutionInspection(context, semanticArtifacts, planningArtifacts);
+        context = executionStage.Context;
+        items.OptimizerTraceText = context.OptimizerTraceText;
+        items.ExecutionArtifacts = executionStage.Artifacts;
+
+        var renderingStage = BuildWithIrRenderer(
+            context,
+            semanticArtifacts,
+            planningArtifacts,
+            executionStage.Artifacts,
+            metadataVisitor,
+            metadataTraverserVisitor);
+        context = renderingStage.Context;
+        items.OptimizerTraceText = context.OptimizerTraceText;
+        items.RenderingArtifacts = renderingStage.Artifacts;
 
         Successor?.Build(items);
     }

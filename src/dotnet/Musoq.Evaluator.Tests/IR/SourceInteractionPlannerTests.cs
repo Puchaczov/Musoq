@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Optimization;
@@ -73,6 +74,7 @@ public class SourceInteractionPlannerTests
             new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase),
             null,
             null,
+            new ExecutionPlanningShapeResolverAdapter(new ExecutionShapeResolver()),
             null);
     }
 

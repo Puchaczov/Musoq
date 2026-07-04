@@ -10,7 +10,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         PhysicalMultiStatementNode multiStatement,
         string resultTableName,
         string resultShapeName,
-        MultiStatementIndexes indexes)
+        MultiStatementIndexes indexes,
+        PhysicalToExecutionLoweringSession session)
     {
         if (multiStatement.Statements.Length != 2)
             return null;
@@ -53,7 +54,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultTableName,
             resultShapeName,
             indexes.CteIndexes,
-            indexes.CteShapesByName);
+            indexes.CteShapesByName,
+            session: session);
         if (!result.Supported)
             return result;
 

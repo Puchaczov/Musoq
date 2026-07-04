@@ -31,9 +31,11 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
         var data = new byte[] { 0x01, 0x04, 0x2A, 0x00, 0x00, 0x00 };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x01, table[0][0]);
-        Assert.AreEqual("Login", table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Type", typeof(byte)),
+            ("p.Payload.Case", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)0x01, "Login"]);
     }
 
     [TestMethod]
@@ -57,8 +59,8 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
         var data = new byte[] { 0x01, 0x04, 0x2A, 0x00, 0x00, 0x00 };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(42, table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Payload.Login.UserId", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [42]);
     }
 
     [TestMethod]
@@ -82,8 +84,8 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
         var data = new byte[] { 0x09, 0x03, 0xAA, 0xBB, 0xCC };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Raw", table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Payload.Case", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Raw"]);
     }
 
     [TestMethod]
@@ -108,8 +110,8 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
         var loginData = new byte[] { 0x01, 0x04, 0x2A, 0x00, 0x00, 0x00 };
         var table = RunQuery(query, loginData);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x01, table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Type", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)0x01]);
     }
 
     [TestMethod]
@@ -137,9 +139,11 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
         var data = new byte[] { 0x02, 0x02, 0x05, 0x00 };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Data", table[0][0]);
-        Assert.AreEqual((short)5, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Payload.Case", typeof(string)),
+            ("p.Payload.Data.Size", typeof(short)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Data", (short)5]);
     }
 
     [TestMethod]
@@ -160,9 +164,11 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
         var data = new byte[] { 0x01, 0x04, 0x07, 0x00, 0x00, 0x00 };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Code", table[0][0]);
-        Assert.AreEqual(7, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Payload.Case", typeof(string)),
+            ("p.Payload.Code", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Code", 7]);
     }
 
     [TestMethod]
@@ -183,8 +189,8 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
         var data = new byte[] { 0x09, 0x03, 0xAA, 0xBB, 0xCC };
         var table = RunQuery(query, data);
 
-        Assert.AreEqual(1, table.Count);
-        CollectionAssert.AreEqual(new byte[] { 0xAA, 0xBB, 0xCC }, (byte[])table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Payload.Raw", typeof(byte[])));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [new byte[] { 0xAA, 0xBB, 0xCC }]);
     }
 
     [TestMethod]

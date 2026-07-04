@@ -10,7 +10,12 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private ExpressionSyntax RenderExpression(ExecutionExpression expression)
     {
-        return new ExpressionRenderer(this).Render(expression);
+        return RenderExpression(expression, new ExecutionRenderContext(_renderOptions, RenderSession));
+    }
+
+    private ExpressionSyntax RenderExpression(ExecutionExpression expression, ExecutionRenderContext context)
+    {
+        return new ExpressionRenderer(this, context.Session).Render(expression);
     }
 
     private static ExpressionSyntax CreateWindowValueRead(ExecutionWindowValueRead windowValueRead)
@@ -104,8 +109,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ExpressionSyntax RenderStoredTableRows(ExecutionStoredTableRows storedRows)
     {
-        return _declaredStoredRowsCaches.Contains(storedRows.TableIndex) &&
-               _storedRowsCacheNames.TryGetValue(storedRows.TableIndex, out var cacheName)
+        return RenderSession.DeclaredStoredRowsCaches.Contains(storedRows.TableIndex) &&
+               RenderSession.StoredRowsCacheNames.TryGetValue(storedRows.TableIndex, out var cacheName)
             ? CreateIdentifierName(cacheName)
             : CreateStoredTableRowsRead(storedRows);
     }

@@ -8,24 +8,6 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
 {
-    private sealed record JoinSource(
-        PhysicalNode Node,
-        RowShape Shape,
-        ExecutionVariable Variable,
-        List<ExecutionNode> Setup,
-        ExecutionExpression Rows,
-        IReadOnlyList<RowShape> Shapes,
-        int SchemaSourceCount,
-        bool CanReuseSetupAcrossApplyRows = false,
-        GeneratedRowShape? GeneratedRowShape = null,
-        ExecutionVariable? OrdinalityVariable = null,
-        FusedCteHashBuildSource? FusedHashBuild = null,
-        FusedHashPayload? FusedHashPayload = null);
-
-    private sealed record FusedHashPayload(
-        HashPayloadShape Shape,
-        IReadOnlyList<ExecutionRowValue> Values);
-
     private sealed record SingleKeyAggregateExecutionSource(
         IReadOnlyDictionary<string, RowShape> Lookup,
         IReadOnlyList<RowShape> Shapes,
@@ -91,69 +73,4 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         }
     }
 
-    private sealed record JoinSources(JoinSource Left, JoinSource Right);
-
-    private sealed record OuterNestedLoopSides(JoinSource Outer, JoinSource Inner);
-
-    private sealed record HashJoinSides(JoinSource Build, JoinSource Probe);
-
-    private sealed record HashJoinBuildContext(
-        PhysicalHashJoinNode Join,
-        SupportedPipeline Pipeline,
-        JoinSources Sources,
-        HashJoinSides Sides,
-        IReadOnlyDictionary<string, RowShape> SourceLookup,
-        IReadOnlyDictionary<string, RowShape> ConversionLookup,
-        Type KeyType,
-        ExecutionVariable Hash,
-        ExecutionVariable Matches,
-        string ResultTableName,
-        string ResultShapeName,
-        CteSidecarIndexSpec? CteSidecarIndex = null);
-
-    private readonly record struct JoinKeyExpressions(
-        IrExpression Left,
-        IrExpression Right);
-
-    private readonly record struct AsOfJoinPredicateParts(
-        JoinKeyExpressions[] EqualityKeys,
-        IrExpression LeftInequalityKey,
-        IrExpression RightInequalityKey,
-        BinaryOpKind ComparisonKind);
-
-    private readonly record struct NormalizedAsOfJoinKey(
-        IrExpression Left,
-        IrExpression Right,
-        BinaryOpKind Kind);
-
-    private sealed record AsOfProbeBuildResult(
-        bool Supported,
-        GeneratedRowShape ResultShape,
-        ExecutionAsOfProbe Probe,
-        string UnsupportedReason)
-    {
-        public static AsOfProbeBuildResult Success(
-            GeneratedRowShape resultShape,
-            ExecutionAsOfProbe probe)
-        {
-            return new AsOfProbeBuildResult(true, resultShape, probe, string.Empty);
-        }
-
-        public static AsOfProbeBuildResult Unsupported(string reason)
-        {
-            return new AsOfProbeBuildResult(
-                false,
-                new GeneratedRowShape(string.Empty, []),
-                new ExecutionAsOfProbe(
-                    new ExecutionVariable(string.Empty, typeof(object)),
-                    new ExecutionVariable(string.Empty, typeof(object)),
-                    new ExecutionVariableRead(new ExecutionVariable(string.Empty, typeof(object))),
-                    [],
-                    new ExecutionLiteral(null, typeof(object)),
-                    new ExecutionLiteral(null, typeof(object)),
-                    BinaryOpKind.Equal,
-                    ExecutionBlock.Empty),
-                reason);
-        }
-    }
 }
