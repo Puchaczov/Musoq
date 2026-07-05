@@ -243,10 +243,10 @@ Key planner rules:
 
 ## Generated Code Samples & Runtime Optimization
 
-Musoq compiles SQL queries into C# code at runtime. The generated-code sample corpus is generated locally under the ignored root `generated-code-samples/current/` folder and is governed by catalog-driven tests in `Musoq.Evaluator.Tests`:
+Musoq compiles SQL queries into C# code at runtime. The generated-code sample corpus is tracked under `generated-code-samples/current/` and `generated-code-samples/profiled/` and is governed by catalog-driven tests in `Musoq.Evaluator.Tests`:
 
 - `GeneratedCodeSamplesCatalog` is the source of truth for all generated sample names, SQL queries, categories, output formats, and schema-provider factories. `GeneratedCodeSamplesShapeTests.ExpectedSampleFileCount` records the current expected corpus size.
-- `GeneratedCodeSamplesSnapshotTests` validates local sample files when the ignored corpus exists; CI shape coverage generates current catalog output in memory.
+- `GeneratedCodeSamplesSnapshotTests` validates tracked sample files against deterministic catalog output; CI shape coverage also generates current catalog output in memory.
 - `GeneratedInterpretationCodeDumpTests` keeps the binary/text interpretation samples (`Q16` and `Q17`) on the same parity path as the catalog.
 - `GeneratedCodeSamplesShapeTests` checks fast structural budgets for generated-code patterns and guards that retired helper shapes such as `GetColumnValue`, `SmartForEach`, `ConvertTableToSource`, `TableRowSource`, discarded-context conversions, and inline `IN` array allocations stay absent unless a test explicitly documents a transitional allowance.
 - `RuntimeV2MaintainabilityBudgetTests` enforces source-file maintainability budgets. Runtime-v2 Execution files should stay at or below 900 lines unless the test carries a concrete temporary justification, and `EvaluationHelper` must remain split into small domain partials rather than growing back into a catch-all helper.
@@ -258,7 +258,7 @@ Musoq compiles SQL queries into C# code at runtime. The generated-code sample co
 dotnet test src/dotnet/Musoq.Evaluator.Tests --configuration Release --no-build --filter "GeneratedCodeSamplesSnapshotTests|GeneratedCodeSamplesShapeTests|GeneratedInterpretationCodeDumpTests" --nologo --verbosity quiet --logger "console;verbosity=minimal"
 ```
 
-The snapshot tests compile each catalog query through `InstanceCreator.CreateForAnalyze`, format the Roslyn syntax trees deterministically, and compare them with local sample files when present. `GeneratedCodeSamplesManifestTests` also hashes every normalized generated sample against a tracked manifest so CI catches generated-output drift even when the ignored local sample files are absent. Refresh utilities are intentionally marked `[Ignore]`; call them deliberately from a temporary local runner when a generated-code refresh is expected.
+The snapshot tests compile each catalog query through `InstanceCreator.CreateForAnalyze`, format the Roslyn syntax trees deterministically, and compare them with tracked sample files. `GeneratedCodeSamplesManifestTests` also hashes every normalized generated sample against a tracked manifest so CI catches generated-output drift independently from line-ending or namespace noise. Refresh utilities are intentionally marked `[Ignore]`; call them deliberately from a temporary local runner when a generated-code refresh is expected.
 
 ### Runtime Optimization Workflow
 
@@ -268,7 +268,7 @@ The snapshot tests compile each catalog query through `InstanceCreator.CreateFor
 4. **Consult the planner architecture reference** in `musoq_enchanced_architecture.md` for Physical/Execution IR ownership boundaries, and the [Musoq.Benchmarks copilot-instructions.md](../Musoq.Benchmarks/copilot-instructions.md) for the benchmark-to-query-family mapping.
 5. **Establish a benchmark baseline before code changes** for the affected query family.
 6. **Implement changes** in `IR/Physical` or `IR/Execution`; touch `IR/CodeGeneration` only to emit new Execution IR metadata or to simplify local syntax.
-7. **Refresh ignored local samples intentionally** and verify the generated code improved.
+7. **Refresh tracked generated-code samples intentionally** and verify the generated code improved.
 8. **Run the full test suite** to ensure correctness.
 9. **Run the same benchmarks** and report before/after runtime and allocation deltas.
 

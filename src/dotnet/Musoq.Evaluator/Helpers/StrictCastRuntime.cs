@@ -90,6 +90,15 @@ public static class StrictCastRuntime
     public static ulong? ToUInt64(object? value) =>
         IsNull(value) ? null : Convert.ToUInt64(value, CultureInfo.InvariantCulture);
 
+    public static float? ToSingle(float value) => value;
+
+    public static float? ToSingle(float? value) => value;
+
+    public static float? ToSingle(double value) => Convert.ToSingle(value);
+
+    public static float? ToSingle(double? value) =>
+        value.HasValue ? Convert.ToSingle(value.GetValueOrDefault()) : null;
+
     public static float? ToSingle(object? value) =>
         IsNull(value) ? null : Convert.ToSingle(value, CultureInfo.InvariantCulture);
 

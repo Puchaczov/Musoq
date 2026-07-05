@@ -28,3 +28,33 @@ Interpret the `ChunkParallelStreamingProjection` ratio against `SerialStreamingP
 For CPU-heavy rows, ratios below `0.50` indicate a 2x+ speedup; local short-run results showed
 roughly `0.35-0.40` at MaxDegree 4 and `0.28-0.32` at MaxDegree 8, with allocation ratios below
 the serial baseline.
+
+## RuntimeV2 Weather Grouped Aggregate
+
+`WeatherAggregateBenchmark` measures the generated code for:
+
+```sql
+select City, Min(Temperature::Single), Max(Temperature::Single), Avg(Temperature::Single)
+from #weather.measurements()
+group by City
+```
+
+Run it with:
+
+```powershell
+dotnet run -c Release --project src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj -- --filter "*WeatherAggregateBenchmark*" --join
+```
+
+Local ShortRun result from 2026-07-05 on .NET 10.0.9, comparing original `HEAD`
+(`73ff96a4d` plus this benchmark harness) with the chunk-native aggregate and typed cast changes:
+
+| Rows | Chunk | Mode | Before mean | Before alloc | After mean | After alloc |
+| ---: | ---: | --- | ---: | ---: | ---: | ---: |
+| 1000000 | 512 | Serial | 17.580 ms | 31.63 MB | 14.742 ms | 8.74 MB |
+| 1000000 | 512 | Parallel | 17.694 ms | 32.87 MB | 8.831 ms | 9.92 MB |
+| 1000000 | 4096 | Serial | 17.069 ms | 30.94 MB | 15.219 ms | 8.05 MB |
+| 1000000 | 4096 | Parallel | 16.979 ms | 32.17 MB | 5.409 ms | 9.30 MB |
+
+The serial allocation drop comes mostly from avoiding boxed `Temperature::Single` casts. The
+parallel speedup comes from consuming source chunks directly with thread-local aggregate groups
+instead of first bridging chunked input into a retained row list.

@@ -83,9 +83,12 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
         IReadOnlyList<CapturedLocal> captures)
     {
+        var rowsType = IsChunkedParallelSingleKeyAggregate(parallelAggregate)
+            ? CreateChunkedRowsTypeSyntax(CreateVariableTypeSyntax(parallelAggregate.Source))
+            : CreateReadOnlyListTypeSyntax(CreateVariableTypeSyntax(parallelAggregate.Source));
         var parameters = new List<ParameterSyntax>
         {
-            CreateParameter("rows", CreateReadOnlyListTypeSyntax(CreateVariableTypeSyntax(parallelAggregate.Source))),
+            CreateParameter("rows", rowsType),
             CreateParameter("maxDegreeOfParallelism", SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword))),
             CreateParameter("cancellationToken", CreateTypeSyntax(typeof(CancellationToken)))
         };

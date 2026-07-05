@@ -184,15 +184,18 @@ public sealed partial class ExecutionCSharpRenderer
         string groupsName,
         string orderedGroupsName,
         string groupKeyName,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context,
+        string? nullGroupName = null)
     {
+        nullGroupName ??= CreateParallelNullGroupName();
         return CanBeNull(parallelAggregate.KeyType)
             ? CreateParallelAggregateNullableGroupAcquisitionStatements(
                 parallelAggregate,
                 groupsName,
                 orderedGroupsName,
                 groupKeyName,
-                context)
+                context,
+                nullGroupName)
             : CreateParallelAggregateNonNullGroupAcquisitionStatements(
                 parallelAggregate,
                 groupsName,
@@ -232,7 +235,8 @@ public sealed partial class ExecutionCSharpRenderer
         string groupsName,
         string orderedGroupsName,
         string groupKeyName,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context,
+        string nullGroupName)
     {
         var groupType = CreateAggregateGroupType(parallelAggregate.GroupShape, context);
         var statements = new List<StatementSyntax>
@@ -257,7 +261,8 @@ public sealed partial class ExecutionCSharpRenderer
                 parallelAggregate,
                 orderedGroupsName,
                 groupKeyName,
-                context))))        };
+                context,
+                nullGroupName))))        };
 
         return statements;
     }
@@ -266,9 +271,9 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
         string orderedGroupsName,
         string groupKeyName,
-        ExecutionRenderContext context)
+        ExecutionRenderContext context,
+        string nullGroupName)
     {
-        var nullGroupName = CreateParallelNullGroupName();
         var nullGroup = SyntaxFactory.IdentifierName(nullGroupName);
 
         return

@@ -228,7 +228,8 @@ internal static partial class GeneratedCodeSamplesCatalog
               WHERE Population > 500000
               GROUP BY City, Country, Population
               HAVING Count(City) > 0
-              ORDER BY Population desc")
+              ORDER BY Population desc"),
+            RuntimeV2WeatherSingleAggregate()
         ];
     }
 }

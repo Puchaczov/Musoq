@@ -56,6 +56,26 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     }
 
     [TestMethod]
+    public void RuntimeV2WeatherSingleAggregateSample_WhenCheckedIn_ShouldStreamCastAndFuseInlineAggregates()
+    {
+        var sample = ReadSamples()
+            .Single(static item => item.FileName == RuntimeV2WeatherSingleAggregateSampleFileName)
+            .Content;
+
+        Assert.Contains("ParallelSingleKeyAggregate_0(ko3ikoRows, 24, token);", sample);
+        Assert.Contains("Parallel.ForEach<IReadOnlyList<", sample);
+        Assert.DoesNotContain("EvaluationHelper.GetParallelAggregationRowsOrEmpty", sample);
+        Assert.Contains("float? temperatureSingle = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToSingle(temperature);", sample);
+        Assert.Contains("var __agg0Input = (float?)temperatureSingle;", sample);
+        Assert.DoesNotContain("var __agg1Input", sample);
+        Assert.DoesNotContain("var __agg2Input", sample);
+        Assert.AreEqual(1, CountOccurrences(sample, "GetValueOrDefault();"));
+        Assert.Contains("group.__agg0.Sum = group.__agg0.HasValue ? checked(group.__agg0.Sum + __agg0Current) : __agg0Current;", sample);
+        Assert.Contains("if (!group.__agg1.HasValue || __agg0Current > group.__agg1.Value)", sample);
+        Assert.Contains("if (!group.__agg2.HasValue || __agg0Current < group.__agg2.Value)", sample);
+    }
+
+    [TestMethod]
     public void RuntimeV2WindowRunningSumSample_WhenCheckedIn_ShouldUseRenderedAggregateKernel()
     {
         var sample = ReadSamples()

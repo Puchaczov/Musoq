@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,6 +10,15 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed partial class ExecutionCSharpRenderer
 {
     private List<StatementSyntax> CreateParallelSingleKeyAggregateFunctionBody(
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
+        ExecutionRenderContext context)
+    {
+        return IsChunkedParallelSingleKeyAggregate(parallelAggregate)
+            ? CreateParallelSingleKeyAggregateChunkedFunctionBody(parallelAggregate, context)
+            : CreateParallelSingleKeyAggregateIndexedFunctionBody(parallelAggregate, context);
+    }
+
+    private List<StatementSyntax> CreateParallelSingleKeyAggregateIndexedFunctionBody(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
         ExecutionRenderContext context)
     {
@@ -159,4 +169,5 @@ public sealed partial class ExecutionCSharpRenderer
 
         return SyntaxFactory.ExpressionStatement(loopInvocation);
     }
+
 }

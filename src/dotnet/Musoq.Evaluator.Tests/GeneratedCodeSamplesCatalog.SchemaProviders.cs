@@ -57,6 +57,11 @@ internal static partial class GeneratedCodeSamplesCatalog
         return new RuntimeV2CastGroupingFeatureSchemaProvider([]);
     }
 
+    private static WeatherMeasurementSchemaProvider CreateWeatherMeasurementSchemaProvider()
+    {
+        return new WeatherMeasurementSchemaProvider(WeatherMeasurementEntity.EmptyRows);
+    }
+
     private static ScriptParameterSampleSchemaProvider CreateScriptParameterSampleSchemaProvider()
     {
         return new ScriptParameterSampleSchemaProvider();

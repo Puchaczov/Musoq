@@ -67,7 +67,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var parallel = samples[ScriptVariableParallelHelperCaptureSampleFileName].Content;
 
         AssertScriptVariableBindingCount(ScriptVariableGroupByHavingCaptureSampleFileName, groupBy, 2);
-        Assert.Contains("ParallelSingleKeyAggregate_0(groupsToFinalizeParallelRows, 24, token, letSuffix);", groupBy);
+        Assert.Contains("ParallelSingleKeyAggregate_0(ko3ikoRows, 24, token, letSuffix);", groupBy);
         Assert.DoesNotContain("SerialSingleKeyAggregate", groupBy);
         Assert.Contains("CancellationToken cancellationToken, string letSuffix)", groupBy);
         Assert.Contains("private readonly string _letSuffix;", groupBy);

@@ -345,15 +345,15 @@ public partial class QueryInspectionTests
         Assert.Contains("ParallelSingleKeyAggregateLoop [d in dRows by d.Dummy; threshold 4096, sample 8192/6144", result.ExecutionPlanText);
         Assert.Contains("ParallelAccumulate", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("SequentialKernel", StringComparison.Ordinal));
-        AssertGeneratedCSharpContains("EvaluationHelper.GetParallelAggregationRowsOrEmpty", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpDoesNotContain("EvaluationHelper.GetParallelAggregationRowsOrEmpty", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("EvaluationHelper.ShouldUseParallelSingleKeyAggregation", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("ParallelSingleKeyAggregate_0", result.GeneratedCSharpCode);
         AssertGeneratedCSharpDoesNotContain("SerialSingleKeyAggregate_0", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("Parallel.For(0, workerCount, options, worker.Run);", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("private static void ParallelSingleKeyAggregateShard_0", result.GeneratedCSharpCode);
-        AssertGeneratedCSharpContains("private sealed class ParallelSingleKeyAggregateWorker_0", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains("Parallel.ForEach<IReadOnlyList<", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains("private static void ParallelSingleKeyAggregateChunk_0", result.GeneratedCSharpCode);
+        AssertGeneratedCSharpContains("private sealed class ParallelSingleKeyAggregateChunkWorker_0", result.GeneratedCSharpCode);
         AssertGeneratedCSharpContains("mergedGroupRef.MergeFrom(sourceGroup)", result.GeneratedCSharpCode);
-        Assert.IsFalse(result.GeneratedCSharpCode.Contains("shardIndex =>", StringComparison.Ordinal));
+        Assert.IsFalse(result.GeneratedCSharpCode.Contains("private static void ParallelSingleKeyAggregateShard_0", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("EvaluationHelper.AggregateSingleKeyParallel", StringComparison.Ordinal));
     }
 

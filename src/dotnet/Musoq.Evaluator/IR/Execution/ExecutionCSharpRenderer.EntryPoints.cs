@@ -70,7 +70,7 @@ public sealed partial class ExecutionCSharpRenderer
         {
             return StatementEmitter.CreateBlock(CreateSingleKeyAggregateUpdateInvocation(helper));
         }
-        return StatementEmitter.CreateBlock(block.Nodes.SelectMany(node => RenderNode(node, context)));
+        return StatementEmitter.CreateBlock(RenderBlockNodes(block.Nodes, context));
     }
 
     private BlockSyntax RenderMethodBody(

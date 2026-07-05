@@ -170,8 +170,18 @@ public sealed partial class ExecutionCSharpRenderer
                 .Select(static group => group.First())
                 .ToArray();
             members.AddRange(uniqueParallelAggregateLoops.Select(loop => CreateParallelSingleKeyAggregateFunction(loop, context)));
-            members.AddRange(uniqueParallelAggregateLoops.Select(loop => CreateParallelSingleKeyAggregateShardFunction(loop, context)));
-            members.AddRange(uniqueParallelAggregateLoops.Select(loop => CreateParallelSingleKeyAggregateWorkerClass(loop, context)));
+            members.AddRange(uniqueParallelAggregateLoops
+                .Where(static loop => !IsChunkedParallelSingleKeyAggregate(loop))
+                .Select(loop => CreateParallelSingleKeyAggregateShardFunction(loop, context)));
+            members.AddRange(uniqueParallelAggregateLoops
+                .Where(static loop => !IsChunkedParallelSingleKeyAggregate(loop))
+                .Select(loop => CreateParallelSingleKeyAggregateWorkerClass(loop, context)));
+            members.AddRange(uniqueParallelAggregateLoops
+                .Where(IsChunkedParallelSingleKeyAggregate)
+                .Select(loop => CreateParallelSingleKeyAggregateChunkFunction(loop, context)));
+            members.AddRange(uniqueParallelAggregateLoops
+                .Where(IsChunkedParallelSingleKeyAggregate)
+                .Select(loop => CreateParallelSingleKeyAggregateChunkWorkerClass(loop, context)));
             members.AddRange(FlattenNodes(plan.Body)
                 .OfType<ExecutionOrderRecordList>()
                 .Where(order => renderedOrderComparers.Add(CreateOrderRecordComparerTypeName(order.RecordShape)))

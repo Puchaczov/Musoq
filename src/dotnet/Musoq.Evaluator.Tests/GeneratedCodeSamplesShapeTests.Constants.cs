@@ -4,7 +4,7 @@ namespace Musoq.Evaluator.Tests;
 
 public sealed partial class GeneratedCodeSamplesShapeTests
 {
-    private const int ExpectedSampleFileCount = 187;
+    private const int ExpectedSampleFileCount = 188;
     private const int InlineInArrayAllocationBudget = 0;
     private const string CrossApplySampleFileName = "Q19_CrossApply.cs";
     private const string OuterApplySampleFileName = "Q20_OuterApply.cs";
@@ -192,6 +192,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private const string PivotGroupedSingleMeasureSampleFileName = "Q162_PivotGroupedSingleMeasure.cs";
     private const string PivotMultipleMeasuresSampleFileName = "Q163_PivotMultipleMeasures.cs";
     private const string PivotCteNoGroupBySampleFileName = "Q164_PivotCteNoGroupBy.cs";
+    private const string RuntimeV2WeatherSingleAggregateSampleFileName =
+        "Q185_RuntimeV2WeatherSingleAggregate.cs";
     private const string ExceptWithGroupBySidesSampleFileName = "Q99_ExceptWithGroupBySides.cs";
     private const string Union3WithGroupBySidesSampleFileName = "Q99_Union3WithGroupBySides.cs";
     private const string UnionWithGroupBySidesSampleFileName = "Q99_UnionWithGroupBySides.cs";

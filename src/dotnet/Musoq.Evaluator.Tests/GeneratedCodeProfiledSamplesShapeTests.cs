@@ -382,7 +382,7 @@ public sealed class GeneratedCodeProfiledSamplesShapeTests
                 "CreateSingleKeyAggregateContext [groups: string -> ResultAggregateGroup]",
                 "ParallelSingleKeyAggregateLoop [ko3iko in ko3ikoRows by ko3iko.City; threshold 4096, sample 8192/6144, maxDegree 24, group ResultAggregateGroup]",
                 "TypedAggregateSet [Set(group.__agg0, city)]",
-                "ParallelSingleKeyAggregate_0(groupsToFinalizeParallelRows, 24, token);"
+                "ParallelSingleKeyAggregate_0(ko3ikoRows, 24, token);"
             ],
             GroupBySingleFullFileName);
         Assert.DoesNotContain("SerialSingleKeyAggregate", sample);

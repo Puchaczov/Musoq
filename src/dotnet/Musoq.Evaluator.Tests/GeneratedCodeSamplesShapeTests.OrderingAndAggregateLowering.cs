@@ -104,7 +104,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "var libraryBase0 = new Musoq.Plugins.LibraryBase();",
             result.GeneratedCSharpCode);
 
-        const string parallelAggregateCall = "ParallelSingleKeyAggregate_0(groupsToFinalizeParallelRows, ";
+        const string parallelAggregateCall = "ParallelSingleKeyAggregate_0(";
         if (result.GeneratedCSharpCode.Contains(parallelAggregateCall, StringComparison.Ordinal))
         {
             var callLine = GetLine(
@@ -112,9 +112,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                 result.GeneratedCSharpCode.IndexOf(parallelAggregateCall, StringComparison.Ordinal));
 
             Assert.Contains(", token, libraryBase0)", callLine);
-            Assert.Contains(
-                "private static List<ResultAggregateGroup> ParallelSingleKeyAggregate_0(IReadOnlyList<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> rows, int maxDegreeOfParallelism, CancellationToken cancellationToken, Musoq.Plugins.LibraryBase libraryBase0)",
-                result.GeneratedCSharpCode);
+            Assert.Contains("Musoq.Plugins.LibraryBase libraryBase0", result.GeneratedCSharpCode);
         }
         else
         {
@@ -138,7 +136,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(sample.Contains("private sealed class ResultAggregateGroup : Group", StringComparison.Ordinal));
         Assert.Contains("public Musoq.Plugins.CountReferenceAggregateKernel<string>.State __agg0", sample);
         Assert.Contains("ParallelSingleKeyAggregateLoop [ko3iko in ko3ikoRows by ko3iko.City; threshold 4096, sample 8192/6144", sample);
-        Assert.Contains("EvaluationHelper.GetParallelAggregationRowsOrEmpty<", sample);
+        Assert.DoesNotContain("EvaluationHelper.GetParallelAggregationRowsOrEmpty<", sample);
         Assert.Contains("ParallelSingleKeyAggregate_0", sample);
         Assert.DoesNotContain("EvaluationHelper.ShouldUseParallelSingleKeyAggregation<", sample);
         Assert.DoesNotContain("SerialSingleKeyAggregate", sample);
@@ -148,10 +146,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains(
             "private static List<ResultAggregateGroup> ParallelSingleKeyAggregate_0(",
             sample);
-        Assert.Contains("var worker = new ParallelSingleKeyAggregateWorker_0(", sample);
-        Assert.Contains("Parallel.For(0, workerCount, options, worker.Run);", sample);
-        Assert.Contains("private static void ParallelSingleKeyAggregateShard_0(", sample);
-        Assert.Contains("private sealed class ParallelSingleKeyAggregateWorker_0", sample);
+        Assert.Contains("Parallel.ForEach<IReadOnlyList<", sample);
+        Assert.Contains("private static void ParallelSingleKeyAggregateChunk_0(", sample);
+        Assert.Contains("private sealed class ParallelSingleKeyAggregateChunkWorker_0", sample);
+        Assert.DoesNotContain("var worker = new ParallelSingleKeyAggregateWorker_0(", sample);
+        Assert.DoesNotContain("Parallel.For(0, workerCount, options, worker.Run);", sample);
+        Assert.DoesNotContain("private static void ParallelSingleKeyAggregateShard_0(", sample);
+        Assert.DoesNotContain("private sealed class ParallelSingleKeyAggregateWorker_0", sample);
         Assert.IsFalse(sample.Contains("shardIndex =>", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("EvaluationHelper.AggregateSingleKeyParallel<", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("rootGroup", StringComparison.Ordinal));

@@ -50,6 +50,24 @@ internal static partial class GeneratedCodeSamplesCatalog
         };
     }
 
+    private static GeneratedCodeSample RuntimeV2WeatherSingleAggregate()
+    {
+        return new GeneratedCodeSample
+        {
+            Name = "Q185_RuntimeV2WeatherSingleAggregate",
+            FileName = "Q185_RuntimeV2WeatherSingleAggregate.cs",
+            Query = @"select Min(Temperature::Single) as MinTemperature,
+                         Max(Temperature::Single) as MaxTemperature,
+                         Avg(Temperature::Single) as AvgTemperature
+                  from #weather.measurements()
+                  group by City",
+            Category = "RuntimeV2",
+            Format = GeneratedCodeSampleFormat.GeneratedCodeOnly,
+            CreateSchemaProvider = CreateWeatherMeasurementSchemaProvider,
+            CompilationOptions = new CompilationOptions(useCommonSubexpressionElimination: true)
+        };
+    }
+
     private static GeneratedCodeSample RuntimeV2ScriptParameter(string name, string query)
     {
         return RuntimeV2RegressionWithOptions(

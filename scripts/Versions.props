@@ -3,7 +3,7 @@
     <MusoqParserVersion>17.0.0-alpha.7</MusoqParserVersion>
     <MusoqPluginsVersion>17.0.0-alpha.7</MusoqPluginsVersion>
     <MusoqSchemaVersion>17.0.0-alpha.7</MusoqSchemaVersion>
-    <MusoqEvaluatorVersion>17.0.1-alpha.1</MusoqEvaluatorVersion>
+    <MusoqEvaluatorVersion>17.0.1-alpha.2</MusoqEvaluatorVersion>
     <MusoqConverterVersion>17.0.0-alpha.7</MusoqConverterVersion>
   </PropertyGroup>
 </Project>

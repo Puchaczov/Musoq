@@ -99,9 +99,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         AssertAggregateCancellationShape(q61, "PopulateWindowSourceTableSingleKeyGroups", "FinalizeWindowSourceTableSingleKeyGroups");
         AssertAggregateCancellationShape(q72, "PopulateWindowSourceTableSingleKeyGroups", "FinalizeWindowSourceTableSingleKeyGroups");
 
-        Assert.Contains("ParallelSingleKeyAggregate_0(cte0GroupsToFinalizeParallelRows, 24, token);", q140);
+        Assert.Contains("ParallelSingleKeyAggregate_0(cte0_bRows, 24, token);", q140);
         Assert.Contains("private static List<Cte0AggregateGroup> ParallelSingleKeyAggregate_0(", q140);
-        Assert.Contains("private static void ParallelSingleKeyAggregateShard_0(", q140);
+        Assert.Contains("private static void ParallelSingleKeyAggregateChunk_0(", q140);
+        Assert.Contains("private sealed class ParallelSingleKeyAggregateChunkWorker_0", q140);
+        Assert.DoesNotContain("private static void ParallelSingleKeyAggregateShard_0(", q140);
         Assert.DoesNotContain("SerialSingleKeyAggregate", q140);
         Assert.Contains("token.ThrowIfCancellationRequested();", q140);
     }

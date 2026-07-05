@@ -186,6 +186,8 @@ public sealed partial class ExecutionCSharpRenderer
         builder
             .Append("source:")
             .Append(ExecutionExpressionFingerprint.ForAggregateType(parallelAggregate.Source.Type))
+            .Append("|rows:")
+            .Append(IsChunkedParallelSingleKeyAggregate(parallelAggregate) ? "chunked" : "indexed")
             .Append("|keyType:")
             .Append(ExecutionExpressionFingerprint.ForAggregateType(parallelAggregate.KeyType))
             .Append("|group:")

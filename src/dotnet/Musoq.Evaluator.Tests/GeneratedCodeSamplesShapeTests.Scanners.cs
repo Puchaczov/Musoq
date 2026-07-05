@@ -305,6 +305,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         if (Regex.IsMatch(content, parallelAggregateRowsPattern))
             return true;
 
+        var chunkedParallelAggregateRowsPattern =
+            $@"ParallelSingleKeyAggregate_\d+\([A-Za-z0-9_]*{Regex.Escape(expectation.Alias)}Rows,";
+        if (Regex.IsMatch(content, chunkedParallelAggregateRowsPattern))
+            return true;
+
         var valueTupleAggregateHelperPattern =
             $@"Populate[A-Za-z0-9]*Groups\([A-Za-z0-9_]*{Regex.Escape(expectation.Alias)}Rows,";
         if (Regex.IsMatch(content, valueTupleAggregateHelperPattern))

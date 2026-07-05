@@ -19,16 +19,15 @@ public sealed class GeneratedCodeProfiledSamplesSnapshotTests
     [TestMethod]
     public void CompleteLocalProfiledSamples_WhenComparedToCatalog_ShouldNotContainExtraFiles()
     {
-        if (!Directory.Exists(GeneratedCodeSampleArtifacts.ProfiledSamplesDirectory))
-            return;
+        Assert.IsTrue(
+            Directory.Exists(GeneratedCodeSampleArtifacts.ProfiledSamplesDirectory),
+            $"Tracked profiled generated samples directory is missing: {GeneratedCodeSampleArtifacts.ProfiledSamplesDirectory}");
 
         var localFiles = Directory
             .EnumerateFiles(GeneratedCodeSampleArtifacts.ProfiledSamplesDirectory, "*.cs")
-            .Select(Path.GetFileName)
+            .Select(static path => Path.GetFileName(path)!)
             .OrderBy(static fileName => fileName, StringComparer.Ordinal)
             .ToArray();
-        if (localFiles.Length == 0)
-            return;
 
         var catalogFiles = GeneratedCodeProfiledSamplesCatalog.Samples
             .Select(static sample => sample.FileName)
@@ -38,8 +37,9 @@ public sealed class GeneratedCodeProfiledSamplesSnapshotTests
         var missingLocalFiles = catalogFiles
             .Except(localFiles, StringComparer.Ordinal)
             .ToArray();
-        if (missingLocalFiles.Length > 0)
-            return;
+        Assert.IsEmpty(
+            missingLocalFiles,
+            $"Tracked profiled generated samples are missing: {string.Join(", ", missingLocalFiles)}");
 
         var extraLocalFiles = localFiles
             .Except(catalogFiles, StringComparer.Ordinal)
@@ -78,8 +78,9 @@ public sealed class GeneratedCodeProfiledSamplesSnapshotTests
     public void LocalProfiledSample_WhenRegenerated_ShouldMatchCatalogOutput(GeneratedCodeSample sample)
     {
         var samplePath = GeneratedCodeSampleArtifacts.GetProfiledSamplePath(sample);
-        if (!File.Exists(samplePath))
-            return;
+        Assert.IsTrue(
+            File.Exists(samplePath),
+            $"Tracked profiled generated sample is missing: {samplePath}");
 
         var expected = File.ReadAllText(samplePath);
         var actual = GeneratedCodeSampleArtifacts.Generate(sample, _loggerResolver);

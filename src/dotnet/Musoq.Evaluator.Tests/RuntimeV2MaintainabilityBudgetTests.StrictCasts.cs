@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
+using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.Tests.Components;
 
@@ -60,7 +61,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "Q151_RuntimeV2CastExpressions.cs",
             "Q152_RuntimeV2CastAggregateGrouping.cs",
             "Q154_RuntimeV2GroupByAllCasts.cs",
-            "Q158_RuntimeV2CombinedGrouping.cs"
+            "Q158_RuntimeV2CombinedGrouping.cs",
+            "Q185_RuntimeV2WeatherSingleAggregate.cs"
         ];
         string[] forbiddenPatterns =
         [
@@ -72,7 +74,9 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "decimal.Parse(",
             "Guid.Parse(",
             "System.Convert.To",
-            "__agg0Input = (object)"
+            "__agg0Input = (object)",
+            "StrictCastRuntime.ToSingle((object)",
+            "(object)temperature"
         ];
 
         var failures = sampleFileNames
@@ -96,6 +100,23 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             var code = CompileGeneratedSampleForInspection(fileName).GeneratedCSharpCode;
             Assert.Contains("global::Musoq.Evaluator.Helpers.StrictCastRuntime.", code);
         }
+
+        var weatherCode = CompileGeneratedSampleForInspection("Q185_RuntimeV2WeatherSingleAggregate.cs").GeneratedCSharpCode;
+        Assert.Contains(
+            "float? temperatureSingle = global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToSingle(temperature);",
+            weatherCode);
+    }
+
+    [TestMethod]
+    public void StrictCastRuntime_WhenDoubleSourceCastsToSingle_ShouldExposeTypedOverloads()
+    {
+        AssertHasStrictCastOverload(nameof(StrictCastRuntime.ToSingle), typeof(float));
+        AssertHasStrictCastOverload(nameof(StrictCastRuntime.ToSingle), typeof(float?));
+        AssertHasStrictCastOverload(nameof(StrictCastRuntime.ToSingle), typeof(double));
+        AssertHasStrictCastOverload(nameof(StrictCastRuntime.ToSingle), typeof(double?));
+
+        Assert.AreEqual((float?)12.5f, StrictCastRuntime.ToSingle(12.5d));
+        Assert.IsNull(StrictCastRuntime.ToSingle((double?)null));
     }
 
     [TestMethod]
@@ -169,5 +190,13 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "ToDateTimeOffset" or
             "ToTimeSpan" or
             "ToGuid";
+    }
+
+    private static void AssertHasStrictCastOverload(string methodName, Type argumentType)
+    {
+        var method = typeof(StrictCastRuntime).GetMethod(methodName, [argumentType]);
+
+        Assert.IsNotNull(method, $"Expected typed strict-cast overload {methodName}({argumentType.Name}).");
+        Assert.AreEqual(typeof(float?), method.ReturnType);
     }
 }

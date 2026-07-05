@@ -67,6 +67,16 @@ public sealed partial class ExecutionCSharpRenderer
             .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(itemType)));
     }
 
+    private static TypeSyntax CreateChunkedRowsTypeSyntax(TypeSyntax itemType)
+    {
+        return CreateEnumerableTypeSyntax(CreateReadOnlyListTypeSyntax(itemType));
+    }
+
+    private static bool IsChunkedParallelSingleKeyAggregate(ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+    {
+        return ExecutionRowStreams.IsChunked(parallelAggregate.SourceRows);
+    }
+
     private static ArrayTypeSyntax CreateSingleDimensionArrayTypeSyntax(TypeSyntax itemType)
     {
         return SyntaxFactory.ArrayType(itemType)
@@ -122,6 +132,28 @@ public sealed partial class ExecutionCSharpRenderer
             context,
             "ParallelSingleKeyAggregateWorker_",
             "Worker");
+    }
+
+    private string CreateParallelSingleKeyAggregateChunkFunctionName(
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
+        ExecutionRenderContext context)
+    {
+        return CreateParallelSingleKeyAggregateRelatedName(
+            parallelAggregate,
+            context,
+            "ParallelSingleKeyAggregateChunk_",
+            "Chunk");
+    }
+
+    private string CreateParallelSingleKeyAggregateChunkWorkerTypeName(
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
+        ExecutionRenderContext context)
+    {
+        return CreateParallelSingleKeyAggregateRelatedName(
+            parallelAggregate,
+            context,
+            "ParallelSingleKeyAggregateChunkWorker_",
+            "ChunkWorker");
     }
 
     private string CreateParallelSingleKeyAggregateRelatedName(

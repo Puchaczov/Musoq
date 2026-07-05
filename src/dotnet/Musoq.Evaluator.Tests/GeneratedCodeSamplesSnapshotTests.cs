@@ -19,16 +19,15 @@ public sealed class GeneratedCodeSamplesSnapshotTests
     [TestMethod]
     public void CompleteLocalSamples_WhenComparedToCatalog_ShouldNotContainExtraFiles()
     {
-        if (!Directory.Exists(GeneratedCodeSampleArtifacts.SamplesDirectory))
-            return;
+        Assert.IsTrue(
+            Directory.Exists(GeneratedCodeSampleArtifacts.SamplesDirectory),
+            $"Tracked generated samples directory is missing: {GeneratedCodeSampleArtifacts.SamplesDirectory}");
 
         var localFiles = Directory
             .EnumerateFiles(GeneratedCodeSampleArtifacts.SamplesDirectory, "*.cs")
-            .Select(Path.GetFileName)
+            .Select(static path => Path.GetFileName(path)!)
             .OrderBy(static fileName => fileName, StringComparer.Ordinal)
             .ToArray();
-        if (localFiles.Length == 0)
-            return;
 
         var catalogFiles = GeneratedCodeSamplesCatalog.Samples
             .Select(static sample => sample.FileName)
@@ -38,8 +37,9 @@ public sealed class GeneratedCodeSamplesSnapshotTests
         var missingLocalFiles = catalogFiles
             .Except(localFiles, StringComparer.Ordinal)
             .ToArray();
-        if (missingLocalFiles.Length > 0)
-            return;
+        Assert.IsEmpty(
+            missingLocalFiles,
+            $"Tracked generated samples are missing: {string.Join(", ", missingLocalFiles)}");
 
         var extraLocalFiles = localFiles
             .Except(catalogFiles, StringComparer.Ordinal)
@@ -78,8 +78,9 @@ public sealed class GeneratedCodeSamplesSnapshotTests
     public void LocalSample_WhenRegenerated_ShouldMatchCatalogOutput(GeneratedCodeSample sample)
     {
         var samplePath = GeneratedCodeSampleArtifacts.GetSamplePath(sample);
-        if (!File.Exists(samplePath))
-            return;
+        Assert.IsTrue(
+            File.Exists(samplePath),
+            $"Tracked generated sample is missing: {samplePath}");
 
         var expected = File.ReadAllText(samplePath);
         var actual = GeneratedCodeSampleArtifacts.Generate(sample, _loggerResolver);

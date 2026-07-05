@@ -13,12 +13,29 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
         ExecutionRenderContext context)
     {
+        if (IsChunkedParallelSingleKeyAggregate(parallelAggregate))
+        {
+            return
+            [
+                SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    SyntaxFactory.IdentifierName(parallelAggregate.GroupsToFinalize.Name),
+                    CreateParallelSingleKeyAggregateInvocation(
+                        parallelAggregate,
+                        RenderExpression(parallelAggregate.SourceRows, context),
+                        context)))
+            ];
+        }
+
         var parallelRowsName = $"{parallelAggregate.GroupsToFinalize.Name}ParallelRows";
         var parallelRowsDeclaration = CreateParallelAggregationRowsDeclaration(parallelAggregate, parallelRowsName, context);
         var parallelAssignment = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
             SyntaxKind.SimpleAssignmentExpression,
             SyntaxFactory.IdentifierName(parallelAggregate.GroupsToFinalize.Name),
-            CreateParallelSingleKeyAggregateInvocation(parallelAggregate, parallelRowsName, context)));
+            CreateParallelSingleKeyAggregateInvocation(
+                parallelAggregate,
+                SyntaxFactory.IdentifierName(parallelRowsName),
+                context)));
 
         return
         [
@@ -55,12 +72,12 @@ public sealed partial class ExecutionCSharpRenderer
 
     private InvocationExpressionSyntax CreateParallelSingleKeyAggregateInvocation(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        string parallelRowsName,
+        ExpressionSyntax parallelRows,
         ExecutionRenderContext context)
     {
         var arguments = new List<ExpressionSyntax>
         {
-            SyntaxFactory.IdentifierName(parallelRowsName),
+            parallelRows,
             SyntaxFactory.LiteralExpression(
                 SyntaxKind.NumericLiteralExpression,
                 SyntaxFactory.Literal(parallelAggregate.MaxDegreeOfParallelism)),

@@ -4,6 +4,17 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.1-alpha.2
+
+See [release-notes/evaluator/v17.0.1-alpha.2.md](release-notes/evaluator/v17.0.1-alpha.2.md) for the curated GitHub Release text.
+
+### Musoq.Evaluator
+
+- Optimized runtime-v2 chunked parallel aggregate rendering with query-specific chunk workers, local shard loops, and fused aggregate result emission.
+- Added weather-measurement generated-code and benchmark coverage for runtime-v2 single aggregate fast paths.
+- Tracked the generated-code sample corpus so code generator changes produce reviewable Git diffs.
+- Tightened generated-code snapshot validation so missing tracked samples fail instead of being skipped.
+
 ## 17.0.0-alpha.4
 
 See [release-notes/v17.0.0-alpha.4.md](release-notes/v17.0.0-alpha.4.md) for the curated GitHub Release text.
