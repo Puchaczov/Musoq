@@ -9,21 +9,23 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private ExpressionSyntax CreateOrderedRowsExpression(
         ExecutionVariable source,
-        IReadOnlyList<ExecutionOrderField> keys)
+        IReadOnlyList<ExecutionOrderField> keys,
+        ExecutionRenderContext context)
     {
-        return CreateOrderedRowsExpression(source, keys, null);
+        return CreateOrderedRowsExpression(source, keys, context, null);
     }
 
     private ExpressionSyntax CreateOrderedRowsExpression(
         ExecutionVariable source,
         IReadOnlyList<ExecutionOrderField> keys,
+        ExecutionRenderContext context,
         GeneratedRowShape? generatedRowShape)
     {
         if (generatedRowShape != null && CanUseGeneratedRowOrderComparer(keys, generatedRowShape))
-            return CreateGeneratedRowOrderedRowsExpression(source, keys, generatedRowShape);
+            return CreateGeneratedRowOrderedRowsExpression(source, keys, generatedRowShape, context);
 
-        if (HasExplicitNullOrdering(keys)) return CreateExplicitNullOrderedRowsExpression(source, keys);
-        ExpressionSyntax orderedRows = CreateRowsRead(source);
+        if (HasExplicitNullOrdering(keys)) return CreateExplicitNullOrderedRowsExpression(source, keys, context);
+        ExpressionSyntax orderedRows = CreateRowsRead(source, context);
 
         for (var index = 0; index < keys.Count; index++)
         {
@@ -42,10 +44,11 @@ public sealed partial class ExecutionCSharpRenderer
     private InvocationExpressionSyntax CreateGeneratedRowOrderedRowsExpression(
         ExecutionVariable source,
         IReadOnlyList<ExecutionOrderField> keys,
-        GeneratedRowShape generatedRowShape)
+        GeneratedRowShape generatedRowShape,
+        ExecutionRenderContext context)
     {
-        var rows = TryGetTypedRowBufferShape(source.Name, out _)
-            ? CreateRowsRead(source)
+        var rows = TryGetTypedRowBufferShape(source.Name, context, out _)
+            ? CreateRowsRead(source, context)
             : SyntaxFactory.InvocationExpression(CreateGenericEvaluationHelperMemberAccess(
                     nameof(EvaluationHelper.CastGeneratedRows),
                     generatedRowShape.TypeName))

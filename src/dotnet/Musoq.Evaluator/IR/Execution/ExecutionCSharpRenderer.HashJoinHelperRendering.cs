@@ -10,13 +10,17 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<MethodDeclarationSyntax> CreateHashJoinHelperFunctions(HashJoinHelperSet helperSet)
+    private IEnumerable<MethodDeclarationSyntax> CreateHashJoinHelperFunctions(
+        HashJoinHelperSet helperSet,
+        ExecutionRenderContext context)
     {
-        yield return CreateHashBuildFunction(helperSet.Build);
-        yield return CreateHashProbeFunction(helperSet.Probe);
+        yield return CreateHashBuildFunction(helperSet.Build, context);
+        yield return CreateHashProbeFunction(helperSet.Probe, context);
     }
 
-    private MethodDeclarationSyntax CreateHashBuildFunction(HashBuildHelper helper)
+    private MethodDeclarationSyntax CreateHashBuildFunction(
+        HashBuildHelper helper,
+        ExecutionRenderContext context)
     {
         var helperLoop = ReplaceLoopSource(helper.Loop, helper.RowsParameterName, helper.RawRowsShape);
 
@@ -25,17 +29,20 @@ public sealed partial class ExecutionCSharpRenderer
                 helper.FunctionName)
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(CreatePrivateStaticModifiers())
-            .WithParameterList(CreateHashBuildParameterList(helper))
+            .WithParameterList(CreateHashBuildParameterList(helper, context))
             .WithBody(StatementEmitter.CreateBlock([
                 QueryEmitter.GenerateCancellationCheck(),
                 ..RenderIsolatedHelperBlock(
                     new ExecutionBlock([helperLoop]),
+                    context,
                     profileRecorderInScope: IsInstrumentationEnabled,
                     emitChunkLoopCancellationChecks: true)
             ]));
     }
 
-    private MethodDeclarationSyntax CreateHashProbeFunction(HashProbeHelper helper)
+    private MethodDeclarationSyntax CreateHashProbeFunction(
+        HashProbeHelper helper,
+        ExecutionRenderContext context)
     {
         var helperLoop = ReplaceLoopSource(helper.Loop, helper.RowsParameterName);
 
@@ -44,31 +51,38 @@ public sealed partial class ExecutionCSharpRenderer
                 helper.FunctionName)
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(CreatePrivateStaticModifiers())
-            .WithParameterList(CreateHashProbeParameterList(helper))
+            .WithParameterList(CreateHashProbeParameterList(helper, context))
             .WithBody(StatementEmitter.CreateBlock([
                 QueryEmitter.GenerateCancellationCheck(),
                 ..RenderIsolatedHelperBlock(
                     new ExecutionBlock([helperLoop]),
+                    context,
                     profileRecorderInScope: IsInstrumentationEnabled,
                     emitChunkLoopCancellationChecks: true)
             ]));
     }
 
-    private ExpressionStatementSyntax CreateHashBuildInvocation(HashBuildHelper helper)
+    private ExpressionStatementSyntax CreateHashBuildInvocation(
+        HashBuildHelper helper,
+        ExecutionRenderContext context)
     {
-        return CreateHelperInvocation(helper.FunctionName, CreateHashBuildArguments(helper));
+        return CreateHelperInvocation(helper.FunctionName, CreateHashBuildArguments(helper, context));
     }
 
-    private ExpressionStatementSyntax CreateHashProbeInvocation(HashProbeHelper helper)
+    private ExpressionStatementSyntax CreateHashProbeInvocation(
+        HashProbeHelper helper,
+        ExecutionRenderContext context)
     {
-        return CreateHelperInvocation(helper.FunctionName, CreateHashProbeArguments(helper));
+        return CreateHelperInvocation(helper.FunctionName, CreateHashProbeArguments(helper, context));
     }
 
-    private List<ExpressionSyntax> CreateHashBuildArguments(HashBuildHelper helper)
+    private List<ExpressionSyntax> CreateHashBuildArguments(
+        HashBuildHelper helper,
+        ExecutionRenderContext context)
     {
         var arguments = new List<ExpressionSyntax>
         {
-            CreateHashBuildRowsArgument(helper),
+            CreateHashBuildRowsArgument(helper, context),
             SyntaxFactory.IdentifierName(helper.HashAdd.Hash.Name),
             SyntaxFactory.IdentifierName("token")
         };
@@ -78,11 +92,13 @@ public sealed partial class ExecutionCSharpRenderer
         return arguments;
     }
 
-    private List<ExpressionSyntax> CreateHashProbeArguments(HashProbeHelper helper)
+    private List<ExpressionSyntax> CreateHashProbeArguments(
+        HashProbeHelper helper,
+        ExecutionRenderContext context)
     {
         var arguments = new List<ExpressionSyntax>
         {
-            RenderExpression(helper.Loop.Source),
+            RenderExpression(helper.Loop.Source, context),
             SyntaxFactory.IdentifierName(helper.HashProbe.Hash.Name)
         };
 
@@ -93,11 +109,13 @@ public sealed partial class ExecutionCSharpRenderer
         return arguments;
     }
 
-    private ParameterListSyntax CreateHashBuildParameterList(HashBuildHelper helper)
+    private ParameterListSyntax CreateHashBuildParameterList(
+        HashBuildHelper helper,
+        ExecutionRenderContext context)
     {
         var parameters = new List<ParameterSyntax>
         {
-            CreateParameter(helper.RowsParameterName, CreateHashBuildRowsParameterType(helper)),
+            CreateParameter(helper.RowsParameterName, CreateHashBuildRowsParameterType(helper, context)),
             CreateParameter(
                 helper.HashAdd.Hash.Name,
                 CreateHashTypeSyntax(
@@ -112,7 +130,9 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters));
     }
 
-    private ParameterListSyntax CreateHashProbeParameterList(HashProbeHelper helper)
+    private ParameterListSyntax CreateHashProbeParameterList(
+        HashProbeHelper helper,
+        ExecutionRenderContext context)
     {
         var parameters = new List<ParameterSyntax>
         {
@@ -131,25 +151,29 @@ public sealed partial class ExecutionCSharpRenderer
 
         parameters.AddRange(helper.AppendTargets.Select(target => CreateParameter(
             target.Name,
-            CreateAppendTargetParameterType(target))));
+            CreateAppendTargetParameterType(target, context))));
         parameters.Add(CreateParameter("token", CreateTypeSyntax(typeof(CancellationToken))));
         AddProfileRecorderParameter(parameters);
         parameters.AddRange(helper.Captures.Select(CreateCapturedLocalParameter));
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters));
     }
 
-    private TypeSyntax CreateAppendTargetParameterType(ExecutionVariable target)
+    private TypeSyntax CreateAppendTargetParameterType(
+        ExecutionVariable target,
+        ExecutionRenderContext context)
     {
-        if (TryGetFinalShapeSourceBuffer(target.Name, out var finalShapeBuffer))
+        if (TryGetFinalShapeSourceBuffer(target.Name, context, out var finalShapeBuffer))
             return CreateListTypeSyntax(finalShapeBuffer.ShapeTypeName);
 
-        if (TryGetTypedRowBufferShape(target.Name, out var rowShape))
+        if (TryGetTypedRowBufferShape(target.Name, context, out var rowShape))
             return CreateListTypeSyntax(rowShape.TypeName);
 
         return CreateTypeSyntax(typeof(Table));
     }
 
-    private TypeSyntax CreateHashBuildRowsParameterType(HashBuildHelper helper)
+    private TypeSyntax CreateHashBuildRowsParameterType(
+        HashBuildHelper helper,
+        ExecutionRenderContext context)
     {
         if (helper.RawRowsShape == null)
         {
@@ -159,16 +183,18 @@ public sealed partial class ExecutionCSharpRenderer
         }
 
         return helper.Loop.Source is ExecutionStoredTableRows storedRows &&
-               TryGetTypedStoredTableResult(storedRows.TableIndex, helper.RawRowsShape, out _)
+               TryGetTypedStoredTableResult(storedRows.TableIndex, helper.RawRowsShape, context, out _)
             ? CreateReadOnlyListTypeSyntax(SyntaxFactory.ParseTypeName(helper.RawRowsShape.TypeName))
             : CreateReadOnlyListTypeSyntax(CreateTypeSyntax(typeof(Row)));
     }
 
-    private ExpressionSyntax CreateHashBuildRowsArgument(HashBuildHelper helper)
+    private ExpressionSyntax CreateHashBuildRowsArgument(
+        HashBuildHelper helper,
+        ExecutionRenderContext context)
     {
         return helper is { RawRowsShape: not null, Loop.Source: ExecutionStoredTableRows storedRows }
-            ? CreateStoredTableRowsRead(storedRows)
-            : RenderExpression(helper.Loop.Source);
+            ? CreateStoredTableRowsRead(storedRows, context)
+            : RenderExpression(helper.Loop.Source, context);
     }
 
     private static ExecutionSourceLoop ReplaceLoopSource(

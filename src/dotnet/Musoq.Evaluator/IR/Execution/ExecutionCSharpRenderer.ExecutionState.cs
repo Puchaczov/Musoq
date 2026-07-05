@@ -12,18 +12,20 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private const string ExecutionStateVariableName = "__musoqExecutionState";
 
-    private IEnumerable<StatementSyntax> CreateExecutionStateDeclarations(ExecutionPlan plan)
+    private IEnumerable<StatementSyntax> CreateExecutionStateDeclarations(
+        ExecutionPlan plan,
+        ExecutionRenderContext context)
     {
-        if (RenderSession.IncludeTableResults)
+        if (context.Session.IncludeTableResults)
             yield return CreateTableResultsLocalDeclaration(CountExecutionTableSlots(plan.Body));
 
-        if (RenderSession.IncludeCteRowResults)
+        if (context.Session.IncludeCteRowResults)
             yield return CreateObjectLocalDeclaration(CteRowResultsFieldName, CreateCteRowResultsTypeSyntax());
 
-        if (RenderSession.IncludeCteIndexResults)
+        if (context.Session.IncludeCteIndexResults)
             yield return CreateObjectLocalDeclaration(CteIndexResultsFieldName, CreateCteIndexResultsTypeSyntax());
 
-        yield return CreateExecutionStateLocalDeclaration();
+        yield return CreateExecutionStateLocalDeclaration(context);
     }
 
     private static LocalDeclarationStatementSyntax CreateTableResultsLocalDeclaration(int slotCount)
@@ -62,7 +64,7 @@ public sealed partial class ExecutionCSharpRenderer
                 .WithArgumentList(SyntaxFactory.ArgumentList()));
     }
 
-    private LocalDeclarationStatementSyntax CreateExecutionStateLocalDeclaration()
+    private LocalDeclarationStatementSyntax CreateExecutionStateLocalDeclaration(ExecutionRenderContext context)
     {
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -72,12 +74,12 @@ public sealed partial class ExecutionCSharpRenderer
                         SyntaxKind.SimpleMemberAccessExpression,
                         SyntaxFactory.IdentifierName(nameof(ExecutionState)),
                         SyntaxFactory.IdentifierName(nameof(ExecutionState.Capture))))
-                .WithArgumentList(CreateArgumentList(CreateExecutionStateParametersSource())));
+                .WithArgumentList(CreateArgumentList(CreateExecutionStateParametersSource(context))));
     }
 
-    private ExpressionSyntax CreateExecutionStateParametersSource()
+    private static ExpressionSyntax CreateExecutionStateParametersSource(ExecutionRenderContext context)
     {
-        return SyntaxFactory.IdentifierName(RenderSession.UseQueryRunContext
+        return SyntaxFactory.IdentifierName(context.Session.UseQueryRunContext
             ? "__musoqRuntimeParameters"
             : nameof(IParameterizedRunnable.Parameters));
     }

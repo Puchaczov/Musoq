@@ -405,9 +405,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateCteBackedAggregateOverHashJoinQuery());
 
         AssertUsesExecutionBackend(result);
-        Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0", result.ExecutionPlanText);
-        Assert.Contains("StoreTable [cte1 -> _cteRowResults.Slot1", result.ExecutionPlanText);
-        AssertExecutionPlanContains("CreateHash [rHash: string -> Row; capacity: _cteRowResults.Slot1.Count]", result.ExecutionPlanText);
+        Assert.Contains("ParallelBlock [cte-level-0, tasks 2, maxDegree 2]", result.ExecutionPlanText);
+        Assert.Contains("StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0", result.ExecutionPlanText);
+        AssertExecutionPlanContains("StoreCteIndex [hashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]", result.ExecutionPlanText);
+        AssertExecutionPlanContains("LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[2]]", StringComparison.Ordinal));
         Assert.IsFalse(result.ExecutionPlanText.Contains("ForEach [lr in _tableResults[2].Rows]", StringComparison.Ordinal));
         Assert.Contains("HashProbe [rHash[l.Dummy] -> rHashMatches]", result.ExecutionPlanText);

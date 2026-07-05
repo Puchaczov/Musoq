@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -12,8 +11,6 @@ public sealed partial class ExecutionCSharpRenderer
     private const string DescSchemaTableVariableName = "schemaTable";
     private const string StatsVariableName = "stats";
     private const string ProfileRecorderVariableName = "profileRecorder";
-    private static readonly AsyncLocal<ExecutionRenderSession?> RenderSessionSlot = new();
-    private ExecutionRenderSession RenderSession => RenderSessionSlot.Value ??= new ExecutionRenderSession();
     private readonly ExecutionRenderOptions _renderOptions;
     private IReadOnlyList<ScriptParameterDefinition> _scriptParameterDefinitions => _renderOptions.ScriptParameterDefinitions;
     private IReadOnlyList<ScriptVariableDefinition> _scriptVariableDefinitions => _renderOptions.ScriptVariableDefinitions;
@@ -24,8 +21,6 @@ public sealed partial class ExecutionCSharpRenderer
     private bool IsInstrumentationEnabled => _instrumentationMode != QueryInstrumentationMode.Disabled;
 
     private bool IsFullInstrumentationEnabled => _instrumentationMode == QueryInstrumentationMode.Full;
-
-    private bool IsOperatorProfilingEnabled => IsFullInstrumentationEnabled && RenderSession.ProfileRecorderInScope;
 
     private bool IsOperatorProfilingEnabledFor(ExecutionRenderContext context) => IsFullInstrumentationEnabled && context.Session.ProfileRecorderInScope;
 

@@ -1333,9 +1333,6 @@
     <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Types.Results.cs">
       <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
     </Compile>
-    <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.Types.SourcesAndJoins.cs">
-      <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
-    </Compile>
     <Compile Update="IR\Execution\PhysicalToExecutionPlanBuilder.ValueTupleAggregates.cs">
       <DependentUpon>PhysicalToExecutionPlanBuilder.cs</DependentUpon>
     </Compile>

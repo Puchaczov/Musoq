@@ -87,7 +87,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                         node.PropertiesChain[i].PropertyName, propType);
                 }
 
-                Nodes.Push(
+                PushSemanticNode(
                     new Parser.PropertyFromNode(
                         node.Alias,
                         node.SourceAlias,
@@ -127,7 +127,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             return;
         }
 
-        Nodes.Push(
+        PushSemanticNode(
             new Parser.PropertyFromNode(
                 node.Alias,
                 node.SourceAlias,
@@ -156,7 +156,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.QueryAlias = AliasGenerator.CreateAliasIfEmpty(node.Alias, _resultShape.GeneratedAliases, _sourceBinding.SchemaFromKey.ToString(System.Globalization.CultureInfo.InvariantCulture));
         _resultShape.GeneratedAliases.Add(_sourceBinding.QueryAlias);
 
-        var accessMethodNode = (AccessMethodNode)Nodes.Pop();
+        var accessMethodNode = (AccessMethodNode)PopSemanticNode();
         var convertedTable = TurnTypeIntoTableWithDiagnostics(accessMethodNode.ReturnType, node);
         if (convertedTable == null)
             return;
@@ -167,7 +167,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.AliasMapToInMemoryTableMap.Add(_sourceBinding.QueryAlias, node.SourceAlias);
         _sourceBinding.CurrentScope.ScopeSymbolTable.AddOrGetSymbol<AliasesSymbol>(MetaAttributes.Aliases).AddAlias(node.Alias);
 
-        Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, accessMethodNode,
+        PushSemanticNode(new Parser.AccessMethodFromNode(node.Alias, node.SourceAlias, accessMethodNode,
             accessMethodNode.ReturnType));
     }
 }

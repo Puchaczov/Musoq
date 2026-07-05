@@ -96,3 +96,18 @@ internal sealed record SidecarJoinPipelineStage(
     SupportedPipeline Pipeline,
     string? ExpectedInputCteName,
     string? OutputCteName);
+
+internal enum SidecarJoinPipelineStageKind
+{
+    Projection,
+    IndexedHashJoin,
+    IndexedKeySetJoin,
+    StandardJoin,
+    AsOfJoin,
+    Apply,
+    CrossJoin
+}
+
+internal sealed record SidecarJoinPipelineStageAnalysis(
+    SidecarJoinPipelineStageKind Kind,
+    string Description);

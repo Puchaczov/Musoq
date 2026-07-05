@@ -12,13 +12,13 @@ public sealed partial class ExecutionCSharpRenderer
             statements = node switch
             {
                 ExecutionCreateAggregateLibrary library when renderContext.Session != null => [ExecutionCSharpRenderer.RenderCreateAggregateLibrary(library)],
-                ExecutionCreateAggregateContext context => renderer.RenderCreateAggregateContext(context),
-                ExecutionEnsureAggregateGroup ensureGroup => [renderer.RenderEnsureAggregateGroup(ensureGroup)],
-                ExecutionCreateSingleKeyAggregateContext context => renderer.RenderCreateSingleKeyAggregateContext(context),
-                ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup => renderer.RenderGetOrAddSingleKeyAggregateGroup(getOrAddGroup),
-                ExecutionParallelSingleKeyAggregateLoop parallelAggregate => renderer.RenderParallelSingleKeyAggregateLoop(parallelAggregate),
-                ExecutionCreateValueTupleAggregateContext context => renderer.RenderCreateValueTupleAggregateContext(context),
-                ExecutionGetOrAddValueTupleAggregateGroup getOrAddGroup => renderer.RenderGetOrAddValueTupleAggregateGroup(getOrAddGroup),
+                ExecutionCreateAggregateContext context => renderer.RenderCreateAggregateContext(context, renderContext),
+                ExecutionEnsureAggregateGroup ensureGroup => [renderer.RenderEnsureAggregateGroup(ensureGroup, renderContext)],
+                ExecutionCreateSingleKeyAggregateContext context => renderer.RenderCreateSingleKeyAggregateContext(context, renderContext),
+                ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup => renderer.RenderGetOrAddSingleKeyAggregateGroup(getOrAddGroup, renderContext),
+                ExecutionParallelSingleKeyAggregateLoop parallelAggregate => renderer.RenderParallelSingleKeyAggregateLoop(parallelAggregate, renderContext),
+                ExecutionCreateValueTupleAggregateContext context => renderer.RenderCreateValueTupleAggregateContext(context, renderContext),
+                ExecutionGetOrAddValueTupleAggregateGroup getOrAddGroup => renderer.RenderGetOrAddValueTupleAggregateGroup(getOrAddGroup, renderContext),
                 ExecutionAggregateSet aggregateSet => [renderer.RenderAggregateSet(aggregateSet)],
                 ExecutionAggregateCapturedValueSet capturedValueSet => [renderer.RenderAggregateCapturedValueSet(capturedValueSet)],
                 _ => null!

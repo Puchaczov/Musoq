@@ -21,7 +21,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             throw new ConstructionNotYetSupported($"Construction ${node.ToString()} is not yet supported.", keySpan);
         }
 
-        var parentNode = SafePeek(Nodes, VisitorOperationNames.VisitAccessObjectKeyNode);
+        var parentNode = PeekSemanticNode(VisitorOperationNames.VisitAccessObjectKeyNode);
         if (parentNode?.ReturnType is not { } parentNodeType)
             throw VisitorException.CreateForProcessingFailure(
                 VisitorName,
@@ -35,7 +35,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 node.Name,
                 typeof(object),
                 typeof(ExpandoObject));
-            Nodes.Push(new AccessObjectKeyNode(node.Token, propertyInfo));
+            PushSemanticNode(new AccessObjectKeyNode(node.Token, propertyInfo));
         }
         else
         {
@@ -79,7 +79,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                         node.Name, parentNodeType.Name, propSpan1);
                 }
 
-                Nodes.Push(new AccessObjectKeyNode(node.Token, propertyAccess));
+                PushSemanticNode(new AccessObjectKeyNode(node.Token, propertyAccess));
 
                 return;
             }
@@ -117,7 +117,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                     node.Name, parentNodeType.Name, propSpan2);
             }
 
-            Nodes.Push(new AccessObjectKeyNode(node.Token, property));
+            PushSemanticNode(new AccessObjectKeyNode(node.Token, property));
         }
     }
 }

@@ -44,7 +44,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (!node.FullSpan.IsEmpty)
             valuesFromNode.WithFullSpan(node.FullSpan);
 
-        Nodes.Push(valuesFromNode);
+        PushSemanticNode(valuesFromNode);
     }
 
 }

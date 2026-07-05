@@ -250,10 +250,12 @@ public sealed partial class ExecutionCSharpRenderer
             .WithArgumentList(CreateArgumentList(arguments));
     }
 
-    private ExpressionSyntax RenderContextArray(ExecutionContextArray contextArray)
+    private ExpressionSyntax RenderContextArray(
+        ExecutionContextArray contextArray,
+        ExecutionRenderContext context)
     {
         var segmentArrays = contextArray.Segments
-            .Select(RenderContextArraySegment)
+            .Select(segment => RenderContextArraySegment(segment, context))
             .ToArray();
 
         if (segmentArrays.Length == 0)
@@ -265,13 +267,15 @@ public sealed partial class ExecutionCSharpRenderer
             right));
     }
 
-    private ExpressionSyntax RenderContextArraySegment(ExecutionContextSegment segment)
+    private ExpressionSyntax RenderContextArraySegment(
+        ExecutionContextSegment segment,
+        ExecutionRenderContext context)
     {
         return segment.Kind switch
         {
-            ExecutionContextSegmentKind.Single => CreateArrayCreation("object", [RenderContextSegmentValue(segment.Value)]),
-            ExecutionContextSegmentKind.Row => CreateContextRowContextsRead(RenderExpression(segment.Value)),
-            ExecutionContextSegmentKind.Array => RenderExpression(segment.Value),
+            ExecutionContextSegmentKind.Single => CreateArrayCreation("object", [RenderContextSegmentValue(segment.Value, context)]),
+            ExecutionContextSegmentKind.Row => CreateContextRowContextsRead(RenderExpression(segment.Value, context)),
+            ExecutionContextSegmentKind.Array => RenderExpression(segment.Value, context),
             _ => throw new InvalidOperationException($"Execution context segment kind {segment.Kind} is not supported.")
         };
     }

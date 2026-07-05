@@ -1,5 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
+using Musoq.Evaluator.IR.Logical.Nodes;
+using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
+using Musoq.Evaluator.IR.Planning;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -10,9 +14,11 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string resultTableName,
         string resultShapeName,
         MultiStatementIndexes indexes,
+        bool scopeAggregateVariables,
         PhysicalToExecutionLoweringSession session)
     {
         if (!_compilationOptions.UseCteSidecarIndexes ||
+            session.SuppressSidecarJoinPipeline ||
             multiStatement.Statements.Length < 2)
         {
             return null;
@@ -21,6 +27,17 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         var lowerer = CreateSidecarJoinCteLowerer();
         if (!lowerer.TryCreateSingleUseChainStages(multiStatement, indexes, out var stages))
             return null;
+
+        if (!CanUseStreamingSidecarJoinPipeline(stages))
+        {
+            return BuildDelegatedSidecarEnabledMultiStatementTable(
+                multiStatement,
+                resultTableName,
+                resultShapeName,
+                indexes,
+                scopeAggregateVariables,
+                session);
+        }
 
         return TryBuildSidecarJoinPipelineTable(
             stages,
@@ -31,6 +48,79 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             session: session) ??
             TableBuildResult.Unsupported(
                 "Execution IR CTE sidecar join-chain lowering selected a sidecar pipeline but could not materialize it; the lowerer must not fall back to regular multi-statement lowering silently.");
+    }
+
+    private TableBuildResult BuildDelegatedSidecarEnabledMultiStatementTable(
+        PhysicalMultiStatementNode multiStatement,
+        string resultTableName,
+        string resultShapeName,
+        MultiStatementIndexes indexes,
+        bool scopeAggregateVariables,
+        PhysicalToExecutionLoweringSession session)
+    {
+        return BuildMultiStatementTable(
+            multiStatement,
+            resultTableName,
+            resultShapeName,
+            indexes,
+            scopeAggregateVariables,
+            session.WithSidecarJoinPipelineSuppressed());
+    }
+
+    private bool CanUseStreamingSidecarJoinPipeline(IReadOnlyList<SidecarJoinPipelineStage> stages)
+    {
+        return stages
+            .Select(AnalyzeSidecarJoinPipelineStage)
+            .All(static analysis => analysis.Kind is
+                SidecarJoinPipelineStageKind.Projection or
+                SidecarJoinPipelineStageKind.IndexedHashJoin or
+                SidecarJoinPipelineStageKind.IndexedKeySetJoin);
+    }
+
+    private SidecarJoinPipelineStageAnalysis AnalyzeSidecarJoinPipelineStage(SidecarJoinPipelineStage stage)
+    {
+        if (IsSidecarProjectionStage(stage))
+            return new SidecarJoinPipelineStageAnalysis(
+                SidecarJoinPipelineStageKind.Projection,
+                "Projection over the previous sidecar pipeline output.");
+
+        if (stage.Pipeline.Source is PhysicalHashJoinNode hashJoin &&
+            !stage.Pipeline.Project.IsDistinct &&
+            stage.Pipeline.PostOperations.Count == 0 &&
+            TryResolveSidecarBuildCteRef(hashJoin, out _, out var sidecar) &&
+            IsSupportedSidecarPipelineJoin(hashJoin, sidecar))
+        {
+            return new SidecarJoinPipelineStageAnalysis(
+                sidecar.Kind == CteSidecarIndexKind.KeySet
+                    ? SidecarJoinPipelineStageKind.IndexedKeySetJoin
+                    : SidecarJoinPipelineStageKind.IndexedHashJoin,
+                $"Indexed sidecar {sidecar.Kind} join.");
+        }
+
+        return new SidecarJoinPipelineStageAnalysis(
+            ResolveDelegatedSidecarStageKind(stage.Pipeline.Source),
+            "Delegated to standard Execution IR lowering under sidecar-enabled options.");
+    }
+
+    private static bool IsSidecarProjectionStage(SidecarJoinPipelineStage stage)
+    {
+        return stage.Pipeline.Source is PhysicalCteRefNode cteRef &&
+               !stage.Pipeline.Project.IsDistinct &&
+               stage.Pipeline.PostOperations.Count == 0 &&
+               !string.IsNullOrWhiteSpace(stage.ExpectedInputCteName) &&
+               string.Equals(cteRef.CteName, stage.ExpectedInputCteName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static SidecarJoinPipelineStageKind ResolveDelegatedSidecarStageKind(PhysicalNode source)
+    {
+        return source switch
+        {
+            PhysicalNestedLoopApplyNode => SidecarJoinPipelineStageKind.Apply,
+            PhysicalNestedLoopJoinNode { Kind: JoinKind.Cross } => SidecarJoinPipelineStageKind.CrossJoin,
+            PhysicalNestedLoopJoinNode { Kind: JoinKind.AsofInner or JoinKind.AsofLeft } => SidecarJoinPipelineStageKind.AsOfJoin,
+            PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode => SidecarJoinPipelineStageKind.StandardJoin,
+            _ => SidecarJoinPipelineStageKind.StandardJoin
+        };
     }
 
     private TableBuildResult? TryBuildReadOnceCteSidecarJoinTable(
@@ -46,6 +136,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         PhysicalToExecutionLoweringSession session)
     {
         if (!_compilationOptions.UseCteSidecarIndexes ||
+            session.SuppressSidecarJoinPipeline ||
             parallelLevels != null ||
             cte.Definitions.Length == 0)
         {

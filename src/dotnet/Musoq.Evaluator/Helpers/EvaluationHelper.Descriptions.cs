@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
 using Musoq.Schema;
 
@@ -12,7 +12,8 @@ namespace Musoq.Evaluator.Helpers;
 
 public static partial class EvaluationHelper
 {
-    private static readonly ConcurrentDictionary<string, XmlDocument> XmlDocCache = new();
+    private static readonly BoundedRuntimeCache<string, XmlDocument> XmlDocCache =
+        new(RuntimeCacheOptions.XmlDocumentationCacheSize, StringComparer.Ordinal);
     private static readonly Regex WhitespaceNormalizerRegex = new(@"\s+", RegexOptions.Compiled);
 
     public static Table GetSpecificTableDescription(ISchemaTable table)

@@ -15,15 +15,16 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private InvocationExpressionSyntax CreateRuntimeHelperInvocation(
         string functionName,
-        IReadOnlyList<CapturedLocal> captures)
+        IReadOnlyList<CapturedLocal> captures,
+        ExecutionRenderContext context)
     {
         var invocation = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(functionName))
             .WithArgumentList(CreateArgumentList(
-                [..CreateRuntimeHelperArguments(), ..captures.Select(CreateCapturedLocalArgument)]));
+                [..CreateRuntimeHelperArguments(context), ..captures.Select(CreateCapturedLocalArgument)]));
         return CodegenHelperExtractionMetadata.AnnotateCallSite(invocation, functionName);
     }
 
-    private IReadOnlyList<ExpressionSyntax> CreateRuntimeHelperArguments()
+    private IReadOnlyList<ExpressionSyntax> CreateRuntimeHelperArguments(ExecutionRenderContext context)
     {
         var arguments = new List<ExpressionSyntax>
         {
@@ -38,25 +39,27 @@ public sealed partial class ExecutionCSharpRenderer
         if (IsInstrumentationEnabled)
             arguments.Add(SyntaxFactory.IdentifierName(ProfileRecorderVariableName));
 
-        if (RenderSession.IncludeTableResults)
+        if (context.Session.IncludeTableResults)
             arguments.Add(SyntaxFactory.IdentifierName("_tableResults"));
 
-        if (RenderSession.IncludeCteRowResults)
+        if (context.Session.IncludeCteRowResults)
             arguments.Add(SyntaxFactory.IdentifierName("_cteRowResults"));
 
-        if (RenderSession.IncludeCteIndexResults)
+        if (context.Session.IncludeCteIndexResults)
             arguments.Add(SyntaxFactory.IdentifierName("_cteIndexResults"));
 
         return arguments;
     }
 
-    private ParameterListSyntax CreateRuntimeHelperParameterList(IReadOnlyList<CapturedLocal> captures)
+    private ParameterListSyntax CreateRuntimeHelperParameterList(
+        IReadOnlyList<CapturedLocal> captures,
+        ExecutionRenderContext context)
     {
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(
-            [..CreateRuntimeHelperParameters(), ..captures.Select(CreateCapturedLocalParameter)]));
+            [..CreateRuntimeHelperParameters(context), ..captures.Select(CreateCapturedLocalParameter)]));
     }
 
-    private IReadOnlyList<ParameterSyntax> CreateRuntimeHelperParameters()
+    private IReadOnlyList<ParameterSyntax> CreateRuntimeHelperParameters(ExecutionRenderContext context)
     {
         var parameters = new List<ParameterSyntax>
         {
@@ -75,7 +78,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (IsInstrumentationEnabled)
             parameters.Add(CreateParameter(ProfileRecorderVariableName, CreateTypeSyntax(typeof(QueryProfileRecorder))));
 
-        if (RenderSession.IncludeTableResults)
+        if (context.Session.IncludeTableResults)
         {
             parameters.Add(CreateParameter("_tableResults", SyntaxFactory.ArrayType(CreateTypeSyntax(typeof(Table)))
                 .WithRankSpecifiers(SyntaxFactory.SingletonList(
@@ -83,10 +86,10 @@ public sealed partial class ExecutionCSharpRenderer
                         SyntaxFactory.OmittedArraySizeExpression()))))));
         }
 
-        if (RenderSession.IncludeCteRowResults)
+        if (context.Session.IncludeCteRowResults)
             parameters.Add(CreateParameter("_cteRowResults", CreateCteRowResultsTypeSyntax()));
 
-        if (RenderSession.IncludeCteIndexResults)
+        if (context.Session.IncludeCteIndexResults)
         {
             parameters.Add(CreateParameter("_cteIndexResults", CreateCteIndexResultsTypeSyntax()));
         }
@@ -118,7 +121,7 @@ public sealed partial class ExecutionCSharpRenderer
             excludedNames.Add(ProfileRecorderVariableName);
     }
 
-    private IReadOnlyList<string> CreateRuntimeHelperParameterNames()
+    private IReadOnlyList<string> CreateRuntimeHelperParameterNames(ExecutionRenderContext context)
     {
         var names = new List<string>
         {
@@ -133,13 +136,13 @@ public sealed partial class ExecutionCSharpRenderer
         if (IsInstrumentationEnabled)
             names.Add(ProfileRecorderVariableName);
 
-        if (RenderSession.IncludeTableResults)
+        if (context.Session.IncludeTableResults)
             names.Add("_tableResults");
 
-        if (RenderSession.IncludeCteRowResults)
+        if (context.Session.IncludeCteRowResults)
             names.Add("_cteRowResults");
 
-        if (RenderSession.IncludeCteIndexResults)
+        if (context.Session.IncludeCteIndexResults)
             names.Add("_cteIndexResults");
 
         return names;

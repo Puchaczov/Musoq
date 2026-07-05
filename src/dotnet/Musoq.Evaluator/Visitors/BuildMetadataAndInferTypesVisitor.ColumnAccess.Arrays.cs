@@ -41,11 +41,11 @@ public partial class BuildMetadataAndInferTypesVisitor
                 throw new UnknownPropertyException(node.ObjectName, "unknown", span);
             }
 
-            Nodes.Push(node);
+            PushSemanticNode(node);
             return;
         }
 
-        var parentNode = Nodes.Count > 0 ? Nodes.Peek() : null;
+        var parentNode = TraversalFrame.NodeCount > 0 ? PeekSemanticNode("Visit(AccessObjectArrayNode).Parent") : null;
         var parentNodeType = parentNode?.ReturnType;
 
         if (!_columnPropertyBindingService.HasTypedParentForArrayAccess(parentNode))
@@ -54,7 +54,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             var columnAccessNode = _columnPropertyBindingService.TryCreateCurrentScopeArrayAccess(currentTableSymbol, node);
             if (columnAccessNode != null)
             {
-                Nodes.Push(columnAccessNode);
+                PushSemanticNode(columnAccessNode);
                 return;
             }
         }
@@ -66,7 +66,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 node.Name,
                 typeof(object[]),
                 typeof(ExpandoObject[]));
-            Nodes.Push(new AccessObjectArrayNode(node.Token, propertyInfo));
+            PushSemanticNode(new AccessObjectArrayNode(node.Token, propertyInfo));
         }
         else
         {
@@ -112,7 +112,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                         node.Name, parentNodeType.Name, propSpan);
                 }
 
-                Nodes.Push(new AccessObjectArrayNode(node.Token, propertyAccess));
+                PushSemanticNode(new AccessObjectArrayNode(node.Token, propertyAccess));
 
                 return;
             }
@@ -154,7 +154,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                         node.Name, parentNodeType.Name, propSpan);
                 }
 
-                Nodes.Push(new AccessObjectArrayNode(node.Token, property));
+                PushSemanticNode(new AccessObjectArrayNode(node.Token, property));
             }
             else
             {

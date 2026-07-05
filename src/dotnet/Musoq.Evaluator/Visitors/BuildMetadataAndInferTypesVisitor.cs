@@ -100,9 +100,27 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
 
     protected override string VisitorName => nameof(BuildMetadataAndInferTypesVisitor);
 
-    private Stack<string> Methods => _methodResolution.Methods;
+    private SemanticTraversalFrame TraversalFrame => _semanticState.Traversal;
 
-    protected Stack<Node> Nodes => _queryState.Nodes;
+    private void PushSemanticNode(Node node)
+    {
+        SemanticNodeResult.From(node).ApplyTo(TraversalFrame);
+    }
+
+    private Node PopSemanticNode([System.Runtime.CompilerServices.CallerMemberName] string operation = "")
+    {
+        return TraversalFrame.PopNode(VisitorName, operation);
+    }
+
+    private Node[] PopSemanticNodes(int count, string operation)
+    {
+        return TraversalFrame.PopNodes(VisitorName, count, operation);
+    }
+
+    private Node PeekSemanticNode([System.Runtime.CompilerServices.CallerMemberName] string operation = "")
+    {
+        return TraversalFrame.PeekNode(VisitorName, operation);
+    }
 
     public virtual IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId =>
         InternalSourceRuntimeSettingsBySourceContextId;
@@ -176,7 +194,7 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         }
     }
 
-    public RootNode Root => (RootNode)Nodes.Peek();
+    public RootNode Root => TraversalFrame.PeekNode<RootNode>(VisitorName, VisitorOperationNames.GettingRoot);
 
     public override void Visit(Node node)
     {
@@ -187,13 +205,16 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
         ArgumentNullException.ThrowIfNull(node);
         if (node.Type == DescForType.Query)
         {
-            Nodes.Push(new DescNode(SafePop(Nodes, VisitorOperationNames.VisitDescNode)));
+            SemanticNodeResult
+                .From(new DescNode(TraversalFrame.PopNode(VisitorName, VisitorOperationNames.VisitDescNode)))
+                .ApplyTo(TraversalFrame);
             return;
         }
 
-        var fromNode = SafeCast<FromNode>(SafePop(Nodes, VisitorOperationNames.VisitDescNode),
-            VisitorOperationNames.VisitDescNode);
-        Nodes.Push(new DescNode(fromNode, node.Type, node.Column));
+        var fromNode = TraversalFrame.PopNode<FromNode>(VisitorName, VisitorOperationNames.VisitDescNode);
+        SemanticNodeResult
+            .From(new DescNode(fromNode, node.Type, node.Column))
+            .ApplyTo(TraversalFrame);
     }
 
 

@@ -7,22 +7,24 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderCreateTable(ExecutionCreateTable createTable)
+    private IEnumerable<StatementSyntax> RenderCreateTable(
+        ExecutionCreateTable createTable,
+        ExecutionRenderContext context)
     {
-        if (TryGetFinalShapeSourceBuffer(createTable.Table.Name, out var finalShapeBuffer))
+        if (TryGetFinalShapeSourceBuffer(createTable.Table.Name, context, out var finalShapeBuffer))
         {
-            yield return CreateFinalShapeSourceBufferDeclaration(createTable, finalShapeBuffer);
+            yield return CreateFinalShapeSourceBufferDeclaration(createTable, finalShapeBuffer, context);
             yield break;
         }
 
-        if (TryGetTypedRowBufferShape(createTable.Table.Name, out var rowShape))
+        if (TryGetTypedRowBufferShape(createTable.Table.Name, context, out var rowShape))
         {
-            yield return CreateTypedRowBufferDeclaration(createTable, rowShape);
+            yield return CreateTypedRowBufferDeclaration(createTable, rowShape, context);
             yield break;
         }
 
         var metadata = ResolveTableColumnMetadata(createTable);
-        ExpressionSyntax columns = TryGetStaticMetadataFieldName(metadata, out var fieldName)
+        ExpressionSyntax columns = TryGetStaticMetadataFieldName(metadata, context, out var fieldName)
             ? SyntaxFactory.IdentifierName(fieldName)
             : CreateColumnArrayCreation(metadata.Fields);
         var tableCreation = CreateObjectCreation(
@@ -36,24 +38,27 @@ public sealed partial class ExecutionCSharpRenderer
             tableCreation);
 
         if (createTable.CapacityHint is not null)
-            yield return CreateEnsureCapacityStatement(createTable.Table.Name, RenderCapacityHint(createTable.CapacityHint));
+            yield return CreateEnsureCapacityStatement(createTable.Table.Name, RenderCapacityHint(createTable.CapacityHint, context));
     }
 
-    private ExpressionStatementSyntax RenderEnsureTableCapacity(ExecutionEnsureTableCapacity ensureCapacity)
+    private ExpressionStatementSyntax RenderEnsureTableCapacity(
+        ExecutionEnsureTableCapacity ensureCapacity,
+        ExecutionRenderContext context)
     {
         return CreateEnsureCapacityStatement(
             ensureCapacity.Table.Name,
-            RenderCapacityHint(ensureCapacity.CapacityHint));
+            RenderCapacityHint(ensureCapacity.CapacityHint, context));
     }
 
     private LocalDeclarationStatementSyntax CreateTypedRowBufferDeclaration(
         ExecutionCreateTable createTable,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape,
+        ExecutionRenderContext context)
     {
         var listType = CreateListTypeSyntax(rowShape.TypeName);
         var arguments = createTable.CapacityHint == null
             ? SyntaxFactory.ArgumentList()
-            : CreateArgumentList(RenderCapacityHint(createTable.CapacityHint));
+            : CreateArgumentList(RenderCapacityHint(createTable.CapacityHint, context));
 
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -61,14 +66,17 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.ObjectCreationExpression(listType).WithArgumentList(arguments));
     }
 
-    private LocalDeclarationStatementSyntax RenderCreateValuesRows(ExecutionCreateValuesRows valuesRows)
+    private LocalDeclarationStatementSyntax RenderCreateValuesRows(
+        ExecutionCreateValuesRows valuesRows,
+        ExecutionRenderContext context)
     {
         var rowCreations = valuesRows.Values
             .Select(row => CreateObjectCreation(
                 valuesRows.RowShape.TypeName,
                 row.Select((value, index) => RenderRowConstructorValue(
                     value.Value,
-                    valuesRows.RowShape.Fields[index].Type)).ToArray()))
+                    valuesRows.RowShape.Fields[index].Type,
+                    context)).ToArray()))
             .Cast<ExpressionSyntax>()
             .ToArray();
 

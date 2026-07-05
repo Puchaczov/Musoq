@@ -89,8 +89,9 @@ public partial class QueryInspectionTests
             new CompilationOptions());
 
         AssertExecutionPlanDoesNotContain("ExecutionPlanUnsupported", result.ExecutionPlanText);
-        Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0", result.ExecutionPlanText);
-        Assert.Contains("StoreTable [cte1 -> _cteRowResults.Slot1", result.ExecutionPlanText);
+        Assert.Contains("ParallelBlock [cte-level-0, tasks 2, maxDegree 2]", result.ExecutionPlanText);
+        Assert.Contains("StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0", result.ExecutionPlanText);
+        Assert.Contains("StoreTable [__parallelCteLevel0Task1Result -> _cteRowResults.Slot1", result.ExecutionPlanText);
         Assert.Contains("CreateShapeRows [result: ResultShape0 from ResultRow0]", result.ExecutionPlanText);
         Assert.Contains("ForEach [l in _cteRowResults.Slot0]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultShape0(Dummy: l.Dummy)]", result.ExecutionPlanText);

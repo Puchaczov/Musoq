@@ -12,10 +12,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             : contextLayout.Segments.Select(static segment => segment.Value);
     }
 
-    private readonly record struct NestedTransitionBinding(
-        FieldBinding Binding,
-        string PropertyPath);
-
     private static ExecutionPlan CreateTableResultPlan(
         string identifier,
         TableBuildResult result)

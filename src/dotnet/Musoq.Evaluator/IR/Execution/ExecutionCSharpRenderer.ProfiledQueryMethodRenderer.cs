@@ -7,11 +7,14 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private MethodDeclarationSyntax CreateQueryMethod(string methodName, BlockSyntax body)
+    private MethodDeclarationSyntax CreateQueryMethod(
+        string methodName,
+        BlockSyntax body,
+        ExecutionRenderContext context)
     {
         if (!IsInstrumentationEnabled)
         {
-            return RenderSession.UseQueryRunContext
+            return context.Session.UseQueryRunContext
                 ? SyntaxFactory.MethodDeclaration(SyntaxFactory.IdentifierName("Table"), SyntaxFactory.Identifier(methodName))
                     .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
                     .WithParameterList(MethodDeclarationHelper.CreateTypedRunContextParameterList())

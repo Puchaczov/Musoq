@@ -41,7 +41,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     public override void Visit(PutTrueNode node)
     {
-        Nodes.Push(new PutTrueNode());
+        PushSemanticNode(new PutTrueNode());
     }
 
     public override void Visit(MultiStatementNode node)
@@ -50,9 +50,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         var items = new Node[node.Nodes.Length];
 
         for (var i = node.Nodes.Length - 1; i >= 0; --i)
-            items[i] = Nodes.Pop();
+            items[i] = PopSemanticNode();
 
-        Nodes.Push(new MultiStatementNode(items, node.ReturnType));
+        PushSemanticNode(new MultiStatementNode(items, node.ReturnType));
     }
 
     public override void Visit(CteExpressionNode node)
@@ -60,18 +60,18 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var sets = new CteInnerExpressionNode[node.InnerExpression.Length];
 
-        var set = Nodes.Pop();
+        var set = PopSemanticNode();
 
         for (var i = node.InnerExpression.Length - 1; i >= 0; --i)
-            sets[i] = (CteInnerExpressionNode)Nodes.Pop();
+            sets[i] = (CteInnerExpressionNode)PopSemanticNode();
 
-        Nodes.Push(new CteExpressionNode(sets, set));
+        PushSemanticNode(new CteExpressionNode(sets, set));
     }
 
     public override void Visit(CteInnerExpressionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var set = Nodes.Pop();
+        var set = PopSemanticNode();
 
         var collector = new GetSelectFieldsVisitor();
         var traverser = new GetSelectFieldsTraverseVisitor(collector);
@@ -103,6 +103,6 @@ public partial class BuildMetadataAndInferTypesVisitor
                         $"CTE '{node.Name}'");
                 }
 
-        Nodes.Push(new CteInnerExpressionNode(set, node.Name));
+        PushSemanticNode(new CteInnerExpressionNode(set, node.Name));
     }
 }

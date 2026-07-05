@@ -10,12 +10,12 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private ExpressionSyntax RenderExpression(ExecutionExpression expression)
     {
-        return RenderExpression(expression, new ExecutionRenderContext(_renderOptions, RenderSession));
+        return RenderExpression(expression, CreateIsolatedRenderContext());
     }
 
     private ExpressionSyntax RenderExpression(ExecutionExpression expression, ExecutionRenderContext context)
     {
-        return new ExpressionRenderer(this, context.Session).Render(expression);
+        return new ExpressionRenderer(this, context).Render(expression);
     }
 
     private static ExpressionSyntax CreateWindowValueRead(ExecutionWindowValueRead windowValueRead)
@@ -107,12 +107,14 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(tableIndex)));
     }
 
-    private ExpressionSyntax RenderStoredTableRows(ExecutionStoredTableRows storedRows)
+    private ExpressionSyntax RenderStoredTableRows(
+        ExecutionStoredTableRows storedRows,
+        ExecutionRenderContext context)
     {
-        return RenderSession.DeclaredStoredRowsCaches.Contains(storedRows.TableIndex) &&
-               RenderSession.StoredRowsCacheNames.TryGetValue(storedRows.TableIndex, out var cacheName)
+        return context.Session.DeclaredStoredRowsCaches.Contains(storedRows.TableIndex) &&
+               context.Session.StoredRowsCacheNames.TryGetValue(storedRows.TableIndex, out var cacheName)
             ? CreateIdentifierName(cacheName)
-            : CreateStoredTableRowsRead(storedRows);
+            : CreateStoredTableRowsRead(storedRows, context);
     }
 
     private static ArrayCreationExpressionSyntax CreateNullContextArray(int count)
@@ -124,9 +126,9 @@ public sealed partial class ExecutionCSharpRenderer
                 count));
     }
 
-    private ExpressionSyntax CreateStoredTableRowsRead(int tableIndex)
+    private ExpressionSyntax CreateStoredTableRowsRead(int tableIndex, ExecutionRenderContext context)
     {
-        if (TryGetTypedStoredTableResult(tableIndex, out _))
+        if (TryGetTypedStoredTableResult(tableIndex, context, out _))
             return CreateCteRowResultSlotAccess(tableIndex);
 
         return SyntaxFactory.MemberAccessExpression(
@@ -135,11 +137,13 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IdentifierName("Rows"));
     }
 
-    private ExpressionSyntax RenderRowPresence(ExecutionRowPresence rowPresence)
+    private ExpressionSyntax RenderRowPresence(
+        ExecutionRowPresence rowPresence,
+        ExecutionRenderContext context)
     {
         var boxedSource = SyntaxFactory.CastExpression(
             CreateTypeSyntax(typeof(object)),
-            SyntaxFactory.ParenthesizedExpression(RenderExpression(rowPresence.PresenceSource)));
+            SyntaxFactory.ParenthesizedExpression(RenderExpression(rowPresence.PresenceSource, context)));
         var nullLiteral = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
         var kind = rowPresence.IsPresent
             ? SyntaxKind.NotEqualsExpression
@@ -149,16 +153,18 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.BinaryExpression(kind, boxedSource, nullLiteral));
     }
 
-    private ExpressionSyntax CreateStoredTableRowsRead(ExecutionStoredTableRows storedRows)
+    private ExpressionSyntax CreateStoredTableRowsRead(
+        ExecutionStoredTableRows storedRows,
+        ExecutionRenderContext context)
     {
         if (storedRows.GeneratedRowShape != null &&
-            TryGetTypedStoredTableResult(storedRows.TableIndex, storedRows.GeneratedRowShape, out _))
+            TryGetTypedStoredTableResult(storedRows.TableIndex, storedRows.GeneratedRowShape, context, out _))
         {
             return CreateCteRowResultSlotAccess(storedRows.TableIndex);
         }
 
         var rows = storedRows.GeneratedRowShape == null
-            ? CreateStoredTableRowsRead(storedRows.TableIndex)
+            ? CreateStoredTableRowsRead(storedRows.TableIndex, context)
             : SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 CreateStoredTableRead(storedRows.TableIndex),
@@ -175,9 +181,11 @@ public sealed partial class ExecutionCSharpRenderer
             .WithArgumentList(CreateArgumentList(rows));
     }
 
-    private ExpressionSyntax RenderArrayAccess(ExecutionArrayAccess arrayAccess)
+    private ExpressionSyntax RenderArrayAccess(
+        ExecutionArrayAccess arrayAccess,
+        ExecutionRenderContext context)
     {
-        var arrayExpression = RenderExpression(arrayAccess.Array);
+        var arrayExpression = RenderExpression(arrayAccess.Array, context);
         while (arrayExpression is CastExpressionSyntax castExpression)
             arrayExpression = castExpression.Expression;
 
@@ -188,7 +196,7 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName(nameof(SafeArrayAccess.GetIndexedElement))))
             .WithArgumentList(CreateArgumentList(
                 arrayExpression,
-                RenderExpression(arrayAccess.Index),
+                RenderExpression(arrayAccess.Index, context),
                 SyntaxFactory.TypeOfExpression(CreateTypeSyntax(arrayAccess.ElementType))));
 
         return CastIfNeeded(invocation, arrayAccess.ReturnType);

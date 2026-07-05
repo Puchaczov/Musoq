@@ -8,38 +8,42 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private List<StatementSyntax> RenderCreateValueTupleAggregateContext(ExecutionCreateValueTupleAggregateContext context)
+    private List<StatementSyntax> RenderCreateValueTupleAggregateContext(
+        ExecutionCreateValueTupleAggregateContext valueTupleContext,
+        ExecutionRenderContext context)
     {
-        var groupType = CreateAggregateGroupType(context.GroupShape);
+        var groupType = CreateAggregateGroupType(valueTupleContext.GroupShape, context);
         var statements = new List<StatementSyntax>();
 
-        var rootGroupDeclaration = CreateRootAggregateGroupDeclaration(context.RootGroup, context.GroupPlan);
+        var rootGroupDeclaration = CreateRootAggregateGroupDeclaration(valueTupleContext.RootGroup, valueTupleContext.GroupPlan, context);
         if (rootGroupDeclaration is not null)
             statements.Add(rootGroupDeclaration);
 
         statements.Add(CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
-            context.GroupsToFinalize.Name,
+            valueTupleContext.GroupsToFinalize.Name,
             SyntaxFactory.ObjectCreationExpression(CreateListTypeSyntax(groupType))
                 .WithArgumentList(SyntaxFactory.ArgumentList())));
 
-        foreach (var dictionary in context.GroupDictionaries)
+        foreach (var dictionary in valueTupleContext.GroupDictionaries)
         {
-            var level = GetAggregateGroupLevel(context.GroupPlan, dictionary.PrefixLength);
+            var level = GetAggregateGroupLevel(valueTupleContext.GroupPlan, dictionary.PrefixLength);
             statements.Add(CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 dictionary.Variable.Name,
                 SyntaxFactory.ObjectCreationExpression(CreateValueTupleGroupDictionaryTypeSyntax(
-                    context.KeyTypes,
+                    valueTupleContext.KeyTypes,
                     dictionary.PrefixLength,
-                    CreateAggregateGroupType(level.Shape)))
+                    CreateAggregateGroupType(level.Shape, context)))
                     .WithArgumentList(SyntaxFactory.ArgumentList())));
         }
 
         return statements;
     }
 
-    private List<StatementSyntax> RenderGetOrAddValueTupleAggregateGroup(ExecutionGetOrAddValueTupleAggregateGroup getOrAddGroup)
+    private List<StatementSyntax> RenderGetOrAddValueTupleAggregateGroup(
+        ExecutionGetOrAddValueTupleAggregateGroup getOrAddGroup,
+        ExecutionRenderContext context)
     {
         var statements = new List<StatementSyntax>();
 
@@ -57,23 +61,25 @@ public sealed partial class ExecutionCSharpRenderer
         {
             var groupName = CreateValueTuplePrefixGroupVariableName(level.PrefixLength);
             ownerGroupNames[level.PrefixLength] = groupName;
-            statements.AddRange(CreateValueTuplePrefixGroupStatements(getOrAddGroup, level, groupName));
+            statements.AddRange(CreateValueTuplePrefixGroupStatements(getOrAddGroup, level, groupName, context));
         }
 
-        statements.AddRange(CreateLeafValueTupleGroupStatements(getOrAddGroup, ownerGroupNames));
+        statements.AddRange(CreateLeafValueTupleGroupStatements(getOrAddGroup, ownerGroupNames, context));
         return statements;
     }
 
     private StatementSyntax[] CreateValueTuplePrefixGroupStatements(
         ExecutionGetOrAddValueTupleAggregateGroup getOrAddGroup,
         AggregateGroupLevelPlan level,
-        string groupName)
+        string groupName,
+        ExecutionRenderContext context)
     {
-        var groupType = CreateAggregateGroupType(level.Shape);
+        var groupType = CreateAggregateGroupType(level.Shape, context);
         var dictionary = GetAggregateGroupDictionary(getOrAddGroup.GroupDictionaries, level.PrefixLength);
         var keyExpression = CreateValueTupleKeyExpression(level.PrefixLength);
         var groupCreation = CreateAggregateGroupCreation(
             level.Shape,
+            context,
             [],
             CreateAggregateGroupKeyArguments(level.Shape, level.PrefixLength));
 
@@ -89,14 +95,16 @@ public sealed partial class ExecutionCSharpRenderer
 
     private StatementSyntax[] CreateLeafValueTupleGroupStatements(
         ExecutionGetOrAddValueTupleAggregateGroup getOrAddGroup,
-        IReadOnlyDictionary<int, string> ownerGroupNames)
+        IReadOnlyDictionary<int, string> ownerGroupNames,
+        ExecutionRenderContext context)
     {
         var keyCount = getOrAddGroup.Keys.Count;
-        var groupType = CreateAggregateGroupType(getOrAddGroup.GroupShape);
+        var groupType = CreateAggregateGroupType(getOrAddGroup.GroupShape, context);
         var dictionary = GetAggregateGroupDictionary(getOrAddGroup.GroupDictionaries, keyCount);
         var keyExpression = CreateValueTupleKeyExpression(keyCount);
         var groupCreation = CreateAggregateGroupCreation(
             getOrAddGroup.GroupShape,
+            context,
             CreateLeafOwnerArguments(
                 getOrAddGroup.GroupShape,
                 owner => ResolveValueTupleOwnerArgument(owner, getOrAddGroup.RootGroup, ownerGroupNames)),
@@ -118,15 +126,16 @@ public sealed partial class ExecutionCSharpRenderer
     private StatementSyntax[] CreateGetOrAddSingleKeyValueGroupStatements(
         ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup,
         string keyVariableName,
+        ExecutionRenderContext context,
         bool declareGroupVariable)
     {
-        var groupCreation = CreateSingleKeyGroupCreation(getOrAddGroup, SyntaxFactory.IdentifierName(keyVariableName));
+        var groupCreation = CreateSingleKeyGroupCreation(getOrAddGroup, SyntaxFactory.IdentifierName(keyVariableName), context);
         var addToFinalize = CreateCollectionAddStatement(
             getOrAddGroup.GroupsToFinalize.Name,
             SyntaxFactory.IdentifierName(CreateGroupRefVariableName(getOrAddGroup.Group.Name)));
 
         return CreateDictionaryGroupAcquisitionStatements(
-            CreateAggregateGroupType(getOrAddGroup.GroupShape),
+            CreateAggregateGroupType(getOrAddGroup.GroupShape, context),
             getOrAddGroup.Group.Name,
             getOrAddGroup.Groups.Name,
             SyntaxFactory.IdentifierName(keyVariableName),
@@ -137,12 +146,14 @@ public sealed partial class ExecutionCSharpRenderer
 
     private IfStatementSyntax CreateGetOrAddSingleKeyReferenceGroupStatement(
         ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup,
-        string keyVariableName)
+        string keyVariableName,
+        ExecutionRenderContext context)
     {
         var nonNullBlock = StatementEmitter.CreateBlock([
             ..CreateGetOrAddSingleKeyValueGroupStatements(
                 getOrAddGroup,
                 keyVariableName,
+                context,
                 declareGroupVariable: false)
         ]);
 
@@ -160,7 +171,8 @@ public sealed partial class ExecutionCSharpRenderer
                 StatementEmitter.CreateBlock(CreateNewSingleKeyNullGroupStatements(
                     getOrAddGroup,
                     nullGroup.Name,
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)))), assignNullGroup);
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression),
+                    context))), assignNullGroup);
 
         return SyntaxFactory.IfStatement(
             SyntaxFactory.BinaryExpression(
@@ -174,9 +186,10 @@ public sealed partial class ExecutionCSharpRenderer
     private StatementSyntax[] CreateNewSingleKeyNullGroupStatements(
         ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup,
         string groupName,
-        ExpressionSyntax keyValue)
+        ExpressionSyntax keyValue,
+        ExecutionRenderContext context)
     {
-        var groupCreation = CreateSingleKeyGroupCreation(getOrAddGroup, keyValue);
+        var groupCreation = CreateSingleKeyGroupCreation(getOrAddGroup, keyValue, context);
         var assignGroup = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
             SyntaxKind.SimpleAssignmentExpression,
             SyntaxFactory.IdentifierName(groupName),
@@ -190,10 +203,12 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ObjectCreationExpressionSyntax CreateSingleKeyGroupCreation(
         ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup,
-        ExpressionSyntax keyValue)
+        ExpressionSyntax keyValue,
+        ExecutionRenderContext context)
     {
         return CreateAggregateGroupCreation(
             getOrAddGroup.GroupShape,
+            context,
             CreateLeafOwnerArguments(
                 getOrAddGroup.GroupShape,
                 owner => ResolveSingleKeyOwnerArgument(owner, getOrAddGroup.RootGroup)),

@@ -9,12 +9,12 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed partial class ExecutionCSharpRenderer
 {
 
-    private ExpressionSyntax RenderMethodCall(ExecutionMethodCall methodCall)
+    private ExpressionSyntax RenderMethodCall(ExecutionMethodCall methodCall, ExecutionRenderContext context)
     {
         if (methodCall.Cache != null)
-            return RenderCachedMethodCall(methodCall);
+            return RenderCachedMethodCall(methodCall, context);
 
-        if (TryRenderMethodCallWithoutTarget(methodCall, out var targetlessInvocation))
+        if (TryRenderMethodCallWithoutTarget(methodCall, context, out var targetlessInvocation))
             return targetlessInvocation;
 
         var targetExpression = methodCall.Target != null
@@ -23,7 +23,7 @@ public sealed partial class ExecutionCSharpRenderer
                 ? CreateTypeSyntax(methodCall.Method.DeclaringType!)
                 : throw new NotSupportedException(CreateMissingMethodTargetMessage(methodCall));
         var methodName = CreateMethodNameSyntax(methodCall.Method);
-        var arguments = CreateMethodInvocationArguments(methodCall);
+        var arguments = CreateMethodInvocationArguments(methodCall, context);
 
         var invocation = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -37,6 +37,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private bool TryRenderMethodCallWithoutTarget(
         ExecutionMethodCall methodCall,
+        ExecutionRenderContext context,
         [NotNullWhen(true)] out ExpressionSyntax? expression)
     {
         expression = null;
@@ -46,10 +47,10 @@ public sealed partial class ExecutionCSharpRenderer
 
         expression = methodCall.Method.Name switch
         {
-            nameof(LibraryBase.Contains) => RenderLibraryBaseStringPredicate(methodCall, nameof(string.Contains)),
-            nameof(LibraryBase.StartsWith) => RenderLibraryBaseStringPredicate(methodCall, nameof(string.StartsWith)),
-            nameof(LibraryBase.ToDecimal) => RenderLibraryBaseNumericToDecimal(methodCall),
-            _ when ExecutionMethodTargetReuse.CanRenderPerInvocation(methodCall) => RenderPerInvocationMethodCall(methodCall),
+            nameof(LibraryBase.Contains) => RenderLibraryBaseStringPredicate(methodCall, nameof(string.Contains), context),
+            nameof(LibraryBase.StartsWith) => RenderLibraryBaseStringPredicate(methodCall, nameof(string.StartsWith), context),
+            nameof(LibraryBase.ToDecimal) => RenderLibraryBaseNumericToDecimal(methodCall, context),
+            _ when ExecutionMethodTargetReuse.CanRenderPerInvocation(methodCall) => RenderPerInvocationMethodCall(methodCall, context),
             _ => null
         };
 
@@ -58,10 +59,11 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ParenthesizedExpressionSyntax RenderLibraryBaseStringPredicate(
         ExecutionMethodCall methodCall,
-        string methodName)
+        string methodName,
+        ExecutionRenderContext context)
     {
-        var value = RenderExpression(methodCall.Arguments[0]);
-        var pattern = RenderExpression(methodCall.Arguments[1]);
+        var value = RenderExpression(methodCall.Arguments[0], context);
+        var pattern = RenderExpression(methodCall.Arguments[1], context);
         var nullLiteral = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
         var nullableBoolType = CreateTypeSyntax(typeof(bool?));
 
@@ -92,12 +94,14 @@ public sealed partial class ExecutionCSharpRenderer
                 invocation));
     }
 
-    private ParenthesizedExpressionSyntax RenderLibraryBaseNumericToDecimal(ExecutionMethodCall methodCall)
+    private ParenthesizedExpressionSyntax RenderLibraryBaseNumericToDecimal(
+        ExecutionMethodCall methodCall,
+        ExecutionRenderContext context)
     {
         return SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.CastExpression(
                 CreateTypeSyntax(typeof(decimal?)),
-                RenderExpression(methodCall.Arguments[0])));
+                RenderExpression(methodCall.Arguments[0], context)));
     }
 
     private static ExpressionSyntax CreateOptionalParameterDefaultExpression(ParameterInfo parameter)

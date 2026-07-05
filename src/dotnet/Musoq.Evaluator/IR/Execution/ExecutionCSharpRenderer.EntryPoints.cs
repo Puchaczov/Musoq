@@ -15,25 +15,40 @@ public sealed partial class ExecutionCSharpRenderer
         ArgumentException.ThrowIfNullOrWhiteSpace(methodName);
         ArgumentException.ThrowIfNullOrWhiteSpace(queryIdentifier);
         var context = InitializeRenderContext(plan);
+        return RenderMethod(plan, methodName, queryIdentifier, context);
+    }
+
+    internal MethodDeclarationSyntax RenderMethod(
+        ExecutionPlan plan,
+        string methodName,
+        string queryIdentifier,
+        ExecutionRenderContext context)
+    {
+        ArgumentNullException.ThrowIfNull(plan);
+        ArgumentException.ThrowIfNullOrWhiteSpace(methodName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(queryIdentifier);
+        ArgumentNullException.ThrowIfNull(context);
         var session = context.Session;
 
         session.TypedStoredTableResults = CreateTypedStoredTableResults(plan);
         session.IncludeCteIndexResults = PlanUsesCteIndexResults(plan);
         session.IncludeCteRowResults = session.TypedStoredTableResults.Count > 0;
         session.IncludeTableResults = PlanUsesTableResults(plan, session.TypedStoredTableResults);
-        session.GeneratedRowConstructorUsagesByType = CollectGeneratedRowConstructorUsages(plan.Body);
+        session.GeneratedRowVariableTypeNamesByName = CollectGeneratedRowVariableTypeNames(plan.Body, session.TypedStoredTableResults);
+        session.GeneratedRowConstructorUsagesByType = CollectGeneratedRowConstructorUsages(plan.Body, session.TypedStoredTableResults);
         session.TypedRowBufferVariables = CreateTypedRowBufferVariables(plan.Body);
         session.SingleKeyAggregateUpdateHelpersByBlock = CollectSingleKeyAggregateUpdateHelpersByBlock(plan.Body);
-        session.EnumerableTraversalHelpersByBlock = CollectEnumerableTraversalHelpersByBlock(plan.Body);
+        session.EnumerableTraversalHelpersByBlock = CollectEnumerableTraversalHelpersByBlock(plan.Body, context);
 
         return CreateQueryMethod(
             methodName,
-            RenderMethodBody(plan, queryIdentifier, context));
+            RenderMethodBody(plan, queryIdentifier, context),
+            context);
     }
 
     public BlockSyntax RenderBlock(ExecutionBlock block)
     {
-        return RenderBlock(block, new ExecutionRenderContext(_renderOptions, RenderSession));
+        return RenderBlock(block, CreateIsolatedRenderContext());
     }
 
     private BlockSyntax RenderBlock(ExecutionBlock block, ExecutionRenderSession session)
@@ -73,6 +88,7 @@ public sealed partial class ExecutionCSharpRenderer
             static accessor => accessor.VariableName,
             StringComparer.Ordinal);
         session.TableRowShapesByVariableName = CreateTableRowShapeMap(block);
+        session.GeneratedRowVariableTypeNamesByName = CollectGeneratedRowVariableTypeNames(block, session.TypedStoredTableResults);
         session.StoredGeneratedRowsLoopNameCounts = [];
         session.TypedRowBufferVariables = CreateTypedRowBufferVariables(block);
         session.OperatorCatalog = ExecutionPlanOperatorCatalog.Create(plan);
@@ -83,7 +99,7 @@ public sealed partial class ExecutionCSharpRenderer
             statements.AddRange(CreateQueryRunContextAliasStatements());
 
         statements.AddRange(CreateOpeningPhaseStatements(block, queryIdentifier));
-        statements.AddRange(CreateExecutionStateDeclarations(plan));
+        statements.AddRange(CreateExecutionStateDeclarations(plan, context));
         statements.AddRange(CreateScriptParameterBindingStatements());
         statements.AddRange(CreateScriptVariableBindingStatements());
         statements.AddRange(reflectedAccessors.Select(CreateReflectedMemberAccessorDeclaration));
@@ -92,16 +108,16 @@ public sealed partial class ExecutionCSharpRenderer
 
         var bodyStatements = RenderMethodStatements(block, context);
         var operatorProfileUsage = CollectOperatorProfileUsage(bodyStatements);
-        statements.AddRange(CreateOperatorHandleDeclarations(operatorProfileUsage).Concat(CreateOperatorCounterDeclarations(operatorProfileUsage)));
+        statements.AddRange(CreateOperatorHandleDeclarations(operatorProfileUsage, context).Concat(CreateOperatorCounterDeclarations(operatorProfileUsage, context)));
 
         foreach (var statement in bodyStatements)
         {
             if (statement is ReturnStatementSyntax)
-                statements.AddRange(CreateOperatorCounterFlushStatements(operatorProfileUsage).Concat(CreateClosingPhaseStatements(block, queryIdentifier)));
+                statements.AddRange(CreateOperatorCounterFlushStatements(operatorProfileUsage, context).Concat(CreateClosingPhaseStatements(block, queryIdentifier)));
 
             statements.Add(statement);
         }
 
-        return CreateProfileExceptionBoundaryBlock(statements);
+        return CreateProfileExceptionBoundaryBlock(statements, context);
     }
 }

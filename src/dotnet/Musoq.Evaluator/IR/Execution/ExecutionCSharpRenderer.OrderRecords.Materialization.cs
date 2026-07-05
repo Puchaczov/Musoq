@@ -9,16 +9,17 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed partial class ExecutionCSharpRenderer
 {
     private List<StatementSyntax> RenderMaterializeRecordListToTable(
-        ExecutionMaterializeRecordListToTable materialize)
+        ExecutionMaterializeRecordListToTable materialize,
+        ExecutionRenderContext context)
     {
-        if (IsFinalShapeTarget(materialize.Target))
-            return RenderMaterializeRecordListToFinalShapes(materialize);
+        if (IsFinalShapeTarget(materialize.Target, context))
+            return RenderMaterializeRecordListToFinalShapes(materialize, context);
 
         var statements = new List<StatementSyntax>();
         statements.AddRange(RenderCreateTable(new ExecutionCreateTable(
             materialize.Target,
             materialize.RowShape,
-            materialize.CapacityHint)));
+            materialize.CapacityHint), context));
 
         const string rowNumberVariableName = "rowNumber";
         var needsRowNumber = materialize.RenumberFieldIndexes.Count > 0;

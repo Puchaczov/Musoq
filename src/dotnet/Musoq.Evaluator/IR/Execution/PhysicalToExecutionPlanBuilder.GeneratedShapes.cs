@@ -77,6 +77,20 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     {
         if (sourceShape is TableRowShape tableRow)
         {
+            if (tableRow.Contexts.Count == 0)
+            {
+                var tableAlias = RowShapeLookup.ResolveSourceAlias(tableRow);
+                yield return new FieldBinding(
+                    tableAlias,
+                    tableAlias,
+                    startIndex,
+                    typeof(object),
+                    FieldNullability.Unknown,
+                    new ContextAccess(startIndex));
+
+                yield break;
+            }
+
             for (var index = 0; index < tableRow.Contexts.Count; index++)
             {
                 var context = tableRow.Contexts[index];

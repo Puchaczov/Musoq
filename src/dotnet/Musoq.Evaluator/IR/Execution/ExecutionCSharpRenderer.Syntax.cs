@@ -6,17 +6,20 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IdentifierNameSyntax CreateAggregateGroupType(AggregateGroupShape shape)
+    private IdentifierNameSyntax CreateAggregateGroupType(
+        AggregateGroupShape shape,
+        ExecutionRenderContext context)
     {
-        return SyntaxFactory.IdentifierName(GetAggregateGroupTypeName(shape));
+        return SyntaxFactory.IdentifierName(GetAggregateGroupTypeName(shape, context));
     }
 
     private ObjectCreationExpressionSyntax CreateAggregateGroupCreation(
         AggregateGroupShape shape,
+        ExecutionRenderContext context,
         IReadOnlyList<ExpressionSyntax> owners,
         params ExpressionSyntax[] keys)
     {
-        return CreateObjectCreation(GetAggregateGroupTypeName(shape), [..owners, ..keys]);
+        return CreateObjectCreation(GetAggregateGroupTypeName(shape, context), [..owners, ..keys]);
     }
 
     internal sealed record ConstantInSetField(string Name, ExecutionConstantInSet ConstantSet);

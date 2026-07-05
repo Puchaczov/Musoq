@@ -49,13 +49,17 @@ public sealed partial class ExecutionCSharpRenderer
         return $"Finalize{CreatePascalIdentifier(tableName)}Groups{suffix}";
     }
 
-    private IEnumerable<MethodDeclarationSyntax> CreateValueTupleAggregateFunctions(ValueTupleAggregateHelper helper)
+    private IEnumerable<MethodDeclarationSyntax> CreateValueTupleAggregateFunctions(
+        ValueTupleAggregateHelper helper,
+        ExecutionRenderContext context)
     {
-        yield return CreateValueTuplePopulateFunction(helper);
-        yield return CreateValueTupleFinalizeFunction(helper);
+        yield return CreateValueTuplePopulateFunction(helper, context);
+        yield return CreateValueTupleFinalizeFunction(helper, context);
     }
 
-    private MethodDeclarationSyntax CreateValueTuplePopulateFunction(ValueTupleAggregateHelper helper)
+    private MethodDeclarationSyntax CreateValueTuplePopulateFunction(
+        ValueTupleAggregateHelper helper,
+        ExecutionRenderContext context)
     {
         var rowsParameterName = CreateValueTupleRowsParameterName(helper.AccumulationLoop);
         var helperLoop = ReplaceLoopSource(helper.AccumulationLoop, rowsParameterName);
@@ -65,37 +69,42 @@ public sealed partial class ExecutionCSharpRenderer
                 helper.PopulateFunctionName)
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(CreatePrivateStaticModifiers())
-            .WithParameterList(CreateValueTuplePopulateParameterList(helper, rowsParameterName))
+            .WithParameterList(CreateValueTuplePopulateParameterList(helper, rowsParameterName, context))
             .WithBody(StatementEmitter.CreateBlock([
                 QueryEmitter.GenerateCancellationCheck(),
                 ..RenderIsolatedHelperBlock(
                     new ExecutionBlock([helperLoop]),
+                    context,
                     profileRecorderInScope: IsInstrumentationEnabled,
                     emitChunkLoopCancellationChecks: true)
             ]));
     }
 
-    private MethodDeclarationSyntax CreateValueTupleFinalizeFunction(ValueTupleAggregateHelper helper)
+    private MethodDeclarationSyntax CreateValueTupleFinalizeFunction(
+        ValueTupleAggregateHelper helper,
+        ExecutionRenderContext context)
     {
         return SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
                 helper.FinalizeFunctionName)
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(CreatePrivateStaticModifiers())
-            .WithParameterList(CreateValueTupleFinalizeParameterList(helper))
+            .WithParameterList(CreateValueTupleFinalizeParameterList(helper, context))
             .WithBody(StatementEmitter.CreateBlock([
                 QueryEmitter.GenerateCancellationCheck(),
                 ..RenderIsolatedHelperBlock(new ExecutionBlock([
                     helper.EnsureCapacity,
                     helper.FinalizationLoop
-                ]), profileRecorderInScope: IsInstrumentationEnabled,
+                ]), context,
+                    profileRecorderInScope: IsInstrumentationEnabled,
                     emitChunkLoopCancellationChecks: true)
             ]));
     }
 
     private ParameterListSyntax CreateValueTuplePopulateParameterList(
         ValueTupleAggregateHelper helper,
-        string rowsParameterName)
+        string rowsParameterName,
+        ExecutionRenderContext context)
     {
         var parameters = new List<ParameterSyntax>
         {
@@ -106,7 +115,7 @@ public sealed partial class ExecutionCSharpRenderer
                     CreateVariableTypeSyntax(helper.AccumulationLoop.Item)))
         };
 
-        parameters.AddRange(CreateValueTupleContextParameters(helper.Context));
+        parameters.AddRange(CreateValueTupleContextParameters(helper.Context, context));
         parameters.Add(CreateParameter("token", CreateTypeSyntax(typeof(CancellationToken))));
         AddProfileRecorderParameter(parameters);
         parameters.AddRange(CollectValueTuplePopulateCaptures(helper)
@@ -115,14 +124,16 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters));
     }
 
-    private ParameterListSyntax CreateValueTupleFinalizeParameterList(ValueTupleAggregateHelper helper)
+    private ParameterListSyntax CreateValueTupleFinalizeParameterList(
+        ValueTupleAggregateHelper helper,
+        ExecutionRenderContext context)
     {
         var parameters = new List<ParameterSyntax>
         {
-            CreateParameter(helper.EnsureCapacity.Table.Name, CreateAggregateOutputTargetType(helper.EnsureCapacity.Table)),
+            CreateParameter(helper.EnsureCapacity.Table.Name, CreateAggregateOutputTargetType(helper.EnsureCapacity.Table, context)),
             CreateParameter(
                 helper.Context.GroupsToFinalize.Name,
-                CreateListTypeSyntax(CreateAggregateGroupType(helper.Context.GroupShape)))
+                CreateListTypeSyntax(CreateAggregateGroupType(helper.Context.GroupShape, context)))
         };
 
         AddProfileRecorderParameter(parameters);
@@ -133,32 +144,36 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters));
     }
 
-    private IEnumerable<ParameterSyntax> CreateValueTupleContextParameters(ExecutionCreateValueTupleAggregateContext context)
+    private IEnumerable<ParameterSyntax> CreateValueTupleContextParameters(
+        ExecutionCreateValueTupleAggregateContext aggregateContext,
+        ExecutionRenderContext context)
     {
-        foreach (var rootLevel in context.GroupPlan.Levels.Where(static level => level.IsRoot))
-            yield return CreateParameter(context.RootGroup.Name, CreateAggregateGroupType(rootLevel.Shape));
+        foreach (var rootLevel in aggregateContext.GroupPlan.Levels.Where(static level => level.IsRoot))
+            yield return CreateParameter(aggregateContext.RootGroup.Name, CreateAggregateGroupType(rootLevel.Shape, context));
 
         yield return CreateParameter(
-            context.GroupsToFinalize.Name,
-            CreateListTypeSyntax(CreateAggregateGroupType(context.GroupShape)));
+            aggregateContext.GroupsToFinalize.Name,
+            CreateListTypeSyntax(CreateAggregateGroupType(aggregateContext.GroupShape, context)));
 
-        foreach (var dictionary in context.GroupDictionaries)
+        foreach (var dictionary in aggregateContext.GroupDictionaries)
         {
-            var level = GetAggregateGroupLevel(context.GroupPlan, dictionary.PrefixLength);
+            var level = GetAggregateGroupLevel(aggregateContext.GroupPlan, dictionary.PrefixLength);
             yield return CreateParameter(
                 dictionary.Variable.Name,
                 CreateValueTupleGroupDictionaryTypeSyntax(
-                    context.KeyTypes,
+                    aggregateContext.KeyTypes,
                     dictionary.PrefixLength,
-                    CreateAggregateGroupType(level.Shape)));
+                    CreateAggregateGroupType(level.Shape, context)));
         }
     }
 
-    private List<ExpressionSyntax> CreateValueTuplePopulateArguments(ValueTupleAggregateHelper helper)
+    private List<ExpressionSyntax> CreateValueTuplePopulateArguments(
+        ValueTupleAggregateHelper helper,
+        ExecutionRenderContext context)
     {
         var arguments = new List<ExpressionSyntax>
         {
-            RenderExpression(helper.AccumulationLoop.Source)
+            RenderExpression(helper.AccumulationLoop.Source, context)
         };
         arguments.AddRange(CreateValueTupleContextArguments(helper.Context));
         arguments.Add(SyntaxFactory.IdentifierName("token"));

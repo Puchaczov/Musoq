@@ -9,12 +9,6 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class PhysicalToExecutionPlanBuilder
 {
-    private enum NestedApplyGeneratedRowPreservation
-    {
-        Disabled,
-        Enabled
-    }
-
     private SourceBuildResult BuildApplySource(
         PhysicalNode source,
         IReadOnlyDictionary<string, int> cteIndexes,

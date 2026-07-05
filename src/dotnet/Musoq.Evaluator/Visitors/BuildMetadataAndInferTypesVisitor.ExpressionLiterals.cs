@@ -8,49 +8,49 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(string).Assembly);
-        Nodes.Push(new StringNode(node.Value));
+        PushSemanticNode(new StringNode(node.Value));
     }
 
     public override void Visit(DecimalNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(decimal).Assembly);
-        Nodes.Push(new DecimalNode(node.Value));
+        PushSemanticNode(new DecimalNode(node.Value));
     }
 
     public override void Visit(IntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(int).Assembly);
-        Nodes.Push(new IntegerNode(node.ObjValue));
+        PushSemanticNode(new IntegerNode(node.ObjValue));
     }
 
     public override void Visit(HexIntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(long).Assembly);
-        Nodes.Push(new HexIntegerNode(node.ObjValue));
+        PushSemanticNode(new HexIntegerNode(node.ObjValue));
     }
 
     public override void Visit(BinaryIntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(long).Assembly);
-        Nodes.Push(new BinaryIntegerNode(node.ObjValue));
+        PushSemanticNode(new BinaryIntegerNode(node.ObjValue));
     }
 
     public override void Visit(OctalIntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(long).Assembly);
-        Nodes.Push(new OctalIntegerNode(node.ObjValue));
+        PushSemanticNode(new OctalIntegerNode(node.ObjValue));
     }
 
     public override void Visit(BooleanNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         AddAssembly(typeof(bool).Assembly);
-        Nodes.Push(new BooleanNode(node.Value));
+        PushSemanticNode(new BooleanNode(node.Value));
     }
 
     public override void Visit(WordNode node)
@@ -60,12 +60,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         var word = node is AggregateIdentifierNode aggregateIdentifier
             ? new AggregateIdentifierNode(aggregateIdentifier.Value, aggregateIdentifier.DisplayName)
             : new WordNode(node.Value);
-        Nodes.Push(word);
+        PushSemanticNode(word);
     }
 
     public override void Visit(NullNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new NullNode(node.ReturnType));
+        PushSemanticNode(new NullNode(node.ReturnType));
     }
 }

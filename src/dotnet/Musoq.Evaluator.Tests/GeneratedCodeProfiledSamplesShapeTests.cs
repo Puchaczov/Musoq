@@ -424,17 +424,20 @@ public sealed class GeneratedCodeProfiledSamplesShapeTests
             [
                 "ParallelBlock [cte-level-0, tasks 2, maxDegree 2]",
                 "var _cteRowResults = new CteRowResults();",
-                "var cteLevel0Runner = new CteLevel0Runner(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, profileRecorder, _cteRowResults);",
+                "var _cteIndexResults = new CteIndexResults();",
+                "var cteLevel0Runner = new CteLevel0Runner(",
                 "private readonly Musoq.Evaluator.Diagnostics.QueryProfileRecorder _profileRecorder;",
                 "private static List<Cte0Row0> BuildCteLevel0Task0",
-                "private static List<Cte1Row0> BuildCteLevel0Task1",
-                "Musoq.Evaluator.Diagnostics.QueryProfileRecorder profileRecorder, CteRowResults _cteRowResults",
-                "BuildCteLevel0Task0(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _profileRecorder, _cteRowResults)",
-                "BuildCteLevel0Task1(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _profileRecorder, _cteRowResults)",
+                "private static object BuildCteLevel0Task1",
+                "Musoq.Evaluator.Diagnostics.QueryProfileRecorder profileRecorder",
+                "CteRowResults _cteRowResults",
+                "CteIndexResults _cteIndexResults",
+                "BuildCteLevel0Task0(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _profileRecorder",
+                "BuildCteLevel0Task1(_provider, _sourceRuntimeSettingsBySourceContextId, _sourceExecutionPlans, _logger, _token, _onDataSourceProgress, _profileRecorder",
                 "_cteRowResults.Slot0 = __parallelCteLevel0Task0Result",
-                "_cteRowResults.Slot1 = __parallelCteLevel0Task1Result",
+                "_cteIndexResults.Slot0 = cte1HashSidecar0Name",
                 "var __storedTable0Rows = _cteRowResults.Slot0;",
-                "var __storedTable1Rows = _cteRowResults.Slot1;",
+                "var qHash = _cteIndexResults.Slot0;",
                 "CreateSourceRecorder(\"ko3iko\")",
                 "CreateSourceRecorder(\"vo04qt\")"
             ],
@@ -450,30 +453,29 @@ public sealed class GeneratedCodeProfiledSamplesShapeTests
                 "_tableResults[0]",
                 "_tableResults[1]",
                 "CastGeneratedRows<Cte0Row0>(_tableResults[0].Rows)",
-                "CastGeneratedRows<Cte1Row0>(_tableResults[1].Rows)"
+                "CastGeneratedRows<Cte1Row0>(_tableResults[1].Rows)",
+                "_cteRowResults.Slot1",
+                "var __storedTable1Rows = _cteRowResults.Slot1;"
             ],
             ParallelCteFullFileName);
     }
 
     [TestMethod]
-    public void ParallelCteFullSample_WhenCheckedIn_ShouldCountHashAddWithoutPerRowScopeOnNullKeyContinue()
+    public void ParallelCteFullSample_WhenCheckedIn_ShouldCountSidecarHashProbeRows()
     {
         var sample = ReadProfiledSample(ParallelCteFullFileName);
-        var hashAdd = ResolveOperator(sample, ParallelCteFullFileName, "HashAdd", "qHash[q.Name] += q");
-        var scopePrefix = CreateScopePrefix(hashAdd);
+        var hashProbe = ResolveOperator(sample, ParallelCteFullFileName, "HashProbe", "qHash[p.Name] -> qHashMatches");
 
         AssertContainsAll(
             sample,
             [
-                $"var {scopePrefix}Handle = profileRecorder?.GetOperatorHandle(\"{hashAdd.Id}\", \"HashAdd\") ?? OperatorProfileHandle.None;",
-                $"long {scopePrefix}OutputRows = 0L;",
-                "if (key == null)",
-                "continue;",
-                $"{scopePrefix}OutputRows += 1;",
-                $"profileRecorder?.AddOperatorOutputRows({scopePrefix}Handle, {scopePrefix}OutputRows);"
+                "LoadCteIndex [qHash <- _cteIndexResults.Slot0 Hash: string]",
+                "HashProbe [qHash[p.Name] -> qHashMatches]",
+                "var qHash = _cteIndexResults.Slot0;"
             ],
             ParallelCteFullFileName);
-        AssertDoesNotContainBeginOperator(sample, ParallelCteFullFileName, hashAdd);
+        AssertContainsCounterInputRows(sample, ParallelCteFullFileName, hashProbe, "1");
+        AssertDoesNotContainBeginOperator(sample, ParallelCteFullFileName, hashProbe);
     }
 
     private static readonly Lazy<IReadOnlyDictionary<string, string>> ProfiledSamples = new(CreateProfiledSamples);

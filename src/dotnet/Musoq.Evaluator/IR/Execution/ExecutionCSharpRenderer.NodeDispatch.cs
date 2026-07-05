@@ -7,7 +7,7 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private IEnumerable<StatementSyntax> RenderNode(ExecutionNode node)
     {
-        return RenderNode(node, new ExecutionRenderContext(_renderOptions, RenderSession));
+        return RenderNode(node, CreateIsolatedRenderContext());
     }
 
     private IEnumerable<StatementSyntax> RenderNode(ExecutionNode node, ExecutionRenderContext context)

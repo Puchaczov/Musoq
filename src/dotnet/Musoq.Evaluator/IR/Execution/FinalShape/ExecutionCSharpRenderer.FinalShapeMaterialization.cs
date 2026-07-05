@@ -9,7 +9,8 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed partial class ExecutionCSharpRenderer
 {
     private List<StatementSyntax> RenderMaterializeRecordListToFinalShapes(
-        ExecutionMaterializeRecordListToTable materialize)
+        ExecutionMaterializeRecordListToTable materialize,
+        ExecutionRenderContext context)
     {
         var statements = new List<StatementSyntax>();
 
@@ -28,7 +29,8 @@ public sealed partial class ExecutionCSharpRenderer
             recordVariableName,
             SyntaxFactory.IdentifierName(materialize.Source.Name),
             StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(
-                CreateFinalShapeCreationFromRecord(materialize, recordVariableName, rowNumberVariableName)))));
+                CreateFinalShapeCreationFromRecord(materialize, recordVariableName, rowNumberVariableName, context),
+                context))));
 
         return statements;
     }
@@ -36,7 +38,8 @@ public sealed partial class ExecutionCSharpRenderer
     private ObjectCreationExpressionSyntax CreateFinalShapeCreationFromRecord(
         ExecutionMaterializeRecordListToTable materialize,
         string recordVariableName,
-        string rowNumberVariableName)
+        string rowNumberVariableName,
+        ExecutionRenderContext context)
     {
         var renumberIndexes = materialize.RenumberFieldIndexes.ToHashSet();
         var arguments = materialize.FieldIndexes.Select((sourceIndex, fieldIndex) =>
@@ -53,7 +56,7 @@ public sealed partial class ExecutionCSharpRenderer
             return SyntaxFactory.Argument(value);
         });
 
-        var sink = RenderSession.FinalShapeYieldSink ??
+        var sink = context.Session.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         return CreateFinalShapeCreation(sink.ShapeTypeName, arguments);
     }

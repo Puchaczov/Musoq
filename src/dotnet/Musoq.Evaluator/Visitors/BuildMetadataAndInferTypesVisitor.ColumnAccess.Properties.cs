@@ -13,7 +13,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(PropertyValueNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var parentNode = SafePeek(Nodes, VisitorOperationNames.VisitPropertyValueNode);
+        var parentNode = PeekSemanticNode(VisitorOperationNames.VisitPropertyValueNode);
         if (parentNode?.ReturnType == null || parentNode.ReturnType == typeof(void))
         {
             var span = node.SpanOrEmpty();
@@ -39,7 +39,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 node.Name,
                 typeof(object),
                 typeof(ExpandoObject));
-            Nodes.Push(new PropertyValueNode(node.Name, propertyInfo));
+            PushSemanticNode(new PropertyValueNode(node.Name, propertyInfo));
         }
         else
         {
@@ -65,7 +65,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 throw new UnknownPropertyException(node.Name, parentNodeType.Name, span);
             }
 
-            Nodes.Push(new PropertyValueNode(node.Name, propertyInfo));
+            PushSemanticNode(new PropertyValueNode(node.Name, propertyInfo));
         }
     }
 }

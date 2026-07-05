@@ -6,10 +6,12 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed partial class ExecutionCSharpRenderer
 {
     private static Dictionary<string, IReadOnlySet<GeneratedRowContextConstructor>>
-        CollectGeneratedRowConstructorUsages(ExecutionBlock block)
+        CollectGeneratedRowConstructorUsages(
+            ExecutionBlock block,
+            IReadOnlyDictionary<int, TypedStoredTableResult>? typedStoredTableResults = null)
     {
         var usages = new Dictionary<string, HashSet<GeneratedRowContextConstructor>>(StringComparer.Ordinal);
-        var contextReadTypeNames = CollectGeneratedRowTypesWithContextReads(block);
+        var contextReadTypeNames = CollectGeneratedRowTypesWithContextReads(block, typedStoredTableResults);
         contextReadTypeNames.UnionWith(CollectGeneratedRowTypesUsedAsRowContexts(block));
 
         foreach (var appendRow in FlattenNodes(block).OfType<ExecutionAppendRow>().Select(NormalizeLazyContextSegments))
@@ -55,9 +57,11 @@ public sealed partial class ExecutionCSharpRenderer
             StringComparer.Ordinal);
     }
 
-    private static HashSet<string> CollectGeneratedRowTypesWithContextReads(ExecutionBlock block)
+    private static HashSet<string> CollectGeneratedRowTypesWithContextReads(
+        ExecutionBlock block,
+        IReadOnlyDictionary<int, TypedStoredTableResult>? typedStoredTableResults)
     {
-        var variableTypeNamesByName = CollectGeneratedRowVariableTypeNames(block);
+        var variableTypeNamesByName = CollectGeneratedRowVariableTypeNames(block, typedStoredTableResults);
         var result = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var expression in ExecutionIrAnalysis.FlattenExpressions(block))

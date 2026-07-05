@@ -8,19 +8,23 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private void EnsureAggregateGenerationState(ExecutionPlan plan)
+    private void EnsureAggregateGenerationState(ExecutionPlan plan, ExecutionRenderContext context)
     {
-        RenderSession.AggregateGroupTypeNames.Clear();
-        RenderSession.ParallelFilterProjectFunctionNames.Clear();
-        RenderSession.ParallelSingleKeyAggregateFunctionNames.Clear();
+        var session = context.Session;
+        session.AggregateGroupTypeNames.Clear();
+        session.ParallelFilterProjectFunctionNames.Clear();
+        session.ParallelSingleKeyAggregateFunctionNames.Clear();
 
-        AssignAggregateGroupTypeNames(plan.Shapes.OfType<AggregateGroupShape>().ToArray());
-        AssignParallelFilterProjectFunctionNames(CollectParallelFilterProjectLoops(plan.Body).ToArray());
-        AssignParallelSingleKeyAggregateFunctionNames(CollectParallelSingleKeyAggregateLoops(plan.Body).ToArray());
+        AssignAggregateGroupTypeNames(plan.Shapes.OfType<AggregateGroupShape>().ToArray(), context);
+        AssignParallelFilterProjectFunctionNames(CollectParallelFilterProjectLoops(plan.Body).ToArray(), context);
+        AssignParallelSingleKeyAggregateFunctionNames(CollectParallelSingleKeyAggregateLoops(plan.Body).ToArray(), context);
     }
 
-    private void AssignAggregateGroupTypeNames(IReadOnlyList<AggregateGroupShape> shapes)
+    private static void AssignAggregateGroupTypeNames(
+        IReadOnlyList<AggregateGroupShape> shapes,
+        ExecutionRenderContext context)
     {
+        var session = context.Session;
         var usedNames = new HashSet<string>(
             shapes.Select(static shape => shape.TypeName),
             StringComparer.Ordinal);
@@ -31,50 +35,58 @@ public sealed partial class ExecutionCSharpRenderer
             var groupShapes = group.ToArray();
             if (groupShapes.Length == 1)
             {
-                RenderSession.AggregateGroupTypeNames[group.Key] = groupShapes[0].TypeName;
+                session.AggregateGroupTypeNames[group.Key] = groupShapes[0].TypeName;
                 continue;
             }
 
             var typeName = CreateSharedAggregateGroupTypeName(usedNames, duplicateIndex++);
             foreach (var shape in groupShapes)
-                RenderSession.AggregateGroupTypeNames[CreateAggregateGroupShapeSignature(shape)] = typeName;
+                session.AggregateGroupTypeNames[CreateAggregateGroupShapeSignature(shape)] = typeName;
         }
     }
 
-    private void AssignParallelSingleKeyAggregateFunctionNames(IReadOnlyList<ExecutionParallelSingleKeyAggregateLoop> loops)
+    private void AssignParallelSingleKeyAggregateFunctionNames(
+        IReadOnlyList<ExecutionParallelSingleKeyAggregateLoop> loops,
+        ExecutionRenderContext context)
     {
+        var session = context.Session;
         var helperIndex = 0;
 
         foreach (var loop in loops)
         {
             var descriptor = CreateParallelSingleKeyAggregateDescriptor(loop);
-            if (RenderSession.ParallelSingleKeyAggregateFunctionNames.ContainsKey(descriptor))
+            if (session.ParallelSingleKeyAggregateFunctionNames.ContainsKey(descriptor))
                 continue;
 
             var suffix = helperIndex.ToString(CultureInfo.InvariantCulture);
-            RenderSession.ParallelSingleKeyAggregateFunctionNames[descriptor] = $"ParallelSingleKeyAggregate_{suffix}";
+            session.ParallelSingleKeyAggregateFunctionNames[descriptor] = $"ParallelSingleKeyAggregate_{suffix}";
             helperIndex++;
         }
     }
 
-    private void AssignParallelFilterProjectFunctionNames(IReadOnlyList<ExecutionParallelFilterProjectLoop> loops)
+    private static void AssignParallelFilterProjectFunctionNames(
+        IReadOnlyList<ExecutionParallelFilterProjectLoop> loops,
+        ExecutionRenderContext context)
     {
+        var session = context.Session;
         var usedNames = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var loop in loops)
         {
-            if (RenderSession.ParallelFilterProjectFunctionNames.ContainsKey(loop))
+            if (session.ParallelFilterProjectFunctionNames.ContainsKey(loop))
                 continue;
 
             var baseName = $"Populate{CreatePascalIdentifier(loop.AppendRow.Table.Name)}";
             var functionName = CreateUniqueHelperName(baseName, usedNames);
-            RenderSession.ParallelFilterProjectFunctionNames.Add(loop, functionName);
+            session.ParallelFilterProjectFunctionNames.Add(loop, functionName);
         }
     }
 
-    private string CreateParallelFilterProjectFunctionName(ExecutionParallelFilterProjectLoop parallelProject)
+    private static string CreateParallelFilterProjectFunctionName(
+        ExecutionParallelFilterProjectLoop parallelProject,
+        ExecutionRenderContext context)
     {
-        return RenderSession.ParallelFilterProjectFunctionNames.TryGetValue(parallelProject, out var functionName)
+        return context.Session.ParallelFilterProjectFunctionNames.TryGetValue(parallelProject, out var functionName)
             ? functionName
             : $"Populate{CreatePascalIdentifier(parallelProject.AppendRow.Table.Name)}";
     }
@@ -138,28 +150,32 @@ public sealed partial class ExecutionCSharpRenderer
         }
     }
 
-    private string GetAggregateGroupTypeName(AggregateGroupShape shape)
+    private static string GetAggregateGroupTypeName(AggregateGroupShape shape, ExecutionRenderContext context)
     {
-        return RenderSession.AggregateGroupTypeNames.TryGetValue(CreateAggregateGroupShapeSignature(shape), out var typeName)
+        return context.Session.AggregateGroupTypeNames.TryGetValue(CreateAggregateGroupShapeSignature(shape), out var typeName)
             ? typeName
             : shape.TypeName;
     }
 
-    private AggregateGroupShape CreateRenderableAggregateGroupShape(AggregateGroupShape shape)
+    private static AggregateGroupShape CreateRenderableAggregateGroupShape(
+        AggregateGroupShape shape,
+        ExecutionRenderContext context)
     {
         return shape with
         {
-            TypeName = GetAggregateGroupTypeName(shape),
+            TypeName = GetAggregateGroupTypeName(shape, context),
             OwnerFields = shape.OwnerFields
-                .Select(owner => owner with { Shape = CreateRenderableAggregateGroupShape(owner.Shape) })
+                .Select(owner => owner with { Shape = CreateRenderableAggregateGroupShape(owner.Shape, context) })
                 .ToArray()
         };
     }
 
-    private string CreateParallelSingleKeyAggregateFunctionName(ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+    private string CreateParallelSingleKeyAggregateFunctionName(
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
+        ExecutionRenderContext context)
     {
         var descriptor = CreateParallelSingleKeyAggregateDescriptor(parallelAggregate);
-        return RenderSession.ParallelSingleKeyAggregateFunctionNames.TryGetValue(descriptor, out var functionName)
+        return context.Session.ParallelSingleKeyAggregateFunctionNames.TryGetValue(descriptor, out var functionName)
             ? functionName
             : $"ParallelSingleKeyAggregate_{parallelAggregate.GroupsToFinalize.Name}";
     }

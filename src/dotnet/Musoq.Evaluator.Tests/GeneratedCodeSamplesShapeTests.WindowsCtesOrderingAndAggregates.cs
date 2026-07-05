@@ -43,7 +43,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var samples = ReadSamples().ToDictionary(static sample => sample.FileName, StringComparer.Ordinal);
 
-        AssertTypedCteHashJoinSample(samples[CteWithJoinSampleFileName], "Cte0Row0");
+        AssertTypedCteSidecarHashJoinSample(samples[CteWithJoinSampleFileName], "Cte0HashPayload0");
         AssertTypedCteAsOfSample(samples[CteBackedAsOfJoinSampleFileName]);
         AssertTypedCteAggregateHashJoinSample(samples[CteBackedAggregateOverHashJoinSampleFileName]);
         AssertTypedRepeatedCteSelfJoinSample(samples[RepeatedCteSelfJoinSampleFileName]);
@@ -243,19 +243,22 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("ParallelMerge", sample);
         Assert.Contains("Parallel.Invoke(new ParallelOptions", sample);
         Assert.Contains("private static List<Cte0Row0> BuildCteLevel0Task0", sample);
-        Assert.Contains("private static List<Cte1Row0> BuildCteLevel0Task1", sample);
+        Assert.Contains("private static object BuildCteLevel0Task1", sample);
         Assert.Contains("private sealed class CteLevel0Runner", sample);
         Assert.Contains("cteLevel0Runner.RunCteLevel0Task0", sample);
         Assert.Contains("cteLevel0Runner.RunCteLevel0Task1", sample);
         Assert.Contains("CancellationToken = token", sample);
         Assert.Contains("MaxDegreeOfParallelism = 2", sample);
         Assert.Contains("var cte0 = new List<Cte0Row0>();", sample);
-        Assert.Contains("var cte1 = new List<Cte1Row0>();", sample);
+        Assert.Contains("var cte1HashSidecar0Name = new Dictionary<string, HashJoinBucket<Cte1HashPayload0>>();", sample);
         Assert.Contains("_cteRowResults.Slot0 = __parallelCteLevel0Task0Result", sample);
-        Assert.Contains("_cteRowResults.Slot1 = __parallelCteLevel0Task1Result", sample);
+        Assert.Contains("_cteIndexResults.Slot0 = cte1HashSidecar0Name", sample);
         Assert.Contains("var __storedTable0Rows = _cteRowResults.Slot0;", sample);
-        Assert.Contains("var __storedTable1Rows = _cteRowResults.Slot1;", sample);
-        Assert.Contains("new Dictionary<string, HashJoinBucket<Cte1Row0>>(_cteRowResults.Slot1.Count)", sample);
+        Assert.Contains("var qHash = _cteIndexResults.Slot0;", sample);
+        Assert.Contains("HashJoinBucket<Cte1HashPayload0>", sample);
+        Assert.Contains("LoadCteIndex [qHash <- _cteIndexResults.Slot0 Hash: string]", sample);
+        Assert.IsFalse(sample.Contains("var __storedTable1Rows = _cteRowResults.Slot1;", StringComparison.Ordinal));
+        Assert.IsFalse(sample.Contains("new Dictionary<string, HashJoinBucket<Cte1Row0>>(_cteRowResults.Slot1.Count)", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("private static Musoq.Evaluator.Tables.Table BuildCteLevel0Task0", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("private static Musoq.Evaluator.Tables.Table BuildCteLevel0Task1", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("new Table(\"cte0\"", StringComparison.Ordinal));
@@ -313,10 +316,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var sample = ReadSamples().Single(static sample => sample.FileName == RepeatedCteSelfJoinSampleFileName).Content;
 
         Assert.Contains("var __storedTable0Rows = _cteRowResults.Slot0;", sample);
-        Assert.Contains("foreach (var l in __storedTable0Rows)", sample);
-        Assert.Contains("foreach (var r in __storedTable0Rows)", sample);
+        Assert.Contains("ForEach [l in _cteRowResults.Slot0]", sample);
+        Assert.Contains("ForEach [r in rHashMatches]", sample);
+        Assert.Contains("Cte0Row0 l = __storedTable0Rows[__storedTable0Index];", sample);
+        Assert.Contains("LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]", sample);
         Assert.Contains("private static List<Cte0Row0> BuildCte0", sample);
-        Assert.Contains("HashJoinBucket<Cte0Row0>", sample);
+        Assert.Contains("HashJoinBucket<Cte0HashPayload0>", sample);
         Assert.IsFalse(sample.Contains("var __storedTable0Rows = _tableResults[0].Rows;", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("EvaluationHelper.CastGeneratedRows<Cte0Row0>(_tableResults[0].Rows)", StringComparison.Ordinal));
         Assert.IsFalse(sample.Contains("foreach (var l in _tableResults[0].Rows)", StringComparison.Ordinal));

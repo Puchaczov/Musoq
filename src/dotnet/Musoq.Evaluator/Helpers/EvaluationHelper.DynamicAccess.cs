@@ -1,15 +1,16 @@
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
+using Musoq.Evaluator.Runtime;
 
 namespace Musoq.Evaluator.Helpers;
 
 public static partial class EvaluationHelper
 {
-    private static readonly ConcurrentDictionary<NestedValueAccessorKey, Func<object?, object?>> NestedValueAccessors = new();
+    private static readonly BoundedRuntimeCache<NestedValueAccessorKey, Func<object?, object?>> NestedValueAccessors =
+        new(RuntimeCacheOptions.DynamicAccessorCacheSize);
     private static readonly object MissingNestedValue = new();
 
     public static object? CreateNullableHashJoinKey(params object?[]? parts)

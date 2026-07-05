@@ -9,7 +9,8 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed partial class ExecutionCSharpRenderer
 {
     private List<StatementSyntax> CreateParallelSingleKeyAggregateFunctionBody(
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
+        ExecutionRenderContext context)
     {
         const string rowsName = "rows";
         const string maxDegreeName = "maxDegreeOfParallelism";
@@ -19,11 +20,11 @@ public sealed partial class ExecutionCSharpRenderer
         const string optionsName = "options";
         const string workerName = "worker";
 
-        var groupType = CreateAggregateGroupType(parallelAggregate.GroupShape);
+        var groupType = CreateAggregateGroupType(parallelAggregate.GroupShape, context);
         var captures = CollectParallelSingleKeyAggregateCaptures(parallelAggregate);
         var body = new List<StatementSyntax>
         {
-            CreateReturnEmptyGroupsIfNoRowsStatement(parallelAggregate),
+            CreateReturnEmptyGroupsIfNoRowsStatement(parallelAggregate, context),
             CreateWorkerCountDeclaration(rowsName, maxDegreeName, workerCountName),
             CreateShardArrayDeclaration(groupType, shardsName, workerCountName),
             CreateParallelAggregateOptionsDeclaration(optionsName, cancellationTokenName, workerCountName),
@@ -34,7 +35,8 @@ public sealed partial class ExecutionCSharpRenderer
                 shardsName,
                 cancellationTokenName,
                 workerName,
-                captures),
+                captures,
+                context),
             CreateParallelAggregateForStatement(
                 workerCountName,
                 optionsName,
@@ -50,7 +52,8 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private IfStatementSyntax CreateReturnEmptyGroupsIfNoRowsStatement(
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
+        ExecutionRenderContext context)
     {
         return SyntaxFactory.IfStatement(
             SyntaxFactory.BinaryExpression(
@@ -58,7 +61,7 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateRowsCountExpression("rows"),
                 SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))),
             StatementEmitter.CreateBlock(SyntaxFactory.ReturnStatement(SyntaxFactory.ObjectCreationExpression(
-                        CreateListTypeSyntax(CreateAggregateGroupType(parallelAggregate.GroupShape)))
+                        CreateListTypeSyntax(CreateAggregateGroupType(parallelAggregate.GroupShape, context)))
                     .WithArgumentList(SyntaxFactory.ArgumentList()))));
     }
 

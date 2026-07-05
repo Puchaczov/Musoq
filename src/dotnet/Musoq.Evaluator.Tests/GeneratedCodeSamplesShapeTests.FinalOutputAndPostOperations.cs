@@ -85,7 +85,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.DoesNotContain("__rightContext", sample, CteJoinFrameQualifySampleFileName);
         Assert.DoesNotContain("Contexts => new object[]", sample, CteJoinFrameQualifySampleFileName);
         Assert.DoesNotContain("new Cte0Row0(ko3iko.Name, ko3iko.City, population, (object)ko3iko)", sample, CteJoinFrameQualifySampleFileName);
-        Assert.Contains("new Cte0Row0(ko3iko.Name, ko3iko.City, population)", sample, CteJoinFrameQualifySampleFileName);
+        Assert.DoesNotContain("new Cte0HashPayload0(ko3iko.Name, population, (object)ko3iko)", sample, CteJoinFrameQualifySampleFileName);
+        Assert.Contains("new Cte0HashPayload0(ko3iko.Name, ko3iko.Population)", sample, CteJoinFrameQualifySampleFileName);
         Assert.Contains("new Statement0Row0(b.Name, b.Population, a.Name, a.City)", sample, CteJoinFrameQualifySampleFileName);
     }
 

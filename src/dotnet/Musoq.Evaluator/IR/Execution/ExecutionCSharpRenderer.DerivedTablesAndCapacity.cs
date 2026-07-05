@@ -14,36 +14,40 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable target,
         ExecutionVariable source,
         ExecutionCapacityHint? capacityHint,
-        ExecutionColumnMetadata? columnMetadata)
+        ExecutionColumnMetadata? columnMetadata,
+        ExecutionRenderContext context)
     {
-        yield return CreateDerivedTableDeclaration(target, source, columnMetadata);
+        yield return CreateDerivedTableDeclaration(target, source, columnMetadata, context);
 
         if (capacityHint is not null)
-            yield return CreateEnsureCapacityStatement(target.Name, RenderCapacityHint(capacityHint));
+            yield return CreateEnsureCapacityStatement(target.Name, RenderCapacityHint(capacityHint, context));
     }
 
     private IEnumerable<StatementSyntax> CreateTablePostOperationCopyStatements(
         ExecutionTablePostOperationMetadata operation,
-        string rowsVariableName)
+        string rowsVariableName,
+        ExecutionRenderContext context)
     {
         foreach (var statement in CreateDerivedTableStatements(
                      operation.Target,
                      operation.Source,
                      operation.CapacityHint,
-                     operation.ColumnMetadata))
+                     operation.ColumnMetadata,
+                     context))
         {
             yield return statement;
         }
 
-        yield return CreateCopyRowsLoop(rowsVariableName, operation.Target.Name, operation.AppendMode);
+        yield return CreateCopyRowsLoop(rowsVariableName, operation.Target.Name, operation.AppendMode, context);
     }
 
     private LocalDeclarationStatementSyntax CreateDerivedTableDeclaration(
         ExecutionVariable target,
         ExecutionVariable source,
-        ExecutionColumnMetadata? columnMetadata)
+        ExecutionColumnMetadata? columnMetadata,
+        ExecutionRenderContext context)
     {
-        if (TryGetTypedRowBufferShape(target.Name, out var rowShape))
+        if (TryGetTypedRowBufferShape(target.Name, context, out var rowShape))
         {
             return CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
@@ -52,9 +56,15 @@ public sealed partial class ExecutionCSharpRenderer
                     .WithArgumentList(SyntaxFactory.ArgumentList()));
         }
 
-        ExpressionSyntax columns = columnMetadata is not null && TryGetStaticMetadataFieldName(columnMetadata, out var fieldName)
-            ? SyntaxFactory.IdentifierName(fieldName)
-            : CreateColumnArrayCopy(source);
+        ExpressionSyntax columns;
+        if (columnMetadata is not null && TryGetStaticMetadataFieldName(columnMetadata, context, out var fieldName))
+        {
+            columns = SyntaxFactory.IdentifierName(fieldName);
+        }
+        else
+        {
+            columns = CreateColumnArrayForSource(source, context);
+        }
 
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -77,10 +87,29 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.IdentifierName("ToArray")));
     }
 
+    private ExpressionSyntax CreateColumnArrayForSource(
+        ExecutionVariable source,
+        ExecutionRenderContext context)
+    {
+        if (TryGetGeneratedRowShape(source, context, out var sourceRowShape))
+        {
+            var sourceMetadata = CreateColumnMetadata(
+                source.Name,
+                sourceRowShape.Fields,
+                ExecutionColumnMetadataKind.TableColumns);
+            return TryGetStaticMetadataFieldName(sourceMetadata, context, out var sourceFieldName)
+                ? SyntaxFactory.IdentifierName(sourceFieldName)
+                : CreateColumnArrayCreation(sourceMetadata.Fields);
+        }
+
+        return CreateColumnArrayCopy(source);
+    }
+
     private ForEachStatementSyntax CreateCopyRowsLoop(
         string rowsVariableName,
         string tableName,
-        ExecutionAppendMode appendMode)
+        ExecutionAppendMode appendMode,
+        ExecutionRenderContext context)
     {
         const string rowVariableName = "copiedRow";
 
@@ -88,7 +117,7 @@ public sealed partial class ExecutionCSharpRenderer
             rowVariableName,
             SyntaxFactory.IdentifierName(rowsVariableName),
             StatementEmitter.CreateBlock(
-                TryGetTypedRowBufferShape(tableName, out _)
+                TryGetTypedRowBufferShape(tableName, context, out _)
                     ? CreateRowBufferAddStatement(tableName, SyntaxFactory.IdentifierName(rowVariableName))
                     : CreateTableAddStatement(tableName, SyntaxFactory.IdentifierName(rowVariableName), appendMode)));
     }
@@ -107,7 +136,7 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.ExpressionStatement(ensureCapacityInvocation);
     }
 
-    private ExpressionSyntax RenderCapacityHint(ExecutionCapacityHint capacityHint)
+    private ExpressionSyntax RenderCapacityHint(ExecutionCapacityHint capacityHint, ExecutionRenderContext context)
     {
         return capacityHint switch
         {
@@ -118,7 +147,7 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionTryGetNonEnumeratedCountCapacityHint enumerable => CreateTryGetNonEnumeratedCountCapacityRead(
                 enumerable.Collection.Name,
                 enumerable.CountVariableName),
-            ExecutionStoredTableCountCapacityHint storedTable => CreateStoredTableCountRead(storedTable.TableIndex),
+            ExecutionStoredTableCountCapacityHint storedTable => CreateStoredTableCountRead(storedTable.TableIndex, context),
             ExecutionTakeCapacityHint take => CreateMathInvocation(
                 nameof(Math.Min),
                 CreateCollectionCountRead(take.Collection.Name),
@@ -170,9 +199,9 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IdentifierName("Count"));
     }
 
-    private ExpressionSyntax CreateStoredTableCountRead(int tableIndex)
+    private ExpressionSyntax CreateStoredTableCountRead(int tableIndex, ExecutionRenderContext context)
     {
-        if (TryGetTypedStoredTableResult(tableIndex, out _))
+        if (TryGetTypedStoredTableResult(tableIndex, context, out _))
         {
             return SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,

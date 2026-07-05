@@ -6,7 +6,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 {
     internal bool ShouldSkipCoalesceRightOperand()
     {
-        var left = SafePeek(Nodes, "Visit(CoalesceNode) left");
+        var left = PeekSemanticNode("Visit(CoalesceNode) left");
         return _expressionBindingService.ShouldSkipCoalesceRightOperand(left);
     }
 
@@ -14,9 +14,9 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
 
-        var right = SafePop(Nodes, "Visit(CoalesceNode) right");
-        var left = SafePop(Nodes, "Visit(CoalesceNode) left");
+        var right = PopSemanticNode("Visit(CoalesceNode) right");
+        var left = PopSemanticNode("Visit(CoalesceNode) left");
 
-        Nodes.Push(_expressionBindingService.BindCoalesce(node, left, right));
+        PushSemanticNode(_expressionBindingService.BindCoalesce(node, left, right));
     }
 }

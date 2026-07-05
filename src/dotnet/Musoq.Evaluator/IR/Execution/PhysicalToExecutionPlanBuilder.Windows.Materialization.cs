@@ -62,45 +62,13 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         bool isDistinct = false,
         TableProjection? finalProjection = null)
     {
-        var currentTable = resultTable;
-        if (isDistinct)
-        {
-            if (finalProjection != null)
-            {
-                return TableBuildResult.Unsupported(
-                    "Execution IR distinct lowering currently cannot combine hidden sort fields with final projection.");
-            }
-
-            var distinctTable = new ExecutionVariable($"{currentTable.Name}Distinct", typeof(object));
-            nodes.Add(new ExecutionDistinctTable(currentTable, distinctTable));
-            currentTable = distinctTable;
-        }
-
-        foreach (var operation in postOperations)
-        {
-            var operationResult = CreatePostOperation(operation, currentTable, resultShape);
-            if (!operationResult.Supported)
-                return TableBuildResult.Unsupported(operationResult.UnsupportedReason);
-
-            nodes.Add(operationResult.Node);
-            currentTable = operationResult.Target;
-        }
-
-        if (finalProjection != null)
-        {
-            nodes.Add(new ExecutionProjectTable(
-                currentTable,
-                finalProjection.Table,
-                finalProjection.RowShape,
-                finalProjection.FieldIndexes,
-                ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(
-                    finalProjection.Table,
-                    currentTable),
-                SerialAppendMode));
-            currentTable = finalProjection.Table;
-            resultShape = finalProjection.RowShape;
-        }
-
-        return TableBuildResult.Success(shapes, nodes, currentTable, resultShape);
+        return TableCompletionPlanner.Default.Complete(new TableCompletionRequest(
+            shapes,
+            nodes,
+            resultTable,
+            resultShape,
+            postOperations,
+            isDistinct,
+            finalProjection));
     }
 }

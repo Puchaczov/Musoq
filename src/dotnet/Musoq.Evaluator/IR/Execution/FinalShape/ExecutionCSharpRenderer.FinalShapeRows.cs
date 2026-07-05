@@ -37,7 +37,12 @@ public sealed partial class ExecutionCSharpRenderer
             session.IncludeCteIndexResults = ExecutionCSharpRenderer.PlanUsesCteIndexResults(plan);
             session.IncludeCteRowResults = session.TypedStoredTableResults.Count > 0;
             session.IncludeTableResults = ExecutionCSharpRenderer.PlanUsesTableResults(plan, session.TypedStoredTableResults);
-            session.GeneratedRowConstructorUsagesByType = ExecutionCSharpRenderer.CollectGeneratedRowConstructorUsages(plan.Body);
+            session.GeneratedRowVariableTypeNamesByName = ExecutionCSharpRenderer.CollectGeneratedRowVariableTypeNames(
+                plan.Body,
+                session.TypedStoredTableResults);
+            session.GeneratedRowConstructorUsagesByType = ExecutionCSharpRenderer.CollectGeneratedRowConstructorUsages(
+                plan.Body,
+                session.TypedStoredTableResults);
             var finalShapeBufferName = bufferFinalShapes ? "__musoqFinalShapeRows" : null;
             var finalShapeSourceBuffers = CreateFinalShapeSourceBuffers(plan.Body, finalTableName, shapeTypeName, shapeFields);
             session.FinalShapeYieldSink = new FinalShapeYieldSink(
@@ -48,7 +53,7 @@ public sealed partial class ExecutionCSharpRenderer
                 finalShapeSourceBuffers);
             session.SingleKeyAggregateUpdateHelpersByBlock = CollectSingleKeyAggregateUpdateHelpersByBlock(plan.Body);
             session.EnumerableTraversalHelpersByBlock = Enumerable
-                .Where<KeyValuePair<ExecutionBlock, ExecutionCSharpRenderer.EnumerableTraversalHelper>>(CollectEnumerableTraversalHelpersByBlock(plan.Body), pair => !CapturesCurrentFinalShapeTargetOrSourceBuffer(pair.Value))
+                .Where<KeyValuePair<ExecutionBlock, ExecutionCSharpRenderer.EnumerableTraversalHelper>>(CollectEnumerableTraversalHelpersByBlock(plan.Body, context), pair => !CapturesCurrentFinalShapeTargetOrSourceBuffer(pair.Value, context))
                 .ToDictionary(static pair => pair.Key, static pair => pair.Value);
 
             return SyntaxFactory.MethodDeclaration(
@@ -101,6 +106,9 @@ public sealed partial class ExecutionCSharpRenderer
             static accessor => accessor.VariableName,
             StringComparer.Ordinal);
         session.TableRowShapesByVariableName = ExecutionCSharpRenderer.CreateTableRowShapeMap(block);
+        session.GeneratedRowVariableTypeNamesByName = ExecutionCSharpRenderer.CollectGeneratedRowVariableTypeNames(
+            block,
+            session.TypedStoredTableResults);
         session.StoredGeneratedRowsLoopNameCounts = [];
         session.TypedRowBufferVariables = CreateTypedRowBufferVariables(block, finalTableName);
         session.OperatorCatalog = ExecutionPlanOperatorCatalog.Create(plan);
@@ -113,7 +121,7 @@ public sealed partial class ExecutionCSharpRenderer
             statements.AddRange(ExecutionCSharpRenderer.CreateOpeningPhaseStatements(block, queryIdentifier));
 
             var tryStatements = new List<StatementSyntax>();
-            tryStatements.AddRange(CreateExecutionStateDeclarations(plan));
+            tryStatements.AddRange(CreateExecutionStateDeclarations(plan, context));
             tryStatements.AddRange(CreateScriptParameterBindingStatements());
             tryStatements.AddRange(CreateScriptVariableBindingStatements());
             tryStatements.AddRange(reflectedAccessors.Select(ExecutionCSharpRenderer.CreateReflectedMemberAccessorDeclaration));
@@ -136,13 +144,13 @@ public sealed partial class ExecutionCSharpRenderer
                 bodyStatements.Add(SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(finalShapeBufferName)));
 
             var operatorProfileUsage = CollectOperatorProfileUsage(bodyStatements);
-            tryStatements.AddRange(CreateOperatorHandleDeclarations(operatorProfileUsage).Concat(CreateOperatorCounterDeclarations(operatorProfileUsage)));
-            tryStatements.AddRange(AddOperatorCounterFlushesBeforeTopLevelReturns(bodyStatements, operatorProfileUsage, appendAtEnd: true));
+            tryStatements.AddRange(CreateOperatorHandleDeclarations(operatorProfileUsage, context).Concat(CreateOperatorCounterDeclarations(operatorProfileUsage, context)));
+            tryStatements.AddRange(AddOperatorCounterFlushesBeforeTopLevelReturns(bodyStatements, operatorProfileUsage, context, appendAtEnd: true));
 
             statements.Add(SyntaxFactory.TryStatement(SyntaxFactory.Block(tryStatements), default, SyntaxFactory.FinallyClause(
                 SyntaxFactory.Block(ExecutionCSharpRenderer.CreateClosingPhaseStatements(block, queryIdentifier)))));
 
-            return CreateProfileExceptionBoundaryBlock(statements, includeExceptionBoundary: finalShapeBufferName != null);
+            return CreateProfileExceptionBoundaryBlock(statements, context, includeExceptionBoundary: finalShapeBufferName != null);
     }
 
     private static StatementSyntax RewriteRemovedFinalTableCount(
@@ -179,9 +187,11 @@ public sealed partial class ExecutionCSharpRenderer
             .ToArray());
     }
 
-    private bool CapturesCurrentFinalShapeTargetOrSourceBuffer(ExecutionCSharpRenderer.EnumerableTraversalHelper helper)
+    private bool CapturesCurrentFinalShapeTargetOrSourceBuffer(
+        ExecutionCSharpRenderer.EnumerableTraversalHelper helper,
+        ExecutionRenderContext context)
     {
-        return helper.Captures.Any(capture => IsCurrentFinalShapeTargetOrSourceBuffer(capture.Name));
+        return helper.Captures.Any(capture => IsCurrentFinalShapeTargetOrSourceBuffer(capture.Name, context));
     }
 
     private static IReadOnlyDictionary<string, FinalShapeSourceBuffer> CreateFinalShapeSourceBuffers(

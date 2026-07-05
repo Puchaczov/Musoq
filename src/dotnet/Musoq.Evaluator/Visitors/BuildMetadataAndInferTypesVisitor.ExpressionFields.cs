@@ -8,15 +8,15 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(FieldNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var expression = SafePop(Nodes, VisitorOperationNames.VisitFieldNode);
-        Nodes.Push(new FieldNode(expression, node.FieldOrder, node.FieldName, node.HasExplicitFieldName));
+        var expression = PopSemanticNode(VisitorOperationNames.VisitFieldNode);
+        PushSemanticNode(new FieldNode(expression, node.FieldOrder, node.FieldName, node.HasExplicitFieldName));
     }
 
     public override void Visit(FieldOrderedNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var expression = SafePop(Nodes, VisitorOperationNames.VisitFieldOrderedNode);
-        Nodes.Push(new FieldOrderedNode(expression, node.FieldOrder, node.FieldName, node.HasExplicitFieldName, node.Order, node.NullOrdering));
+        var expression = PopSemanticNode(VisitorOperationNames.VisitFieldOrderedNode);
+        PushSemanticNode(new FieldOrderedNode(expression, node.FieldOrder, node.FieldName, node.HasExplicitFieldName, node.Order, node.NullOrdering));
     }
 
     public override void Visit(SelectNode node)
@@ -26,7 +26,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         CollectSelectFieldAliases(fields);
 
-        Nodes.Push(new SelectNode(fields.ToArray(), node.IsDistinct));
+        PushSemanticNode(new SelectNode(fields.ToArray(), node.IsDistinct));
     }
 
     public override void Visit(GroupSelectNode node)
@@ -36,6 +36,6 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         CollectSelectFieldAliases(fields);
 
-        Nodes.Push(new GroupSelectNode(fields.ToArray()));
+        PushSemanticNode(new GroupSelectNode(fields.ToArray()));
     }
 }

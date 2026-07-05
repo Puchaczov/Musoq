@@ -105,7 +105,13 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string? nullAlias)
     {
         if (tableRow.Contexts.Count == 0)
-            return null;
+        {
+            ExecutionExpression expression = IsNullExtendedSource(tableRow, nullAlias)
+                ? new ExecutionLiteral(null, typeof(object))
+                : new ExecutionVariableRead(new ExecutionVariable(tableRow.Alias, typeof(object)));
+
+            return new ExecutionContextSegment(ExecutionContextSegmentKind.Single, expression, 1);
+        }
 
         if (IsNullExtendedSource(tableRow, nullAlias))
         {
@@ -162,6 +168,12 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
         if (sourceShape is TableRowShape tableRow)
         {
+            if (tableRow.Contexts.Count == 0)
+            {
+                yield return new ExecutionVariableRead(new ExecutionVariable(tableRow.Alias, typeof(object)));
+                yield break;
+            }
+
             foreach (var context in tableRow.Contexts)
             {
                 if (IsNullExtendedContext(context, nullAlias))
@@ -183,6 +195,12 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     {
         if (sourceShape is TableRowShape tableRow)
         {
+            if (tableRow.Contexts.Count == 0)
+            {
+                yield return new ExecutionLiteral(null, typeof(object));
+                yield break;
+            }
+
             foreach (var context in tableRow.Contexts)
                 yield return new ExecutionLiteral(null, context.Type);
 

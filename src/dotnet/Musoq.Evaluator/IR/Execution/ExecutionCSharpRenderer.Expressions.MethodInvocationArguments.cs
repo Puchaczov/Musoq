@@ -9,7 +9,9 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private List<ArgumentSyntax> CreateMethodInvocationArguments(ExecutionMethodCall methodCall)
+    private List<ArgumentSyntax> CreateMethodInvocationArguments(
+        ExecutionMethodCall methodCall,
+        ExecutionRenderContext context)
     {
         var renderedArguments = new List<ArgumentSyntax>();
         var argumentIndex = 0;
@@ -29,7 +31,7 @@ public sealed partial class ExecutionCSharpRenderer
             if (parameter.GetCustomAttribute<ParamArrayAttribute>() != null)
             {
                 while (argumentIndex < methodCall.Arguments.Count)
-                    renderedArguments.Add(SyntaxFactory.Argument(RenderExpression(methodCall.Arguments[argumentIndex++])));
+                    renderedArguments.Add(SyntaxFactory.Argument(RenderExpression(methodCall.Arguments[argumentIndex++], context)));
 
                 continue;
             }
@@ -45,7 +47,7 @@ public sealed partial class ExecutionCSharpRenderer
                 throw new NotSupportedException($"Method {methodCall.Method.Name} is missing argument {parameter.Name}.");
             }
 
-            renderedArguments.Add(SyntaxFactory.Argument(RenderExpression(methodCall.Arguments[argumentIndex++])));
+            renderedArguments.Add(SyntaxFactory.Argument(RenderExpression(methodCall.Arguments[argumentIndex++], context)));
         }
 
         if (argumentIndex != methodCall.Arguments.Count)

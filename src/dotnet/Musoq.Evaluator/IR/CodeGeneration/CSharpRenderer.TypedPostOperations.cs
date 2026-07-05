@@ -19,6 +19,7 @@ public sealed partial class CSharpRenderer
         TypedOutputBinding binding,
         TableViaRowsResultInfo resultInfo,
         FinalProjectionSinkPlan sinkPlan,
+        bool useQueryRunContext,
         out MethodDeclarationSyntax method,
         out QueryMethodRenderMetadata metadata)
     {
@@ -36,6 +37,7 @@ public sealed partial class CSharpRenderer
                 setup.SinkPlan.PostOperations,
                 setup.SourceSetupStatements,
                 setup.RenderContext),
+            useQueryRunContext,
             out method,
             out metadata);
     }

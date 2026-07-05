@@ -187,7 +187,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         return new PlannedExecutionBuilder(shapeResolver);
     }
 
-    private static PlannedExecutionBuilder CreateJoinBuilder()
+    private static PlannedExecutionBuilder CreateJoinBuilder(CompilationOptions? compilationOptions = null)
     {
         var shapeResolver = new ExecutionShapeResolver(
             entityTypesByAlias: new Dictionary<string, Type>
@@ -197,7 +197,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
                 ["q"] = typeof(Person)
             });
 
-        return new PlannedExecutionBuilder(shapeResolver);
+        return new PlannedExecutionBuilder(shapeResolver, compilationOptions);
     }
 
     private static AggregateBinding CreateCountBinding()

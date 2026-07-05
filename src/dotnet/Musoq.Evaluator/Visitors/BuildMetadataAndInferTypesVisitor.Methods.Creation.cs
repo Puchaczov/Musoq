@@ -251,6 +251,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         AddAssembly(method.DeclaringType.Assembly);
         AddAssembly(method.ReturnType.Assembly);
 
-        Nodes.Push(accessMethod);
+        PushSemanticNode(accessMethod);
     }
 }

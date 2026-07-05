@@ -19,6 +19,7 @@ public sealed partial class CSharpRenderer
         TypedOutputBinding binding,
         TableViaRowsResultInfo resultInfo,
         FinalProjectionSinkPlan sinkPlan,
+        bool useQueryRunContext,
         out MethodDeclarationSyntax method,
         out QueryMethodRenderMetadata metadata)
     {
@@ -34,6 +35,7 @@ public sealed partial class CSharpRenderer
                 setup.ProjectionLoop,
                 setup.SourceSetupStatements,
                 setup.RenderContext),
+            useQueryRunContext,
             out method,
             out metadata);
     }
@@ -221,7 +223,7 @@ public sealed partial class CSharpRenderer
     {
         var body = projectionLoop.Predicate == null
             ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
-            : RenderTypedSinkExpression(executionRenderer, projectionLoop.Predicate, renderContext);
+            : RenderFinalSinkExpression(executionRenderer, projectionLoop.Predicate, renderContext);
 
         return CreateSourceLambda(projectionLoop.Source, body);
     }
@@ -233,7 +235,7 @@ public sealed partial class CSharpRenderer
         ExecutionRenderContext? renderContext = null)
     {
         var values = projectionLoop.AppendRow.Values
-            .Select(value => RenderTypedSinkExpression(executionRenderer, value.Value, renderContext))
+            .Select(value => RenderFinalSinkExpression(executionRenderer, value.Value, renderContext))
             .ToArray();
 
         return CreateSourceLambda(projectionLoop.Source, binding.CreateOutputExpression(values));

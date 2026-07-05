@@ -21,6 +21,7 @@ public sealed partial class CSharpRenderer
         FinalProjectionSinkPlan sinkPlan,
         IEnumerable<StatementSyntax> leadingStatements,
         Func<FinalSinkRenderSetup, MethodDeclarationSyntax> createMethod,
+        bool useQueryRunContext,
         out MethodDeclarationSyntax method,
         out QueryMethodRenderMetadata metadata)
     {
@@ -32,20 +33,19 @@ public sealed partial class CSharpRenderer
             return false;
         }
 
-        using var renderingScope = executionRenderer.EnterTypedSinkRenderContext(plan);
-        var renderContext = renderingScope.Context;
+        var renderArtifacts = executionRenderer.CreateTypedSinkSetupArtifacts(
+            plan,
+            sinkPlan.SourceScans,
+            sinkPlan.SetupNodes,
+            useQueryRunContext);
         var statements = new List<StatementSyntax>(leadingStatements);
-        statements.AddRange(executionRenderer.CreateTypedSinkEntryStatements(plan, renderContext));
-        foreach (var sourceScan in sinkPlan.SourceScans)
-            statements.AddRange(executionRenderer.RenderSourceScanForTypedSink(sourceScan, renderContext));
-        foreach (var setupNode in sinkPlan.SetupNodes)
-            statements.AddRange(executionRenderer.RenderSetupNodeForTypedSink(setupNode, renderContext));
+        statements.AddRange(renderArtifacts.SetupStatements);
 
         var setup = new FinalSinkRenderSetup(
             sinkPlan,
             sinkPlan.ProjectionLoop!,
             statements,
-            renderContext);
+            renderArtifacts.RenderContext);
         method = createMethod(setup);
         metadata = sinkPlan.ResultMetadata;
         return true;
@@ -60,24 +60,24 @@ public sealed partial class CSharpRenderer
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             sourceRowsName,
-            RenderTypedSinkExpression(executionRenderer, projectionLoop.SourceRows, renderContext));
+            RenderFinalSinkExpression(executionRenderer, projectionLoop.SourceRows, renderContext));
     }
 
-    private static ExpressionSyntax RenderTypedSinkExpression(
+    private static ExpressionSyntax RenderFinalSinkExpression(
         ExecutionCSharpRenderer executionRenderer,
         ExecutionExpression expression,
         ExecutionRenderContext? renderContext = null) =>
         renderContext == null
-            ? executionRenderer.RenderExpressionForTypedSink(expression)
-            : executionRenderer.RenderExpressionForTypedSink(expression, renderContext);
+            ? executionRenderer.RenderFinalSinkExpression(expression)
+            : executionRenderer.RenderFinalSinkExpression(expression, renderContext);
 
-    private static ParenthesizedLambdaExpressionSyntax RenderTypedSinkOptionalGeneratedRowProjection(
+    private static ParenthesizedLambdaExpressionSyntax RenderFinalSinkOptionalGeneratedRowProjection(
         ExecutionCSharpRenderer executionRenderer,
         ExecutionParallelFilterProjectLoop optionalProjectorLoop,
         ExecutionRenderContext? renderContext = null) =>
         renderContext == null
-            ? executionRenderer.RenderOptionalGeneratedRowProjectionForTypedSink(optionalProjectorLoop)
-            : executionRenderer.RenderOptionalGeneratedRowProjectionForTypedSink(optionalProjectorLoop, renderContext);
+            ? executionRenderer.RenderFinalSinkOptionalGeneratedRowProjection(optionalProjectorLoop)
+            : executionRenderer.RenderFinalSinkOptionalGeneratedRowProjection(optionalProjectorLoop, renderContext);
 
     private static LocalDeclarationStatementSyntax CreateParallelRowsProbeDeclaration(
         TypedProjectionLoop projectionLoop,

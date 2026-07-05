@@ -33,12 +33,14 @@ public sealed partial class ExecutionCSharpRenderer
         }
 
         foreach (var output in producer.Outputs.Where(static output => output.StoreRows))
-            yield return CreateFusedCteOutputAssignment(output);
+            yield return CreateFusedCteOutputAssignment(output, context);
     }
 
-    private StatementSyntax CreateFusedCteOutputAssignment(ExecutionFusedCteOutput output)
+    private StatementSyntax CreateFusedCteOutputAssignment(
+        ExecutionFusedCteOutput output,
+        ExecutionRenderContext context)
     {
-        ExpressionSyntax target = RenderSession.TypedStoredTableResults.ContainsKey(output.TableIndex)
+        ExpressionSyntax target = context.Session.TypedStoredTableResults.ContainsKey(output.TableIndex)
             ? CreateCteRowResultSlotAccess(output.TableIndex)
             : CreateElementAccess(
                 SyntaxFactory.IdentifierName("_tableResults"),

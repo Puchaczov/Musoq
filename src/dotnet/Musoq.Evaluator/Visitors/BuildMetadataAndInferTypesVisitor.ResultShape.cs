@@ -14,7 +14,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         var reorderedList = new FieldNode[oldFields.Length];
         for (var i = reorderedList.Length - 1; i >= 0; i--)
-            reorderedList[i] = Nodes.Pop() as FieldNode
+            reorderedList[i] = PopSemanticNode() as FieldNode
                                ?? throw new VisitorException(
                                    VisitorName,
                                    "CreateFields",

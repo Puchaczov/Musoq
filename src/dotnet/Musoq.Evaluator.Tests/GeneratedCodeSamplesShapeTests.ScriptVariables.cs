@@ -93,8 +93,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "_cteRowResults.Slot0 = BuildCte0(");
 
         AssertScriptVariableBindingCount(ScriptVariableCteHelperCaptureSampleFileName, cte, 1);
-        Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults, letCountry);", cte);
-        Assert.Contains("CteRowResults _cteRowResults, string letCountry)", cte);
+        Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults, _cteIndexResults, letCountry);", cte);
+        Assert.Contains("CteRowResults _cteRowResults, CteIndexResults _cteIndexResults, string letCountry)", cte);
         Assert.Contains("if ((ko3iko.Country == letCountry))", cte);
         AssertTopLevelBindingBefore(
             ScriptVariableCteHelperCaptureSampleFileName,

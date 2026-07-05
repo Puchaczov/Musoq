@@ -8,9 +8,11 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private ClassDeclarationSyntax RenderAggregateGroupClass(AggregateGroupShape shape)
+    private ClassDeclarationSyntax RenderAggregateGroupClass(
+        AggregateGroupShape shape,
+        ExecutionRenderContext context)
     {
-        shape = CreateRenderableAggregateGroupShape(shape);
+        shape = CreateRenderableAggregateGroupShape(shape, context);
 
         var members = new List<MemberDeclarationSyntax>();
         members.AddRange(shape.OwnerFields.Select(CreateAggregateGroupOwnerField));

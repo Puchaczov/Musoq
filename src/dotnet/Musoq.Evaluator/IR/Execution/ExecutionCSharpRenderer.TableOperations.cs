@@ -8,7 +8,7 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderProjectTable(ExecutionProjectTable project)
+    private IEnumerable<StatementSyntax> RenderProjectTable(ExecutionProjectTable project, ExecutionRenderContext context)
     {
         var rowVariableName = $"{project.Target.Name}SourceRow";
         var rowValues = project.FieldIndexes
@@ -18,7 +18,7 @@ public sealed partial class ExecutionCSharpRenderer
                 project.RowShape.Fields[fieldIndex].Type))
             .ToArray();
         var rowCreation = project.RowShape.Contexts.Count == 0 ||
-                          !GeneratedRowTypeUsesContextConstructor(project.RowShape.TypeName)
+                          !GeneratedRowTypeUsesContextConstructor(project.RowShape.TypeName, context)
             ? CreateObjectCreation(project.RowShape.TypeName, rowValues)
             : CreateObjectCreation(
                 project.RowShape.TypeName,
@@ -32,7 +32,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         return
         [
-            ..RenderCreateTable(new ExecutionCreateTable(project.Target, project.RowShape, project.CapacityHint)),
+            ..RenderCreateTable(new ExecutionCreateTable(project.Target, project.RowShape, project.CapacityHint), context),
             StatementEmitter.CreateForeach(
                 rowVariableName,
                 CreateTableRowsRead(project.Source.Name),
@@ -55,10 +55,10 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.CastExpression(CreateTypeSyntax(targetType), value);
     }
 
-    private ExpressionStatementSyntax RenderStoreTable(ExecutionStoreTable store)
+    private ExpressionStatementSyntax RenderStoreTable(ExecutionStoreTable store, ExecutionRenderContext context)
     {
-        if (TryGetTypedStoredTableResult(store.TableIndex, out var typedResult) &&
-            CanStoreTypedCteRows(store.Table, typedResult))
+        if (TryGetTypedStoredTableResult(store.TableIndex, context, out var typedResult) &&
+            CanStoreTypedCteRows(store.Table, typedResult, context))
         {
             return SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.AssignmentExpression(
@@ -78,9 +78,10 @@ public sealed partial class ExecutionCSharpRenderer
 
     private bool CanStoreTypedCteRows(
         ExecutionVariable table,
-        TypedStoredTableResult typedResult)
+        TypedStoredTableResult typedResult,
+        ExecutionRenderContext context)
     {
-        return TryGetTypedRowBufferShape(table.Name, out _) ||
+        return TryGetTypedRowBufferShape(table.Name, context, out _) ||
                string.Equals(
                    table.GeneratedRowTypeName,
                    $"List<{typedResult.RowShape.TypeName}>",

@@ -8,12 +8,14 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private LocalDeclarationStatementSyntax RenderLet(ExecutionLet let)
+    private LocalDeclarationStatementSyntax RenderLet(
+        ExecutionLet let,
+        ExecutionRenderContext context)
     {
         return CreateLocalDeclaration(
             CreateVariableTypeSyntax(let.Variable),
             let.Variable.Name,
-            RenderExpression(let.Value));
+            RenderExpression(let.Value, context));
     }
 
     private ExpressionStatementSyntax RenderAssign(ExecutionAssign assign)
@@ -134,13 +136,15 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionIf branch,
         ExecutionRenderContext context)
     {
-        return StatementEmitter.CreateIf(RenderExpression(branch.Condition), RenderBlock(branch.Body, context));
+        return StatementEmitter.CreateIf(RenderExpression(branch.Condition, context), RenderBlock(branch.Body, context));
     }
 
-    private IfStatementSyntax RenderContinueIf(ExecutionContinueIf continueIf)
+    private IfStatementSyntax RenderContinueIf(
+        ExecutionContinueIf continueIf,
+        ExecutionRenderContext context)
     {
         return StatementEmitter.CreateIf(
-            RenderExpression(continueIf.Condition),
+            RenderExpression(continueIf.Condition, context),
             StatementEmitter.CreateBlock(SyntaxFactory.ContinueStatement()));
     }
 }

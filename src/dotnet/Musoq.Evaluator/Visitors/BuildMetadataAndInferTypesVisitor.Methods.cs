@@ -13,7 +13,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         var args = GetAndValidateArgs(node);
         node.FilterExpression = node.FilterExpression is null
             ? null
-            : SafePop(Nodes, nameof(VisitAccessMethod));
+            : PopSemanticNode(nameof(VisitAccessMethod));
 
         if (TryResolveDeferredScalarSubqueryValue(node, args))
             return;
@@ -31,7 +31,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private ArgsListNode GetAndValidateArgs(AccessMethodNode node)
     {
-        var nodeFromStack = SafePop(Nodes, nameof(GetAndValidateArgs));
+        var nodeFromStack = PopSemanticNode(nameof(GetAndValidateArgs));
         if (nodeFromStack is not ArgsListNode args)
             throw CannotResolveMethodException.CreateForNullArguments(node.Name);
         return args;

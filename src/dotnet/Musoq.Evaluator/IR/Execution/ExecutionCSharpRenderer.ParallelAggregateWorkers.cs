@@ -12,50 +12,54 @@ public sealed partial class ExecutionCSharpRenderer
     private sealed record ParallelAggregateWorkerField(string ParameterName, string FieldName, TypeSyntax Type);
 
     private MethodDeclarationSyntax CreateParallelSingleKeyAggregateFunction(
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
+        ExecutionRenderContext context)
     {
         ValidateParallelSingleKeyAggregateShape(parallelAggregate);
         var captures = CollectParallelSingleKeyAggregateCaptures(parallelAggregate);
 
         return SyntaxFactory.MethodDeclaration(
-                CreateListTypeSyntax(CreateAggregateGroupType(parallelAggregate.GroupShape)),
-                CreateParallelSingleKeyAggregateFunctionName(parallelAggregate))
+                CreateListTypeSyntax(CreateAggregateGroupType(parallelAggregate.GroupShape, context)),
+                CreateParallelSingleKeyAggregateFunctionName(parallelAggregate, context))
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
                 SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
             .WithParameterList(CreateParallelSingleKeyAggregateParameterList(parallelAggregate, captures))
-            .WithBody(StatementEmitter.CreateBlock(CreateParallelSingleKeyAggregateFunctionBody(parallelAggregate)));
+            .WithBody(StatementEmitter.CreateBlock(CreateParallelSingleKeyAggregateFunctionBody(parallelAggregate, context)));
     }
 
     private MethodDeclarationSyntax CreateParallelSingleKeyAggregateShardFunction(
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
+        ExecutionRenderContext context)
     {
         ValidateParallelSingleKeyAggregateShape(parallelAggregate);
         var captures = CollectParallelSingleKeyAggregateCaptures(parallelAggregate);
 
         return SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                CreateParallelSingleKeyAggregateShardFunctionName(parallelAggregate))
+                CreateParallelSingleKeyAggregateShardFunctionName(parallelAggregate, context))
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
                 SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
-            .WithParameterList(CreateParallelSingleKeyAggregateShardParameterList(parallelAggregate, captures))
+            .WithParameterList(CreateParallelSingleKeyAggregateShardParameterList(parallelAggregate, captures, context))
             .WithBody(StatementEmitter.CreateBlock(CreateParallelAggregateShardStatements(
                 parallelAggregate,
                 "rows",
                 "workerCount",
                 "shards",
                 "shardIndex",
-                "cancellationToken")));
+                "cancellationToken",
+                context)));
     }
 
     private ClassDeclarationSyntax CreateParallelSingleKeyAggregateWorkerClass(
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
+        ExecutionRenderContext context)
     {
         var captures = CollectParallelSingleKeyAggregateCaptures(parallelAggregate);
-        var fields = CreateParallelAggregateWorkerFields(parallelAggregate, captures);
+        var fields = CreateParallelAggregateWorkerFields(parallelAggregate, captures, context);
         var members = new List<MemberDeclarationSyntax>();
 
         members.AddRange(fields.Select(static field => SyntaxFactory.FieldDeclaration(
@@ -65,10 +69,10 @@ public sealed partial class ExecutionCSharpRenderer
             .WithModifiers(SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
                 SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)))));
-        members.Add(CreateParallelAggregateWorkerConstructor(parallelAggregate, fields));
-        members.Add(CreateParallelAggregateWorkerRunMethod(parallelAggregate, fields));
+        members.Add(CreateParallelAggregateWorkerConstructor(parallelAggregate, fields, context));
+        members.Add(CreateParallelAggregateWorkerRunMethod(parallelAggregate, fields, context));
 
-        return SyntaxFactory.ClassDeclaration(CreateParallelSingleKeyAggregateWorkerTypeName(parallelAggregate))
+        return SyntaxFactory.ClassDeclaration(CreateParallelSingleKeyAggregateWorkerTypeName(parallelAggregate, context))
             .WithModifiers(SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
                 SyntaxFactory.Token(SyntaxKind.SealedKeyword)))
@@ -93,9 +97,10 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ParameterListSyntax CreateParallelSingleKeyAggregateShardParameterList(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        IReadOnlyList<CapturedLocal> captures)
+        IReadOnlyList<CapturedLocal> captures,
+        ExecutionRenderContext context)
     {
-        var groupType = CreateAggregateGroupType(parallelAggregate.GroupShape);
+        var groupType = CreateAggregateGroupType(parallelAggregate.GroupShape, context);
         var parameters = new List<ParameterSyntax>
         {
             CreateParameter("rows", CreateReadOnlyListTypeSyntax(CreateVariableTypeSyntax(parallelAggregate.Source))),
@@ -112,9 +117,10 @@ public sealed partial class ExecutionCSharpRenderer
 
     private List<ParallelAggregateWorkerField> CreateParallelAggregateWorkerFields(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        IReadOnlyList<CapturedLocal> captures)
+        IReadOnlyList<CapturedLocal> captures,
+        ExecutionRenderContext context)
     {
-        var groupType = CreateAggregateGroupType(parallelAggregate.GroupShape);
+        var groupType = CreateAggregateGroupType(parallelAggregate.GroupShape, context);
         var usedFieldNames = new HashSet<string>(StringComparer.Ordinal);
         var fields = new List<ParallelAggregateWorkerField>();
 
@@ -144,9 +150,10 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ConstructorDeclarationSyntax CreateParallelAggregateWorkerConstructor(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        IReadOnlyList<ParallelAggregateWorkerField> fields)
+        IReadOnlyList<ParallelAggregateWorkerField> fields,
+        ExecutionRenderContext context)
     {
-        return SyntaxFactory.ConstructorDeclaration(CreateParallelSingleKeyAggregateWorkerTypeName(parallelAggregate))
+        return SyntaxFactory.ConstructorDeclaration(CreateParallelSingleKeyAggregateWorkerTypeName(parallelAggregate, context))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(
                 fields.Select(static field => CreateParameter(field.ParameterName, field.Type)))))
@@ -159,7 +166,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private MethodDeclarationSyntax CreateParallelAggregateWorkerRunMethod(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        IReadOnlyList<ParallelAggregateWorkerField> fields)
+        IReadOnlyList<ParallelAggregateWorkerField> fields,
+        ExecutionRenderContext context)
     {
         return SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
@@ -169,7 +177,7 @@ public sealed partial class ExecutionCSharpRenderer
             .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(
                 CreateParameter("shardIndex", SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword))))))
             .WithBody(StatementEmitter.CreateBlock(SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.IdentifierName(CreateParallelSingleKeyAggregateShardFunctionName(parallelAggregate)))
+                        SyntaxFactory.IdentifierName(CreateParallelSingleKeyAggregateShardFunctionName(parallelAggregate, context)))
                     .WithArgumentList(CreateArgumentList(CreateParallelAggregateShardArguments(fields))))));
     }
 

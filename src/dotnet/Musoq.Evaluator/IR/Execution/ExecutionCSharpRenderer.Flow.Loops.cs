@@ -21,7 +21,7 @@ public sealed partial class ExecutionCSharpRenderer
             yield break;
         }
 
-        var cacheDeclaration = TryCreateStoredRowsCacheDeclaration(forEach.Source);
+        var cacheDeclaration = TryCreateStoredRowsCacheDeclaration(forEach.Source, context);
         if (cacheDeclaration != null)
             yield return cacheDeclaration;
 
@@ -34,7 +34,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         yield return StatementEmitter.CreateForeach(
             EscapeIdentifier(forEach.Item.Name),
-            RenderExpression(forEach.Source),
+            RenderExpression(forEach.Source, context),
             StatementEmitter.CreateBlock(bodyStatements));
     }
 
@@ -49,7 +49,7 @@ public sealed partial class ExecutionCSharpRenderer
         yield return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             rowsVariableName,
-            RenderExpression(forEach.Source));
+            RenderExpression(forEach.Source, context));
 
         yield return StatementEmitter.CreateIf(
             SyntaxFactory.IsPatternExpression(
@@ -166,7 +166,8 @@ public sealed partial class ExecutionCSharpRenderer
             bodyStatements.Insert(0, CreatePeriodicCancellationCheck(indexVariable.Name));
 
         bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
-        bodyStatements.AddRange(RenderBlock(forEach.Body, context).Statements);
+        using (EnterGeneratedRowVariableType(context, forEach.Item.Name, rowsVariable.GeneratedRowTypeName!))
+            bodyStatements.AddRange(RenderBlock(forEach.Body, context).Statements);
 
         var loop = CreateIndexedForLoop(
             indexVariable.Name,
@@ -190,15 +191,15 @@ public sealed partial class ExecutionCSharpRenderer
 
         if (source is ExecutionStoredTableRows storedRows &&
             !context.Session.StoredRowsCacheNames.ContainsKey(storedRows.TableIndex) &&
-            TryResolveStoredGeneratedRowsShape(storedRows, out var rowShape))
+            TryResolveStoredGeneratedRowsShape(storedRows, context, out var rowShape))
         {
-            var nameDisambiguator = GetStoredGeneratedRowsLoopNameDisambiguator(storedRows.TableIndex);
+            var nameDisambiguator = GetStoredGeneratedRowsLoopNameDisambiguator(storedRows.TableIndex, context);
             rowsVariable = CreateStoredGeneratedRowsVariable(storedRows.TableIndex, nameDisambiguator, rowShape.TypeName);
-            sourceAlreadyTyped = TryGetTypedStoredTableResult(storedRows.TableIndex, rowShape, out _);
+            sourceAlreadyTyped = TryGetTypedStoredTableResult(storedRows.TableIndex, rowShape, context, out _);
             rowsDeclaration = CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 rowsVariable.Name,
-                CreateStoredTableRowsRead(storedRows));
+                CreateStoredTableRowsRead(storedRows, context));
             return true;
         }
 
@@ -214,6 +215,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private bool TryResolveStoredGeneratedRowsShape(
         ExecutionStoredTableRows storedRows,
+        ExecutionRenderContext context,
         out GeneratedRowShape rowShape)
     {
         if (storedRows.GeneratedRowShape != null)
@@ -222,7 +224,7 @@ public sealed partial class ExecutionCSharpRenderer
             return true;
         }
 
-        if (TryGetTypedStoredTableResult(storedRows.TableIndex, out var typedResult))
+        if (TryGetTypedStoredTableResult(storedRows.TableIndex, context, out var typedResult))
         {
             rowShape = typedResult.RowShape;
             return true;
@@ -232,10 +234,12 @@ public sealed partial class ExecutionCSharpRenderer
         return false;
     }
 
-    private int GetStoredGeneratedRowsLoopNameDisambiguator(int tableIndex)
+    private int GetStoredGeneratedRowsLoopNameDisambiguator(
+        int tableIndex,
+        ExecutionRenderContext context)
     {
-        RenderSession.StoredGeneratedRowsLoopNameCounts.TryGetValue(tableIndex, out var disambiguator);
-        RenderSession.StoredGeneratedRowsLoopNameCounts[tableIndex] = disambiguator + 1;
+        context.Session.StoredGeneratedRowsLoopNameCounts.TryGetValue(tableIndex, out var disambiguator);
+        context.Session.StoredGeneratedRowsLoopNameCounts[tableIndex] = disambiguator + 1;
         return disambiguator;
     }
 
@@ -258,11 +262,13 @@ public sealed partial class ExecutionCSharpRenderer
         return new ExecutionVariable(CreateIdentifierCandidate(name, 0), typeof(int));
     }
 
-    private LocalDeclarationStatementSyntax? TryCreateStoredRowsCacheDeclaration(ExecutionExpression source)
+    private LocalDeclarationStatementSyntax? TryCreateStoredRowsCacheDeclaration(
+        ExecutionExpression source,
+        ExecutionRenderContext context)
     {
         if (source is not ExecutionStoredTableRows storedRows ||
-            !RenderSession.StoredRowsCacheNames.TryGetValue(storedRows.TableIndex, out var cacheName) ||
-            !RenderSession.DeclaredStoredRowsCaches.Add(storedRows.TableIndex))
+            !context.Session.StoredRowsCacheNames.TryGetValue(storedRows.TableIndex, out var cacheName) ||
+            !context.Session.DeclaredStoredRowsCaches.Add(storedRows.TableIndex))
         {
             return null;
         }
@@ -270,7 +276,7 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             cacheName,
-            CreateStoredTableRowsRead(storedRows));
+            CreateStoredTableRowsRead(storedRows, context));
     }
 
     private ForStatementSyntax RenderForEachIndexed(

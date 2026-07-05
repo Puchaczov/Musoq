@@ -10,7 +10,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
 
-        var expression = SafePop(Nodes, nameof(Visit) + nameof(CastNode));
+        var expression = PopSemanticNode(nameof(Visit) + nameof(CastNode));
 
         if (!StrictCastRuntime.TryGetReturnType(node.TargetTypeName, out var returnType))
         {
@@ -19,11 +19,11 @@ public partial class BuildMetadataAndInferTypesVisitor
                     StrictCastRuntime.CreateUnsupportedTargetMessage(node.TargetTypeName),
                     node))
             {
-                Nodes.Push(new CastNode(expression, node.TargetTypeName, typeof(object)).WithSpan(node.Span));
+                PushSemanticNode(new CastNode(expression, node.TargetTypeName, typeof(object)).WithSpan(node.Span));
                 return;
             }
         }
 
-        Nodes.Push(new CastNode(expression, node.TargetTypeName, returnType).WithSpan(node.Span));
+        PushSemanticNode(new CastNode(expression, node.TargetTypeName, returnType).WithSpan(node.Span));
     }
 }

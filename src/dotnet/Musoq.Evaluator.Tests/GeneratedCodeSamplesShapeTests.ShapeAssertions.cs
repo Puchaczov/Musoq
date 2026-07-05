@@ -128,6 +128,21 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(generatedCode.Contains($"(({rowTypeName})", StringComparison.Ordinal), sample.FileName);
     }
 
+    private static void AssertTypedCteSidecarHashJoinSample(GeneratedCodeSampleFile sample, string payloadTypeName)
+    {
+        var generatedCode = ExtractGeneratedCodeSection(sample.Content);
+
+        Assert.Contains($"Dictionary<string, HashJoinBucket<{payloadTypeName}>>", generatedCode, sample.FileName);
+        Assert.Contains($"HashJoinBucket<{payloadTypeName}>", sample.Content, sample.FileName);
+        Assert.Contains("var cHash = _cteIndexResults.Slot0;", generatedCode, sample.FileName);
+        Assert.Contains($"{payloadTypeName} cte0SidecarPayload0", generatedCode, sample.FileName);
+        Assert.Contains("__musoqFinalShapeRows.Add(new ResultShape0(", generatedCode, sample.FileName);
+        Assert.IsFalse(generatedCode.Contains("var __storedTable0Rows = _cteRowResults.Slot0;", StringComparison.Ordinal), sample.FileName);
+        Assert.IsFalse(generatedCode.Contains("_tableResults[0]", StringComparison.Ordinal), sample.FileName);
+        Assert.IsFalse(generatedCode.Contains("EvaluationHelper.CastGeneratedRows<Cte0Row0>", StringComparison.Ordinal), sample.FileName);
+        Assert.IsFalse(generatedCode.Contains("private sealed class Cte0Row0", StringComparison.Ordinal), sample.FileName);
+    }
+
     private static void AssertTypedCteKeySetSample(GeneratedCodeSampleFile sample, string rowTypeName)
     {
         var generatedCode = ExtractGeneratedCodeSection(sample.Content);
@@ -157,17 +172,21 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var generatedCode = ExtractGeneratedCodeSection(sample.Content);
 
-        Assert.Contains("Dictionary<string, HashJoinBucket<Cte1Row0>>", sample.Content, sample.FileName);
-        Assert.Contains("List<Cte0Row0> BuildCte0", sample.Content, sample.FileName);
+        Assert.Contains("Dictionary<string, HashJoinBucket<Cte1HashPayload0>>", sample.Content, sample.FileName);
+        Assert.Contains("List<Cte0Row0> BuildCteLevel0Task0", sample.Content, sample.FileName);
+        Assert.Contains("object BuildCteLevel0Task1", sample.Content, sample.FileName);
+        Assert.Contains("LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]", sample.Content, sample.FileName);
         Assert.Contains(
             "UpdateGroupsAggregates(groupsToFinalize, groups, ref nullGroup, r, l);",
             generatedCode,
             sample.FileName);
-        Assert.Contains("var __storedTable1Rows = _cteRowResults.Slot1;", generatedCode, sample.FileName);
-        Assert.Contains("Cte1Row0 r = __storedTable1Rows[__storedTable1Index];", generatedCode, sample.FileName);
+        Assert.Contains("var rHash = _cteIndexResults.Slot0;", generatedCode, sample.FileName);
+        Assert.Contains("Cte1HashPayload0 r", generatedCode, sample.FileName);
         Assert.IsFalse(
             generatedCode.Contains("EvaluationHelper.CastGeneratedRows<Cte1Row0>(_tableResults[1].Rows)", StringComparison.Ordinal),
             sample.FileName);
+        Assert.IsFalse(generatedCode.Contains("var __storedTable1Rows = _cteRowResults.Slot1;", StringComparison.Ordinal), sample.FileName);
+        Assert.IsFalse(generatedCode.Contains("_tableResults[1]", StringComparison.Ordinal), sample.FileName);
         Assert.IsFalse(generatedCode.Contains("((Cte0Row0)", StringComparison.Ordinal), sample.FileName);
         Assert.IsFalse(generatedCode.Contains("((Cte1Row0)", StringComparison.Ordinal), sample.FileName);
     }
@@ -175,7 +194,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     private static void AssertTypedRepeatedCteSelfJoinSample(GeneratedCodeSampleFile sample)
     {
         Assert.Contains("var __storedTable0Rows = _cteRowResults.Slot0;", sample.Content, sample.FileName);
-        Assert.Contains("Dictionary<string, HashJoinBucket<Cte0Row0>>", sample.Content, sample.FileName);
+        Assert.Contains("Dictionary<string, HashJoinBucket<Cte0HashPayload0>>", sample.Content, sample.FileName);
+        Assert.Contains("LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]", sample.Content, sample.FileName);
         Assert.IsFalse(sample.Content.Contains("var __storedTable0Rows = _tableResults[0].Rows;", StringComparison.Ordinal), sample.FileName);
         Assert.IsFalse(sample.Content.Contains("((Cte0Row0)", StringComparison.Ordinal), sample.FileName);
     }

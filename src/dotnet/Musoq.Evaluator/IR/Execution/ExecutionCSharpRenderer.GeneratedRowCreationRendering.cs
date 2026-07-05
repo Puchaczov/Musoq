@@ -6,7 +6,9 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private LocalDeclarationStatementSyntax RenderCreateGeneratedRow(ExecutionCreateGeneratedRow createRow)
+    private LocalDeclarationStatementSyntax RenderCreateGeneratedRow(
+        ExecutionCreateGeneratedRow createRow,
+        ExecutionRenderContext context)
     {
         createRow = NormalizeLazyContextSegments(createRow);
 
@@ -18,7 +20,7 @@ public sealed partial class ExecutionCSharpRenderer
                 createRow.Values,
                 createRow.Contexts,
                 createRow.ContextLayout,
-                new ExecutionRenderContext(_renderOptions, RenderSession)));
+                context));
     }
 
     private ObjectCreationExpressionSyntax CreateGeneratedRowCreation(
@@ -34,10 +36,10 @@ public sealed partial class ExecutionCSharpRenderer
                 rowShape.Fields[index].Type,
                 context));
 
-        if (rowShape.Contexts.Count == 0 || !GeneratedRowTypeUsesContextConstructor(rowShape.TypeName))
+        if (rowShape.Contexts.Count == 0 || !GeneratedRowTypeUsesContextConstructor(rowShape.TypeName, context))
             return CreateObjectCreation(rowShape.TypeName, rowValues.ToArray());
 
-        if (TryCreateContextLayoutArguments(contextLayout, contexts.Count, out var contextArguments))
+        if (TryCreateContextLayoutArguments(contextLayout, contexts.Count, context, out var contextArguments))
             return CreateObjectCreation(rowShape.TypeName, [.. rowValues, .. contextArguments]);
 
         if (contexts.Count == 0)
@@ -48,9 +50,9 @@ public sealed partial class ExecutionCSharpRenderer
             [.. rowValues, CreateArrayCreation("object", contexts.Select(item => RenderExpression(item, context)))]);
     }
 
-    private bool GeneratedRowTypeUsesContextConstructor(string typeName)
+    private static bool GeneratedRowTypeUsesContextConstructor(string typeName, ExecutionRenderContext context)
     {
-        return RenderSession.GeneratedRowConstructorUsagesByType.TryGetValue(typeName, out var usedConstructors) &&
+        return context.Session.GeneratedRowConstructorUsagesByType.TryGetValue(typeName, out var usedConstructors) &&
                RequiresGeneratedRowContextOverride(usedConstructors);
     }
 }

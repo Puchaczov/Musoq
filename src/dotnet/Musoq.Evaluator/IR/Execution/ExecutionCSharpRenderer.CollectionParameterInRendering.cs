@@ -12,7 +12,9 @@ public sealed partial class ExecutionCSharpRenderer
                CanReferenceType(collectionInCheck.ElementType);
     }
 
-    private ExpressionSyntax RenderCollectionInCheck(ExecutionCollectionInCheck collectionInCheck)
+    private ExpressionSyntax RenderCollectionInCheck(
+        ExecutionCollectionInCheck collectionInCheck,
+        ExecutionRenderContext context)
     {
         var helper = SyntaxFactory.GenericName("CollectionParameterContains")
             .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
@@ -20,8 +22,8 @@ public sealed partial class ExecutionCSharpRenderer
 
         return SyntaxFactory.InvocationExpression(helper)
             .WithArgumentList(CreateArgumentList(
-                RenderExpression(collectionInCheck.Expression),
-                RenderExpression(collectionInCheck.Collection)));
+                RenderExpression(collectionInCheck.Expression, context),
+                RenderExpression(collectionInCheck.Collection, context)));
     }
 
     private static MethodDeclarationSyntax CreateCollectionParameterContainsFunction()

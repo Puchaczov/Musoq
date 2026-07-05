@@ -187,6 +187,7 @@ select pairs.Label,
                 new CompilationOptions(
                     useHashJoin: true,
                     useSortMergeJoin: false,
+                    useCteParallelization: false,
                     useCteSidecarIndexes: true))
         ];
     }

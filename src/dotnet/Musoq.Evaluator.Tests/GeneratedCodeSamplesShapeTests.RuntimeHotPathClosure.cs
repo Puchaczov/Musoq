@@ -85,7 +85,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     public void HelperChunkLoops_WhenCheckedIn_ShouldPassCancellationTokenAndEmitChecks()
     {
         var samples = ReadSamples().ToDictionary(static sample => sample.FileName, static sample => sample.Content);
-        var cteGeneratedCode = ExtractGeneratedCodeSection(samples[CteWithJoinSampleFileName]);
+        var cteGeneratedCode = ExtractGeneratedCodeSection(samples[CteBackedAsOfJoinSampleFileName]);
         var cteMethod = CSharpSyntaxTree.ParseText(cteGeneratedCode)
             .GetRoot()
             .DescendantNodes()

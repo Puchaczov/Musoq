@@ -159,10 +159,14 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("ExecutionPlanUnsupported", StringComparison.Ordinal),
             result.ExecutionPlanText);
-        Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]", result.ExecutionPlanText);
-        Assert.Contains("StoreTable [cte1 -> _cteRowResults.Slot1: List<Cte1Row0>]", result.ExecutionPlanText);
-        Assert.Contains("CreateHash [", result.ExecutionPlanText);
-        Assert.Contains("string -> Row", result.ExecutionPlanText);
+        Assert.Contains("ParallelBlock [cte-level-0, tasks 2, maxDegree 2]", result.ExecutionPlanText);
+        Assert.Contains("StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0: List<Cte0Row0>]", result.ExecutionPlanText);
+        Assert.Contains("StoreCteIndex [cte1HashSidecar0City -> _cteIndexResults.Slot0 Hash]", result.ExecutionPlanText);
+        Assert.Contains("LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]", result.ExecutionPlanText);
+        Assert.Contains("HashPayload [Cte1HashPayload0]", result.ExecutionPlanText);
+        Assert.IsFalse(
+            result.ExecutionPlanText.Contains("StoreTable [__parallelCteLevel0Task1Result -> _cteRowResults.Slot1", StringComparison.Ordinal),
+            result.ExecutionPlanText);
         Assert.IsFalse(
             result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[2]]", StringComparison.Ordinal),
             result.ExecutionPlanText);

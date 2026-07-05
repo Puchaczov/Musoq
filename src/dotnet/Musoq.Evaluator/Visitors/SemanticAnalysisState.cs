@@ -12,6 +12,14 @@ namespace Musoq.Evaluator.Visitors;
 
 internal sealed class SemanticAnalysisState
 {
+    private readonly Stack<string> _methods = new();
+    private readonly Stack<Node> _nodes = new();
+
+    public SemanticAnalysisState()
+    {
+        Traversal = new SemanticTraversalFrame(_nodes, _methods);
+    }
+
     public DiagnosticState Diagnostics { get; } = new();
 
     public MethodResolutionState MethodResolution { get; } = new();
@@ -21,6 +29,8 @@ internal sealed class SemanticAnalysisState
     public ResultShapeState ResultShape { get; } = new();
 
     public SourceBindingState SourceBinding { get; } = new();
+
+    public SemanticTraversalFrame Traversal { get; }
 }
 
 internal sealed partial record SourceBindingState
@@ -70,8 +80,6 @@ internal sealed record MethodResolutionState
 {
     public List<AccessMethodNode> RefreshMethods { get; } = [];
 
-    public Stack<string> Methods { get; } = new();
-
     public List<Assembly> Assemblies { get; } = new(8);
 }
 
@@ -85,8 +93,6 @@ internal sealed record DiagnosticState
 internal sealed record SemanticQueryState
 {
     public Dictionary<string, FieldNode[]> CachedSetFields { get; } = new();
-
-    public Stack<Node> Nodes { get; } = new();
 
     public IDictionary<string, int[]> SetOperatorFieldPositions { get; } = new Dictionary<string, int[]>();
 

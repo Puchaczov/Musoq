@@ -71,25 +71,28 @@ public sealed partial class ExecutionCSharpRenderer
 
     private bool TryGetTypedStoredTableResult(
         int tableIndex,
+        ExecutionRenderContext context,
         out TypedStoredTableResult result)
     {
-        return RenderSession.TypedStoredTableResults.TryGetValue(tableIndex, out result!);
+        return context.Session.TypedStoredTableResults.TryGetValue(tableIndex, out result!);
     }
 
     private bool TryGetTypedStoredTableResult(
         int tableIndex,
         GeneratedRowShape rowShape,
+        ExecutionRenderContext context,
         out TypedStoredTableResult result)
     {
-        return TryGetTypedStoredTableResult(tableIndex, out result) &&
+        return TryGetTypedStoredTableResult(tableIndex, context, out result) &&
                string.Equals(result.RowShape.TypeName, rowShape.TypeName, StringComparison.Ordinal);
     }
 
     private bool TryGetTypedRowBufferShape(
         string variableName,
+        ExecutionRenderContext context,
         out GeneratedRowShape rowShape)
     {
-        return RenderSession.TypedRowBufferVariables.TryGetValue(variableName, out rowShape!);
+        return context.Session.TypedRowBufferVariables.TryGetValue(variableName, out rowShape!);
     }
 
     private static string CreateCteRowResultSlotFieldName(int tableIndex)

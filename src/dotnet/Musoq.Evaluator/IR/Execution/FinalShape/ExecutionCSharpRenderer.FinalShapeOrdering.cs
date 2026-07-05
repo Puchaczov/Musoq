@@ -13,66 +13,73 @@ public sealed partial class ExecutionCSharpRenderer
     private bool TryRenderDistinctFinalShapeRows(
         ExecutionDistinctTable distinct,
         ExpressionSyntax distinctTableExpression,
+        ExecutionRenderContext context,
         out IEnumerable<StatementSyntax> statements)
     {
-        if (TryGetFinalShapeSourceBuffer(distinct.Target.Name, out _) &&
-            TryGetFinalShapeSourceBuffer(distinct.Source.Name, out _))
+        if (TryGetFinalShapeSourceBuffer(distinct.Target.Name, context, out _) &&
+            TryGetFinalShapeSourceBuffer(distinct.Source.Name, context, out _))
         {
             statements = RenderFinalShapeSourceBufferFromShapeRowsExpression(
                 distinct.Target.Name,
                 $"{distinct.Target.Name}Rows",
-                CreateFinalShapeDistinctRowsExpression(distinct.Source.Name));
+                CreateFinalShapeDistinctRowsExpression(distinct.Source.Name, context),
+                context);
             return true;
         }
 
-        if (!IsFinalShapeTarget(distinct.Target))
+        if (!IsFinalShapeTarget(distinct.Target, context))
         {
             statements = Array.Empty<StatementSyntax>();
             return false;
         }
 
-        if (TryGetFinalShapeSourceBuffer(distinct.Source.Name, out _))
+        if (TryGetFinalShapeSourceBuffer(distinct.Source.Name, context, out _))
         {
             statements = RenderFinalShapeRowsFromShapeRowsExpression(
                 $"{distinct.Target.Name}Rows",
-                CreateFinalShapeDistinctRowsExpression(distinct.Source.Name));
+                CreateFinalShapeDistinctRowsExpression(distinct.Source.Name, context),
+                context);
             return true;
         }
 
         statements = RenderFinalShapeRowsFromRowsExpression(
             $"{distinct.Target.Name}Rows",
-            CreateTableRowsReadExpression(distinctTableExpression));
+            CreateTableRowsReadExpression(distinctTableExpression),
+            context);
         return true;
     }
 
     private bool TryRenderTopOffsetFinalShapeRows(
         ExecutionTopOffsetTable topOffset,
+        ExecutionRenderContext context,
         out List<StatementSyntax> statements)
     {
-        if (!IsFinalShapeTarget(topOffset.Target))
+        if (!IsFinalShapeTarget(topOffset.Target, context))
         {
             statements = [];
             return false;
         }
 
-        if (TryGetFinalShapeSourceBuffer(topOffset.Target.Name, out _) &&
-            TryGetFinalShapeSourceBuffer(topOffset.Source.Name, out _) &&
-            TryCreateFinalShapeTopOffsetRowsExpression(topOffset, out var bufferedShapeRowsExpression))
+        if (TryGetFinalShapeSourceBuffer(topOffset.Target.Name, context, out _) &&
+            TryGetFinalShapeSourceBuffer(topOffset.Source.Name, context, out _) &&
+            TryCreateFinalShapeTopOffsetRowsExpression(topOffset, context, out var bufferedShapeRowsExpression))
         {
             statements = RenderFinalShapeSourceBufferFromShapeRowsExpression(
                 topOffset.Target.Name,
                 $"{topOffset.Target.Name}Rows",
                 bufferedShapeRowsExpression,
+                context,
                 topOffset.RenumberFieldIndexes);
             return true;
         }
 
-        if (TryGetFinalShapeSourceBuffer(topOffset.Source.Name, out _) &&
-            TryCreateFinalShapeTopOffsetRowsExpression(topOffset, out var shapeRowsExpression))
+        if (TryGetFinalShapeSourceBuffer(topOffset.Source.Name, context, out _) &&
+            TryCreateFinalShapeTopOffsetRowsExpression(topOffset, context, out var shapeRowsExpression))
         {
             statements = RenderFinalShapeRowsFromShapeRowsExpression(
                 $"{topOffset.Target.Name}Rows",
                 shapeRowsExpression,
+                context,
                 topOffset.RenumberFieldIndexes);
             return true;
         }
@@ -81,38 +88,42 @@ public sealed partial class ExecutionCSharpRenderer
             ? ExecutionCSharpRenderer.CreateBoundedTopOffsetRowsExpression(topOffset)
             : CreateOrderedSliceRowsExpression(
                 topOffset,
-                TryGetGeneratedRowShape(topOffset.Source, out var rowShape) ? rowShape : null);
+                TryGetGeneratedRowShape(topOffset.Source, context, out var rowShape) ? rowShape : null,
+                context);
         statements = RenderFinalShapeRowsFromRowsExpression(
             $"{topOffset.Target.Name}Rows",
             rowsExpression,
+            context,
             renumberFieldIndexes: topOffset.RenumberFieldIndexes);
         return true;
     }
 
     private bool TryRenderSortFinalShapeRows(
         ExecutionSortTable sort,
+        ExecutionRenderContext context,
         out List<StatementSyntax> statements)
     {
-        if (TryGetFinalShapeSourceBuffer(sort.Target.Name, out _) &&
-            TryGetFinalShapeSourceBuffer(sort.Source.Name, out _) &&
-            TryCreateFinalShapeOrderedRowsExpression(sort.Source.Name, sort.Keys, out var bufferedRowsExpression))
+        if (TryGetFinalShapeSourceBuffer(sort.Target.Name, context, out _) &&
+            TryGetFinalShapeSourceBuffer(sort.Source.Name, context, out _) &&
+            TryCreateFinalShapeOrderedRowsExpression(sort.Source.Name, sort.Keys, context, out var bufferedRowsExpression))
         {
             statements = RenderFinalShapeSourceBufferFromShapeRowsExpression(
                 sort.Target.Name,
                 $"{sort.Target.Name}Rows",
                 bufferedRowsExpression,
+                context,
                 sort.RenumberFieldIndexes);
             return true;
         }
 
-        if (!IsFinalShapeTarget(sort.Target))
+        if (!IsFinalShapeTarget(sort.Target, context))
         {
             statements = [];
             return false;
         }
 
-        if (!TryGetFinalShapeSourceBuffer(sort.Source.Name, out _) ||
-            !TryCreateFinalShapeOrderedRowsExpression(sort.Source.Name, sort.Keys, out var rowsExpression))
+        if (!TryGetFinalShapeSourceBuffer(sort.Source.Name, context, out _) ||
+            !TryCreateFinalShapeOrderedRowsExpression(sort.Source.Name, sort.Keys, context, out var rowsExpression))
         {
             statements = [];
             return false;
@@ -121,34 +132,37 @@ public sealed partial class ExecutionCSharpRenderer
         statements = RenderFinalShapeRowsFromShapeRowsExpression(
             $"{sort.Target.Name}Rows",
             rowsExpression,
+            context,
             sort.RenumberFieldIndexes);
         return true;
     }
 
     private bool TryRenderTopNFinalShapeRows(
         ExecutionTopNTable topN,
+        ExecutionRenderContext context,
         out List<StatementSyntax> statements)
     {
-        if (TryGetFinalShapeSourceBuffer(topN.Target.Name, out _) &&
-            TryGetFinalShapeSourceBuffer(topN.Source.Name, out _) &&
-            TryCreateFinalShapeOrderedRowsExpression(topN.Source.Name, topN.Keys, out var bufferedOrderedRows))
+        if (TryGetFinalShapeSourceBuffer(topN.Target.Name, context, out _) &&
+            TryGetFinalShapeSourceBuffer(topN.Source.Name, context, out _) &&
+            TryCreateFinalShapeOrderedRowsExpression(topN.Source.Name, topN.Keys, context, out var bufferedOrderedRows))
         {
             statements = RenderFinalShapeSourceBufferFromShapeRowsExpression(
                 topN.Target.Name,
                 $"{topN.Target.Name}Rows",
                 ExecutionCSharpRenderer.CreateRowsMethodExpression(bufferedOrderedRows, "Take", topN.Count),
+                context,
                 topN.RenumberFieldIndexes);
             return true;
         }
 
-        if (!IsFinalShapeTarget(topN.Target))
+        if (!IsFinalShapeTarget(topN.Target, context))
         {
             statements = [];
             return false;
         }
 
-        if (!TryGetFinalShapeSourceBuffer(topN.Source.Name, out _) ||
-            !TryCreateFinalShapeOrderedRowsExpression(topN.Source.Name, topN.Keys, out var orderedRows))
+        if (!TryGetFinalShapeSourceBuffer(topN.Source.Name, context, out _) ||
+            !TryCreateFinalShapeOrderedRowsExpression(topN.Source.Name, topN.Keys, context, out var orderedRows))
         {
             statements = [];
             return false;
@@ -157,6 +171,7 @@ public sealed partial class ExecutionCSharpRenderer
         statements = RenderFinalShapeRowsFromShapeRowsExpression(
             $"{topN.Target.Name}Rows",
             ExecutionCSharpRenderer.CreateRowsMethodExpression(orderedRows, "Take", topN.Count),
+            context,
             topN.RenumberFieldIndexes);
         return true;
     }
@@ -166,15 +181,16 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable target,
         string rowsVariableName,
         ExpressionSyntax rowsExpression,
+        ExecutionRenderContext context,
         out IEnumerable<StatementSyntax> statements)
     {
-        if (!IsFinalShapeTarget(target) || !TryGetFinalShapeSourceBuffer(source.Name, out _))
+        if (!IsFinalShapeTarget(target, context) || !TryGetFinalShapeSourceBuffer(source.Name, context, out _))
         {
             statements = Array.Empty<StatementSyntax>();
             return false;
         }
 
-        statements = RenderFinalShapeRowsFromShapeRowsExpression(rowsVariableName, rowsExpression);
+        statements = RenderFinalShapeRowsFromShapeRowsExpression(rowsVariableName, rowsExpression, context);
         return true;
     }
 
@@ -183,16 +199,17 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable target,
         string rowsVariableName,
         ExpressionSyntax rowsExpression,
+        ExecutionRenderContext context,
         out IEnumerable<StatementSyntax> statements)
     {
-        if (!TryGetFinalShapeSourceBuffer(target.Name, out _) ||
-            !TryGetFinalShapeSourceBuffer(source.Name, out _))
+        if (!TryGetFinalShapeSourceBuffer(target.Name, context, out _) ||
+            !TryGetFinalShapeSourceBuffer(source.Name, context, out _))
         {
             statements = Array.Empty<StatementSyntax>();
             return false;
         }
 
-        statements = RenderFinalShapeSourceBufferFromShapeRowsExpression(target.Name, rowsVariableName, rowsExpression);
+        statements = RenderFinalShapeSourceBufferFromShapeRowsExpression(target.Name, rowsVariableName, rowsExpression, context);
         return true;
     }
 
@@ -200,15 +217,16 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable target,
         string rowsVariableName,
         ExpressionSyntax rowsExpression,
+        ExecutionRenderContext context,
         out IEnumerable<StatementSyntax> statements)
     {
-        if (!IsFinalShapeTarget(target))
+        if (!IsFinalShapeTarget(target, context))
         {
             statements = Array.Empty<StatementSyntax>();
             return false;
         }
 
-        statements = RenderFinalShapeRowsFromRowsExpression(rowsVariableName, rowsExpression);
+        statements = RenderFinalShapeRowsFromRowsExpression(rowsVariableName, rowsExpression, context);
         return true;
     }
 
@@ -216,9 +234,10 @@ public sealed partial class ExecutionCSharpRenderer
         string targetName,
         string rowsVariableName,
         ExpressionSyntax rowsExpression,
+        ExecutionRenderContext context,
         IReadOnlyList<int>? renumberFieldIndexes = null)
     {
-        var sink = RenderSession.FinalShapeYieldSink ??
+        var sink = context.Session.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         var statements = new List<StatementSyntax>
         {
@@ -234,6 +253,7 @@ public sealed partial class ExecutionCSharpRenderer
             targetName,
             rowsVariableName,
             $"{rowsVariableName}Row",
+            context,
             renumberFieldIndexes));
         return statements;
     }
@@ -242,6 +262,7 @@ public sealed partial class ExecutionCSharpRenderer
         string targetName,
         string rowsVariableName,
         string rowVariableName,
+        ExecutionRenderContext context,
         IReadOnlyList<int>? renumberFieldIndexes = null)
     {
         return StatementEmitter.CreateForeach(
@@ -250,24 +271,26 @@ public sealed partial class ExecutionCSharpRenderer
             StatementEmitter.CreateBlock(CreateRowBufferAddStatement(
                 targetName,
                 renumberFieldIndexes is { Count: > 0 }
-                    ? CreateFinalShapeCreationFromShapeRow(rowVariableName, rowsVariableName, renumberFieldIndexes)
+                    ? CreateFinalShapeCreationFromShapeRow(rowVariableName, rowsVariableName, renumberFieldIndexes, context)
                     : SyntaxFactory.IdentifierName(rowVariableName))));
     }
 
-    private ExpressionSyntax CreateFinalShapeDistinctRowsExpression(string sourceRowsName)
+    private ExpressionSyntax CreateFinalShapeDistinctRowsExpression(
+        string sourceRowsName,
+        ExecutionRenderContext context)
     {
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(sourceRowsName),
                     SyntaxFactory.IdentifierName("DistinctBy")))
-            .WithArgumentList(CreateArgumentList(CreateFinalShapeDistinctKeySelector()));
+            .WithArgumentList(CreateArgumentList(CreateFinalShapeDistinctKeySelector(context)));
     }
 
-    private SimpleLambdaExpressionSyntax CreateFinalShapeDistinctKeySelector()
+    private SimpleLambdaExpressionSyntax CreateFinalShapeDistinctKeySelector(ExecutionRenderContext context)
     {
         const string rowName = "__musoqDistinctRow";
-        var sink = RenderSession.FinalShapeYieldSink ??
+        var sink = context.Session.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         ExpressionSyntax keyExpression = sink.Fields.Count switch
         {
@@ -295,9 +318,10 @@ public sealed partial class ExecutionCSharpRenderer
         string rowsVariableName,
         ExpressionSyntax rowsExpression,
         IReadOnlyList<int> renumberFieldIndexes,
+        ExecutionRenderContext context,
         out List<StatementSyntax> statements)
     {
-        if (!IsFinalShapeTarget(operation.Target))
+        if (!IsFinalShapeTarget(operation.Target, context))
         {
             statements = [];
             return false;
@@ -306,15 +330,17 @@ public sealed partial class ExecutionCSharpRenderer
         statements = RenderFinalShapeRowsFromRowsExpression(
             rowsVariableName,
             rowsExpression,
+            context,
             renumberFieldIndexes: renumberFieldIndexes);
         return true;
     }
 
     private bool TryCreateFinalShapeTopOffsetRowsExpression(
         ExecutionTopOffsetTable topOffset,
+        ExecutionRenderContext context,
         out ExpressionSyntax rowsExpression)
     {
-        if (!TryCreateFinalShapeComparerExpression(topOffset.Keys, out var comparer))
+        if (!TryCreateFinalShapeComparerExpression(topOffset.Keys, context, out var comparer))
         {
             rowsExpression = null!;
             return false;
@@ -331,7 +357,7 @@ public sealed partial class ExecutionCSharpRenderer
             return true;
         }
 
-        if (!TryCreateFinalShapeOrderedRowsExpression(topOffset.Source.Name, topOffset.Keys, out var orderedRows))
+        if (!TryCreateFinalShapeOrderedRowsExpression(topOffset.Source.Name, topOffset.Keys, context, out var orderedRows))
         {
             rowsExpression = null!;
             return false;
@@ -347,9 +373,10 @@ public sealed partial class ExecutionCSharpRenderer
     private bool TryCreateFinalShapeOrderedRowsExpression(
         string sourceRowsName,
         IReadOnlyList<ExecutionOrderField> keys,
+        ExecutionRenderContext context,
         out ExpressionSyntax rowsExpression)
     {
-        if (!TryCreateFinalShapeComparerExpression(keys, out var comparer))
+        if (!TryCreateFinalShapeComparerExpression(keys, context, out var comparer))
         {
             rowsExpression = null!;
             return false;
@@ -371,9 +398,10 @@ public sealed partial class ExecutionCSharpRenderer
 
     private bool TryCreateFinalShapeComparerExpression(
         IReadOnlyList<ExecutionOrderField> keys,
+        ExecutionRenderContext context,
         out ExpressionSyntax comparer)
     {
-        var sink = RenderSession.FinalShapeYieldSink;
+        var sink = context.Session.FinalShapeYieldSink;
         if (sink == null ||
             keys.Count == 0 ||
             keys.Any(key => key.OutputIndex < 0 || key.OutputIndex >= sink.Fields.Count))

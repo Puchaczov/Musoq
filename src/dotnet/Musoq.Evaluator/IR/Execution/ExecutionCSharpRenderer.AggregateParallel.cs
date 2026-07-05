@@ -9,14 +9,16 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderParallelSingleKeyAggregateLoop(ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+    private IEnumerable<StatementSyntax> RenderParallelSingleKeyAggregateLoop(
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
+        ExecutionRenderContext context)
     {
         var parallelRowsName = $"{parallelAggregate.GroupsToFinalize.Name}ParallelRows";
-        var parallelRowsDeclaration = CreateParallelAggregationRowsDeclaration(parallelAggregate, parallelRowsName);
+        var parallelRowsDeclaration = CreateParallelAggregationRowsDeclaration(parallelAggregate, parallelRowsName, context);
         var parallelAssignment = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
             SyntaxKind.SimpleAssignmentExpression,
             SyntaxFactory.IdentifierName(parallelAggregate.GroupsToFinalize.Name),
-            CreateParallelSingleKeyAggregateInvocation(parallelAggregate, parallelRowsName)));
+            CreateParallelSingleKeyAggregateInvocation(parallelAggregate, parallelRowsName, context)));
 
         return
         [
@@ -26,7 +28,8 @@ public sealed partial class ExecutionCSharpRenderer
     }
     private LocalDeclarationStatementSyntax CreateParallelAggregationRowsDeclaration(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        string parallelRowsName)
+        string parallelRowsName,
+        ExecutionRenderContext context)
     {
         var initializer = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -37,7 +40,7 @@ public sealed partial class ExecutionCSharpRenderer
                             CreateVariableTypeSyntax(parallelAggregate.Source))))))
             .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
             [
-                SyntaxFactory.Argument(RenderExpression(parallelAggregate.SourceRows)),
+                SyntaxFactory.Argument(RenderExpression(parallelAggregate.SourceRows, context)),
                 SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
                     SyntaxKind.NumericLiteralExpression,
                     SyntaxFactory.Literal(parallelAggregate.Threshold)))
@@ -52,7 +55,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private InvocationExpressionSyntax CreateParallelSingleKeyAggregateInvocation(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
-        string parallelRowsName)
+        string parallelRowsName,
+        ExecutionRenderContext context)
     {
         var arguments = new List<ExpressionSyntax>
         {
@@ -67,7 +71,7 @@ public sealed partial class ExecutionCSharpRenderer
             .Select(CreateCapturedLocalArgument));
 
         return SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(
-                CreateParallelSingleKeyAggregateFunctionName(parallelAggregate)))
+                CreateParallelSingleKeyAggregateFunctionName(parallelAggregate, context)))
             .WithArgumentList(CreateArgumentList(arguments));
     }
 

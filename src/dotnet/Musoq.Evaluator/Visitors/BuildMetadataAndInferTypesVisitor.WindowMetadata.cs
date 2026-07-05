@@ -14,16 +14,16 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var spec = node.WindowSpecification != null
-            ? SafePop(Nodes, "Visit(WindowFunctionNode).WindowSpec") as WindowSpecificationNode
+            ? PopSemanticNode("Visit(WindowFunctionNode).WindowSpec") as WindowSpecificationNode
             : null;
         var filterExpression = node.FunctionCall.FilterExpression != null
-            ? SafePop(Nodes, "Visit(WindowFunctionNode).FilterExpression")
+            ? PopSemanticNode("Visit(WindowFunctionNode).FilterExpression")
             : null;
 
         var funcArgCount = node.FunctionCall.Arguments?.Args.Length ?? 0;
         var funcArgs = new Node[funcArgCount];
         for (var i = funcArgCount - 1; i >= 0; i--)
-            funcArgs[i] = SafePop(Nodes, "Visit(WindowFunctionNode).FuncArg");
+            funcArgs[i] = PopSemanticNode("Visit(WindowFunctionNode).FuncArg");
 
         var (returnType, resolvedFactory) = InferWindowFunctionReturnType(node.FunctionCall.Name, funcArgs);
         var argsListNode = new ArgsListNode(funcArgs);
@@ -56,7 +56,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 spec ?? throw new InvalidOperationException("Window function requires a window specification."));
 
         result.SetReturnType(returnType);
-        Nodes.Push(result);
+        PushSemanticNode(result);
     }
 
     public override void Visit(WindowSpecificationNode node)
@@ -64,11 +64,11 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var orderByFields = new FieldOrderedNode[node.OrderByFields.Length];
         for (var i = node.OrderByFields.Length - 1; i >= 0; i--)
-            orderByFields[i] = (FieldOrderedNode)SafePop(Nodes, "Visit(WindowSpecificationNode).OrderBy");
+            orderByFields[i] = (FieldOrderedNode)PopSemanticNode("Visit(WindowSpecificationNode).OrderBy");
 
         var partitionFields = new FieldNode[node.PartitionFields.Length];
         for (var i = node.PartitionFields.Length - 1; i >= 0; i--)
-            partitionFields[i] = (FieldNode)SafePop(Nodes, "Visit(WindowSpecificationNode).Partition");
+            partitionFields[i] = (FieldNode)PopSemanticNode("Visit(WindowSpecificationNode).Partition");
 
         if (node.Frame is { FrameType: WindowFrameType.Range } && orderByFields.Length == 0)
             ThrowRangeFrameRequiresOrderBy(node);
@@ -76,14 +76,14 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (node.Frame != null)
             ValidateWindowFrameBounds(node);
 
-        Nodes.Push(new WindowSpecificationNode(partitionFields, orderByFields, node.Frame));
+        PushSemanticNode(new WindowSpecificationNode(partitionFields, orderByFields, node.Frame));
     }
 
     public override void Visit(WindowDefinitionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var spec = (WindowSpecificationNode)SafePop(Nodes, "Visit(WindowDefinitionNode).Spec");
-        Nodes.Push(new WindowDefinitionNode(node.Name, spec));
+        var spec = (WindowSpecificationNode)PopSemanticNode("Visit(WindowDefinitionNode).Spec");
+        PushSemanticNode(new WindowDefinitionNode(node.Name, spec));
     }
 
     public override void Visit(WindowNode node)
@@ -91,9 +91,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var definitions = new WindowDefinitionNode[node.Definitions.Length];
         for (var i = node.Definitions.Length - 1; i >= 0; i--)
-            definitions[i] = (WindowDefinitionNode)SafePop(Nodes, "Visit(WindowNode).Definition");
+            definitions[i] = (WindowDefinitionNode)PopSemanticNode("Visit(WindowNode).Definition");
 
-        Nodes.Push(new WindowNode(definitions));
+        PushSemanticNode(new WindowNode(definitions));
     }
 
     private (Type ReturnType, MethodInfo? ResolvedFactory) InferWindowFunctionReturnType(string functionName, Node[] args)

@@ -178,8 +178,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             : null;
     }
 
-    private sealed record WindowAggregateSourceField(string Alias, FieldBinding Field);
-
     private static bool MatchesExactWindowAggregateSourceField(
         string identifier,
         FieldBinding field)

@@ -25,7 +25,9 @@ public sealed partial class ExecutionCSharpRenderer
                !ExecutionMethodTargetReuse.CanRenderWithoutTarget(methodCall);
     }
 
-    private ExpressionSyntax RenderPerInvocationMethodCall(ExecutionMethodCall methodCall)
+    private ExpressionSyntax RenderPerInvocationMethodCall(
+        ExecutionMethodCall methodCall,
+        ExecutionRenderContext context)
     {
         var target = SyntaxFactory.ObjectCreationExpression(CreateTypeSyntax(methodCall.Method.DeclaringType!))
             .WithArgumentList(SyntaxFactory.ArgumentList());
@@ -34,7 +36,7 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxKind.SimpleMemberAccessExpression,
                     target,
                     CreateMethodNameSyntax(methodCall.Method)))
-            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(CreateMethodInvocationArguments(methodCall))));
+            .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(CreateMethodInvocationArguments(methodCall, context))));
 
         return CastIfNeeded(invocation, methodCall.ReturnType);
     }

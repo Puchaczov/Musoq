@@ -72,12 +72,14 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName(nameof(OperatorProfileValueScope.None)))));
     }
 
-    private IEnumerable<StatementSyntax> CreateOperatorHandleDeclarations(OperatorProfileUsage usage)
+    private IEnumerable<StatementSyntax> CreateOperatorHandleDeclarations(
+        OperatorProfileUsage usage,
+        ExecutionRenderContext context)
     {
-        if (!IsOperatorProfilingEnabled)
+        if (!IsOperatorProfilingEnabledFor(context))
             return [];
 
-        return RenderSession.OperatorCatalog.NodeOperators
+        return context.Session.OperatorCatalog.NodeOperators
             .Where(descriptor =>
                 usage.Contains(OperatorProfileCounterFacts.CreateHandleVariableName(descriptor)) ||
                 usage.Contains(OperatorProfileCounterFacts.CreateInputRowsVariableName(descriptor)) ||
@@ -86,12 +88,14 @@ public sealed partial class ExecutionCSharpRenderer
             .ToArray();
     }
 
-    private IEnumerable<StatementSyntax> CreateOperatorCounterDeclarations(OperatorProfileUsage usage)
+    private IEnumerable<StatementSyntax> CreateOperatorCounterDeclarations(
+        OperatorProfileUsage usage,
+        ExecutionRenderContext context)
     {
-        if (!IsOperatorProfilingEnabled)
+        if (!IsOperatorProfilingEnabledFor(context))
             return [];
 
-        return RenderSession.OperatorCatalog.NodeOperators
+        return context.Session.OperatorCatalog.NodeOperators
             .Where(OperatorProfileCounterFacts.IsCounterOnlyDescriptor)
             .SelectMany(descriptor => CreateOperatorCounterDeclarations(descriptor, usage))
             .ToArray();
@@ -208,12 +212,14 @@ public sealed partial class ExecutionCSharpRenderer
             : [CreateOperatorScopeDisposeStatement(descriptor)];
     }
 
-    private IEnumerable<StatementSyntax> CreateOperatorCounterFlushStatements(OperatorProfileUsage usage)
+    private IEnumerable<StatementSyntax> CreateOperatorCounterFlushStatements(
+        OperatorProfileUsage usage,
+        ExecutionRenderContext context)
     {
-        if (!IsOperatorProfilingEnabled)
+        if (!IsOperatorProfilingEnabledFor(context))
             return [];
 
-        return RenderSession.OperatorCatalog.NodeOperators
+        return context.Session.OperatorCatalog.NodeOperators
             .Where(OperatorProfileCounterFacts.IsCounterOnlyDescriptor)
             .SelectMany(descriptor => CreateOperatorCounterFlushStatements(descriptor, usage))
             .ToArray();

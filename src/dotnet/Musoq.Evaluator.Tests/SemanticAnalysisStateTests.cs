@@ -15,7 +15,7 @@ public sealed class SemanticAnalysisStateTests
 
         first.SourceBinding.Identifier = "first";
         first.ResultShape.GeneratedAliases.Add("alias");
-        first.MethodResolution.Methods.Push("method");
+        first.Traversal.PushMethod("method");
         first.Diagnostics.NullSuspiciousTypes.Add(typeof(string));
         first.Query.SetOperatorFieldTypes["set"] = [typeof(int)];
 
@@ -23,8 +23,8 @@ public sealed class SemanticAnalysisStateTests
         Assert.AreEqual(string.Empty, second.SourceBinding.Identifier);
         Assert.HasCount(1, first.ResultShape.GeneratedAliases);
         Assert.IsEmpty(second.ResultShape.GeneratedAliases);
-        Assert.AreEqual(1, first.MethodResolution.Methods.Count);
-        Assert.AreEqual(0, second.MethodResolution.Methods.Count);
+        Assert.AreEqual(1, first.Traversal.MethodCount);
+        Assert.AreEqual(0, second.Traversal.MethodCount);
         Assert.HasCount(1, first.Diagnostics.NullSuspiciousTypes);
         Assert.IsEmpty(second.Diagnostics.NullSuspiciousTypes);
         Assert.IsTrue(first.Query.SetOperatorFieldTypes.ContainsKey("set"));

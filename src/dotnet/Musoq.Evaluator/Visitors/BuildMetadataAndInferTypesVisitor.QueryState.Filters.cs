@@ -16,7 +16,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             : _sourceBinding.Identifier;
 
         var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
-        var rewrittenWhereNode = new WhereNode(Nodes.Pop());
+        var rewrittenWhereNode = new WhereNode(PopSemanticNode());
 
         var usedIdentifiers = _sourceBinding.UsedWhereNodes
             .Where(f => f.Key.QueryId == _sourceBinding.SchemaFromKey)
@@ -27,22 +27,22 @@ public partial class BuildMetadataAndInferTypesVisitor
                      (t, f) => (Alias: t, Schema: f)))
             _sourceBinding.UsedWhereNodes[aliasSchemaPair.Schema] = rewrittenWhereNode;
 
-        Nodes.Push(rewrittenWhereNode);
+        PushSemanticNode(rewrittenWhereNode);
     }
 
     public override void Visit(GroupByNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var having = Nodes.Peek() as HavingNode;
+        var having = PeekSemanticNode() as HavingNode;
 
         if (having != null)
-            Nodes.Pop();
+            PopSemanticNode();
 
         var fields = new FieldNode[node.Fields.Length];
 
         for (var i = node.Fields.Length - 1; i >= 0; --i)
         {
-            var field = Nodes.Pop() as FieldNode
+            var field = PopSemanticNode() as FieldNode
                         ?? throw new VisitorException(
                             VisitorName,
                             "VisitGroupByNode",
@@ -51,29 +51,29 @@ public partial class BuildMetadataAndInferTypesVisitor
             fields[i] = field;
         }
 
-        Nodes.Push(new GroupByNode(fields, having, node.IsAll, node.Span));
+        PushSemanticNode(new GroupByNode(fields, having, node.IsAll, node.Span));
     }
 
     public override void Visit(HavingNode node)
     {
-        Nodes.Push(new HavingNode(Nodes.Pop()));
+        PushSemanticNode(new HavingNode(PopSemanticNode()));
     }
 
     public override void Visit(QualifyNode node)
     {
-        Nodes.Push(new QualifyNode(Nodes.Pop()));
+        PushSemanticNode(new QualifyNode(PopSemanticNode()));
     }
 
     public override void Visit(SkipNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new SkipNode((IntegerNode)node.Expression));
+        PushSemanticNode(new SkipNode((IntegerNode)node.Expression));
     }
 
     public override void Visit(TakeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new TakeNode((IntegerNode)node.Expression));
+        PushSemanticNode(new TakeNode((IntegerNode)node.Expression));
     }
 
     public override void Visit(OrderByNode node)
@@ -82,8 +82,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         var fields = new FieldOrderedNode[node.Fields.Length];
 
         for (var i = node.Fields.Length - 1; i >= 0; --i)
-            fields[i] = (FieldOrderedNode)Nodes.Pop();
+            fields[i] = (FieldOrderedNode)PopSemanticNode();
 
-        Nodes.Push(new OrderByNode(fields));
+        PushSemanticNode(new OrderByNode(fields));
     }
 }

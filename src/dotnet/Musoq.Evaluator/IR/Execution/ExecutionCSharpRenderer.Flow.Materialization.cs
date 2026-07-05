@@ -8,14 +8,16 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private LocalDeclarationStatementSyntax RenderMaterializeList(ExecutionMaterializeList materialize)
+    private LocalDeclarationStatementSyntax RenderMaterializeList(
+        ExecutionMaterializeList materialize,
+        ExecutionRenderContext context)
     {
         if (materialize.GeneratedRowShape != null)
         {
             return CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 materialize.Buffer.Name,
-                CreateMaterializeGeneratedRowsInvocation(materialize.GeneratedRowShape, materialize.Source));
+                CreateMaterializeGeneratedRowsInvocation(materialize.GeneratedRowShape, materialize.Source, context));
         }
 
         var materializeMethodName = IsListType(materialize.Buffer.Type)
@@ -26,7 +28,7 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
                 SyntaxFactory.IdentifierName(materializeMethodName)))
-            .WithArgumentList(CreateArgumentList(RenderExpression(materialize.Source)));
+            .WithArgumentList(CreateArgumentList(RenderExpression(materialize.Source, context)));
 
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -34,14 +36,16 @@ public sealed partial class ExecutionCSharpRenderer
             materializeInvocation);
     }
 
-    private LocalDeclarationStatementSyntax RenderMaterializeChunkedList(ExecutionMaterializeList materialize)
+    private LocalDeclarationStatementSyntax RenderMaterializeChunkedList(
+        ExecutionMaterializeList materialize,
+        ExecutionRenderContext context)
     {
         if (materialize.GeneratedRowShape != null)
         {
             return CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 materialize.Buffer.Name,
-                CreateMaterializeGeneratedChunkedRowsInvocation(materialize.GeneratedRowShape, materialize.Source));
+                CreateMaterializeGeneratedChunkedRowsInvocation(materialize.GeneratedRowShape, materialize.Source, context));
         }
 
         var materializeMethodName = IsListType(materialize.Buffer.Type)
@@ -52,7 +56,7 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
                 SyntaxFactory.IdentifierName(materializeMethodName)))
-            .WithArgumentList(CreateArgumentList(RenderExpression(materialize.Source)));
+            .WithArgumentList(CreateArgumentList(RenderExpression(materialize.Source, context)));
 
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -66,14 +70,16 @@ public sealed partial class ExecutionCSharpRenderer
                type.GetGenericTypeDefinition() == typeof(List<>);
     }
 
-    private IEnumerable<StatementSyntax> RenderMaterializeFilteredList(ExecutionMaterializeFilteredList materialize)
+    private IEnumerable<StatementSyntax> RenderMaterializeFilteredList(
+        ExecutionMaterializeFilteredList materialize,
+        ExecutionRenderContext context)
     {
         if (materialize.GeneratedRowShape != null)
         {
             yield return CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 materialize.Buffer.Name,
-                CreateMaterializeFilteredGeneratedRowsInvocation(materialize));
+                CreateMaterializeFilteredGeneratedRowsInvocation(materialize, context));
             yield break;
         }
 
@@ -87,27 +93,29 @@ public sealed partial class ExecutionCSharpRenderer
         var loopStatements = new List<StatementSyntax>
         {
             StatementEmitter.CreateIf(
-                RenderExpression(materialize.Predicate),
+                RenderExpression(materialize.Predicate, context),
                 StatementEmitter.CreateBlock(CreateListAddStatement(materialize.Buffer.Name, loopVariableName)))
         };
 
         var loop = StatementEmitter.CreateForeach(
             loopVariableName,
-            RenderExpression(materialize.Source),
+            RenderExpression(materialize.Source, context),
             StatementEmitter.CreateBlock(loopStatements));
 
         yield return bufferDeclaration;
         yield return loop;
     }
 
-    private IEnumerable<StatementSyntax> RenderMaterializeFilteredChunkedList(ExecutionMaterializeFilteredList materialize)
+    private IEnumerable<StatementSyntax> RenderMaterializeFilteredChunkedList(
+        ExecutionMaterializeFilteredList materialize,
+        ExecutionRenderContext context)
     {
         if (materialize.GeneratedRowShape != null)
         {
             yield return CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 materialize.Buffer.Name,
-                CreateMaterializeFilteredGeneratedChunkedRowsInvocation(materialize));
+                CreateMaterializeFilteredGeneratedChunkedRowsInvocation(materialize, context));
             yield break;
         }
 
@@ -121,7 +129,7 @@ public sealed partial class ExecutionCSharpRenderer
         var loopStatements = new List<StatementSyntax>
         {
             StatementEmitter.CreateIf(
-                RenderExpression(materialize.Predicate),
+                RenderExpression(materialize.Predicate, context),
                 StatementEmitter.CreateBlock(CreateListAddStatement(materialize.Buffer.Name, loopVariableName)))
         };
 
@@ -129,53 +137,58 @@ public sealed partial class ExecutionCSharpRenderer
         yield return CreateChunkedMaterializationLoop(
             materialize.Source,
             materialize.Item,
-            StatementEmitter.CreateBlock(loopStatements));
+            StatementEmitter.CreateBlock(loopStatements),
+            context);
     }
 
     private InvocationExpressionSyntax CreateMaterializeGeneratedRowsInvocation(
         GeneratedRowShape rowShape,
-        ExecutionExpression source)
+        ExecutionExpression source,
+        ExecutionRenderContext context)
     {
         return SyntaxFactory.InvocationExpression(CreateGenericEvaluationHelperMemberAccess(
                 nameof(EvaluationHelper.MaterializeGeneratedRows),
                 rowShape.TypeName))
-            .WithArgumentList(CreateArgumentList(RenderExpression(source)));
+            .WithArgumentList(CreateArgumentList(RenderExpression(source, context)));
     }
 
     private InvocationExpressionSyntax CreateMaterializeGeneratedChunkedRowsInvocation(
         GeneratedRowShape rowShape,
-        ExecutionExpression source)
+        ExecutionExpression source,
+        ExecutionRenderContext context)
     {
         return SyntaxFactory.InvocationExpression(CreateGenericEvaluationHelperMemberAccess(
                 nameof(EvaluationHelper.MaterializeGeneratedChunkedRows),
                 rowShape.TypeName))
-            .WithArgumentList(CreateArgumentList(RenderExpression(source)));
+            .WithArgumentList(CreateArgumentList(RenderExpression(source, context)));
     }
 
     private InvocationExpressionSyntax CreateMaterializeFilteredGeneratedRowsInvocation(
-        ExecutionMaterializeFilteredList materialize)
+        ExecutionMaterializeFilteredList materialize,
+        ExecutionRenderContext context)
     {
         var predicate = SyntaxFactory.SimpleLambdaExpression(
             SyntaxFactory.Parameter(SyntaxFactory.Identifier(materialize.Item.Name)),
-            RenderExpression(materialize.Predicate));
+            RenderExpression(materialize.Predicate, context));
 
         return SyntaxFactory.InvocationExpression(CreateGenericEvaluationHelperMemberAccess(
                 nameof(EvaluationHelper.MaterializeFilteredGeneratedRows),
                 materialize.GeneratedRowShape!.TypeName))
-            .WithArgumentList(CreateArgumentList(RenderExpression(materialize.Source), predicate));
+            .WithArgumentList(CreateArgumentList(RenderExpression(materialize.Source, context), predicate));
     }
 
     private InvocationExpressionSyntax CreateMaterializeFilteredGeneratedChunkedRowsInvocation(
-        ExecutionMaterializeFilteredList materialize)
+        ExecutionMaterializeFilteredList materialize,
+        ExecutionRenderContext context)
     {
         var predicate = SyntaxFactory.SimpleLambdaExpression(
             SyntaxFactory.Parameter(SyntaxFactory.Identifier(materialize.Item.Name)),
-            RenderExpression(materialize.Predicate));
+            RenderExpression(materialize.Predicate, context));
 
         return SyntaxFactory.InvocationExpression(CreateGenericEvaluationHelperMemberAccess(
                 nameof(EvaluationHelper.MaterializeFilteredGeneratedChunkedRows),
                 materialize.GeneratedRowShape!.TypeName))
-            .WithArgumentList(CreateArgumentList(RenderExpression(materialize.Source), predicate));
+            .WithArgumentList(CreateArgumentList(RenderExpression(materialize.Source, context), predicate));
     }
 
     private static MemberAccessExpressionSyntax CreateGenericEvaluationHelperMemberAccess(
@@ -192,7 +205,9 @@ public sealed partial class ExecutionCSharpRenderer
             method);
     }
 
-    private IEnumerable<StatementSyntax> RenderMaterializeExpandoList(ExecutionMaterializeExpandoList materialize)
+    private IEnumerable<StatementSyntax> RenderMaterializeExpandoList(
+        ExecutionMaterializeExpandoList materialize,
+        ExecutionRenderContext context)
     {
         var bufferDeclaration = CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -214,19 +229,21 @@ public sealed partial class ExecutionCSharpRenderer
         else
         {
             loopStatements.Add(StatementEmitter.CreateIf(
-                RenderExpression(materialize.Predicate),
+                RenderExpression(materialize.Predicate, context),
                 StatementEmitter.CreateBlock(addStatement)));
         }
 
         var loop = StatementEmitter.CreateForeach(
             resolverName,
-            RenderExpression(materialize.Source),
+            RenderExpression(materialize.Source, context),
             StatementEmitter.CreateBlock(loopStatements));
 
         return [bufferDeclaration, loop];
     }
 
-    private IEnumerable<StatementSyntax> RenderMaterializeChunkedExpandoList(ExecutionMaterializeExpandoList materialize)
+    private IEnumerable<StatementSyntax> RenderMaterializeChunkedExpandoList(
+        ExecutionMaterializeExpandoList materialize,
+        ExecutionRenderContext context)
     {
         var bufferDeclaration = CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -248,7 +265,7 @@ public sealed partial class ExecutionCSharpRenderer
         else
         {
             loopStatements.Add(StatementEmitter.CreateIf(
-                RenderExpression(materialize.Predicate),
+                RenderExpression(materialize.Predicate, context),
                 StatementEmitter.CreateBlock(addStatement)));
         }
 
@@ -258,21 +275,24 @@ public sealed partial class ExecutionCSharpRenderer
             CreateChunkedMaterializationLoop(
                 materialize.Source,
                 new ExecutionVariable(resolverName, materialize.Shape.RuntimeType),
-                StatementEmitter.CreateBlock(loopStatements))
+                StatementEmitter.CreateBlock(loopStatements),
+                context)
         ];
     }
 
     private StatementSyntax CreateChunkedMaterializationLoop(
         ExecutionExpression source,
         ExecutionVariable item,
-        StatementSyntax body)
+        StatementSyntax body,
+        ExecutionRenderContext context)
     {
         return CreateChunkedLoop(
             item,
             source,
+            context,
             (itemAccessExpression, indexVariableName) =>
             [
-                ..CreateChunkedLoopBodyPrefix(item, itemAccessExpression, indexVariableName),
+                ..CreateChunkedLoopBodyPrefix(item, itemAccessExpression, indexVariableName, context),
                 body
             ]);
     }

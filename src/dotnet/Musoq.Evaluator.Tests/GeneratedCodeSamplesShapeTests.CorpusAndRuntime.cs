@@ -242,8 +242,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "_cteRowResults.Slot0 = BuildCte0(");
 
         AssertScriptParameterBinderCount(ScriptParameterCteHelperCaptureSampleFileName, cte, 1);
-        Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults, paramCountry);", cte);
-        Assert.Contains("CteRowResults _cteRowResults, string paramCountry)", cte);
+        Assert.Contains("_cteRowResults.Slot0 = BuildCte0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, OnDataSourceProgress, _cteRowResults, _cteIndexResults, paramCountry);", cte);
+        Assert.Contains("CteRowResults _cteRowResults, CteIndexResults _cteIndexResults, string paramCountry)", cte);
         Assert.Contains("if ((ko3iko.Country == paramCountry))", cte);
         AssertTopLevelBindingBefore(
             ScriptParameterCteHelperCaptureSampleFileName,

@@ -28,7 +28,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 static pair => (IReadOnlySet<string>)pair.Value,
                 StringComparer.OrdinalIgnoreCase);
 
-        return new CteDefinitionPruningPlan(compact, CreateContextFreeCteDefinitions(cte));
+        var contextFreeDefinitions = CreateContextFreeCteDefinitions(cte);
+        contextFreeDefinitions.ExceptWith(CollectContextRequiredCteDefinitions(cte, names));
+
+        return new CteDefinitionPruningPlan(compact, contextFreeDefinitions);
     }
 
     private void AddSidecarRequiredColumns(
@@ -43,7 +46,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         }
     }
 
-    private IReadOnlySet<string> CreateContextFreeCteDefinitions(PhysicalCteNode cte)
+    private HashSet<string> CreateContextFreeCteDefinitions(PhysicalCteNode cte)
     {
         var classifications = ClassifyCteReferences(cte);
         var contextFree = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

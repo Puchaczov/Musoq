@@ -10,11 +10,11 @@ namespace Musoq.Evaluator.Tests.Architecture;
 [TestClass]
 public sealed class ResidualArchitectureWave1GuardrailTests
 {
-    private const int RendererAmbientSessionMarkerCeiling = 6;
+    private const int RendererAmbientSessionMarkerCeiling = 0;
     private const int CodeGenerationRendererInternalCallCeiling = 12;
     private const int StaticStringKeyedRuntimeCacheCeiling = 3;
     private const int OperatorsRegexWithoutTimeoutCeiling = 2;
-    private const int BroadNotSupportedFallbackCatchCeiling = 4;
+    private const int BroadNotSupportedFallbackCatchCeiling = 3;
 
     private static readonly Regex RendererAmbientSessionMarker = new(
         @"\bAsyncLocal<ExecutionRenderSession\?>\b|\bRenderSessionSlot\b|\bprivate\s+ExecutionRenderSession\s+RenderSession\s*=>",
@@ -37,7 +37,7 @@ public sealed class ResidualArchitectureWave1GuardrailTests
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     [TestMethod]
-    public void ExecutionRenderer_AmbientAsyncLocalSessionSurface_ShouldNotGrow()
+    public void ExecutionRenderer_AmbientAsyncLocalSessionSurface_ShouldBeRemoved()
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var rendererFiles = RepositorySourceScan.FilesUnder(
@@ -49,8 +49,8 @@ public sealed class ResidualArchitectureWave1GuardrailTests
 
         Assert.IsTrue(
             markers.Length <= RendererAmbientSessionMarkerCeiling,
-            $"ExecutionCSharpRenderer ambient render-session markers grew to {markers.Length}. " +
-            "Wave 2-5 should replace AsyncLocal/session-slot access with explicit ExecutionRenderContext plumbing: " +
+            $"ExecutionCSharpRenderer ambient render-session markers must stay at zero, but found {markers.Length}. " +
+            "Renderer session state must flow through explicit ExecutionRenderContext plumbing: " +
             string.Join(Environment.NewLine, markers));
     }
 

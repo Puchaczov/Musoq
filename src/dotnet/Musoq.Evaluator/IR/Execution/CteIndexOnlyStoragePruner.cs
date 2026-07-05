@@ -135,6 +135,11 @@ internal static class CteIndexOnlyStoragePruner
                 {
                     Body = RemoveIndexOnlyCteRowStorage(branch.Body, tableName, rowTypeName, keepPayloadRows)
                 };
+            case ExecutionScopedBlock scopedBlock:
+                return scopedBlock with
+                {
+                    Body = RemoveIndexOnlyCteRowStorage(scopedBlock.Body, tableName, rowTypeName, keepPayloadRows)
+                };
             case ExecutionHashProbe probe:
                 return probe with
                 {

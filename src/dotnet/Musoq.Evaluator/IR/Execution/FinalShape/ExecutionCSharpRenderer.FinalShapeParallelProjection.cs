@@ -11,7 +11,8 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private IReadOnlyList<StatementSyntax> RenderFinalShapeParallelFilterProjectLoop(
         ExecutionParallelFilterProjectLoop parallelProject,
-        FinalShapeYieldSink sink)
+        FinalShapeYieldSink sink,
+        ExecutionRenderContext context)
     {
         var parallelRowsName = $"{parallelProject.AppendRow.Table.Name}ParallelProjectRows";
         var projectedRowsName = $"{parallelProject.AppendRow.Table.Name}ParallelProjectedShapes";
@@ -19,15 +20,16 @@ public sealed partial class ExecutionCSharpRenderer
         var parallelRowsDeclaration = CreateParallelProjectionRowsDeclaration(
             parallelProject,
             parallelRowsName,
-            parallelProject.SourceRows);
+            parallelProject.SourceRows,
+            context);
         var projectedRowsDeclaration = CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             projectedRowsName,
-            CreateFinalShapeParallelProjectionInvocation(parallelProject, parallelRowsName, sink.ShapeTypeName));
+            CreateFinalShapeParallelProjectionInvocation(parallelProject, parallelRowsName, sink.ShapeTypeName, context));
         var appendProjectedShapes = StatementEmitter.CreateForeach(
             projectedShapeName,
             CreateQueryRowsFromShardsInvocation(projectedRowsName),
-            StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(SyntaxFactory.IdentifierName(projectedShapeName))));
+            StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(SyntaxFactory.IdentifierName(projectedShapeName), context)));
 
         return
         [
@@ -40,7 +42,8 @@ public sealed partial class ExecutionCSharpRenderer
     private InvocationExpressionSyntax CreateFinalShapeParallelProjectionInvocation(
         ExecutionParallelFilterProjectLoop parallelProject,
         string parallelRowsName,
-        string shapeTypeName)
+        string shapeTypeName,
+        ExecutionRenderContext context)
     {
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -57,7 +60,7 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.LiteralExpression(
                     SyntaxKind.NumericLiteralExpression,
                     SyntaxFactory.Literal(parallelProject.MaxDegreeOfParallelism)),
-                CreateFinalShapeParallelProjectionProjector(parallelProject, shapeTypeName),
+                CreateFinalShapeParallelProjectionProjector(parallelProject, shapeTypeName, context),
                 SyntaxFactory.IdentifierName("token")));
     }
 
@@ -73,10 +76,12 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ParenthesizedLambdaExpressionSyntax CreateFinalShapeParallelProjectionProjector(
         ExecutionParallelFilterProjectLoop parallelProject,
-        string shapeTypeName)
+        string shapeTypeName,
+        ExecutionRenderContext context)
     {
         return CreateParallelProjectionProjector(
             parallelProject,
-            appendRow => this.CreateFinalShapeCreation(shapeTypeName, appendRow));
+            appendRow => this.CreateFinalShapeCreation(shapeTypeName, appendRow),
+            context);
     }
 }

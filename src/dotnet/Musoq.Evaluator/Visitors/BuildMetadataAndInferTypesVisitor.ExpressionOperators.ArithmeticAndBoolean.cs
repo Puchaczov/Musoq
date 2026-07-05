@@ -29,22 +29,22 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(AddNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var right = SafePop(Nodes, "Visit(AddNode) right");
-        var left = SafePop(Nodes, "Visit(AddNode) left");
+        var right = PopSemanticNode("Visit(AddNode) right");
+        var left = PopSemanticNode("Visit(AddNode) left");
 
         var leftIsStringLiteral = left is WordNode;
         var rightIsStringLiteral = right is WordNode;
 
         if (leftIsStringLiteral || rightIsStringLiteral)
         {
-            Nodes.Push(left);
-            Nodes.Push(right);
+            PushSemanticNode(left);
+            PushSemanticNode(right);
             VisitBinaryOperatorWithSafePop((l, r) => new AddNode(l, r), VisitorOperationNames.VisitAddNode);
         }
         else
         {
-            Nodes.Push(left);
-            Nodes.Push(right);
+            PushSemanticNode(left);
+            PushSemanticNode(right);
             VisitBinaryOperatorWithTypeConversion((l, r) => new AddNode(l, r), node, BinaryOperatorKind.Add,
                 BinaryOperationContext.ArithmeticOperation);
         }
@@ -59,26 +59,26 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     public override void Visit(AndNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitAndNode);
+        var nodes = PopSemanticNodes(2, VisitorOperationNames.VisitAndNode);
         var left = nodes[0];
         var right = nodes[1];
 
         ValidateBooleanOperand(left, "AND", node);
         ValidateBooleanOperand(right, "AND", node);
 
-        Nodes.Push(new AndNode(left, right));
+        PushSemanticNode(new AndNode(left, right));
     }
 
     public override void Visit(OrNode node)
     {
-        var nodes = SafePopMultiple(Nodes, 2, VisitorOperationNames.VisitOrNode);
+        var nodes = PopSemanticNodes(2, VisitorOperationNames.VisitOrNode);
         var left = nodes[0];
         var right = nodes[1];
 
         ValidateBooleanOperand(left, "OR", node);
         ValidateBooleanOperand(right, "OR", node);
 
-        Nodes.Push(new OrNode(left, right));
+        PushSemanticNode(new OrNode(left, right));
     }
 
     public override void Visit(BitwiseAndNode node)
@@ -119,14 +119,14 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(ShortCircuitingNodeLeft node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var childNode = SafePop(Nodes, VisitorOperationNames.VisitShortCircuitingNodeLeft);
-        Nodes.Push(new ShortCircuitingNodeLeft(childNode, node.UsedFor));
+        var childNode = PopSemanticNode(VisitorOperationNames.VisitShortCircuitingNodeLeft);
+        PushSemanticNode(new ShortCircuitingNodeLeft(childNode, node.UsedFor));
     }
 
     public override void Visit(ShortCircuitingNodeRight node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var childNode = SafePop(Nodes, VisitorOperationNames.VisitShortCircuitingNodeRight);
-        Nodes.Push(new ShortCircuitingNodeRight(childNode, node.UsedFor));
+        var childNode = PopSemanticNode(VisitorOperationNames.VisitShortCircuitingNodeRight);
+        PushSemanticNode(new ShortCircuitingNodeRight(childNode, node.UsedFor));
     }
 }

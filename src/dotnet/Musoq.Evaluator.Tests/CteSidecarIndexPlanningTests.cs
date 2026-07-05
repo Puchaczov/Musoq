@@ -73,6 +73,7 @@ semi join eligible e on b.Id = e.Id";
             new CompilationOptions(
                 useHashJoin: true,
                 useSortMergeJoin: false,
+                useCteParallelization: false,
                 useCteSidecarIndexes: true));
 
         var rawRow = ExtractGeneratedClass(result.GeneratedCSharpCode, "Cte0Row0");
@@ -128,6 +129,7 @@ semi join eligible e on b.Id = e.Id";
             new CompilationOptions(
                 useHashJoin: true,
                 useSortMergeJoin: false,
+                useCteParallelization: false,
                 useCteSidecarIndexes: true));
 
         Assert.Contains("FusedCteProducer [cte1 -> sidecar-only, cte2 -> sidecar-only, cte3 -> sidecar-only]", result.ExecutionPlanText);

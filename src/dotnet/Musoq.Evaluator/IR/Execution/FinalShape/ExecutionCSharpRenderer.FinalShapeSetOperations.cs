@@ -9,7 +9,9 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderUnionAllFinalShapeOperation(ExecutionSetOperation setOperation)
+    private IEnumerable<StatementSyntax> RenderUnionAllFinalShapeOperation(
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
         var leftRowName = $"{setOperation.Target.Name}LeftRow";
         var rightRowName = $"{setOperation.Target.Name}RightRow";
@@ -18,45 +20,53 @@ public sealed partial class ExecutionCSharpRenderer
         [
             StatementEmitter.CreateForeach(
                 leftRowName,
-                CreateRowsRead(setOperation.Left),
+                CreateRowsRead(setOperation.Left, context),
                 StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(
-                    CreateFinalShapeCreationFromSetRow(leftRowName, setOperation.Left)))),
+                    CreateFinalShapeCreationFromSetRow(leftRowName, setOperation.Left, context),
+                    context))),
             StatementEmitter.CreateForeach(
                 rightRowName,
-                CreateRowsRead(setOperation.Right),
+                CreateRowsRead(setOperation.Right, context),
                 StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(
-                    CreateFinalShapeCreationFromSetRow(rightRowName, setOperation.Right))))
+                    CreateFinalShapeCreationFromSetRow(rightRowName, setOperation.Right, context),
+                    context)))
         ];
     }
 
-    private List<StatementSyntax> RenderHashSetFinalShapeOperation(ExecutionSetOperation setOperation)
+    private List<StatementSyntax> RenderHashSetFinalShapeOperation(
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
         var statements = new List<StatementSyntax>();
         statements.AddRange(setOperation.Kind switch
         {
-            SetOpKind.Union => RenderHashSetUnionFinalShapeRows(setOperation),
-            SetOpKind.Except => RenderHashSetExceptFinalShapeRows(setOperation),
-            SetOpKind.Intersect => RenderHashSetIntersectFinalShapeRows(setOperation),
+            SetOpKind.Union => RenderHashSetUnionFinalShapeRows(setOperation, context),
+            SetOpKind.Except => RenderHashSetExceptFinalShapeRows(setOperation, context),
+            SetOpKind.Intersect => RenderHashSetIntersectFinalShapeRows(setOperation, context),
             _ => throw UnsupportedShape.Of($"Hash set set-operation rendering for {setOperation.Kind}")
         });
 
         return statements;
     }
 
-    private IEnumerable<StatementSyntax> RenderGeneratedEqualityFinalShapeOperation(ExecutionSetOperation setOperation)
+    private IEnumerable<StatementSyntax> RenderGeneratedEqualityFinalShapeOperation(
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
         return setOperation.Kind switch
         {
-            SetOpKind.Union => RenderGeneratedEqualityUnionFinalShapeRows(setOperation),
-            SetOpKind.Except => RenderGeneratedEqualityExceptFinalShapeRows(setOperation),
-            SetOpKind.Intersect => RenderGeneratedEqualityIntersectFinalShapeRows(setOperation),
+            SetOpKind.Union => RenderGeneratedEqualityUnionFinalShapeRows(setOperation, context),
+            SetOpKind.Except => RenderGeneratedEqualityExceptFinalShapeRows(setOperation, context),
+            SetOpKind.Intersect => RenderGeneratedEqualityIntersectFinalShapeRows(setOperation, context),
             _ => throw UnsupportedShape.Of($"Generated equality set-operation rendering for {setOperation.Kind}")
         };
     }
 
-    private IEnumerable<StatementSyntax> RenderGeneratedEqualityUnionFinalShapeRows(ExecutionSetOperation setOperation)
+    private IEnumerable<StatementSyntax> RenderGeneratedEqualityUnionFinalShapeRows(
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
-        var sink = RenderSession.FinalShapeYieldSink ??
+        var sink = context.Session.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         var seenRowsName = $"{setOperation.Target.Name}GeneratedSetRows";
         var seenRowName = $"{setOperation.Target.Name}GeneratedSetRow";
@@ -71,25 +81,25 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.IdentifierName("var"),
                 seenRowsName,
                 SyntaxFactory.ObjectCreationExpression(CreateListTypeSyntax(sink.ShapeTypeName))
-                    .WithArgumentList(CreateArgumentList(CreateCombinedRowsCountRead(setOperation.Left, setOperation.Right)))),
+                    .WithArgumentList(CreateArgumentList(CreateCombinedRowsCountRead(setOperation.Left, setOperation.Right, context)))),
             StatementEmitter.CreateForeach(
                 leftRowName,
-                CreateRowsRead(setOperation.Left),
+                CreateRowsRead(setOperation.Left, context),
                 StatementEmitter.CreateBlock(
                     CreateLocalDeclaration(
                         SyntaxFactory.IdentifierName("var"),
                         leftShapeName,
-                        CreateFinalShapeCreationFromSetRow(leftRowName, setOperation.Left)),
+                        CreateFinalShapeCreationFromSetRow(leftRowName, setOperation.Left, context)),
                     CreateListAddStatement(seenRowsName, SyntaxFactory.IdentifierName(leftShapeName)),
-                    CreateFinalShapeOutputStatement(SyntaxFactory.IdentifierName(leftShapeName)))),
+                    CreateFinalShapeOutputStatement(SyntaxFactory.IdentifierName(leftShapeName), context))),
             StatementEmitter.CreateForeach(
                 rightRowName,
-                CreateRowsRead(setOperation.Right),
+                CreateRowsRead(setOperation.Right, context),
                 StatementEmitter.CreateBlock(
                     CreateLocalDeclaration(
                         SyntaxFactory.IdentifierName("var"),
                         rightShapeName,
-                        CreateFinalShapeCreationFromSetRow(rightRowName, setOperation.Right)),
+                        CreateFinalShapeCreationFromSetRow(rightRowName, setOperation.Right, context)),
                     SyntaxFactory.IfStatement(
                         SyntaxFactory.PrefixUnaryExpression(
                             SyntaxKind.LogicalNotExpression,
@@ -97,14 +107,17 @@ public sealed partial class ExecutionCSharpRenderer
                                 seenRowsName,
                                 seenRowName,
                                 rightShapeName,
-                                setOperation)),
+                                setOperation,
+                                context)),
                         StatementEmitter.CreateBlock(
                             CreateListAddStatement(seenRowsName, SyntaxFactory.IdentifierName(rightShapeName)),
-                            CreateFinalShapeOutputStatement(SyntaxFactory.IdentifierName(rightShapeName))))))
+                            CreateFinalShapeOutputStatement(SyntaxFactory.IdentifierName(rightShapeName), context)))))
         ];
     }
 
-    private IEnumerable<StatementSyntax> RenderGeneratedEqualityExceptFinalShapeRows(ExecutionSetOperation setOperation)
+    private IEnumerable<StatementSyntax> RenderGeneratedEqualityExceptFinalShapeRows(
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
         var leftRowName = $"{setOperation.Target.Name}LeftRow";
         var rightRowName = $"{setOperation.Target.Name}RightRow";
@@ -113,23 +126,27 @@ public sealed partial class ExecutionCSharpRenderer
         [
             StatementEmitter.CreateForeach(
                 leftRowName,
-                CreateRowsRead(setOperation.Left),
+                CreateRowsRead(setOperation.Left, context),
                 StatementEmitter.CreateBlock(SyntaxFactory.IfStatement(
                     SyntaxFactory.PrefixUnaryExpression(
                         SyntaxKind.LogicalNotExpression,
                         CreateSetRowsAnyMatch(
-                            CreateRowsRead(setOperation.Right),
+                            CreateRowsRead(setOperation.Right, context),
                             rightRowName,
                             leftRowName,
                             setOperation.Right,
                             setOperation.Left,
-                            setOperation)),
+                            setOperation,
+                            context)),
                     StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(
-                        CreateFinalShapeCreationFromSetRow(leftRowName, setOperation.Left))))))
+                        CreateFinalShapeCreationFromSetRow(leftRowName, setOperation.Left, context),
+                        context)))))
         ];
     }
 
-    private IEnumerable<StatementSyntax> RenderGeneratedEqualityIntersectFinalShapeRows(ExecutionSetOperation setOperation)
+    private IEnumerable<StatementSyntax> RenderGeneratedEqualityIntersectFinalShapeRows(
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
         var leftRowName = $"{setOperation.Target.Name}LeftRow";
         var rightRowName = $"{setOperation.Target.Name}RightRow";
@@ -138,21 +155,25 @@ public sealed partial class ExecutionCSharpRenderer
         [
             StatementEmitter.CreateForeach(
                 leftRowName,
-                CreateRowsRead(setOperation.Left),
+                CreateRowsRead(setOperation.Left, context),
                 StatementEmitter.CreateBlock(SyntaxFactory.IfStatement(
                     CreateSetRowsAnyMatch(
-                        CreateRowsRead(setOperation.Right),
+                        CreateRowsRead(setOperation.Right, context),
                         rightRowName,
                         leftRowName,
                         setOperation.Right,
                         setOperation.Left,
-                        setOperation),
+                        setOperation,
+                        context),
                     StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(
-                        CreateFinalShapeCreationFromSetRow(leftRowName, setOperation.Left))))))
+                        CreateFinalShapeCreationFromSetRow(leftRowName, setOperation.Left, context),
+                        context)))))
         ];
     }
 
-    private IEnumerable<StatementSyntax> RenderHashSetUnionFinalShapeRows(ExecutionSetOperation setOperation)
+    private IEnumerable<StatementSyntax> RenderHashSetUnionFinalShapeRows(
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
         var keysName = $"{setOperation.Target.Name}Keys";
         var leftRowName = $"{setOperation.Target.Name}LeftRow";
@@ -163,26 +184,29 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionCSharpRenderer.CreateSetKeyHashSetDeclaration(
                 keysName,
                 setOperation.FieldTypes,
-                CreateCombinedRowsCountRead(setOperation.Left, setOperation.Right)),
+                CreateCombinedRowsCountRead(setOperation.Left, setOperation.Right, context)),
             StatementEmitter.CreateForeach(
                 leftRowName,
-                CreateRowsRead(setOperation.Left),
+                CreateRowsRead(setOperation.Left, context),
                 StatementEmitter.CreateBlock(
-                    CreateHashSetAddStatement(keysName, leftRowName, setOperation, setOperation.Left),
-                    CreateFinalShapeOutputStatement(CreateFinalShapeCreationFromSetRow(leftRowName, setOperation.Left)))),
+                    CreateHashSetAddStatement(keysName, leftRowName, setOperation, setOperation.Left, context),
+                    CreateFinalShapeOutputStatement(CreateFinalShapeCreationFromSetRow(leftRowName, setOperation.Left, context), context))),
             StatementEmitter.CreateForeach(
                 rightRowName,
-                CreateRowsRead(setOperation.Right),
+                CreateRowsRead(setOperation.Right, context),
                 StatementEmitter.CreateBlock(CreateConditionalSetRowOutput(
                     keysName,
                     rightRowName,
                     setOperation,
                     setOperation.Right,
-                    ExecutionCSharpRenderer.SetKeyCondition.Added)))
+                    ExecutionCSharpRenderer.SetKeyCondition.Added,
+                    context)))
         ];
     }
 
-    private IEnumerable<StatementSyntax> RenderHashSetExceptFinalShapeRows(ExecutionSetOperation setOperation)
+    private IEnumerable<StatementSyntax> RenderHashSetExceptFinalShapeRows(
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
         var rightKeysName = $"{setOperation.Target.Name}RightKeys";
         var leftRowName = $"{setOperation.Target.Name}LeftRow";
@@ -193,24 +217,27 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionCSharpRenderer.CreateSetKeyHashSetDeclaration(
                 rightKeysName,
                 setOperation.FieldTypes,
-                CreateRowsCountRead(setOperation.Right)),
+                CreateRowsCountRead(setOperation.Right, context)),
             StatementEmitter.CreateForeach(
                 rightRowName,
-                CreateRowsRead(setOperation.Right),
-                StatementEmitter.CreateBlock(CreateHashSetAddStatement(rightKeysName, rightRowName, setOperation, setOperation.Right))),
+                CreateRowsRead(setOperation.Right, context),
+                StatementEmitter.CreateBlock(CreateHashSetAddStatement(rightKeysName, rightRowName, setOperation, setOperation.Right, context))),
             StatementEmitter.CreateForeach(
                 leftRowName,
-                CreateRowsRead(setOperation.Left),
+                CreateRowsRead(setOperation.Left, context),
                 StatementEmitter.CreateBlock(CreateConditionalSetRowOutput(
                     rightKeysName,
                     leftRowName,
                     setOperation,
                     setOperation.Left,
-                    ExecutionCSharpRenderer.SetKeyCondition.NotContained)))
+                    ExecutionCSharpRenderer.SetKeyCondition.NotContained,
+                    context)))
         ];
     }
 
-    private IEnumerable<StatementSyntax> RenderHashSetIntersectFinalShapeRows(ExecutionSetOperation setOperation)
+    private IEnumerable<StatementSyntax> RenderHashSetIntersectFinalShapeRows(
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
         var rightKeysName = $"{setOperation.Target.Name}RightKeys";
         var leftRowName = $"{setOperation.Target.Name}LeftRow";
@@ -221,20 +248,21 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionCSharpRenderer.CreateSetKeyHashSetDeclaration(
                 rightKeysName,
                 setOperation.FieldTypes,
-                CreateRowsCountRead(setOperation.Right)),
+                CreateRowsCountRead(setOperation.Right, context)),
             StatementEmitter.CreateForeach(
                 rightRowName,
-                CreateRowsRead(setOperation.Right),
-                StatementEmitter.CreateBlock(CreateHashSetAddStatement(rightKeysName, rightRowName, setOperation, setOperation.Right))),
+                CreateRowsRead(setOperation.Right, context),
+                StatementEmitter.CreateBlock(CreateHashSetAddStatement(rightKeysName, rightRowName, setOperation, setOperation.Right, context))),
             StatementEmitter.CreateForeach(
                 leftRowName,
-                CreateRowsRead(setOperation.Left),
+                CreateRowsRead(setOperation.Left, context),
                 StatementEmitter.CreateBlock(CreateConditionalSetRowOutput(
                     rightKeysName,
                     leftRowName,
                     setOperation,
                     setOperation.Left,
-                    ExecutionCSharpRenderer.SetKeyCondition.Contained)))
+                    ExecutionCSharpRenderer.SetKeyCondition.Contained,
+                    context)))
         ];
     }
 
@@ -243,33 +271,36 @@ public sealed partial class ExecutionCSharpRenderer
         string rowName,
         ExecutionSetOperation setOperation,
         ExecutionVariable source,
-        ExecutionCSharpRenderer.SetKeyCondition condition)
+        ExecutionCSharpRenderer.SetKeyCondition condition,
+        ExecutionRenderContext context)
     {
         ExpressionSyntax conditionExpression = condition switch
         {
-            ExecutionCSharpRenderer.SetKeyCondition.Added => CreateHashSetInvocation(keysName, nameof(HashSet<>.Add), rowName, setOperation, source),
-            ExecutionCSharpRenderer.SetKeyCondition.Contained => CreateHashSetInvocation(keysName, nameof(HashSet<>.Contains), rowName, setOperation, source),
+            ExecutionCSharpRenderer.SetKeyCondition.Added => CreateHashSetInvocation(keysName, nameof(HashSet<>.Add), rowName, setOperation, source, context),
+            ExecutionCSharpRenderer.SetKeyCondition.Contained => CreateHashSetInvocation(keysName, nameof(HashSet<>.Contains), rowName, setOperation, source, context),
             ExecutionCSharpRenderer.SetKeyCondition.NotContained => SyntaxFactory.PrefixUnaryExpression(
                 SyntaxKind.LogicalNotExpression,
-                CreateHashSetInvocation(keysName, nameof(HashSet<>.Contains), rowName, setOperation, source)),
+                CreateHashSetInvocation(keysName, nameof(HashSet<>.Contains), rowName, setOperation, source, context)),
             _ => throw UnsupportedShape.Of($"Set key condition {condition}")
         };
 
         return SyntaxFactory.IfStatement(
             conditionExpression,
             StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(
-                CreateFinalShapeCreationFromSetRow(rowName, source))));
+                CreateFinalShapeCreationFromSetRow(rowName, source, context),
+                context)));
     }
 
     private InvocationExpressionSyntax CreateFinalShapeRowsAnyMatch(
         string rowsName,
         string existingRowName,
         string candidateRowName,
-        ExecutionSetOperation setOperation)
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
         var lambda = SyntaxFactory.SimpleLambdaExpression(
             SyntaxFactory.Parameter(SyntaxFactory.Identifier(existingRowName)),
-            CreateFinalShapeKeyEqualityExpression(existingRowName, candidateRowName, setOperation));
+            CreateFinalShapeKeyEqualityExpression(existingRowName, candidateRowName, setOperation, context));
 
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -282,7 +313,8 @@ public sealed partial class ExecutionCSharpRenderer
     private ExpressionSyntax CreateFinalShapeKeyEqualityExpression(
         string firstRowName,
         string secondRowName,
-        ExecutionSetOperation setOperation)
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
         if (setOperation.FieldIndexes.Count == 0)
             return SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression);
@@ -296,8 +328,8 @@ public sealed partial class ExecutionCSharpRenderer
                 : typeof(object);
             var fieldIndex = setOperation.FieldIndexes[index];
             var equality = CreateSetFieldEquality(
-                CreateFinalShapeFieldRead(firstRowName, fieldIndex),
-                CreateFinalShapeFieldRead(secondRowName, fieldIndex),
+                CreateFinalShapeFieldRead(firstRowName, fieldIndex, context),
+                CreateFinalShapeFieldRead(secondRowName, fieldIndex, context),
                 fieldType);
             body = body == null
                 ? equality
@@ -307,9 +339,12 @@ public sealed partial class ExecutionCSharpRenderer
         return body!;
     }
 
-    private ExpressionSyntax CreateFinalShapeFieldRead(string rowName, int fieldIndex)
+    private static ExpressionSyntax CreateFinalShapeFieldRead(
+        string rowName,
+        int fieldIndex,
+        ExecutionRenderContext context)
     {
-        var sink = RenderSession.FinalShapeYieldSink ??
+        var sink = context.Session.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         if (fieldIndex < 0 || fieldIndex >= sink.Fields.Count)
             throw UnsupportedShape.Of($"Final shape set-operation field index {fieldIndex}");
@@ -334,12 +369,13 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ObjectCreationExpressionSyntax CreateFinalShapeCreationFromSetRow(
         string rowVariableName,
-        ExecutionVariable source)
+        ExecutionVariable source,
+        ExecutionRenderContext context)
     {
-        if (!TryGetTypedRowBufferShape(source.Name, out var sourceShape))
-            return CreateFinalShapeCreationFromRow(rowVariableName);
+        if (!TryGetTypedRowBufferShape(source.Name, context, out var sourceShape))
+            return CreateFinalShapeCreationFromRow(rowVariableName, context);
 
-        var sink = RenderSession.FinalShapeYieldSink ??
+        var sink = context.Session.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         var arguments = sink.Fields
             .Select((field, index) => SyntaxFactory.Argument(

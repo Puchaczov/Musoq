@@ -9,44 +9,44 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private StatementSyntax RenderAppendRow(ExecutionAppendRow appendRow)
+    private StatementSyntax RenderAppendRow(ExecutionAppendRow appendRow, ExecutionRenderContext context)
     {
         appendRow = NormalizeLazyContextSegments(appendRow);
 
-        if (RenderSession.FinalShapeYieldSink is { } finalShapeYieldSink &&
+        if (context.Session.FinalShapeYieldSink is { } finalShapeYieldSink &&
             string.Equals(appendRow.Table.Name, finalShapeYieldSink.TableName, StringComparison.Ordinal))
         {
-            return CreateFinalShapeOutputStatement(CreateFinalShapeCreation(finalShapeYieldSink.ShapeTypeName, appendRow));
+            return CreateFinalShapeOutputStatement(CreateFinalShapeCreation(finalShapeYieldSink.ShapeTypeName, appendRow), context);
         }
 
-        if (TryGetFinalShapeSourceBuffer(appendRow.Table.Name, out var finalShapeSourceBuffer))
+        if (TryGetFinalShapeSourceBuffer(appendRow.Table.Name, context, out var finalShapeSourceBuffer))
             return CreateRowBufferAddStatement(
                 appendRow.Table.Name,
                 CreateFinalShapeCreation(finalShapeSourceBuffer.ShapeTypeName, appendRow));
 
-        if (TryGetTypedRowBufferShape(appendRow.Table.Name, out _))
-            return CreateRowBufferAddStatement(appendRow.Table.Name, CreateGeneratedRowCreation(appendRow));
+        if (TryGetTypedRowBufferShape(appendRow.Table.Name, context, out _))
+            return CreateRowBufferAddStatement(appendRow.Table.Name, CreateGeneratedRowCreation(appendRow, context));
 
         return CreateTableAddStatement(
             appendRow.Table.Name,
-            CreateGeneratedRowCreation(appendRow),
+            CreateGeneratedRowCreation(appendRow, context),
             appendRow.AppendMode);
     }
 
-    private StatementSyntax RenderAppendExistingRow(ExecutionAppendExistingRow appendRow)
+    private StatementSyntax RenderAppendExistingRow(ExecutionAppendExistingRow appendRow, ExecutionRenderContext context)
     {
-        if (RenderSession.FinalShapeYieldSink is { } finalShapeYieldSink &&
+        if (context.Session.FinalShapeYieldSink is { } finalShapeYieldSink &&
             string.Equals(appendRow.Table.Name, finalShapeYieldSink.TableName, StringComparison.Ordinal))
         {
-            return CreateFinalShapeOutputStatement(CreateFinalShapeCreationFromRow(appendRow.Row.Name));
+            return CreateFinalShapeOutputStatement(CreateFinalShapeCreationFromRow(appendRow.Row.Name, context), context);
         }
 
-        if (TryGetFinalShapeSourceBuffer(appendRow.Table.Name, out _))
+        if (TryGetFinalShapeSourceBuffer(appendRow.Table.Name, context, out _))
             return CreateRowBufferAddStatement(
                 appendRow.Table.Name,
-                CreateFinalShapeCreationFromRow(appendRow.Row.Name));
+                CreateFinalShapeCreationFromRow(appendRow.Row.Name, context));
 
-        if (TryGetTypedRowBufferShape(appendRow.Table.Name, out _))
+        if (TryGetTypedRowBufferShape(appendRow.Table.Name, context, out _))
             return CreateRowBufferAddStatement(
                 appendRow.Table.Name,
                 SyntaxFactory.IdentifierName(appendRow.Row.Name));
@@ -59,7 +59,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ObjectCreationExpressionSyntax CreateGeneratedRowCreation(ExecutionAppendRow appendRow)
     {
-        return CreateGeneratedRowCreation(appendRow, new ExecutionRenderContext(_renderOptions, RenderSession));
+        return CreateGeneratedRowCreation(appendRow, CreateIsolatedRenderContext());
     }
 
     private ObjectCreationExpressionSyntax CreateGeneratedRowCreation(ExecutionAppendRow appendRow, ExecutionRenderContext context)
@@ -76,7 +76,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionExpression expression,
         Type targetType)
     {
-        return RenderRowConstructorValue(expression, targetType, new ExecutionRenderContext(_renderOptions, RenderSession));
+        return RenderRowConstructorValue(expression, targetType, CreateIsolatedRenderContext());
     }
 
     private ExpressionSyntax RenderRowConstructorValue(
@@ -87,7 +87,7 @@ public sealed partial class ExecutionCSharpRenderer
         return expression is ExecutionBinary binary &&
                RequiresNullableTemporalSubtraction(binary) &&
                CanBeNull(targetType)
-            ? RenderNullableTemporalSubtractionValue(binary)
+            ? RenderNullableTemporalSubtractionValue(binary, context)
             : expression is ExecutionBinary nullableBinary &&
               CanRenderBinaryAsNullableTarget(nullableBinary, targetType)
                 ? RenderExpression(nullableBinary with { ReturnType = targetType }, context)
@@ -117,6 +117,7 @@ public sealed partial class ExecutionCSharpRenderer
     private bool TryCreateContextLayoutArguments(
         ExecutionContextLayout? contextLayout,
         int contextCount,
+        ExecutionRenderContext context,
         out ExpressionSyntax[] arguments)
     {
         if (contextLayout == null ||
@@ -135,29 +136,33 @@ public sealed partial class ExecutionCSharpRenderer
         }
 
         arguments = contextLayout.Segments
-            .Select(RenderContextSegmentArgument)
+            .Select(segment => RenderContextSegmentArgument(segment, context))
             .ToArray();
         return true;
     }
 
-    private ExpressionSyntax RenderContextSegmentArgument(ExecutionContextSegment segment)
+    private ExpressionSyntax RenderContextSegmentArgument(
+        ExecutionContextSegment segment,
+        ExecutionRenderContext context)
     {
         return segment.Kind switch
         {
             ExecutionContextSegmentKind.Single => SyntaxFactory.CastExpression(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
-                RenderContextSegmentValue(segment.Value)),
-            ExecutionContextSegmentKind.Array => RenderExpression(segment.Value),
-            ExecutionContextSegmentKind.Row => RenderExpression(segment.Value),
+                RenderContextSegmentValue(segment.Value, context)),
+            ExecutionContextSegmentKind.Array => RenderExpression(segment.Value, context),
+            ExecutionContextSegmentKind.Row => RenderExpression(segment.Value, context),
             _ => throw UnsupportedShape.Of($"Execution context segment kind {segment.Kind}")
         };
     }
 
-    private ExpressionSyntax RenderContextSegmentValue(ExecutionExpression value)
+    private ExpressionSyntax RenderContextSegmentValue(
+        ExecutionExpression value,
+        ExecutionRenderContext context)
     {
         return value is ExecutionFieldRead { AccessStrategy: ContextAccess or GeneratedRowContextAccess } fieldRead
-            ? RenderExpression(fieldRead with { ReturnType = typeof(object) })
-            : RenderExpression(value);
+            ? RenderExpression(fieldRead with { ReturnType = typeof(object) }, context)
+            : RenderExpression(value, context);
     }
 
     private static ExpressionStatementSyntax CreateTableAddStatement(

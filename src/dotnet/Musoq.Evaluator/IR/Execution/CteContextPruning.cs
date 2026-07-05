@@ -87,6 +87,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             ExecutionForEachWithOrdinality loop => loop with { Body = PruneCteContexts(loop.Body, table, oldShape, rowShape) },
             ExecutionForEachIndexed loop => loop with { Body = PruneCteContexts(loop.Body, table, oldShape, rowShape) },
             ExecutionIf branch => branch with { Body = PruneCteContexts(branch.Body, table, oldShape, rowShape) },
+            ExecutionScopedBlock scopedBlock => scopedBlock with { Body = PruneCteContexts(scopedBlock.Body, table, oldShape, rowShape) },
             ExecutionHashProbe probe => probe with
             {
                 Body = PruneCteContexts(probe.Body, table, oldShape, rowShape),

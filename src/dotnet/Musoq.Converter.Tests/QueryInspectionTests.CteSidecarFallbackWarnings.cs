@@ -19,7 +19,7 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenCteSidecarIndexesAreDisabledForSameShape_ShouldNotWarn()
     {
-        var result = Inspect(CreateCteSidecarIneligibleBuildKeyQuery());
+        var result = Inspect(CreateCteSidecarIneligibleBuildKeyQuery(), CreateCteSidecarDisabledOptions());
 
         Assert.IsFalse(result.PlanningText.Contains("CteSidecarIndexStrategy", System.StringComparison.Ordinal));
         AssertNoFallbackWarning(result, "CteSidecarIndexStrategy");

@@ -29,10 +29,8 @@ public sealed partial class ExpressionConverter
             StarNode n => ConvertBinaryOp(n, BinaryOpKind.Multiply),
             FSlashNode n => ConvertBinaryOp(n, BinaryOpKind.Divide),
             ModuloNode n => ConvertBinaryOp(n, BinaryOpKind.Modulo),
-
             AndNode n => ConvertBinaryOp(n, BinaryOpKind.And),
             OrNode n => ConvertBinaryOp(n, BinaryOpKind.Or),
-
             EqualityNode n => ConvertBinaryOp(n, BinaryOpKind.Equal),
             DiffNode n => ConvertBinaryOp(n, BinaryOpKind.NotEqual),
             IsDistinctFromNode n => ConvertBinaryOp(n, n.IsNegated ? BinaryOpKind.IsNotDistinctFrom : BinaryOpKind.IsDistinctFrom),
@@ -60,11 +58,9 @@ public sealed partial class ExpressionConverter
 
             LikeNode n => new PatternMatch(Convert(n.Left), Convert(n.Right), PatternKind.Like, RequireReturnType(n)),
             RLikeNode n => new PatternMatch(Convert(n.Left), Convert(n.Right), PatternKind.RLike, RequireReturnType(n)),
-
             BetweenNode n => new Between(Convert(n.Expression), Convert(n.Min), Convert(n.Max), RequireReturnType(n)),
             CaseNode n => ConvertCaseNode(n),
             WindowFunctionNode n => ConvertWindowFunction(n),
-
             AllColumnsNode => new WildcardLiteral(typeof(void)),
             FieldNode n => Convert(n.Expression),
 
@@ -80,7 +76,7 @@ public sealed partial class ExpressionConverter
             AccessObjectKeyNode n => ConvertAccessObjectKey(n),
             IdentifierNode n => new CteTableRef(n.Name),
 
-            _ => throw new NotSupportedException($"Cannot convert AST node of type '{node.GetType().Name}' to IR expression.")
+            _ => throw new UnsupportedIrShapeException($"Cannot convert AST node of type '{node.GetType().Name}' to IR expression.")
         };
 
         return WithSourceSpan(expression, node);
@@ -133,7 +129,7 @@ public sealed partial class ExpressionConverter
             IdentifierNode identifier => (string.Empty, identifier.Name),
             WordNode word => (string.Empty, word.Value),
             DotNode dot => MergePath(ExtractPath(dot.Root), ComposePathSegment(ExtractPath(dot.Expression))),
-            _ => throw new NotSupportedException($"Cannot extract dotted path from AST node of type '{node.GetType().Name}'.")
+            _ => throw new UnsupportedIrShapeException($"Cannot extract dotted path from AST node of type '{node.GetType().Name}'.")
         };
     }
 
@@ -148,7 +144,7 @@ public sealed partial class ExpressionConverter
             IdentifierNode identifier => (string.Empty, identifier.Name),
             WordNode word => (string.Empty, word.Value),
             DotNode dot => MergePath(ExtractPathWithIndexers(dot.Root), ComposePathSegment(ExtractPathWithIndexers(dot.Expression))),
-            _ => throw new NotSupportedException($"Cannot extract dotted path from AST node of type '{node.GetType().Name}'.")
+            _ => throw new UnsupportedIrShapeException($"Cannot extract dotted path from AST node of type '{node.GetType().Name}'.")
         };
     }
 

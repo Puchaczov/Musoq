@@ -168,7 +168,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
                 new PhysicalCteDefinition("orders", ordersDefinition)
             ],
             query);
-        var builder = CreateJoinBuilder();
+        var builder = CreateJoinBuilder(new CompilationOptions(useCteSidecarIndexes: false));
 
         var result = builder.Build(cte, "Q_CteHashJoinCapacity");
         var plan = RequireExecutionPlan(result);

@@ -19,12 +19,80 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         var refsByAlias = CollectCteRefsByAlias(node, cteNames);
         if (refsByAlias.Count != 0)
         {
+            AddRequiredColumns(node, refsByAlias, outputSchemas, required);
+
             foreach (var expression in EnumerateNodeExpressions(node))
                 AddRequiredColumns(expression, refsByAlias, outputSchemas, required);
         }
 
         foreach (var child in node.Children)
             CollectRequiredCteColumns(child, cteNames, outputSchemas, required);
+    }
+
+    private static HashSet<string> CollectContextRequiredCteDefinitions(
+        PhysicalCteNode cte,
+        IReadOnlySet<string> cteNames)
+    {
+        var required = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var definition in cte.Definitions)
+            CollectContextRequiredCteDefinitions(definition.Plan, cteNames, required);
+
+        CollectContextRequiredCteDefinitions(cte.Query, cteNames, required);
+
+        return required;
+    }
+
+    private static void CollectContextRequiredCteDefinitions(
+        PhysicalNode node,
+        IReadOnlySet<string> cteNames,
+        ISet<string> required)
+    {
+        var refsByAlias = CollectCteRefsByAlias(node, cteNames);
+        if (refsByAlias.Count != 0)
+        {
+            foreach (var expression in EnumerateNodeExpressions(node))
+                AddContextRequiredCteDefinitions(expression, refsByAlias, required);
+        }
+
+        foreach (var child in node.Children)
+            CollectContextRequiredCteDefinitions(child, cteNames, required);
+    }
+
+    private static void AddContextRequiredCteDefinitions(
+        IrExpression expression,
+        IReadOnlyDictionary<string, List<PhysicalCteRefNode>> refsByAlias,
+        ISet<string> required)
+    {
+        foreach (var alias in RowPresenceAliasExtractor.Extract(expression))
+        {
+            if (!refsByAlias.TryGetValue(alias, out var refs))
+                continue;
+
+            foreach (var cteRef in refs)
+                required.Add(cteRef.CteName);
+        }
+    }
+
+    private static void AddRequiredColumns(
+        PhysicalNode node,
+        IReadOnlyDictionary<string, List<PhysicalCteRefNode>> refsByAlias,
+        IReadOnlyDictionary<string, OutputSchema> outputSchemas,
+        IDictionary<string, HashSet<string>> required)
+    {
+        if (node is PhysicalPropertySourceNode source &&
+            source.PropertiesChain.Length != 0 &&
+            refsByAlias.TryGetValue(source.SourceAlias, out var refs))
+        {
+            var column = new ColumnRef(
+                source.SourceAlias,
+                source.PropertiesChain[0].PropertyName,
+                source.PropertiesChain[0].PropertyType ?? source.ResultType);
+            AddRequiredColumns(column, refs, outputSchemas, required);
+        }
+
+        foreach (var child in node.Children)
+            AddRequiredColumns(child, refsByAlias, outputSchemas, required);
     }
 
     private static Dictionary<string, List<PhysicalCteRefNode>> CollectCteRefsByAlias(

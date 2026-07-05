@@ -213,10 +213,12 @@ public sealed partial class ExecutionCSharpRenderer
         return captures.Values.ToArray();
     }
 
-    private MethodDeclarationSyntax CreateSingleKeyAggregateUpdateFunction(SingleKeyAggregateUpdateHelper helper)
+    private MethodDeclarationSyntax CreateSingleKeyAggregateUpdateFunction(
+        SingleKeyAggregateUpdateHelper helper,
+        ExecutionRenderContext context)
     {
-        var previousSuppressAggregateUpdateHelpers = RenderSession.SuppressSingleKeyAggregateUpdateHelpers;
-        RenderSession.SuppressSingleKeyAggregateUpdateHelpers = true;
+        var previousSuppressAggregateUpdateHelpers = context.Session.SuppressSingleKeyAggregateUpdateHelpers;
+        context.Session.SuppressSingleKeyAggregateUpdateHelpers = true;
 
         try
         {
@@ -225,23 +227,26 @@ public sealed partial class ExecutionCSharpRenderer
                     helper.FunctionName)
                 .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
                 .WithModifiers(CreatePrivateStaticModifiers())
-                .WithParameterList(CreateSingleKeyAggregateUpdateParameterList(helper))
+            .WithParameterList(CreateSingleKeyAggregateUpdateParameterList(helper, context))
                 .WithBody(StatementEmitter.CreateBlock(RenderIsolatedHelperBlock(
                     helper.Body,
+                    context,
                     profileRecorderInScope: IsInstrumentationEnabled)));
         }
         finally
         {
-            RenderSession.SuppressSingleKeyAggregateUpdateHelpers = previousSuppressAggregateUpdateHelpers;
+            context.Session.SuppressSingleKeyAggregateUpdateHelpers = previousSuppressAggregateUpdateHelpers;
         }
     }
 
-    private ParameterListSyntax CreateSingleKeyAggregateUpdateParameterList(SingleKeyAggregateUpdateHelper helper)
+    private ParameterListSyntax CreateSingleKeyAggregateUpdateParameterList(
+        SingleKeyAggregateUpdateHelper helper,
+        ExecutionRenderContext context)
     {
         var parameters = new List<ParameterSyntax>();
         var getOrAddGroup = helper.GroupAcquisition;
 
-        parameters.AddRange(CreateSingleKeyAggregateUpdateContextParameters(getOrAddGroup));
+        parameters.AddRange(CreateSingleKeyAggregateUpdateContextParameters(getOrAddGroup, context));
         AddProfileRecorderParameter(parameters);
         parameters.AddRange(helper.Captures.Select(CreateCapturedLocalParameter));
 
@@ -249,12 +254,13 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private IEnumerable<ParameterSyntax> CreateSingleKeyAggregateUpdateContextParameters(
-        ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup)
+        ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup,
+        ExecutionRenderContext context)
     {
         foreach (var rootLevel in getOrAddGroup.GroupPlan.Levels.Where(static level => level.IsRoot))
-            yield return CreateParameter(getOrAddGroup.RootGroup.Name, CreateAggregateGroupType(rootLevel.Shape));
+            yield return CreateParameter(getOrAddGroup.RootGroup.Name, CreateAggregateGroupType(rootLevel.Shape, context));
 
-        var groupType = CreateAggregateGroupType(getOrAddGroup.GroupShape);
+        var groupType = CreateAggregateGroupType(getOrAddGroup.GroupShape, context);
         yield return CreateParameter(getOrAddGroup.GroupsToFinalize.Name, CreateListTypeSyntax(groupType));
         yield return CreateParameter(
             getOrAddGroup.Groups.Name,

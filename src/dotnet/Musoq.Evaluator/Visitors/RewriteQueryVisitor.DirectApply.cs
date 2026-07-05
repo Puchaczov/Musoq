@@ -179,14 +179,8 @@ public sealed partial class RewriteQueryVisitor
         ExpressionConverter converter,
         Node expression)
     {
-        try
-        {
-            return converter.Convert(expression);
-        }
-        catch (NotSupportedException)
-        {
-            return null;
-        }
+        var result = converter.TryConvert(expression);
+        return result.IsSupported ? result.Value : null;
     }
 
     private static bool CanReferenceType(Type type)

@@ -9,20 +9,24 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private InvocationExpressionSyntax CreateCompositeKeyInvocation(ExecutionCompositeKey compositeKey)
+    private InvocationExpressionSyntax CreateCompositeKeyInvocation(
+        ExecutionCompositeKey compositeKey,
+        ExecutionRenderContext context)
     {
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(WindowFunctionHelpers)),
                     SyntaxFactory.IdentifierName(nameof(WindowFunctionHelpers.CompositeKey))))
-            .WithArgumentList(CreateArgumentList(compositeKey.Parts.Select(RenderExpression).ToArray()));
+            .WithArgumentList(CreateArgumentList(compositeKey.Parts.Select(part => RenderExpression(part, context)).ToArray()));
     }
 
-    private TupleExpressionSyntax CreateValueTupleKeyExpression(ExecutionValueTupleKey valueTupleKey)
+    private TupleExpressionSyntax CreateValueTupleKeyExpression(
+        ExecutionValueTupleKey valueTupleKey,
+        ExecutionRenderContext context)
     {
         return SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(
-            valueTupleKey.Parts.Select(part => SyntaxFactory.Argument(RenderExpression(part)))));
+            valueTupleKey.Parts.Select(part => SyntaxFactory.Argument(RenderExpression(part, context)))));
     }
 
     private static ExpressionSyntax CreateValueTupleKeyExpression(int keyCount)
@@ -85,16 +89,16 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IdentifierName("Rows"));
     }
 
-    private ExpressionSyntax CreateRowsRead(ExecutionVariable rowsOwner)
+    private ExpressionSyntax CreateRowsRead(ExecutionVariable rowsOwner, ExecutionRenderContext context)
     {
-        return TryGetTypedRowBufferShape(rowsOwner.Name, out _)
+        return TryGetTypedRowBufferShape(rowsOwner.Name, context, out _)
             ? SyntaxFactory.IdentifierName(rowsOwner.Name)
             : CreateTableRowsRead(rowsOwner.Name);
     }
 
-    private ExpressionSyntax CreateRowsCountRead(ExecutionVariable rowsOwner)
+    private ExpressionSyntax CreateRowsCountRead(ExecutionVariable rowsOwner, ExecutionRenderContext context)
     {
-        var rowsExpression = TryGetTypedRowBufferShape(rowsOwner.Name, out _)
+        var rowsExpression = TryGetTypedRowBufferShape(rowsOwner.Name, context, out _)
             ? (ExpressionSyntax)SyntaxFactory.IdentifierName(rowsOwner.Name)
             : CreateTableRowsRead(rowsOwner.Name);
 

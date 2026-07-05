@@ -119,10 +119,10 @@ public sealed partial class ExecutionCSharpRendererTests
         var renderer = new ExecutionCSharpRenderer();
         string scopedMethod;
 
-        using (renderer.EnterQueryRunContextRendering())
+        using (var scope = renderer.EnterQueryRunContextRenderContext())
         {
             scopedMethod = renderer
-                .RenderMethod(CreatePlan(), "ExecuteScoped")
+                .RenderMethod(CreatePlan(), "ExecuteScoped", "ExecuteScoped", scope.Context)
                 .NormalizeWhitespace()
                 .ToFullString();
         }

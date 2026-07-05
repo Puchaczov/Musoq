@@ -44,7 +44,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         _resultShape.GeneratedAliases.Add(_sourceBinding.QueryAlias);
 
-        var schemaArgsNode = (ArgsListNode)Nodes.Pop();
+        var schemaArgsNode = (ArgsListNode)PopSemanticNode();
         _scriptParameters.ValidateSchemaArguments(schemaArgsNode, node);
         var staticSchemaArguments = SchemaArgumentBinder.BindStaticArguments(
             schemaArgsNode,
@@ -100,13 +100,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.UsedWhereNodes.TryAdd(aliasedSchemaFromNode, AllTrueWhereNode);
         _sourceBinding.UsedSchemasQuantity += 1;
 
-        Nodes.Push(aliasedSchemaFromNode);
+        PushSemanticNode(aliasedSchemaFromNode);
     }
 
     public override void Visit(SchemaMethodFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         _sourceBinding.UsedSchemasQuantity += 1;
-        Nodes.Push(new Parser.SchemaMethodFromNode(node.Alias, node.Schema, node.Method));
+        PushSemanticNode(new Parser.SchemaMethodFromNode(node.Alias, node.Schema, node.Method));
     }
 }

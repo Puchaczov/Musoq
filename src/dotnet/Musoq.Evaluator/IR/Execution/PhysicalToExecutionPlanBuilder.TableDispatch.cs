@@ -27,54 +27,9 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             schemaFromIndex,
             scopeAggregateVariables,
             session);
-        if (unwrapped is PhysicalMultiStatementNode multiStatement && CanBuildTableProducingMultiStatement(multiStatement))
-        {
-            var multiStatementIndexes = CreateMultiStatementIndexes(
-                multiStatement,
-                cteIndexes,
-                cteShapesByName,
-                ResolveStatementNamePrefix(resultTableName));
 
-            return BuildMultiStatementTable(
-                multiStatement,
-                resultTableName,
-                resultShapeName,
-                multiStatementIndexes,
-                scopeAggregateVariables,
-                session);
-        }
-
-        var setOperationPipeline = DecomposeSetOperationPipeline(unwrapped);
-        if (setOperationPipeline != null)
-        {
-            return BuildSetOperationTable(
-                setOperationPipeline,
-                resultTableName,
-                resultShapeName,
-                cteIndexes,
-                cteShapesByName,
-                schemaFromIndex,
-                session);
-        }
-
-        if (CreateWindowLoweringCoordinator().TryBuildTable(tableContext, out var windowResult))
-            return windowResult;
-
-        var pipeline = DecomposeSupportedPipeline(unwrapped);
-        if (pipeline != null)
-        {
-            return BuildTable(
-                pipeline,
-                resultTableName,
-                resultShapeName,
-                cteIndexes,
-                cteShapesByName,
-                schemaFromIndex,
-                session);
-        }
-
-        if (CreateAggregateLoweringCoordinator().TryBuildTable(tableContext, out var aggregateResult))
-            return aggregateResult;
+        if (CreatePhysicalLoweringRegistry().TryBuildTable(tableContext, out var result))
+            return result;
 
         return TableBuildResult.Unsupported(CreateUnsupported(unwrapped).UnsupportedReason!);
     }

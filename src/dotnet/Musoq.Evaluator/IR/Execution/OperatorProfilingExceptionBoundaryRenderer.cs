@@ -15,10 +15,11 @@ public sealed partial class ExecutionCSharpRenderer
 
     private BlockSyntax CreateProfileExceptionBoundaryBlock(
         IEnumerable<StatementSyntax> statements,
+        ExecutionRenderContext context,
         bool includeExceptionBoundary = true)
     {
         var renderedStatements = statements.ToArray();
-        if (!IsOperatorProfilingEnabled || !includeExceptionBoundary)
+        if (!IsOperatorProfilingEnabledFor(context) || !includeExceptionBoundary)
             return StatementEmitter.CreateBlock(renderedStatements);
 
         return StatementEmitter.CreateBlock(
@@ -26,22 +27,26 @@ public sealed partial class ExecutionCSharpRenderer
             CreateProfileExceptionBoundary(renderedStatements));
     }
 
-    private BlockSyntax CreateProfiledHelperBody(IEnumerable<StatementSyntax> statements)
+    private BlockSyntax CreateProfiledHelperBody(
+        IEnumerable<StatementSyntax> statements,
+        ExecutionRenderContext context)
     {
         var helperStatements = statements.ToArray();
         var usage = CollectOperatorProfileUsage(helperStatements);
-        var renderedStatements = CreateOperatorHandleDeclarations(usage)
-            .Concat(CreateOperatorCounterDeclarations(usage))
+        var renderedStatements = CreateOperatorHandleDeclarations(usage, context)
+            .Concat(CreateOperatorCounterDeclarations(usage, context))
             .Concat(helperStatements)
             .ToArray();
 
         return CreateProfileExceptionBoundaryBlock(
-            AddOperatorCounterFlushesBeforeTopLevelReturns(renderedStatements, usage, appendAtEnd: true));
+            AddOperatorCounterFlushesBeforeTopLevelReturns(renderedStatements, usage, context, appendAtEnd: true),
+            context);
     }
 
     private IEnumerable<StatementSyntax> AddOperatorCounterFlushesBeforeTopLevelReturns(
         IReadOnlyList<StatementSyntax> statements,
         OperatorProfileUsage usage,
+        ExecutionRenderContext context,
         bool appendAtEnd)
     {
         var hasReturn = false;
@@ -51,7 +56,7 @@ public sealed partial class ExecutionCSharpRenderer
             if (statement is ReturnStatementSyntax)
             {
                 hasReturn = true;
-                foreach (var flushStatement in CreateOperatorCounterFlushStatements(usage))
+                foreach (var flushStatement in CreateOperatorCounterFlushStatements(usage, context))
                     yield return flushStatement;
             }
 
@@ -61,7 +66,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (!appendAtEnd || hasReturn)
             yield break;
 
-        foreach (var flushStatement in CreateOperatorCounterFlushStatements(usage))
+        foreach (var flushStatement in CreateOperatorCounterFlushStatements(usage, context))
             yield return flushStatement;
     }
 

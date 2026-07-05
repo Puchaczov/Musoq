@@ -26,56 +26,56 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(InterpretCallNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var dataSource = SafePop(Nodes, VisitorOperationNames.VisitInterpretCallNode);
+        var dataSource = PopSemanticNode(VisitorOperationNames.VisitInterpretCallNode);
 
 
-        Nodes.Push(new InterpretCallNode(dataSource, node.SchemaName, node.ReturnType));
+        PushSemanticNode(new InterpretCallNode(dataSource, node.SchemaName, node.ReturnType));
     }
 
     public override void Visit(ParseCallNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var dataSource = SafePop(Nodes, VisitorOperationNames.VisitParseCallNode);
+        var dataSource = PopSemanticNode(VisitorOperationNames.VisitParseCallNode);
 
 
-        Nodes.Push(new ParseCallNode(dataSource, node.SchemaName, node.ReturnType));
+        PushSemanticNode(new ParseCallNode(dataSource, node.SchemaName, node.ReturnType));
     }
 
     public override void Visit(TryInterpretCallNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var dataSource = SafePop(Nodes, VisitorOperationNames.VisitTryInterpretCallNode);
+        var dataSource = PopSemanticNode(VisitorOperationNames.VisitTryInterpretCallNode);
 
 
-        Nodes.Push(new TryInterpretCallNode(dataSource, node.SchemaName, node.ReturnType));
+        PushSemanticNode(new TryInterpretCallNode(dataSource, node.SchemaName, node.ReturnType));
     }
 
     public override void Visit(TryParseCallNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var dataSource = SafePop(Nodes, VisitorOperationNames.VisitTryParseCallNode);
+        var dataSource = PopSemanticNode(VisitorOperationNames.VisitTryParseCallNode);
 
 
-        Nodes.Push(new TryParseCallNode(dataSource, node.SchemaName, node.ReturnType));
+        PushSemanticNode(new TryParseCallNode(dataSource, node.SchemaName, node.ReturnType));
     }
 
     public override void Visit(PartialInterpretCallNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var dataSource = SafePop(Nodes, VisitorOperationNames.VisitPartialInterpretCallNode);
+        var dataSource = PopSemanticNode(VisitorOperationNames.VisitPartialInterpretCallNode);
 
 
-        Nodes.Push(new PartialInterpretCallNode(dataSource, node.SchemaName, node.ReturnType));
+        PushSemanticNode(new PartialInterpretCallNode(dataSource, node.SchemaName, node.ReturnType));
     }
 
     public override void Visit(InterpretAtCallNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var offset = SafePop(Nodes, VisitorOperationNames.VisitInterpretAtCallNodeOffset);
-        var dataSource = SafePop(Nodes, VisitorOperationNames.VisitInterpretAtCallNodeDataSource);
+        var offset = PopSemanticNode(VisitorOperationNames.VisitInterpretAtCallNodeOffset);
+        var dataSource = PopSemanticNode(VisitorOperationNames.VisitInterpretAtCallNodeDataSource);
 
 
-        Nodes.Push(new InterpretAtCallNode(dataSource, offset, node.SchemaName, node.ReturnType));
+        PushSemanticNode(new InterpretAtCallNode(dataSource, offset, node.SchemaName, node.ReturnType));
     }
 
     public override void Visit(AccessRefreshAggregationScoreNode node)

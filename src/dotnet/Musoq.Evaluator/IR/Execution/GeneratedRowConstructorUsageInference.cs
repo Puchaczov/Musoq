@@ -5,7 +5,9 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private static Dictionary<string, HashSet<string>> CollectGeneratedRowVariableTypeNames(ExecutionBlock block)
+    private static Dictionary<string, HashSet<string>> CollectGeneratedRowVariableTypeNames(
+        ExecutionBlock block,
+        IReadOnlyDictionary<int, TypedStoredTableResult>? typedStoredTableResults = null)
     {
         var result = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
 
@@ -17,8 +19,8 @@ public sealed partial class ExecutionCSharpRenderer
                     AddGeneratedRowVariableTypeName(result, variable.Name, variable.GeneratedRowTypeName);
             }
 
-            AddGeneratedRowVariableTypeFromNode(result, node);
-            AddGeneratedRowItemTypeFromSource(result, node);
+            AddGeneratedRowVariableTypeFromNode(result, node, typedStoredTableResults);
+            AddGeneratedRowItemTypeFromSource(result, node, typedStoredTableResults);
         }
 
         return result;
@@ -26,15 +28,16 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static void AddGeneratedRowVariableTypeFromNode(
         Dictionary<string, HashSet<string>> variableTypeNamesByName,
-        ExecutionNode node)
+        ExecutionNode node,
+        IReadOnlyDictionary<int, TypedStoredTableResult>? typedStoredTableResults)
     {
         switch (node)
         {
             case ExecutionLet let:
-                AddGeneratedRowVariableTypeFromSource(variableTypeNamesByName, let.Variable, let.Value);
+                AddGeneratedRowVariableTypeFromSource(variableTypeNamesByName, let.Variable, let.Value, typedStoredTableResults);
                 break;
             case ExecutionAssign assign:
-                AddGeneratedRowVariableTypeFromSource(variableTypeNamesByName, assign.Variable, assign.Value);
+                AddGeneratedRowVariableTypeFromSource(variableTypeNamesByName, assign.Variable, assign.Value, typedStoredTableResults);
                 break;
             case ExecutionMaterializeList { GeneratedRowShape: { } shape } materialize:
                 AddGeneratedRowVariableTypeName(variableTypeNamesByName, materialize.Buffer.Name, shape.TypeName);
@@ -48,29 +51,31 @@ public sealed partial class ExecutionCSharpRenderer
     private static void AddGeneratedRowVariableTypeFromSource(
         Dictionary<string, HashSet<string>> variableTypeNamesByName,
         ExecutionVariable variable,
-        ExecutionExpression source)
+        ExecutionExpression source,
+        IReadOnlyDictionary<int, TypedStoredTableResult>? typedStoredTableResults)
     {
-        if (TryResolveGeneratedRowTypeName(source, out var typeName))
+        if (TryResolveGeneratedRowTypeName(source, typedStoredTableResults, out var typeName))
             AddGeneratedRowVariableTypeName(variableTypeNamesByName, variable.Name, typeName);
     }
 
     private static void AddGeneratedRowItemTypeFromSource(
         Dictionary<string, HashSet<string>> variableTypeNamesByName,
-        ExecutionNode node)
+        ExecutionNode node,
+        IReadOnlyDictionary<int, TypedStoredTableResult>? typedStoredTableResults)
     {
         switch (node)
         {
             case ExecutionForEach loop:
-                AddGeneratedRowItemTypeFromSource(variableTypeNamesByName, loop.Item, loop.Source);
+                AddGeneratedRowItemTypeFromSource(variableTypeNamesByName, loop.Item, loop.Source, typedStoredTableResults);
                 break;
             case ExecutionForEachWithOrdinality loop:
-                AddGeneratedRowItemTypeFromSource(variableTypeNamesByName, loop.Item, loop.Source);
+                AddGeneratedRowItemTypeFromSource(variableTypeNamesByName, loop.Item, loop.Source, typedStoredTableResults);
                 break;
             case ExecutionForEachIndexed loop:
                 AddGeneratedRowItemTypeFromSource(variableTypeNamesByName, loop.Item, loop.Source);
                 break;
             case ExecutionMaterializeFilteredList materialize:
-                AddGeneratedRowItemTypeFromSource(variableTypeNamesByName, materialize.Item, materialize.Source);
+                AddGeneratedRowItemTypeFromSource(variableTypeNamesByName, materialize.Item, materialize.Source, typedStoredTableResults);
                 break;
         }
     }
@@ -78,9 +83,10 @@ public sealed partial class ExecutionCSharpRenderer
     private static void AddGeneratedRowItemTypeFromSource(
         Dictionary<string, HashSet<string>> variableTypeNamesByName,
         ExecutionVariable item,
-        ExecutionExpression source)
+        ExecutionExpression source,
+        IReadOnlyDictionary<int, TypedStoredTableResult>? typedStoredTableResults = null)
     {
-        if (TryResolveGeneratedRowTypeName(source, out var typeName))
+        if (TryResolveGeneratedRowTypeName(source, typedStoredTableResults, out var typeName))
         {
             AddGeneratedRowVariableTypeName(variableTypeNamesByName, item.Name, typeName);
             return;
@@ -112,12 +118,20 @@ public sealed partial class ExecutionCSharpRenderer
             AddGeneratedRowVariableTypeName(variableTypeNamesByName, item.Name, sourceTypeName);
     }
 
-    private static bool TryResolveGeneratedRowTypeName(ExecutionExpression source, out string typeName)
+    private static bool TryResolveGeneratedRowTypeName(
+        ExecutionExpression source,
+        IReadOnlyDictionary<int, TypedStoredTableResult>? typedStoredTableResults,
+        out string typeName)
     {
         switch (source)
         {
             case ExecutionStoredTableRows { GeneratedRowShape: { } shape }:
                 typeName = shape.TypeName;
+                return true;
+            case ExecutionStoredTableRows storedRows when
+                typedStoredTableResults != null &&
+                typedStoredTableResults.TryGetValue(storedRows.TableIndex, out var typedResult):
+                typeName = typedResult.RowShape.TypeName;
                 return true;
             case ExecutionVariableRead { Variable.GeneratedRowTypeName: { } generatedRowTypeName }:
                 typeName = generatedRowTypeName;

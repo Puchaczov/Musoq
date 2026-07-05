@@ -35,7 +35,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             LogInterpretFunctionProcessing(_logger, node, _sourceBinding.QueryAlias);
 
-            var args = (ArgsListNode)Nodes.Pop();
+            var args = (ArgsListNode)PopSemanticNode();
 
             if (node.TypeParameter is not { } schemaName)
                 throw new InvalidOperationException("Interpret function source must provide a type parameter in this branch.");
@@ -80,7 +80,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             LogInterpretTableRegistration(_logger, _sourceBinding.QueryAlias, interpretTable, _sourceBinding.CurrentScope.Name);
 
-            Nodes.Push(new AliasedFromNode(node.Identifier, args, _sourceBinding.QueryAlias, returnType ?? node.ReturnType ?? typeof(object),
+            PushSemanticNode(new AliasedFromNode(node.Identifier, args, _sourceBinding.QueryAlias, returnType ?? node.ReturnType ?? typeof(object),
                 node.InSourcePosition, node.TypeParameter));
             return;
         }
@@ -110,7 +110,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         var aliasedSchemaFromNode = new Parser.SchemaFromNode(
             schemaInfo.Schema,
             schemaInfo.Method,
-            (ArgsListNode)Nodes.Pop(),
+            (ArgsListNode)PopSemanticNode(),
             _sourceBinding.QueryAlias,
             node.InSourcePosition,
             hasExternallyProvidedTypes
@@ -168,7 +168,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.AliasToSchemaFromNodeMap.Add(_sourceBinding.QueryAlias, aliasedSchemaFromNode);
         _sourceBinding.AllUsedSchemaNames.Add(aliasedSchemaFromNode.Schema);
 
-        Nodes.Push(aliasedSchemaFromNode);
+        PushSemanticNode(aliasedSchemaFromNode);
     }
 
     private static void LogInterpretFunctionProcessing(ILogger? logger, AliasedFromNode node, string queryAlias)

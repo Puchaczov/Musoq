@@ -26,7 +26,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(sourceShape);
         var publicShape = CreateGeneratedShape(resultShapeName, pipeline.Project.Fields, sourceLookup);
-        var hiddenFields = CreateHiddenSortFields(
+        var hiddenFields = PostOperationProjectionPlanner.CreateHiddenSortFields(
             publicShape,
             pipeline.Project.Fields,
             pipeline.PostOperations,
@@ -45,7 +45,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
         var materializedFields = pipeline.Project.Fields.Concat(hiddenFields.Value).ToArray();
         var workingShape = CreateGeneratedShape(
-            CreateSortWorkingShapeName(resultShapeName),
+            PostOperationProjectionPlanner.CreateSortWorkingShapeName(resultShapeName),
             materializedFields,
             sourceLookup);
         var recordShape = CreateOrderRecordShape(workingShape, IsBoundedOrderPostOperation(pipeline.PostOperations[0]));
@@ -53,7 +53,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         if (!CanUseTypedOrderRecordShape(recordShape))
             return false;
 
-        var postOperations = ReplaceSortProjectedFields(pipeline.PostOperations, materializedFields);
+        var postOperations = PostOperationProjectionPlanner.ReplaceSortProjectedFields(pipeline.PostOperations, materializedFields);
         if (!TryCreateOrderRecordOperation(postOperations[0], workingShape, out var orderFields, out var selection, out var unsupportedReason))
         {
             if (!string.IsNullOrWhiteSpace(unsupportedReason))

@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Evaluator.IR.Logical.Nodes;
-using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Execution;
@@ -17,8 +15,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string? sourceRowsScope,
         PhysicalToExecutionLoweringSession session)
     {
-        var physicalSources = new List<ApplyChainPhysicalSource>();
-        if (!CollectCrossApplySources(apply, physicalSources))
+        var sourceCollector = new ApplyChainSourceCollector();
+        if (!sourceCollector.TryCollectCrossApplySources(apply, out var physicalSources))
         {
             return ApplyChainBuildResult.Unsupported(
                 "Execution IR cross-apply chain streaming only supports all-cross APPLY chains.");
@@ -46,33 +44,13 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 : source.Source;
             sources.Add(joinSource);
             currentSchemaFromIndex += source.Source.SchemaSourceCount;
-            sourceLookup = new Dictionary<string, RowShape>(
-                RowShapeLookup.CreateSourceShapeLookup(sourceLookup, joinSource.Shape),
-                StringComparer.OrdinalIgnoreCase);
+            sourceLookup = JoinSourceLookupBuilder.Extend(sourceLookup, joinSource.Shape);
         }
 
         return ApplyChainBuildResult.Success(new ApplyChainSource(
             sources,
             sourceLookup,
             sources.SelectMany(static source => source.Shapes).ToArray()));
-    }
-
-    private static bool CollectCrossApplySources(PhysicalNode source, List<ApplyChainPhysicalSource> sources)
-    {
-        if (source is not PhysicalNestedLoopApplyNode apply)
-        {
-            sources.Add(new ApplyChainPhysicalSource(source, false));
-            return true;
-        }
-
-        if (apply.Kind != ApplyKind.Cross)
-            return false;
-
-        if (!CollectCrossApplySources(apply.Left, sources))
-            return false;
-
-        sources.Add(new ApplyChainPhysicalSource(apply.Right, apply.WithOrdinality));
-        return true;
     }
 
     private TableBuildResult BuildCrossApplyChainTable(

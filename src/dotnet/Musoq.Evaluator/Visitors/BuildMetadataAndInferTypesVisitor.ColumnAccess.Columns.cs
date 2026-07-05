@@ -14,7 +14,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(AccessRawIdentifierNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new AccessRawIdentifierNode(node.Name, node.ReturnType));
+        PushSemanticNode(new AccessRawIdentifierNode(node.Name, node.ReturnType));
     }
 
     public override void Visit(AccessColumnNode node)
@@ -101,7 +101,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             var accessColumn = new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Span,
                 column.IntendedTypeName);
-            Nodes.Push(accessColumn);
+            PushSemanticNode(accessColumn);
         }
         catch (Exception ex) when (ex is not VisitorException)
         {
@@ -126,7 +126,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             inferredReplaceExpressions = new Node[node.ReplaceItems.Length];
             for (var i = node.ReplaceItems.Length - 1; i >= 0; i--)
-                inferredReplaceExpressions[i] = Nodes.Pop();
+                inferredReplaceExpressions[i] = PopSemanticNode("Visit(AllColumnsNode).ReplaceItem");
         }
 
         if (!string.IsNullOrWhiteSpace(node.Alias) ||
@@ -134,7 +134,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             ProcessSingleTable(node, tableSymbol, ResolveSingleTableStarIdentifier(node, tableSymbol, identifier), inferredReplaceExpressions);
         else if (tableSymbol.IsCompoundTable) ProcessCompoundTable(node, tableSymbol, inferredReplaceExpressions);
 
-        Nodes.Push(node);
+        PushSemanticNode(node);
     }
 
     private static string ResolveSingleTableStarIdentifier(
@@ -154,7 +154,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             if (_queryState.QueryPart == QueryPart.OrderBy && _resultShape.SelectFieldAliases.TryGetValue(node.Name, out var aliasExpression))
             {
-                Nodes.Push(aliasExpression);
+                PushSemanticNode(aliasExpression);
                 return;
             }
 
@@ -173,7 +173,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             if (binding.Kind == SemanticIdentifierBindingKind.Identifier)
             {
-                Nodes.Push(new IdentifierNode(node.Name));
+                PushSemanticNode(new IdentifierNode(node.Name));
                 return;
             }
 
@@ -187,6 +187,6 @@ public partial class BuildMetadataAndInferTypesVisitor
                 "Verify that the column exists in the current query scope.");
         }
 
-        Nodes.Push(new IdentifierNode(node.Name));
+        PushSemanticNode(new IdentifierNode(node.Name));
     }
 }

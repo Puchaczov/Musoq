@@ -9,9 +9,11 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private MethodDeclarationSyntax CreateSortedCopyFunction(SortedCopyHelper helper)
+    private MethodDeclarationSyntax CreateSortedCopyFunction(
+        SortedCopyHelper helper,
+        ExecutionRenderContext context)
     {
-        var bodyStatements = RenderIsolatedHelperBlock(new ExecutionBlock([helper.Sort])).ToList();
+        var bodyStatements = RenderIsolatedHelperBlock(new ExecutionBlock([helper.Sort]), context).ToList();
         bodyStatements.Add(SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(helper.Sort.Target.Name)));
 
         return SyntaxFactory.MethodDeclaration(

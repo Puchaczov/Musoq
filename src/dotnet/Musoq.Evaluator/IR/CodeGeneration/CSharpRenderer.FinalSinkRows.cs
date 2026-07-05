@@ -67,7 +67,7 @@ public sealed partial class CSharpRenderer
         return CreateSourceLambda(
             projectionLoop.Source,
             renderContext == null
-                ? executionRenderer.RenderGeneratedRowCreationForTypedSink(projectionLoop.AppendRow)
-                : executionRenderer.RenderGeneratedRowCreationForTypedSink(projectionLoop.AppendRow, renderContext));
+                ? executionRenderer.RenderFinalSinkGeneratedRowCreation(projectionLoop.AppendRow)
+                : executionRenderer.RenderFinalSinkGeneratedRowCreation(projectionLoop.AppendRow, renderContext));
     }
 }

@@ -19,6 +19,8 @@ internal sealed class ExecutionRenderSession
         new Dictionary<string, string>(StringComparer.Ordinal);
     internal IReadOnlyDictionary<string, GeneratedRowShape> TableRowShapesByVariableName { get; set; } =
         new Dictionary<string, GeneratedRowShape>(StringComparer.Ordinal);
+    internal IReadOnlyDictionary<string, HashSet<string>> GeneratedRowVariableTypeNamesByName { get; set; } =
+        new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
     internal IReadOnlyDictionary<int, TypedStoredTableResult> TypedStoredTableResults { get; set; } =
         new Dictionary<int, TypedStoredTableResult>();
     internal IReadOnlyDictionary<string, GeneratedRowShape> TypedRowBufferVariables { get; set; } =

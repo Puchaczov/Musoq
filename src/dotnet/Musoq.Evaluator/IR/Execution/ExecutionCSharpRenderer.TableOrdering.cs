@@ -11,7 +11,9 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderDistinctTable(ExecutionDistinctTable distinct)
+    private IEnumerable<StatementSyntax> RenderDistinctTable(
+        ExecutionDistinctTable distinct,
+        ExecutionRenderContext context)
     {
         var invocation = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -20,7 +22,7 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName(nameof(EvaluationHelper.ToDistinctTable))))
             .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName(distinct.Source.Name)));
 
-        if (TryRenderDistinctFinalShapeRows(distinct, invocation, out var finalShapeRows))
+        if (TryRenderDistinctFinalShapeRows(distinct, invocation, context, out var finalShapeRows))
             return finalShapeRows;
 
         return
@@ -32,56 +34,60 @@ public sealed partial class ExecutionCSharpRenderer
         ];
     }
 
-    private List<StatementSyntax> RenderSortTable(ExecutionSortTable sort)
+    private List<StatementSyntax> RenderSortTable(ExecutionSortTable sort, ExecutionRenderContext context)
     {
-        if (TryRenderSortFinalShapeRows(sort, out var finalShapeRows))
+        if (TryRenderSortFinalShapeRows(sort, context, out var finalShapeRows))
             return finalShapeRows;
 
         var rowsVariableName = $"{sort.Target.Name}Rows";
-        var rowsExpression = TryGetGeneratedRowShape(sort.Source, out var rowShape)
-            ? CreateOrderedRowsExpression(sort.Source, sort.Keys, rowShape)
-            : CreateOrderedRowsExpression(sort.Source, sort.Keys);
+        var rowsExpression = TryGetGeneratedRowShape(sort.Source, context, out var rowShape)
+            ? CreateOrderedRowsExpression(sort.Source, sort.Keys, context, rowShape)
+            : CreateOrderedRowsExpression(sort.Source, sort.Keys, context);
 
-        return RenderOrderedPostOperationRows(sort, rowsVariableName, rowsExpression, sort.RenumberFieldIndexes);
+        return RenderOrderedPostOperationRows(sort, rowsVariableName, rowsExpression, sort.RenumberFieldIndexes, context);
     }
 
-    private List<StatementSyntax> RenderTopNTable(ExecutionTopNTable topN)
+    private List<StatementSyntax> RenderTopNTable(ExecutionTopNTable topN, ExecutionRenderContext context)
     {
-        if (TryRenderTopNFinalShapeRows(topN, out var finalShapeRows))
+        if (TryRenderTopNFinalShapeRows(topN, context, out var finalShapeRows))
             return finalShapeRows;
 
         var rowsVariableName = $"{topN.Target.Name}Rows";
-        var orderedRowsExpression = TryGetGeneratedRowShape(topN.Source, out var rowShape)
-            ? CreateOrderedRowsExpression(topN.Source, topN.Keys, rowShape)
-            : CreateOrderedRowsExpression(topN.Source, topN.Keys);
+        var orderedRowsExpression = TryGetGeneratedRowShape(topN.Source, context, out var rowShape)
+            ? CreateOrderedRowsExpression(topN.Source, topN.Keys, context, rowShape)
+            : CreateOrderedRowsExpression(topN.Source, topN.Keys, context);
         return RenderOrderedPostOperationRows(
             topN,
             rowsVariableName,
             CreateRowsMethodExpression(orderedRowsExpression, "Take", topN.Count),
-            topN.RenumberFieldIndexes);
+            topN.RenumberFieldIndexes,
+            context);
     }
 
-    private List<StatementSyntax> RenderTopOffsetTable(ExecutionTopOffsetTable topOffset)
+    private List<StatementSyntax> RenderTopOffsetTable(
+        ExecutionTopOffsetTable topOffset,
+        ExecutionRenderContext context)
     {
-        if (TryRenderTopOffsetFinalShapeRows(topOffset, out var finalShapeRows))
+        if (TryRenderTopOffsetFinalShapeRows(topOffset, context, out var finalShapeRows))
             return finalShapeRows;
 
         if (topOffset is { Strategy: ExecutionTopOffsetStrategy.BoundedHeap, AppendMode: ExecutionAppendMode.Direct } &&
-            TryGetGeneratedRowShape(topOffset.Source, out var generatedRowShape) &&
+            TryGetGeneratedRowShape(topOffset.Source, context, out var generatedRowShape) &&
             CanUseGeneratedRowTopOffset(topOffset, generatedRowShape))
         {
-            return RenderGeneratedRowBoundedTopOffsetTable(topOffset, generatedRowShape);
+            return RenderGeneratedRowBoundedTopOffsetTable(topOffset, generatedRowShape, context);
         }
 
         if (topOffset is { Strategy: ExecutionTopOffsetStrategy.BoundedHeap, AppendMode: ExecutionAppendMode.Direct })
-            return RenderBoundedTopOffsetTable(topOffset);
+            return RenderBoundedTopOffsetTable(topOffset, context);
 
-        return RenderTopOffsetTableWithRowsVariable(topOffset);
+        return RenderTopOffsetTableWithRowsVariable(topOffset, context);
     }
 
     private List<StatementSyntax> RenderGeneratedRowBoundedTopOffsetTable(
         ExecutionTopOffsetTable topOffset,
-        GeneratedRowShape rowShape)
+        GeneratedRowShape rowShape,
+        ExecutionRenderContext context)
     {
         var sourceRowsVariableName = $"{topOffset.Target.Name}SourceRows";
         var selectedRowsVariableName = $"{topOffset.Target.Name}Rows";
@@ -115,12 +121,15 @@ public sealed partial class ExecutionCSharpRenderer
 
         statements.AddRange(CreateTablePostOperationCopyStatements(
             GetTablePostOperation(topOffset),
-            selectedRowsVariableName));
+            selectedRowsVariableName,
+            context));
         statements.AddRange(topOffset.RenumberFieldIndexes.Select(index => CreateRenumberRowsStatement(topOffset.Target.Name, index)));
         return statements;
     }
 
-    private List<StatementSyntax> RenderBoundedTopOffsetTable(ExecutionTopOffsetTable topOffset)
+    private List<StatementSyntax> RenderBoundedTopOffsetTable(
+        ExecutionTopOffsetTable topOffset,
+        ExecutionRenderContext context)
     {
         var statements = new List<StatementSyntax>();
 
@@ -128,20 +137,23 @@ public sealed partial class ExecutionCSharpRenderer
             topOffset.Target,
             topOffset.Source,
             topOffset.CapacityHint,
-            topOffset.ColumnMetadata));
+            topOffset.ColumnMetadata,
+            context));
         statements.Add(CreateAppendBoundedTopOffsetRowsStatement(topOffset));
         statements.AddRange(topOffset.RenumberFieldIndexes.Select(index => CreateRenumberRowsStatement(topOffset.Target.Name, index)));
         return statements;
     }
 
-    private List<StatementSyntax> RenderTopOffsetTableWithRowsVariable(ExecutionTopOffsetTable topOffset)
+    private List<StatementSyntax> RenderTopOffsetTableWithRowsVariable(
+        ExecutionTopOffsetTable topOffset,
+        ExecutionRenderContext context)
     {
         var rowsVariableName = $"{topOffset.Target.Name}Rows";
-        var generatedRowShape = TryGetGeneratedRowShape(topOffset.Source, out var rowShape) ? rowShape : null;
+        var generatedRowShape = TryGetGeneratedRowShape(topOffset.Source, context, out var rowShape) ? rowShape : null;
         var rowsExpression = topOffset.Strategy == ExecutionTopOffsetStrategy.BoundedHeap
             ? CreateBoundedTopOffsetRowsExpression(topOffset)
-            : CreateOrderedSliceRowsExpression(topOffset, generatedRowShape);
-        return RenderOrderedPostOperationRows(topOffset, rowsVariableName, rowsExpression, topOffset.RenumberFieldIndexes);
+            : CreateOrderedSliceRowsExpression(topOffset, generatedRowShape, context);
+        return RenderOrderedPostOperationRows(topOffset, rowsVariableName, rowsExpression, topOffset.RenumberFieldIndexes, context);
     }
 
     private static ExpressionStatementSyntax CreateAppendBoundedTopOffsetRowsStatement(ExecutionTopOffsetTable topOffset)
@@ -158,11 +170,12 @@ public sealed partial class ExecutionCSharpRenderer
 
     private InvocationExpressionSyntax CreateOrderedSliceRowsExpression(
         ExecutionTopOffsetTable topOffset,
-        GeneratedRowShape? generatedRowShape)
+        GeneratedRowShape? generatedRowShape,
+        ExecutionRenderContext context)
     {
         return CreateRowsMethodExpression(
             CreateRowsMethodExpression(
-                CreateOrderedRowsExpression(topOffset.Source, topOffset.Keys, generatedRowShape),
+                CreateOrderedRowsExpression(topOffset.Source, topOffset.Keys, context, generatedRowShape),
                 "Skip",
                 topOffset.SkipCount),
             "Take",
@@ -219,17 +232,17 @@ public sealed partial class ExecutionCSharpRenderer
                 StatementEmitter.CreateBlock(assignRowNumber)));
     }
 
-    private IEnumerable<StatementSyntax> RenderSkipTable(ExecutionSkipTable skip)
+    private IEnumerable<StatementSyntax> RenderSkipTable(ExecutionSkipTable skip, ExecutionRenderContext context)
     {
-        return RenderTableSlice(skip, "Skip", skip.Count);
+        return RenderTableSlice(skip, "Skip", skip.Count, context);
     }
 
-    private IEnumerable<StatementSyntax> RenderTakeTable(ExecutionTakeTable take)
+    private IEnumerable<StatementSyntax> RenderTakeTable(ExecutionTakeTable take, ExecutionRenderContext context)
     {
-        return RenderTableSlice(take, "Take", take.Count);
+        return RenderTableSlice(take, "Take", take.Count, context);
     }
 
-    private IEnumerable<StatementSyntax> RenderSliceTable(ExecutionSliceTable slice)
+    private IEnumerable<StatementSyntax> RenderSliceTable(ExecutionSliceTable slice, ExecutionRenderContext context)
     {
         var rowsVariableName = $"{slice.Target.Name}Rows";
         var rows = CreateRowsMethodExpression(
@@ -241,45 +254,46 @@ public sealed partial class ExecutionCSharpRenderer
             CreateRowsMethodExpression(SyntaxFactory.IdentifierName(slice.Source.Name), "Skip", slice.SkipCount),
             "Take",
             slice.TakeCount);
-        if (TryRenderShapeSliceFinalShapeSourceBuffer(slice.Source, slice.Target, rowsVariableName, shapeRowsExpression, out var shapeBufferRows))
+        if (TryRenderShapeSliceFinalShapeSourceBuffer(slice.Source, slice.Target, rowsVariableName, shapeRowsExpression, context, out var shapeBufferRows))
             return shapeBufferRows;
 
-        if (TryRenderShapeSliceFinalShapeRows(slice.Source, slice.Target, rowsVariableName, shapeRowsExpression, out var shapeRows))
+        if (TryRenderShapeSliceFinalShapeRows(slice.Source, slice.Target, rowsVariableName, shapeRowsExpression, context, out var shapeRows))
             return shapeRows;
 
-        if (TryRenderFinalShapeRows(slice.Target, rowsVariableName, rows, out var finalShapeRows))
+        if (TryRenderFinalShapeRows(slice.Target, rowsVariableName, rows, context, out var finalShapeRows))
             return finalShapeRows;
 
         return
         [
             CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), rowsVariableName, rows),
-            ..CreateTablePostOperationCopyStatements(GetTablePostOperation(slice), rowsVariableName)
+            ..CreateTablePostOperationCopyStatements(GetTablePostOperation(slice), rowsVariableName, context)
         ];
     }
 
     private IEnumerable<StatementSyntax> RenderTableSlice(
         ExecutionNode node,
         string methodName,
-        int count)
+        int count,
+        ExecutionRenderContext context)
     {
         var operation = GetTablePostOperation(node);
         var rowsVariableName = $"{operation.Target.Name}Rows";
         var rows = CreateRowsMethodExpression(CreateTableRowsRead(operation.Source.Name), methodName, count);
 
         var shapeRowsExpression = CreateRowsMethodExpression(SyntaxFactory.IdentifierName(operation.Source.Name), methodName, count);
-        if (TryRenderShapeSliceFinalShapeSourceBuffer(operation.Source, operation.Target, rowsVariableName, shapeRowsExpression, out var shapeBufferRows))
+        if (TryRenderShapeSliceFinalShapeSourceBuffer(operation.Source, operation.Target, rowsVariableName, shapeRowsExpression, context, out var shapeBufferRows))
             return shapeBufferRows;
 
-        if (TryRenderShapeSliceFinalShapeRows(operation.Source, operation.Target, rowsVariableName, shapeRowsExpression, out var shapeRows))
+        if (TryRenderShapeSliceFinalShapeRows(operation.Source, operation.Target, rowsVariableName, shapeRowsExpression, context, out var shapeRows))
             return shapeRows;
 
-        if (TryRenderFinalShapeRows(operation.Target, rowsVariableName, rows, out var finalShapeRows))
+        if (TryRenderFinalShapeRows(operation.Target, rowsVariableName, rows, context, out var finalShapeRows))
             return finalShapeRows;
 
         return
         [
             CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), rowsVariableName, rows),
-            ..CreateTablePostOperationCopyStatements(operation, rowsVariableName)
+            ..CreateTablePostOperationCopyStatements(operation, rowsVariableName, context)
         ];
     }
 
@@ -287,7 +301,8 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionNode node,
         string rowsVariableName,
         ExpressionSyntax rowsExpression,
-        IReadOnlyList<int> renumberFieldIndexes)
+        IReadOnlyList<int> renumberFieldIndexes,
+        ExecutionRenderContext context)
     {
         var operation = GetTablePostOperation(node);
         if (TryRenderOrderedFinalShapeRows(
@@ -295,6 +310,7 @@ public sealed partial class ExecutionCSharpRenderer
                 rowsVariableName,
                 rowsExpression,
                 renumberFieldIndexes,
+                context,
                 out var finalShapeRows))
             return finalShapeRows;
 
@@ -303,7 +319,7 @@ public sealed partial class ExecutionCSharpRenderer
             CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), rowsVariableName, rowsExpression)
         };
 
-        statements.AddRange(CreateTablePostOperationCopyStatements(operation, rowsVariableName));
+        statements.AddRange(CreateTablePostOperationCopyStatements(operation, rowsVariableName, context));
         statements.AddRange(renumberFieldIndexes.Select(index => CreateRenumberRowsStatement(operation.Target.Name, index)));
         return statements;
     }

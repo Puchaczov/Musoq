@@ -18,39 +18,39 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var fields = CreateFields(node.Fields);
 
-        Nodes.Push(new CreateTransformationTableNode(node.Name, node.Keys, fields, node.ForGrouping));
+        PushSemanticNode(new CreateTransformationTableNode(node.Name, node.Keys, fields, node.ForGrouping));
     }
 
     public override void Visit(RenameTableNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new RenameTableNode(node.TableSourceName, node.TableDestinationName));
+        PushSemanticNode(new RenameTableNode(node.TableSourceName, node.TableDestinationName));
     }
 
     public override void Visit(IntoNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new IntoNode(node.Name));
+        PushSemanticNode(new IntoNode(node.Name));
     }
 
     public override void Visit(ShouldBePresentInTheTable node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new ShouldBePresentInTheTable(node.Table, node.ExpectedResult, node.Keys));
+        PushSemanticNode(new ShouldBePresentInTheTable(node.Table, node.ExpectedResult, node.Keys));
     }
 
     public override void Visit(JoinNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         _sourceBinding.Identifier = node.Alias;
-        Nodes.Push(new Parser.JoinNode((Parser.JoinFromNode)Nodes.Pop()));
+        PushSemanticNode(new Parser.JoinNode((Parser.JoinFromNode)PopSemanticNode()));
     }
 
     public override void Visit(ApplyNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         _sourceBinding.Identifier = node.Alias;
-        Nodes.Push(new Parser.ApplyNode((Parser.ApplyFromNode)Nodes.Pop()));
+        PushSemanticNode(new Parser.ApplyNode((Parser.ApplyFromNode)PopSemanticNode()));
     }
 
     public void SetScope(Scope scope)
@@ -64,7 +64,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.ExplicitlyCoupledSources.Add(
             node.MappedSchemaName,
             new CoupledSourceDefinition(node.SchemaMethodNode, node.TableName, node.ProfileName));
-        Nodes.Push(new CoupleNode(node.SchemaMethodNode, node.TableName, node.ProfileName, node.MappedSchemaName));
+        PushSemanticNode(new CoupleNode(node.SchemaMethodNode, node.TableName, node.ProfileName, node.MappedSchemaName));
     }
 
     public override void Visit(StatementsArrayNode node)
@@ -72,9 +72,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         var statements = new StatementNode[node.Statements.Length];
         for (var i = 0; i < node.Statements.Length; ++i)
-            statements[node.Statements.Length - 1 - i] = (StatementNode)Nodes.Pop();
+            statements[node.Statements.Length - 1 - i] = (StatementNode)PopSemanticNode();
 
-        Nodes.Push(new StatementsArrayNode(statements));
+        PushSemanticNode(new StatementsArrayNode(statements));
     }
 
     public override void Visit(StatementNode node)
@@ -83,6 +83,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (node.Node is not ParameterBlockNode)
             _diagnostics.HasSeenNonParameterStatement = true;
 
-        Nodes.Push(new StatementNode(Nodes.Pop()));
+        PushSemanticNode(new StatementNode(PopSemanticNode()));
     }
 }

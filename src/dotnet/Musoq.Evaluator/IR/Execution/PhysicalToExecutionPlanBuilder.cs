@@ -47,28 +47,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         var unwrapped = UnwrapSingleStatement(physicalPlan);
         var loweringContext = new PhysicalToExecutionLoweringContext(unwrapped, identifier, session);
 
-        if (unwrapped is PhysicalMultiStatementNode multiStatement)
-            return BuildMultiStatement(multiStatement, identifier, session);
-
-        if (new CteLoweringCoordinator(BuildCte).TryBuild(loweringContext, out var cteResult))
-            return cteResult;
-
-        if (unwrapped is PhysicalDescNode desc)
-            return BuildDesc(desc, identifier);
-
-        var setOperationPipeline = DecomposeSetOperationPipeline(unwrapped);
-        if (setOperationPipeline != null)
-            return BuildSetOperation(setOperationPipeline, identifier, session);
-
-        if (CreateAggregateLoweringCoordinator().TryBuildPlan(loweringContext, out var aggregateResult))
-            return aggregateResult;
-
-        if (CreateWindowLoweringCoordinator().TryBuildPlan(loweringContext, out var windowResult))
-            return windowResult;
-
-        var pipeline = DecomposeSupportedPipeline(unwrapped);
-        if (pipeline != null)
-            return BuildPipeline(pipeline, identifier, session);
+        if (CreatePhysicalLoweringRegistry().TryBuildPlan(loweringContext, out var result))
+            return result;
 
         return CreateUnsupported(unwrapped);
     }

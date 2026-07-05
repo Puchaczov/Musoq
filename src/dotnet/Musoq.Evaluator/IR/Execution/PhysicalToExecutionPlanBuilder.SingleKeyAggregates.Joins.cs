@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical.Nodes;
+using Musoq.Evaluator.IR.Planning;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -45,24 +46,20 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 "Execution IR hash-join aggregate fusion does not stream dynamic hash-join inputs. Physical planning must select nested-loop before Execution IR lowering.");
         }
 
+        var sidecarIndex = TryResolveCteSidecarIndex(join, hashSides, CteSidecarIndexKind.Hash);
+        if (sidecarIndex != null &&
+            TryUseCteSidecarHashPayloadJoinSource(hashSides.Build, sidecarIndex, session, out var payloadBuildSource))
+        {
+            joinSources = ReferenceEquals(hashSides.Build, joinSources.Left)
+                ? joinSources with { Left = payloadBuildSource }
+                : joinSources with { Right = payloadBuildSource };
+            hashSides = hashSides with { Build = payloadBuildSource };
+        }
+
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(joinSources.Left.Shape, joinSources.Right.Shape);
         var keyType = ResolveHashJoinKeyType(join);
         var hash = new ExecutionVariable(CreateScopedHashName(resultTableName, $"{hashSides.Build.Variable.Name}Hash"), typeof(object));
         var matches = new ExecutionVariable($"{hash.Name}Matches", typeof(object));
-        var buildLoop = CreateSourceLoop(
-            hashSides.Build.Shape,
-            hashSides.Build.Rows,
-            hashSides.Build.Variable,
-            new ExecutionBlock(
-            [
-                new ExecutionHashAdd(
-                    hash,
-                    CreateHashJoinKeyExpression(join.BuildKeys, sourceLookup, keyType),
-                    hashSides.Build.Variable,
-                    keyType,
-                        hashSides.Build.Variable.Type,
-                        hashSides.Build.Variable.GeneratedRowTypeName)
-            ]));
         var setup = new List<ExecutionNode>(
             joinSources.Left.Setup.Count +
             joinSources.Right.Setup.Count +
@@ -70,13 +67,40 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
         setup.AddRange(joinSources.Left.Setup);
         setup.AddRange(joinSources.Right.Setup);
-        setup.Add(new ExecutionCreateHash(
-            hash,
-            keyType,
-            hashSides.Build.Variable.Type,
-            CreateHashCapacityCandidate(hash, hashSides.Build),
-            hashSides.Build.Variable.GeneratedRowTypeName));
-        setup.Add(buildLoop);
+        if (sidecarIndex != null)
+        {
+            setup.Add(new ExecutionCteSidecarIndexLoadCandidate(
+                hash,
+                sidecarIndex.IndexSlot,
+                ExecutionCteSidecarIndexKind.Hash,
+                keyType,
+                hashSides.Build.Variable.Type,
+                hashSides.Build.Variable.GeneratedRowTypeName));
+        }
+        else
+        {
+            var buildLoop = CreateSourceLoop(
+                hashSides.Build.Shape,
+                hashSides.Build.Rows,
+                hashSides.Build.Variable,
+                new ExecutionBlock(
+                [
+                    new ExecutionHashAdd(
+                        hash,
+                        CreateHashJoinKeyExpression(join.BuildKeys, sourceLookup, keyType),
+                        hashSides.Build.Variable,
+                        keyType,
+                        hashSides.Build.Variable.Type,
+                        hashSides.Build.Variable.GeneratedRowTypeName)
+                ]));
+            setup.Add(new ExecutionCreateHash(
+                hash,
+                keyType,
+                hashSides.Build.Variable.Type,
+                CreateHashCapacityCandidate(hash, hashSides.Build),
+                hashSides.Build.Variable.GeneratedRowTypeName));
+            setup.Add(buildLoop);
+        }
 
         return SingleKeyAggregateExecutionSourceBuildResult.Success(new SingleKeyAggregateExecutionSource(
             sourceLookup,

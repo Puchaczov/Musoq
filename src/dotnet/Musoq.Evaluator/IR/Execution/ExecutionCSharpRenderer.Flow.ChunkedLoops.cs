@@ -33,30 +33,36 @@ public sealed partial class ExecutionCSharpRenderer
             : RenderForEachWithOrdinality(forEach, context);
     }
 
-    private StatementSyntax RenderMaterializeListStream(ExecutionMaterializeList materialize)
+    private StatementSyntax RenderMaterializeListStream(
+        ExecutionMaterializeList materialize,
+        ExecutionRenderContext context)
     {
         return ExecutionRowStreams.IsChunked(materialize.Source)
-            ? RenderMaterializeChunkedList(materialize)
-            : RenderMaterializeList(materialize);
+            ? RenderMaterializeChunkedList(materialize, context)
+            : RenderMaterializeList(materialize, context);
     }
 
-    private IEnumerable<StatementSyntax> RenderMaterializeFilteredListStream(ExecutionMaterializeFilteredList materialize)
+    private IEnumerable<StatementSyntax> RenderMaterializeFilteredListStream(
+        ExecutionMaterializeFilteredList materialize,
+        ExecutionRenderContext context)
     {
         return ExecutionRowStreams.IsChunked(materialize.Source)
-            ? RenderMaterializeFilteredChunkedList(materialize)
-            : RenderMaterializeFilteredList(materialize);
+            ? RenderMaterializeFilteredChunkedList(materialize, context)
+            : RenderMaterializeFilteredList(materialize, context);
     }
 
-    private IEnumerable<StatementSyntax> RenderMaterializeExpandoListStream(ExecutionMaterializeExpandoList materialize)
+    private IEnumerable<StatementSyntax> RenderMaterializeExpandoListStream(
+        ExecutionMaterializeExpandoList materialize,
+        ExecutionRenderContext context)
     {
         return ExecutionRowStreams.IsChunked(materialize.Source)
-            ? RenderMaterializeChunkedExpandoList(materialize)
-            : RenderMaterializeExpandoList(materialize);
+            ? RenderMaterializeChunkedExpandoList(materialize, context)
+            : RenderMaterializeExpandoList(materialize, context);
     }
 
     private StatementSyntax[] RenderSourceLoopStream(ExecutionSourceLoop sourceLoop)
     {
-        var context = new ExecutionRenderContext(_renderOptions, RenderSession);
+        var context = CreateIsolatedRenderContext();
         return sourceLoop switch
         {
             ExecutionForEach forEach => RenderForEachStream(forEach, context).ToArray(),
@@ -101,7 +107,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         var session = context.Session;
-        var sourceExpression = RenderExpression(source);
+        var sourceExpression = RenderExpression(source, context);
         var bodyStatements = new List<StatementSyntax>();
 
         if (session.EmitChunkLoopCancellationChecks)
@@ -148,9 +154,10 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateChunkedLoop(
             item,
             source,
+            context,
             (itemAccessExpression, indexVariableName) =>
             {
-                var bodyStatements = CreateChunkedLoopBodyPrefix(item, itemAccessExpression, indexVariableName);
+                var bodyStatements = CreateChunkedLoopBodyPrefix(item, itemAccessExpression, indexVariableName, context);
                 bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, operatorNode));
                 bodyStatements.AddRange(RenderBlock(body, context).Statements);
                 return bodyStatements;
@@ -176,9 +183,10 @@ public sealed partial class ExecutionCSharpRenderer
             CreateChunkedLoop(
                 item,
                 source,
+                context,
                 (itemAccessExpression, indexVariableName) =>
                 {
-                    var bodyStatements = CreateChunkedLoopBodyPrefix(item, itemAccessExpression, indexVariableName);
+                    var bodyStatements = CreateChunkedLoopBodyPrefix(item, itemAccessExpression, indexVariableName, context);
                     bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, operatorNode));
                     bodyStatements.AddRange(RenderBlock(body, context).Statements);
                     bodyStatements.Add(SyntaxFactory.ExpressionStatement(
@@ -192,22 +200,24 @@ public sealed partial class ExecutionCSharpRenderer
     private StatementSyntax CreateChunkedLoop(
         ExecutionVariable item,
         ExecutionExpression source,
+        ExecutionRenderContext context,
         Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements)
     {
         return ChunkedLoopSyntaxFactory.Create(
             item,
-            RenderExpression(source),
+            RenderExpression(source, context),
             createBodyStatements);
     }
 
     private List<StatementSyntax> CreateChunkedLoopBodyPrefix(
         ExecutionVariable item,
         ExpressionSyntax itemAccessExpression,
-        string indexVariableName)
+        string indexVariableName,
+        ExecutionRenderContext context)
     {
         var bodyStatements = new List<StatementSyntax>();
 
-        if (RenderSession.EmitChunkLoopCancellationChecks)
+        if (context.Session.EmitChunkLoopCancellationChecks)
             bodyStatements.Add(CreatePeriodicCancellationCheck(indexVariableName));
 
         bodyStatements.Add(CreateLocalDeclaration(

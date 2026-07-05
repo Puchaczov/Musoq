@@ -1,12 +1,14 @@
-﻿using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
+using Musoq.Evaluator.Runtime;
 
 namespace Musoq.Evaluator;
 
 public partial class Operators
 {
-    private static readonly ConcurrentDictionary<string, Func<string, bool>> LikeMatcherCache = new();
-    private static readonly ConcurrentDictionary<string, Regex> RLikePatternCache = new();
+    private static readonly BoundedRuntimeCache<string, Func<string, bool>> LikeMatcherCache =
+        new(RuntimeCacheOptions.PatternCacheSize, StringComparer.Ordinal);
+    private static readonly BoundedRuntimeCache<string, Regex> RLikePatternCache =
+        new(RuntimeCacheOptions.PatternCacheSize, StringComparer.Ordinal);
     private static readonly Regex EscapePattern = CreateEscapeRegex();
 
     public bool Like(string? content, string? searchFor)
@@ -24,7 +26,7 @@ public partial class Operators
             return false;
 
         var regex = RLikePatternCache.GetOrAdd(pattern, static p =>
-            new Regex(p, RegexOptions.Compiled));
+            new Regex(p, RegexOptions.Compiled, RuntimeCacheOptions.DefaultRegexTimeout));
 
         return regex.IsMatch(content);
     }
@@ -49,7 +51,8 @@ public partial class Operators
         var escaped = EscapePattern.Replace(pattern, static match => @"\" + match.Value);
         var sqlPattern = escaped.Replace("_", ".", StringComparison.Ordinal).Replace("%", ".*", StringComparison.Ordinal);
         var regex = new Regex(string.Concat(@"\A", sqlPattern, @"\z"),
-            RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled,
+            RuntimeCacheOptions.DefaultRegexTimeout);
         return regex.IsMatch;
     }
 

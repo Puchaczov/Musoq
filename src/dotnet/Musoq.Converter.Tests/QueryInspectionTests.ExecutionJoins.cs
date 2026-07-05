@@ -151,9 +151,10 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateCteBackedInnerHashJoinQuery());
 
         AssertUsesExecutionBackend(result);
-        Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0", result.ExecutionPlanText);
-        Assert.Contains("StoreTable [cte1 -> _cteRowResults.Slot1", result.ExecutionPlanText);
-        AssertExecutionPlanContains("CreateHash [rHash: string -> Row; capacity: _cteRowResults.Slot1.Count]", result.ExecutionPlanText);
+        Assert.Contains("ParallelBlock [cte-level-0, tasks 2, maxDegree 2]", result.ExecutionPlanText);
+        Assert.Contains("StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0", result.ExecutionPlanText);
+        AssertExecutionPlanContains("StoreCteIndex [hashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]", result.ExecutionPlanText);
+        AssertExecutionPlanContains("LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]", result.ExecutionPlanText);
         AssertExecutionPlanContains("HashProbe [rHash[l.Dummy] -> rHashMatches]", result.ExecutionPlanText);
         Assert.Contains("AppendShape [result <- ResultShape0(l.Dummy: l.Dummy, r.Dummy: r.Dummy)]", result.ExecutionPlanText);
         Assert.IsFalse(result.ExecutionPlanText.Contains("StoreTable [statement0 -> _tableResults[2]]", StringComparison.Ordinal));
@@ -180,8 +181,10 @@ public partial class QueryInspectionTests
 
         Assert.Contains("PhysicalHashJoin [LeftOuter] [build: r.Dummy] [probe: l.Dummy] [residual: (r.Dummy = 'missing')]", result.PhysicalPlanText);
         AssertUsesExecutionBackend(result);
-        Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0", result.ExecutionPlanText);
-        Assert.Contains("StoreTable [cte1 -> _cteRowResults.Slot1", result.ExecutionPlanText);
+        Assert.Contains("ParallelBlock [cte-level-0, tasks 2, maxDegree 2]", result.ExecutionPlanText);
+        Assert.Contains("StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0", result.ExecutionPlanText);
+        AssertExecutionPlanContains("StoreCteIndex [hashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]", result.ExecutionPlanText);
+        AssertExecutionPlanContains("LoadCteIndex [rHash <- _cteIndexResults.Slot0 Hash: string]", result.ExecutionPlanText);
         AssertExecutionPlanContains("HashProbe [rHash[l.Dummy] -> rHashMatches] [match: rHashHasMatch]", result.ExecutionPlanText);
         Assert.Contains("If [(dummy = 'missing')]", result.ExecutionPlanText);
         Assert.Contains("HashProbeNoMatch", result.ExecutionPlanText);
@@ -236,8 +239,9 @@ public partial class QueryInspectionTests
         var result = Inspect(CreateCteBackedInnerNestedLoopJoinQuery());
 
         AssertUsesExecutionBackend(result);
-        Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0", result.ExecutionPlanText);
-        Assert.Contains("StoreTable [cte1 -> _cteRowResults.Slot1", result.ExecutionPlanText);
+        Assert.Contains("ParallelBlock [cte-level-0, tasks 2, maxDegree 2]", result.ExecutionPlanText);
+        Assert.Contains("StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0", result.ExecutionPlanText);
+        Assert.Contains("StoreTable [__parallelCteLevel0Task1Result -> _cteRowResults.Slot1", result.ExecutionPlanText);
         Assert.Contains("ForEach [l in _cteRowResults.Slot0]", result.ExecutionPlanText);
         Assert.Contains("ForEach [r in _cteRowResults.Slot1]", result.ExecutionPlanText);
         Assert.Contains("Let [dummy: string = l.Dummy]", result.ExecutionPlanText);

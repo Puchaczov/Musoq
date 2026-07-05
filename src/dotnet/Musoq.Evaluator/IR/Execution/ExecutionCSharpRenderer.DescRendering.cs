@@ -10,13 +10,13 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderReturnDesc(ExecutionReturnDesc desc)
+    private IEnumerable<StatementSyntax> RenderReturnDesc(ExecutionReturnDesc desc, ExecutionRenderContext context)
     {
         ValidateDesc(desc);
 
         if (desc.Type == DescType.Query)
         {
-            yield return StatementEmitter.CreateReturn(CreateDescReturnExpression(desc));
+            yield return StatementEmitter.CreateReturn(CreateDescReturnExpression(desc, context));
             yield break;
         }
 
@@ -31,12 +31,14 @@ public sealed partial class ExecutionCSharpRenderer
             CreateDescRuntimeContext(desc));
 
         if (RequiresSchemaTable(desc.Type))
-            yield return CreateDescSchemaTableDeclaration(desc);
+            yield return CreateDescSchemaTableDeclaration(desc, context);
 
-        yield return StatementEmitter.CreateReturn(CreateDescReturnExpression(desc));
+        yield return StatementEmitter.CreateReturn(CreateDescReturnExpression(desc, context));
     }
 
-    private LocalDeclarationStatementSyntax CreateDescSchemaTableDeclaration(ExecutionReturnDesc desc)
+    private LocalDeclarationStatementSyntax CreateDescSchemaTableDeclaration(
+        ExecutionReturnDesc desc,
+        ExecutionRenderContext context)
     {
         var invocation = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -46,7 +48,7 @@ public sealed partial class ExecutionCSharpRenderer
             .WithArgumentList(CreateArgumentList(
                 CreateStringLiteral(desc.MethodName),
                 SyntaxFactory.IdentifierName(DescRuntimeContextVariableName),
-                CreateDescArgumentsExpression(desc)));
+                CreateDescArgumentsExpression(desc, context)));
 
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -134,15 +136,15 @@ public sealed partial class ExecutionCSharpRenderer
                 .WithArgumentList(SyntaxFactory.ArgumentList()));
     }
 
-    private ExpressionSyntax CreateDescArgumentsExpression(ExecutionReturnDesc desc)
+    private ExpressionSyntax CreateDescArgumentsExpression(ExecutionReturnDesc desc, ExecutionRenderContext context)
     {
-        var arguments = desc.Arguments.Select(RenderExpression).ToArray();
+        var arguments = desc.Arguments.Select(argument => RenderExpression(argument, context)).ToArray();
         return arguments.Length == 0
             ? SyntaxHelper.ArrayEmptyOf("object")
             : CreateArrayCreation("object", arguments);
     }
 
-    private InvocationExpressionSyntax CreateDescReturnExpression(ExecutionReturnDesc desc)
+    private InvocationExpressionSyntax CreateDescReturnExpression(ExecutionReturnDesc desc, ExecutionRenderContext context)
     {
         return desc.Type switch
         {
@@ -172,17 +174,19 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.IdentifierName("token")),
             DescType.Query => CreateEvaluationHelperInvocation(
                 nameof(EvaluationHelper.GetQueryDescription),
-                CreateDescQueryColumnsExpression(desc)),
+                CreateDescQueryColumnsExpression(desc, context)),
             _ => throw UnsupportedShape.Of($"DESC type {desc.Type}")
         };
     }
 
-    private ExpressionSyntax CreateDescQueryColumnsExpression(ExecutionReturnDesc desc)
+    private ExpressionSyntax CreateDescQueryColumnsExpression(
+        ExecutionReturnDesc desc,
+        ExecutionRenderContext context)
     {
         if (desc.QueryColumnMetadata == null)
             throw new ArgumentException("DESC QUERY execution rendering requires query column metadata.", nameof(desc));
 
-        if (!TryGetStaticMetadataFieldName(desc.QueryColumnMetadata, out var fieldName))
+        if (!TryGetStaticMetadataFieldName(desc.QueryColumnMetadata, context, out var fieldName))
             throw new InvalidOperationException("DESC QUERY static column metadata was not registered.");
 
         return SyntaxFactory.IdentifierName(fieldName);

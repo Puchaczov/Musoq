@@ -9,11 +9,13 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private List<ExpressionSyntax> CreateKeySetBuildArguments(KeySetBuildHelper helper)
+    private List<ExpressionSyntax> CreateKeySetBuildArguments(
+        KeySetBuildHelper helper,
+        ExecutionRenderContext context)
     {
         var arguments = new List<ExpressionSyntax>
         {
-            CreateKeySetBuildRowsArgument(helper),
+            CreateKeySetBuildRowsArgument(helper, context),
             SyntaxFactory.IdentifierName(helper.KeySetAdd.Set.Name),
             SyntaxFactory.IdentifierName("token")
         };
@@ -23,11 +25,13 @@ public sealed partial class ExecutionCSharpRenderer
         return arguments;
     }
 
-    private List<ExpressionSyntax> CreateKeySetProbeArguments(KeySetProbeHelper helper)
+    private List<ExpressionSyntax> CreateKeySetProbeArguments(
+        KeySetProbeHelper helper,
+        ExecutionRenderContext context)
     {
         var arguments = new List<ExpressionSyntax>
         {
-            RenderExpression(helper.Loop.Source),
+            RenderExpression(helper.Loop.Source, context),
             SyntaxFactory.IdentifierName(helper.KeySetProbe.Set.Name)
         };
 
@@ -38,11 +42,13 @@ public sealed partial class ExecutionCSharpRenderer
         return arguments;
     }
 
-    private ParameterListSyntax CreateKeySetBuildParameterList(KeySetBuildHelper helper)
+    private ParameterListSyntax CreateKeySetBuildParameterList(
+        KeySetBuildHelper helper,
+        ExecutionRenderContext context)
     {
         var parameters = new List<ParameterSyntax>
         {
-            CreateParameter(helper.RowsParameterName, CreateKeySetBuildRowsParameterType(helper)),
+            CreateParameter(helper.RowsParameterName, CreateKeySetBuildRowsParameterType(helper, context)),
             CreateParameter(helper.KeySetAdd.Set.Name, CreateKeySetTypeSyntax(helper.KeySetAdd.KeyType)),
             CreateParameter("token", CreateTypeSyntax(typeof(CancellationToken)))
         };
@@ -52,7 +58,9 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters));
     }
 
-    private ParameterListSyntax CreateKeySetProbeParameterList(KeySetProbeHelper helper)
+    private ParameterListSyntax CreateKeySetProbeParameterList(
+        KeySetProbeHelper helper,
+        ExecutionRenderContext context)
     {
         var parameters = new List<ParameterSyntax>
         {
@@ -66,7 +74,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         parameters.AddRange(helper.AppendTargets.Select(target => CreateParameter(
             target.Name,
-            CreateAppendTargetParameterType(target))));
+            CreateAppendTargetParameterType(target, context))));
         parameters.Add(CreateParameter("token", CreateTypeSyntax(typeof(CancellationToken))));
         AddProfileRecorderParameter(parameters);
         parameters.AddRange(helper.Captures.Select(CreateCapturedLocalParameter));

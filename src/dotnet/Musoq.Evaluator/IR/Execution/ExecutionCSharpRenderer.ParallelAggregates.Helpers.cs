@@ -102,28 +102,35 @@ public sealed partial class ExecutionCSharpRenderer
         return "nullGroup";
     }
 
-    private string CreateParallelSingleKeyAggregateShardFunctionName(ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+    private string CreateParallelSingleKeyAggregateShardFunctionName(
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
+        ExecutionRenderContext context)
     {
         return CreateParallelSingleKeyAggregateRelatedName(
             parallelAggregate,
+            context,
             "ParallelSingleKeyAggregateShard_",
             "Shard");
     }
 
-    private string CreateParallelSingleKeyAggregateWorkerTypeName(ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+    private string CreateParallelSingleKeyAggregateWorkerTypeName(
+        ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
+        ExecutionRenderContext context)
     {
         return CreateParallelSingleKeyAggregateRelatedName(
             parallelAggregate,
+            context,
             "ParallelSingleKeyAggregateWorker_",
             "Worker");
     }
 
     private string CreateParallelSingleKeyAggregateRelatedName(
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate,
+        ExecutionRenderContext context,
         string sharedPrefix,
         string fallbackSuffix)
     {
-        var functionName = CreateParallelSingleKeyAggregateFunctionName(parallelAggregate);
+        var functionName = CreateParallelSingleKeyAggregateFunctionName(parallelAggregate, context);
         const string prefix = "ParallelSingleKeyAggregate_";
 
         return functionName.StartsWith(prefix, StringComparison.Ordinal)

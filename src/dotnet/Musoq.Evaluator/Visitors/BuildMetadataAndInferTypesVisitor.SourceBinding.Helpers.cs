@@ -65,7 +65,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         var emptyTable = new DynamicTable([], typeof(object));
         UpdateQueryAliasAndSymbolTable(node, schema, emptyTable);
-        Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertiesChain));
+        PushSemanticNode(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertiesChain));
     }
 
     private bool TryResolveAsStandaloneFunction(AliasedFromNode node)
@@ -96,7 +96,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         }
 
         var entityType = sourceTable.Metadata?.TableEntityType;
-        var args = (ArgsListNode)Nodes.Pop();
+        var args = (ArgsListNode)PopSemanticNode();
         var argTypes = args.Args.Select(a => a.ReturnType ?? typeof(object)).ToArray();
 
         if (!schema.TryResolveMethod(node.Identifier, argTypes, entityType, out var method) &&
@@ -126,7 +126,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (method.DeclaringType != null)
             AddAssembly(method.DeclaringType.Assembly);
 
-        Nodes.Push(new Parser.AccessMethodFromNode(node.Alias, sourceAlias, accessMethodNode, returnType));
+        PushSemanticNode(new Parser.AccessMethodFromNode(node.Alias, sourceAlias, accessMethodNode, returnType));
         return true;
     }
 

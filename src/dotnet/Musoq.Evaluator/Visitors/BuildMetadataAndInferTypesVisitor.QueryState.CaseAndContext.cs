@@ -17,12 +17,12 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         for (var i = 0; i < node.WhenThenPairs.Length; ++i)
         {
-            var then = Nodes.Pop();
-            var when = Nodes.Pop();
+            var then = PopSemanticNode();
+            var when = PopSemanticNode();
             whenThenPairs.Add((when, then));
         }
 
-        var elseNode = Nodes.Pop();
+        var elseNode = PopSemanticNode();
 
         if (_diagnostics.NullSuspiciousTypes.All(type => type != NullNode.NullType.Instance))
         {
@@ -33,7 +33,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 : new CaseNode(whenThenPairs.ToArray(), elseNode,
                     BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(greatestCommonSubtype));
 
-            Nodes.Push(caseNode);
+            PushSemanticNode(caseNode);
         }
         else
         {
@@ -49,7 +49,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             caseNode.Accept(rewritePartsWithProperNullHandlingTraverser);
 
-            Nodes.Push(rewritePartsWithProperNullHandling.RewrittenNode);
+            PushSemanticNode(rewritePartsWithProperNullHandling.RewrittenNode);
         }
 
         _diagnostics.NullSuspiciousTypes.Clear();
@@ -57,31 +57,31 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     public override void Visit(WhenNode node)
     {
-        var expression = Nodes.Pop();
+        var expression = PopSemanticNode();
 
         ValidateExpressionIsBoolean(expression, "CASE WHEN");
 
         var newNode = new WhenNode(expression);
 
-        Nodes.Push(newNode);
+        PushSemanticNode(newNode);
     }
 
     public override void Visit(ThenNode node)
     {
-        var newNode = new ThenNode(Nodes.Pop());
+        var newNode = new ThenNode(PopSemanticNode());
 
         _diagnostics.NullSuspiciousTypes.Add(newNode.ReturnType ?? typeof(object));
 
-        Nodes.Push(newNode);
+        PushSemanticNode(newNode);
     }
 
     public override void Visit(ElseNode node)
     {
-        var newNode = new ElseNode(Nodes.Pop());
+        var newNode = new ElseNode(PopSemanticNode());
 
         _diagnostics.NullSuspiciousTypes.Add(newNode.ReturnType ?? typeof(object));
 
-        Nodes.Push(newNode);
+        PushSemanticNode(newNode);
     }
 
     public void SetQueryPart(QueryPart part)

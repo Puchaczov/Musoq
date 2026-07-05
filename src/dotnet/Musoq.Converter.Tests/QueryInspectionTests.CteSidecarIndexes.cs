@@ -9,7 +9,7 @@ public partial class QueryInspectionTests
     [TestMethod]
     public void CompileForInspection_WhenCteSidecarIndexesAreDisabled_ShouldKeepExistingCteHashJoinShape()
     {
-        var result = Inspect(CreateCteBackedInnerHashJoinQuery());
+        var result = Inspect(CreateCteBackedInnerHashJoinQuery(), CreateCteSidecarDisabledOptions());
 
         Assert.IsFalse(result.PlanningText.Contains("CteSidecarIndexStrategy", StringComparison.Ordinal));
         AssertExecutionPlanDoesNotContain("StoreCteIndex [", result.ExecutionPlanText);
@@ -327,7 +327,7 @@ inner join rightCte r on d.Dummy = r.Dummy";
     [TestMethod]
     public void CompileForExecution_WhenCteHashSidecarIsEnabled_ShouldMatchDefaultExecution()
     {
-        var baseline = CompileForExecution(CreateCteBackedInnerHashJoinQuery()).Run();
+        var baseline = CompileForExecution(CreateCteBackedInnerHashJoinQuery(), CreateCteSidecarDisabledOptions()).Run();
         var optimized = CompileForExecution(CreateCteBackedInnerHashJoinQuery(), CreateCteSidecarOptions()).Run();
 
         Assert.AreEqual(baseline.Count, optimized.Count);
@@ -338,7 +338,7 @@ inner join rightCte r on d.Dummy = r.Dummy";
     [TestMethod]
     public void CompileForExecution_WhenCteResidualOuterHashSidecarIsEnabled_ShouldMatchDefaultExecution()
     {
-        var baseline = CompileForExecution(CreateCteBackedResidualOuterHashJoinQuery()).Run();
+        var baseline = CompileForExecution(CreateCteBackedResidualOuterHashJoinQuery(), CreateCteSidecarDisabledOptions()).Run();
         var optimized = CompileForExecution(CreateCteBackedResidualOuterHashJoinQuery(), CreateCteSidecarOptions()).Run();
 
         Assert.AreEqual(baseline.Count, optimized.Count);
@@ -349,9 +349,9 @@ inner join rightCte r on d.Dummy = r.Dummy";
     [TestMethod]
     public void CompileForExecution_WhenCteKeySetSidecarIsEnabled_ShouldMatchSemiAndAntiExecution()
     {
-        var semiBaseline = CompileForExecution(CreateCteBackedSemiJoinQuery()).Run();
+        var semiBaseline = CompileForExecution(CreateCteBackedSemiJoinQuery(), CreateCteSidecarDisabledOptions()).Run();
         var semiOptimized = CompileForExecution(CreateCteBackedSemiJoinQuery(), CreateCteSidecarOptions()).Run();
-        var antiBaseline = CompileForExecution(CreateCteBackedAntiSemiJoinQuery()).Run();
+        var antiBaseline = CompileForExecution(CreateCteBackedAntiSemiJoinQuery(), CreateCteSidecarDisabledOptions()).Run();
         var antiOptimized = CompileForExecution(CreateCteBackedAntiSemiJoinQuery(), CreateCteSidecarOptions()).Run();
 
         Assert.AreEqual(semiBaseline.Count, semiOptimized.Count);
@@ -365,7 +365,18 @@ inner join rightCte r on d.Dummy = r.Dummy";
             parallelizationMode: ParallelizationMode.None,
             useHashJoin: true,
             useSortMergeJoin: false,
+            useCteParallelization: false,
             useCteSidecarIndexes: true);
+    }
+
+    private static CompilationOptions CreateCteSidecarDisabledOptions()
+    {
+        return new CompilationOptions(
+            parallelizationMode: ParallelizationMode.None,
+            useHashJoin: true,
+            useSortMergeJoin: false,
+            useCteParallelization: false,
+            useCteSidecarIndexes: false);
     }
 
     private static void AssertGeneratedCSharpUsesTypedCteIndexResults(string generatedCSharpCode)

@@ -22,7 +22,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 var sourceField = sourceRow.Fields[fieldIndex];
                 fields[fieldIndex] = new ValuesFieldNode(
                     sourceField.Name,
-                    SafePop(Nodes, "Visit(ValuesFromNode).Field"),
+                    PopSemanticNode("Visit(ValuesFromNode).Field"),
                     sourceField.NameSpan);
             }
 

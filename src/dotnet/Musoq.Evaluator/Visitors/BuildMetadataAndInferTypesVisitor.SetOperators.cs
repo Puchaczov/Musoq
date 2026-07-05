@@ -159,17 +159,17 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private void VisitSetOperationNode(SetOperatorNode node, string setOperatorName)
     {
-        var right = Nodes.Pop();
-        var left = Nodes.Pop();
+        var right = PopSemanticNode();
+        var left = PopSemanticNode();
 
         if (left is not QueryNode leftQuery)
             throw new InvalidOperationException($"Expected left side of {setOperatorName} to be a query node.");
 
         if (node.Keys.Length > 0 && !ValidateSetOperatorKeys(leftQuery, node.Keys, node))
         {
-            Nodes.Push(left);
-            Nodes.Push(right);
-            Nodes.Push(CreateSetOperatorNode(setOperatorName, node, left, right));
+            PushSemanticNode(left);
+            PushSemanticNode(right);
+            PushSemanticNode(CreateSetOperatorNode(setOperatorName, node, left, right));
             return;
         }
 
@@ -186,15 +186,15 @@ public partial class BuildMetadataAndInferTypesVisitor
         SetOperatorFieldTypes.Add(key,
             CreateSetOperatorPositionTypes(leftQuery, node.Keys));
 
-        var rightMethodName = Methods.Pop();
-        var leftMethodName = Methods.Pop();
+        var rightMethodName = TraversalFrame.PopMethod(VisitorName, "Visit(SetOperatorNode).RightMethod");
+        var leftMethodName = TraversalFrame.PopMethod(VisitorName, "Visit(SetOperatorNode).LeftMethod");
 
         var methodName = $"{leftMethodName}_{setOperatorName}_{rightMethodName}";
-        Methods.Push(methodName);
+        TraversalFrame.PushMethod(methodName);
         _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(methodName,
             _sourceBinding.CurrentScope.Child[0].ScopeSymbolTable.GetSymbol(leftQuery.From.Alias));
 
-        Nodes.Push(CreateSetOperatorNode(setOperatorName, node, left, right));
+        PushSemanticNode(CreateSetOperatorNode(setOperatorName, node, left, right));
     }
 
     private bool ValidateSetOperatorKeys(QueryNode query, IReadOnlyCollection<string> keys, Node node)

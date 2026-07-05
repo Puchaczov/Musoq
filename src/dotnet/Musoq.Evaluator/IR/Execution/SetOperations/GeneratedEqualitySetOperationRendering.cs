@@ -9,28 +9,32 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderGeneratedEqualitySetOperation(ExecutionSetOperation setOperation)
+    private IEnumerable<StatementSyntax> RenderGeneratedEqualitySetOperation(
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
-        if (IsFinalShapeTarget(setOperation.Target))
-            return RenderGeneratedEqualityFinalShapeOperation(setOperation);
+        if (IsFinalShapeTarget(setOperation.Target, context))
+            return RenderGeneratedEqualityFinalShapeOperation(setOperation, context);
 
         var statements = new List<StatementSyntax>
         {
-            CreateSetOperationResultBufferDeclaration(setOperation)
+            CreateSetOperationResultBufferDeclaration(setOperation, context: context)
         };
 
         statements.AddRange(setOperation.Kind switch
         {
-            SetOpKind.Union => RenderGeneratedEqualityUnion(setOperation),
-            SetOpKind.Except => RenderGeneratedEqualityExcept(setOperation),
-            SetOpKind.Intersect => RenderGeneratedEqualityIntersect(setOperation),
+            SetOpKind.Union => RenderGeneratedEqualityUnion(setOperation, context),
+            SetOpKind.Except => RenderGeneratedEqualityExcept(setOperation, context),
+            SetOpKind.Intersect => RenderGeneratedEqualityIntersect(setOperation, context),
             _ => throw UnsupportedShape.Of($"Generated equality set-operation rendering for {setOperation.Kind}")
         });
 
         return statements;
     }
 
-    private IEnumerable<StatementSyntax> RenderGeneratedEqualityUnion(ExecutionSetOperation setOperation)
+    private IEnumerable<StatementSyntax> RenderGeneratedEqualityUnion(
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
         var resultRowName = $"{setOperation.Target.Name}ResultRow";
         var leftRowName = $"{setOperation.Target.Name}LeftRow";
@@ -40,29 +44,33 @@ public sealed partial class ExecutionCSharpRenderer
         [
             StatementEmitter.CreateForeach(
                 leftRowName,
-                CreateSetRowsRead(setOperation.Left),
-                StatementEmitter.CreateBlock(CreateSetOperationTargetAddStatement(setOperation, leftRowName, setOperation.Left))),
+                CreateSetRowsRead(setOperation.Left, context),
+                StatementEmitter.CreateBlock(CreateSetOperationTargetAddStatement(setOperation, leftRowName, setOperation.Left, context))),
             StatementEmitter.CreateForeach(
                 rightRowName,
-                CreateSetRowsRead(setOperation.Right),
+                CreateSetRowsRead(setOperation.Right, context),
                 StatementEmitter.CreateBlock(SyntaxFactory.IfStatement(
                     SyntaxFactory.PrefixUnaryExpression(
                         SyntaxKind.LogicalNotExpression,
                         CreateSetRowsAnyMatch(
-                            CreateSetRowsRead(setOperation.Target),
+                            CreateSetRowsRead(setOperation.Target, context),
                             resultRowName,
                             rightRowName,
                             setOperation.Target,
                             setOperation.Right,
-                            setOperation)),
+                            setOperation,
+                            context)),
                     StatementEmitter.CreateBlock(CreateSetOperationTargetAddStatement(
                         setOperation,
                         rightRowName,
-                        setOperation.Right)))))
+                        setOperation.Right,
+                        context)))))
         ];
     }
 
-    private IEnumerable<StatementSyntax> RenderGeneratedEqualityExcept(ExecutionSetOperation setOperation)
+    private IEnumerable<StatementSyntax> RenderGeneratedEqualityExcept(
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
         var leftRowName = $"{setOperation.Target.Name}LeftRow";
         var rightRowName = $"{setOperation.Target.Name}RightRow";
@@ -71,25 +79,29 @@ public sealed partial class ExecutionCSharpRenderer
         [
             StatementEmitter.CreateForeach(
                 leftRowName,
-                CreateSetRowsRead(setOperation.Left),
+                CreateSetRowsRead(setOperation.Left, context),
                 StatementEmitter.CreateBlock(SyntaxFactory.IfStatement(
                     SyntaxFactory.PrefixUnaryExpression(
                         SyntaxKind.LogicalNotExpression,
                         CreateSetRowsAnyMatch(
-                            CreateSetRowsRead(setOperation.Right),
+                            CreateSetRowsRead(setOperation.Right, context),
                             rightRowName,
                             leftRowName,
                             setOperation.Right,
                             setOperation.Left,
-                            setOperation)),
+                            setOperation,
+                            context)),
                     StatementEmitter.CreateBlock(CreateSetOperationTargetAddStatement(
                         setOperation,
                         leftRowName,
-                        setOperation.Left)))))
+                        setOperation.Left,
+                        context)))))
         ];
     }
 
-    private IEnumerable<StatementSyntax> RenderGeneratedEqualityIntersect(ExecutionSetOperation setOperation)
+    private IEnumerable<StatementSyntax> RenderGeneratedEqualityIntersect(
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
         var leftRowName = $"{setOperation.Target.Name}LeftRow";
         var rightRowName = $"{setOperation.Target.Name}RightRow";
@@ -98,19 +110,21 @@ public sealed partial class ExecutionCSharpRenderer
         [
             StatementEmitter.CreateForeach(
                 leftRowName,
-                CreateSetRowsRead(setOperation.Left),
+                CreateSetRowsRead(setOperation.Left, context),
                 StatementEmitter.CreateBlock(SyntaxFactory.IfStatement(
                     CreateSetRowsAnyMatch(
-                        CreateSetRowsRead(setOperation.Right),
+                        CreateSetRowsRead(setOperation.Right, context),
                         rightRowName,
                         leftRowName,
                         setOperation.Right,
                         setOperation.Left,
-                        setOperation),
+                        setOperation,
+                        context),
                     StatementEmitter.CreateBlock(CreateSetOperationTargetAddStatement(
                         setOperation,
                         leftRowName,
-                        setOperation.Left)))))
+                        setOperation.Left,
+                        context)))))
         ];
     }
 
@@ -120,7 +134,8 @@ public sealed partial class ExecutionCSharpRenderer
         string candidateRowName,
         ExecutionVariable existingSource,
         ExecutionVariable candidateSource,
-        ExecutionSetOperation setOperation)
+        ExecutionSetOperation setOperation,
+        ExecutionRenderContext context)
     {
         var lambda = SyntaxFactory.SimpleLambdaExpression(
             SyntaxFactory.Parameter(SyntaxFactory.Identifier(existingRowName)),
@@ -130,7 +145,8 @@ public sealed partial class ExecutionCSharpRenderer
                 candidateRowName,
                 candidateSource,
                 setOperation.FieldIndexes,
-                setOperation.FieldTypes));
+                setOperation.FieldTypes,
+                context));
 
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -146,7 +162,8 @@ public sealed partial class ExecutionCSharpRenderer
         string secondRowName,
         ExecutionVariable secondSource,
         IReadOnlyList<int> fieldIndexes,
-        IReadOnlyList<Type> fieldTypes)
+        IReadOnlyList<Type> fieldTypes,
+        ExecutionRenderContext context)
     {
         if (fieldIndexes.Count == 0)
             return SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression);
@@ -162,7 +179,8 @@ public sealed partial class ExecutionCSharpRenderer
                 secondRowName,
                 secondSource,
                 fieldIndexes[index],
-                fieldType);
+                fieldType,
+                context);
             body = body == null
                 ? equality
                 : SyntaxFactory.BinaryExpression(SyntaxKind.LogicalAndExpression, body, equality);
@@ -177,12 +195,13 @@ public sealed partial class ExecutionCSharpRenderer
         string secondRowName,
         ExecutionVariable secondSource,
         int fieldIndex,
-        Type fieldType)
+        Type fieldType,
+        ExecutionRenderContext context)
     {
-        var firstShape = TryGetTypedRowBufferShape(firstSource.Name, out var typedFirstShape)
+        var firstShape = TryGetTypedRowBufferShape(firstSource.Name, context, out var typedFirstShape)
             ? typedFirstShape
             : null;
-        var secondShape = TryGetTypedRowBufferShape(secondSource.Name, out var typedSecondShape)
+        var secondShape = TryGetTypedRowBufferShape(secondSource.Name, context, out var typedSecondShape)
             ? typedSecondShape
             : null;
 

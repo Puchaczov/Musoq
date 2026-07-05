@@ -7,12 +7,13 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private LocalDeclarationStatementSyntax CreateFinalShapeSourceBufferDeclaration(
         ExecutionCreateTable createTable,
-        FinalShapeSourceBuffer buffer)
+        FinalShapeSourceBuffer buffer,
+        ExecutionRenderContext context)
     {
         var listType = CreateListTypeSyntax(buffer.ShapeTypeName);
         var arguments = createTable.CapacityHint == null
             ? SyntaxFactory.ArgumentList()
-            : CreateArgumentList([RenderCapacityHint(createTable.CapacityHint)]);
+            : CreateArgumentList([RenderCapacityHint(createTable.CapacityHint, context)]);
 
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),

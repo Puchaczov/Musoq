@@ -199,6 +199,14 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     body.AppendCount,
                     body.CapacityHint);
             }
+            case ExecutionScopedBlock scopedBlock:
+            {
+                var body = TransformCteSidecarAppendBlock(scopedBlock.Body, targetTable, rowShape, builds);
+                return new CteSidecarAppendNodeTransformResult(
+                    scopedBlock with { Body = body.Block },
+                    body.AppendCount,
+                    body.CapacityHint);
+            }
             case ExecutionHashProbe hashProbe:
             {
                 var body = TransformCteSidecarAppendBlock(hashProbe.Body, targetTable, rowShape, builds);

@@ -8,18 +8,19 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private bool IsFinalShapeTarget(ExecutionVariable target)
+    private static bool IsFinalShapeTarget(ExecutionVariable target, ExecutionRenderContext context)
     {
-        return RenderSession.FinalShapeYieldSink is { } sink &&
+        return context.Session.FinalShapeYieldSink is { } sink &&
                string.Equals(target.Name, sink.TableName, StringComparison.Ordinal);
     }
 
-    private bool TryGetFinalShapeSourceBuffer(
+    private static bool TryGetFinalShapeSourceBuffer(
         string tableName,
+        ExecutionRenderContext context,
         out FinalShapeSourceBuffer buffer)
     {
-        if (RenderSession.FinalShapeYieldSink?.SourceBuffers != null &&
-            RenderSession.FinalShapeYieldSink.SourceBuffers.TryGetValue(tableName, out buffer!))
+        if (context.Session.FinalShapeYieldSink?.SourceBuffers != null &&
+            context.Session.FinalShapeYieldSink.SourceBuffers.TryGetValue(tableName, out buffer!))
         {
             return true;
         }
@@ -31,6 +32,7 @@ public sealed partial class ExecutionCSharpRenderer
     private List<StatementSyntax> RenderFinalShapeRowsFromRowsExpression(
         string rowsVariableName,
         ExpressionSyntax rowsExpression,
+        ExecutionRenderContext context,
         IReadOnlyList<int>? fieldIndexes = null,
         IReadOnlyList<int>? renumberFieldIndexes = null)
     {
@@ -42,6 +44,7 @@ public sealed partial class ExecutionCSharpRenderer
         statements.Add(CreateFinalShapeRowsLoop(
             rowsVariableName,
             $"{rowsVariableName}Row",
+            context,
             fieldIndexes,
             renumberFieldIndexes));
         return statements;
@@ -50,6 +53,7 @@ public sealed partial class ExecutionCSharpRenderer
     private List<StatementSyntax> RenderFinalShapeRowsFromShapeRowsExpression(
         string rowsVariableName,
         ExpressionSyntax rowsExpression,
+        ExecutionRenderContext context,
         IReadOnlyList<int>? renumberFieldIndexes = null)
     {
         var statements = new List<StatementSyntax>
@@ -60,6 +64,7 @@ public sealed partial class ExecutionCSharpRenderer
         statements.Add(CreateFinalShapeShapeRowsLoop(
             rowsVariableName,
             $"{rowsVariableName}Row",
+            context,
             renumberFieldIndexes));
         return statements;
     }
@@ -67,6 +72,7 @@ public sealed partial class ExecutionCSharpRenderer
     private ForEachStatementSyntax CreateFinalShapeRowsLoop(
         string rowsVariableName,
         string rowVariableName,
+        ExecutionRenderContext context,
         IReadOnlyList<int>? fieldIndexes = null,
         IReadOnlyList<int>? renumberFieldIndexes = null)
     {
@@ -76,14 +82,17 @@ public sealed partial class ExecutionCSharpRenderer
             StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(
                 CreateFinalShapeCreationFromRow(
                     rowVariableName,
+                    context,
                     fieldIndexes,
                     rowsVariableName,
-                    renumberFieldIndexes))));
+                    renumberFieldIndexes),
+                context)));
     }
 
     private ForEachStatementSyntax CreateFinalShapeShapeRowsLoop(
         string rowsVariableName,
         string rowVariableName,
+        ExecutionRenderContext context,
         IReadOnlyList<int>? renumberFieldIndexes = null)
     {
         return StatementEmitter.CreateForeach(
@@ -91,17 +100,19 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IdentifierName(rowsVariableName),
             StatementEmitter.CreateBlock(CreateFinalShapeOutputStatement(
                 renumberFieldIndexes is { Count: > 0 }
-                    ? CreateFinalShapeCreationFromShapeRow(rowVariableName, rowsVariableName, renumberFieldIndexes)
-                    : SyntaxFactory.IdentifierName(rowVariableName))));
+                    ? CreateFinalShapeCreationFromShapeRow(rowVariableName, rowsVariableName, renumberFieldIndexes, context)
+                    : SyntaxFactory.IdentifierName(rowVariableName),
+                context)));
     }
 
     private ObjectCreationExpressionSyntax CreateFinalShapeCreationFromRow(
         string rowVariableName,
+        ExecutionRenderContext context,
         IReadOnlyList<int>? fieldIndexes = null,
         string? rowsVariableName = null,
         IReadOnlyList<int>? renumberFieldIndexes = null)
     {
-        var sink = RenderSession.FinalShapeYieldSink ??
+        var sink = context.Session.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         var renumberFieldIndexSet = CreateRenumberFieldIndexSet(renumberFieldIndexes);
         var arguments = Enumerable.Select<FieldBinding, ArgumentSyntax>(sink.Fields, (field, index) =>
@@ -126,9 +137,10 @@ public sealed partial class ExecutionCSharpRenderer
     private ObjectCreationExpressionSyntax CreateFinalShapeCreationFromShapeRow(
         string rowVariableName,
         string rowsVariableName,
-        IReadOnlyList<int> renumberFieldIndexes)
+        IReadOnlyList<int> renumberFieldIndexes,
+        ExecutionRenderContext context)
     {
-        var sink = RenderSession.FinalShapeYieldSink ??
+        var sink = context.Session.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
         var renumberFieldIndexSet = CreateRenumberFieldIndexSet(renumberFieldIndexes);
         var arguments = Enumerable.Select<FieldBinding, ArgumentSyntax>(sink.Fields, (field, index) => SyntaxFactory.Argument(
@@ -202,9 +214,11 @@ public sealed partial class ExecutionCSharpRenderer
             .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)));
     }
 
-    private StatementSyntax CreateFinalShapeOutputStatement(ExpressionSyntax shapeCreation)
+    private StatementSyntax CreateFinalShapeOutputStatement(
+        ExpressionSyntax shapeCreation,
+        ExecutionRenderContext context)
     {
-        var sink = RenderSession.FinalShapeYieldSink ??
+        var sink = context.Session.FinalShapeYieldSink ??
                    throw new InvalidOperationException("Final shape sink is not active.");
 
         if (sink.BufferName == null)

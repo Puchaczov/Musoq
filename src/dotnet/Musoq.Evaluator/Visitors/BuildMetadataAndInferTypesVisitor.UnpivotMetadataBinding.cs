@@ -21,7 +21,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var keepFields = PopUnpivotKeepFields(node);
         var entries = PopUnpivotEntries(node);
-        var source = SafeCast<FromNode>(SafePop(Nodes, "Visit(UnpivotFromNode).Source"), "Visit(UnpivotFromNode).Source");
+        var source = SafeCast<FromNode>(PopSemanticNode("Visit(UnpivotFromNode).Source"), "Visit(UnpivotFromNode).Source");
 
         var valueType = ResolveUnpivotValueColumnType(node.ValueColumn, entries.Select(entry => entry.Expression).ToArray(), node);
         entries = RetypeUnpivotNulls(entries, valueType);
@@ -35,7 +35,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (!node.FullSpan.IsEmpty)
             unpivot.WithFullSpan(node.FullSpan);
 
-        Nodes.Push(unpivot);
+        PushSemanticNode(unpivot);
     }
 
     private FieldNode[] PopUnpivotKeepFields(UnpivotFromNode node)
@@ -44,7 +44,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         for (var index = node.KeepFields.Count - 1; index >= 0; index--)
         {
             keepFields[index] = SafeCast<FieldNode>(
-                SafePop(Nodes, "Visit(UnpivotFromNode).KeepField"),
+                PopSemanticNode("Visit(UnpivotFromNode).KeepField"),
                 "Visit(UnpivotFromNode).KeepField");
         }
 
@@ -58,7 +58,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             var sourceEntry = node.Entries[index];
             entries[index] = new UnpivotEntryNode(
-                SafePop(Nodes, "Visit(UnpivotFromNode).Entry"),
+                PopSemanticNode("Visit(UnpivotFromNode).Entry"),
                 sourceEntry.NameValue,
                 sourceEntry.NameValueSpan);
         }

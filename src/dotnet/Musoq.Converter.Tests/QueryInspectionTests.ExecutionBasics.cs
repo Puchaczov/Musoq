@@ -489,10 +489,9 @@ public partial class QueryInspectionTests
         Assert.Contains("CancellationToken = token", result.GeneratedCSharpCode);
         Assert.Contains("MaxDegreeOfParallelism = 2", result.GeneratedCSharpCode);
         Assert.Contains("StoreTable [__parallelCteLevel0Task0Result -> _cteRowResults.Slot0: List<Cte0Row0>]", result.ExecutionPlanText);
-        Assert.Contains("StoreTable [__parallelCteLevel0Task1Result -> _cteRowResults.Slot1: List<Cte1Row0>]", result.ExecutionPlanText);
+        Assert.Contains("StoreCteIndex [cte1HashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]", result.ExecutionPlanText);
         Assert.Contains("private static List<Cte0Row0> BuildCteLevel0Task0", result.GeneratedCSharpCode);
         Assert.Contains("_cteRowResults.Slot0 = __parallelCteLevel0Task0Result", result.GeneratedCSharpCode);
-        Assert.Contains("_cteRowResults.Slot1 = __parallelCteLevel0Task1Result", result.GeneratedCSharpCode);
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("_tableResults[", StringComparison.Ordinal));
         Assert.IsFalse(result.GeneratedCSharpCode.Contains("private static Musoq.Evaluator.Tables.Table BuildCteLevel0Task", StringComparison.Ordinal));
         Assert.Contains("ParallelEligibility [ParallelCte] PhysicalCteNode -> Candidate", result.PlanningText);
@@ -510,7 +509,8 @@ public partial class QueryInspectionTests
         AssertUsesExecutionBackend(result);
         Assert.IsFalse(result.ExecutionPlanText.Contains("ParallelBlock", StringComparison.Ordinal));
         Assert.Contains("StoreTable [cte0 -> _cteRowResults.Slot0", result.ExecutionPlanText);
-        Assert.Contains("StoreTable [cte1 -> _cteRowResults.Slot1", result.ExecutionPlanText);
+        Assert.Contains("StoreCteIndex [cte1HashSidecar0Dummy -> _cteIndexResults.Slot0 Hash]", result.ExecutionPlanText);
+        Assert.Contains("LoadCteIndex [qHash <- _cteIndexResults.Slot0 Hash: string]", result.ExecutionPlanText);
         Assert.Contains("ParallelEligibility [ParallelCte] PhysicalCteNode -> Skipped", result.PlanningText);
         Assert.Contains("Compilation option disables parallel execution.", result.PlanningText);
     }

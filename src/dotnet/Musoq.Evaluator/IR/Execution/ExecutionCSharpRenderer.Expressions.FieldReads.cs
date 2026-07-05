@@ -7,7 +7,7 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed partial class ExecutionCSharpRenderer
 {
 
-    private ExpressionSyntax RenderFieldRead(ExecutionFieldRead fieldRead)
+    private ExpressionSyntax RenderFieldRead(ExecutionFieldRead fieldRead, ExecutionRenderContext context)
     {
         if (fieldRead.AccessStrategy is DirectScalarValueAccess)
             return RenderDirectScalarValueRead(fieldRead);
@@ -25,13 +25,13 @@ public sealed partial class ExecutionCSharpRenderer
             return RenderNestedPositionalFieldRead(fieldRead, nestedPositional);
 
         if (fieldRead.AccessStrategy is ReflectedMemberAccess reflectedMember)
-            return RenderReflectedMemberFieldRead(fieldRead, reflectedMember);
+            return RenderReflectedMemberFieldRead(fieldRead, reflectedMember, context);
 
-        if (fieldRead.AccessStrategy is ContextAccess context)
-            return RenderContextFieldRead(fieldRead, context);
+        if (fieldRead.AccessStrategy is ContextAccess contextAccess)
+            return RenderContextFieldRead(fieldRead, contextAccess, context);
 
         if (fieldRead.AccessStrategy is GeneratedRowContextAccess generatedContext)
-            return RenderGeneratedRowContextRead(fieldRead, generatedContext);
+            return RenderGeneratedRowContextRead(fieldRead, generatedContext, context);
 
         if (fieldRead.AccessStrategy is GeneratedFieldAccess generatedField)
             return RenderGeneratedFieldRead(fieldRead, generatedField);
@@ -118,12 +118,13 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ExpressionSyntax RenderReflectedMemberFieldRead(
         ExecutionFieldRead fieldRead,
-        ReflectedMemberAccess reflectedMember)
+        ReflectedMemberAccess reflectedMember,
+        ExecutionRenderContext context)
     {
         if (string.IsNullOrWhiteSpace(fieldRead.Alias))
             throw new InvalidOperationException("Reflected member field reads require a source alias.");
 
-        var value = RenderSession.ReflectedMemberAccessorNames.TryGetValue(
+        var value = context.Session.ReflectedMemberAccessorNames.TryGetValue(
             CreateReflectedMemberAccessorKey(fieldRead.Alias, reflectedMember.PropertyPath),
             out var accessorName)
             ? SyntaxFactory.InvocationExpression(CreateIdentifierName(accessorName))
@@ -192,7 +193,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ExpressionSyntax RenderGeneratedRowContextRead(
         ExecutionFieldRead fieldRead,
-        GeneratedRowContextAccess generatedContext)
+        GeneratedRowContextAccess generatedContext,
+        ExecutionRenderContext context)
     {
         if (string.IsNullOrWhiteSpace(fieldRead.Alias))
             throw new InvalidOperationException("Generated row context reads require a source alias.");
@@ -200,9 +202,10 @@ public sealed partial class ExecutionCSharpRenderer
         var value = TryCreateGeneratedRowContextStorageRead(
             fieldRead.Alias,
             generatedContext,
+            context,
             out var contextRead)
             ? contextRead
-            : RenderContextFieldRead(fieldRead, new ContextAccess(generatedContext.Index));
+            : RenderContextFieldRead(fieldRead, new ContextAccess(generatedContext.Index), context);
 
         if (fieldRead.ReturnType == typeof(object))
             return value;
@@ -213,12 +216,13 @@ public sealed partial class ExecutionCSharpRenderer
     private bool TryCreateGeneratedRowContextStorageRead(
         string alias,
         GeneratedRowContextAccess generatedContext,
+        ExecutionRenderContext context,
         out ExpressionSyntax value)
     {
         value = null!;
         var row = CreateIdentifierName(alias);
 
-        if (!RenderSession.GeneratedRowConstructorUsagesByType.TryGetValue(
+        if (!context.Session.GeneratedRowConstructorUsagesByType.TryGetValue(
                 generatedContext.TypeName,
                 out var usedConstructors))
         {
@@ -301,27 +305,6 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxKind.SimpleMemberAccessExpression,
             CreateIdentifierName(fieldRead.Alias),
             CreateIdentifierName(generatedField.FieldName));
-    }
-
-    private static ExpressionSyntax RenderContextFieldRead(
-        ExecutionFieldRead fieldRead,
-        ContextAccess context)
-    {
-        if (string.IsNullOrWhiteSpace(fieldRead.Alias))
-            throw new InvalidOperationException("Context field reads require a source alias.");
-
-        var contexts = SyntaxFactory.MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression,
-            CreateIdentifierName(fieldRead.Alias),
-            SyntaxFactory.IdentifierName("Contexts"));
-        var value = CreateElementAccess(
-            contexts,
-            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(context.Index)));
-
-        if (fieldRead.ReturnType == typeof(object))
-            return value;
-
-        return SyntaxFactory.CastExpression(CreateTypeSyntax(fieldRead.ReturnType), value);
     }
 
     private static string CreateFieldReadExpressionText(ExecutionFieldRead fieldRead)

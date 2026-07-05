@@ -19,21 +19,21 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(JoinSourcesTableFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var tieBreak = node.TieBreak == null ? null : (FieldOrderedNode)Nodes.Pop();
-        var b = (FromNode)Nodes.Pop();
-        var a = (FromNode)Nodes.Pop();
-        var exp = Nodes.Pop();
+        var tieBreak = node.TieBreak == null ? null : (FieldOrderedNode)PopSemanticNode();
+        var b = (FromNode)PopSemanticNode();
+        var a = (FromNode)PopSemanticNode();
+        var exp = PopSemanticNode();
 
-        Nodes.Push(new Parser.JoinSourcesTableFromNode(a, b, exp, node.JoinType, tieBreak));
+        PushSemanticNode(new Parser.JoinSourcesTableFromNode(a, b, exp, node.JoinType, tieBreak));
     }
 
     public override void Visit(ApplySourcesTableFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var b = (FromNode)Nodes.Pop();
-        var a = (FromNode)Nodes.Pop();
+        var b = (FromNode)PopSemanticNode();
+        var a = (FromNode)PopSemanticNode();
 
-        Nodes.Push(new Parser.ApplySourcesTableFromNode(a, b, node.ApplyType, node.WithOrdinality));
+        PushSemanticNode(new Parser.ApplySourcesTableFromNode(a, b, node.ApplyType, node.WithOrdinality));
     }
 
     public override void Visit(InMemoryTableFromNode node)
@@ -87,24 +87,24 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.AliasMapToInMemoryTableMap.Add(_sourceBinding.QueryAlias, node.VariableName);
         _sourceBinding.UsedSchemasQuantity += 1;
 
-        Nodes.Push(new Parser.InMemoryTableFromNode(node.VariableName, _sourceBinding.QueryAlias));
+        PushSemanticNode(new Parser.InMemoryTableFromNode(node.VariableName, _sourceBinding.QueryAlias));
     }
 
     public override void Visit(ApplyFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var appliedTable = (FromNode)Nodes.Pop();
-        var source = (FromNode)Nodes.Pop();
+        var appliedTable = (FromNode)PopSemanticNode();
+        var source = (FromNode)PopSemanticNode();
         var appliedFrom = new Parser.ApplyFromNode(source, appliedTable, node.ApplyType, node.WithOrdinality);
         _sourceBinding.Identifier = appliedFrom.Alias;
-        Nodes.Push(appliedFrom);
+        PushSemanticNode(appliedFrom);
     }
 
     public override void Visit(ExpressionFromNode node)
     {
-        var from = (FromNode)Nodes.Pop();
+        var from = (FromNode)PopSemanticNode();
         _sourceBinding.Identifier = from.Alias;
-        Nodes.Push(new Parser.ExpressionFromNode(from));
+        PushSemanticNode(new Parser.ExpressionFromNode(from));
 
         var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(_sourceBinding.Identifier);
 
@@ -120,7 +120,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(InterpretFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var interpretCall = Nodes.Pop();
+        var interpretCall = PopSemanticNode();
         _sourceBinding.Identifier = node.Alias;
 
 
@@ -167,14 +167,14 @@ public partial class BuildMetadataAndInferTypesVisitor
             var newInterpretFromNode = new Parser.InterpretFromNode(node.Alias, interpretCall, node.ApplyType,
                 returnType ?? node.ReturnType);
             _sourceBinding.CurrentScope[newInterpretFromNode.Id] = node.Alias;
-            Nodes.Push(newInterpretFromNode);
+            PushSemanticNode(newInterpretFromNode);
         }
         else
         {
             var newInterpretFromNode =
                 new Parser.InterpretFromNode(node.Alias, interpretCall, node.ApplyType, node.ReturnType);
             _sourceBinding.CurrentScope[newInterpretFromNode.Id] = node.Alias;
-            Nodes.Push(newInterpretFromNode);
+            PushSemanticNode(newInterpretFromNode);
         }
 
         if (node.ReturnType != null) AddAssembly(node.ReturnType.Assembly);
@@ -183,18 +183,18 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(JoinInMemoryWithSourceTableFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var tieBreak = node.TieBreak == null ? null : (FieldOrderedNode)Nodes.Pop();
-        var exp = Nodes.Pop();
-        var from = (FromNode)Nodes.Pop();
-        Nodes.Push(
+        var tieBreak = node.TieBreak == null ? null : (FieldOrderedNode)PopSemanticNode();
+        var exp = PopSemanticNode();
+        var from = (FromNode)PopSemanticNode();
+        PushSemanticNode(
             new Parser.JoinInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, exp, node.JoinType, tieBreak: tieBreak));
     }
 
     public override void Visit(ApplyInMemoryWithSourceTableFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var from = (FromNode)Nodes.Pop();
-        Nodes.Push(
+        var from = (FromNode)PopSemanticNode();
+        PushSemanticNode(
             new Parser.ApplyInMemoryWithSourceTableFromNode(node.InMemoryTableAlias, from, node.ApplyType, node.WithOrdinality));
     }
 }

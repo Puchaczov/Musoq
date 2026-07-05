@@ -12,19 +12,19 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(QueryNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var orderBy = node.OrderBy != null ? Nodes.Pop() as OrderByNode : null;
-        var qualify = node.Qualify != null ? Nodes.Pop() as QualifyNode : null;
-        var window = node.Window != null ? Nodes.Pop() as WindowNode : null;
-        var take = node.Take != null ? Nodes.Pop() as TakeNode : null;
-        var skip = node.Skip != null ? Nodes.Pop() as SkipNode : null;
-        var select = Nodes.Pop() as SelectNode
+        var orderBy = node.OrderBy != null ? PopSemanticNode() as OrderByNode : null;
+        var qualify = node.Qualify != null ? PopSemanticNode() as QualifyNode : null;
+        var window = node.Window != null ? PopSemanticNode() as WindowNode : null;
+        var take = node.Take != null ? PopSemanticNode() as TakeNode : null;
+        var skip = node.Skip != null ? PopSemanticNode() as SkipNode : null;
+        var select = PopSemanticNode() as SelectNode
                      ?? throw new VisitorException(
                          VisitorName,
                          "VisitQueryNode",
                          "Expected SELECT node on visitor stack.");
-        var groupBy = node.GroupBy != null ? Nodes.Pop() as GroupByNode : null;
-        var where = node.Where != null ? Nodes.Pop() as WhereNode : null;
-        var from = Nodes.Pop() as FromNode;
+        var groupBy = node.GroupBy != null ? PopSemanticNode() as GroupByNode : null;
+        var where = node.Where != null ? PopSemanticNode() as WhereNode : null;
+        var from = PopSemanticNode() as FromNode;
 
         if (from is null)
         {
@@ -43,7 +43,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (_sourceBinding.CurrentScope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(string.Empty))
             _sourceBinding.CurrentScope.ScopeSymbolTable.MoveSymbol(string.Empty, from.Alias);
 
-        Methods.Push(from.Alias);
+        TraversalFrame.PushMethod(from.Alias);
 
         var queryNode = new QueryNode(select, from, where, groupBy, orderBy, skip, take, window, qualify, default);
 
@@ -115,7 +115,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 };
         }
 
-        Nodes.Push(queryNode);
+        SemanticNodeResult.From(queryNode).ApplyTo(TraversalFrame);
 
         _sourceBinding.AliasToSchemaFromNodeMap.Clear();
         _sourceBinding.SchemaFromInfo.Clear();
@@ -133,7 +133,9 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     public override void Visit(RootNode node)
     {
-        Nodes.Push(new RootNode(Nodes.Pop()));
+        SemanticNodeResult
+            .From(new RootNode(TraversalFrame.PopNode(VisitorName, "Visit(RootNode)")))
+            .ApplyTo(TraversalFrame);
     }
 
     public override void Visit(SingleSetNode node)

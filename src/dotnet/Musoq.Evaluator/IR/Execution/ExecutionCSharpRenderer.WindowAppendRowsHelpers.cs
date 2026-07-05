@@ -10,9 +10,11 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private MethodDeclarationSyntax CreateWindowAppendRowsFunction(WindowAppendRowsHelper helper)
+    private MethodDeclarationSyntax CreateWindowAppendRowsFunction(
+        WindowAppendRowsHelper helper,
+        ExecutionRenderContext context)
     {
-        if (TryCreateWindowAppendRowsShardFunction(helper, out var shardFunction))
+        if (TryCreateWindowAppendRowsShardFunction(helper, context, out var shardFunction))
             return shardFunction;
 
         var item = CreateWindowHelperItem(helper.Loop.Item, helper.BufferItemGeneratedRowTypeName);
@@ -27,12 +29,13 @@ public sealed partial class ExecutionCSharpRenderer
                 helper.FunctionName)
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(CreatePrivateStaticModifiers())
-            .WithParameterList(CreateWindowAppendRowsParameterList(helper))
-            .WithBody(StatementEmitter.CreateBlock(RenderIsolatedHelperBlock(new ExecutionBlock([helperLoop]))));
+            .WithParameterList(CreateWindowAppendRowsParameterList(helper, context))
+            .WithBody(StatementEmitter.CreateBlock(RenderIsolatedHelperBlock(new ExecutionBlock([helperLoop]), context)));
     }
 
     private bool TryCreateWindowAppendRowsShardFunction(
         WindowAppendRowsHelper helper,
+        ExecutionRenderContext context,
         out MethodDeclarationSyntax shardFunction)
     {
         shardFunction = null!;
@@ -41,7 +44,7 @@ public sealed partial class ExecutionCSharpRenderer
             helper.Loop.Body.Nodes.Count != 1 ||
             helper.Loop.Body.Nodes[0] is not ExecutionAppendRow appendRow ||
             appendRow.AppendMode != ExecutionAppendMode.Direct ||
-            TryGetTypedRowBufferShape(appendRow.Table.Name, out _))
+            TryGetTypedRowBufferShape(appendRow.Table.Name, context, out _))
         {
             return false;
         }
@@ -79,7 +82,7 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateElementAccess(
                     SyntaxFactory.IdentifierName(rowShardName),
                     SyntaxFactory.IdentifierName(indexName)),
-                CreateGeneratedRowCreation(appendRow))));
+                CreateGeneratedRowCreation(appendRow, context))));
 
         statements.Add(StatementEmitter.CreateForLoop(
             indexName,
@@ -103,7 +106,7 @@ public sealed partial class ExecutionCSharpRenderer
                 helper.FunctionName)
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(CreatePrivateStaticModifiers())
-            .WithParameterList(CreateWindowAppendRowsParameterList(helper))
+            .WithParameterList(CreateWindowAppendRowsParameterList(helper, context))
             .WithBody(StatementEmitter.CreateBlock(statements));
 
         return true;
@@ -130,7 +133,9 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateHelperInvocation(helper.FunctionName, CreateWindowAppendRowsArguments(helper));
     }
 
-    private ParameterListSyntax CreateWindowAppendRowsParameterList(WindowAppendRowsHelper helper)
+    private ParameterListSyntax CreateWindowAppendRowsParameterList(
+        WindowAppendRowsHelper helper,
+        ExecutionRenderContext context)
     {
         var parameters = new List<ParameterSyntax>
         {
@@ -144,17 +149,19 @@ public sealed partial class ExecutionCSharpRenderer
 
         parameters.AddRange(helper.AppendTargets.Select(target => CreateParameter(
             target.Name,
-            CreateWindowAppendTargetType(target))));
+            CreateWindowAppendTargetType(target, context))));
         parameters.AddRange(helper.Captures.Select(CreateCapturedLocalParameter));
         return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters));
     }
 
-    private TypeSyntax CreateWindowAppendTargetType(ExecutionVariable target)
+    private TypeSyntax CreateWindowAppendTargetType(
+        ExecutionVariable target,
+        ExecutionRenderContext context)
     {
-        if (TryGetFinalShapeSourceBuffer(target.Name, out var finalShapeBuffer))
+        if (TryGetFinalShapeSourceBuffer(target.Name, context, out var finalShapeBuffer))
             return CreateListTypeSyntax(finalShapeBuffer.ShapeTypeName);
 
-        return TryGetTypedRowBufferShape(target.Name, out var rowShape)
+        return TryGetTypedRowBufferShape(target.Name, context, out var rowShape)
             ? CreateListTypeSyntax(rowShape.TypeName)
             : CreateTypeSyntax(typeof(Table));
     }

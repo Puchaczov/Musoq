@@ -6,7 +6,9 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private ExpressionSyntax RenderCachedMethodCall(ExecutionMethodCall methodCall)
+    private ExpressionSyntax RenderCachedMethodCall(
+        ExecutionMethodCall methodCall,
+        ExecutionRenderContext context)
     {
         if (methodCall.Target == null)
             throw new NotSupportedException($"Cached method {methodCall.Method.Name} requires a reusable target.");
@@ -48,7 +50,7 @@ public sealed partial class ExecutionCSharpRenderer
             .WithArgumentList(CreateArgumentList(
                 SyntaxFactory.IdentifierName(methodCall.Cache!.Name),
                 SyntaxFactory.IdentifierName(methodCall.Target.Name),
-                RenderExpression(methodCall.Arguments[0]),
+                RenderExpression(methodCall.Arguments[0], context),
                 factory));
 
         return CastIfNeeded(invocation, methodCall.ReturnType);

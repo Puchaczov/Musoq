@@ -15,7 +15,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 {
     public override void Visit(NotNode node)
     {
-        var operand = SafePop(Nodes, VisitorOperationNames.VisitNotNode);
+        var operand = PopSemanticNode(VisitorOperationNames.VisitNotNode);
         if (operand is InNode { Right: ArgsListNode { Args.Length: 0 } })
         {
             if (TryReportSemanticError<NotSupportedException>(
@@ -23,89 +23,89 @@ public partial class BuildMetadataAndInferTypesVisitor
                     "NOT IN with an empty list is not supported.",
                     node))
             {
-                Nodes.Push(new NotNode(operand));
+                PushSemanticNode(new NotNode(operand));
                 return;
             }
         }
 
         ValidateBooleanOperand(operand, "NOT", node);
-        Nodes.Push(new NotNode(operand));
+        PushSemanticNode(new NotNode(operand));
     }
 
     public override void Visit(LikeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var right = SafePop(Nodes, "Visit(LikeNode) right");
-        var left = SafePop(Nodes, "Visit(LikeNode) left");
+        var right = PopSemanticNode("Visit(LikeNode) right");
+        var left = PopSemanticNode("Visit(LikeNode) left");
 
         ValidatePatternOperand(left, "LIKE", node);
         ValidatePatternOperand(right, "LIKE", node);
 
-        Nodes.Push(new LikeNode(left, right));
+        PushSemanticNode(new LikeNode(left, right));
     }
 
     public override void Visit(RLikeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var right = SafePop(Nodes, "Visit(RLikeNode) right");
-        var left = SafePop(Nodes, "Visit(RLikeNode) left");
+        var right = PopSemanticNode("Visit(RLikeNode) right");
+        var left = PopSemanticNode("Visit(RLikeNode) left");
 
         ValidatePatternOperand(left, "RLIKE", node);
         ValidatePatternOperand(right, "RLIKE", node);
 
-        Nodes.Push(new RLikeNode(left, right));
+        PushSemanticNode(new RLikeNode(left, right));
     }
 
     public override void Visit(InNode node)
     {
-        var right = SafePop(Nodes, VisitorOperationNames.VisitInNodeRight);
-        var left = SafePop(Nodes, VisitorOperationNames.VisitInNodeLeft);
+        var right = PopSemanticNode(VisitorOperationNames.VisitInNodeRight);
+        var left = PopSemanticNode(VisitorOperationNames.VisitInNodeLeft);
         var args = (ArgsListNode)right;
 
         ValidateCollectionPredicateItems(left, args, node);
 
-        Nodes.Push(new InNode(left, args));
+        PushSemanticNode(new InNode(left, args));
     }
 
     public override void Visit(CollectionInNode node)
     {
-        var collection = SafePop(Nodes, "Visit(CollectionInNode).Collection");
-        var left = SafePop(Nodes, "Visit(CollectionInNode).Expression");
+        var collection = PopSemanticNode("Visit(CollectionInNode).Collection");
+        var left = PopSemanticNode("Visit(CollectionInNode).Expression");
 
         ValidateCollectionParameterPredicate(left, collection, node);
 
-        Nodes.Push(new CollectionInNode(left, collection));
+        PushSemanticNode(new CollectionInNode(left, collection));
     }
 
     public override void Visit(BetweenNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var max = SafePop(Nodes, "Visit(BetweenNode).Max");
-        var min = SafePop(Nodes, "Visit(BetweenNode).Min");
-        var expression = SafePop(Nodes, "Visit(BetweenNode).Expression");
+        var max = PopSemanticNode("Visit(BetweenNode).Max");
+        var min = PopSemanticNode("Visit(BetweenNode).Min");
+        var expression = PopSemanticNode("Visit(BetweenNode).Expression");
 
         ValidateBinaryOperatorOperands(expression, min, BinaryOperatorKind.Relational, node);
         ValidateBinaryOperatorOperands(expression, max, BinaryOperatorKind.Relational, node);
 
-        Nodes.Push(new BetweenNode(expression, min, max));
+        PushSemanticNode(new BetweenNode(expression, min, max));
     }
 
     public override void Visit(ContainsNode node)
     {
-        var right = SafePop(Nodes, VisitorOperationNames.VisitContainsNodeRight);
-        var left = SafePop(Nodes, VisitorOperationNames.VisitContainsNodeLeft);
+        var right = PopSemanticNode(VisitorOperationNames.VisitContainsNodeRight);
+        var left = PopSemanticNode(VisitorOperationNames.VisitContainsNodeLeft);
         var args = (ArgsListNode)right;
 
         ValidateCollectionPredicateItems(left, args, node);
 
-        Nodes.Push(new ContainsNode(left, args));
+        PushSemanticNode(new ContainsNode(left, args));
     }
 
     public override void Visit(IsNullNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var operand = SafePop(Nodes, VisitorOperationNames.VisitIsNullNode);
-        Nodes.Push(new IsNullNode(operand, node.IsNegated));
+        var operand = PopSemanticNode(VisitorOperationNames.VisitIsNullNode);
+        PushSemanticNode(new IsNullNode(operand, node.IsNegated));
     }
 
     public override void Visit(RowPresenceNode node)
@@ -121,7 +121,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                     message,
                     node))
             {
-                Nodes.Push(node);
+                PushSemanticNode(node);
                 return;
             }
 
@@ -137,7 +137,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             var availableAliases = tableSymbol?.CompoundTables ?? [];
             if (TryReportUnknownAlias(alias, availableAliases, node))
             {
-                Nodes.Push(node);
+                PushSemanticNode(node);
                 return;
             }
 
@@ -159,14 +159,14 @@ public partial class BuildMetadataAndInferTypesVisitor
                     message,
                     node))
             {
-                Nodes.Push(node);
+                PushSemanticNode(node);
                 return;
             }
 
             throw new InvalidOperationException(message);
         }
 
-        Nodes.Push(new RowPresenceNode(aliasNode, node.IsPresent));
+        PushSemanticNode(new RowPresenceNode(aliasNode, node.IsPresent));
     }
 
     private bool TryGetCurrentTableSymbol(out TableSymbol? tableSymbol)

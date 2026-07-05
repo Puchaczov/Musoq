@@ -45,6 +45,7 @@ public sealed partial class CSharpRenderer(RenderContext context)
                 : null);
         if (hasTableViaRowsRenderPlan &&
             executionRenderer.TryGetTableColumnMetadataFieldName(
+                plan,
                 precomputedRenderPlan.ResultInfo.TableName,
                 precomputedRenderPlan.ResultInfo.Columns,
                 out var columnsFieldName))
@@ -273,7 +274,6 @@ public sealed partial class CSharpRenderer(RenderContext context)
         var rowsMethodName = QueryMethodNameResolver.ResolveRows(_context, queryIdentifier);
         var shapeRowsMethodName = QueryMethodNameResolver.ResolveShapeRows(_context, queryIdentifier);
 
-        using var queryRunContextScope = executionRenderer.EnterQueryRunContextRenderContext();
         if (TryCreateTypedDirectProjectionMethod(
                 plan,
                 executionRenderer,
@@ -281,6 +281,7 @@ public sealed partial class CSharpRenderer(RenderContext context)
                 binding,
                 resultInfo,
                 renderPlan.FinalSinkPlans.TypedDirectProjection,
+                useQueryRunContext: true,
                 out var typedDirectMethod,
                 out var typedDirectMetadata))
         {
@@ -295,6 +296,7 @@ public sealed partial class CSharpRenderer(RenderContext context)
                 binding,
                 resultInfo,
                 renderPlan.FinalSinkPlans.TypedPostOperations,
+                useQueryRunContext: true,
                 out var typedPostOperationMethod,
                 out var typedPostOperationMetadata))
         {

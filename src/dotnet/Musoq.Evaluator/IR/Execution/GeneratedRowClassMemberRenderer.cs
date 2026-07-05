@@ -161,17 +161,22 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static PropertyDeclarationSyntax CreateGeneratedRowContextsProperty(
         IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors,
-        int contextCount)
+        int contextCount,
+        bool includeOverride = true)
     {
         var allConstructors = GetGeneratedRowConstructors(usedConstructors);
         var contextsExpression = UsesDirectContextStorage(allConstructors)
             ? SyntaxFactory.IdentifierName("__contexts")
             : CreateGeneratedRowContextMaterialization(allConstructors.Single(), contextCount);
 
-        return SyntaxFactory.PropertyDeclaration(SyntaxHelper.ObjectArrayTypeSyntax, nameof(Row.Contexts))
-            .AddModifiers(
+        var modifiers = includeOverride
+            ? SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),
                 SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
+            : SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
+
+        return SyntaxFactory.PropertyDeclaration(SyntaxHelper.ObjectArrayTypeSyntax, nameof(Row.Contexts))
+            .WithModifiers(modifiers)
             .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(contextsExpression))
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
     }

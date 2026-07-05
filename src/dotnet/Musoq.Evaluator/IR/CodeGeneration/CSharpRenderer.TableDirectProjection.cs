@@ -36,6 +36,7 @@ public sealed partial class CSharpRenderer
                 setup.SourceSetupStatements,
                 ExecutionCSharpRenderer.CreateClosingPhaseStatements(plan.Body, queryIdentifier).ToArray(),
                 setup.RenderContext),
+            useQueryRunContext: false,
             out rowsMethod,
             out metadata))
         {
@@ -501,7 +502,7 @@ public sealed partial class CSharpRenderer
                 SyntaxFactory.LiteralExpression(
                     SyntaxKind.NumericLiteralExpression,
                     SyntaxFactory.Literal(projectionLoop.MaxDegreeOfParallelism)),
-                RenderTypedSinkOptionalGeneratedRowProjection(executionRenderer, optionalProjectorLoop, renderContext),
+                RenderFinalSinkOptionalGeneratedRowProjection(executionRenderer, optionalProjectorLoop, renderContext),
                 SyntaxFactory.IdentifierName("token")));
     }
 
@@ -530,7 +531,7 @@ public sealed partial class CSharpRenderer
                 SyntaxFactory.LiteralExpression(
                     SyntaxKind.NumericLiteralExpression,
                     SyntaxFactory.Literal(projectionLoop.MaxDegreeOfParallelism)),
-                RenderTypedSinkOptionalGeneratedRowProjection(executionRenderer, optionalProjectorLoop, renderContext),
+                RenderFinalSinkOptionalGeneratedRowProjection(executionRenderer, optionalProjectorLoop, renderContext),
                 SyntaxFactory.IdentifierName("token")));
     }
 
@@ -556,7 +557,7 @@ public sealed partial class CSharpRenderer
                         ])))))
             .WithArgumentList(CreateArgumentList(
                 SyntaxFactory.IdentifierName(sourceRowsName),
-                RenderTypedSinkOptionalGeneratedRowProjection(executionRenderer, optionalProjectorLoop, renderContext),
+                RenderFinalSinkOptionalGeneratedRowProjection(executionRenderer, optionalProjectorLoop, renderContext),
                 SyntaxFactory.IdentifierName("token")));
     }
 
@@ -567,7 +568,7 @@ public sealed partial class CSharpRenderer
         ExecutionRenderContext? renderContext = null)
     {
         var values = projectionLoop.AppendRow.Values
-            .Select(value => RenderTypedSinkExpression(executionRenderer, value.Value, renderContext))
+            .Select(value => RenderFinalSinkExpression(executionRenderer, value.Value, renderContext))
             .Select(SyntaxFactory.Argument)
             .ToArray();
         var creation = SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName(resultInfo.ShapeTypeName))

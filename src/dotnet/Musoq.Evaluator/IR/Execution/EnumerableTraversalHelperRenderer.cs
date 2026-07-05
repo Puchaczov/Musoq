@@ -21,7 +21,8 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlyDictionary<string, TypeSyntax> CaptureTypeOverrides);
 
     private IReadOnlyDictionary<ExecutionBlock, EnumerableTraversalHelper> CollectEnumerableTraversalHelpersByBlock(
-        ExecutionBlock block)
+        ExecutionBlock block,
+        ExecutionRenderContext context)
     {
         var helpers = new Dictionary<ExecutionBlock, EnumerableTraversalHelper>();
         var functionNameCounts = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -29,7 +30,8 @@ public sealed partial class ExecutionCSharpRenderer
             block,
             helpers,
             functionNameCounts,
-            new Dictionary<string, ExecutionVariable>(StringComparer.Ordinal));
+            new Dictionary<string, ExecutionVariable>(StringComparer.Ordinal),
+            context);
         return helpers;
     }
 
@@ -37,9 +39,10 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionBlock block,
         Dictionary<ExecutionBlock, EnumerableTraversalHelper> helpers,
         Dictionary<string, int> functionNameCounts,
-        IReadOnlyDictionary<string, ExecutionVariable> scopedVariables)
+        IReadOnlyDictionary<string, ExecutionVariable> scopedVariables,
+        ExecutionRenderContext context)
     {
-        if (TryCreateEnumerableTraversalHelper(block, functionNameCounts, scopedVariables, out var helper))
+        if (TryCreateEnumerableTraversalHelper(block, functionNameCounts, scopedVariables, context, out var helper))
             helpers.Add(block, helper);
 
         var currentScope = new Dictionary<string, ExecutionVariable>(scopedVariables, StringComparer.Ordinal);
@@ -54,7 +57,8 @@ public sealed partial class ExecutionCSharpRenderer
                     childBlock,
                     helpers,
                     functionNameCounts,
-                    nodeScope);
+                    nodeScope,
+                    context);
             }
 
             AddDeclaredVariables(node, currentScope);
@@ -65,6 +69,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionBlock block,
         Dictionary<string, int> functionNameCounts,
         IReadOnlyDictionary<string, ExecutionVariable> scopedVariables,
+        ExecutionRenderContext context,
         out EnumerableTraversalHelper helper)
     {
         helper = null!;
@@ -84,7 +89,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         var excludedNames = CollectDeclaredVariableNames(block).ToHashSet(StringComparer.Ordinal);
         AddProfileRecorderExcludedName(excludedNames);
-        var captureTypeOverrides = CollectEnumerableTraversalCaptureTypeOverrides(block);
+        var captureTypeOverrides = CollectEnumerableTraversalCaptureTypeOverrides(block, context);
         var refCaptureNames = CollectEnumerableTraversalRefCaptureNames(block, excludedNames);
 
         helper = new EnumerableTraversalHelper(
@@ -164,13 +169,15 @@ public sealed partial class ExecutionCSharpRenderer
         return captures.Values.ToArray();
     }
 
-    private Dictionary<string, TypeSyntax> CollectEnumerableTraversalCaptureTypeOverrides(ExecutionBlock block)
+    private Dictionary<string, TypeSyntax> CollectEnumerableTraversalCaptureTypeOverrides(
+        ExecutionBlock block,
+        ExecutionRenderContext context)
     {
         var result = new Dictionary<string, TypeSyntax>(StringComparer.Ordinal);
 
         foreach (var appendRow in ExecutionIrAnalysis.CollectNodes<ExecutionAppendRow>(block))
         {
-            var type = TryGetTypedRowBufferShape(appendRow.Table.Name, out var rowShape)
+            var type = TryGetTypedRowBufferShape(appendRow.Table.Name, context, out var rowShape)
                 ? CreateListTypeSyntax(rowShape.TypeName)
                 : CreateTypeSyntax(typeof(Musoq.Evaluator.Tables.Table));
             result.TryAdd(appendRow.Table.Name, type);
@@ -179,9 +186,9 @@ public sealed partial class ExecutionCSharpRenderer
         foreach (var getOrAdd in ExecutionIrAnalysis.CollectNodes<ExecutionGetOrAddSingleKeyAggregateGroup>(block))
         {
             foreach (var rootLevel in getOrAdd.GroupPlan.Levels.Where(static level => level.IsRoot))
-                result.TryAdd(getOrAdd.RootGroup.Name, CreateAggregateGroupType(rootLevel.Shape));
+                result.TryAdd(getOrAdd.RootGroup.Name, CreateAggregateGroupType(rootLevel.Shape, context));
 
-            var groupType = CreateAggregateGroupType(getOrAdd.GroupShape);
+            var groupType = CreateAggregateGroupType(getOrAdd.GroupShape, context);
             result.TryAdd(getOrAdd.GroupsToFinalize.Name, CreateListTypeSyntax(groupType));
             result.TryAdd(getOrAdd.Groups.Name, CreateGroupDictionaryTypeSyntax(getOrAdd.KeyType, groupType));
 
@@ -192,11 +199,11 @@ public sealed partial class ExecutionCSharpRenderer
         foreach (var getOrAdd in ExecutionIrAnalysis.CollectNodes<ExecutionGetOrAddValueTupleAggregateGroup>(block))
         {
             foreach (var rootLevel in getOrAdd.GroupPlan.Levels.Where(static level => level.IsRoot))
-                result.TryAdd(getOrAdd.RootGroup.Name, CreateAggregateGroupType(rootLevel.Shape));
+                result.TryAdd(getOrAdd.RootGroup.Name, CreateAggregateGroupType(rootLevel.Shape, context));
 
             result.TryAdd(
                 getOrAdd.GroupsToFinalize.Name,
-                CreateListTypeSyntax(CreateAggregateGroupType(getOrAdd.GroupShape)));
+                CreateListTypeSyntax(CreateAggregateGroupType(getOrAdd.GroupShape, context)));
 
             foreach (var dictionary in getOrAdd.GroupDictionaries)
             {
@@ -206,7 +213,7 @@ public sealed partial class ExecutionCSharpRenderer
                     CreateValueTupleGroupDictionaryTypeSyntax(
                         getOrAdd.KeyTypes,
                         dictionary.PrefixLength,
-                        CreateAggregateGroupType(level.Shape)));
+                        CreateAggregateGroupType(level.Shape, context)));
             }
         }
 
@@ -234,9 +241,11 @@ public sealed partial class ExecutionCSharpRenderer
         return result;
     }
 
-    private MethodDeclarationSyntax CreateEnumerableTraversalFunction(EnumerableTraversalHelper helper)
+    private MethodDeclarationSyntax CreateEnumerableTraversalFunction(
+        EnumerableTraversalHelper helper,
+        ExecutionRenderContext context)
     {
-        RenderSession.SuppressedEnumerableTraversalHelperBlocks.Add(helper.Block);
+        context.Session.SuppressedEnumerableTraversalHelperBlocks.Add(helper.Block);
         try
         {
             return SyntaxFactory.MethodDeclaration(
@@ -249,13 +258,14 @@ public sealed partial class ExecutionCSharpRenderer
                     QueryEmitter.GenerateCancellationCheck(),
                     ..RenderIsolatedHelperBlock(
                         helper.Block,
+                        context,
                         profileRecorderInScope: IsInstrumentationEnabled,
                         emitChunkLoopCancellationChecks: true)
                 ]));
         }
         finally
         {
-            RenderSession.SuppressedEnumerableTraversalHelperBlocks.Remove(helper.Block);
+            context.Session.SuppressedEnumerableTraversalHelperBlocks.Remove(helper.Block);
         }
     }
 

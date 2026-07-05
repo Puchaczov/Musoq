@@ -6,9 +6,9 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private ExpressionSyntax RenderStrictCast(ExecutionStrictCast strictCast)
+    private ExpressionSyntax RenderStrictCast(ExecutionStrictCast strictCast, ExecutionRenderContext context)
     {
-        var source = RenderExpression(strictCast.Expression);
+        var source = RenderExpression(strictCast.Expression, context);
 
         if (StrictCastLibraryConversionFacts.IsPassThrough(strictCast.Expression.ReturnType, strictCast.ReturnType))
             return CastExpressionIfNeeded(source, strictCast.ReturnType, strictCast.Expression.ReturnType);

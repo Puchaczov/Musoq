@@ -7,25 +7,25 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private ExpressionSyntax RenderBinary(ExecutionBinary binary)
+    private ExpressionSyntax RenderBinary(ExecutionBinary binary, ExecutionRenderContext context)
     {
         if (RequiresStringComparison(binary))
-            return RenderStringComparison(binary);
+            return RenderStringComparison(binary, context);
 
-        if (TryRenderCharStringEquality(binary, out var charStringEquality))
+        if (TryRenderCharStringEquality(binary, context, out var charStringEquality))
             return charStringEquality;
 
         if (IsNullSafeDistinctComparison(binary.Kind))
-            return RenderEquality(binary);
+            return RenderEquality(binary, context);
 
         if (RequiresNullableTemporalSubtraction(binary))
-            return RenderNullableTemporalSubtractionOrDefault(binary);
+            return RenderNullableTemporalSubtractionOrDefault(binary, context);
 
         var expression = SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.BinaryExpression(
                 GetBinaryExpressionKind(binary.Kind),
-                RenderExpression(binary.Left),
-                RenderExpression(binary.Right)));
+                RenderExpression(binary.Left, context),
+                RenderExpression(binary.Right, context)));
 
         return RequiresBinaryResultCast(binary)
             ? CastIfNeeded(expression, binary.ReturnType)
@@ -42,25 +42,29 @@ public sealed partial class ExecutionCSharpRenderer
                 IsNullableValueType(binary.Right.ReturnType));
     }
 
-    private InvocationExpressionSyntax RenderNullableTemporalSubtractionOrDefault(ExecutionBinary binary)
+    private InvocationExpressionSyntax RenderNullableTemporalSubtractionOrDefault(
+        ExecutionBinary binary,
+        ExecutionRenderContext context)
     {
         return SyntaxFactory.InvocationExpression(
             SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
-                RenderNullableTemporalSubtractionValue(binary),
+                RenderNullableTemporalSubtractionValue(binary, context),
                 SyntaxFactory.IdentifierName(nameof(Nullable<>.GetValueOrDefault))));
     }
 
-    private ParenthesizedExpressionSyntax RenderNullableTemporalSubtractionValue(ExecutionBinary binary)
+    private ParenthesizedExpressionSyntax RenderNullableTemporalSubtractionValue(
+        ExecutionBinary binary,
+        ExecutionRenderContext context)
     {
         return SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.SubtractExpression,
-                RenderExpression(binary.Left),
-                RenderExpression(binary.Right)));
+                RenderExpression(binary.Left, context),
+                RenderExpression(binary.Right, context)));
     }
 
-    private ParenthesizedExpressionSyntax RenderStringComparison(ExecutionBinary binary)
+    private ParenthesizedExpressionSyntax RenderStringComparison(ExecutionBinary binary, ExecutionRenderContext context)
     {
         var comparison = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -68,8 +72,8 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName("string"),
                     SyntaxFactory.IdentifierName(nameof(string.Compare))))
             .WithArgumentList(CreateArgumentList(
-                RenderExpression(binary.Left),
-                RenderExpression(binary.Right),
+                RenderExpression(binary.Left, context),
+                RenderExpression(binary.Right, context),
                 CreateOrdinalStringComparisonExpression()));
 
         return SyntaxFactory.ParenthesizedExpression(
@@ -86,7 +90,10 @@ public sealed partial class ExecutionCSharpRenderer
                binary.Right.ReturnType == typeof(string);
     }
 
-    private bool TryRenderCharStringEquality(ExecutionBinary binary, [NotNullWhen(true)] out ExpressionSyntax? result)
+    private bool TryRenderCharStringEquality(
+        ExecutionBinary binary,
+        ExecutionRenderContext context,
+        [NotNullWhen(true)] out ExpressionSyntax? result)
     {
         result = null;
         if (binary.Kind != BinaryOpKind.Equal &&
@@ -108,13 +115,13 @@ public sealed partial class ExecutionCSharpRenderer
         ExpressionSyntax right;
         if (leftIsChar)
         {
-            left = RenderExpression(binary.Left);
+            left = RenderExpression(binary.Left, context);
             right = CreateCharLiteralFromStringLiteral(rightStringLiteral ?? throw new InvalidOperationException("Char/string comparison requires a string literal."));
         }
         else
         {
             left = CreateCharLiteralFromStringLiteral(leftStringLiteral ?? throw new InvalidOperationException("Char/string comparison requires a string literal."));
-            right = RenderExpression(binary.Right);
+            right = RenderExpression(binary.Right, context);
         }
 
         result = SyntaxFactory.ParenthesizedExpression(
@@ -122,9 +129,9 @@ public sealed partial class ExecutionCSharpRenderer
         return true;
     }
 
-    private ParenthesizedExpressionSyntax RenderEquality(ExecutionBinary binary) =>
+    private ParenthesizedExpressionSyntax RenderEquality(ExecutionBinary binary, ExecutionRenderContext context) =>
         SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(
-            GetEqualitySyntaxKind(binary.Kind), RenderExpression(binary.Left), RenderExpression(binary.Right)));
+            GetEqualitySyntaxKind(binary.Kind), RenderExpression(binary.Left, context), RenderExpression(binary.Right, context)));
 
     private static bool IsNullSafeDistinctComparison(BinaryOpKind kind) =>
         kind is BinaryOpKind.IsDistinctFrom or BinaryOpKind.IsNotDistinctFrom;
@@ -173,21 +180,23 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.IdentifierName(memberName));
     }
 
-    private ExpressionSyntax RenderUnary(ExecutionUnary unary)
+    private ExpressionSyntax RenderUnary(ExecutionUnary unary, ExecutionRenderContext context)
     {
         var expression = SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.PrefixUnaryExpression(
                 GetUnaryExpressionKind(unary.Kind),
-                RenderExpression(unary.Operand)));
+                RenderExpression(unary.Operand, context)));
 
         return RequiresUnaryResultCast(unary)
             ? CastIfNeeded(expression, unary.ReturnType)
             : expression;
     }
 
-    private ParenthesizedExpressionSyntax RenderIsNullCheck(ExecutionIsNullCheck isNull)
+    private ParenthesizedExpressionSyntax RenderIsNullCheck(
+        ExecutionIsNullCheck isNull,
+        ExecutionRenderContext context)
     {
-        var expression = RenderExpression(isNull.Expression);
+        var expression = RenderExpression(isNull.Expression, context);
         var nullLiteral = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
         return SyntaxFactory.ParenthesizedExpression(

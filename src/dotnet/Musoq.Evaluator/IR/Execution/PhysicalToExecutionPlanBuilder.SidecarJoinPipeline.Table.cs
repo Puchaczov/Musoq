@@ -80,8 +80,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
                 baseSource = source.Source;
                 nodes.AddRange(baseSource.Setup);
-                AddJoinSourceShapes(shapes, baseSource);
-                AddSourceShape(activeLookup, baseSource.Shape);
+                JoinSourceLookupBuilder.AddShapes(shapes, baseSource);
+                JoinSourceLookupBuilder.TryAdd(activeLookup, baseSource.Shape);
             }
             else
             {
@@ -110,10 +110,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
             nodes.AddRange(buildSource.Source.Setup);
             if (sidecar.Kind == CteSidecarIndexKind.Hash)
-                AddJoinSourceShapes(shapes, buildSource.Source);
+                JoinSourceLookupBuilder.AddShapes(shapes, buildSource.Source);
 
-            var stepLookup = CloneSourceLookup(activeLookup);
-            if (!AddSourceShape(stepLookup, buildSource.Source.Shape))
+            var stepLookup = JoinSourceLookupBuilder.Clone(activeLookup);
+            if (!JoinSourceLookupBuilder.TryAdd(stepLookup, buildSource.Source.Shape))
                 return UnsupportedSidecarJoinPipeline($"stage {stageIndex} could not add build source shape");
 
             var rewrittenProbeKeys = RewriteSidecarJoinExpressions(join.ProbeKeys, currentProjectionMap, probeCteRef);
@@ -130,7 +130,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
             var outputLookup = join.Kind == JoinKind.Inner
                 ? stepLookup
-                : CloneSourceLookup(activeLookup);
+                : JoinSourceLookupBuilder.Clone(activeLookup);
             var rewrittenFields = RewriteSidecarJoinProjectedFields(
                 stage.Pipeline.Project.Fields,
                 currentProjectionMap,
@@ -188,7 +188,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             else
             {
                 currentProjectionMap = CreateProducerProjectionExpressionMap(rewrittenFields);
-                activeLookup = CloneSourceLookup(outputLookup);
+                activeLookup = JoinSourceLookupBuilder.Clone(outputLookup);
             }
         }
 

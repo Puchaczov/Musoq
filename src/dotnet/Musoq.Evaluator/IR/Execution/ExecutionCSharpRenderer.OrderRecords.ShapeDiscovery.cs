@@ -4,9 +4,12 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private bool TryGetGeneratedRowShape(ExecutionVariable table, out GeneratedRowShape rowShape)
+    private static bool TryGetGeneratedRowShape(
+        ExecutionVariable table,
+        ExecutionRenderContext context,
+        out GeneratedRowShape rowShape)
     {
-        return RenderSession.TableRowShapesByVariableName.TryGetValue(table.Name, out rowShape!);
+        return context.Session.TableRowShapesByVariableName.TryGetValue(table.Name, out rowShape!);
     }
 
     private static Dictionary<string, GeneratedRowShape> CreateTableRowShapeMap(ExecutionBlock block)

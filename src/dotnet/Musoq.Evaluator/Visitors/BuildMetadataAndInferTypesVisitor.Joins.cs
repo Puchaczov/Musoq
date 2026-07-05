@@ -13,17 +13,17 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(JoinFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var tieBreak = node.TieBreak == null ? null : (FieldOrderedNode)Nodes.Pop();
-        var expression = Nodes.Pop();
-        var joinedTable = (FromNode)Nodes.Pop();
-        var source = (FromNode)Nodes.Pop();
+        var tieBreak = node.TieBreak == null ? null : (FieldOrderedNode)PopSemanticNode();
+        var expression = PopSemanticNode();
+        var joinedTable = (FromNode)PopSemanticNode();
+        var source = (FromNode)PopSemanticNode();
 
         if (node.JoinType is JoinType.AsOf or JoinType.AsOfLeft)
             ValidateAsOfJoinCondition(expression, source, joinedTable, tieBreak);
 
         var joinedFrom = new Parser.JoinFromNode(source, joinedTable, expression, node.JoinType, tieBreak);
         _sourceBinding.Identifier = joinedFrom.Alias;
-        Nodes.Push(joinedFrom);
+        PushSemanticNode(joinedFrom);
     }
 
     private void ValidateAsOfJoinCondition(Node expression, FromNode source, FromNode joinedTable, FieldOrderedNode? tieBreak)

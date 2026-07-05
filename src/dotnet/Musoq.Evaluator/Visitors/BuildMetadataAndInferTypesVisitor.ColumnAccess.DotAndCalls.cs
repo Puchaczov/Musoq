@@ -13,8 +13,8 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(DotNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var exp = SafePop(Nodes, VisitorOperationNames.VisitDotNodeExpression);
-        var root = SafePop(Nodes, VisitorOperationNames.VisitDotNodeRoot);
+        var exp = PopSemanticNode(VisitorOperationNames.VisitDotNodeExpression);
+        var root = PopSemanticNode(VisitorOperationNames.VisitDotNodeRoot);
 
         if (root?.ReturnType == null)
             throw VisitorException.CreateForProcessingFailure(
@@ -35,7 +35,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                         accessColumnNode.Alias);
                     if (columnAccessArrayNode != null)
                     {
-                        Nodes.Push(columnAccessArrayNode);
+                        PushSemanticNode(columnAccessArrayNode);
                         return;
                     }
             }
@@ -55,7 +55,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                             identifierRoot.Name);
                         if (columnAccessArrayNode != null)
                         {
-                            Nodes.Push(columnAccessArrayNode);
+                            PushSemanticNode(columnAccessArrayNode);
                             return;
                         }
                 }
@@ -159,15 +159,15 @@ public partial class BuildMetadataAndInferTypesVisitor
             }
         }
 
-        Nodes.Push(newNode);
+        PushSemanticNode(newNode);
     }
 
     public override void Visit(AccessCallChainNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var chainPretend = SafePop(Nodes, VisitorOperationNames.VisitAccessCallChainNode);
+        var chainPretend = PopSemanticNode(VisitorOperationNames.VisitAccessCallChainNode);
 
-        Nodes.Push(chainPretend is AccessColumnNode
+        PushSemanticNode(chainPretend is AccessColumnNode
             ? chainPretend
             : new AccessCallChainNode(node.ColumnName, node.ReturnType, node.Props, node.Alias));
     }
@@ -178,8 +178,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         var args = new Node[node.Args.Length];
 
         for (var i = node.Args.Length - 1; i >= 0; --i)
-            args[i] = SafePop(Nodes, VisitorOperationNames.VisitArgsListNode);
+            args[i] = PopSemanticNode(VisitorOperationNames.VisitArgsListNode);
 
-        Nodes.Push(new ArgsListNode(args));
+        PushSemanticNode(new ArgsListNode(args));
     }
 }

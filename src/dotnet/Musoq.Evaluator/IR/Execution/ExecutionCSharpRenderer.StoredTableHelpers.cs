@@ -52,16 +52,19 @@ public sealed partial class ExecutionCSharpRenderer
         return StoredTableBuildDiscovery.TryCreate(nodes, storeIndex, pendingNodes, store, out build);
     }
 
-    private ExpressionStatementSyntax CreateStoredTableBuildInvocation(StoredTableBuild build)
+    private ExpressionStatementSyntax CreateStoredTableBuildInvocation(
+        StoredTableBuild build,
+        ExecutionRenderContext context)
     {
-        if (RenderSession.TypedStoredTableResults.ContainsKey(build.TableIndex))
+        if (context.Session.TypedStoredTableResults.ContainsKey(build.TableIndex))
         {
             return SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 CreateCteRowResultSlotAccess(build.TableIndex),
                 CreateRuntimeHelperInvocation(
                     CreateStoredTableBuildFunctionName(build.TableIndex),
-                    build.Captures)));
+                    build.Captures,
+                    context)));
         }
 
         return SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
@@ -71,7 +74,8 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(build.TableIndex))),
             CreateRuntimeHelperInvocation(
                 CreateStoredTableBuildFunctionName(build.TableIndex),
-                build.Captures)));
+                build.Captures,
+                context)));
     }
 
 
@@ -80,23 +84,27 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateIdentifierCandidate($"BuildCte{tableIndex.ToString(CultureInfo.InvariantCulture)}", 0);
     }
 
-    private IEnumerable<StoredTableBuild> CollectStoredTableBuilds(ExecutionBlock block)
+    private IEnumerable<StoredTableBuild> CollectStoredTableBuilds(
+        ExecutionBlock block,
+        ExecutionRenderContext context)
     {
         foreach (var build in StoredTableBuildDiscovery.Collect(block))
         {
             yield return build with
             {
-                Captures = CollectStoredTableBuildCaptures(build)
+                Captures = CollectStoredTableBuildCaptures(build, context)
             };
         }
     }
 
-    private MethodDeclarationSyntax CreateStoredTableBuildFunction(StoredTableBuild build)
+    private MethodDeclarationSyntax CreateStoredTableBuildFunction(
+        StoredTableBuild build,
+        ExecutionRenderContext context)
     {
-        var previousTypedRowBufferVariables = RenderSession.TypedRowBufferVariables;
-        if (RenderSession.TypedStoredTableResults.TryGetValue(build.TableIndex, out var typedResult))
+        var previousTypedRowBufferVariables = context.Session.TypedRowBufferVariables;
+        if (context.Session.TypedStoredTableResults.TryGetValue(build.TableIndex, out var typedResult))
         {
-            RenderSession.TypedRowBufferVariables = new Dictionary<string, GeneratedRowShape>(StringComparer.Ordinal)
+            context.Session.TypedRowBufferVariables = new Dictionary<string, GeneratedRowShape>(StringComparer.Ordinal)
             {
                 [build.Table.Name] = typedResult.RowShape
             };
@@ -106,34 +114,39 @@ public sealed partial class ExecutionCSharpRenderer
         {
             var bodyStatements = RenderIsolatedHelperBlock(
                 new ExecutionBlock(build.Nodes),
+                context,
                 IsInstrumentationEnabled,
                 emitChunkLoopCancellationChecks: true,
                 trailingStatements: [SyntaxFactory.ReturnStatement(SyntaxFactory.IdentifierName(build.Table.Name))]);
 
             return SyntaxFactory.MethodDeclaration(
-                    CreateStoredTableBuildReturnType(build),
+                    CreateStoredTableBuildReturnType(build, context),
                     CreateStoredTableBuildFunctionName(build.TableIndex))
                 .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
                 .WithModifiers(CreatePrivateStaticModifiers())
-                .WithParameterList(CreateRuntimeHelperParameterList(build.Captures))
+                .WithParameterList(CreateRuntimeHelperParameterList(build.Captures, context))
                 .WithBody(StatementEmitter.CreateBlock(bodyStatements));
         }
         finally
         {
-            RenderSession.TypedRowBufferVariables = previousTypedRowBufferVariables;
+            context.Session.TypedRowBufferVariables = previousTypedRowBufferVariables;
         }
     }
 
-    private TypeSyntax CreateStoredTableBuildReturnType(StoredTableBuild build)
+    private TypeSyntax CreateStoredTableBuildReturnType(
+        StoredTableBuild build,
+        ExecutionRenderContext context)
     {
-        return RenderSession.TypedStoredTableResults.TryGetValue(build.TableIndex, out var typedResult)
+        return context.Session.TypedStoredTableResults.TryGetValue(build.TableIndex, out var typedResult)
             ? CreateCteRowResultSlotTypeSyntax(typedResult.RowShape)
             : CreateTypeSyntax(typeof(Table));
     }
 
-    private CapturedLocal[] CollectStoredTableBuildCaptures(StoredTableBuild build)
+    private CapturedLocal[] CollectStoredTableBuildCaptures(
+        StoredTableBuild build,
+        ExecutionRenderContext context)
     {
-        var excludedNames = new HashSet<string>(CreateRuntimeHelperParameterNames(), StringComparer.Ordinal)
+        var excludedNames = new HashSet<string>(CreateRuntimeHelperParameterNames(context), StringComparer.Ordinal)
         {
             build.Table.Name
         };

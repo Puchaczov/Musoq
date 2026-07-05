@@ -25,6 +25,6 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private void PushDeferredScalarSubqueryValue(Node node)
     {
-        Nodes.Push(node);
+        PushSemanticNode(node);
     }
 }

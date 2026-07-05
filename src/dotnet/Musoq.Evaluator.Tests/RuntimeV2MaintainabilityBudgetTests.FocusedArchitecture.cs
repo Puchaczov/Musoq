@@ -231,21 +231,24 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
         Assert.IsEmpty(missing, "Focused lowerer coordinators should stay under IR/Execution/Lowering: " + string.Join(", ", missing));
 
-        var dispatcherText = File.ReadAllText(ToAbsolutePath(
+        var planDispatchText = File.ReadAllText(ToAbsolutePath(
             repositoryRoot,
             "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.cs"));
         var tableDispatchText = File.ReadAllText(ToAbsolutePath(
             repositoryRoot,
             "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.TableDispatch.cs"));
+        var registryDispatchText = File.ReadAllText(ToAbsolutePath(
+            repositoryRoot,
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.DispatchRegistry.cs"));
         var joinText = File.ReadAllText(ToAbsolutePath(
             repositoryRoot,
             "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.Joins.cs"));
 
-        Assert.Contains("CteLoweringCoordinator", dispatcherText);
-        Assert.Contains("AggregateLoweringCoordinator", dispatcherText);
-        Assert.Contains("WindowLoweringCoordinator", dispatcherText);
-        Assert.Contains("AggregateLoweringCoordinator", tableDispatchText);
-        Assert.Contains("WindowLoweringCoordinator", tableDispatchText);
+        Assert.Contains("CreatePhysicalLoweringRegistry().TryBuildPlan", planDispatchText);
+        Assert.Contains("CreatePhysicalLoweringRegistry().TryBuildTable", tableDispatchText);
+        Assert.Contains("CteLoweringCoordinator", registryDispatchText);
+        Assert.Contains("AggregateLoweringCoordinator", registryDispatchText);
+        Assert.Contains("WindowLoweringCoordinator", registryDispatchText);
         Assert.Contains("JoinLoweringCoordinator", joinText);
     }
 

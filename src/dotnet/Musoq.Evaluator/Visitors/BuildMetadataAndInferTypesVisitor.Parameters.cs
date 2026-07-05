@@ -15,17 +15,17 @@ public partial class BuildMetadataAndInferTypesVisitor
                 _scriptParameters.TryAddDefinition(parameter);
         }
 
-        Nodes.Push(new ParameterBlockNode(parameters, node.Span));
+        PushSemanticNode(new ParameterBlockNode(parameters, node.Span));
     }
 
     public override void Visit(ParameterDeclarationNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         var defaultValue = node.HasDefaultValue
-            ? SafePop(Nodes, "Visit(ParameterDeclarationNode).DefaultValue")
+            ? PopSemanticNode("Visit(ParameterDeclarationNode).DefaultValue")
             : null;
 
-        Nodes.Push(new ParameterDeclarationNode(node.Name, node.TypeName, node.IsNullable, defaultValue, node.Span));
+        PushSemanticNode(new ParameterDeclarationNode(node.Name, node.TypeName, node.IsNullable, defaultValue, node.Span));
     }
 
     public override void Visit(ParameterReferenceNode node)
@@ -33,24 +33,24 @@ public partial class BuildMetadataAndInferTypesVisitor
         ArgumentNullException.ThrowIfNull(node);
         if (_scriptVariables.TryBindReference(node, out var variableReference))
         {
-            Nodes.Push(variableReference);
+            PushSemanticNode(variableReference);
             return;
         }
 
-        Nodes.Push(_scriptParameters.BindReference(node));
+        PushSemanticNode(_scriptParameters.BindReference(node));
     }
 
     public override void Visit(ScriptVariableDeclarationNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
         _scriptVariables.TryAddDefinition(node, _scriptParameters.DefinitionsByName);
-        Nodes.Push(new ScriptVariableDeclarationNode(node.Name, node.TypeName, node.IsNullable, node.Initializer, node.Span));
+        PushSemanticNode(new ScriptVariableDeclarationNode(node.Name, node.TypeName, node.IsNullable, node.Initializer, node.Span));
     }
 
     public override void Visit(ScriptVariableReferenceNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new ScriptVariableReferenceNode(node.Name, node.ReturnType, node.Span));
+        PushSemanticNode(new ScriptVariableReferenceNode(node.Name, node.ReturnType, node.Span));
     }
 
     private ParameterDeclarationNode[] PopParameterDeclarations(ParameterBlockNode node)
@@ -59,7 +59,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         for (var i = node.Parameters.Length - 1; i >= 0; --i)
             parameters[i] = SafeCast<ParameterDeclarationNode>(
-                SafePop(Nodes, "Visit(ParameterBlockNode).Parameter"),
+                PopSemanticNode("Visit(ParameterBlockNode).Parameter"),
                 "Visit(ParameterBlockNode).Parameter");
 
         return parameters;

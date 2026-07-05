@@ -91,28 +91,4 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         return rewritten;
     }
 
-    private static Dictionary<string, RowShape> CloneSourceLookup(
-        IReadOnlyDictionary<string, RowShape> sourceLookup)
-    {
-        return new Dictionary<string, RowShape>(sourceLookup, StringComparer.OrdinalIgnoreCase);
-    }
-
-    private static bool AddSourceShape(
-        IDictionary<string, RowShape> sourceLookup,
-        RowShape sourceShape)
-    {
-        var alias = RowShapeLookup.ResolveSourceAlias(sourceShape);
-        if (sourceLookup.ContainsKey(alias))
-            return false;
-
-        sourceLookup[alias] = sourceShape;
-        return true;
-    }
-
-    private static void AddJoinSourceShapes(
-        List<RowShape> shapes,
-        JoinSource source)
-    {
-        shapes.AddRange(source.Shapes);
-    }
 }

@@ -20,7 +20,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private LocalDeclarationStatementSyntax? CreateRootAggregateGroupDeclaration(
         ExecutionVariable rootGroup,
-        AggregateGroupPlan groupPlan)
+        AggregateGroupPlan groupPlan,
+        ExecutionRenderContext context)
     {
         if (groupPlan.LeafShape.Keys.Count == 0)
             return null;
@@ -34,6 +35,7 @@ public sealed partial class ExecutionCSharpRenderer
             rootGroup.Name,
             CreateAggregateGroupCreation(
                 rootLevel.Shape,
+                context,
                 [],
                 CreateAggregateGroupDefaultKeyArguments(rootLevel.Shape)));
     }
@@ -104,32 +106,37 @@ public sealed partial class ExecutionCSharpRenderer
         return $"levelGroup_{(prefixLength - 1).ToString(CultureInfo.InvariantCulture)}";
     }
 
-    private List<StatementSyntax> RenderCreateAggregateContext(ExecutionCreateAggregateContext context)
+    private List<StatementSyntax> RenderCreateAggregateContext(
+        ExecutionCreateAggregateContext aggregateContext,
+        ExecutionRenderContext context)
     {
-        var groupType = CreateAggregateGroupType(context.GroupShape);
+        var groupType = CreateAggregateGroupType(aggregateContext.GroupShape, context);
         var statements = new List<StatementSyntax>();
 
-        var rootGroupDeclaration = CreateRootAggregateGroupDeclaration(context.RootGroup, context.GroupPlan);
+        var rootGroupDeclaration = CreateRootAggregateGroupDeclaration(aggregateContext.RootGroup, aggregateContext.GroupPlan, context);
         if (rootGroupDeclaration is not null)
             statements.Add(rootGroupDeclaration);
 
         statements.Add(CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
-            context.Groups.Name,
+            aggregateContext.Groups.Name,
             SyntaxFactory.ObjectCreationExpression(CreateListTypeSyntax(groupType))
                 .WithArgumentList(SyntaxFactory.ArgumentList())));
         statements.Add(CreateLocalDeclaration(
             groupType,
-            context.CurrentGroup.Name,
+            aggregateContext.CurrentGroup.Name,
             SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
 
         return statements;
     }
 
-    private IfStatementSyntax RenderEnsureAggregateGroup(ExecutionEnsureAggregateGroup ensureGroup)
+    private IfStatementSyntax RenderEnsureAggregateGroup(
+        ExecutionEnsureAggregateGroup ensureGroup,
+        ExecutionRenderContext context)
     {
         var groupCreation = CreateAggregateGroupCreation(
             ensureGroup.GroupShape,
+            context,
             CreateNoOwnerArguments(ensureGroup.GroupShape));
         var groupAssignment = SyntaxFactory.ExpressionStatement(
             SyntaxFactory.AssignmentExpression(
@@ -152,39 +159,43 @@ public sealed partial class ExecutionCSharpRenderer
             StatementEmitter.CreateBlock(groupAssignment, addInvocation));
     }
 
-    private List<StatementSyntax> RenderCreateSingleKeyAggregateContext(ExecutionCreateSingleKeyAggregateContext context)
+    private List<StatementSyntax> RenderCreateSingleKeyAggregateContext(
+        ExecutionCreateSingleKeyAggregateContext aggregateContext,
+        ExecutionRenderContext context)
     {
-        var groupType = CreateAggregateGroupType(context.GroupShape);
+        var groupType = CreateAggregateGroupType(aggregateContext.GroupShape, context);
         var statements = new List<StatementSyntax>();
 
-        var rootGroupDeclaration = CreateRootAggregateGroupDeclaration(context.RootGroup, context.GroupPlan);
+        var rootGroupDeclaration = CreateRootAggregateGroupDeclaration(aggregateContext.RootGroup, aggregateContext.GroupPlan, context);
         if (rootGroupDeclaration is not null)
             statements.Add(rootGroupDeclaration);
 
         statements.Add(CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
-            context.GroupsToFinalize.Name,
+            aggregateContext.GroupsToFinalize.Name,
             SyntaxFactory.ObjectCreationExpression(CreateListTypeSyntax(groupType))
                 .WithArgumentList(SyntaxFactory.ArgumentList())));
         statements.Add(CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
-            context.Groups.Name,
-            SyntaxFactory.ObjectCreationExpression(CreateGroupDictionaryTypeSyntax(context.KeyType, groupType))
+            aggregateContext.Groups.Name,
+            SyntaxFactory.ObjectCreationExpression(CreateGroupDictionaryTypeSyntax(aggregateContext.KeyType, groupType))
                 .WithArgumentList(SyntaxFactory.ArgumentList())));
 
-        if (context.NullGroup is not null)
+        if (aggregateContext.NullGroup is not null)
             statements.Add(CreateLocalDeclaration(
                 groupType,
-                context.NullGroup.Name,
+                aggregateContext.NullGroup.Name,
                 SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
 
         return statements;
     }
 
-    private List<StatementSyntax> RenderGetOrAddSingleKeyAggregateGroup(ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup)
+    private List<StatementSyntax> RenderGetOrAddSingleKeyAggregateGroup(
+        ExecutionGetOrAddSingleKeyAggregateGroup getOrAddGroup,
+        ExecutionRenderContext context)
     {
         const string keyVariableName = "groupKey";
-        var groupType = CreateAggregateGroupType(getOrAddGroup.GroupShape);
+        var groupType = CreateAggregateGroupType(getOrAddGroup.GroupShape, context);
 
         var statements = new List<StatementSyntax>
         {
@@ -196,6 +207,7 @@ public sealed partial class ExecutionCSharpRenderer
             statements.AddRange(CreateGetOrAddSingleKeyValueGroupStatements(
                 getOrAddGroup,
                 keyVariableName,
+                context,
                 declareGroupVariable: true));
             return statements;
         }
@@ -204,7 +216,7 @@ public sealed partial class ExecutionCSharpRenderer
             groupType,
             getOrAddGroup.Group.Name,
             SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
-        statements.Add(CreateGetOrAddSingleKeyReferenceGroupStatement(getOrAddGroup, keyVariableName));
+        statements.Add(CreateGetOrAddSingleKeyReferenceGroupStatement(getOrAddGroup, keyVariableName, context));
         return statements;
     }
 }

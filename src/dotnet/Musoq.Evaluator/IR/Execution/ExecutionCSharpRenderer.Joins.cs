@@ -12,18 +12,20 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private IEnumerable<StatementSyntax> RenderParallelFilterProjectLoop(ExecutionParallelFilterProjectLoop parallelProject)
+    private IEnumerable<StatementSyntax> RenderParallelFilterProjectLoop(
+        ExecutionParallelFilterProjectLoop parallelProject,
+        ExecutionRenderContext context)
     {
-        if (RenderSession.FinalShapeYieldSink is { } sink &&
+        if (context.Session.FinalShapeYieldSink is { } sink &&
             string.Equals(parallelProject.AppendRow.Table.Name, sink.TableName, StringComparison.Ordinal))
         {
-            return RenderFinalShapeParallelFilterProjectLoop(parallelProject, sink);
+            return RenderFinalShapeParallelFilterProjectLoop(parallelProject, sink, context);
         }
 
         var arguments = new List<ExpressionSyntax>
         {
             SyntaxFactory.IdentifierName(parallelProject.AppendRow.Table.Name),
-            RenderExpression(parallelProject.SourceRows),
+            RenderExpression(parallelProject.SourceRows, context),
             SyntaxFactory.IdentifierName("token")
         };
         AddProfileRecorderArgument(arguments);
@@ -33,23 +35,25 @@ public sealed partial class ExecutionCSharpRenderer
         return
         [
             SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.IdentifierName(CreateParallelFilterProjectFunctionName(parallelProject)))
+                    SyntaxFactory.IdentifierName(CreateParallelFilterProjectFunctionName(parallelProject, context)))
                 .WithArgumentList(CreateArgumentList(arguments)))
         ];
     }
 
-    private MethodDeclarationSyntax CreateParallelFilterProjectFunction(ExecutionParallelFilterProjectLoop parallelProject)
+    private MethodDeclarationSyntax CreateParallelFilterProjectFunction(
+        ExecutionParallelFilterProjectLoop parallelProject,
+        ExecutionRenderContext context)
     {
         var captures = CollectParallelFilterProjectCaptures(parallelProject);
         var rowsParameterName = CreateParallelFilterProjectRowsParameterName(parallelProject);
-        var previousProfileRecorderInScope = RenderSession.ProfileRecorderInScope;
-        RenderSession.ProfileRecorderInScope = IsInstrumentationEnabled;
+        var previousProfileRecorderInScope = context.Session.ProfileRecorderInScope;
+        context.Session.ProfileRecorderInScope = IsInstrumentationEnabled;
 
         try
         {
             return SyntaxFactory.MethodDeclaration(
                     SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)),
-                    CreateParallelFilterProjectFunctionName(parallelProject))
+                    CreateParallelFilterProjectFunctionName(parallelProject, context))
                 .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
                 .WithModifiers(SyntaxFactory.TokenList(
                     SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
@@ -60,11 +64,13 @@ public sealed partial class ExecutionCSharpRenderer
                     new ExecutionVariableRead(new ExecutionVariable(
                         rowsParameterName,
                         typeof(object),
-                        parallelProject.Source.GeneratedRowTypeName)))));
+                        parallelProject.Source.GeneratedRowTypeName)),
+                    context),
+                    context));
         }
         finally
         {
-            RenderSession.ProfileRecorderInScope = previousProfileRecorderInScope;
+            context.Session.ProfileRecorderInScope = previousProfileRecorderInScope;
         }
     }
 
@@ -88,15 +94,16 @@ public sealed partial class ExecutionCSharpRenderer
 
     private IReadOnlyList<StatementSyntax> CreateParallelFilterProjectStatements(
         ExecutionParallelFilterProjectLoop parallelProject,
-        ExecutionExpression sourceRows)
+        ExecutionExpression sourceRows,
+        ExecutionRenderContext context)
     {
         var parallelRowsName = $"{parallelProject.AppendRow.Table.Name}ParallelProjectRows";
         var projectedRowsName = $"{parallelProject.AppendRow.Table.Name}ParallelProjectedRows";
-        var parallelRowsDeclaration = CreateParallelProjectionRowsDeclaration(parallelProject, parallelRowsName, sourceRows);
+        var parallelRowsDeclaration = CreateParallelProjectionRowsDeclaration(parallelProject, parallelRowsName, sourceRows, context);
         var projectedRowsDeclaration = CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             projectedRowsName,
-            CreateParallelProjectionInvocation(parallelProject, parallelRowsName));
+            CreateParallelProjectionInvocation(parallelProject, parallelRowsName, context));
         var appendProjectedRows = SyntaxFactory.ExpressionStatement(
             SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
@@ -151,7 +158,8 @@ public sealed partial class ExecutionCSharpRenderer
     private LocalDeclarationStatementSyntax CreateParallelProjectionRowsDeclaration(
         ExecutionParallelFilterProjectLoop parallelProject,
         string parallelRowsName,
-        ExecutionExpression sourceRows)
+        ExecutionExpression sourceRows,
+        ExecutionRenderContext context)
     {
         var initializer = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -162,7 +170,7 @@ public sealed partial class ExecutionCSharpRenderer
                             CreateVariableTypeSyntax(parallelProject.Source))))))
             .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
             [
-                SyntaxFactory.Argument(RenderExpression(sourceRows)),
+                SyntaxFactory.Argument(RenderExpression(sourceRows, context)),
                 SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
                     SyntaxKind.NumericLiteralExpression,
                     SyntaxFactory.Literal(parallelProject.Threshold)))
@@ -173,7 +181,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private InvocationExpressionSyntax CreateParallelProjectionInvocation(
         ExecutionParallelFilterProjectLoop parallelProject,
-        string parallelRowsName)
+        string parallelRowsName,
+        ExecutionRenderContext context)
     {
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -190,25 +199,29 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.LiteralExpression(
                     SyntaxKind.NumericLiteralExpression,
                     SyntaxFactory.Literal(parallelProject.MaxDegreeOfParallelism)),
-                CreateParallelProjectionProjector(parallelProject),
+                CreateParallelProjectionProjector(parallelProject, context),
                 SyntaxFactory.IdentifierName("token")));
     }
 
     private ParenthesizedLambdaExpressionSyntax CreateParallelProjectionProjector(
-        ExecutionParallelFilterProjectLoop parallelProject)
+        ExecutionParallelFilterProjectLoop parallelProject,
+        ExecutionRenderContext context)
     {
         return CreateParallelProjectionProjector(
             parallelProject,
-            appendRow => CreateGeneratedRowCreation(appendRow));
+            appendRow => CreateGeneratedRowCreation(appendRow, context),
+            context);
     }
 
     private ParenthesizedLambdaExpressionSyntax CreateParallelProjectionProjector(
         ExecutionParallelFilterProjectLoop parallelProject,
-        Func<ExecutionAppendRow, ExpressionSyntax> createProjection)
+        Func<ExecutionAppendRow, ExpressionSyntax> createProjection,
+        ExecutionRenderContext context)
     {
         var statements = CreateParallelProjectionProjectorStatements(
             parallelProject.ProjectionBody,
-            createProjection).ToList();
+            createProjection,
+            context).ToList();
         statements.Add(SyntaxFactory.ReturnStatement(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
 
         return SyntaxFactory.ParenthesizedLambdaExpression()
@@ -218,28 +231,30 @@ public sealed partial class ExecutionCSharpRenderer
 
     private IEnumerable<StatementSyntax> CreateParallelProjectionProjectorStatements(
         ExecutionBlock block,
-        Func<ExecutionAppendRow, ExpressionSyntax> createProjection)
+        Func<ExecutionAppendRow, ExpressionSyntax> createProjection,
+        ExecutionRenderContext context)
     {
         foreach (var node in block.Nodes)
         {
-            foreach (var statement in CreateParallelProjectionProjectorStatements(node, createProjection))
+            foreach (var statement in CreateParallelProjectionProjectorStatements(node, createProjection, context))
                 yield return statement;
         }
     }
 
     private IEnumerable<StatementSyntax> CreateParallelProjectionProjectorStatements(
         ExecutionNode node,
-        Func<ExecutionAppendRow, ExpressionSyntax> createProjection)
+        Func<ExecutionAppendRow, ExpressionSyntax> createProjection,
+        ExecutionRenderContext context)
     {
         switch (node)
         {
             case ExecutionLet let:
-                yield return RenderLet(let);
+                yield return RenderLet(let, context);
                 break;
             case ExecutionIf branch:
                 yield return SyntaxFactory.IfStatement(
-                    RenderExpression(branch.Condition),
-                    StatementEmitter.CreateBlock(CreateParallelProjectionProjectorStatements(branch.Body, createProjection)));
+                    RenderExpression(branch.Condition, context),
+                    StatementEmitter.CreateBlock(CreateParallelProjectionProjectorStatements(branch.Body, createProjection, context)));
                 break;
             case ExecutionAppendRow appendRow:
                 yield return SyntaxFactory.ReturnStatement(createProjection(appendRow));

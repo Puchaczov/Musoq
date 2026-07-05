@@ -84,6 +84,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             resultTableName,
             resultShapeName,
             indexes,
+            scopeAggregateVariables,
             session);
         if (sidecarJoinChain != null)
             return sidecarJoinChain;

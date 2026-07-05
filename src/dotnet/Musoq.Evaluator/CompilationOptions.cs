@@ -27,11 +27,11 @@ namespace Musoq.Evaluator;
 /// </param>
 /// <param name="useCteParallelization">
 ///     Whether CTE parallelization should be used. When enabled, CTEs that do not depend
-///     on each other will be executed in parallel. Defaults to false.
+///     on each other will be executed in parallel. Defaults to true.
 /// </param>
 /// <param name="useCteSidecarIndexes">
 ///     Whether materialized CTEs should build eligible hash/keyset sidecar indexes while
-///     rows are appended. Defaults to false.
+///     rows are appended. Defaults to true.
 /// </param>
 /// <param name="sourceRuntimeSettingsResolver">
 ///     Resolves source runtime settings required by schemas. Defaults to an empty resolver.
@@ -46,14 +46,14 @@ namespace Musoq.Evaluator;
 ///     Whether table-mode query results should be materialized before Run returns. Defaults to false.
 /// </param>
 public class CompilationOptions(
-    ParallelizationMode? parallelizationMode = null,
+    ParallelizationMode? parallelizationMode = ParallelizationMode.Full,
     bool useHashJoin = true,
     bool useSortMergeJoin = true,
     bool useCommonSubexpressionElimination = true,
     bool useConstantFolding = true,
     bool usePrimitiveTypeValidation = true,
-    bool useCteParallelization = false,
-    bool useCteSidecarIndexes = false,
+    bool useCteParallelization = true,
+    bool useCteSidecarIndexes = true,
     ISourceRuntimeSettingsResolver? sourceRuntimeSettingsResolver = null,
     QueryInstrumentationMode instrumentationMode = QueryInstrumentationMode.Disabled,
     int? maxDegreeOfParallelismOverride = null,
@@ -104,8 +104,8 @@ public class CompilationOptions(
 
     /// <summary>
     ///     Gets a value indicating whether materialized CTEs should build eligible hash/keyset sidecar indexes
-    ///     during CTE row production. This optimization is opt-in and preserves the existing post-materialization
-    ///     hash/keyset build shape when disabled or when eligibility is uncertain.
+    ///     during CTE row production. Disable this option to use the legacy post-materialization
+    ///     hash/keyset build shape.
     /// </summary>
     public bool UseCteSidecarIndexes { get; } = useCteSidecarIndexes;
 

@@ -11,17 +11,17 @@ public partial class BuildMetadataAndInferTypesVisitor
 {
     private void VisitBinaryOperatorWithSafePop<T>(Func<Node, Node, T> nodeFactory, string operationName) where T : Node
     {
-        var nodes = SafePopMultiple(Nodes, 2, operationName);
+        var nodes = PopSemanticNodes(2, operationName);
         var right = nodes[1];
         var left = nodes[0];
-        Nodes.Push(nodeFactory(left, right));
+        PushSemanticNode(nodeFactory(left, right));
     }
 
     private void VisitBinaryOperatorWithTypeConversion<T>(Func<Node, Node, T> nodeFactory, Node errorContextNode,
         BinaryOperatorKind operatorKind, BinaryOperationContext operationContext = BinaryOperationContext.Standard) where T : Node
     {
-        var right = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (right)");
-        var left = SafePop(Nodes, "VisitBinaryOperatorWithTypeConversion (left)");
+        var right = PopSemanticNode("VisitBinaryOperatorWithTypeConversion (right)");
+        var left = PopSemanticNode("VisitBinaryOperatorWithTypeConversion (left)");
 
 
         if (operationContext == BinaryOperationContext.ArithmeticOperation)
@@ -31,7 +31,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             if (leftIsNull && rightIsNull)
             {
-                Nodes.Push(new NullNode(typeof(object)));
+                PushSemanticNode(new NullNode(typeof(object)));
                 return;
             }
 
@@ -46,7 +46,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 var nullBranchResult = nodeFactory(newLeft, newRight);
                 if (errorContextNode.HasSpan)
                     nullBranchResult.WithSpan(errorContextNode.Span);
-                Nodes.Push(nullBranchResult);
+                PushSemanticNode(nullBranchResult);
                 return;
             }
         }
@@ -60,7 +60,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (operatorMethodName != null)
             {
                 var wrappedNode = _nodeFactory.CreateRuntimeOperatorCall(operatorMethodName, left, right);
-                Nodes.Push(wrappedNode);
+                PushSemanticNode(wrappedNode);
                 return;
             }
         }
@@ -76,7 +76,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         var result = nodeFactory(transformedLeft, transformedRight);
         if (errorContextNode.HasSpan)
             result.WithSpan(errorContextNode.Span);
-        Nodes.Push(result);
+        PushSemanticNode(result);
     }
 
     private Node TransformStringToDateTimeIfNeeded(Node candidateNode, Node otherNode)

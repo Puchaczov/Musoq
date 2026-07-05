@@ -36,6 +36,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.ExplicitlyDefinedTableDiagnosticLocations[node.Name] =
             SourceContractDiagnosticLocationMap.FromTable(node);
 
-        Nodes.Push(new CreateTableNode(node.Name, node.Columns));
+        PushSemanticNode(new CreateTableNode(node.Name, node.Columns));
     }
 }

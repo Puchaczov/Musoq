@@ -12,13 +12,14 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ClassDeclarationSyntax RenderGeneratedRowClass(
         GeneratedRowShape shape,
-        IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors)
+        IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors,
+        ExecutionRenderContext context)
     {
         shape = GeneratedRowCarrierClassifier.Apply(
             shape,
-            ResolveGeneratedRowCarrierBoundary(shape),
-            ResolveGeneratedRowContextCarrierKind(shape, usedConstructors),
-            RenderSession.GeneratedRowTypesRequiringRowBase.Contains(shape.TypeName));
+            ResolveGeneratedRowCarrierBoundary(shape, context),
+            ResolveGeneratedRowContextCarrierKind(shape, usedConstructors, context),
+            context.Session.GeneratedRowTypesRequiringRowBase.Contains(shape.TypeName));
 
         if (!shape.RequiresRowBase)
             return RenderGeneratedRowCarrierClass(shape, usedConstructors);
@@ -70,12 +71,14 @@ public sealed partial class ExecutionCSharpRenderer
         return GeneratedRowNamingPolicy.GetGeneratedFieldName(field);
     }
 
-    private GeneratedRowCarrierBoundary ResolveGeneratedRowCarrierBoundary(GeneratedRowShape shape)
+    private GeneratedRowCarrierBoundary ResolveGeneratedRowCarrierBoundary(
+        GeneratedRowShape shape,
+        ExecutionRenderContext context)
     {
-        if (RenderSession.GeneratedRowTypesUsedAtPublicBoundary.Contains(shape.TypeName))
+        if (context.Session.GeneratedRowTypesUsedAtPublicBoundary.Contains(shape.TypeName))
             return GeneratedRowCarrierBoundary.Public;
 
-        return RenderSession.TypedStoredTableResults.Values.Any(result =>
+        return context.Session.TypedStoredTableResults.Values.Any(result =>
             string.Equals(result.RowShape.TypeName, shape.TypeName, StringComparison.Ordinal))
                 ? GeneratedRowCarrierBoundary.Internal
                 : GeneratedRowCarrierBoundary.Public;
@@ -83,9 +86,10 @@ public sealed partial class ExecutionCSharpRenderer
 
     private GeneratedRowContextCarrierKind ResolveGeneratedRowContextCarrierKind(
         GeneratedRowShape shape,
-        IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors)
+        IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors,
+        ExecutionRenderContext context)
     {
-        if (RenderSession.GeneratedRowTypesUsedAsRowContexts.Contains(shape.TypeName))
+        if (context.Session.GeneratedRowTypesUsedAsRowContexts.Contains(shape.TypeName))
             return GeneratedRowContextCarrierKind.RequiresRowContexts;
 
         var constructors = GetGeneratedRowConstructors(usedConstructors);
@@ -106,6 +110,8 @@ public sealed partial class ExecutionCSharpRenderer
         members.AddRange(shape.Fields.Select(field => CreateRowCarrierProperty(field, GetGeneratedFieldName)));
         members.AddRange(CreateGeneratedRowContextFields(usedConstructors, shape.Contexts.Count));
         members.AddRange(CreateGeneratedRowConstructors(shape.TypeName, shape.Fields, usedConstructors, shape.Contexts.Count));
+        if (RequiresGeneratedRowContextOverride(usedConstructors))
+            members.Add(CreateGeneratedRowContextsProperty(usedConstructors, shape.Contexts.Count, includeOverride: false));
 
         return SyntaxFactory.ClassDeclaration(shape.TypeName)
             .AddModifiers(

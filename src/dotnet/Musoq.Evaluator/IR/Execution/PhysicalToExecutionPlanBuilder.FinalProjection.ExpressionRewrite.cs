@@ -70,7 +70,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         return expression switch
         {
             ColumnRef columnRef => RewriteFinalJoinColumnRef(columnRef, projectedExpressions, cteRef),
-            Literal or WildcardLiteral => expression,
+            Literal or WildcardLiteral or RowPresence => expression,
             BinaryOp binary => RewriteBinaryFinalJoinExpression(binary, projectedExpressions, cteRef),
             UnaryOp unary => RewriteUnaryFinalJoinExpression(unary, projectedExpressions, cteRef),
             MethodCall methodCall => RewriteMethodFinalJoinExpression(methodCall, projectedExpressions, cteRef),

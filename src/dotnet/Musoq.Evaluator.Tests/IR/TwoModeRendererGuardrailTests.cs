@@ -21,7 +21,7 @@ public sealed class TwoModeRendererGuardrailTests
         StringAssert.Contains(typedDirect, "TryCreateFinalSinkMethod(");
         StringAssert.Contains(tableDirect, "TryCreateFinalSinkMethod(");
         StringAssert.Contains(typedPost, "TryCreateFinalSinkMethod(");
-        StringAssert.Contains(setup, "RenderSourceScanForTypedSink");
+        StringAssert.Contains(setup, "CreateTypedSinkSetupArtifacts");
         StringAssert.Contains(invocations, "FinalProjectionInvocationSpec");
         StringAssert.Contains(typedDirect, "CreateFinalProjectionInvocation");
         StringAssert.Contains(finalRows, "CreateFinalProjectionInvocation");
@@ -30,6 +30,7 @@ public sealed class TwoModeRendererGuardrailTests
         Assert.IsFalse(typedDirect.Contains("RenderSourceScanForTypedSink", StringComparison.Ordinal));
         Assert.IsFalse(tableDirect.Contains("RenderSourceScanForTypedSink", StringComparison.Ordinal));
         Assert.IsFalse(typedPost.Contains("RenderSourceScanForTypedSink", StringComparison.Ordinal));
+        Assert.IsFalse(setup.Contains("RenderSourceScanForTypedSink", StringComparison.Ordinal));
     }
 
     [TestMethod]
