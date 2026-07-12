@@ -6,20 +6,32 @@ using Musoq.Evaluator.Tables;
 namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionMethodCall(
-    MethodInfo Method,
+    ExecutionCallableRef Method,
     IReadOnlyList<ExecutionExpression> Arguments,
     string? Alias,
-    Type ReturnType,
+    ExecutionTypeRef ReturnType,
     ExecutionExpression? InjectedSource,
     ExecutionVariable? Target = null,
     ExecutionVariable? Cache = null) : ExecutionExpression(ReturnType)
 {
-    public ExecutionMethodCall(
+    internal ExecutionMethodCall(
+        MethodInfo method,
+        IReadOnlyList<ExecutionExpression> arguments,
+        string? alias,
+        Type returnType,
+        ExecutionExpression? injectedSource,
+        ExecutionVariable? target = null,
+        ExecutionVariable? cache = null)
+        : this(ExecutionCallableRef.FromClr(method), arguments, alias, ExecutionTypeRef.FromClr(returnType), injectedSource, target, cache)
+    {
+    }
+
+    internal ExecutionMethodCall(
         MethodInfo method,
         IReadOnlyList<ExecutionExpression> arguments,
         string? alias,
         Type returnType)
-        : this(method, arguments, alias, returnType, null)
+        : this(ExecutionCallableRef.FromClr(method), arguments, alias, ExecutionTypeRef.FromClr(returnType), null)
     {
     }
 }

@@ -24,12 +24,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         AggregateFinalizationContext context)
     {
         var arguments = ConvertAggregateArguments(binding.GetArguments, new Dictionary<string, RowShape>(StringComparer.OrdinalIgnoreCase));
-        if (arguments.Any(argument => argument is ExecutionRawExpression))
-        {
-            return BuildResult<ExecutionExpression>.Unsupported(
-                $"Execution IR {context.AggregateKind} final expression lowering cannot convert finalization arguments for aggregate '{binding.Identifier}'.");
-        }
-
         var accumulator = TryResolveTypedAggregateFinalAccumulator(binding, context.TypedAccumulators);
         if (accumulator == null)
         {

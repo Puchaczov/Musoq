@@ -8,4 +8,13 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionCaseWhen(
     IReadOnlyList<ExecutionCaseWhenBranch> Branches,
     ExecutionExpression? ElseExpression,
-    Type ReturnType) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionCaseWhen(
+        IReadOnlyList<ExecutionCaseWhenBranch> branches,
+        ExecutionExpression? elseExpression,
+        Type returnType)
+        : this(branches, elseExpression, ExecutionTypeRef.FromClr(returnType))
+    {
+    }
+}

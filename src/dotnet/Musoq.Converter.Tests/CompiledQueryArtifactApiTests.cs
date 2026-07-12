@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter.Build;
 using Musoq.Converter.Tests.Components;
 using Musoq.Evaluator;
 using Musoq.Parser.Diagnostics;
@@ -45,6 +46,15 @@ public class CompiledQueryArtifactApiTests
         Assert.AreEqual(
             RuntimeV2Contract.ContractSignature,
             result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataRuntimeV2ContractSignature]);
+        Assert.AreEqual(
+            "1",
+            result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion]);
+        Assert.AreEqual(
+            ExecutionTargetIds.CSharpClr.ToString(),
+            result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutionTarget]);
+        Assert.AreEqual(
+            CompiledQueryArtifactSupport.ExecutableArtifactKindClrAssembly,
+            result.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataExecutableArtifactKind]);
     }
 
     [TestMethod]
@@ -235,6 +245,56 @@ public class CompiledQueryArtifactApiTests
     }
 
     [TestMethod]
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenExecutionSemanticsVersionMismatch_ReturnsArtifactDiagnostic()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
+        var metadata = CopyMetadata(artifact);
+        metadata[CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion] = "2";
+        var tampered = CopyArtifact(artifact, metadata: metadata);
+
+        var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            query,
+            tampered,
+            new ArtifactSchemaProvider(new ArtifactSchema("single")),
+            _loggerResolver);
+
+        AssertArtifactFailure(result);
+        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains(
+            CompiledQueryArtifactSupport.MetadataExecutionSemanticsVersion,
+            StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenExecutionTargetIsNonClr_ReturnsArtifactDiagnosticBeforeLoading()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var artifact = CompileArtifact(query, new ArtifactSchemaProvider(new ArtifactSchema("single")));
+        var metadata = CopyMetadata(artifact);
+        metadata[CompiledQueryArtifactSupport.MetadataExecutionTarget] = TestExecutionTargetIds.TestOnlyNonClr.ToString();
+        var tampered = CopyArtifact(artifact, metadata: metadata);
+        var loaderInvoked = false;
+
+        var result = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            query,
+            tampered,
+            new ArtifactSchemaProvider(new ArtifactSchema("single")),
+            _loggerResolver,
+            loadOptions: new CompiledQueryArtifactLoadOptions(),
+            loader: _ =>
+            {
+                loaderInvoked = true;
+                return null!;
+            });
+
+        AssertArtifactFailure(result);
+        Assert.IsFalse(loaderInvoked);
+        Assert.IsTrue(result.Errors.Any(static diagnostic => diagnostic.Message.Contains(
+            CompiledQueryArtifactSupport.MetadataExecutionTarget,
+            StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
     public void CreateExecutableFromArtifactWithDiagnostics_WhenSchemaShapeChanges_ReturnsArtifactDiagnostic()
     {
         const string query = "select i.Value from #artifact.items() i";
@@ -354,6 +414,31 @@ public class CompiledQueryArtifactApiTests
             new CompilationOptions());
 
         StringAssert.Contains(signature, RuntimeV2Contract.ContractSignature);
+        StringAssert.Contains(signature, ExecutionSemanticsContract.Version1.Fingerprint);
+        StringAssert.Contains(signature, "ExecutionTarget = CSharpClr");
+    }
+
+    [TestMethod]
+    public void CreateExecutionCompilationCacheKey_WhenExecutionTargetChanges_ShouldChangeSignature()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var provider = new ArtifactSchemaProvider(new ArtifactSchema("single"));
+        var options = new CompilationOptions();
+
+        var csharp = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
+            query,
+            provider,
+            options,
+            ExecutionTargetIds.CSharpClr);
+        var nonClr = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
+            query,
+            provider,
+            options,
+            TestExecutionTargetIds.TestOnlyNonClr);
+
+        Assert.AreNotEqual(csharp, nonClr);
+        StringAssert.Contains(csharp, "ExecutionTarget = CSharpClr");
+        StringAssert.Contains(nonClr, "ExecutionTarget = TestOnlyNonClr");
     }
 
     [TestMethod]

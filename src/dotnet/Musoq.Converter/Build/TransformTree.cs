@@ -95,6 +95,9 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
             executionStage.Artifacts,
             metadataVisitor,
             metadataTraverserVisitor);
+        if (renderingStage == null)
+            return;
+
         context = renderingStage.Context;
         items.OptimizerTraceText = context.OptimizerTraceText;
         items.RenderingArtifacts = renderingStage.Artifacts;

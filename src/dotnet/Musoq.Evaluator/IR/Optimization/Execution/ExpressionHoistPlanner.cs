@@ -75,8 +75,8 @@ internal static class ExpressionHoistPlanner
         var candidate = expression switch
         {
             ExecutionFieldRead fieldRead => fieldRead.FieldName,
-            ExecutionMethodCall methodCall => methodCall.Method.Name,
-            ExecutionMethodTargetReuseCandidate methodTargetCandidate => methodTargetCandidate.MethodCall.Method.Name,
+            ExecutionMethodCall methodCall => methodCall.Method.MethodName,
+            ExecutionMethodTargetReuseCandidate methodTargetCandidate => methodTargetCandidate.MethodCall.Method.MethodName,
             ExecutionStrictCast strictCast => CreateCastHoistVariableName(strictCast),
             _ => "__expr"
         };
@@ -99,7 +99,7 @@ internal static class ExpressionHoistPlanner
 
     private static string NormalizeCastTargetName(ExecutionStrictCast strictCast)
     {
-        var targetType = Nullable.GetUnderlyingType(strictCast.ReturnType) ?? strictCast.ReturnType;
+        var targetType = Nullable.GetUnderlyingType(strictCast.ReturnType.ClrType) ?? strictCast.ReturnType.ClrType;
         return targetType == typeof(string) ? nameof(String) : targetType.Name;
     }
 

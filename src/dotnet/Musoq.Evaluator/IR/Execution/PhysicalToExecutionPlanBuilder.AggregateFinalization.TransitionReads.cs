@@ -39,7 +39,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         var tableRows = sourceLookup.Values.OfType<TableRowShape>().ToArray();
         if (tableRows.Length != 1)
         {
-            expression = new ExecutionRawExpression(field.Expression);
+            expression = new ExecutionLiteral((object?)null, field.Expression.ReturnType);
             return false;
         }
 
@@ -61,7 +61,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
         if (binding == null)
         {
-            expression = new ExecutionRawExpression(field.Expression);
+            expression = new ExecutionLiteral((object?)null, field.Expression.ReturnType);
             return false;
         }
 
@@ -173,13 +173,13 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
     private static bool CanReadNestedTransitionBinding(FieldBinding binding, string propertyPath)
     {
-        if (binding.Type == typeof(object))
+        if (binding.Type.ClrType == typeof(object))
             return true;
 
         if (propertyPath.Contains('[', StringComparison.Ordinal))
             return true;
 
-        var currentType = binding.Type;
+        var currentType = binding.Type.ClrType;
         foreach (var segment in propertyPath.Split('.'))
         {
             currentType = Nullable.GetUnderlyingType(currentType) ?? currentType;

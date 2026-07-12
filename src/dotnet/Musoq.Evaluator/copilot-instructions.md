@@ -1,6 +1,6 @@
 # Musoq.Evaluator
 
-Query execution engine - the largest and most complex module in Musoq. Handles AST transformation through a multi-phase visitor pipeline, Expression IR, logical and physical query plans, Execution IR, IR-based C# rendering via Roslyn, compilation to in-memory assemblies, and runtime execution.
+Query execution engine - the largest and most complex module in Musoq. Handles AST transformation through a multi-phase visitor pipeline, Expression IR, logical and physical query plans, Execution IR, portable symbol creation, legacy interpretation-schema compilation services, and runtime execution. Pure portable symbol records live in `Musoq.Targets.Abstractions`. Target-facing runtime contract/readiness report types live in `Musoq.Targets.Execution`, plan-walking target analysis implementations live in `Musoq.Targets.Execution.Analysis`, and generated-query C# lowering lives in `Musoq.Targets.CSharpClr`.
 
 ## Internal Structure
 
@@ -14,7 +14,7 @@ Musoq.Evaluator/
 │   ├── TransformTree.cs               # Step 3: Visitor pipeline execution
 │   ├── TurnQueryIntoRunnableCode.cs   # Step 4: Roslyn compilation → DLL
 │   └── InterpreterCompilationUnit.cs  # Interpretation schema compilation unit
-├── IR/                                 # Active planner and renderer pipeline
+├── IR/                                 # Active planner, optimizer, and Execution IR pipeline
 │   ├── Expressions/                    # Typed expression IR and expression rewriters
 │   ├── Bindings/                       # OutputSchema, projected fields, aggregate/window bindings
 │   ├── Logical/                        # LogicalNode tree and LogicalPlanBuilder
@@ -25,18 +25,17 @@ Musoq.Evaluator/
 │   │   ├── SourcePlanning/             # Source plan request construction
 │   │   └── Subqueries/                 # Subquery planning facts
 │   ├── Physical/                       # PhysicalNode tree and strategy selection
-│   ├── Optimization/                   # Logical, physical, Execution IR, and codegen readability optimizer passes
+│   ├── Optimization/                   # Logical, physical, and Execution IR optimizer passes
 │   ├── SourcePlanning/                 # Predicate DTO conversion, comparison, and matching utilities
-│   ├── Execution/                      # ExecutionNode tree, lowering dispatch/coordinators, and C# rendering dispatch/collaborators
+│   ├── Execution/                      # ExecutionNode tree, lowering dispatch/coordinators, and C# syntax bridge metadata
 │   │   ├── Facts/                      # Execution IR analysis facts infrastructure
-│   │   ├── Lowering/                   # Aggregate, CTE, join, and window lowering coordinators
-│   │   └── Rendering/                  # Focused Execution IR renderers (aggregates, expressions, joins, windows)
+│   │   └── Lowering/                   # Aggregate, CTE, join, and window lowering coordinators
 │   ├── Printing/                       # Plan diagnostic printing helpers
-│   └── CodeGeneration/                 # CSharpRenderer orchestration, RenderContext, and shared Roslyn utilities
+│   └── CodeGeneration/                 # Target-neutral render metadata and final projection/sink planning helpers
 ├── Visitors/                           # AST visitor implementations used before planning
 │   ├── (see Visitor System section below)
 │   ├── Helpers/                        # Visitor helper utilities
-│   └── CodeGeneration/                 # Shared Roslyn syntax utilities used by IR rendering
+│   └── CodeGeneration/                 # Legacy visitor code-generation and interpretation-schema syntax helpers
 ├── Tables/                             # Runtime table types
 │   ├── Table.cs                        # Main table implementation
 │   ├── Row.cs                          # Row with Contexts[] array
@@ -154,11 +153,12 @@ The pre-plan visitor pipeline implements `IExpressionVisitor` from Musoq.Parser.
 | `PhysicalPlanBuilder` | Constructs `PhysicalNode` trees from planner-owned strategy/property decisions |
 | `PhysicalToExecutionPlanBuilder` | Dispatches physical strategies into focused lowering coordinators and shared lowering context |
 | `ExecutionIrOptimizer` | Runs named Execution IR optimization passes after lowering |
-| `CodegenReadabilityOptimizer` | Runs generated C# readability passes before Roslyn compilation |
+| `Musoq.Targets.CSharpClr.Optimization.Codegen.CodegenReadabilityOptimizer` | Runs generated C# readability passes in the C# target before Roslyn compilation |
 | `ExecutionNode` / `ExecutionExpression` | Model table, row, join, aggregate, window, and expression operations for code emission |
-| `CSharpRenderer` | Builds the compiled query class and delegates method rendering to the Execution IR backend |
-| `ExecutionCSharpRenderer` | Dispatches Execution IR rendering to focused collaborators without inventing strategy-level behavior |
-| `RenderContext` | Minimal runtime-v2 rendering state: Roslyn generator, class members, assembly name, scope, and method-name resolution |
+| `Musoq.Targets.Execution.Analysis.TargetRuntimeContractBuilder` | Builds target-neutral runtime service inventory from optimized Execution IR |
+| `Musoq.Targets.Execution.Analysis.ExecutionTargetCompatibilityAnalyzer` | Reports CLR, reflection, schema binding, plugin, generated-row, and raw-expression requirements for target capability checks |
+| `Musoq.Targets.Execution.TargetHostAbiInventoryBuilder` | Derives actual host ABI imports from runtime contracts for every target package; readiness blockers remain separate diagnostics |
+| `Musoq.Targets.CSharpClr` | Owns generated C# lowering, Roslyn rendering context, finalization, inspection, and CLR activation |
 
 `ToCSharpRewriteTreeVisitor` is legacy direct-AST code generation. Converter code generation is IR-only on this branch; do not add a fallback path to the legacy visitor.
 
@@ -186,9 +186,9 @@ queryTree = rewriter.RootScript;     // Get transformed tree
 | `MethodAccessType` | Method access classification |
 | `VisitorOperationNames` | Named constants for visitor operations |
 
-## IR Query Planner and Renderers
+## IR Query Planner And Target Boundary
 
-The active runtime path is under `IR/`. It separates query meaning from execution strategy before rendering C#.
+The active runtime path is under `IR/`. It separates query meaning from execution strategy before target packages render or finalize executable artifacts.
 
 | Area | Purpose |
 |------|---------|
@@ -196,12 +196,12 @@ The active runtime path is under `IR/`. It separates query meaning from executio
 | `IR/Bindings/` | `OutputSchema`, `ColumnSchema`, `ProjectedField`, `AggregateBinding`, `OrderField`, and `WindowRegistration` |
 | `IR/Logical/` | `LogicalPlanBuilder`, `LogicalPlanBuildTraverseVisitor`, `LogicalPlanPrinter`, and `LogicalNode` records for query semantics |
 | `IR/Planning/` | `QueryPlanner`, plan properties, source-aware metadata/diagnostics, predicate placement diagnostics, and planner-owned physical strategy rules |
-| `IR/Optimization/` | Named optimizer pass infrastructure and stage groups for logical, physical, Execution IR, and codegen readability boundaries |
+| `IR/Optimization/` | Named optimizer pass infrastructure and stage groups for logical, physical, and Execution IR boundaries |
 | `IR/SourcePlanning/` | Predicate DTO conversion, comparison, and matching utilities shared by source planning |
 | `IR/Physical/` | `PhysicalPlanBuilder`, `PhysicalPlanPrinter`, and `PhysicalNode` records with aggregate, join, window, set-operation, and materialization strategies |
-| `IR/Execution/` | `PhysicalToExecutionPlanBuilder`, focused `Lowering/` coordinators, `Facts/` analysis facts, `ExecutionNode`, `ExecutionExpression`, `ExecutionCSharpRenderer`, and focused `Rendering/` collaborators for explicit executable operations |
+| `IR/Execution/` | `PhysicalToExecutionPlanBuilder`, focused `Lowering/` coordinators, `Facts/` analysis facts, `ExecutionNode`, and `ExecutionExpression` records for explicit executable operations |
 | `IR/Printing/` | Shared plan diagnostic printing helpers used by the logical, planning, and physical printers |
-| `IR/CodeGeneration/` | `CSharpRenderer`, `RenderContext`, and shared C# rendering utilities for the Execution IR backend |
+| `IR/CodeGeneration/` | Target-neutral final projection/sink planning metadata consumed by target renderers |
 
 ### Where New Code Belongs
 
@@ -209,12 +209,12 @@ The active runtime path is under `IR/`. It separates query meaning from executio
 |-------------|-------------|---------------|
 | Planning or strategy metadata | `IR/Planning` and named optimizer passes in `IR/Optimization` | Emit typed artifacts such as `LogicalPlanningArtifacts`, `PhysicalPlanningArtifacts`, and `ExecutionPlanningArtifacts`; do not add behavior-consuming data to loose dictionaries or renderer/lowerer side channels. |
 | Physical-to-Execution lowering | `IR/Execution/Lowering` plus `PhysicalToExecutionPlanBuilder` dispatch | Consume planner-owned execution artifacts; aggregate, join, CTE, and window logic should enter through coordinators. |
-| C# rendering | `IR/Execution/Rendering` plus `ExecutionCSharpRenderer` dispatch | Render Execution IR faithfully; do not call planning or lowering decision APIs from rendering collaborators. |
+| Target-specific rendering | `Musoq.Targets.CSharpClr` or a future `Musoq.Targets.*` package | Render optimized Execution IR faithfully through target descriptors and target-specific render inputs; do not add renderer-specific strategy decisions to evaluator planning/lowering. |
 | Parser AST traversal | `Musoq.Parser/Traversal` | Add shared traversal in `AstChildren`, `AstWalker`, or `AstRewriter`; keep `IExpressionVisitor` and `Node.Accept(...)` working. |
 | Semantic binding | `Musoq.Evaluator.Visitors` semantic services | Keep `BuildMetadataAndInferTypesVisitor` as the facade; add source, method, result-shape, validation, and diagnostic behavior to focused services when practical. |
 
 Key planner rules:
-- New optimizer rules belong in `IR/Optimization` under the owning stage group. Builders create initial shapes, lowerers translate selected strategy, and renderers emit faithfully; update `musoq_enchanced_architecture.md` if a feature truly needs different ownership.
+- New optimizer rules belong in `IR/Optimization` under the owning stage group. Builders create initial shapes, lowerers translate selected strategy, and target renderers emit faithfully; update `musoq_enchanced_architecture.md` if a feature truly needs different ownership.
 - Optimizer passes should consume and recompute analysis facts through `OptimizationContext.AnalysisFacts`; changed passes invalidate stale plan-derived facts unless they recompute them in the same pass.
 - Every logical and physical plan node carries an `OutputSchema`; prefer it over inferred-column fallbacks when resolving produced query shape.
 - Source-aware planning belongs in planner helpers such as `RequiredColumnUsagePlanner`, `SourcePredicatePlanner`, `SourceInteractionPlanner`, `SourcePlanningPlanner`, `SourceBoundaryPlanner`, and `PredicatePlacementPlanner`. Public source planning is stateless: accepted ordering/slicing must flow as immutable `SourceExecutionPlan` data through `SourceExecutionContext.Plan`.
@@ -226,18 +226,30 @@ Key planner rules:
 - Parser-shape subquery and distinct rewrites must run through `PreLogicalNormalizer`. Do not call `SubqueryToCteRewriteVisitor`, `SubqueryToCteRewriteTraverseVisitor`, `DistinctToGroupByVisitor`, or `DistinctToGroupByTraverseVisitor` directly from other production stages.
 - Aggregate binding pairs refresh/set methods with getter methods. Identifier normalization strips qualifiers and whitespace, so `Sum(r.Val)` and `Sum(Val)` can match.
 - Runtime-v2 aggregate hot paths should use static typed aggregate kernels declared through `[AggregateFunction]`. A kernel owns a concrete `State` type, `Set(ref State, args...)`, `Get(in State)`, and optional `Merge(ref State, in State)`. The generated code should pass concrete aggregate arguments directly and store concrete query-specific state fields.
-- Multi-argument aggregate kernels expose tuple-shaped metadata for planning, but renderer hot paths should still call `Set` with separate concrete arguments when the kernel declares them that way.
+- Multi-argument aggregate kernels expose tuple-shaped metadata for planning, but C# target hot paths should still call `Set` with separate concrete arguments when the kernel declares them that way.
 - Keep the deleted plugin `Group` model and legacy aggregate injection markers out of normal runtime-v2 aggregate lowering. Captured aggregate values must use typed captured-field Execution IR, not object-backed group value reads or writes.
-- Aggregate group ownership is planned explicitly through `AggregateGroupPlan`: root, prefix, and leaf levels are generated only when required. Parent-depth aggregate ownership is computed once as `ownerPrefixLength = max(0, keyCount - parentDepth)`, and leaf groups keep typed owner references instead of renderer code walking parent chains.
-- Aggregate rendering is split by responsibility: `ExecutionCSharpRenderer.Aggregates.cs` renders aggregate operations, `ExecutionCSharpRenderer.AggregateGroupClasses.cs` renders query-specific group classes, and `ExecutionCSharpRenderer.ParallelAggregates.cs` emits query-specific parallel single-key loops. Keep prefix-group logic in the plan/lowering metadata before adding renderer branches.
+- Aggregate group ownership is planned explicitly through `AggregateGroupPlan`: root, prefix, and leaf levels are generated only when required. Parent-depth aggregate ownership is computed once as `ownerPrefixLength = max(0, keyCount - parentDepth)`, and leaf groups keep typed owner references instead of target renderer code walking parent chains.
+- C# aggregate rendering is split inside `Musoq.Targets.CSharpClr`: aggregate operations, query-specific group classes, and query-specific parallel single-key loops stay target-owned. Keep prefix-group logic in the plan/lowering metadata before adding renderer branches.
 - Single-key parallel aggregation should stay generated for the concrete query shape. The generated local method performs direct key reads, direct group construction, direct accumulator updates, and direct merge calls; helper-driven generic aggregation is legacy cleanup territory unless a query cannot safely use the generated path.
 - Physical aggregate strategy selection chooses aggregate-only, single-key, or value-tuple strategies; do not reintroduce object-backed hash aggregate keys. Physical join strategy selection chooses hash joins only when equality keys decompose cleanly.
 - Window plans add explicit materialization before `PhysicalWindowNode` rendering.
 - Physical planning chooses execution strategies; Execution IR carries executable decisions and runtime metadata such as materialization shape, capacity hints, context liveness, static metadata, typed keys, and precomputed lookup sets.
-- Do not restore retired optimizer fallbacks in execution lowering or rendering. Lowerers must not self-plan strategies, create replacement join strategies, bind reusable method targets, perform expression hoisting, disable planner-selected CTE sidecars, emit final CTE sidecar runtime nodes, or rely on renderer method-target synthesis.
-- Helper extraction is codegen-readability owned. Renderers may attach `CodegenHelperExtractionMetadata` candidate annotations, but `HelperExtractionReadabilityPass` is the only owner that approves existing helper candidates or extracts metadata-approved inline helper blocks.
+- Do not restore retired optimizer fallbacks in execution lowering or target rendering. Lowerers must not self-plan strategies, create replacement join strategies, bind reusable method targets, perform expression hoisting, disable planner-selected CTE sidecars, emit final CTE sidecar runtime nodes, or rely on renderer method-target synthesis.
+- Helper extraction approval is generated-C# readability owned inside `Musoq.Targets.CSharpClr.Optimization.Codegen`. Target renderers may attach `CodegenHelperExtractionMetadata` candidate annotations, but `HelperExtractionReadabilityPass` is the only owner that approves existing helper candidates or extracts metadata-approved inline helper blocks.
 - Generated C# is acceptance evidence, not the primary optimization surface. If a generated sample looks slow, first decide which `PhysicalNode` strategy or `ExecutionNode` metadata should prevent that shape.
-- Renderer decomposition is strict. Plain, grouped, and window query shapes are different; inspect logical plans, physical plans, and Execution IR before changing renderer code after a `NotSupportedException`. Focused rendering behavior belongs in `IR/Execution/Rendering`.
+- Target renderer decomposition is strict. Plain, grouped, and window query shapes are different; inspect logical plans, physical plans, and Execution IR before changing renderer code after a `NotSupportedException`. Generated C# rendering behavior belongs in `Musoq.Targets.CSharpClr`.
+- Pure portable symbol records and `ExecutionPortableSymbolPortability` belong to `Musoq.Targets.Abstractions`; portability is classified as `Portable`, `HostImport`, or `ClrOnly`. Evaluator `IR/Execution/Portability` owns the CLR-backed `ExecutionPortableSymbolFactory` and explicit `ExecutionPortableSymbolCatalog` used during lowering and analysis. Classify `LibraryBase` and aggregate-attributed callables from their contracts rather than namespaces. Unknown CLR fallback must include a reason. `ExecutionTargetCapabilities` enforces allowed type/callable portability before backend rendering, while readiness evaluates broad requirement categories separately from type/callable symbol portability.
+- Every type in the public `ExecutionPlan` contract graph uses `ExecutionTypeRef`, including expressions, variables, row shapes, source bindings, aggregate metadata, indexes, windows, and captured locals; public execution-plan properties and constructors must not expose `System.Type` or `Assembly`. Evaluator lowering and optimization may use the internal CLR sidecar while constructing plans; analysis should consume `PortableType`, and CSharp rendering must use its target-owned `RequireClrType` compatibility helper.
+- Method calls, aggregate operations, and plugin windows use `ExecutionCallableRef`, never public `MethodInfo`. Portable callable signatures include classification, declaring/parameter/return symbols, generic arity, and invocation mode. Evaluator lowering/optimization may inspect `ClrMethod`; analysis consumes `PortableCallable`; CSharp rendering must use `RequireClrMethod`.
+- `ExecutionLiteral` and `ExecutionConstantInSet` store immutable canonical `ExecutionConstantValue` instances, not arbitrary public `object` payloads. Preserve width/bit/word/code-unit/tick/offset/byte encodings; unsupported CLR values must remain explicit internal `ClrOnly` sidecars and readiness blockers.
+- `ExecutionRawExpression` is retired. `ExecutionExpressionConverter.RegisteredExpressionTypes` must exhaustively cover concrete `IrExpression` types, and unregistered expressions must fail deterministically during lowering.
+- Every concrete execution node and expression has one stable `ExecutionOperationId`; keep `ExecutionOperationCatalog` exhaustive and produce an `ExecutionTargetOperationReport` before rendering. A new operation is incomplete until target capabilities and rejection/conformance tests are updated.
+- `ExecutionSemanticsContract.Version1` is the compatibility contract for current CSharpClr null, arithmetic, conversion, comparison, ordering, grouping, and exception behavior. Preserve operation-specific differences such as unchecked-width runtime integer arithmetic versus checked constant-fold diagnostics and checked aggregate overflow.
+- Host ABI inventory belongs in `Musoq.Targets.Execution.Analysis` and package metadata, not evaluator runtime nodes. It contains actual typed `TargetHostAbiImportDetails` with derived immutable `Attributes` and a positive `ContractVersion`; readiness and `ClrOnly` blockers must not be represented as imports. Target-specific extension imports must use `TargetHostAbiImport.CreateCustom(...)`.
+- Callable/plugin target coverage belongs in fake non-CLR package e2e tests through `CompileTargetPackageWithDiagnostics`. Keep callable compatibility requirements, plugin runtime-contract entries, typed `TargetPluginInvocationAbiDetails`, pre-render capability rejection, typed export entrypoints, optional inspection, and zero-host-import package paths covered.
+- `TargetRenderResult` and finalization use structured `TargetDiagnostic` failures for expected capability/lowering limits. Keep programming-contract violations as exceptions and do not let a renderer bypass catalog validation.
+- `Musoq.Targets.TestPortable` consumes Execution IR directly, lowers its supported subset to immutable `PortableSubsetProgram`, and executes with `PortableValue`. It must not access CLR sidecars or reference Converter, CSharpClr, Roslyn, reflection activation, or target analysis implementations, and it must not be production registered. This is an intentional breaking change to the public-looking Execution IR surface; there is no public target selector.
+- `TargetContractVersions` versions Execution IR, host ABI, and target package format independently. Version changes require updated capability checks, manifests, and portable conformance coverage; the public artifact format remains version `2` until deliberately migrated.
 - Lowerer decomposition is likewise strict. Aggregate, join, CTE, and window lowering behavior belongs in `IR/Execution/Lowering` coordinators when practical; set operations remain in their focused lowerer partials. Avoid rebuilding source, group, and finalization setup ad hoc in unrelated lowerer partials.
 - Before touching IR code, read `musoq_enchanced_architecture.md` from the repository root.
 
@@ -264,10 +276,10 @@ The snapshot tests compile each catalog query through `InstanceCreator.CreateFor
 
 1. **Run the generated-sample tests** to see whether current generated code still matches the sample corpus.
 2. **Refresh and read the local samples** to identify slow shapes such as redundant materialization, discarded contexts, string-keyed lookups, inline allocation, or reflection-like access.
-3. **Map each slow shape to an owner**: logical planning for query meaning, physical planning for strategy, Execution IR for executable metadata, and renderer only for faithful syntax emission.
+3. **Map each slow shape to an owner**: logical planning for query meaning, physical planning for strategy, Execution IR for executable metadata, and target renderer only for faithful syntax emission.
 4. **Consult the planner architecture reference** in `musoq_enchanced_architecture.md` for Physical/Execution IR ownership boundaries, and the [Musoq.Benchmarks copilot-instructions.md](../Musoq.Benchmarks/copilot-instructions.md) for the benchmark-to-query-family mapping.
 5. **Establish a benchmark baseline before code changes** for the affected query family.
-6. **Implement changes** in `IR/Physical` or `IR/Execution`; touch `IR/CodeGeneration` only to emit new Execution IR metadata or to simplify local syntax.
+6. **Implement changes** in `IR/Physical` or `IR/Execution`; touch `IR/CodeGeneration` only for target-neutral render metadata, and touch `Musoq.Targets.CSharpClr` only for generated C# syntax emission.
 7. **Refresh tracked generated-code samples intentionally** and verify the generated code improved.
 8. **Run the full test suite** to ensure correctness.
 9. **Run the same benchmarks** and report before/after runtime and allocation deltas.
@@ -298,9 +310,9 @@ The Evaluator enforces the generic-style interpretation function syntax (`Interp
 | `QueryPlanner` | Derives source properties, source-aware diagnostics, and query-level strategy decisions |
 | `PhysicalPlanBuilder` | Builds physical nodes from planner decisions |
 | `PhysicalToExecutionPlanBuilder` | Dispatches physical strategies into focused lowering coordinators and shared context |
-| `ExecutionCSharpRenderer` | Dispatches faithful Execution IR rendering to focused collaborators |
-| `CSharpRenderer` | Builds the compiled query class and coordinates Execution IR rendering |
-| `RenderContext` | Minimal shared rendering state for generator infrastructure, class members, assembly name, scope, and method-name resolution |
+| `Musoq.Targets.Execution.Analysis.ExecutionTargetCompatibilityAnalyzer` | Reports target requirements from optimized Execution IR |
+| `Musoq.Targets.Execution.Analysis.TargetRuntimeContractBuilder` | Builds portable runtime service inventory for target packages |
+| `Musoq.Targets.CSharpClr` | Owns generated C# rendering, Roslyn finalization, inspection, and CLR activation |
 | `QueryAnalyzer` | Analyzes queries for metadata without full compilation |
 | `RewriteQueryVisitor` | Main AST transformer — normalizes structure for code generation |
 | `BuildMetadataAndInferTypesVisitor` | Semantic analysis facade — type inference, method resolution, symbol tables, and focused services |
@@ -346,7 +358,7 @@ dotnet test src/dotnet/Musoq.Evaluator.Tests --configuration Release --no-build 
 1. Identify the relevant `LogicalNode`, `PhysicalNode`, and `ExecutionNode` path.
 2. Inspect the logical plan, physical plan, and Execution IR before changing rendering code.
 3. Put strategy choices in `IR/Physical` and executable metadata in `IR/Execution`.
-4. Touch `IR/CodeGeneration` only when the renderer must faithfully emit new Execution IR metadata or simplify local syntax.
+4. Touch `IR/CodeGeneration` only when target-neutral final projection/sink render metadata changes; touch `Musoq.Targets.CSharpClr` when generated C# syntax changes.
 5. Regenerate code samples intentionally through the ignored refresh utility in `GeneratedCodeSamplesSnapshotTests`.
 6. Review the generated code diff.
 7. Run the full test suite.
@@ -359,7 +371,7 @@ dotnet test src/dotnet/Musoq.Evaluator.Tests --configuration Release --no-build 
 4. Update `ExpressionConverter` and `LogicalPlanBuilder` so the feature enters Expression IR and logical planning
 5. Update `QueryPlanner` or planner-owned strategy rules when the feature needs execution-strategy selection
 6. Update `PhysicalToExecutionPlanBuilder`, `IR/Execution/Lowering` coordinators, and Execution IR records when execution needs new operations or metadata
-7. Add or update the relevant renderer in `IR/Execution/Rendering` or `IR/CodeGeneration` only after the plan and Execution IR shape are explicit
+7. Add or update target rendering in `Musoq.Targets.CSharpClr` only after the plan and Execution IR shape are explicit
 8. Add tests covering the new feature, including focused IR tests when plan shape or rendering changes
 
 ### Impact of Changes

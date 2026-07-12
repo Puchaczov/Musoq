@@ -41,8 +41,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var strictCasts = expressions.OfType<ExecutionStrictCast>().ToArray();
         var castLikeMethodCalls = expressions
             .OfType<ExecutionMethodCall>()
-            .Where(static method => IsStrictCastHelperName(method.Method.Name))
-            .Select(static method => $"{method.Method.DeclaringType?.FullName}.{method.Method.Name}")
+            .Where(static method => IsStrictCastHelperName(method.Method.MethodName))
+            .Select(static method => $"{method.Method.ClrMethod.DeclaringType?.FullName}.{method.Method.MethodName}")
             .ToArray();
 
         Assert.HasCount(3, strictCasts);
@@ -127,7 +127,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         [
             "src/dotnet/Musoq.Evaluator/IR/CastExpressionConverter.cs",
             "src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionExpressionConverter.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.StrictCastExpressionRendering.cs",
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.StrictCastExpressionRendering.cs",
             "src/dotnet/Musoq.Evaluator/Helpers/StrictCastRuntime.cs"
         ];
         string[] forbiddenPatterns =

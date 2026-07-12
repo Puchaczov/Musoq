@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Linq;
+using Musoq.Converter.Build;
 using Musoq.Converter.Diagnostics;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
@@ -47,7 +48,11 @@ public static partial class InstanceCreator
         var cacheKey = !requireExecutionPlan &&
                        effectiveCompilationOptions.UsesDefaultSourceRuntimeSettingsResolver &&
                        CanUseExecutionCompilationCache(schemaProvider)
-            ? CreateExecutionCompilationCacheKey(script, schemaProvider, effectiveCompilationOptions)
+            ? CreateExecutionCompilationCacheKey(
+                script,
+                schemaProvider,
+                effectiveCompilationOptions,
+                ExecutionTargetIds.CSharpClr)
             : (ExecutionCompilationCacheKey?)null;
 
         if (cacheKey.HasValue &&
@@ -91,18 +96,20 @@ public static partial class InstanceCreator
             return BuildResult.Failure(diagnostics, script, caughtException, items);
 
         var runnableType = LoadRunnableType(items);
-        var sourceExecutionPlans = CreateSourceExecutionPlans(items);
         var runnable = CreateRunnable(
             runnableType,
-            items.SchemaProvider,
-            items.SourceRuntimeSettingsBySourceContextId,
-            items.SourceRuntimeSettingDescriptionsBySourceContextId,
-            sourceExecutionPlans);
+            new QueryRuntimeBinding(
+                items.SchemaProvider,
+                items.SourceRuntimeSettingsBySourceContextId,
+                items.SourceRuntimeSettingDescriptionsBySourceContextId,
+                CreateSourceExecutionPlans(items)));
         runnable.Logger = loggerResolver.ResolveLogger();
 
         if (cacheKey.HasValue && CanUseExecutionCompilationCache(items))
         {
-            StoreExecutionCompilation(cacheKey.Value, runnableType);
+            StoreExecutionCompilation(
+                cacheKey.Value,
+                CreateCachedExecutableArtifact(cacheKey.Value.ExecutionTarget, runnableType));
         }
 
         return BuildResult.Success(new CompiledQuery(runnable), diagnostics, script, items);

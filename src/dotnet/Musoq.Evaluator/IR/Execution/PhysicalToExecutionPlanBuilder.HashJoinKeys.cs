@@ -160,7 +160,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             ExecutionCompositeKey compositeKey => compositeKey.Parts.Any(part => ReferencesExecutionAlias(part, alias)),
             ExecutionValueTupleKey valueTupleKey => valueTupleKey.Parts.Any(part => ReferencesExecutionAlias(part, alias)),
             ExecutionAggregateCall aggregateCall => aggregateCall.Arguments.Any(argument => ReferencesExecutionAlias(argument, alias)),
-            ExecutionRawExpression raw => ReferencesAlias(raw.Expression, alias),
             _ => false
         };
     }

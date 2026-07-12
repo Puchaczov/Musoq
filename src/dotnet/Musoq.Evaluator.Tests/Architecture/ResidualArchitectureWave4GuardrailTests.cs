@@ -14,7 +14,7 @@ public sealed class ResidualArchitectureWave4GuardrailTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var codegenFiles = RepositorySourceScan.FilesUnder(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/CodeGeneration",
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/CodeGeneration",
             "CSharpRenderer*.cs");
         var offenders = codegenFiles
             .SelectMany(file => File
@@ -43,7 +43,7 @@ public sealed class ResidualArchitectureWave4GuardrailTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var finalShapeRowsFile = Path.Combine(
             repositoryRoot,
-            "src", "dotnet", "Musoq.Evaluator", "IR", "Execution", "FinalShape", "ExecutionCSharpRenderer.FinalShapeRows.cs");
+            "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution", "FinalShape", "ExecutionCSharpRenderer.FinalShapeRows.cs");
         var text = File.ReadAllText(finalShapeRowsFile);
 
         Assert.IsFalse(

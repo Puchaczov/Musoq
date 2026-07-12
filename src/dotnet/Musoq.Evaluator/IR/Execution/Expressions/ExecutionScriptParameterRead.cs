@@ -7,4 +7,10 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionScriptParameterRead(
     string Name,
-    Type ReturnType) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionScriptParameterRead(string name, Type returnType)
+        : this(name, ExecutionTypeRef.FromClr(returnType))
+    {
+    }
+}

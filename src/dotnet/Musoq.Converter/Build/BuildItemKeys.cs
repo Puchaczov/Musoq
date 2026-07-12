@@ -12,6 +12,7 @@ internal static class BuildItemKeys
 {
     public const string DllFile = "DLL_FILE";
     public const string PdbFile = "PDB_FILE";
+    public const string ExecutableArtifact = "EXECUTABLE_ARTIFACT";
     public const string TransformedQueryTree = "TRANSFORMED_QUERY_TREE";
     public const string RawQueryTree = "RAW_QUERY_TREE";
     public const string RawQuery = "RAW_QUERY";
@@ -21,9 +22,11 @@ internal static class BuildItemKeys
     public const string SourceRuntimeSettingDescriptionsBySourceContextId = "SOURCE_RUNTIME_SETTING_DESCRIPTIONS_BY_SOURCE_CONTEXT_ID";
     public const string HasDeclaredSourceRuntimeSettings = "HAS_DECLARED_SOURCE_RUNTIME_SETTINGS";
     public const string HasSourceRuntimeSettingValues = "HAS_SOURCE_RUNTIME_SETTING_VALUES";
+    public const string RenderingArtifact = "RENDERING_ARTIFACT";
     public const string Compilation = "COMPILATION";
     public const string AccessToClassPath = "ACCESS_TO_CLASS_PATH";
     public const string EmitResult = "EMIT_RESULT";
+    public const string FinalizationResult = "FINALIZATION_RESULT";
     public const string UsedColumns = "USED_COLUMNS";
     public const string UsedWhereNodes = "USED_WHERE_NODES";
     public const string SourcePlanRequestsPerSchema = "SOURCE_PLAN_REQUESTS_PER_SCHEMA";
@@ -32,7 +35,12 @@ internal static class BuildItemKeys
     public const string CreateBuildMetadataAndInferTypesVisitor = "CREATE_BUILD_METADATA_AND_INFER_TYPES_VISITOR";
     public const string CompilationOptions = "COMPILATION_OPTIONS";
     public const string QueryResultMode = "QUERY_RESULT_MODE";
+    public const string ExecutionTarget = "EXECUTION_TARGET";
     public const string QueryMethodRenderMetadata = "QUERY_METHOD_RENDER_METADATA";
+    public const string ExecutionTargetCompatibilityReport = "EXECUTION_TARGET_COMPATIBILITY_REPORT";
+    public const string TargetRuntimeContract = "TARGET_RUNTIME_CONTRACT";
+    public const string ExecutionTargetReadinessReport = "EXECUTION_TARGET_READINESS_REPORT";
+    public const string ExecutionSemanticsContract = "EXECUTION_SEMANTICS_CONTRACT";
     public const string OutputType = "OUTPUT_TYPE";
     public const string AdditionalReferenceTypes = "ADDITIONAL_REFERENCE_TYPES";
     public const string SchemaRegistry = "SCHEMA_REGISTRY";

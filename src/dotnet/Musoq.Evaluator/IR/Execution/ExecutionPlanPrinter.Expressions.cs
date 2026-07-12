@@ -18,7 +18,7 @@ public static partial class ExecutionPlanPrinter
                 : $"{fieldRead.Alias}.{fieldRead.FieldName}",
             ExecutionScriptParameterRead parameterRead => $"${parameterRead.Name}",
             ExecutionScriptVariableRead variableRead => $"${variableRead.Name}",
-            ExecutionLiteral literal => FormatLiteral(literal.Value),
+            ExecutionLiteral literal => FormatLiteral(literal.Value.ToClrValue()),
             ExecutionBinary binary => $"({FormatExpression(binary.Left)} {FormatBinaryOperator(binary.Kind)} {FormatExpression(binary.Right)})",
             ExecutionUnary unary => FormatUnaryExpression(unary),
             ExecutionMethodCall method => FormatMethodCall(method),
@@ -56,7 +56,8 @@ public static partial class ExecutionPlanPrinter
             ExecutionAggregateCall aggregateCall => FormatAggregateCall(aggregateCall),
             ExecutionGroupKeyRead groupKeyRead => $"{groupKeyRead.Group.Name}.{groupKeyRead.KeyName}",
             ExecutionAggregateCapturedValueRead capturedValueRead => $"{capturedValueRead.Group.Name}.{capturedValueRead.CapturedField.FieldName}",
-            ExecutionRawExpression raw => IrExpressionPrinter.Print(raw.Expression),
+            ExecutionAggregateResultRef aggregateRef => aggregateRef.DisplayName ?? aggregateRef.Identifier,
+            ExecutionWindowResultRef windowRef => $"window[{windowRef.WindowIndex}]",
             _ => $"UnknownExpression({expression.GetType().Name})"
         };
     }
@@ -93,7 +94,7 @@ public static partial class ExecutionPlanPrinter
     private static string FormatMethodCall(ExecutionMethodCall method)
     {
         var builder = new StringBuilder();
-        builder.Append(method.Method.Name);
+        builder.Append(method.Method.MethodName);
         builder.Append('(');
 
         for (var index = 0; index < method.Arguments.Count; index++)

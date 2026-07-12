@@ -6,4 +6,14 @@ public sealed record ExecutionArrayAssign(
     ExecutionVariable Array,
     ExecutionExpression Index,
     ExecutionExpression Value,
-    Type ElementType) : ExecutionNode;
+    ExecutionTypeRef ElementType) : ExecutionNode
+{
+    internal ExecutionArrayAssign(
+        ExecutionVariable array,
+        ExecutionExpression index,
+        ExecutionExpression value,
+        Type elementType)
+        : this(array, index, value, ExecutionTypeRef.FromClr(elementType))
+    {
+    }
+}

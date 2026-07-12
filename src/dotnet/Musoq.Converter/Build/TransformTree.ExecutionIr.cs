@@ -1,21 +1,18 @@
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
-using Musoq.Evaluator.IR.CodeGeneration;
+using System.Linq;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Optimization;
-using Musoq.Evaluator.IR.Optimization.Codegen;
 using Musoq.Evaluator.IR.Optimization.Execution;
-using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Visitors;
-using Musoq.Evaluator.Visitors.CodeGeneration;
 using Musoq.Schema;
+using Musoq.Targets.Execution.Analysis;
 using PhysicalToExecutionPlanBuilder = Musoq.Evaluator.IR.Execution.PhysicalToExecutionPlanBuilder;
 
 namespace Musoq.Converter.Build;
 
 public partial class TransformTree
 {
-    private static RenderingStageBuildResult BuildWithIrRenderer(
+    private static RenderingStageBuildResult? BuildWithIrRenderer(
         TransformPipelineContext context,
         SemanticBuildArtifacts semantic,
         PlanningBuildArtifacts planning,
@@ -23,98 +20,127 @@ public partial class TransformTree
         BuildMetadataAndInferTypesVisitor metadata,
         BuildMetadataAndInferTypesTraverseVisitor metadataTraverser)
     {
-        var assemblyName = context.AssemblyName;
-        var safeNamespaceName = SanitizeNameForNamespace(assemblyName);
-        var generator = RoslynSharedFactory.Generator;
-
-        var renderContext = new RenderContext(
-            generator,
-            new RenderContextOptions(
-                Scope: metadataTraverser.Scope,
-                AssemblyName: safeNamespaceName,
-                ScriptParameterDefinitions: semantic.ScriptParameterDefinitions,
-                ScriptVariableDefinitions: semantic.ScriptVariableDefinitions,
-                InstrumentationMode: context.CompilationOptions.InstrumentationMode,
-                ResultMode: context.QueryResultMode,
-                FinalResultSinkKind: ResolveFinalResultSinkKind(context.QueryResultMode),
-                OutputType: context.OutputType,
-                ForceTableResultMaterialization: context.CompilationOptions.ForceTableResultMaterialization));
-
-        var renderer = new CSharpRenderer(renderContext);
-        var queryIdentifier = "compiled";
-        if (planning.PhysicalPlan is null)
-            throw new InvalidOperationException(
-                "IR cutover requires a physical plan, but none was produced for the query.");
-
-        var executionQueryResult = RenderExecutionQueryMethod(execution, renderer, queryIdentifier);
-        renderContext.AddClassMember(executionQueryResult.MethodDeclaration);
-        var compilationUnit = renderer.RenderCompilationUnit(
-            queryIdentifier,
-            ExecutionPlanInventory.CountTableSlots(execution.ExecutionPlan),
-            ExecutionPlanInventory.CountCteIndexSlots(execution.ExecutionPlan));
-        var readabilityResult = new CodegenReadabilityOptimizer().Optimize(compilationUnit);
-        var updatedContext = context.AppendTrace(readabilityResult.Trace) with
+        var renderRequest = CreateTargetRenderRequest(
+            context,
+            semantic,
+            planning,
+            execution,
+            metadata,
+            metadataTraverser);
+        var result = ExecutionTargetCatalog.Render(renderRequest);
+        if (!result.Success)
         {
-            QueryMethodRenderMetadata = executionQueryResult.Metadata
+            TargetDiagnosticReporter.Report(result.Diagnostics, context.DiagnosticContext);
+            return null;
+        }
+
+        var renderedArtifact = result.Artifact ??
+                               throw new InvalidOperationException("Successful target rendering did not produce an artifact.");
+        var contribution = ExecutionTargetCatalog.CreateRenderBuildContribution(renderedArtifact);
+        var readinessReport = ExecutionTargetReadinessAnalyzer.AnalyzeFutureTargets(
+            renderRequest.CompatibilityReport,
+            renderRequest.RuntimeContract,
+            renderRequest.SemanticsContract);
+        var updatedContext = contribution.OptimizationTrace is null
+            ? context
+            : context.AppendTrace(contribution.OptimizationTrace);
+        updatedContext = updatedContext with
+        {
+            QueryMethodRenderMetadata = contribution.QueryMethodRenderMetadata
         };
-        compilationUnit = readabilityResult.OptimizedCode;
 
-        var compilationContext = new CompilationContextManager(
-            RoslynSharedFactory.CreateCompilation(assemblyName));
-        compilationContext.InitializeDefaults();
-        foreach (var referenceType in updatedContext.AdditionalReferenceTypes)
+        var artifacts = new RenderingBuildArtifacts(renderedArtifact)
         {
-            if (!metadata.Assemblies.Contains(referenceType.Assembly))
-                metadata.Assemblies.Add(referenceType.Assembly);
-        }
+            QueryMethodRenderMetadata = contribution.QueryMethodRenderMetadata,
+            CompatibilityReport = renderRequest.CompatibilityReport,
+            RuntimeContract = renderRequest.RuntimeContract,
+            ReadinessReport = readinessReport,
+            SemanticsContract = renderRequest.SemanticsContract
+        };
 
-        if (updatedContext.OutputType?.Assembly is { } outputAssembly && !metadata.Assemblies.Contains(outputAssembly))
-            metadata.Assemblies.Add(outputAssembly);
-
-        compilationContext.InitializeCoreReferences(metadata.Assemblies);
-        compilationContext.AddSyntaxTree(ClassEmitter.CreateSyntaxTreeDirect(compilationUnit));
-        if (!string.IsNullOrEmpty(updatedContext.InterpreterSourceCode))
-        {
-            compilationContext.TrackNamespace("Musoq.Generated.Interpreters");
-            compilationContext.AddSyntaxTree(CSharpSyntaxTree.ParseText(
-                updatedContext.InterpreterSourceCode,
-                new CSharpParseOptions(LanguageVersion.CSharp11)));
-        }
-
-        var artifacts = new RenderingBuildArtifacts(
-            compilationContext.GetCompilation(),
-            $"{safeNamespaceName}.CompiledQuery",
-            updatedContext.QueryMethodRenderMetadata);
         return new RenderingStageBuildResult(artifacts, updatedContext);
     }
 
-    private static QueryMethodRenderResult RenderExecutionQueryMethod(
+    private static TargetRenderRequest CreateTargetRenderRequest(
+        TransformPipelineContext context,
+        SemanticBuildArtifacts semantic,
+        PlanningBuildArtifacts planning,
         ExecutionBuildArtifacts execution,
-        CSharpRenderer renderer,
-        string queryIdentifier)
+        BuildMetadataAndInferTypesVisitor metadata,
+        BuildMetadataAndInferTypesTraverseVisitor metadataTraverser)
     {
-        if (execution.ExecutionPlanBuildResult is not { Supported: true, ExecutionPlan: { } executionPlan })
-            throw CreateUnsupportedExecutionIrException(execution.ExecutionPlanBuildResult?.UnsupportedReason);
+        var executionPlan = ResolveSupportedExecutionPlan(execution.ExecutionPlanBuildResult);
+        var operationReport = ExecutionTargetOperationAnalyzer.Analyze(executionPlan);
+        var compatibilityReport = ExecutionTargetCompatibilityAnalyzer.Analyze(executionPlan);
+        var scriptBinding = CreateScriptBinding(semantic);
+        var references = CreateReferenceInventory(metadata);
+        var runtimeContract = TargetRuntimeContractBuilder.Build(
+            executionPlan,
+            compatibilityReport,
+            TargetSourceRuntimeMetadataFactory.Create(semantic, planning));
 
-        var outcome = renderer.TryRenderExecutionQueryMethod(executionPlan, queryIdentifier);
-        if (outcome.Method is { } renderedMethod)
-            return renderedMethod;
-
-        var reason = string.IsNullOrWhiteSpace(outcome.UnsupportedReason)
-            ? "Execution IR C# backend did not produce a query method."
-            : outcome.UnsupportedReason;
-
-        throw CreateUnsupportedExecutionIrException(reason);
+        return new TargetRenderRequest
+        {
+            TargetId = context.ExecutionTarget,
+            Identity = new TargetRenderIdentity(context.AssemblyName),
+            Options = TargetRenderOptions.Empty,
+            ScriptBinding = scriptBinding,
+            References = references,
+            ExecutionPlan = executionPlan,
+            ExecutionIrVersion = executionPlan.ExecutionIrVersion,
+            SemanticsContract = executionPlan.SemanticsContract,
+            OperationReport = operationReport,
+            FeatureReport = ExecutionTargetFeatureAnalyzer.Analyze(executionPlan),
+            CompatibilityReport = compatibilityReport,
+            RuntimeContract = runtimeContract,
+            HostAbiVersion = TargetContractVersions.HostAbi,
+            BackendInputs = ExecutionTargetCatalog.CreateRenderInputs(
+                context.ExecutionTarget,
+                new TargetRenderInputBuildContext(
+                    context.CompilationOptions,
+                    context.QueryResultMode,
+                    scriptBinding,
+                    references,
+                    TargetRenderOptions.Empty,
+                    new TargetRenderInputCompilerState(
+                        context.AssemblyName,
+                        context.OutputType,
+                        context.AdditionalReferenceTypes,
+                        context.InterpreterSourceCode,
+                        metadataTraverser.Scope,
+                        semantic.ScriptParameterDefinitions,
+                        semantic.ScriptVariableDefinitions,
+                        metadata.Assemblies)))
+        };
     }
 
-    private static FinalResultSinkKind ResolveFinalResultSinkKind(QueryResultMode resultMode)
+    private static TargetScriptBindingContract CreateScriptBinding(SemanticBuildArtifacts semantic)
     {
-        return resultMode switch
-        {
-            QueryResultMode.TypedEnumerable => FinalResultSinkKind.TypedSerialEnumerable,
-            QueryResultMode.TableViaRows => FinalResultSinkKind.TableRowsMaterialized,
-            _ => FinalResultSinkKind.TableDirect
-        };
+        return new TargetScriptBindingContract(
+            semantic.ScriptParameterDefinitions
+                .Select(static definition => definition.Name)
+                .ToArray(),
+            semantic.ScriptVariableDefinitions
+                .Select(static definition => definition.Name)
+                .ToArray());
+    }
+
+    private static TargetReferenceInventory CreateReferenceInventory(
+        BuildMetadataAndInferTypesVisitor metadata)
+    {
+        return new TargetReferenceInventory(
+            metadata.Assemblies
+                .Select(static assembly => assembly.FullName ?? assembly.GetName().Name ?? assembly.ToString())
+                .OrderBy(static name => name, StringComparer.Ordinal)
+                .ToArray());
+    }
+
+    private static ExecutionPlan ResolveSupportedExecutionPlan(ExecutionPlanBuildResult? executionPlanBuildResult)
+    {
+        if (executionPlanBuildResult is { Supported: true, ExecutionPlan: { } executionPlan })
+            return executionPlan;
+
+        throw CreateUnsupportedExecutionIrException(executionPlanBuildResult?.UnsupportedReason);
     }
 
     private static NotSupportedException CreateUnsupportedExecutionIrException(string? unsupportedReason)

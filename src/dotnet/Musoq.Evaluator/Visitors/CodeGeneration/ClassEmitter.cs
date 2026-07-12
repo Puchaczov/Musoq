@@ -154,7 +154,7 @@ public static class ClassEmitter
             SyntaxFactory.GenericName(nameof(ITypedRunnable<object>))
                 .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
                     SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                        ExecutionSyntaxFactory.CreateTypeSyntax(outputType)))),
+                        LegacyCodeGenerationSyntaxFactory.CreateTypeSyntax(outputType)))),
             SyntaxFactory.IdentifierName(nameof(IParameterizedRunnable))
         };
 
@@ -404,9 +404,9 @@ public static class ClassEmitter
     {
         ExpressionSyntax columns = resultInfo.ColumnsFieldName != null
             ? SyntaxFactory.IdentifierName(resultInfo.ColumnsFieldName)
-            : ExecutionSyntaxFactory.CreateArrayCreation(
+            : LegacyCodeGenerationSyntaxFactory.CreateArrayCreation(
                 nameof(Column),
-                resultInfo.Columns.Select(ExecutionSyntaxFactory.CreateColumnCreation));
+                resultInfo.Columns.Select(LegacyCodeGenerationSyntaxFactory.CreateColumnCreation));
         var rowsArguments = new List<ArgumentSyntax>
         {
             SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nameof(IQueryRunnable.Provider))),
@@ -471,7 +471,7 @@ public static class ClassEmitter
                 SyntaxFactory.GenericName(nameof(QueryEnumerable<object>))
                     .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
                         SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                            ExecutionSyntaxFactory.CreateTypeSyntax(outputType)))))
+                            LegacyCodeGenerationSyntaxFactory.CreateTypeSyntax(outputType)))))
             .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
             [
                 SyntaxFactory.Argument(rowsFactory),

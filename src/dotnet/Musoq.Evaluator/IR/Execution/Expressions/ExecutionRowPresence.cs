@@ -8,4 +8,4 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionRowPresence(
     string Alias,
     bool IsPresent,
-    ExecutionExpression PresenceSource) : ExecutionExpression(typeof(bool));
+    ExecutionExpression PresenceSource) : ExecutionExpression(ExecutionTypeRef.FromClr(typeof(bool)));

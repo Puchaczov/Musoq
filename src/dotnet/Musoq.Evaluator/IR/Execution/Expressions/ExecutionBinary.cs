@@ -9,4 +9,14 @@ public sealed record ExecutionBinary(
     BinaryOpKind Kind,
     ExecutionExpression Left,
     ExecutionExpression Right,
-    Type ReturnType) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionBinary(
+        BinaryOpKind kind,
+        ExecutionExpression left,
+        ExecutionExpression right,
+        Type returnType)
+        : this(kind, left, right, ExecutionTypeRef.FromClr(returnType))
+    {
+    }
+}

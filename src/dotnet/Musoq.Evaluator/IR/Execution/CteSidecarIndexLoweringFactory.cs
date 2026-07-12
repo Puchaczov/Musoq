@@ -53,7 +53,7 @@ internal sealed class CteSidecarIndexLoweringFactory
             ExecutionCteSidecarIndexKind.Hash => new ExecutionCreateHash(
                 spec.Index,
                 spec.KeyType,
-                spec.RowType ?? typeof(Row),
+                spec.RowType ?? ExecutionTypeRef.FromClr(typeof(Row)),
                 spec.CapacityHint,
                 spec.GeneratedRowTypeName),
             ExecutionCteSidecarIndexKind.KeySet => new ExecutionCreateKeySet(
@@ -94,7 +94,7 @@ internal sealed class CteSidecarIndexLoweringFactory
                     spec.Key,
                     hashRow,
                     spec.KeyType,
-                    typeof(Row),
+                    ExecutionTypeRef.FromClr(typeof(Row)),
                     hashRowTypeName,
                     KeyVariableName: CreateIdentifierCandidate($"{spec.Index.Name}Key{ordinal}", 0),
                     BucketVariableName: CreateIdentifierCandidate($"{spec.Index.Name}Bucket{ordinal}", 0),

@@ -115,7 +115,8 @@ internal sealed record AsOfProbeBuildResult(
                 new ExecutionLiteral(null, typeof(object)),
                 new ExecutionLiteral(null, typeof(object)),
                 BinaryOpKind.Equal,
-                ExecutionBlock.Empty),
+                ExecutionBlock.Empty,
+                ComparisonKeyType: (ExecutionTypeRef?)null),
             reason);
     }
 }

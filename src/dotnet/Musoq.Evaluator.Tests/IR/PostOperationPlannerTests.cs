@@ -60,10 +60,10 @@ public sealed class PostOperationPlannerTests
         Assert.HasCount(2, declarations);
         var skipLet = Assert.IsInstanceOfType<ExecutionLet>(declarations[0]);
         Assert.AreEqual("__resultSkipRemaining_0", skipLet.Variable.Name);
-        Assert.AreEqual(3, ((ExecutionLiteral)skipLet.Value).Value);
+        Assert.AreEqual(3, ((ExecutionLiteral)skipLet.Value).Value.ToClrValue());
         var takeLet = Assert.IsInstanceOfType<ExecutionLet>(declarations[1]);
         Assert.AreEqual("__resultTakeRemaining_0", takeLet.Variable.Name);
-        Assert.AreEqual(7, ((ExecutionLiteral)takeLet.Value).Value);
+        Assert.AreEqual(7, ((ExecutionLiteral)takeLet.Value).Value.ToClrValue());
     }
 
     [TestMethod]
@@ -178,10 +178,10 @@ public sealed class PostOperationPlannerTests
         Assert.HasCount(2, metadata.Fields);
         Assert.AreEqual("Name", metadata.Fields[0].Name);
         Assert.AreEqual(0, metadata.Fields[0].Index);
-        Assert.AreEqual(typeof(string), metadata.Fields[0].Type);
+        Assert.AreEqual(typeof(string), metadata.Fields[0].Type.ClrType);
         Assert.AreEqual("Age", metadata.Fields[1].Name);
         Assert.AreEqual(1, metadata.Fields[1].Index);
-        Assert.AreEqual(typeof(int), metadata.Fields[1].Type);
+        Assert.AreEqual(typeof(int), metadata.Fields[1].Type.ClrType);
     }
 
     private static ProjectedField[] ProjectedFields() =>

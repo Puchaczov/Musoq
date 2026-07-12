@@ -79,7 +79,6 @@ internal sealed class CteSidecarStoragePlanner(bool useCteSidecarIndexes)
     private static bool ContainsSideEffectSensitiveSiblingExpression(IReadOnlyList<ExecutionNode> nodes)
     {
         var block = new ExecutionBlock(nodes);
-        return ExecutionIrAnalysis.CollectExpressions<ExecutionMethodCall>(block).Any() ||
-               ExecutionIrAnalysis.CollectExpressions<ExecutionRawExpression>(block).Any();
+        return ExecutionIrAnalysis.CollectExpressions<ExecutionMethodCall>(block).Any();
     }
 }

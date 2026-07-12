@@ -13,16 +13,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             return CreateUnfilteredWindowMaterialization(context);
 
         var predicate = ExecutionExpressionConverter.Convert(context.SourcePipeline.Filter.Predicate, context.SourceLookup);
-        if (predicate is ExecutionRawExpression)
+        if (predicate.ReturnType.ClrType != typeof(bool))
         {
             return BuildResult<ExecutionNode>.Unsupported(
-                $"Execution IR ranking window lowering cannot convert pre-window filter predicate {IrExpressionPrinter.Print(context.SourcePipeline.Filter.Predicate)}.");
-        }
-
-        if (predicate.ReturnType != typeof(bool))
-        {
-            return BuildResult<ExecutionNode>.Unsupported(
-                $"Execution IR ranking window lowering requires a boolean pre-window filter predicate. Found {predicate.ReturnType.Name}.");
+                $"Execution IR ranking window lowering requires a boolean pre-window filter predicate. Found {predicate.ReturnType.ClrType.Name}.");
         }
 
         if (context.SourceShape is ExpandoAdapterShape expando)

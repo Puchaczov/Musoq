@@ -129,7 +129,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 sidecar.IndexSlot,
                 ExecutionCteSidecarIndexKind.Hash,
                 sidecar.KeyType,
-                buildSource.Variable.Type,
+                buildSource.Variable.Type.ClrType,
                 buildSource.Variable.GeneratedRowTypeName),
             CteSidecarIndexKind.KeySet => new ExecutionCteSidecarIndexLoadCandidate(
                 indexVariable,
@@ -180,7 +180,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 new ExecutionKeySetProbe(
                     step.Index,
                     probeKey,
-                    step.Sidecar.KeyType,
+                    ExecutionTypeRef.FromClr(step.Sidecar.KeyType),
                     conditioned,
                     KeyVariableName: $"{step.Index.Name}Key")
             ]);
@@ -197,7 +197,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 step.Index,
                 step.Matches!,
                 probeKey,
-                step.Sidecar.KeyType,
+                ExecutionTypeRef.FromClr(step.Sidecar.KeyType),
                 step.Build.Variable.Type,
                 new ExecutionBlock([matchesLoop]),
                 GeneratedRowTypeName: step.Build.Variable.GeneratedRowTypeName,

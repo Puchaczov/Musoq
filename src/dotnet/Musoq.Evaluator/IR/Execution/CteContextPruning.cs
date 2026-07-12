@@ -47,7 +47,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     private static bool CanDropDynamicProjectedContexts(GeneratedRowShape rowShape)
     {
         return rowShape.Contexts.Count > 0 &&
-               rowShape.Contexts.All(static context => DynamicEntityBoundary.IsStringObjectDictionaryContext(context.Type)) &&
+               rowShape.Contexts.All(static context => DynamicEntityBoundary.IsStringObjectDictionaryContext(context.Type.ClrType)) &&
                CanUseProjectedGeneratedFieldAccess(rowShape);
     }
 

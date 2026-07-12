@@ -98,7 +98,7 @@ public sealed class ArchitectureRemediationBaselineTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var rendererFiles = RepositorySourceScan.FilesUnder(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution",
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution",
             "ExecutionCSharpRenderer*.cs");
         var sessionReferences = rendererFiles
             .Sum(file => File.ReadLines(file)
@@ -115,7 +115,7 @@ public sealed class ArchitectureRemediationBaselineTests
     public void ExecutionRenderSession_ShouldBeInternalTopLevelType()
     {
         var rendererType = typeof(ExecutionCSharpRenderer);
-        var sessionType = rendererType.Assembly.GetType("Musoq.Evaluator.IR.Execution.ExecutionRenderSession");
+        var sessionType = rendererType.Assembly.GetType("Musoq.Targets.CSharpClr.ExecutionRenderSession");
         var nestedSessionType = rendererType.GetNestedType("ExecutionRenderSession", BindingFlags.NonPublic);
 
         Assert.IsNotNull(sessionType, "ExecutionRenderSession should be a named internal session contract.");
@@ -128,7 +128,7 @@ public sealed class ArchitectureRemediationBaselineTests
     public void ExecutionRenderOptions_ShouldBeInternalTopLevelType()
     {
         var rendererType = typeof(ExecutionCSharpRenderer);
-        var optionsType = rendererType.Assembly.GetType("Musoq.Evaluator.IR.Execution.ExecutionRenderOptions");
+        var optionsType = rendererType.Assembly.GetType("Musoq.Targets.CSharpClr.ExecutionRenderOptions");
 
         Assert.IsNotNull(optionsType, "Constructor-provided render context should live in a named options type.");
         Assert.IsFalse(optionsType!.IsNested, "ExecutionRenderOptions should not be renderer-private nested state.");
@@ -155,7 +155,7 @@ public sealed class ArchitectureRemediationBaselineTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var rendererFile = Path.Combine(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.cs");
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.cs");
         var text = File.ReadAllText(rendererFile);
 
         Assert.IsFalse(
@@ -169,7 +169,7 @@ public sealed class ArchitectureRemediationBaselineTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var rendererFiles = RepositorySourceScan.FilesUnder(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution",
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution",
             "ExecutionCSharpRenderer*.cs");
 
         var offenders = rendererFiles

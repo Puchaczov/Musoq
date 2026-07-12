@@ -96,23 +96,42 @@ public partial class BuildItems
 
     internal RenderingBuildArtifacts RenderingArtifacts
     {
-        get => new(Compilation, AccessToClassPath);
+        get => new(RenderingArtifact)
+        {
+            QueryMethodRenderMetadata = QueryMethodRenderMetadata,
+            CompatibilityReport = ExecutionTargetCompatibilityReport,
+            RuntimeContract = TargetRuntimeContract,
+            ReadinessReport = ExecutionTargetReadinessReport,
+            SemanticsContract = ExecutionSemanticsContract
+        };
         set
         {
-            Compilation = value.Compilation;
-            AccessToClassPath = value.AccessToClassPath;
+            RenderingArtifact = value.Artifact;
             QueryMethodRenderMetadata = value.QueryMethodRenderMetadata;
+            ExecutionTargetCompatibilityReport = value.CompatibilityReport;
+            TargetRuntimeContract = value.RuntimeContract;
+            ExecutionTargetReadinessReport = value.ReadinessReport;
+            ExecutionSemanticsContract = value.SemanticsContract;
         }
     }
 
     internal CompilationBuildArtifacts CompilationArtifacts
     {
-        get => new(EmitResult, DllFile, PdbFile);
+        get => FinalizationResult is { } finalizationResult
+            ? new CompilationBuildArtifacts(finalizationResult)
+            : new CompilationBuildArtifacts(EmitResult, ExecutableArtifact);
         set
         {
-            EmitResult = value.EmitResult;
-            DllFile = value.DllFile;
-            PdbFile = value.PdbFile;
+            FinalizationResult = value.FinalizationResult;
+            if (value.TryGetEmitResult(out var emitResult))
+                EmitResult = emitResult;
+
+            ExecutableArtifact = value.Artifact;
+            if (value.Artifact == null)
+            {
+                DllFile = value.DllFile;
+                PdbFile = value.PdbFile;
+            }
         }
     }
 }

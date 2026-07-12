@@ -21,6 +21,9 @@
     <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
     <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
     <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
+    <ProjectReference Include="..\Musoq.Targets.Abstractions\Musoq.Targets.Abstractions.csproj" />
+    <ProjectReference Include="..\Musoq.Targets.CSharpClr\Musoq.Targets.CSharpClr.csproj" />
+    <ProjectReference Include="..\Musoq.Targets.Execution.Analysis\Musoq.Targets.Execution.Analysis.csproj" />
     <ProjectReference Include="..\Musoq.Tests.Common\Musoq.Tests.Common.csproj" />
   </ItemGroup>
   <ItemGroup>

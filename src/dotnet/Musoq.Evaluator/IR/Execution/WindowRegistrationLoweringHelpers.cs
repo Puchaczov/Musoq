@@ -10,8 +10,8 @@ internal static class WindowRegistrationLoweringHelpers
 {
     internal static Type ResolveWindowPartitionKeyElementType(ExecutionExpression partitionKey)
     {
-        return IsSafeTypedWindowKeyElement(partitionKey.ReturnType)
-            ? partitionKey.ReturnType
+        return IsSafeTypedWindowKeyElement(partitionKey.ReturnType.ClrType)
+            ? partitionKey.ReturnType.ClrType
             : typeof(object);
     }
 
@@ -24,14 +24,14 @@ internal static class WindowRegistrationLoweringHelpers
     {
         if (orderKeys.Count == 1)
         {
-            var keyType = orderKeys[0].Expression.ReturnType;
+            var keyType = orderKeys[0].Expression.ReturnType.ClrType;
             return IsSafeTypedWindowOrderKeyElement(keyType) ? keyType : typeof(object);
         }
 
         if (!CanUseValueTupleWindowOrderKey(orderKeys))
             return typeof(object);
 
-        return CreateValueTupleType(orderKeys.Select(key => key.Expression.ReturnType).ToArray());
+        return CreateValueTupleType(orderKeys.Select(key => key.Expression.ReturnType.ClrType).ToArray());
     }
 
     internal static Type CreatePluginWindowResultArrayType(WindowRegistration registration)
@@ -110,7 +110,7 @@ internal static class WindowRegistrationLoweringHelpers
         var firstDirection = orderKeys[0].Descending;
         return orderKeys.All(key =>
             key.Descending == firstDirection &&
-            IsSafeTypedWindowOrderKeyElement(key.Expression.ReturnType));
+            IsSafeTypedWindowOrderKeyElement(key.Expression.ReturnType.ClrType));
     }
 
     private static bool IsSafeTypedWindowKeyElement(Type type)

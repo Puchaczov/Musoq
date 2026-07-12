@@ -9,5 +9,17 @@ public sealed record ExecutionCreateRangeIndex(
     ExecutionVariable Candidate,
     ExecutionExpression Candidates,
     ExecutionExpression CandidateKey,
-    Type KeyType,
-    BinaryOpKind ComparisonKind) : ExecutionNode;
+    ExecutionTypeRef KeyType,
+    BinaryOpKind ComparisonKind) : ExecutionNode
+{
+    internal ExecutionCreateRangeIndex(
+        ExecutionVariable index,
+        ExecutionVariable candidate,
+        ExecutionExpression candidates,
+        ExecutionExpression candidateKey,
+        Type keyType,
+        BinaryOpKind comparisonKind)
+        : this(index, candidate, candidates, candidateKey, ExecutionTypeRef.FromClr(keyType), comparisonKind)
+    {
+    }
+}

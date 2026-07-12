@@ -11,5 +11,19 @@ public sealed record ExecutionCreateAsOfIndex(
     IReadOnlyList<ExecutionAsOfEqualityKey> EqualityKeys,
     ExecutionExpression CandidateKey,
     BinaryOpKind ComparisonKind,
-    Type ComparisonKeyType,
-    ExecutionAsOfTieBreak? TieBreak = null) : ExecutionNode;
+    ExecutionTypeRef ComparisonKeyType,
+    ExecutionAsOfTieBreak? TieBreak = null) : ExecutionNode
+{
+    internal ExecutionCreateAsOfIndex(
+        ExecutionVariable index,
+        ExecutionVariable candidate,
+        ExecutionExpression candidates,
+        IReadOnlyList<ExecutionAsOfEqualityKey> equalityKeys,
+        ExecutionExpression candidateKey,
+        BinaryOpKind comparisonKind,
+        Type comparisonKeyType,
+        ExecutionAsOfTieBreak? tieBreak = null)
+        : this(index, candidate, candidates, equalityKeys, candidateKey, comparisonKind, ExecutionTypeRef.FromClr(comparisonKeyType), tieBreak)
+    {
+    }
+}

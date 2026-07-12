@@ -219,8 +219,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
         Assert.IsTrue(rowNumber.OrderKeyArray.ShouldExtract);
         Assert.IsFalse(lag.OrderKeyArray.ShouldExtract);
         Assert.AreEqual(rowNumber.OrderKeyArray.Variable, lag.OrderKeyArray.Variable);
-        Assert.AreEqual(typeof(int[]), rowNumber.OrderKeyArray.Variable.Type);
-        Assert.AreEqual(typeof(int), rowNumber.OrderKeyArray.Shape?.ElementType);
+        Assert.AreEqual(typeof(int[]), rowNumber.OrderKeyArray.Variable.Type.ClrType);
+        Assert.AreEqual(typeof(int), rowNumber.OrderKeyArray.Shape?.ElementType.ClrType);
         Assert.IsTrue(rowNumber.OrderKeyArray.Shape?.IsTyped);
     }
 

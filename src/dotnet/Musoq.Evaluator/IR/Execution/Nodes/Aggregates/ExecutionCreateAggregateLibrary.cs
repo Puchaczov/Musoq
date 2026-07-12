@@ -5,4 +5,10 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionCreateAggregateLibrary(
     ExecutionVariable Library,
-    Type LibraryType) : ExecutionNode;
+    ExecutionTypeRef LibraryType) : ExecutionNode
+{
+    internal ExecutionCreateAggregateLibrary(ExecutionVariable library, Type libraryType)
+        : this(library, ExecutionTypeRef.FromClr(libraryType))
+    {
+    }
+}

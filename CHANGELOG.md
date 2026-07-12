@@ -4,6 +4,22 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.2-alpha.1
+
+See [release-notes/v17.0.2-alpha.1.md](release-notes/v17.0.2-alpha.1.md) for the curated GitHub Release text.
+
+### Musoq.Evaluator
+
+- Added a portable execution core with stable type, callable, constant, operation, semantics, and host ABI contracts.
+- Added deterministic target capability validation, portable subset conformance coverage, and target-aware execution semantics/cache fingerprints.
+- Intentionally changed the public-looking Execution IR surface to use portable descriptors instead of CLR reflection and arbitrary object payloads.
+
+### Musoq.Converter
+
+- Added the internal execution-target composition pipeline while preserving the existing CSharpClr public compilation and execution APIs.
+- Bundled the internal target implementation assemblies in `Musoq.Converter` instead of publishing them as separate NuGet packages.
+- Added release package validation that verifies the bundled assemblies, symbols, dependency graph, and clean consumer restore path.
+
 ## 17.0.1-alpha.2
 
 See [release-notes/evaluator/v17.0.1-alpha.2.md](release-notes/evaluator/v17.0.1-alpha.2.md) for the curated GitHub Release text.

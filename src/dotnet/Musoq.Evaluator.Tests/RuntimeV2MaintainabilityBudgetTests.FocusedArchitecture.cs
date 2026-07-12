@@ -15,7 +15,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void FocusedArchitecture_Renderers_ShouldNotReferencePlannerContracts()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var executionDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution");
+        var executionDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution");
         var rendererFiles = Directory
             .EnumerateFiles(executionDirectory, "*.cs", SearchOption.AllDirectories)
             .Where(file =>
@@ -50,7 +50,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void FocusedArchitecture_ExecutionRendering_ShouldRouteFocusedDomainsThroughCollaborators()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var renderingDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution/Rendering");
+        var renderingDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/Rendering");
         string[] expectedRendererFiles =
         [
             "ExecutionCSharpRenderer.ExpressionRenderer.cs",
@@ -70,10 +70,10 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
         var nodeDispatchText = File.ReadAllText(ToAbsolutePath(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.NodeDispatch.cs"));
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.NodeDispatch.cs"));
         var expressionDispatchText = File.ReadAllText(ToAbsolutePath(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.Expressions.Dispatch.cs"));
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.Expressions.Dispatch.cs"));
 
         Assert.Contains("TableControlFlowRenderer", nodeDispatchText);
         Assert.Contains("AggregateRenderer", nodeDispatchText);
@@ -88,7 +88,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         var rendererFiles = Directory
             .EnumerateFiles(
-                ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution/Rendering"),
+                ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/Rendering"),
                 "*.cs")
             .ToArray();
         string[] decisionMarkers =
@@ -399,20 +399,24 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
                 Text = File.ReadAllText(file)
             })
             .Where(file => file.Text.Contains("IPlanOptimizationPass<", StringComparison.Ordinal))
-            .Where(file => !file.RelativePath.StartsWith(
-                "src/dotnet/Musoq.Evaluator/IR/Optimization/",
-                StringComparison.Ordinal))
+            .Where(file =>
+                !file.RelativePath.StartsWith(
+                    "src/dotnet/Musoq.Evaluator/IR/Optimization/",
+                    StringComparison.Ordinal) &&
+                !file.RelativePath.StartsWith(
+                    "src/dotnet/Musoq.Targets.CSharpClr/Optimization/Codegen/",
+                    StringComparison.Ordinal))
             .Select(file => file.RelativePath)
             .ToArray();
 
         Assert.IsEmpty(
             offenders,
-            "Optimizer pass implementations and pass groups must stay under IR/Optimization: " +
+            "Target-neutral optimizer pass implementations must stay under evaluator IR/Optimization; generated C# readability passes belong under the CSharpClr target package: " +
             string.Join(", ", offenders));
     }
 
     [TestMethod]
-    public void FocusedArchitecture_ConverterPlanningLoweringAndRenderingOrchestration_ShouldStayInTransformTree()
+    public void FocusedArchitecture_ConverterPlanningAndLoweringOrchestration_ShouldStayInTransformTree()
     {
         var repositoryRoot = FindRepositoryRoot();
         var converterFiles = Directory
@@ -428,8 +432,6 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "new QueryPlanner(",
             "new PhysicalToExecutionPlanBuilder(",
             "new ExecutionIrOptimizer(",
-            "new CSharpRenderer(",
-            "new CodegenReadabilityOptimizer(",
             "BuildPlans(",
             "BuildExecutionInspection(",
             "BuildWithIrRenderer("
@@ -439,7 +441,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
         Assert.IsEmpty(
             offenders,
-            "Converter planning, execution lowering, and IR rendering orchestration must stay in TransformTree: " +
+            "Converter planning and execution lowering orchestration must stay in TransformTree: " +
             string.Join(", ", offenders));
     }
 
@@ -449,11 +451,11 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         SourceFamilyTotalBudget[] focusedBudgets =
         [
-            new("src/dotnet/Musoq.Evaluator/IR/Execution", "ExecutionCSharpRenderer*.cs", 22523),
+            new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "ExecutionCSharpRenderer*.cs", 22523),
             new("src/dotnet/Musoq.Evaluator/IR/Execution", "PhysicalToExecutionPlanBuilder*.cs", 19778),
             new("src/dotnet/Musoq.Evaluator/Visitors", "BuildMetadataAndInferTypesVisitor*.cs", 9291),
             new("src/dotnet/Musoq.Evaluator/IR/Execution/Lowering", "*.cs", 251),
-            new("src/dotnet/Musoq.Evaluator/IR/Execution/Rendering", "*.cs", 220),
+            new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/Rendering", "*.cs", 220),
             new("src/dotnet/Musoq.Evaluator/Visitors", "Semantic*.cs", 313),
             new("src/dotnet/Musoq.Parser/Traversal", "*.cs", 188)
         ];

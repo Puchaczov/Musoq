@@ -113,9 +113,9 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     private static Type ResolveProjectedFieldType(ExecutionExpression expression)
     {
         if (!ShouldLiftNullableProjection(expression))
-            return expression.ReturnType;
+            return expression.ReturnType.ClrType;
 
-        return typeof(Nullable<>).MakeGenericType(expression.ReturnType);
+        return typeof(Nullable<>).MakeGenericType(expression.ReturnType.ClrType);
     }
 
     private static Type ResolveProjectedFieldStorageType(
@@ -131,8 +131,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     {
         return expression is ExecutionBinary binary &&
                CanLiftNullableTransitionBinary(binary.Kind) &&
-               binary.ReturnType.IsValueType &&
-               Nullable.GetUnderlyingType(binary.ReturnType) == null &&
+               binary.ReturnType.ClrType.IsValueType &&
+               Nullable.GetUnderlyingType(binary.ReturnType.ClrType) == null &&
                !IsNullableTemporalSubtraction(binary) &&
                (ContainsNullablePositionalFieldRead(binary) ||
                 ContainsLiftedNullableArithmeticInput(binary));
@@ -155,9 +155,9 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     private static bool IsNullableTemporalSubtraction(ExecutionBinary binary)
     {
         return binary.Kind == BinaryOpKind.Subtract &&
-               binary.ReturnType == typeof(TimeSpan) &&
-               IsNullableTemporal(binary.Left.ReturnType) &&
-               IsNullableTemporal(binary.Right.ReturnType);
+               binary.ReturnType.ClrType == typeof(TimeSpan) &&
+               IsNullableTemporal(binary.Left.ReturnType.ClrType) &&
+               IsNullableTemporal(binary.Right.ReturnType.ClrType);
     }
 
     private static bool IsNullableTemporal(Type type)
@@ -176,7 +176,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     {
         return expression switch
         {
-            ExecutionFieldRead fieldRead => Nullable.GetUnderlyingType(fieldRead.ReturnType) != null,
+            ExecutionFieldRead fieldRead => Nullable.GetUnderlyingType(fieldRead.ReturnType.ClrType) != null,
             ExecutionBinary binary when CanLiftNullableTransitionBinary(binary.Kind) =>
                 ContainsLiftedNullableArithmeticInput(binary),
             ExecutionUnary unary => ContainsLiftedNullableArithmeticInput(unary.Operand),
@@ -190,7 +190,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         return expression switch
         {
             ExecutionFieldRead fieldRead => fieldRead.AccessStrategy is PositionalAccess &&
-                                            Nullable.GetUnderlyingType(fieldRead.ReturnType) != null,
+                                            Nullable.GetUnderlyingType(fieldRead.ReturnType.ClrType) != null,
             ExecutionBinary binary => ContainsNullablePositionalFieldRead(binary.Left) ||
                                       ContainsNullablePositionalFieldRead(binary.Right),
             ExecutionUnary unary => ContainsNullablePositionalFieldRead(unary.Operand),

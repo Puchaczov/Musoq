@@ -339,7 +339,7 @@ internal sealed class PostOperationPlanner
 
     private static bool CanUseBoundedTopOffset(IReadOnlyList<ExecutionOrderField> keys)
     {
-        return keys.Count > 0 && keys.All(static key => IsSupportedTopOffsetKeyType(key.Type));
+        return keys.Count > 0 && keys.All(static key => IsSupportedTopOffsetKeyType(key.Type.ClrType));
     }
 
     private static bool IsSupportedTopOffsetKeyType(Type type)

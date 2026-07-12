@@ -8,5 +8,15 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionArrayAccess(
     ExecutionExpression Array,
     ExecutionExpression Index,
-    Type ElementType,
-    Type ReturnType) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ElementType,
+    ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionArrayAccess(
+        ExecutionExpression array,
+        ExecutionExpression index,
+        Type elementType,
+        Type returnType)
+        : this(array, index, ExecutionTypeRef.FromClr(elementType), ExecutionTypeRef.FromClr(returnType))
+    {
+    }
+}

@@ -77,7 +77,8 @@ internal static class ParallelExecutionEligibilityRules
             ExecutionMethodCall methodCall => CanUseMethodCall(methodCall, fieldReadEligibility),
             ExecutionStrictCast strictCast => CanUseExpression(strictCast.Expression, fieldReadEligibility),
             ExecutionMethodTargetReuseCandidate candidate => CanUseMethodCall(candidate.MethodCall, fieldReadEligibility),
-            ExecutionRawExpression => ParallelExecutionEligibilityCheck.Skipped("Expression could not be lowered to typed Execution IR."),
+            ExecutionAggregateResultRef => ParallelExecutionEligibilityCheck.Skipped("Aggregate result reference must be resolved before parallel execution."),
+            ExecutionWindowResultRef => ParallelExecutionEligibilityCheck.Skipped("Window result reference must be resolved before parallel execution."),
             _ => ParallelExecutionEligibilityCheck.Skipped($"Expression kind {expression.GetType().Name} is not parallel-safe.")
         };
     }
@@ -119,13 +120,13 @@ internal static class ParallelExecutionEligibilityRules
         ExecutionMethodCall methodCall,
         Func<ExecutionFieldRead, ParallelExecutionEligibilityCheck> fieldReadEligibility)
     {
-        if (methodCall.Method.GetCustomAttribute<NonDeterministicAttribute>() != null)
-            return ParallelExecutionEligibilityCheck.Skipped($"Expression contains non-deterministic method {methodCall.Method.Name}.");
+        if (methodCall.Method.ClrMethod.GetCustomAttribute<NonDeterministicAttribute>() != null)
+            return ParallelExecutionEligibilityCheck.Skipped($"Expression contains non-deterministic method {methodCall.Method.MethodName}.");
 
-        if (methodCall.Method.GetParameters()
+        if (methodCall.Method.ClrMethod.GetParameters()
             .Any(static parameter => parameter.GetCustomAttribute<InjectQueryStatsAttribute>() != null))
         {
-            return ParallelExecutionEligibilityCheck.Skipped($"Expression calls {methodCall.Method.Name}, which injects query statistics.");
+            return ParallelExecutionEligibilityCheck.Skipped($"Expression calls {methodCall.Method.MethodName}, which injects query statistics.");
         }
 
         return Combine(

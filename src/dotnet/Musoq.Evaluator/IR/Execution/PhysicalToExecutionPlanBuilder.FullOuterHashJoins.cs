@@ -128,7 +128,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         nodes.Add(new ExecutionCreateHash(
             context.Hash,
             context.KeyType,
-            indexedBuildRow.Type,
+            indexedBuildRow.Type.ClrType,
             new ExecutionCollectionCountCapacityHint(buildRows),
             indexedBuildRow.GeneratedRowTypeName));
         nodes.Add(new ExecutionCreateBooleanArray(buildMatched, buildRows));
@@ -161,7 +161,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     CreateHashJoinKeyExpression(context.Join.BuildKeys, context.ConversionLookup, context.KeyType),
                     indexedBuildRow,
                     context.KeyType,
-                    indexedBuildRow.Type,
+                    indexedBuildRow.Type.ClrType,
                     indexedBuildRow.GeneratedRowTypeName)
             ]));
     }
@@ -199,7 +199,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     context.Matches,
                     CreateHashJoinKeyExpression(context.Join.ProbeKeys, context.ConversionLookup, context.KeyType),
                     context.KeyType,
-                    indexedBuildRow.Type,
+                    indexedBuildRow.Type.ClrType,
                     new ExecutionBlock([matchesLoop]),
                     probeOnlyAppendBlock,
                     probeHasMatch,

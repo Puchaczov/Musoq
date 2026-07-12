@@ -40,10 +40,6 @@ internal static class OuterApplyNullSubstitutionService
             ExecutionWindowValueRead => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionAggregateCall aggregateCall => SubstituteAggregateCall(aggregateCall, rightAlias),
             ExecutionGroupKeyRead => OuterApplyNullSubstitutionResult.Known(expression),
-            ExecutionRawExpression raw when ReferencesAlias(raw.Expression, rightAlias) =>
-                OuterApplyNullSubstitutionResult.Unsupported(
-                    $"Execution IR outer apply lowering cannot null-substitute right-side filter expression {IrExpressionPrinter.Print(raw.Expression)}."),
-            ExecutionRawExpression => OuterApplyNullSubstitutionResult.Known(expression),
             _ => OuterApplyNullSubstitutionResult.Unsupported(
                 $"Execution IR outer apply lowering cannot null-substitute expression {expression.GetType().Name}.")
         };
@@ -51,10 +47,10 @@ internal static class OuterApplyNullSubstitutionService
 
     public static BuildResult<ExecutionExpression> NormalizeBooleanOperand(ExecutionExpression expression)
     {
-        if (expression.ReturnType == typeof(bool))
+        if (expression.ReturnType.ClrType == typeof(bool))
             return BuildResult<ExecutionExpression>.Success(expression);
 
-        if (Nullable.GetUnderlyingType(expression.ReturnType) == typeof(bool))
+        if (Nullable.GetUnderlyingType(expression.ReturnType.ClrType) == typeof(bool))
         {
             return BuildResult<ExecutionExpression>.Success(new ExecutionBinary(
                 BinaryOpKind.Equal,
@@ -443,6 +439,9 @@ internal static class OuterApplyNullSubstitutionService
         return new ExecutionLiteral(null, LiftNullSubstitutionType(returnType));
     }
 
+    private static ExecutionLiteral CreateNullLiteral(ExecutionTypeRef returnType) =>
+        new((object?)null, LiftNullSubstitutionType(returnType));
+
     private static Type LiftNullSubstitutionType(Type type)
     {
         if (!type.IsValueType || Nullable.GetUnderlyingType(type) != null)
@@ -451,6 +450,9 @@ internal static class OuterApplyNullSubstitutionService
         return typeof(Nullable<>).MakeGenericType(type);
     }
 
+    private static ExecutionTypeRef LiftNullSubstitutionType(ExecutionTypeRef type) =>
+        ExecutionTypeRef.FromClr(LiftNullSubstitutionType(type.ClrType));
+
     private static string FormatTypeName(Type type)
     {
         var nullableUnderlying = Nullable.GetUnderlyingType(type);
@@ -458,6 +460,8 @@ internal static class OuterApplyNullSubstitutionService
             ? type.Name
             : $"{nullableUnderlying.Name}?";
     }
+
+    private static string FormatTypeName(ExecutionTypeRef type) => FormatTypeName(type.ClrType);
 
     private static bool ReferencesAlias(IrExpression expression, string alias)
     {

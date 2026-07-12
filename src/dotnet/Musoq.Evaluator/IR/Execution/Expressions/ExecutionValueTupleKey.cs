@@ -7,4 +7,10 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionValueTupleKey(
     IReadOnlyList<ExecutionExpression> Parts,
-    Type ReturnType) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionValueTupleKey(IReadOnlyList<ExecutionExpression> parts, Type returnType)
+        : this(parts, ExecutionTypeRef.FromClr(returnType))
+    {
+    }
+}

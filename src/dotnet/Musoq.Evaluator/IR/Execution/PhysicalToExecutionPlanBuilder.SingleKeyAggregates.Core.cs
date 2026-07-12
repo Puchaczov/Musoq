@@ -10,10 +10,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         bool scopeAggregateVariables)
     {
         var groupKey = ExecutionExpressionConverter.Convert(pipeline.GroupKey, source.Lookup);
-        if (groupKey is ExecutionRawExpression)
-            return TableBuildResult.Unsupported(
-                $"Execution IR single-key aggregate lowering cannot convert group key expression {pipeline.GroupKey.GetType().Name}.");
-
         if (CanUseLeanDistinct(pipeline))
         {
             return BuildLeanDistinctTable(

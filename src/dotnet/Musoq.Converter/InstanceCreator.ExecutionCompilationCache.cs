@@ -32,10 +32,28 @@ public static partial class InstanceCreator
 
     private static void StoreExecutionCompilation(
         ExecutionCompilationCacheKey cacheKey,
+        ExecutableQueryArtifact executableArtifact)
+    {
+        ArgumentNullException.ThrowIfNull(executableArtifact);
+        if (cacheKey.ExecutionTarget != executableArtifact.TargetId)
+        {
+            throw new InvalidOperationException(
+                $"Execution compilation cache key targets '{cacheKey.ExecutionTarget}', but executable artifact targets '{executableArtifact.TargetId}'.");
+        }
+
+        EvictColdestExecutionCompilations();
+        ExecutionCompilationCache.TryAdd(
+            cacheKey,
+            new CachedExecutionCompilation(executableArtifact));
+    }
+
+    private static ExecutableQueryArtifact CreateCachedExecutableArtifact(
+        ExecutionTargetId targetId,
         Type runnableType)
     {
-        EvictColdestExecutionCompilations();
-        ExecutionCompilationCache.TryAdd(cacheKey, new CachedExecutionCompilation(runnableType));
+        return ExecutionTargetCatalog
+            .ResolveActivator(targetId)
+            .CreateLoadedExecutableArtifact(runnableType);
     }
 
     private static void EvictColdestExecutionCompilations()
@@ -80,13 +98,16 @@ public static partial class InstanceCreator
     private static ExecutionCompilationCacheKey CreateExecutionCompilationCacheKey(
         string script,
         ISchemaProvider schemaProvider,
-        CompilationOptions options)
+        CompilationOptions options,
+        ExecutionTargetId executionTarget)
     {
         var providerType = schemaProvider.GetType();
 
         return new ExecutionCompilationCacheKey(
             script,
             RuntimeV2Contract.ContractSignature,
+            ExecutionSemanticsContract.Version1.Fingerprint,
+            executionTarget,
             providerType.AssemblyQualifiedName ?? providerType.FullName ?? providerType.Name,
             CreateProviderSignature(schemaProvider),
             options.ParallelizationMode,
@@ -107,7 +128,24 @@ public static partial class InstanceCreator
         ISchemaProvider schemaProvider,
         CompilationOptions options)
     {
-        return CreateExecutionCompilationCacheKey(script, schemaProvider, options).ToString();
+        return CreateExecutionCompilationCacheKey(
+            script,
+            schemaProvider,
+            options,
+            ExecutionTargetIds.CSharpClr).ToString();
+    }
+
+    internal static string CreateExecutionCompilationCacheKeyTestSignature(
+        string script,
+        ISchemaProvider schemaProvider,
+        CompilationOptions options,
+        ExecutionTargetId executionTarget)
+    {
+        return CreateExecutionCompilationCacheKey(
+            script,
+            schemaProvider,
+            options,
+            executionTarget).ToString();
     }
 
     private static string CreateProviderSignature(ISchemaProvider schemaProvider)
@@ -239,6 +277,8 @@ public static partial class InstanceCreator
     private readonly record struct ExecutionCompilationCacheKey(
         string Script,
         string RuntimeV2ContractSignature,
+        string ExecutionSemanticsFingerprint,
+        ExecutionTargetId ExecutionTarget,
         string ProviderType,
         string ProviderSignature,
         ParallelizationMode ParallelizationMode,
@@ -257,13 +297,16 @@ public static partial class InstanceCreator
     {
         private long _lastAccessTick;
 
-        public CachedExecutionCompilation(Type runnableType)
+        public CachedExecutionCompilation(ExecutableQueryArtifact executableArtifact)
         {
-            RunnableType = runnableType;
+            ExecutableArtifact = executableArtifact ?? throw new ArgumentNullException(nameof(executableArtifact));
+            TargetId = executableArtifact.TargetId;
             Touch();
         }
 
-        public Type RunnableType { get; }
+        public ExecutionTargetId TargetId { get; }
+
+        public ExecutableQueryArtifact ExecutableArtifact { get; }
 
         public long LastAccessTick => Volatile.Read(ref _lastAccessTick);
 

@@ -70,11 +70,11 @@ public sealed class ExecutionIrRewriterTests
         var rewrittenBinary = (ExecutionBinary)rewrittenAppend.Values[0].Value;
 
         Assert.AreSame(source, rewrittenForEach.Source);
-        Assert.AreEqual(2, ((ExecutionLiteral)rewrittenBinary.Left).Value);
-        Assert.AreEqual(3, ((ExecutionLiteral)rewrittenBinary.Right).Value);
+        Assert.AreEqual(2, ((ExecutionLiteral)rewrittenBinary.Left).Value.ToClrValue());
+        Assert.AreEqual(3, ((ExecutionLiteral)rewrittenBinary.Right).Value.ToClrValue());
         Assert.AreEqual(
             4,
-            ((ExecutionLiteral)rewrittenAppend.ContextLayout!.Segments[0].Value).Value);
+            ((ExecutionLiteral)rewrittenAppend.ContextLayout!.Segments[0].Value).Value.ToClrValue());
     }
 
     [TestMethod]
@@ -167,8 +167,8 @@ public sealed class ExecutionIrRewriterTests
     {
         protected override ExecutionExpression RewriteLiteral(ExecutionLiteral expression)
         {
-            return expression.Value is int value
-                ? expression with { Value = value + 1 }
+            return expression.Value.TryGetInt32(out var value)
+                ? new ExecutionLiteral(value + 1, expression.ReturnType)
                 : expression;
         }
     }

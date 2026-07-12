@@ -8,5 +8,15 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionCollectionInCheck(
     ExecutionExpression Expression,
     ExecutionScriptParameterRead Collection,
-    Type ElementType,
-    Type ReturnType) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ElementType,
+    ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionCollectionInCheck(
+        ExecutionExpression expression,
+        ExecutionScriptParameterRead collection,
+        Type elementType,
+        Type returnType)
+        : this(expression, collection, ExecutionTypeRef.FromClr(elementType), ExecutionTypeRef.FromClr(returnType))
+    {
+    }
+}

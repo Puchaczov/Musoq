@@ -106,7 +106,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             Shape = payloadTableRow,
             Variable = source.Variable with
             {
-                Type = typeof(Row),
+                Type = ExecutionTypeRef.FromClr(typeof(Row)),
                 GeneratedRowTypeName = payloadShape.TypeName
             },
             Shapes =

@@ -10,9 +10,23 @@ public sealed record ExecutionGetOrAddSingleKeyAggregateGroup(
     ExecutionVariable Group,
     ExecutionExpression Key,
     string KeyName,
-    Type KeyType,
+    ExecutionTypeRef KeyType,
     ExecutionVariable? NullGroup,
     AggregateGroupPlan GroupPlan) : ExecutionNode
 {
+    internal ExecutionGetOrAddSingleKeyAggregateGroup(
+        ExecutionVariable rootGroup,
+        ExecutionVariable groups,
+        ExecutionVariable groupsToFinalize,
+        ExecutionVariable group,
+        ExecutionExpression key,
+        string keyName,
+        Type keyType,
+        ExecutionVariable? nullGroup,
+        AggregateGroupPlan groupPlan)
+        : this(rootGroup, groups, groupsToFinalize, group, key, keyName, ExecutionTypeRef.FromClr(keyType), nullGroup, groupPlan)
+    {
+    }
+
     public AggregateGroupShape GroupShape => GroupPlan.LeafShape;
 }

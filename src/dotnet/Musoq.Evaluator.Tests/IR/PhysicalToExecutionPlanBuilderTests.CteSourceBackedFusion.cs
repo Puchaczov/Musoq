@@ -35,7 +35,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
                 0,
                 [],
                 [ageField],
-                SourceType: typeof(Person)));
+                SourceType: ExecutionTypeRef.FromClr(typeof(Person))));
         var rawTable = new ExecutionVariable("cte0", typeof(Table), rawShape.TypeName);
         var appendRaw = new ExecutionAppendRow(
             rawTable,
@@ -123,7 +123,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
                 0,
                 [],
                 [ageField],
-                SourceType: typeof(Person)));
+                SourceType: ExecutionTypeRef.FromClr(typeof(Person))));
         var rawTable = new ExecutionVariable("cte0", typeof(Table), rawShape.TypeName);
         var appendRaw = new ExecutionAppendRow(
             rawTable,
@@ -197,7 +197,8 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             .Any(static add => add.Key is ExecutionFieldRead { Alias: "p", FieldName: "Age" }));
         Assert.IsTrue(ExecutionIrAnalysis
             .CollectNodes<ExecutionLet>(rewritten.Body)
-            .Any(static let => let.Value is ExecutionLiteral { Value: "source-tag" }));
+            .Any(static let => let.Value is ExecutionLiteral literal &&
+                               Equals(literal.Value.ToClrValue(), "source-tag")));
         Assert.IsFalse(ExecutionIrAnalysis
             .CollectNodes<ExecutionCreateHash>(rewritten.Body)
             .Any(static createHash => createHash.CapacityHint is ExecutionRowsCapacityHintCandidate

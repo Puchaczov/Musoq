@@ -8,5 +8,15 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionFieldRead(
     string? Alias,
     string FieldName,
-    Type ReturnType,
-    FieldAccessStrategy? AccessStrategy = null) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType,
+    FieldAccessStrategy? AccessStrategy = null) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionFieldRead(
+        string? alias,
+        string fieldName,
+        Type returnType,
+        FieldAccessStrategy? accessStrategy = null)
+        : this(alias, fieldName, ExecutionTypeRef.FromClr(returnType), accessStrategy)
+    {
+    }
+}

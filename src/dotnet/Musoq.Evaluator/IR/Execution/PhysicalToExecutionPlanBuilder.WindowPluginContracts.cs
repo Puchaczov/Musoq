@@ -48,11 +48,11 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 $"found object-shaped IWindowFunction<{FormatType(inputType)},{FormatType(resultType)}>.");
         }
 
-        if (!CanPassValueToTypedPluginInput(arguments.Value.ReturnType, inputType))
+        if (!CanPassValueToTypedPluginInput(arguments.Value.ReturnType.ClrType, inputType))
         {
             return CreateTypedPluginWindowDiagnostic(
                 registration,
-                $"the typed input {FormatType(inputType)} does not match the value argument type {FormatType(arguments.Value.ReturnType)}.");
+                $"the typed input {FormatType(inputType)} does not match the value argument type {FormatType(arguments.Value.ReturnType.ClrType)}.");
         }
 
         if (resultType != registration.ReturnType)
@@ -76,7 +76,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 $"typed plugin argument dispatch supports up to 7 extra arguments. Found {arguments.Arguments.Count.ToString(CultureInfo.InvariantCulture)}.");
         }
 
-        var objectArgument = arguments.Arguments.FirstOrDefault(static argument => argument.ReturnType == typeof(object));
+        var objectArgument = arguments.Arguments.FirstOrDefault(static argument => argument.ReturnType.ClrType == typeof(object));
         if (objectArgument != null)
         {
             return CreateTypedPluginWindowDiagnostic(
@@ -86,7 +86,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
         if (arguments.Arguments.Count > 0)
         {
-            var argumentTypes = arguments.Arguments.Select(static argument => argument.ReturnType).ToArray();
+            var argumentTypes = arguments.Arguments.Select(static argument => argument.ReturnType.ClrType).ToArray();
             if (!TryCreateTypedWindowFunctionArgumentsInterfaceType(argumentTypes, out var argumentInterfaceType))
                 return CreateTypedPluginWindowDiagnostic(registration, "typed argument interface arity is not supported.");
 

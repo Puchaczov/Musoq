@@ -51,7 +51,7 @@ public sealed class TwoModeRendererGuardrailTests
     private static string FindRendererRoot()
     {
         var root = FindRepositoryRoot();
-        return Path.Combine(root, "src", "dotnet", "Musoq.Evaluator", "IR", "CodeGeneration");
+        return Path.Combine(root, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "CodeGeneration");
     }
 
     private static string FindRepositoryRoot()

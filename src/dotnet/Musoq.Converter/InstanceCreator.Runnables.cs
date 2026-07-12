@@ -4,9 +4,8 @@ using System.Reflection;
 using System.Text;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
-using Musoq.Evaluator.TemporarySchemas;
-using Musoq.Schema;
 using Musoq.Schema.Optimization;
+using Musoq.Targets.CSharpClr;
 
 namespace Musoq.Converter;
 
@@ -14,61 +13,81 @@ public static partial class InstanceCreator
 {
     private static ITableRunnable CreateRunnable(BuildItems items)
     {
-        var type = LoadRunnableType(items);
-
-        return CreateRunnable(
-            type,
-            items.SchemaProvider,
-            items.SourceRuntimeSettingsBySourceContextId,
-            items.SourceRuntimeSettingDescriptionsBySourceContextId,
-            CreateSourceExecutionPlans(items));
+        var executable = GetExecutableArtifact(
+            items.ExecutableArtifact,
+            items.DllFile,
+            items.PdbFile,
+            () => items.AccessToClassPath,
+            () => CreateMissingRunnableDllMessage(items));
+        var activator = ExecutionTargetCatalog.ResolveActivator(executable.TargetId);
+        return activator.ActivateTable(
+            executable,
+            new QueryRuntimeBinding(
+                items.SchemaProvider,
+                items.SourceRuntimeSettingsBySourceContextId,
+                items.SourceRuntimeSettingDescriptionsBySourceContextId,
+                CreateSourceExecutionPlans(items)));
     }
 
     private static ITableRunnable CreateRunnable(BuildItems items, Func<Assembly> createAssembly)
     {
-        var type = LoadRunnableType(items, createAssembly);
-
-        return CreateRunnable(
-            type,
-            items.SchemaProvider,
-            items.SourceRuntimeSettingsBySourceContextId,
-            items.SourceRuntimeSettingDescriptionsBySourceContextId,
-            CreateSourceExecutionPlans(items));
+        var executable = GetExecutableArtifact(
+            items.ExecutableArtifact,
+            items.DllFile,
+            items.PdbFile,
+            () => items.AccessToClassPath,
+            () => CreateMissingRunnableDllMessage(items));
+        var clrActivator = RequireClrActivator(executable.TargetId);
+        return clrActivator.ActivateTable(
+            executable,
+            new QueryRuntimeBinding(
+                items.SchemaProvider,
+                items.SourceRuntimeSettingsBySourceContextId,
+                items.SourceRuntimeSettingDescriptionsBySourceContextId,
+                CreateSourceExecutionPlans(items)),
+            createAssembly);
     }
 
     private static ITableRunnable CreateRunnable(CachedExecutionCompilation cachedCompilation, BuildItems items)
     {
-        return CreateRunnable(
-            cachedCompilation.RunnableType,
-            items.SchemaProvider,
-            items.SourceRuntimeSettingsBySourceContextId,
-            items.SourceRuntimeSettingDescriptionsBySourceContextId,
-            CreateSourceExecutionPlans(items));
+        var executable = cachedCompilation.ExecutableArtifact;
+        var activator = ExecutionTargetCatalog.ResolveActivator(executable.TargetId);
+        return activator.ActivateTable(
+            executable,
+            new QueryRuntimeBinding(
+                items.SchemaProvider,
+                items.SourceRuntimeSettingsBySourceContextId,
+                items.SourceRuntimeSettingDescriptionsBySourceContextId,
+                CreateSourceExecutionPlans(items)));
     }
 
     private static ITypedRunnable<TOut> CreateTypedRunnable<TOut>(BuildItems items)
     {
-        var type = LoadRunnableType(items);
-
-        return CreateTypedRunnable<TOut>(
-            type,
-            items.SchemaProvider,
-            items.SourceRuntimeSettingsBySourceContextId,
-            items.SourceRuntimeSettingDescriptionsBySourceContextId,
-            CreateSourceExecutionPlans(items));
+        var executable = GetExecutableArtifact(
+            items.ExecutableArtifact,
+            items.DllFile,
+            items.PdbFile,
+            () => items.AccessToClassPath,
+            () => CreateMissingRunnableDllMessage(items));
+        var activator = ExecutionTargetCatalog.ResolveActivator(executable.TargetId);
+        return activator.ActivateTyped<TOut>(
+            executable,
+            new QueryRuntimeBinding(
+                items.SchemaProvider,
+                items.SourceRuntimeSettingsBySourceContextId,
+                items.SourceRuntimeSettingDescriptionsBySourceContextId,
+                CreateSourceExecutionPlans(items)));
     }
 
     private static Type LoadRunnableType(BuildItems items)
     {
-        return LoadRunnableType(items, () =>
-        {
-            var dllFile = items.DllFile ??
-                          throw new InvalidOperationException(CreateMissingRunnableDllMessage(items));
-
-            return items.PdbFile is { Length: > 0 } pdbFile
-                ? Assembly.Load(dllFile, pdbFile)
-                : Assembly.Load(dllFile);
-        });
+        var executable = GetExecutableArtifact(
+            items.ExecutableArtifact,
+            items.DllFile,
+            items.PdbFile,
+            () => items.AccessToClassPath,
+            () => CreateMissingRunnableDllMessage(items));
+        return RequireClrActivator(executable.TargetId).LoadRunnableType(executable);
     }
 
     private static string CreateMissingRunnableDllMessage(BuildItems items)
@@ -90,58 +109,47 @@ public static partial class InstanceCreator
 
     private static Type LoadRunnableType(BuildItems items, Func<Assembly> createAssembly)
     {
-        var assembly = createAssembly();
-
-        var type = assembly.GetType(items.AccessToClassPath);
-
-        if (type is null)
-            throw new InvalidOperationException(
-                $"Type {items.AccessToClassPath} was not found in assembly {assembly.FullName}.");
-
-        return type;
+        var executable = GetExecutableArtifact(
+            items.ExecutableArtifact,
+            items.DllFile,
+            items.PdbFile,
+            () => items.AccessToClassPath,
+            () => CreateMissingRunnableDllMessage(items));
+        return RequireClrActivator(executable.TargetId).LoadRunnableType(executable, createAssembly);
     }
 
-    private static ITableRunnable CreateRunnable(
-        Type type,
-        ISchemaProvider schemaProvider,
-        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId,
-        IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> sourceRuntimeSettingDescriptionsBySourceContextId,
-        IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans)
+    private static ITableRunnable CreateRunnable(Type runnableType, QueryRuntimeBinding binding)
     {
-        var runnable = Activator.CreateInstance(type) as ITableRunnable;
-
-        if (runnable is null)
-            throw new InvalidOperationException($"Could not create instance of type {type.FullName}.");
-
-        runnable.Provider = schemaProvider;
-        runnable.SourceRuntimeSettingsBySourceContextId = sourceRuntimeSettingsBySourceContextId;
-        runnable.SourceRuntimeSettingDescriptionsBySourceContextId = sourceRuntimeSettingDescriptionsBySourceContextId;
-        runnable.SourceExecutionPlans = sourceExecutionPlans;
-
-        return runnable;
+        return RequireClrActivator(ExecutionTargetIds.CSharpClr).ActivateTable(runnableType, binding);
     }
 
-    private static ITypedRunnable<TOut> CreateTypedRunnable<TOut>(
-        Type type,
-        ISchemaProvider schemaProvider,
-        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId,
-        IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> sourceRuntimeSettingDescriptionsBySourceContextId,
-        IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans)
+    private static ExecutableQueryArtifact GetExecutableArtifact(
+        ExecutableQueryArtifact? executableArtifact,
+        byte[]? dllFile,
+        byte[]? pdbFile,
+        Func<string> accessToClassPath,
+        Func<string> missingRunnableDllMessage)
     {
-        var runnable = Activator.CreateInstance(type) as ITypedRunnable<TOut>;
+        if (executableArtifact is { } executable)
+            return executable;
 
-        if (runnable is null)
-            throw new InvalidOperationException($"Could not create typed instance of type {type.FullName}.");
+        if (dllFile is { Length: > 0 } runnableDllFile)
+            return CSharpClrArtifactCompatibility.CreateAssemblyExecutable(
+                runnableDllFile,
+                pdbFile,
+                accessToClassPath());
 
-        runnable.Provider = schemaProvider;
-        runnable.SourceRuntimeSettingsBySourceContextId = sourceRuntimeSettingsBySourceContextId;
-        runnable.SourceRuntimeSettingDescriptionsBySourceContextId = sourceRuntimeSettingDescriptionsBySourceContextId;
-        runnable.SourceExecutionPlans = sourceExecutionPlans;
-
-        return runnable;
+        throw new InvalidOperationException(missingRunnableDllMessage());
     }
 
-    private static Dictionary<string, SourceExecutionPlan> CreateSourceExecutionPlans(BuildItems items)
+    private static ClrAssemblyExecutableActivator RequireClrActivator(ExecutionTargetId TargetId)
+    {
+        return ExecutionTargetCatalog.ResolveActivator(TargetId) as ClrAssemblyExecutableActivator ??
+               throw new InvalidOperationException(
+                   $"Execution target '{TargetId}' does not expose a CLR assembly activator.");
+    }
+
+    private static IReadOnlyDictionary<string, SourceExecutionPlan> CreateSourceExecutionPlans(BuildItems items)
     {
         var requests = items.SourcePlanRequestsPerSchema;
         var plannedSources = items.PlanningResult?.Properties.SourcePlanResultsBySourceId;
@@ -157,5 +165,4 @@ public static partial class InstanceCreator
 
         return result;
     }
-
 }

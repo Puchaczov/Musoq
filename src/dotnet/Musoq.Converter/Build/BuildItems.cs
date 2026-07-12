@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.Extensions.Logging;
 using Musoq.Converter.Exceptions;
@@ -31,14 +30,14 @@ public partial class BuildItems : Dictionary<string, object>
 {
     public byte[]? DllFile
     {
-        get => GetOptional<byte[]>(BuildItemKeys.DllFile);
-        set => SetOptional(BuildItemKeys.DllFile, value);
+        get => GetOptional<byte[]>(BuildItemKeys.DllFile) is { } value ? (byte[])value.Clone() : null;
+        set => SetOptional(BuildItemKeys.DllFile, value is null ? null : (byte[])value.Clone());
     }
 
     public byte[]? PdbFile
     {
-        get => GetOptional<byte[]>(BuildItemKeys.PdbFile);
-        set => SetOptional(BuildItemKeys.PdbFile, value);
+        get => GetOptional<byte[]>(BuildItemKeys.PdbFile) is { } value ? (byte[])value.Clone() : null;
+        set => SetOptional(BuildItemKeys.PdbFile, value is null ? null : (byte[])value.Clone());
     }
 
     public RootNode TransformedQueryTree
@@ -104,22 +103,16 @@ public partial class BuildItems : Dictionary<string, object>
         set => SetFlag(BuildItemKeys.HasSourceRuntimeSettingValues, value);
     }
 
-    public CSharpCompilation Compilation
-    {
-        get => GetRequired<CSharpCompilation>(BuildItemKeys.Compilation);
-        set => SetRequired(BuildItemKeys.Compilation, value);
-    }
-
-    public string AccessToClassPath
-    {
-        get => GetRequired<string>(BuildItemKeys.AccessToClassPath);
-        set => SetRequired(BuildItemKeys.AccessToClassPath, value);
-    }
-
     public EmitResult EmitResult
     {
         get => GetRequired<EmitResult>(BuildItemKeys.EmitResult);
         set => SetRequired(BuildItemKeys.EmitResult, value);
+    }
+
+    internal TargetFinalizationResult? FinalizationResult
+    {
+        get => GetOptional<TargetFinalizationResult>(BuildItemKeys.FinalizationResult);
+        set => SetOptional(BuildItemKeys.FinalizationResult, value);
     }
 
     public IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> UsedColumns
@@ -233,6 +226,15 @@ public partial class BuildItems : Dictionary<string, object>
         get => GetOptional<string>(BuildItemKeys.ExecutionPlanText);
         set => SetOptional(BuildItemKeys.ExecutionPlanText, value);
     }
+
+    internal ExecutionTargetCompatibilityReport? ExecutionTargetCompatibilityReport { get => GetOptional<ExecutionTargetCompatibilityReport>(BuildItemKeys.ExecutionTargetCompatibilityReport); set => SetOptional(BuildItemKeys.ExecutionTargetCompatibilityReport, value); }
+
+    internal TargetRuntimeContract? TargetRuntimeContract { get => GetOptional<TargetRuntimeContract>(BuildItemKeys.TargetRuntimeContract); set => SetOptional(BuildItemKeys.TargetRuntimeContract, value); }
+
+    internal ExecutionTargetReadinessReport? ExecutionTargetReadinessReport { get => GetOptional<ExecutionTargetReadinessReport>(BuildItemKeys.ExecutionTargetReadinessReport); set => SetOptional(BuildItemKeys.ExecutionTargetReadinessReport, value); }
+
+    internal ExecutionSemanticsContract? ExecutionSemanticsContract { get => GetOptional<ExecutionSemanticsContract>(BuildItemKeys.ExecutionSemanticsContract); set => SetOptional(BuildItemKeys.ExecutionSemanticsContract, value); }
+
 
     public SourceText? SourceText
     {

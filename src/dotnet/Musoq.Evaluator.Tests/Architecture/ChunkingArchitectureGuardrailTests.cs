@@ -29,8 +29,8 @@ public sealed class ChunkingArchitectureGuardrailTests
             root,
             "src",
             "dotnet",
-            "Musoq.Evaluator",
-            "IR",
+            "Musoq.Targets.CSharpClr",
+            "Rendering",
             "Execution",
             "Rendering",
             "ExecutionCSharpRenderer.ExpressionRenderer.cs");
@@ -49,8 +49,8 @@ public sealed class ChunkingArchitectureGuardrailTests
             root,
             "src",
             "dotnet",
-            "Musoq.Evaluator",
-            "IR",
+            "Musoq.Targets.CSharpClr",
+            "Rendering",
             "Execution",
             "Rendering",
             "ExecutionCSharpRenderer.TableControlFlowRenderer.cs");

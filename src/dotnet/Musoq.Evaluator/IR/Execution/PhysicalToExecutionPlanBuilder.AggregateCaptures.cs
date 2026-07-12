@@ -31,12 +31,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 continue;
 
             var value = ExecutionExpressionConverter.Convert(column, sourceLookup);
-            if (value is ExecutionRawExpression)
-            {
-                return AggregateGroupValueCaptureBuildResult.Unsupported(
-                    $"Execution IR aggregate lowering cannot capture source column {IrExpressionPrinter.Print(column)} for aggregate finalization.");
-            }
-
             var capturedField = TryResolveAggregateCapturedField(aggregateGroup, valueName);
             if (capturedField == null)
             {

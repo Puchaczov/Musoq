@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Text;
 using Musoq.Converter.Build;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
@@ -19,15 +18,15 @@ public static partial class InstanceCreator
         var physicalPlan = items.PhysicalPlan ?? throw new InvalidOperationException(
             "Physical plan inspection failed because the compilation pipeline did not produce a physical plan.");
 
-        Microsoft.CodeAnalysis.CSharp.CSharpCompilation compilation;
+        RenderedQueryArtifact renderedArtifact;
         try
         {
-            compilation = items.Compilation;
+            renderedArtifact = items.RenderingArtifact;
         }
         catch (System.Collections.Generic.KeyNotFoundException ex)
         {
             throw new InvalidOperationException(
-                "Generated C# inspection failed because the compilation pipeline did not produce a C# compilation.",
+                "Generated C# inspection failed because the compilation pipeline did not produce a rendered query artifact.",
                 ex);
         }
 
@@ -51,7 +50,7 @@ public static partial class InstanceCreator
             physicalPlan,
             LogicalPlanPrinter.Print(logicalPlan),
             PhysicalPlanPrinter.Print(physicalPlan),
-            ExtractGeneratedCSharpCode(compilation))
+            InspectGeneratedCSharpCode(renderedArtifact))
         {
             PlanningText = planningText,
             ExecutionPlanText = executionPlanText,
@@ -68,32 +67,14 @@ public static partial class InstanceCreator
         };
     }
 
-    private static string ExtractGeneratedCSharpCode(Microsoft.CodeAnalysis.CSharp.CSharpCompilation compilation)
+    private static string InspectGeneratedCSharpCode(RenderedQueryArtifact renderedArtifact)
     {
-        var syntaxTrees = compilation.SyntaxTrees.ToArray();
+        var inspection = ExecutionTargetCatalog.InspectArtifact(renderedArtifact);
 
-        if (syntaxTrees.Length == 0)
-            return string.Empty;
+        if (inspection.TargetId != ExecutionTargetIds.CSharpClr)
+            throw new InvalidOperationException(
+                $"Generated C# inspection requires execution target '{ExecutionTargetIds.CSharpClr}', but got '{inspection.TargetId}'.");
 
-        if (syntaxTrees.Length == 1)
-            return FormatSyntaxTree(syntaxTrees[0]);
-
-        var builder = new StringBuilder();
-
-        for (var index = 0; index < syntaxTrees.Length; index++)
-        {
-            if (index > 0)
-                builder.AppendLine();
-
-            builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"// === SYNTAX TREE {index} ===");
-            builder.AppendLine(FormatSyntaxTree(syntaxTrees[index]));
-        }
-
-        return builder.ToString().TrimEnd();
-    }
-
-    private static string FormatSyntaxTree(Microsoft.CodeAnalysis.SyntaxTree syntaxTree)
-    {
-        return syntaxTree.GetRoot().ToFullString();
+        return inspection.GeneratedCSharpCode ?? string.Empty;
     }
 }

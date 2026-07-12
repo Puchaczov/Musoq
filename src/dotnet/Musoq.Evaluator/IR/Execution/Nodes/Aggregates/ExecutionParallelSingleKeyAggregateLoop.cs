@@ -8,7 +8,7 @@ public sealed record ExecutionParallelSingleKeyAggregateLoop(
     ExecutionExpression SourceRows,
     ExecutionExpression Key,
     string KeyName,
-    Type KeyType,
+    ExecutionTypeRef KeyType,
     ExecutionVariable RootGroup,
     ExecutionVariable GroupsToFinalize,
     ExecutionVariable Group,
@@ -17,4 +17,38 @@ public sealed record ExecutionParallelSingleKeyAggregateLoop(
     int Threshold,
     int CardinalitySampleSize,
     int MaxDistinctSample,
-    int MaxDegreeOfParallelism) : ExecutionNode;
+    int MaxDegreeOfParallelism) : ExecutionNode
+{
+    internal ExecutionParallelSingleKeyAggregateLoop(
+        ExecutionVariable source,
+        ExecutionExpression sourceRows,
+        ExecutionExpression key,
+        string keyName,
+        Type keyType,
+        ExecutionVariable rootGroup,
+        ExecutionVariable groupsToFinalize,
+        ExecutionVariable group,
+        ExecutionBlock aggregateBody,
+        AggregateGroupShape groupShape,
+        int threshold,
+        int cardinalitySampleSize,
+        int maxDistinctSample,
+        int maxDegreeOfParallelism)
+        : this(
+            source,
+            sourceRows,
+            key,
+            keyName,
+            ExecutionTypeRef.FromClr(keyType),
+            rootGroup,
+            groupsToFinalize,
+            group,
+            aggregateBody,
+            groupShape,
+            threshold,
+            cardinalitySampleSize,
+            maxDistinctSample,
+            maxDegreeOfParallelism)
+    {
+    }
+}

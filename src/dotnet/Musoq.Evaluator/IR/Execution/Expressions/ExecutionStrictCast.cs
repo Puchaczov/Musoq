@@ -8,5 +8,15 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionStrictCast(
     ExecutionExpression Expression,
     string TargetTypeName,
-    Type ReturnType,
-    ExecutionVariable? Target = null) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType,
+    ExecutionVariable? Target = null) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionStrictCast(
+        ExecutionExpression expression,
+        string targetTypeName,
+        Type returnType,
+        ExecutionVariable? target = null)
+        : this(expression, targetTypeName, ExecutionTypeRef.FromClr(returnType), target)
+    {
+    }
+}

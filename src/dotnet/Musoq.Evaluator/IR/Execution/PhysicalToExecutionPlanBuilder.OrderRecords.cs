@@ -179,16 +179,16 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         }
 
         return sourceShape is SourceEntityShape source &&
-               source.EntityType != typeof(object) &&
-               RowShapeLookup.CanReferenceType(source.EntityType) &&
+               source.EntityType.ClrType != typeof(object) &&
+               RowShapeLookup.CanReferenceType(source.EntityType.ClrType) &&
                !RowShapeLookup.UsesReflectedMemberAccess(source);
     }
 
     private static bool CanUseTypedOrderRecordShape(GeneratedRecordShape recordShape)
     {
         return recordShape.Fields.All(static field =>
-            field.Type != typeof(object) &&
-            RowShapeLookup.CanReferenceType(field.Type));
+            field.Type.ClrType != typeof(object) &&
+            RowShapeLookup.CanReferenceType(field.Type.ClrType));
     }
 
     private static GeneratedRecordShape CreateOrderRecordShape(GeneratedRowShape workingShape, bool emitAsValueType)
@@ -232,7 +232,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 return false;
             }
 
-            if (!IsSupportedTypedOrderKeyType(field.Type))
+            if (!IsSupportedTypedOrderKeyType(field.Type.ClrType))
                 return false;
 
             fields.Add(new ExecutionOrderField(field.Name, field.OutputIndex, field.Type, key.Descending, key.NullOrdering));

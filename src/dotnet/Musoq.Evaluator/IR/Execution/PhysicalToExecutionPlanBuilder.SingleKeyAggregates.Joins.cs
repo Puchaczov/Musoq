@@ -74,7 +74,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 sidecarIndex.IndexSlot,
                 ExecutionCteSidecarIndexKind.Hash,
                 keyType,
-                hashSides.Build.Variable.Type,
+                hashSides.Build.Variable.Type.ClrType,
                 hashSides.Build.Variable.GeneratedRowTypeName));
         }
         else
@@ -90,13 +90,13 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                         CreateHashJoinKeyExpression(join.BuildKeys, sourceLookup, keyType),
                         hashSides.Build.Variable,
                         keyType,
-                        hashSides.Build.Variable.Type,
+                        hashSides.Build.Variable.Type.ClrType,
                         hashSides.Build.Variable.GeneratedRowTypeName)
                 ]));
             setup.Add(new ExecutionCreateHash(
                 hash,
                 keyType,
-                hashSides.Build.Variable.Type,
+                hashSides.Build.Variable.Type.ClrType,
                 CreateHashCapacityCandidate(hash, hashSides.Build),
                 hashSides.Build.Variable.GeneratedRowTypeName));
             setup.Add(buildLoop);
@@ -117,7 +117,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     hash,
                     matches,
                     CreateHashJoinKeyExpression(join.ProbeKeys, sourceLookup, keyType),
-                    keyType,
+                    ExecutionTypeRef.FromClr(keyType),
                     hashSides.Build.Variable.Type,
                     new ExecutionBlock([matchesLoop]),
                     GeneratedRowTypeName: hashSides.Build.Variable.GeneratedRowTypeName);

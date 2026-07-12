@@ -960,7 +960,11 @@ public sealed partial class ExecutionCSharpRendererTests
             new ExecutionBlock(
             [
                 new ExecutionCreateTable(resultTable, resultShape),
-                new ExecutionCreateHash(hash, typeof(string), typeof(object), GeneratedRowTypeName: payloadShape.TypeName),
+                new ExecutionCreateHash(
+                    hash,
+                    ExecutionTypeRef.FromClr(typeof(string)),
+                    ExecutionTypeRef.FromClr(typeof(object)),
+                    GeneratedRowTypeName: payloadShape.TypeName),
                 new ExecutionForEach(
                     b,
                     new ExecutionVariableRead(rows),

@@ -9,5 +9,18 @@ public sealed record ExecutionSetOperation(
     ExecutionVariable Right,
     SetOpKind Kind,
     IReadOnlyList<int> FieldIndexes,
-    IReadOnlyList<Type> FieldTypes,
-    ExecutionSetOperationStrategy Strategy = ExecutionSetOperationStrategy.GeneratedEqualityLoop) : ExecutionNode;
+    IReadOnlyList<ExecutionTypeRef> FieldTypes,
+    ExecutionSetOperationStrategy Strategy = ExecutionSetOperationStrategy.GeneratedEqualityLoop) : ExecutionNode
+{
+    internal ExecutionSetOperation(
+        ExecutionVariable target,
+        ExecutionVariable left,
+        ExecutionVariable right,
+        SetOpKind kind,
+        IReadOnlyList<int> fieldIndexes,
+        IReadOnlyList<Type> fieldTypes,
+        ExecutionSetOperationStrategy strategy = ExecutionSetOperationStrategy.GeneratedEqualityLoop)
+        : this(target, left, right, kind, fieldIndexes, ExecutionTypeRef.FromClrTypes(fieldTypes), strategy)
+    {
+    }
+}

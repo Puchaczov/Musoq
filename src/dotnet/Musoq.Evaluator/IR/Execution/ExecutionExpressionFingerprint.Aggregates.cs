@@ -68,35 +68,13 @@ internal static partial class ExecutionExpressionFingerprint
             ExecutionAggregateCall aggregateCall => AggregateCall(aggregateCall, parallelAggregate),
             ExecutionGroupKeyRead groupKeyRead => $"group-key:{ForAggregateVariable(groupKeyRead.Group, parallelAggregate)}:{groupKeyRead.Key?.FieldName ?? groupKeyRead.KeyName}:{ForAggregateType(groupKeyRead.ReturnType)}",
             ExecutionAggregateCapturedValueRead capturedValueRead => $"captured-read:{ForAggregateVariable(capturedValueRead.Group, parallelAggregate)}:{capturedValueRead.CapturedField.FieldName}:{ForAggregateType(capturedValueRead.ReturnType)}",
-            ExecutionRawExpression rawExpression => $"raw:{rawExpression.Expression}",
+            ExecutionAggregateResultRef aggregateRef => $"aggregate-ref:{aggregateRef.Identifier}:{aggregateRef.ReturnType.StableId}",
+            ExecutionWindowResultRef windowRef => $"window-ref:{windowRef.WindowIndex}:{windowRef.ReturnType.StableId}",
             _ => $"{expression.GetType().FullName}:{expression}"
         };
     }
 
-    internal static string ForAggregateMethod(MethodInfo method)
-    {
-        var builder = new StringBuilder();
-        builder
-            .Append(method.DeclaringType is null ? string.Empty : ForAggregateType(method.DeclaringType))
-            .Append('.')
-            .Append(method.Name)
-            .Append('`')
-            .Append(method.GetGenericArguments().Length.ToString(CultureInfo.InvariantCulture))
-            .Append('(');
-
-        foreach (var parameter in method.GetParameters())
-        {
-            builder
-                .Append(ForAggregateType(parameter.ParameterType))
-                .Append(',');
-        }
-
-        builder
-            .Append("):")
-            .Append(ForAggregateType(method.ReturnType));
-
-        return builder.ToString();
-    }
+    internal static string ForAggregateMethod(ExecutionCallableRef method) => method.StableId;
 
     internal static string ForAggregateType(Type type)
     {
@@ -194,7 +172,7 @@ internal static partial class ExecutionExpressionFingerprint
     private static string AggregateSequence(
         string kind,
         IEnumerable<ExecutionExpression> expressions,
-        Type returnType,
+        ExecutionTypeRef returnType,
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
     {
         var builder = new StringBuilder();
@@ -223,11 +201,11 @@ internal static partial class ExecutionExpressionFingerprint
     }
 
     private static string NormalizeLiteralValue(
-        object? value,
+        ExecutionConstantValue value,
         ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
     {
-        if (value is not string text)
-            return value?.ToString() ?? "<null>";
+        if (value.ToClrValue() is not string text)
+            return value.ToString();
 
         if (!text.Contains('(', StringComparison.Ordinal))
             return text;

@@ -8,5 +8,15 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionGroupKeyRead(
     ExecutionVariable Group,
     string KeyName,
-    Type ReturnType,
-    AggregateGroupKeyField? Key = null) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType,
+    AggregateGroupKeyField? Key = null) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionGroupKeyRead(
+        ExecutionVariable group,
+        string keyName,
+        Type returnType,
+        AggregateGroupKeyField? key = null)
+        : this(group, keyName, ExecutionTypeRef.FromClr(returnType), key)
+    {
+    }
+}

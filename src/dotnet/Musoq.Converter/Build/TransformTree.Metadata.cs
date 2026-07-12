@@ -8,24 +8,6 @@ namespace Musoq.Converter.Build;
 
 public partial class TransformTree
 {
-    private static string SanitizeNameForNamespace(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            return "Query.Compiled";
-
-        var chars = name.ToCharArray();
-        for (var i = 0; i < chars.Length; i++)
-        {
-            if (!char.IsLetterOrDigit(chars[i]) && chars[i] != '.' && chars[i] != '_')
-                chars[i] = '_';
-        }
-
-        if (char.IsDigit(chars[0]))
-            return $"_{new string(chars)}";
-
-        return new string(chars);
-    }
-
     private static SemanticBuildArtifacts BuildSemanticArtifacts(
         RootNode transformedQueryTree,
         BuildMetadataAndInferTypesVisitor metadata,

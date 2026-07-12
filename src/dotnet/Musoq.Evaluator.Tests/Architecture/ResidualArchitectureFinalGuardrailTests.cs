@@ -83,7 +83,7 @@ public sealed class ResidualArchitectureFinalGuardrailTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var codegenFiles = RepositorySourceScan.FilesUnder(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/CodeGeneration",
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/CodeGeneration",
             "*.cs");
 
         string[] forbidden =

@@ -13,7 +13,7 @@ public sealed class ResidualArchitectureWave3GuardrailTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var entryPointsFile = Path.Combine(
             repositoryRoot,
-            "src", "dotnet", "Musoq.Evaluator", "IR", "Execution", "ExecutionCSharpRenderer.EntryPoints.cs");
+            "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution", "ExecutionCSharpRenderer.EntryPoints.cs");
         var text = File.ReadAllText(entryPointsFile);
 
         Assert.IsFalse(
@@ -27,7 +27,7 @@ public sealed class ResidualArchitectureWave3GuardrailTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var dispatchFile = Path.Combine(
             repositoryRoot,
-            "src", "dotnet", "Musoq.Evaluator", "IR", "Execution", "ExecutionCSharpRenderer.NodeDispatch.cs");
+            "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution", "ExecutionCSharpRenderer.NodeDispatch.cs");
         var text = File.ReadAllText(dispatchFile);
 
         Assert.Contains("RenderNode(ExecutionNode node, ExecutionRenderContext context)", text);

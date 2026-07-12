@@ -93,11 +93,11 @@ public static partial class ExecutionExpressionConverter
             Coalesce coalesce => new ExecutionCoalesce(
                 coalesce.Expressions.Select(value => Convert(value, sourceShapes, cteTableIndexes, methodTargets)).ToArray(),
                 coalesce.ReturnType),
-            CteTableRef cteTableRef when cteTableIndexes != null &&
-                                      cteTableIndexes.TryGetValue(cteTableRef.Name, out var tableIndex) =>
-                new ExecutionStoredTable(tableIndex),
-            _ => new ExecutionRawExpression(expression)
+            AggregateRef aggregateRef => new ExecutionAggregateResultRef(aggregateRef.Identifier, aggregateRef.DisplayName, aggregateRef.ReturnType),
+            WindowFunctionRef windowRef => new ExecutionWindowResultRef(windowRef.WindowIndex, windowRef.ReturnType),
+            CteTableRef cteTableRef when cteTableIndexes?.TryGetValue(cteTableRef.Name, out var tableIndex) == true => new ExecutionStoredTable(tableIndex),
+            CteTableRef cteTableRef => throw Unsupported(expression, $"CTE table '{cteTableRef.Name}' requires a registered table index"),
+            _ => throw Unsupported(expression, "no execution expression lowering is registered")
         };
     }
-
 }

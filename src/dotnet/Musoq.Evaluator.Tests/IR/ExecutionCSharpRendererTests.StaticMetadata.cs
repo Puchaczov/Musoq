@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
-using ExecutionCSharpRenderer = Musoq.Evaluator.IR.Execution.ExecutionCSharpRenderer;
+using ExecutionCSharpRenderer = Musoq.Targets.CSharpClr.ExecutionCSharpRenderer;
 
 namespace Musoq.Evaluator.Tests.IR;
 
@@ -26,7 +26,7 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.IsNotNull(converted.ConstantSet);
         Assert.AreEqual(ExecutionConstantInSetKind.Array, converted.ConstantSet.Kind);
-        Assert.AreEqual(typeof(string), converted.ConstantSet.ElementType);
+        Assert.AreEqual(typeof(string), converted.ConstantSet.ElementType.ClrType);
         Assert.HasCount(3, converted.ConstantSet.Values);
     }
 
@@ -45,7 +45,7 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.IsNotNull(converted.ConstantSet);
         Assert.AreEqual(ExecutionConstantInSetKind.Switch, converted.ConstantSet.Kind);
-        Assert.AreEqual(typeof(string), converted.ConstantSet.ElementType);
+        Assert.AreEqual(typeof(string), converted.ConstantSet.ElementType.ClrType);
         Assert.HasCount(20, converted.ConstantSet.Values);
     }
 
@@ -64,7 +64,7 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.IsNotNull(converted.ConstantSet);
         Assert.AreEqual(ExecutionConstantInSetKind.FrozenSet, converted.ConstantSet.Kind);
-        Assert.AreEqual(typeof(string), converted.ConstantSet.ElementType);
+        Assert.AreEqual(typeof(string), converted.ConstantSet.ElementType.ClrType);
         Assert.HasCount(64, converted.ConstantSet.Values);
     }
 

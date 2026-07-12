@@ -14,7 +14,7 @@ public sealed class ResidualArchitectureWave15GuardrailTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var files = RepositorySourceScan.FilesUnder(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/CodeGeneration",
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/CodeGeneration",
             "*.cs");
 
         string[] forbiddenMarkers =

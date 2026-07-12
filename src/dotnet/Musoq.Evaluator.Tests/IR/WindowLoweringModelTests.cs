@@ -75,7 +75,7 @@ public sealed class WindowLoweringModelTests
         Assert.AreSame(offset, success.Offset);
         Assert.AreSame(defaultValue, success.DefaultValue);
         Assert.IsFalse(unsupported.Supported);
-        Assert.AreEqual(typeof(object), unsupported.Value.ReturnType);
+        Assert.AreEqual(typeof(object), unsupported.Value.ReturnType.ClrType);
         Assert.AreEqual("bad offset", unsupported.UnsupportedReason);
     }
 

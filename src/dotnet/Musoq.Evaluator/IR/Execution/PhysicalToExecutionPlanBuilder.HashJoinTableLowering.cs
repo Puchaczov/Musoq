@@ -29,7 +29,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 sidecar.IndexSlot,
                 ExecutionCteSidecarIndexKind.Hash,
                 context.KeyType,
-                context.Sides.Build.Variable.Type,
+                context.Sides.Build.Variable.Type.ClrType,
                 context.Sides.Build.Variable.GeneratedRowTypeName));
         }
         else
@@ -38,7 +38,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             nodes.Add(new ExecutionCreateHash(
                 context.Hash,
                 context.KeyType,
-                context.Sides.Build.Variable.Type,
+                context.Sides.Build.Variable.Type.ClrType,
                 CreateHashCapacityCandidate(context.Hash, context.Sides.Build),
                 context.Sides.Build.Variable.GeneratedRowTypeName));
             nodes.Add(buildLoop);
@@ -71,7 +71,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                     context.Matches,
                     CreateHashJoinKeyExpression(context.Join.ProbeKeys, context.ConversionLookup, context.KeyType),
                     context.KeyType,
-                    context.Sides.Build.Variable.Type,
+                    context.Sides.Build.Variable.Type.ClrType,
                     new ExecutionBlock([matchesLoop]),
                     lowering.NoMatchBody,
                     lowering.HasMatch,

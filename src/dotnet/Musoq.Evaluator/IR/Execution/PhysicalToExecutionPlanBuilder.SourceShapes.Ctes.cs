@@ -27,6 +27,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     private static bool CanUseTypedStoredRows(GeneratedRowShape rowShape)
     {
         return rowShape.SupportsGeneratedFieldAccess &&
-               !rowShape.Contexts.Any(static context => DynamicEntityBoundary.IsStringObjectDictionaryContext(context.Type));
+               !rowShape.Contexts.Any(static context => DynamicEntityBoundary.IsStringObjectDictionaryContext(context.Type.ClrType));
     }
 }

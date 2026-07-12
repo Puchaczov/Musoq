@@ -14,10 +14,10 @@ public static partial class ExecutionPlanPrinter
         if (aggregateCall.Arguments.Count == 0 &&
             aggregateCall.Accumulator is { Identifier.Length: > 0 } accumulator)
         {
-            return $"{aggregateCall.Method.Name}('{accumulator.Identifier}')";
+            return $"{aggregateCall.Method.MethodName}('{accumulator.Identifier}')";
         }
 
-        return $"{aggregateCall.Method.Name}({FormatAggregateArguments(aggregateCall.Arguments)})";
+        return $"{aggregateCall.Method.MethodName}({FormatAggregateArguments(aggregateCall.Arguments)})";
     }
 
     private static string FormatTypedAggregateSet(ExecutionAggregateSet aggregateSet)
@@ -84,7 +84,7 @@ public static partial class ExecutionPlanPrinter
         return $"({string.Join(", ", expressions.Select(FormatExpression))})";
     }
 
-    private static string FormatTupleType(IReadOnlyList<Type> types)
+    private static string FormatTupleType(IReadOnlyList<ExecutionTypeRef> types)
     {
         return $"({string.Join(", ", types.Select(FormatType))})";
     }

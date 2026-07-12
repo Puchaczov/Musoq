@@ -8,5 +8,15 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionAggregateCapturedValueRead(
     ExecutionVariable Group,
     string ValueName,
-    Type ReturnType,
-    AggregateCapturedField CapturedField) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType,
+    AggregateCapturedField CapturedField) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionAggregateCapturedValueRead(
+        ExecutionVariable group,
+        string valueName,
+        Type returnType,
+        AggregateCapturedField capturedField)
+        : this(group, valueName, ExecutionTypeRef.FromClr(returnType), capturedField)
+    {
+    }
+}

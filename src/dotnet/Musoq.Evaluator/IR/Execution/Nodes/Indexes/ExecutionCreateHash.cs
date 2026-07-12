@@ -6,7 +6,23 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionCreateHash(
     ExecutionVariable Hash,
-    Type KeyType,
-    Type RowType,
+    ExecutionTypeRef KeyType,
+    ExecutionTypeRef RowType,
     ExecutionCapacityHint? CapacityHint = null,
-    string? GeneratedRowTypeName = null) : ExecutionNode;
+    string? GeneratedRowTypeName = null) : ExecutionNode
+{
+    internal ExecutionCreateHash(
+        ExecutionVariable hash,
+        Type keyType,
+        Type rowType,
+        ExecutionCapacityHint? capacityHint = null,
+        string? generatedRowTypeName = null)
+        : this(
+            hash,
+            ExecutionTypeRef.FromClr(keyType),
+            ExecutionTypeRef.FromClr(rowType),
+            capacityHint,
+            generatedRowTypeName)
+    {
+    }
+}

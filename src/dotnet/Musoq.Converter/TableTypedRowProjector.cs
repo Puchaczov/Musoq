@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using Musoq.Evaluator.Tables;
@@ -10,15 +11,18 @@ namespace Musoq.Converter;
 internal sealed class TableTypedRowProjector<TOut>
 {
     private readonly ConstructorInfo? _constructor;
+    private readonly Func<TOut>? _createDefault;
     private readonly TypedOutputConstructorBinding[] _constructorBindings;
     private readonly MemberBinding[] _memberBindings;
 
     private TableTypedRowProjector(
         ConstructorInfo? constructor,
+        Func<TOut>? createDefault,
         TypedOutputConstructorBinding[] constructorBindings,
         MemberBinding[] memberBindings)
     {
         _constructor = constructor;
+        _createDefault = createDefault;
         _constructorBindings = constructorBindings;
         _memberBindings = memberBindings;
     }
@@ -35,6 +39,7 @@ internal sealed class TableTypedRowProjector<TOut>
 
         return new TableTypedRowProjector<TOut>(
             plan.Constructor,
+            CreateDefaultFactory(plan.Constructor),
             plan.ConstructorBindings.ToArray(),
             plan.MemberBindings
                 .Select(static binding => new MemberBinding(
@@ -69,8 +74,11 @@ internal sealed class TableTypedRowProjector<TOut>
             }
         }
 
-        var output = Activator.CreateInstance<TOut>() ??
-                     throw new InvalidOperationException($"Could not create typed output '{typeof(TOut).FullName}'.");
+        var output = (_createDefault ?? throw new InvalidOperationException(
+            $"Could not create typed output '{typeof(TOut).FullName}'.")).Invoke();
+        if (output == null)
+            throw new InvalidOperationException($"Could not create typed output '{typeof(TOut).FullName}'.");
+
         foreach (var binding in _memberBindings)
         {
             var value = ReadValue(row, binding.Column, binding.TargetType);
@@ -95,6 +103,27 @@ internal sealed class TableTypedRowProjector<TOut>
             return value;
 
         return value;
+    }
+
+    private static Func<TOut>? CreateDefaultFactory(ConstructorInfo? constructor)
+    {
+        if (constructor != null)
+            return null;
+
+        NewExpression create;
+        if (typeof(TOut).IsValueType)
+        {
+            create = Expression.New(typeof(TOut));
+        }
+        else
+        {
+            var defaultConstructor = typeof(TOut).GetConstructor(Type.EmptyTypes) ??
+                                     throw new InvalidOperationException(
+                                         $"Could not create typed output '{typeof(TOut).FullName}'.");
+            create = Expression.New(defaultConstructor);
+        }
+
+        return Expression.Lambda<Func<TOut>>(create).Compile();
     }
 
     private static Action<TOut, object?> CreateSetter(MemberInfo member)

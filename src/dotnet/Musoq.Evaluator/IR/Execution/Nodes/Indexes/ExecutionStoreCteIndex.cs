@@ -4,4 +4,22 @@ using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.IR.Execution;
 
-public sealed record ExecutionStoreCteIndex(ExecutionVariable Index, int IndexSlot, ExecutionCteSidecarIndexKind Kind, Type KeyType, Type? RowType = null, string? GeneratedRowTypeName = null) : ExecutionNode;
+public sealed record ExecutionStoreCteIndex(
+    ExecutionVariable Index,
+    int IndexSlot,
+    ExecutionCteSidecarIndexKind Kind,
+    ExecutionTypeRef KeyType,
+    ExecutionTypeRef? RowType = null,
+    string? GeneratedRowTypeName = null) : ExecutionNode
+{
+    internal ExecutionStoreCteIndex(
+        ExecutionVariable index,
+        int indexSlot,
+        ExecutionCteSidecarIndexKind kind,
+        Type keyType,
+        Type? rowType = null,
+        string? generatedRowTypeName = null)
+        : this(index, indexSlot, kind, ExecutionTypeRef.FromClr(keyType), ExecutionTypeRef.FromOptionalClr(rowType), generatedRowTypeName)
+    {
+    }
+}

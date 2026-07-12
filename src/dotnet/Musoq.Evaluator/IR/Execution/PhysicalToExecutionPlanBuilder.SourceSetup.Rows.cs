@@ -74,8 +74,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             return ExecutionEnumerableChunkMode.DirectScalar;
 
         return sourceShape is SourceEntityShape { EntityType: not null } source &&
-               source.EntityType != typeof(object) &&
-               RowShapeLookup.CanReferenceType(source.EntityType) &&
+               source.EntityType.ClrType != typeof(object) &&
+               RowShapeLookup.CanReferenceType(source.EntityType.ClrType) &&
                !RowShapeLookup.UsesReflectedMemberAccess(source)
             ? ExecutionEnumerableChunkMode.Direct
             : ExecutionEnumerableChunkMode.ObjectOrReflected;

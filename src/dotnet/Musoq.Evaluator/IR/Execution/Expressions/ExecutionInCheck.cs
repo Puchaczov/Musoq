@@ -8,5 +8,15 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionInCheck(
     ExecutionExpression Expression,
     IReadOnlyList<ExecutionExpression> Values,
-    Type ReturnType,
-    ExecutionConstantInSet? ConstantSet = null) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType,
+    ExecutionConstantInSet? ConstantSet = null) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionInCheck(
+        ExecutionExpression expression,
+        IReadOnlyList<ExecutionExpression> values,
+        Type returnType,
+        ExecutionConstantInSet? constantSet = null)
+        : this(expression, values, ExecutionTypeRef.FromClr(returnType), constantSet)
+    {
+    }
+}

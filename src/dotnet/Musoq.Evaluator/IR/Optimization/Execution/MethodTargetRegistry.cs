@@ -18,8 +18,8 @@ internal sealed class MethodTargetRegistry(string namePrefix, MethodTargetRegist
     public void AddExisting(ExecutionVariable variable)
     {
         _usedNames.Add(variable.Name);
-        if (typeof(Musoq.Plugins.LibraryBase).IsAssignableFrom(variable.Type))
-            _variables.TryAdd(variable.Type, variable);
+        if (typeof(Musoq.Plugins.LibraryBase).IsAssignableFrom(variable.Type.ClrType))
+            _variables.TryAdd(variable.Type.ClrType, variable);
     }
 
     public void ForgetReusableTargets()
@@ -52,13 +52,14 @@ internal sealed class MethodTargetRegistry(string namePrefix, MethodTargetRegist
     }
     public ExecutionVariable? GetOrAddCache(ExecutionMethodCall method, ExecutionVariable target)
     {
-        var keyType = method.Arguments[0].ReturnType;
-        var cacheKey = new MethodCacheKey(method.Method, keyType, method.ReturnType);
+        var keyType = method.Arguments[0].ReturnType.ClrType;
+        var valueType = method.ReturnType.ClrType;
+        var cacheKey = new MethodCacheKey(method.Method.ClrMethod, keyType, valueType);
         if (_caches.TryGetValue(cacheKey, out var cache))
             return cache;
-        var cacheType = typeof(ConcurrentDictionary<,>).MakeGenericType(keyType, method.ReturnType);
+        var cacheType = typeof(ConcurrentDictionary<,>).MakeGenericType(keyType, valueType);
         cache = new ExecutionVariable(
-            CreateUniqueName($"__{CreateCacheNamePrefix(target)}{method.Method.Name}Cache{_caches.Count.ToString(CultureInfo.InvariantCulture)}"),
+            CreateUniqueName($"__{CreateCacheNamePrefix(target)}{method.Method.MethodName}Cache{_caches.Count.ToString(CultureInfo.InvariantCulture)}"),
             cacheType);
         _caches.Add(cacheKey, cache);
         return cache;

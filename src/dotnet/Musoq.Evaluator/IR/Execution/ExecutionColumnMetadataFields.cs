@@ -10,4 +10,10 @@ internal static class ExecutionColumnMetadataFields
             field.ColumnType,
             field.ReadModifiers);
     }
+
+    public static Type RequireClrTypeForLegacyCodeGeneration(ExecutionColumnMetadataField field)
+    {
+        ArgumentNullException.ThrowIfNull(field);
+        return field.Type.ClrType;
+    }
 }

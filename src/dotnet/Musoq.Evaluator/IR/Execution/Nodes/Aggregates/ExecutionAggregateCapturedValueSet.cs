@@ -7,5 +7,16 @@ public sealed record ExecutionAggregateCapturedValueSet(
     ExecutionVariable Group,
     string ValueName,
     ExecutionExpression Value,
-    Type ValueType,
-    AggregateCapturedField CapturedField) : ExecutionNode;
+    ExecutionTypeRef ValueType,
+    AggregateCapturedField CapturedField) : ExecutionNode
+{
+    internal ExecutionAggregateCapturedValueSet(
+        ExecutionVariable group,
+        string valueName,
+        ExecutionExpression value,
+        Type valueType,
+        AggregateCapturedField capturedField)
+        : this(group, valueName, value, ExecutionTypeRef.FromClr(valueType), capturedField)
+    {
+    }
+}

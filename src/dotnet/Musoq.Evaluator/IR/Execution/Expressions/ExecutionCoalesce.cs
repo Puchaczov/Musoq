@@ -7,4 +7,10 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionCoalesce(
     IReadOnlyList<ExecutionExpression> Expressions,
-    Type ReturnType) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionCoalesce(IReadOnlyList<ExecutionExpression> expressions, Type returnType)
+        : this(expressions, ExecutionTypeRef.FromClr(returnType))
+    {
+    }
+}

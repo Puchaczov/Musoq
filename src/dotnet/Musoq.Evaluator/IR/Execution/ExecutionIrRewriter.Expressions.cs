@@ -43,10 +43,11 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionValueTupleKey valueTupleKey => RewriteValueTupleKey(valueTupleKey),
             ExecutionWindowValueRead windowValueRead => RewriteWindowValueRead(windowValueRead),
             ExecutionAggregateCall aggregateCall => RewriteAggregateCall(aggregateCall),
+            ExecutionAggregateResultRef aggregateResultRef => RewriteAggregateResultRef(aggregateResultRef),
+            ExecutionWindowResultRef windowResultRef => RewriteWindowResultRef(windowResultRef),
             ExecutionGroupKeyRead groupKeyRead => RewriteGroupKeyRead(groupKeyRead),
             ExecutionAggregateCapturedValueRead capturedValueRead => RewriteAggregateCapturedValueRead(capturedValueRead),
-            ExecutionRawExpression rawExpression => RewriteRawExpression(rawExpression),
-            _ => expression
+            _ => throw new NotSupportedException($"Execution expression rewriter has no handler for '{expression.GetType().FullName}'.")
         };
     }
 
@@ -216,5 +217,7 @@ internal abstract partial class ExecutionIrRewriter
 
     protected virtual ExecutionExpression RewriteAggregateCapturedValueRead(ExecutionAggregateCapturedValueRead expression) => expression;
 
-    protected virtual ExecutionExpression RewriteRawExpression(ExecutionRawExpression expression) => expression;
+    protected virtual ExecutionExpression RewriteAggregateResultRef(ExecutionAggregateResultRef expression) => expression;
+
+    protected virtual ExecutionExpression RewriteWindowResultRef(ExecutionWindowResultRef expression) => expression;
 }

@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Planning;
-using AliasRefExtractor = Musoq.Evaluator.IR.Expressions.AliasRefExtractor;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -112,7 +111,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             ExecutionCompositeKey key => key.Parts.All(part => TryCollectExecutionExpressionAliases(part, aliases)),
             ExecutionValueTupleKey key => key.Parts.All(part => TryCollectExecutionExpressionAliases(part, aliases)),
             ExecutionAggregateCall aggregate => aggregate.Arguments.All(argument => TryCollectExecutionExpressionAliases(argument, aliases)),
-            ExecutionRawExpression raw => TryCollectRawExpressionAliases(raw.Expression, aliases),
             _ => true
         };
     }
@@ -132,19 +130,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             return false;
 
         aliases.Add(rowPresence.Alias);
-        return true;
-    }
-
-    private static bool TryCollectRawExpressionAliases(IrExpression expression, ISet<string> aliases)
-    {
-        foreach (var alias in AliasRefExtractor.Extract(expression))
-        {
-            if (string.IsNullOrWhiteSpace(alias))
-                return false;
-
-            aliases.Add(alias);
-        }
-
         return true;
     }
 

@@ -11,6 +11,12 @@ public partial class BuildItems
         set => SetRequired(BuildItemKeys.QueryResultMode, value);
     }
 
+    internal ExecutionTargetId ExecutionTarget
+    {
+        get => GetValueOrDefault(BuildItemKeys.ExecutionTarget, ExecutionTargetIds.CSharpClr);
+        set => SetRequired(BuildItemKeys.ExecutionTarget, value);
+    }
+
     public QueryMethodRenderMetadata QueryMethodRenderMetadata
     {
         get => GetValueOrDefault(BuildItemKeys.QueryMethodRenderMetadata, QueryMethodRenderMetadata.Unknown);

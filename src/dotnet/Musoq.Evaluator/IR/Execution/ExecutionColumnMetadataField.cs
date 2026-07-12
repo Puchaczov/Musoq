@@ -8,7 +8,7 @@ public sealed record ExecutionColumnMetadataField
     public ExecutionColumnMetadataField(
         string name,
         int index,
-        Type type,
+        ExecutionTypeRef type,
         IReadOnlyDictionary<string, string>? readModifiers = null)
     {
         Name = name;
@@ -17,11 +17,20 @@ public sealed record ExecutionColumnMetadataField
         ReadModifiers = ColumnReadModifiers.Create(readModifiers);
     }
 
+    internal ExecutionColumnMetadataField(
+        string name,
+        int index,
+        Type type,
+        IReadOnlyDictionary<string, string>? readModifiers = null)
+        : this(name, index, ExecutionTypeRef.FromClr(type), readModifiers)
+    {
+    }
+
     public string Name { get; init; }
 
     public int Index { get; init; }
 
-    public Type Type { get; init; }
+    public ExecutionTypeRef Type { get; init; }
 
     public IReadOnlyDictionary<string, string> ReadModifiers { get; init; }
 }

@@ -230,7 +230,7 @@ public sealed class ExpressionCseHoistingPassTests
         var let = (ExecutionLet)result.Plan.Body.Nodes[0];
 
         Assert.AreEqual(expression, let.Value);
-        Assert.AreEqual(typeof(int), let.Variable.Type);
+        Assert.AreEqual(typeof(int), let.Variable.Type.ClrType);
     }
 
     [TestMethod]

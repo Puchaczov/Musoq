@@ -3,15 +3,55 @@
     <TargetFramework>net10.0</TargetFramework>
     <Version>$(MusoqConverterVersion)</Version>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeBundledTargetAssemblies</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificDebugSymbolsInPackage>$(TargetsForTfmSpecificDebugSymbolsInPackage);IncludeBundledTargetAssemblySymbols</TargetsForTfmSpecificDebugSymbolsInPackage>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Musoq.Targets.Abstractions\Musoq.Targets.Abstractions.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\Musoq.Targets.Execution\Musoq.Targets.Execution.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\Musoq.Targets.Execution.Analysis\Musoq.Targets.Execution.Analysis.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\Musoq.Targets.CSharpClr\Musoq.Targets.CSharpClr.csproj" PrivateAssets="All" />
     <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
     <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <BundledTargetAssembly Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.Abstractions\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.Abstractions.dll" />
+    <BundledTargetAssembly Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.Execution\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.Execution.dll" />
+    <BundledTargetAssembly Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.Execution.Analysis\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.Execution.Analysis.dll" />
+    <BundledTargetAssembly Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.CSharpClr\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.CSharpClr.dll" />
+    <BundledTargetDocumentation Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.Abstractions\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.Abstractions.xml" />
+    <BundledTargetDocumentation Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.Execution\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.Execution.xml" />
+    <BundledTargetDocumentation Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.Execution.Analysis\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.Execution.Analysis.xml" />
+    <BundledTargetDocumentation Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.CSharpClr\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.CSharpClr.xml" />
+    <BundledTargetSymbol Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.Abstractions\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.Abstractions.pdb" />
+    <BundledTargetSymbol Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.Execution\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.Execution.pdb" />
+    <BundledTargetSymbol Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.Execution.Analysis\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.Execution.Analysis.pdb" />
+    <BundledTargetSymbol Include="$(MSBuildProjectDirectory)\..\Musoq.Targets.CSharpClr\bin\$(Configuration)\$(TargetFramework)\Musoq.Targets.CSharpClr.pdb" />
+  </ItemGroup>
+  <Target Name="IncludeBundledTargetAssemblies">
+    <Error Condition="!Exists('%(BundledTargetAssembly.FullPath)')"
+           Text="Expected bundled target assembly '%(BundledTargetAssembly.FullPath)' was not built." />
+    <Error Condition="!Exists('%(BundledTargetDocumentation.FullPath)')"
+           Text="Expected bundled target documentation '%(BundledTargetDocumentation.FullPath)' was not built." />
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(BundledTargetAssembly)" />
+      <BuildOutputInPackage Include="@(BundledTargetDocumentation)" />
+    </ItemGroup>
+  </Target>
+  <Target Name="IncludeBundledTargetAssemblySymbols">
+    <Error Condition="!Exists('%(BundledTargetSymbol.FullPath)')"
+           Text="Expected bundled target symbols '%(BundledTargetSymbol.FullPath)' were not built." />
+    <ItemGroup>
+      <TfmSpecificDebugSymbolsFile Include="@(BundledTargetSymbol)">
+        <TargetFramework>$(TargetFramework)</TargetFramework>
+      </TfmSpecificDebugSymbolsFile>
+    </ItemGroup>
+  </Target>
   <ItemGroup>
     <InternalsVisibleTo Include="Musoq.Converter.Tests" />
   </ItemGroup>

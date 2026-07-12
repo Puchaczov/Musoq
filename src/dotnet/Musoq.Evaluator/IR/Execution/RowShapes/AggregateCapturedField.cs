@@ -7,4 +7,10 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record AggregateCapturedField(
     string Name,
     string FieldName,
-    Type Type);
+    ExecutionTypeRef Type)
+{
+    internal AggregateCapturedField(string name, string fieldName, Type type)
+        : this(name, fieldName, ExecutionTypeRef.FromClr(type))
+    {
+    }
+}

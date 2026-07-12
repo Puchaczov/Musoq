@@ -8,4 +8,10 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionUnary(
     UnaryOpKind Kind,
     ExecutionExpression Operand,
-    Type ReturnType) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionUnary(UnaryOpKind kind, ExecutionExpression operand, Type returnType)
+        : this(kind, operand, ExecutionTypeRef.FromClr(returnType))
+    {
+    }
+}

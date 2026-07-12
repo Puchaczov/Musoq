@@ -8,5 +8,16 @@ public sealed record ExecutionRangeProbe(
     ExecutionVariable Match,
     ExecutionVariable Index,
     ExecutionExpression ProbeKey,
-    Type KeyType,
-    ExecutionBlock Body) : ExecutionNode;
+    ExecutionTypeRef KeyType,
+    ExecutionBlock Body) : ExecutionNode
+{
+    internal ExecutionRangeProbe(
+        ExecutionVariable match,
+        ExecutionVariable index,
+        ExecutionExpression probeKey,
+        Type keyType,
+        ExecutionBlock body)
+        : this(match, index, probeKey, ExecutionTypeRef.FromClr(keyType), body)
+    {
+    }
+}

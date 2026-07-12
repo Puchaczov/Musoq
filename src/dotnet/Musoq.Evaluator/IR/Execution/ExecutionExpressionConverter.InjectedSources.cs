@@ -48,7 +48,7 @@ public static partial class ExecutionExpressionConverter
     {
         if (sourceShapes.TryGetValue(alias, out var expandoShape) &&
             expandoShape is ExpandoAdapterShape expando &&
-            CanUseSourceType(expando.RuntimeType, parameterType))
+            CanUseSourceType(expando.RuntimeType.ClrType, parameterType))
         {
             return new ExecutionVariableRead(new ExecutionVariable(
                 CreateResolverVariableName(alias),
@@ -86,7 +86,7 @@ public static partial class ExecutionExpressionConverter
     {
         if (shape is ExpandoAdapterShape expando)
         {
-            if (CanUseSourceType(expando.RuntimeType, parameterType))
+            if (CanUseSourceType(expando.RuntimeType.ClrType, parameterType))
             {
                 yield return new ExecutionVariableRead(new ExecutionVariable(
                     CreateResolverVariableName(expando.Alias),
@@ -131,7 +131,7 @@ public static partial class ExecutionExpressionConverter
     private static bool CanUseContextBinding(FieldBinding context, Type parameterType)
     {
         return context.AccessStrategy is ContextAccess or GeneratedFieldAccess or GeneratedRowContextAccess &&
-               CanUseSourceType(context.Type, parameterType);
+               CanUseSourceType(context.Type.ClrType, parameterType);
     }
 
     private static bool CanUseSourceType(Type sourceType, Type parameterType)

@@ -195,7 +195,7 @@ public sealed partial class RuntimeTestabilityGuardrailTests
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var rendererFiles = RepositorySourceScan
-            .ProductionSourceFiles(repositoryRoot, "Musoq.Evaluator")
+            .ProductionSourceFiles(repositoryRoot, "Musoq.Targets.CSharpClr")
             .Where(static file => Path.GetFileName(file).Contains("Renderer", StringComparison.Ordinal))
             .ToArray();
         string[] forbiddenMarkers =
@@ -226,7 +226,7 @@ public sealed partial class RuntimeTestabilityGuardrailTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var dispatchFile = Path.Combine(
             repositoryRoot,
-            "src", "dotnet", "Musoq.Evaluator", "IR", "Execution", "ExecutionCSharpRenderer.NodeDispatch.cs");
+            "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution", "ExecutionCSharpRenderer.NodeDispatch.cs");
         var dispatchText = File.ReadAllText(dispatchFile);
         var concreteNodeMentions = ExecutionNodeRegistry.Descriptors
             .Select(static descriptor => descriptor.NodeType.Name)

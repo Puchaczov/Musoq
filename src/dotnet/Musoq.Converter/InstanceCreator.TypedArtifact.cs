@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using Musoq.Converter.Build;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Schema;
+using Musoq.Targets.CSharpClr;
 
 namespace Musoq.Converter;
 
@@ -115,12 +116,11 @@ public static partial class InstanceCreator
                 $"Typed query artifact output type '{artifact.OutputType.FullName}' cannot be loaded as '{typeof(TOut).FullName}'.");
         }
 
-        var assembly = pdbFile is { Length: > 0 }
-            ? Assembly.Load(dllFile, pdbFile)
-            : Assembly.Load(dllFile);
-        var runnableType = assembly.GetType(artifact.RunnableTypeName);
-        if (runnableType == null)
-            throw new InvalidOperationException($"Type {artifact.RunnableTypeName} was not found in artifact assembly {assembly.FullName}.");
+        var runnableType = RequireClrActivator(ExecutionTargetIds.CSharpClr)
+            .LoadRunnableType(CSharpClrArtifactCompatibility.CreateAssemblyExecutable(
+                dllFile,
+                pdbFile,
+                artifact.RunnableTypeName));
 
         var product = CreateTypedBuildProduct(artifact, runnableType);
         return CreateTypedRunnableFactory<TOut>(product, loggerResolver);

@@ -61,7 +61,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         var rendererFiles = Directory
             .EnumerateFiles(
-                Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"),
+                Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"),
                 "ExecutionCSharpRenderer*.cs")
             .ToArray();
         string[] markers =
@@ -117,7 +117,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         var rendererFiles = Directory
             .EnumerateFiles(
-                Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"),
+                Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"),
                 "ExecutionCSharpRenderer*.cs")
             .ToArray();
         string[] markers =
@@ -141,8 +141,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         var allowedPaths = new HashSet<string>(StringComparer.Ordinal)
         {
-            "src/dotnet/Musoq.Evaluator/IR/Optimization/Codegen/HelperExtractionReadabilityPass.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Optimization/Codegen/HelperExtractionReadabilityApproval.cs"
+            "src/dotnet/Musoq.Targets.CSharpClr/Optimization/Codegen/HelperExtractionReadabilityPass.cs",
+            "src/dotnet/Musoq.Targets.CSharpClr/Optimization/Codegen/HelperExtractionReadabilityApproval.cs"
         };
         var files = EnumerateProductionSourceFiles(repositoryRoot)
             .Where(file => !allowedPaths.Contains(
@@ -267,7 +267,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
     private static string[] EnumerateExecutionLowererAndRendererFiles(string repositoryRoot)
     {
-        var executionRoot = Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution");
+        var executionRoot = Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution");
         return Directory
             .EnumerateFiles(executionRoot, "*.cs", SearchOption.AllDirectories)
             .Where(file =>

@@ -8,6 +8,18 @@ public sealed record ExecutionLoadCteIndex(
     ExecutionVariable Index,
     int IndexSlot,
     ExecutionCteSidecarIndexKind Kind,
-    Type KeyType,
-    Type? RowType = null,
-    string? GeneratedRowTypeName = null) : ExecutionNode;
+    ExecutionTypeRef KeyType,
+    ExecutionTypeRef? RowType = null,
+    string? GeneratedRowTypeName = null) : ExecutionNode
+{
+    internal ExecutionLoadCteIndex(
+        ExecutionVariable index,
+        int indexSlot,
+        ExecutionCteSidecarIndexKind kind,
+        Type keyType,
+        Type? rowType = null,
+        string? generatedRowTypeName = null)
+        : this(index, indexSlot, kind, ExecutionTypeRef.FromClr(keyType), ExecutionTypeRef.FromOptionalClr(rowType), generatedRowTypeName)
+    {
+    }
+}

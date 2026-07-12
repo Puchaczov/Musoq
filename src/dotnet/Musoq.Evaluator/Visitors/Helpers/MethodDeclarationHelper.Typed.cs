@@ -3,6 +3,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.IR.Execution;
+using Musoq.Evaluator.Visitors.CodeGeneration;
 
 namespace Musoq.Evaluator.Visitors.Helpers;
 
@@ -31,7 +32,7 @@ public static partial class MethodDeclarationHelper
                 SyntaxFactory.GenericName(nameof(IEnumerable<object>))
                     .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
                         SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                            ExecutionSyntaxFactory.CreateTypeSyntax(outputType)))),
+                            LegacyCodeGenerationSyntaxFactory.CreateTypeSyntax(outputType)))),
                 SyntaxFactory.Identifier(nameof(ITypedRunnable<object>.Run)))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(
@@ -63,7 +64,7 @@ public static partial class MethodDeclarationHelper
                 SyntaxFactory.GenericName(nameof(IEnumerable<object>))
                     .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
                         SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                            ExecutionSyntaxFactory.CreateTypeSyntax(outputType)))),
+                            LegacyCodeGenerationSyntaxFactory.CreateTypeSyntax(outputType)))),
                 SyntaxFactory.Identifier(nameof(ITypedRunnable<object>.Run)))
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
             .WithParameterList(

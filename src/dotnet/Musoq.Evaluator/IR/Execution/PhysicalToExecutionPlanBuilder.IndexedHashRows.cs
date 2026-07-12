@@ -16,7 +16,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
     private static Type CreateIndexedHashRowType(ExecutionVariable row)
     {
-        return typeof(IndexedHashJoinRow<>).MakeGenericType(row.Type);
+        return typeof(IndexedHashJoinRow<>).MakeGenericType(row.Type.ClrType);
     }
 
     private static string? CreateIndexedHashRowTypeName(ExecutionVariable row)

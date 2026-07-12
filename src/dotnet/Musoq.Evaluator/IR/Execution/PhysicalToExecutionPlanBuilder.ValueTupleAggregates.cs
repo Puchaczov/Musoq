@@ -50,9 +50,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         var groupKeys = pipeline.GroupKeys
             .Select(key => ExecutionExpressionConverter.Convert(key, sourceLookup))
             .ToArray();
-        if (groupKeys.Any(key => key is ExecutionRawExpression))
-            return TableBuildResult.Unsupported("Execution IR value-tuple aggregate lowering cannot convert one or more group key expressions.");
-
         if (CanUseLeanDistinct(pipeline))
         {
             var leanDistinctSource = new SingleKeyAggregateExecutionSource(
@@ -62,7 +59,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 body => CreateSourceLoop(sourceShape, aggregateSource.Source.Rows, aggregateSource.Source.Variable, body));
             var distinctKey = new ExecutionValueTupleKey(
                 groupKeys,
-                CreateValueTupleType(groupKeys.Select(static key => key.ReturnType).ToArray()));
+                CreateValueTupleType(groupKeys.Select(static key => key.ReturnType.ClrType).ToArray()));
 
             return BuildLeanDistinctTable(
                 pipeline.Project.Fields,

@@ -20,6 +20,7 @@ public static partial class InstanceCreator
             SchemaProvider = schemaProvider,
             RawQuery = script,
             AssemblyName = assemblyName,
+            ExecutionTarget = ExecutionTargetIds.CSharpClr,
             CreateBuildMetadataAndInferTypesVisitor = null,
             DiagnosticContext = diagnosticContext
         };

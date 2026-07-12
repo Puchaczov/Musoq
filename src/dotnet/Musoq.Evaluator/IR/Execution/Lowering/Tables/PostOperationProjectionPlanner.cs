@@ -75,12 +75,6 @@ internal sealed class PostOperationProjectionPlanner(
                 continue;
 
             var expression = ExecutionExpressionConverter.Convert(key.Expression, sourceLookup);
-            if (expression is ExecutionRawExpression)
-            {
-                return BuildResult<IReadOnlyList<ProjectedField>>.Unsupported(
-                    $"Execution IR order lowering cannot materialize non-projected order key '{IrExpressionPrinter.Print(key.Expression)}' from available source fields.");
-            }
-
             fields.Add(new ProjectedField(
                 CreateHiddenSortFieldName(usedNames, fields.Count),
                 key.Expression,

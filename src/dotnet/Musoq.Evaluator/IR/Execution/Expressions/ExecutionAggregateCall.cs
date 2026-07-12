@@ -7,8 +7,20 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionAggregateCall(
     ExecutionVariable Group,
-    MethodInfo Method,
+    ExecutionCallableRef Method,
     IReadOnlyList<ExecutionExpression> Arguments,
-    Type ReturnType,
+    ExecutionTypeRef ReturnType,
     AggregateAccumulatorField Accumulator,
-    string? DisplayName = null) : ExecutionExpression(ReturnType);
+    string? DisplayName = null) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionAggregateCall(
+        ExecutionVariable group,
+        MethodInfo method,
+        IReadOnlyList<ExecutionExpression> arguments,
+        Type returnType,
+        AggregateAccumulatorField accumulator,
+        string? displayName = null)
+        : this(group, ExecutionCallableRef.FromClr(method), arguments, ExecutionTypeRef.FromClr(returnType), accumulator, displayName)
+    {
+    }
+}

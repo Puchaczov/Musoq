@@ -15,5 +15,35 @@ public sealed record ExecutionAsOfProbe(
     ExecutionBlock Body,
     ExecutionBlock? NoMatchBody = null,
     ExecutionVariable? Index = null,
-    Type? ComparisonKeyType = null,
-    ExecutionAsOfTieBreak? TieBreak = null) : ExecutionNode;
+    ExecutionTypeRef? ComparisonKeyType = null,
+    ExecutionAsOfTieBreak? TieBreak = null) : ExecutionNode
+{
+    internal ExecutionAsOfProbe(
+        ExecutionVariable match,
+        ExecutionVariable candidate,
+        ExecutionExpression candidates,
+        IReadOnlyList<ExecutionAsOfEqualityKey> equalityKeys,
+        ExecutionExpression probeKey,
+        ExecutionExpression candidateKey,
+        BinaryOpKind comparisonKind,
+        ExecutionBlock body,
+        ExecutionBlock? noMatchBody,
+        ExecutionVariable? index,
+        Type comparisonKeyType,
+        ExecutionAsOfTieBreak? tieBreak = null)
+        : this(
+            match,
+            candidate,
+            candidates,
+            equalityKeys,
+            probeKey,
+            candidateKey,
+            comparisonKind,
+            body,
+            noMatchBody,
+            index,
+            ExecutionTypeRef.FromClr(comparisonKeyType),
+            tieBreak)
+    {
+    }
+}

@@ -7,4 +7,10 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionIndexedHashRowRowRead(
     ExecutionVariable IndexedRow,
-    Type ReturnType) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionIndexedHashRowRowRead(ExecutionVariable indexedRow, Type returnType)
+        : this(indexedRow, ExecutionTypeRef.FromClr(returnType))
+    {
+    }
+}

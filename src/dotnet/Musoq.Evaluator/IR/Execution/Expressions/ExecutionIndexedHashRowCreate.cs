@@ -8,5 +8,15 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionIndexedHashRowCreate(
     ExecutionVariable Row,
     ExecutionVariable Index,
-    Type ReturnType,
-    string? GeneratedRowTypeName = null) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType,
+    string? GeneratedRowTypeName = null) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionIndexedHashRowCreate(
+        ExecutionVariable row,
+        ExecutionVariable index,
+        Type returnType,
+        string? generatedRowTypeName = null)
+        : this(row, index, ExecutionTypeRef.FromClr(returnType), generatedRowTypeName)
+    {
+    }
+}

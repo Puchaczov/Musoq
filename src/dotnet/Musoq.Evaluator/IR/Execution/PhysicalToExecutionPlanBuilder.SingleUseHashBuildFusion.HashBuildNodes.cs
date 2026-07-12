@@ -13,7 +13,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             CreateHashJoinKeyExpression(context.Join.BuildKeys, context.ConversionLookup, context.KeyType),
             context.Sides.Build.Variable,
             context.KeyType,
-            context.Sides.Build.Variable.Type,
+            context.Sides.Build.Variable.Type.ClrType,
             context.Sides.Build.Variable.GeneratedRowTypeName);
         if (context.Sides.Build.FusedHashBuild is not { } fused)
         {
@@ -84,7 +84,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     {
         keyVariable = null!;
 
-        if (hashAdd.KeyType == typeof(object) ||
+        if (hashAdd.KeyType.ClrType == typeof(object) ||
             !TryRewritePayloadKeyToProducerKey(hashAdd.Key, payloadAlias, fused.RowShape, fused.RowValues, out var producerKey))
         {
             return false;
@@ -92,13 +92,13 @@ public sealed partial class PhysicalToExecutionPlanBuilder
 
         if (producerKey is ExecutionValueTupleKey valueTupleKey)
         {
-            return TryCreatePrePayloadValueTupleKeyNodes(valueTupleKey, hashAdd.KeyType, nodes, out keyVariable);
+            return TryCreatePrePayloadValueTupleKeyNodes(valueTupleKey, hashAdd.KeyType.ClrType, nodes, out keyVariable);
         }
 
         keyVariable = new ExecutionVariable("key", hashAdd.KeyType);
         nodes.Add(new ExecutionLet(keyVariable, producerKey));
 
-        if (CanBeNullType(hashAdd.KeyType))
+        if (CanBeNullType(hashAdd.KeyType.ClrType))
             nodes.Add(CreateContinueIfNull(new ExecutionVariableRead(keyVariable)));
 
         return true;
@@ -121,7 +121,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             partVariables[index] = partVariable;
             nodes.Add(new ExecutionLet(partVariable, part));
 
-            if (CanBeNullType(part.ReturnType))
+            if (CanBeNullType(part.ReturnType.ClrType))
                 nullablePartReads.Add(new ExecutionVariableRead(partVariable));
         }
 
@@ -142,7 +142,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             new ExecutionBinary(
                 BinaryOpKind.Equal,
                 expression,
-                new ExecutionLiteral(null, expression.ReturnType),
+                new ExecutionLiteral((object?)null, expression.ReturnType),
                 typeof(bool)));
     }
 
@@ -152,7 +152,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             .Select(static expression => new ExecutionBinary(
                 BinaryOpKind.Equal,
                 expression,
-                new ExecutionLiteral(null, expression.ReturnType),
+                new ExecutionLiteral((object?)null, expression.ReturnType),
                 typeof(bool)))
             .Aggregate<ExecutionExpression>(static (left, right) => new ExecutionBinary(
                 BinaryOpKind.Or,

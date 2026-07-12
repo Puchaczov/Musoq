@@ -14,13 +14,13 @@ public sealed class ResidualArchitectureWave14GuardrailTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var finalSinkSetupPath = Path.Combine(
             repositoryRoot,
-            "src", "dotnet", "Musoq.Evaluator", "IR", "CodeGeneration", "CSharpRenderer.FinalSinkSetup.cs");
+            "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "CodeGeneration", "CSharpRenderer.FinalSinkSetup.cs");
         var artifactPath = Path.Combine(
             repositoryRoot,
-            "src", "dotnet", "Musoq.Evaluator", "IR", "Execution", "ExecutionRenderArtifacts.cs");
+            "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution", "ExecutionRenderArtifacts.cs");
         var typedSinkRenderingPath = Path.Combine(
             repositoryRoot,
-            "src", "dotnet", "Musoq.Evaluator", "IR", "Execution", "TypedSinkRendering.cs");
+            "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution", "TypedSinkRendering.cs");
 
         var finalSinkSetupText = File.ReadAllText(finalSinkSetupPath);
         var typedSinkRenderingText = File.ReadAllText(typedSinkRenderingPath);

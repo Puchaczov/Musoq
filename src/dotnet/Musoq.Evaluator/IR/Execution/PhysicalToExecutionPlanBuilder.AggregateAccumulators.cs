@@ -26,13 +26,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 ? null
                 : ExecutionExpressionConverter.Convert(binding.FilterPredicate, sourceLookup);
 
-            if (arguments.Any(argument => argument is ExecutionRawExpression) ||
-                filterPredicate is ExecutionRawExpression)
-            {
-                return AggregateSetBuildResult.Unsupported(
-                    $"Execution IR aggregate-only lowering cannot convert arguments for aggregate '{binding.Identifier}'.");
-            }
-
             if (!TryGetTypedAccumulator(binding, aggregateGroup, out var accumulator))
             {
                 return AggregateSetBuildResult.Unsupported(

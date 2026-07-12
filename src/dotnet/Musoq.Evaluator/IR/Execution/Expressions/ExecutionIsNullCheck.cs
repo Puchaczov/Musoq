@@ -8,4 +8,10 @@ namespace Musoq.Evaluator.IR.Execution;
 public sealed record ExecutionIsNullCheck(
     ExecutionExpression Expression,
     bool IsNegated,
-    Type ReturnType) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionIsNullCheck(ExecutionExpression expression, bool isNegated, Type returnType)
+        : this(expression, isNegated, ExecutionTypeRef.FromClr(returnType))
+    {
+    }
+}

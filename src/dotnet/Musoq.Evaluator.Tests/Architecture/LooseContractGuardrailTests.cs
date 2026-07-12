@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Optimization;
-using Musoq.Evaluator.IR.Optimization.Codegen;
+using Musoq.Targets.CSharpClr.Optimization.Codegen;
 using Musoq.Evaluator.IR.Optimization.Execution;
 using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.IR.Optimization.Physical;
@@ -105,7 +105,10 @@ public sealed class LooseContractGuardrailTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var files = RepositorySourceScan
             .FilesUnder(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution", "*.cs")
-            .Concat(RepositorySourceScan.FilesUnder(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/CodeGeneration", "*.cs"));
+            .Concat(RepositorySourceScan.FilesUnder(
+                repositoryRoot,
+                "src/dotnet/Musoq.Targets.CSharpClr/Rendering/CodeGeneration",
+                "*.cs"));
 
         var diagnostics = RepositorySourceScan.CountMatchingLines(files, NotSupportedException);
 

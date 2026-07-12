@@ -117,9 +117,9 @@ internal static class RowShapeLookup
     {
         return sourceShape switch
         {
-            SourceEntityShape source when UsesReflectedMemberAccess(source) || !CanReferenceType(source.EntityType) => typeof(object),
-            SourceEntityShape source => source.EntityType,
-            ExpandoAdapterShape expando => expando.RuntimeType,
+            SourceEntityShape source when UsesReflectedMemberAccess(source) || !CanReferenceType(source.EntityType.ClrType) => typeof(object),
+            SourceEntityShape source => source.EntityType.ClrType,
+            ExpandoAdapterShape expando => expando.RuntimeType.ClrType,
             TableRowShape => typeof(Row),
             ValuesRowShape => typeof(object),
             GeneratedRowShape => typeof(object),
@@ -131,8 +131,8 @@ internal static class RowShapeLookup
     {
         return sourceShape switch
         {
-            SourceEntityShape source => source.EntityType,
-            ExpandoAdapterShape expando => expando.RuntimeType,
+            SourceEntityShape source => source.EntityType.ClrType,
+            ExpandoAdapterShape expando => expando.RuntimeType.ClrType,
             TableRowShape => typeof(Row),
             ValuesRowShape => typeof(object),
             GeneratedRowShape => typeof(object),

@@ -1,7 +1,9 @@
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
 namespace Musoq.Evaluator.IR.Execution;
 
-internal sealed record CapturedLocal(string Name, Type Type, string? GeneratedRowTypeName = null);
+internal sealed record CapturedLocal(string Name, ExecutionTypeRef Type, string? GeneratedRowTypeName = null)
+{
+    internal CapturedLocal(string name, Type type, string? generatedRowTypeName = null)
+        : this(name, ExecutionTypeRef.FromClr(type), generatedRowTypeName)
+    {
+    }
+}

@@ -5,4 +5,5 @@ using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.IR.Execution;
 
-public sealed record ExecutionStoredTable(int TableIndex) : ExecutionExpression(typeof(Table));
+public sealed record ExecutionStoredTable(int TableIndex)
+    : ExecutionExpression(ExecutionTypeRef.FromClr(typeof(Table)));

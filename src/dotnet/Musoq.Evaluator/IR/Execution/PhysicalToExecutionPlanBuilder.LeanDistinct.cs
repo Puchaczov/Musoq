@@ -56,7 +56,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         var outputFields = NormalizeProjectedFieldIndexes(fields);
         var resultShape = CreateGeneratedShape(resultShapeName, outputFields);
         var resultTable = new ExecutionVariable(resultTableName, typeof(object));
-        var distinctSet = CreateLeanDistinctSetVariable(resultTableName, scopeDistinctVariables, distinctKey.ReturnType);
+        var distinctSet = CreateLeanDistinctSetVariable(resultTableName, scopeDistinctVariables, distinctKey.ReturnType.ClrType);
         var appendRow = CreateAppendRow(resultTable, resultShape, outputFields, source.Lookup);
         var appendWhenNewKey = CreateLeanDistinctAppendBlock(distinctSet, distinctKey, appendRow);
         var accumulationBlock = CreateAggregateAccumulationBlock(
@@ -68,7 +68,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         var nodes = new List<ExecutionNode>(source.Setup.Count + 4);
         nodes.AddRange(source.Setup);
         nodes.Add(CreateTable(resultTable, resultShape));
-        nodes.Add(new ExecutionCreateKeySet(distinctSet, distinctKey.ReturnType, CreateRowsCapacityCandidate(distinctSet, loop.Source)));
+        nodes.Add(new ExecutionCreateKeySet(distinctSet, distinctKey.ReturnType.ClrType, CreateRowsCapacityCandidate(distinctSet, loop.Source)));
         nodes.Add(loop);
 
         return CompleteTableBuild(
@@ -94,7 +94,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         ExecutionAppendRow appendRow)
     {
         var addCall = new ExecutionMethodCall(
-            GetHashSetAddMethod(distinctKey.ReturnType),
+            GetHashSetAddMethod(distinctKey.ReturnType.ClrType),
             [distinctKey],
             null,
             typeof(bool),

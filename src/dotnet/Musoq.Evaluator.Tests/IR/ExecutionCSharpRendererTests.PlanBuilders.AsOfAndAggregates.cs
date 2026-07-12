@@ -53,7 +53,7 @@ public sealed partial class ExecutionCSharpRendererTests
                     BinaryOpKind.GreaterOrEqual,
                     ExecutionBlock.Empty,
                     Index: index,
-                    ComparisonKeyType: typeof(int)),
+                    ComparisonKeyType: ExecutionTypeRef.FromClr(typeof(int))),
                 new ExecutionReturnTable(resultTable)
             ]),
             resultTable,

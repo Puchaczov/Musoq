@@ -60,7 +60,7 @@ public sealed class ResidualArchitectureWave1GuardrailTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var codegenFiles = RepositorySourceScan.FilesUnder(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/CodeGeneration",
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/CodeGeneration",
             "CSharpRenderer*.cs");
 
         var calls = FindMatchingLines(repositoryRoot, codegenFiles, CodeGenerationRendererInternalCall);

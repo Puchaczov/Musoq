@@ -164,19 +164,13 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         foreach (var partitionKey in partitionKeys)
         {
             var expression = ConvertWindowInputExpression(partitionKey, sourceLookup, aggregateSourceFields);
-            if (expression is ExecutionRawExpression)
-            {
-                return BuildResult<ExecutionExpression?>.Unsupported(
-                    $"Execution IR window lowering cannot convert partition key {IrExpressionPrinter.Print(partitionKey)}.");
-            }
-
             parts.Add(expression);
         }
 
         if (parts.Count == 1)
             return BuildResult<ExecutionExpression?>.Success(parts[0]);
 
-        var partTypes = parts.Select(part => part.ReturnType).ToArray();
+        var partTypes = parts.Select(part => part.ReturnType.ClrType).ToArray();
         return BuildResult<ExecutionExpression?>.Success(
             partTypes.Length is >= 2 and <= 7 && partTypes.All(WindowRegistrationLoweringHelpers.CanUseTypedWindowKeyElement)
                 ? new ExecutionValueTupleKey(parts, CreateValueTupleType(partTypes))
@@ -192,12 +186,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         foreach (var orderKey in orderKeys)
         {
             var expression = ConvertWindowInputExpression(orderKey.Expression, sourceLookup, aggregateSourceFields);
-            if (expression is ExecutionRawExpression)
-            {
-                return BuildResult<IReadOnlyList<ExecutionWindowOrderKey>>.Unsupported(
-                    $"Execution IR window lowering cannot convert order key {IrExpressionPrinter.Print(orderKey.Expression)}.");
-            }
-
             keys.Add(new ExecutionWindowOrderKey(expression, orderKey.Descending, orderKey.NullOrdering));
         }
 

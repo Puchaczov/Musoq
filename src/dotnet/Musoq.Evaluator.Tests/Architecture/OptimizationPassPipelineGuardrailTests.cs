@@ -7,11 +7,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Optimization;
-using Musoq.Evaluator.IR.Optimization.Codegen;
 using Musoq.Evaluator.IR.Optimization.Execution;
 using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.IR.Optimization.Physical;
 using Musoq.Evaluator.IR.Physical;
+using Musoq.Targets.CSharpClr.Optimization.Codegen;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Tests.Architecture;
@@ -179,9 +179,53 @@ public sealed class OptimizationPassPipelineGuardrailTests
     }
 
     [TestMethod]
-    public void CodegenReadabilityPasses_ShouldLiveUnderCodegenOwnershipFolder()
+    public void CodegenReadabilityPasses_ShouldLiveUnderCSharpTargetOwnershipFolder()
     {
-        var offenders = FindRootOptimizationFiles(
+        var repositoryRoot = RepositorySourceScan.RepositoryRoot();
+        var evaluatorCodegenRoot = Path.Combine(
+            repositoryRoot,
+            "src",
+            "dotnet",
+            "Musoq.Evaluator",
+            "IR",
+            "Optimization",
+            "Codegen");
+        Assert.IsFalse(
+            Directory.Exists(evaluatorCodegenRoot),
+            "Generated C# readability optimization belongs to Musoq.Targets.CSharpClr, not evaluator IR.");
+
+        var targetCodegenRoot = Path.Combine(
+            repositoryRoot,
+            "src",
+            "dotnet",
+            "Musoq.Targets.CSharpClr",
+            "Optimization",
+            "Codegen");
+        string[] expectedFiles =
+        [
+            "CodegenReadabilityGroup.cs",
+            "CodegenReadabilityOptimizationResult.cs",
+            "CodegenReadabilityOptimizer.cs",
+            "CodegenReadabilitySyntaxFacts.cs",
+            "ControlFlowNormalizationPass.cs",
+            "DeadTemporaryCleanupPass.cs",
+            "DeterministicMemberOrderingPass.cs",
+            "HelperExtractionReadabilityApproval.cs",
+            "HelperExtractionReadabilityPass.cs",
+            "ICodegenReadabilityOptimizationPass.cs",
+            "LocalDeclarationNormalizationPass.cs",
+            "ReadabilityDecisionTracePass.cs"
+        ];
+        var missing = expectedFiles
+            .Where(file => !File.Exists(Path.Combine(targetCodegenRoot, file)))
+            .ToArray();
+
+        Assert.IsEmpty(
+            missing,
+            "Expected generated C# readability optimization files under the CSharpClr target package: " +
+            string.Join(", ", missing));
+
+        var misplaced = FindRootOptimizationFiles(
             static name =>
                 name.StartsWith("Codegen", System.StringComparison.Ordinal) ||
                 name.StartsWith("DeterministicMember", System.StringComparison.Ordinal) ||
@@ -192,9 +236,29 @@ public sealed class OptimizationPassPipelineGuardrailTests
                 name.StartsWith("ReadabilityDecision", System.StringComparison.Ordinal));
 
         Assert.IsEmpty(
-            offenders,
-            "Codegen readability optimizer ownership belongs under IR/Optimization/Codegen: " +
-            string.Join(", ", offenders));
+            misplaced,
+            "Generated C# readability optimizer ownership belongs under Musoq.Targets.CSharpClr/Optimization/Codegen: " +
+            string.Join(", ", misplaced));
+    }
+
+    [TestMethod]
+    public void EvaluatorOptimizationContracts_ShouldNotReferenceRoslynSyntaxTypes()
+    {
+        var repositoryRoot = RepositorySourceScan.RepositoryRoot();
+        var contractFile = Path.Combine(
+            repositoryRoot,
+            "src",
+            "dotnet",
+            "Musoq.Evaluator",
+            "IR",
+            "Optimization",
+            "IPlanOptimizationPass.cs");
+        var contents = File.ReadAllText(contractFile);
+
+        Assert.IsFalse(
+            contents.Contains("Microsoft.CodeAnalysis", StringComparison.Ordinal) ||
+            contents.Contains("CompilationUnitSyntax", StringComparison.Ordinal),
+            "Evaluator optimization pass contracts must stay target-neutral; generated C# syntax contracts belong to Musoq.Targets.CSharpClr.");
     }
 
     private static void AssertPassesMatchSteps<TPlan>(OptimizationPassPipeline<TPlan> pipeline)

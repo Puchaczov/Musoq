@@ -58,10 +58,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         if (!condition.Supported)
             return BuildResult<ExecutionBlock>.Unsupported(condition.UnsupportedReason);
 
-        if (condition.Value.ReturnType != typeof(bool))
+        if (condition.Value.ReturnType.ClrType != typeof(bool))
         {
             return BuildResult<ExecutionBlock>.Unsupported(
-                $"Execution IR {context.AggregateKind} HAVING lowering requires a boolean predicate. Found {condition.Value.ReturnType.Name}.");
+                $"Execution IR {context.AggregateKind} HAVING lowering requires a boolean predicate. Found {condition.Value.ReturnType.ClrType.Name}.");
         }
 
         return BuildResult<ExecutionBlock>.Success(new ExecutionBlock([new ExecutionIf(condition.Value, appendBlock)]));

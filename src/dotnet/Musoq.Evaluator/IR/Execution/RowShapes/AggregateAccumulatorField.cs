@@ -12,11 +12,11 @@ public sealed record AggregateAccumulatorField(
     int OwnerPrefixLength = 0,
     string? OwnerFieldName = null)
 {
-    public Type InputType => Kernel.InputShape.InputType;
+    public ExecutionTypeRef InputType => ExecutionTypeRef.FromClr(Kernel.InputShape.InputType);
 
-    public Type ResultType => Kernel.ResultType;
+    public ExecutionTypeRef ResultType => ExecutionTypeRef.FromClr(Kernel.ResultType);
 
-    public Type AccumulatorType => Kernel.StateType;
+    public ExecutionTypeRef AccumulatorType => ExecutionTypeRef.FromClr(Kernel.StateType);
 
     public bool CanMerge => Kernel.SupportsMerge;
 }

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Version>$(MusoqConverterVersion)</Version>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Musoq.Converter" />
+    <InternalsVisibleTo Include="Musoq.Converter.Tests" />
+    <InternalsVisibleTo Include="Musoq.Evaluator" />
+    <InternalsVisibleTo Include="Musoq.Evaluator.Tests" />
+    <InternalsVisibleTo Include="Musoq.Targets.Execution" />
+    <InternalsVisibleTo Include="Musoq.Targets.Execution.Analysis" />
+    <InternalsVisibleTo Include="Musoq.Targets.CSharpClr" />
+    <InternalsVisibleTo Include="Musoq.Targets.TestPortable" />
+  </ItemGroup>
+</Project>

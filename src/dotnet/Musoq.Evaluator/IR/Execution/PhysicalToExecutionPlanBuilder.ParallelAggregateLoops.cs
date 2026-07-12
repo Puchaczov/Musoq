@@ -85,8 +85,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             ? null
             : ExecutionExpressionConverter.Convert(pipeline.Filter.Predicate, sourceShape);
 
-        if (predicate is ExecutionRawExpression ||
-            !CanUseParallelFilterProjectExpression(predicate) ||
+        if (!CanUseParallelFilterProjectExpression(predicate) ||
             !CanUseParallelFilterProjectAppend(appendRow) ||
             !HasParallelWorthyMethodCall(predicate, appendRow))
         {

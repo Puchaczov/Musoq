@@ -10,10 +10,10 @@ public sealed record FieldBinding
         string name,
         string qualifiedName,
         int outputIndex,
-        Type type,
+        ExecutionTypeRef type,
         FieldNullability nullability,
         FieldAccessStrategy accessStrategy,
-        Type? publicType = null,
+        ExecutionTypeRef? publicType = null,
         IReadOnlyDictionary<string, string>? readModifiers = null)
     {
         Name = name;
@@ -26,21 +26,42 @@ public sealed record FieldBinding
         ReadModifiers = ColumnReadModifiers.Create(readModifiers);
     }
 
+    internal FieldBinding(
+        string name,
+        string qualifiedName,
+        int outputIndex,
+        Type type,
+        FieldNullability nullability,
+        FieldAccessStrategy accessStrategy,
+        Type? publicType = null,
+        IReadOnlyDictionary<string, string>? readModifiers = null)
+        : this(
+            name,
+            qualifiedName,
+            outputIndex,
+            ExecutionTypeRef.FromClr(type),
+            nullability,
+            accessStrategy,
+            ExecutionTypeRef.FromOptionalClr(publicType),
+            readModifiers)
+    {
+    }
+
     public string Name { get; init; }
 
     public string QualifiedName { get; init; }
 
     public int OutputIndex { get; init; }
 
-    public Type Type { get; init; }
+    public ExecutionTypeRef Type { get; init; }
 
     public FieldNullability Nullability { get; init; }
 
     public FieldAccessStrategy AccessStrategy { get; init; }
 
-    public Type? PublicType { get; init; }
+    public ExecutionTypeRef? PublicType { get; init; }
 
     public IReadOnlyDictionary<string, string> ReadModifiers { get; init; }
 
-    public Type ColumnType => PublicType ?? Type;
+    public ExecutionTypeRef ColumnType => PublicType ?? Type;
 }

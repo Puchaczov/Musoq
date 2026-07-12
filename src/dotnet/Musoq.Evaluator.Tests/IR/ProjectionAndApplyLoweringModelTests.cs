@@ -77,7 +77,7 @@ public sealed class ProjectionAndApplyLoweringModelTests
         Assert.IsTrue(unknown.Supported);
         Assert.IsTrue(unknown.IsUnknown);
         Assert.IsInstanceOfType<ExecutionLiteral>(unknown.Expression);
-        Assert.AreEqual(typeof(bool), unknown.Expression.ReturnType);
+        Assert.AreEqual(typeof(bool), unknown.Expression.ReturnType.ClrType);
         Assert.IsFalse(unsupported.Supported);
         Assert.IsTrue(unsupported.IsUnknown);
         Assert.AreEqual("raw expression", unsupported.UnsupportedReason);
@@ -172,10 +172,10 @@ public sealed class ProjectionAndApplyLoweringModelTests
         Assert.IsTrue(result.Supported);
         Assert.IsFalse(result.IsUnknown);
         var rewritten = Assert.IsInstanceOfType<ExecutionCaseWhen>(result.Expression);
-        Assert.AreEqual(typeof(int?), rewritten.ReturnType);
+        Assert.AreEqual(typeof(int?), rewritten.ReturnType.ClrType);
         var branchLiteral = Assert.IsInstanceOfType<ExecutionLiteral>(rewritten.Branches[0].Result);
-        Assert.IsNull(branchLiteral.Value);
-        Assert.AreEqual(typeof(int?), branchLiteral.ReturnType);
+        Assert.AreEqual(ExecutionConstantKind.Null, branchLiteral.Value.Kind);
+        Assert.AreEqual(typeof(int?), branchLiteral.ReturnType.ClrType);
     }
 
     [TestMethod]
@@ -190,17 +190,17 @@ public sealed class ProjectionAndApplyLoweringModelTests
         Assert.AreEqual(BinaryOpKind.Equal, binary.Kind);
         Assert.AreSame(expression, binary.Left);
         var literal = Assert.IsInstanceOfType<ExecutionLiteral>(binary.Right);
-        Assert.AreEqual(true, literal.Value);
+        Assert.AreEqual(true, literal.Value.ToClrValue());
     }
 
     [TestMethod]
-    public void OuterApplyNullSubstitutionService_WhenRawExpressionReferencesRightAlias_ShouldBeUnsupported()
+    public void OuterApplyNullSubstitutionService_WhenAggregateResultReferenceIsUnresolved_ShouldBeUnsupported()
     {
-        var expression = new ExecutionRawExpression(new ColumnRef("orders", "Total", typeof(decimal)));
+        var expression = new ExecutionAggregateResultRef("sum-orders-total", "Sum(orders.Total)", ExecutionTypeRef.FromClr(typeof(decimal)));
 
         var result = OuterApplyNullSubstitutionService.SubstituteRightAlias(expression, "orders");
 
         Assert.IsFalse(result.Supported);
-        StringAssert.Contains(result.UnsupportedReason, "cannot null-substitute right-side filter expression");
+        StringAssert.Contains(result.UnsupportedReason, nameof(ExecutionAggregateResultRef));
     }
 }

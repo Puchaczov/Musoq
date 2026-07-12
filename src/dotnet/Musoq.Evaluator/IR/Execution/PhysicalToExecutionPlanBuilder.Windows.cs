@@ -163,7 +163,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     private static Type CreateWindowBufferType(ExecutionVariable source)
     {
         return string.IsNullOrWhiteSpace(source.GeneratedRowTypeName)
-            ? typeof(List<>).MakeGenericType(source.Type)
+            ? typeof(List<>).MakeGenericType(source.Type.ClrType)
             : typeof(object);
     }
 

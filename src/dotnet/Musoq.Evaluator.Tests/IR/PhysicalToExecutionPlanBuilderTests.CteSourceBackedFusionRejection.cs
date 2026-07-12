@@ -34,12 +34,19 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
                 0,
                 [],
                 [ageField],
-                SourceType: typeof(Person)));
+                SourceType: ExecutionTypeRef.FromClr(typeof(Person))));
         var rawTable = new ExecutionVariable("cte0", typeof(Table), rawShape.TypeName);
-        var appendRaw = new ExecutionAppendRow(
+        var method = typeof(Math).GetMethod(nameof(Math.Abs), [typeof(int)])!;
+        var appendWithCall = new ExecutionAppendRow(
             rawTable,
             rawShape,
-            [new ExecutionRowValue("Age", new ExecutionRawExpression(new Literal(42, typeof(int))))]);
+            [new ExecutionRowValue(
+                "Age",
+                new ExecutionMethodCall(
+                    method,
+                    [new ExecutionLiteral(-42, typeof(int))],
+                    null,
+                    typeof(int)))]);
         var builtNodes = new List<ExecutionNode>
         {
             sourceScan,
@@ -47,7 +54,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
             new ExecutionForEach(
                 new ExecutionVariable("p", typeof(Person)),
                 new ExecutionRowStream(sourceRows, ExecutionRowStreamKind.Chunks),
-                new ExecutionBlock([appendRaw])),
+                new ExecutionBlock([appendWithCall])),
             new ExecutionStoreTable(rawTable, 0)
         };
 

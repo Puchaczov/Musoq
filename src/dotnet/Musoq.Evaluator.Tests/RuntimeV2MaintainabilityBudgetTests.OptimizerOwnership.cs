@@ -87,7 +87,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var rendererFiles = Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"), "ExecutionCSharpRenderer*.cs")
+            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "ExecutionCSharpRenderer*.cs")
             .ToArray();
         string[] synthesisMarkers =
         [
@@ -105,7 +105,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
         var guardFile = ToAbsolutePath(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionCSharpRenderer.RendererMethodTargetGuard.cs");
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/ExecutionCSharpRenderer.RendererMethodTargetGuard.cs");
         var guardText = File.ReadAllText(guardFile);
         Assert.Contains(
             "requires a reusable target assigned by MethodTargetReusePass",
@@ -118,7 +118,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var lowererFiles = Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"), "PhysicalToExecutionPlanBuilder*.cs")
+            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "PhysicalToExecutionPlanBuilder*.cs")
             .ToArray();
         string[] finalNodeMarkers =
         [
@@ -169,7 +169,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var lowererFiles = Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"), "PhysicalToExecutionPlanBuilder*.cs")
+            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "PhysicalToExecutionPlanBuilder*.cs")
             .ToArray();
         string[] disabledSidecarMarkers =
         [
@@ -190,7 +190,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var lowererFiles = Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"), "*.cs")
+            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "*.cs")
             .ToArray();
         string[] planningMarkers =
         [
@@ -210,7 +210,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var lowererFiles = Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"), "PhysicalToExecutionPlanBuilder*.cs")
+            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "PhysicalToExecutionPlanBuilder*.cs")
             .ToArray();
         string[] fallbackMarkers =
         [

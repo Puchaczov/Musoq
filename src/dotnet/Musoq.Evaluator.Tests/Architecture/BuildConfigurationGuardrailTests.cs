@@ -96,7 +96,9 @@ public sealed class BuildConfigurationGuardrailTests
                 entry.File,
                 Frameworks = entry.Document
                     .Descendants()
-                    .Where(static element => element.Name.LocalName is "TargetFramework" or "TargetFrameworks")
+                    .Where(static element =>
+                        (element.Name.LocalName is "TargetFramework" or "TargetFrameworks") &&
+                        element.Parent?.Name.LocalName == "PropertyGroup")
                     .Select(static element => element.Value.Trim())
                     .ToArray()
             })

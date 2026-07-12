@@ -9,4 +9,14 @@ public sealed record ExecutionBetween(
     ExecutionExpression Expression,
     ExecutionExpression Low,
     ExecutionExpression High,
-    Type ReturnType) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionBetween(
+        ExecutionExpression expression,
+        ExecutionExpression low,
+        ExecutionExpression high,
+        Type returnType)
+        : this(expression, low, high, ExecutionTypeRef.FromClr(returnType))
+    {
+    }
+}

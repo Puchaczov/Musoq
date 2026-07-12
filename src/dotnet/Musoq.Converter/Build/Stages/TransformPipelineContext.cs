@@ -28,6 +28,8 @@ internal sealed record TransformPipelineContext
 
     public required QueryResultMode QueryResultMode { get; init; }
 
+    public required ExecutionTargetId ExecutionTarget { get; init; }
+
     public required QueryMethodRenderMetadata QueryMethodRenderMetadata { get; init; }
 
     public Type? OutputType { get; init; }
@@ -55,6 +57,7 @@ internal sealed record TransformPipelineContext
             EmitExecutionPlanText = items.EmitExecutionPlanText,
             StopAfterPlanning = items.StopAfterPlanning,
             QueryResultMode = items.QueryResultMode,
+            ExecutionTarget = items.ExecutionTarget,
             QueryMethodRenderMetadata = items.QueryMethodRenderMetadata,
             OutputType = items.OutputType,
             AdditionalReferenceTypes = items.AdditionalReferenceTypes,

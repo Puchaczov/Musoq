@@ -115,8 +115,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             ? new ColumnRef(
                 qualifiedName[..separatorIndex],
                 qualifiedName[(separatorIndex + 1)..],
-                field.Type)
-            : new ColumnRef(string.Empty, qualifiedName, field.Type);
+                field.Type.ClrType)
+            : new ColumnRef(string.Empty, qualifiedName, field.Type.ClrType);
     }
 
     private static string CreateNestedJoinSourceAlias(PhysicalNode join, int schemaFromIndex)

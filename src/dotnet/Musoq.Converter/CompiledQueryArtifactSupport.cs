@@ -5,12 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.CodeAnalysis.CSharp;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
 using Musoq.Schema;
-using Musoq.Schema.Optimization;
-using SchemaFromNode = Musoq.Parser.Nodes.From.SchemaFromNode;
 
 namespace Musoq.Converter;
 
@@ -22,7 +19,15 @@ internal static class CompiledQueryArtifactSupport
     public const string MetadataSemanticShapeSha256 = "SemanticShapeSha256";
     public const string MetadataGeneratedCodeSha256 = "GeneratedCodeSha256";
     public const string MetadataRuntimeV2ContractSignature = "RuntimeV2ContractSignature";
+    public const string MetadataExecutionSemanticsVersion = "ExecutionSemanticsVersion";
+    public const string MetadataExecutionTarget = "ExecutionTarget";
+    public const string MetadataExecutableArtifactKind = "ExecutableArtifactKind";
     public const string ArtifactKindRuntimeV2Query = "RuntimeV2CompiledQuery";
+    public const string ExecutableArtifactKindClrAssembly = "ClrAssembly";
+    public const string CSharpClrAssemblyBlobName = "query.dll";
+    public const string CSharpClrSymbolsBlobName = "query.pdb";
+    public const string CSharpClrAssemblyContentType = "application/vnd.musoq.csharp-clr-assembly";
+    public const string CSharpClrSymbolsContentType = "application/vnd.musoq.csharp-clr-symbols";
 
     public static string CurrentEngineVersion { get; } = string.Join(
         ";",
@@ -32,21 +37,55 @@ internal static class CompiledQueryArtifactSupport
         GetAssemblySignature(typeof(ISchemaProvider)));
 
     public static IReadOnlyDictionary<string, string> CreateMetadata(
-        string assemblyName,
-        string script,
-        BuildItems items,
-        CSharpCompilation compilation)
+        TargetArtifactPackagingContext context,
+        string runnableTypeName,
+        string executableArtifactKind,
+        string generatedCodeSha256)
     {
-        var runnableTypeName = GetRunnableTypeName(assemblyName);
+        ArgumentNullException.ThrowIfNull(context);
+
         return new Dictionary<string, string>(StringComparer.Ordinal)
         {
             [MetadataArtifactKind] = ArtifactKindRuntimeV2Query,
-            [MetadataAssemblyName] = assemblyName,
+            [MetadataAssemblyName] = context.PackageName,
             [MetadataRuntimeV2ContractSignature] = RuntimeV2Contract.ContractSignature,
-            [MetadataScriptSha256] = ComputeHash(script),
-            [MetadataSemanticShapeSha256] = ComputeSemanticShapeHash(items, runnableTypeName),
-            [MetadataGeneratedCodeSha256] = ComputeGeneratedCodeHash(compilation)
+            [MetadataExecutionSemanticsVersion] = context.SemanticsContract.Version.ToString(CultureInfo.InvariantCulture),
+            [MetadataExecutionTarget] = context.TargetId.ToString(),
+            [MetadataExecutableArtifactKind] = executableArtifactKind,
+            [MetadataScriptSha256] = ComputeHash(context.Script),
+            [MetadataSemanticShapeSha256] = ComputeSemanticShapeHash(context.SemanticFacts, runnableTypeName),
+            [MetadataGeneratedCodeSha256] = generatedCodeSha256
         };
+    }
+
+    public static CompiledQueryArtifact CreateCompiledArtifactFromPackage(
+        TargetArtifactPackage package,
+        string engineVersion,
+        string artifactFormatVersion,
+        string compilationOptionsSignature)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+
+        if (package.TargetId != ExecutionTargetIds.CSharpClr ||
+            !string.Equals(package.ArtifactKind, ArtifactKindRuntimeV2Query, StringComparison.Ordinal) ||
+            !string.Equals(package.ExecutableArtifactKind, ExecutableArtifactKindClrAssembly, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                $"Public compiled query artifacts currently support only '{ExecutionTargetIds.CSharpClr}' reusable CLR assembly packages. Package target is '{package.TargetId}' and executable kind is '{package.ExecutableArtifactKind}'.");
+        }
+
+        var assemblyBytes = RequireBlobContent(package, CSharpClrAssemblyBlobName);
+        var symbolsBytes = TryGetBlobContent(package, CSharpClrSymbolsBlobName);
+        var runnableTypeName = GetRunnableTypeName(package);
+
+        return new CompiledQueryArtifact(
+            assemblyBytes,
+            symbolsBytes,
+            runnableTypeName,
+            engineVersion,
+            artifactFormatVersion,
+            compilationOptionsSignature,
+            package.Metadata);
     }
 
     public static string GetRunnableTypeName(string assemblyName)
@@ -54,20 +93,20 @@ internal static class CompiledQueryArtifactSupport
         return $"{SanitizeNameForNamespace(assemblyName)}.CompiledQuery";
     }
 
-    public static string ComputeSemanticShapeHash(BuildItems items, string runnableTypeName)
+    public static string ComputeSemanticShapeHash(TargetArtifactSemanticFacts facts, string runnableTypeName)
     {
-        ArgumentNullException.ThrowIfNull(items);
+        ArgumentNullException.ThrowIfNull(facts);
 
         var builder = new StringBuilder();
         builder.Append("RuntimeV2ContractSignature=").Append(RuntimeV2Contract.ContractSignature).AppendLine();
         builder.Append("RunnableTypeName=").Append(runnableTypeName).AppendLine();
-        builder.Append("QueryResultMode=").Append(items.QueryResultMode).AppendLine();
-        AppendType(builder, "OutputType", items.OutputType);
-        AppendScriptParameters(builder, items.ScriptParameterDefinitions);
-        AppendScriptVariables(builder, items.ScriptVariableDefinitions);
-        AppendColumns(builder, "UsedColumns", items.UsedColumns);
-        AppendAliasColumns(builder, "PipelineInferredColumns", items.PipelineInferredColumns);
-        AppendSourceIdentities(builder, items.SourcePlanRequestsPerSchema);
+        builder.Append("QueryResultMode=").Append(facts.QueryResultMode).AppendLine();
+        AppendTypeName(builder, "OutputType", facts.PortableOutputTypeName);
+        AppendScriptParameters(builder, facts.PortableScriptParameters);
+        AppendScriptVariables(builder, facts.PortableScriptVariables);
+        AppendColumns(builder, "UsedColumns", facts.PortableUsedColumns);
+        AppendAliasColumns(builder, "PipelineInferredColumns", facts.PortablePipelineInferredColumns);
+        AppendSourceIdentities(builder, facts.PortableSourcePlanSignatures);
 
         return ComputeHash(builder.ToString());
     }
@@ -91,31 +130,40 @@ internal static class CompiledQueryArtifactSupport
         return ComputeHash(builder.ToString());
     }
 
-    public static string ComputeGeneratedCodeHash(CSharpCompilation compilation)
-    {
-        ArgumentNullException.ThrowIfNull(compilation);
-
-        var builder = new StringBuilder();
-        var index = 0;
-        foreach (var syntaxTree in compilation.SyntaxTrees)
-        {
-            var text = syntaxTree.GetText().ToString();
-            builder
-                .Append(CultureInfo.InvariantCulture, $"tree:{index}:")
-                .Append(text.Length)
-                .AppendLine()
-                .Append(text)
-                .AppendLine();
-            index++;
-        }
-
-        return ComputeHash(builder.ToString());
-    }
-
     public static string ComputeHash(string text)
     {
         var bytes = Encoding.UTF8.GetBytes(text ?? string.Empty);
         return Convert.ToHexString(SHA256.HashData(bytes));
+    }
+
+    private static string GetRunnableTypeName(TargetArtifactPackage package)
+    {
+        var entrypoint = package.Entrypoints.FirstOrDefault(static entrypoint =>
+            entrypoint.Kind == TargetRuntimeEntrypointKind.TableQuery);
+        if (entrypoint is null || string.IsNullOrWhiteSpace(entrypoint.SymbolName))
+            throw new InvalidOperationException(
+                $"C# CLR compiled artifact package is missing a '{TargetRuntimeEntrypointKind.TableQuery}' runnable entrypoint.");
+
+        return entrypoint.SymbolName;
+    }
+
+    private static byte[] RequireBlobContent(
+        TargetArtifactPackage package,
+        string blobName)
+    {
+        return TryGetBlobContent(package, blobName) is { Length: > 0 } content
+            ? content
+            : throw new InvalidOperationException(
+                $"C# CLR compiled artifact package is missing required binary blob '{blobName}'.");
+    }
+
+    private static byte[]? TryGetBlobContent(
+        TargetArtifactPackage package,
+        string blobName)
+    {
+        return package.BinaryBlobs
+            .FirstOrDefault(blob => string.Equals(blob.Name, blobName, StringComparison.Ordinal))
+            ?.Content;
     }
 
     private static void AppendOption<T>(StringBuilder builder, string name, T value)
@@ -127,30 +175,34 @@ internal static class CompiledQueryArtifactSupport
             .Append(';');
     }
 
-    private static void AppendScriptParameters(StringBuilder builder, IReadOnlyList<ScriptParameterDefinition> parameters)
+    private static void AppendScriptParameters(
+        StringBuilder builder,
+        IReadOnlyList<TargetArtifactScriptParameterFact> parameters)
     {
         builder.Append("ScriptParameters=").Append(parameters.Count).AppendLine();
         foreach (var parameter in parameters.OrderBy(static parameter => parameter.Name, StringComparer.Ordinal))
         {
             builder.Append("Parameter:");
             builder.Append(parameter.Name).Append('|');
-            AppendType(builder, "Type", parameter.ParameterType);
+            AppendTypeName(builder, "Type", parameter.TypeName);
             builder.Append("HasDefault=").Append(parameter.HasDefaultValue).Append('|');
-            builder.Append("DefaultType=").Append(parameter.DefaultValue?.GetType().AssemblyQualifiedName ?? "<null>");
+            builder.Append("DefaultType=").Append(parameter.DefaultValueTypeName);
             builder.AppendLine();
         }
     }
 
-    private static void AppendScriptVariables(StringBuilder builder, IReadOnlyList<ScriptVariableDefinition> variables)
+    private static void AppendScriptVariables(
+        StringBuilder builder,
+        IReadOnlyList<TargetArtifactScriptVariableFact> variables)
     {
         builder.Append("ScriptVariables=").Append(variables.Count).AppendLine();
         foreach (var variable in variables.OrderBy(static variable => variable.Name, StringComparer.Ordinal))
         {
             builder.Append("Variable:");
             builder.Append(variable.Name).Append('|');
-            AppendType(builder, "Type", variable.VariableType);
+            AppendTypeName(builder, "Type", variable.TypeName);
             builder.Append("CanUseConst=").Append(variable.CanUseConstKeyword).Append('|');
-            builder.Append("ValueType=").Append(variable.Value?.GetType().AssemblyQualifiedName ?? "<null>");
+            builder.Append("ValueType=").Append(variable.ValueTypeName);
             builder.AppendLine();
         }
     }
@@ -158,24 +210,24 @@ internal static class CompiledQueryArtifactSupport
     private static void AppendColumns(
         StringBuilder builder,
         string label,
-        IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> columnsBySource)
+        IReadOnlyList<TargetArtifactSourceColumnsFact> columnsBySource)
     {
         builder.Append(label).Append('=').Append(columnsBySource.Count).AppendLine();
         foreach (var entry in columnsBySource
-                     .OrderBy(static entry => entry.Key.Id, StringComparer.Ordinal)
-                     .ThenBy(static entry => entry.Key.Schema, StringComparer.Ordinal)
-                     .ThenBy(static entry => entry.Key.Method, StringComparer.Ordinal)
-                     .ThenBy(static entry => entry.Key.Alias, StringComparer.Ordinal))
+                     .OrderBy(static entry => entry.Source.Id, StringComparer.Ordinal)
+                     .ThenBy(static entry => entry.Source.Schema, StringComparer.Ordinal)
+                     .ThenBy(static entry => entry.Source.Method, StringComparer.Ordinal)
+                     .ThenBy(static entry => entry.Source.Alias, StringComparer.Ordinal))
         {
-            AppendSourceNode(builder, entry.Key);
-            AppendColumnList(builder, entry.Value);
+            AppendSourceFact(builder, entry.Source);
+            AppendColumnList(builder, entry.Columns);
         }
     }
 
     private static void AppendAliasColumns(
         StringBuilder builder,
         string label,
-        IReadOnlyDictionary<string, ISchemaColumn[]>? columnsByAlias)
+        IReadOnlyList<TargetArtifactAliasColumnsFact>? columnsByAlias)
     {
         if (columnsByAlias == null)
         {
@@ -184,41 +236,40 @@ internal static class CompiledQueryArtifactSupport
         }
 
         builder.Append(label).Append('=').Append(columnsByAlias.Count).AppendLine();
-        foreach (var entry in columnsByAlias.OrderBy(static entry => entry.Key, StringComparer.Ordinal))
+        foreach (var entry in columnsByAlias.OrderBy(static entry => entry.Alias, StringComparer.Ordinal))
         {
-            builder.Append("Alias=").Append(entry.Key).AppendLine();
-            AppendColumnList(builder, entry.Value);
+            builder.Append("Alias=").Append(entry.Alias).AppendLine();
+            AppendColumnList(builder, entry.Columns);
         }
     }
 
     private static void AppendSourceIdentities(
         StringBuilder builder,
-        IReadOnlyDictionary<SchemaFromNode, SourcePlanRequest> requestsBySource)
+        IReadOnlyList<TargetArtifactSourcePlanFact> requestsBySource)
     {
         builder.Append("SourceIdentities=").Append(requestsBySource.Count).AppendLine();
         foreach (var entry in requestsBySource
-                     .OrderBy(static entry => entry.Key.Id, StringComparer.Ordinal)
-                     .ThenBy(static entry => entry.Key.Schema, StringComparer.Ordinal)
-                     .ThenBy(static entry => entry.Key.Method, StringComparer.Ordinal)
-                     .ThenBy(static entry => entry.Key.Alias, StringComparer.Ordinal))
+                     .OrderBy(static entry => entry.Source.Id, StringComparer.Ordinal)
+                     .ThenBy(static entry => entry.Source.Schema, StringComparer.Ordinal)
+                     .ThenBy(static entry => entry.Source.Method, StringComparer.Ordinal)
+                     .ThenBy(static entry => entry.Source.Alias, StringComparer.Ordinal))
         {
-            AppendSourceNode(builder, entry.Key);
-            var identity = entry.Value.Identity;
+            AppendSourceFact(builder, entry.Source);
             builder
                 .Append("Identity:")
-                .Append(identity.SchemaName).Append('|')
-                .Append(identity.MethodName).Append('|')
-                .Append(identity.SourceContextId).Append('|')
-                .Append(identity.Alias).AppendLine();
-            AppendSourceColumnRefs(builder, "RequiredColumns", entry.Value.RequiredColumns);
-            AppendOrderBy(builder, entry.Value.OrderBy);
-            builder.Append("Skip=").Append(entry.Value.Skip?.ToString(CultureInfo.InvariantCulture) ?? "<null>").Append('|');
-            builder.Append("Take=").Append(entry.Value.Take?.ToString(CultureInfo.InvariantCulture) ?? "<null>").Append('|');
-            builder.Append("PredicateType=").Append(entry.Value.Predicate?.GetType().AssemblyQualifiedName ?? "<null>").AppendLine();
+                .Append(entry.IdentitySchemaName).Append('|')
+                .Append(entry.IdentityMethodName).Append('|')
+                .Append(entry.IdentitySourceContextId).Append('|')
+                .Append(entry.IdentityAlias).AppendLine();
+            AppendSourceColumnRefs(builder, "RequiredColumns", entry.RequiredColumns);
+            AppendOrderBy(builder, entry.OrderBy);
+            builder.Append("Skip=").Append(entry.Skip).Append('|');
+            builder.Append("Take=").Append(entry.Take).Append('|');
+            builder.Append("PredicateType=").Append(entry.PredicateTypeName).AppendLine();
         }
     }
 
-    private static void AppendSourceNode(StringBuilder builder, SchemaFromNode source)
+    private static void AppendSourceFact(StringBuilder builder, TargetArtifactSourceFact source)
     {
         builder
             .Append("Source:")
@@ -226,11 +277,13 @@ internal static class CompiledQueryArtifactSupport
             .Append(source.Schema).Append('|')
             .Append(source.Method).Append('|')
             .Append(source.Alias).Append('|')
-            .Append(source.QueryId.ToString(CultureInfo.InvariantCulture))
+            .Append(source.QueryId)
             .AppendLine();
     }
 
-    private static void AppendColumnList(StringBuilder builder, IReadOnlyList<ISchemaColumn> columns)
+    private static void AppendColumnList(
+        StringBuilder builder,
+        IReadOnlyList<TargetArtifactColumnFact> columns)
     {
         builder.Append("Columns=").Append(columns.Count).AppendLine();
         foreach (var column in columns
@@ -242,7 +295,7 @@ internal static class CompiledQueryArtifactSupport
                 .Append(column.ColumnIndex.ToString(CultureInfo.InvariantCulture)).Append('|')
                 .Append(column.ColumnName).Append('|')
                 .Append(column.IntendedTypeName ?? "<null>").Append('|');
-            AppendType(builder, "ColumnType", column.ColumnType);
+            AppendTypeName(builder, "ColumnType", column.ColumnTypeName);
             AppendReadModifiers(builder, column.ReadModifiers);
             builder.AppendLine();
         }
@@ -251,7 +304,7 @@ internal static class CompiledQueryArtifactSupport
     private static void AppendSourceColumnRefs(
         StringBuilder builder,
         string label,
-        IReadOnlyList<SourceColumnRef> columns)
+        IReadOnlyList<TargetArtifactSourceColumnRefFact> columns)
     {
         builder.Append(label).Append('=').Append(columns.Count).AppendLine();
         foreach (var column in columns.OrderBy(static column => column.Name, StringComparer.Ordinal))
@@ -262,7 +315,7 @@ internal static class CompiledQueryArtifactSupport
         }
     }
 
-    private static void AppendOrderBy(StringBuilder builder, IReadOnlyList<OrderByExpression> orderBy)
+    private static void AppendOrderBy(StringBuilder builder, IReadOnlyList<TargetArtifactOrderByFact> orderBy)
     {
         builder.Append("OrderBy=").Append(orderBy.Count).AppendLine();
         foreach (var order in orderBy.OrderBy(static order => order.Column.Name, StringComparer.Ordinal))
@@ -288,12 +341,12 @@ internal static class CompiledQueryArtifactSupport
         builder.Append(']');
     }
 
-    private static void AppendType(StringBuilder builder, string label, Type? type)
+    private static void AppendTypeName(StringBuilder builder, string label, string? typeName)
     {
         builder
             .Append(label)
             .Append('=')
-            .Append(type?.AssemblyQualifiedName ?? "<null>")
+            .Append(typeName ?? "<null>")
             .Append('|');
     }
 

@@ -29,10 +29,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         if (!sources.Supported)
             return TableBuildResult.Unsupported(sources.UnsupportedReason);
         var joinSources = sources.Source;
-        if (!CanUseAsOfProbeSource(joinSources.Right.Shape, joinSources.Right.Variable.Type))
+        if (!CanUseAsOfProbeSource(joinSources.Right.Shape, joinSources.Right.Variable.Type.ClrType))
         {
             return TableBuildResult.Unsupported(
-                $"Execution IR ASOF join lowering requires a non-dynamic source-entity or table-row right source. Found {joinSources.Right.Shape.GetType().Name} with row type {FormatTypeName(joinSources.Right.Variable.Type)}.");
+                $"Execution IR ASOF join lowering requires a non-dynamic source-entity or table-row right source. Found {joinSources.Right.Shape.GetType().Name} with row type {FormatTypeName(joinSources.Right.Variable.Type.ClrType)}.");
         }
 
         var leftAlias = RowShapeLookup.ResolveSourceAlias(joinSources.Left.Shape);
@@ -82,7 +82,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             probe.EqualityKeys,
             probe.CandidateKey,
             probe.ComparisonKind,
-            probe.ComparisonKeyType ?? typeof(object),
+            probe.ComparisonKeyType?.ClrType ?? typeof(object),
             probe.TieBreak);
     }
 
@@ -196,7 +196,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             predicate.ComparisonKind,
             body,
             noMatchBody,
-            ComparisonKeyType: ResolveAsOfComparisonKeyType(probeKey.ReturnType, candidateKey.ReturnType),
+            ComparisonKeyType: ExecutionTypeRef.FromClr(ResolveAsOfComparisonKeyType(probeKey.ReturnType.ClrType, candidateKey.ReturnType.ClrType)),
             TieBreak: executionTieBreak);
     }
 

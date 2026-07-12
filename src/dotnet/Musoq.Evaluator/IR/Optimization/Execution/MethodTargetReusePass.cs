@@ -151,7 +151,7 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
             var target = rewritten.Target;
             if (target == null)
             {
-                target = CurrentRegistry.GetOrAdd(rewritten.Method, _preferredTargetNamePrefix);
+                target = CurrentRegistry.GetOrAdd(rewritten.Method.ClrMethod, _preferredTargetNamePrefix);
                 if (target == null)
                     return rewritten;
                 AssignedTargets++;

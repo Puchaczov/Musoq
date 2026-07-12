@@ -5,6 +5,15 @@ using Musoq.Evaluator.IR.Bindings;
 namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionWindowGeneratedKeyPart(
-    Type Type,
+    ExecutionTypeRef Type,
     bool Descending,
-    NullOrdering NullOrdering = NullOrdering.Default);
+    NullOrdering NullOrdering = NullOrdering.Default)
+{
+    internal ExecutionWindowGeneratedKeyPart(
+        Type type,
+        bool descending,
+        NullOrdering nullOrdering = NullOrdering.Default)
+        : this(ExecutionTypeRef.FromClr(type), descending, nullOrdering)
+    {
+    }
+}

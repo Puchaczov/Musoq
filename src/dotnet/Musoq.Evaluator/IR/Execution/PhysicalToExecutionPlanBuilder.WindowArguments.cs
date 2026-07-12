@@ -24,23 +24,11 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, string> aggregateSourceFields)
     {
         var value = ConvertWindowInputExpression(registration.ValueArguments[0], sourceLookup, aggregateSourceFields);
-        if (value is ExecutionRawExpression)
-        {
-            return PluginWindowArgumentsBuildResult.Unsupported(
-                $"Execution IR value window lowering cannot convert value argument {IrExpressionPrinter.Print(registration.ValueArguments[0])}.");
-        }
-
         var arguments = new List<ExecutionExpression>(Math.Max(0, registration.ValueArguments.Length - 1));
         var rowScopedArguments = new List<bool>(Math.Max(0, registration.ValueArguments.Length - 1));
         for (var index = 1; index < registration.ValueArguments.Length; index++)
         {
             var argument = ConvertWindowInputExpression(registration.ValueArguments[index], sourceLookup, aggregateSourceFields);
-            if (argument is ExecutionRawExpression)
-            {
-                return PluginWindowArgumentsBuildResult.Unsupported(
-                    $"Execution IR value window lowering cannot convert argument {IrExpressionPrinter.Print(registration.ValueArguments[index])}.");
-            }
-
             arguments.Add(argument);
             rowScopedArguments.Add(ContainsRowScopedRead(argument));
         }
@@ -99,37 +87,19 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         IReadOnlyDictionary<string, string> aggregateSourceFields)
     {
         var value = ConvertWindowInputExpression(registration.ValueArguments[0], sourceLookup, aggregateSourceFields);
-        if (value is ExecutionRawExpression)
-        {
-            return OffsetWindowArgumentsBuildResult.Unsupported(
-                $"Execution IR offset window lowering cannot convert value argument {IrExpressionPrinter.Print(registration.ValueArguments[0])}.");
-        }
-
         var offset = registration.ValueArguments.Length > 1
             ? ConvertWindowInputExpression(registration.ValueArguments[1], sourceLookup, aggregateSourceFields)
             : new ExecutionLiteral(1, typeof(int));
 
-        if (offset is ExecutionRawExpression)
+        if (offset.ReturnType.ClrType != typeof(int))
         {
             return OffsetWindowArgumentsBuildResult.Unsupported(
-                $"Execution IR offset window lowering cannot convert offset argument {IrExpressionPrinter.Print(registration.ValueArguments[1])}.");
-        }
-
-        if (offset.ReturnType != typeof(int))
-        {
-            return OffsetWindowArgumentsBuildResult.Unsupported(
-                $"Execution IR offset window lowering requires an int offset. Found {offset.ReturnType.Name}.");
+                $"Execution IR offset window lowering requires an int offset. Found {offset.ReturnType.ClrType.Name}.");
         }
 
         var defaultValue = registration.ValueArguments.Length > 2
             ? ConvertWindowInputExpression(registration.ValueArguments[2], sourceLookup, aggregateSourceFields)
             : new ExecutionLiteral(null, typeof(object));
-
-        if (defaultValue is ExecutionRawExpression)
-        {
-            return OffsetWindowArgumentsBuildResult.Unsupported(
-                $"Execution IR offset window lowering cannot convert default argument {IrExpressionPrinter.Print(registration.ValueArguments[2])}.");
-        }
 
         return OffsetWindowArgumentsBuildResult.Success(value, offset, defaultValue);
     }

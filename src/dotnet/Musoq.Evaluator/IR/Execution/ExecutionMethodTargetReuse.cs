@@ -12,27 +12,27 @@ internal static class ExecutionMethodTargetReuse
         if (CanRenderPerInvocation(method))
             return true;
 
-        if (method.Method.DeclaringType != typeof(LibraryBase))
+        if (method.Method.ClrMethod.DeclaringType != typeof(LibraryBase))
             return false;
 
-        return method.Method.Name switch
+        return method.Method.MethodName switch
         {
             nameof(LibraryBase.Contains) => method.Arguments.Count == 2 &&
-                                            method.Arguments[0].ReturnType == typeof(string) &&
-                                            method.Arguments[1].ReturnType == typeof(string),
+                                            method.Arguments[0].ReturnType.ClrType == typeof(string) &&
+                                            method.Arguments[1].ReturnType.ClrType == typeof(string),
             nameof(LibraryBase.StartsWith) => method.Arguments.Count == 2 &&
-                                              method.Arguments[0].ReturnType == typeof(string) &&
-                                              method.Arguments[1].ReturnType == typeof(string),
+                                              method.Arguments[0].ReturnType.ClrType == typeof(string) &&
+                                              method.Arguments[1].ReturnType.ClrType == typeof(string),
             nameof(LibraryBase.ToDecimal) => method.Arguments.Count == 1 &&
-                                             CanRenderToDecimalWithoutTarget(method.Arguments[0].ReturnType),
+                                             CanRenderToDecimalWithoutTarget(method.Arguments[0].ReturnType.ClrType),
             _ => false
         };
     }
 
     public static bool CanRenderPerInvocation(ExecutionMethodCall method)
     {
-        var targetType = method.Method.DeclaringType;
-        return method.Method.GetCustomAttribute<NonDeterministicAttribute>() != null &&
+        var targetType = method.Method.ClrMethod.DeclaringType;
+        return method.Method.ClrMethod.GetCustomAttribute<NonDeterministicAttribute>() != null &&
                targetType != null &&
                !targetType.IsAbstract &&
                typeof(LibraryBase).IsAssignableFrom(targetType) &&

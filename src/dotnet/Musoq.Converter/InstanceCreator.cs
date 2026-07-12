@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Musoq.Converter.Build;
 using Musoq.Converter.Diagnostics;
@@ -206,22 +204,9 @@ public static partial class InstanceCreator
         if (!Directory.Exists(tempPath))
             Directory.CreateDirectory(tempPath);
 
-        var builder = new StringBuilder();
-        if (items.Compilation.SyntaxTrees != null)
-        {
-            for (var i = 0; i < items.Compilation.SyntaxTrees.Length; i++)
-            {
-                builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"// === SYNTAX TREE {i} ===");
-                using var writer = new StringWriter();
-                items.Compilation.SyntaxTrees.ElementAt(i).GetRoot().WriteTo(writer);
-                builder.AppendLine(writer.ToString());
-                builder.AppendLine();
-            }
-        }
-
         using (var file = new StreamWriter(File.Open(csPath, FileMode.Create)))
         {
-            file.Write(builder.ToString());
+            file.Write(InspectGeneratedCSharpCode(items.RenderingArtifact));
         }
 
         if (items.DllFile is { Length: > 0 })

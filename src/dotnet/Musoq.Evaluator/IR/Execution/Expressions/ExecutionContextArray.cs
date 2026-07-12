@@ -5,4 +5,5 @@ using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.IR.Execution;
 
-public sealed record ExecutionContextArray(IReadOnlyList<ExecutionContextSegment> Segments) : ExecutionExpression(typeof(object[]));
+public sealed record ExecutionContextArray(IReadOnlyList<ExecutionContextSegment> Segments)
+    : ExecutionExpression(ExecutionTypeRef.FromClr(typeof(object[])));

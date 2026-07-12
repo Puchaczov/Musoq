@@ -82,9 +82,6 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 return ConvertWindowStrictCast(strictCast, sourceLookup, aggregateSourceFields, windowResults, windowIndex);
             default:
                 var converted = ExecutionExpressionConverter.Convert(expression, sourceLookup);
-                if (converted is ExecutionRawExpression)
-                    return BuildResult<ExecutionExpression>.Unsupported($"Execution IR window lowering cannot convert expression {IrExpressionPrinter.Print(expression)}.");
-
                 return BuildResult<ExecutionExpression>.Success(converted);
         }
     }

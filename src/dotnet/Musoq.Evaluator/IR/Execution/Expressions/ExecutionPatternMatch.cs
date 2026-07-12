@@ -9,4 +9,14 @@ public sealed record ExecutionPatternMatch(
     ExecutionExpression Expression,
     ExecutionExpression Pattern,
     PatternKind Kind,
-    Type ReturnType) : ExecutionExpression(ReturnType);
+    ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
+{
+    internal ExecutionPatternMatch(
+        ExecutionExpression expression,
+        ExecutionExpression pattern,
+        PatternKind kind,
+        Type returnType)
+        : this(expression, pattern, kind, ExecutionTypeRef.FromClr(returnType))
+    {
+    }
+}

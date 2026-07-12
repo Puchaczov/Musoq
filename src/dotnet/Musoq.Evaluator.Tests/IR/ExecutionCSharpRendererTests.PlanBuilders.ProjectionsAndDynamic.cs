@@ -76,7 +76,7 @@ public sealed partial class ExecutionCSharpRendererTests
             [
                 new FieldBinding(outputName, outputName, 0, outputType, FieldNullability.Unknown, new GeneratedFieldAccess(outputName))
                 {
-                    PublicType = publicOutputType
+                    PublicType = ExecutionTypeRef.FromOptionalClr(publicOutputType)
                 }
             ]);
         var source = new ExecutionVariable("p", typeof(Person));

@@ -26,9 +26,11 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             }
 
             var resultType = unmatched.IsUnknown
-                ? LiftNullExtendedProjectionType(matchedValue.ReturnType)
-                : ResolveNullExtendedProjectionType(matchedValue.ReturnType, unmatched.Expression.ReturnType);
-            var isNullable = unmatched.IsUnknown || IsLiftedNullableResult(matchedValue.ReturnType, resultType);
+                ? LiftNullExtendedProjectionType(matchedValue.ReturnType.ClrType)
+                : ResolveNullExtendedProjectionType(
+                    matchedValue.ReturnType.ClrType,
+                    unmatched.Expression.ReturnType.ClrType);
+            var isNullable = unmatched.IsUnknown || IsLiftedNullableResult(matchedValue.ReturnType.ClrType, resultType);
             var unmatchedValue = unmatched.IsUnknown
                 ? new ExecutionLiteral(null, resultType)
                 : EnsureProjectionValueType(unmatched.Expression, resultType);
@@ -109,12 +111,12 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 return FullOuterNullExtendedProjectionBuildResult.Unsupported(rightOnly.UnsupportedReason);
 
             var resultType = ResolveFullOuterProjectionType(
-                matchedValue.ReturnType,
-                leftOnly.IsUnknown ? null : leftOnly.Expression.ReturnType,
-                rightOnly.IsUnknown ? null : rightOnly.Expression.ReturnType);
+                matchedValue.ReturnType.ClrType,
+                leftOnly.IsUnknown ? null : leftOnly.Expression.ReturnType.ClrType,
+                rightOnly.IsUnknown ? null : rightOnly.Expression.ReturnType.ClrType);
             var isNullable = leftOnly.IsUnknown ||
                              rightOnly.IsUnknown ||
-                             IsLiftedNullableResult(matchedValue.ReturnType, resultType);
+                             IsLiftedNullableResult(matchedValue.ReturnType.ClrType, resultType);
             var leftOnlyValue = leftOnly.IsUnknown
                 ? new ExecutionLiteral(null, resultType)
                 : EnsureProjectionValueType(leftOnly.Expression, resultType);
@@ -267,9 +269,9 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         ExecutionExpression expression,
         Type resultType)
     {
-        return expression.ReturnType == resultType
+        return expression.ReturnType.ClrType == resultType
             ? expression
-            : expression with { ReturnType = resultType };
+            : expression with { ReturnType = ExecutionTypeRef.FromClr(resultType) };
     }
 
     private static bool IsLiftedNullableResult(Type originalType, Type resultType)

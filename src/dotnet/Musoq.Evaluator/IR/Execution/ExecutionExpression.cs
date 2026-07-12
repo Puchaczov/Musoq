@@ -5,4 +5,4 @@ using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.IR.Execution;
 
-public abstract record ExecutionExpression(Type ReturnType);
+public abstract record ExecutionExpression(ExecutionTypeRef ReturnType);

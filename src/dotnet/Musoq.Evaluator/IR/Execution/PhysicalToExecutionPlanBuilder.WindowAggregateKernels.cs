@@ -24,7 +24,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         var descriptor = ResolveWindowAggregateCapability(
             context.RegistrationResult.PluginFactory!,
             registration.FunctionName,
-            arguments.Value.ReturnType,
+            arguments.Value.ReturnType.ClrType,
             registration.ReturnType,
             mode.Mode);
         if (!descriptor.Supported || descriptor.Descriptor is null)
@@ -33,13 +33,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         var filterPredicate = registration.FilterPredicate == null
             ? null
             : ExecutionExpressionConverter.Convert(registration.FilterPredicate, context.SourceLookup);
-        if (filterPredicate is ExecutionRawExpression)
-        {
-            return (false, WindowComputationBuildResult.Unsupported(
-                $"Execution IR window aggregate lowering cannot convert FILTER predicate for {registration.FunctionName}."));
-        }
-
-        var results = new ExecutionVariable(resultsName, descriptor.Descriptor.ResultType.MakeArrayType());
+        var results = new ExecutionVariable(resultsName, descriptor.Descriptor.ResultType.ClrType.MakeArrayType());
         var resources = CreateWindowComputationResources(
             context,
             results,
@@ -72,7 +66,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                arguments.Arguments.Count == 0 &&
                arguments.RowScopedArguments.Count == 0 &&
                (IsCountWindowFunction(registration.FunctionName) ||
-                IsSupportedWindowAggregateKernelInput(arguments.Value.ReturnType));
+                IsSupportedWindowAggregateKernelInput(arguments.Value.ReturnType.ClrType));
     }
 
     private static bool IsCountWindowFunction(string functionName)

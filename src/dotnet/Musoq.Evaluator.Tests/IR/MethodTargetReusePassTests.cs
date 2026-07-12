@@ -34,7 +34,7 @@ public sealed class MethodTargetReusePassTests
         var let = (ExecutionLet)result.Plan.Body.Nodes[1];
         var rewrittenCall = (ExecutionMethodCall)let.Value;
 
-        Assert.AreEqual(typeof(LibraryBase), createObject.Target.Type);
+        Assert.AreEqual(typeof(LibraryBase), createObject.Target.Type.ClrType);
         Assert.AreSame(createObject.Target, rewrittenCall.Target);
         Assert.IsNull(rewrittenCall.Cache);
     }
@@ -123,7 +123,7 @@ public sealed class MethodTargetReusePassTests
         var let = (ExecutionLet)branch.Body.Nodes[1];
         var rewrittenCall = (ExecutionMethodCall)let.Value;
 
-        Assert.AreEqual(typeof(LibraryBase), createObject.Target.Type);
+        Assert.AreEqual(typeof(LibraryBase), createObject.Target.Type.ClrType);
         Assert.AreSame(createObject.Target, rewrittenCall.Target);
         Assert.Contains("Bound 1 method call target(s)", result.Reason);
     }
@@ -191,7 +191,7 @@ public sealed class MethodTargetReusePassTests
             [],
             new ExecutionBlock(
             [
-                new ExecutionCreateAggregateLibrary(target, target.Type),
+                new ExecutionCreateAggregateLibrary(target, target.Type.ClrType),
                 new ExecutionIf(
                     new ExecutionLiteral(true, typeof(bool)),
                     new ExecutionBlock(
@@ -323,7 +323,7 @@ public sealed class MethodTargetReusePassTests
         var projectionCall = (ExecutionMethodCall)projectionAppend.Values.Single().Value;
         var projectorCall = (ExecutionMethodCall)parallelLoop.AppendRow.Values.Single().Value;
 
-        Assert.AreEqual(typeof(LibraryBase), createObject.Target.Type);
+        Assert.AreEqual(typeof(LibraryBase), createObject.Target.Type.ClrType);
         Assert.AreSame(createObject.Target, projectionCall.Target);
         Assert.AreSame(createObject.Target, projectorCall.Target);
         Assert.IsFalse(ExecutionIrAnalysis
@@ -353,7 +353,7 @@ public sealed class MethodTargetReusePassTests
             [],
             [],
             null,
-            method,
+            ExecutionCallableRef.FromClr(method),
             "test",
             Var("results", typeof(object[])),
             MethodTargets: [target]));
@@ -392,7 +392,7 @@ public sealed class MethodTargetReusePassTests
         Assert.IsNotNull(rewrittenCall.Cache);
         Assert.AreEqual(
             typeof(ConcurrentDictionary<int, decimal>),
-            rewrittenCall.Cache.Type);
+            rewrittenCall.Cache.Type.ClrType);
     }
 
     [TestMethod]
@@ -474,7 +474,7 @@ public sealed class MethodTargetReusePassTests
         Assert.IsNotNull(rewrittenCall.Cache);
         Assert.AreEqual(
             typeof(ConcurrentDictionary<int, int>),
-            rewrittenCall.Cache.Type);
+            rewrittenCall.Cache.Type.ClrType);
     }
 
     [TestMethod]
@@ -536,7 +536,7 @@ public sealed class MethodTargetReusePassTests
         Assert.IsNotNull(rewrittenCall.Cache);
         Assert.AreEqual(
             typeof(ConcurrentDictionary<int, decimal>),
-            rewrittenCall.Cache.Type);
+            rewrittenCall.Cache.Type.ClrType);
         Assert.Contains("assigned 1 method cache(s)", result.Reason);
     }
 
@@ -661,7 +661,7 @@ public sealed class MethodTargetReusePassTests
     private static bool RequiresReusableTarget(ExecutionMethodCall call)
     {
         return !ExecutionMethodTargetReuse.CanRenderWithoutTarget(call) &&
-               ExecutionMethodTargetReuse.TryGetReusableTargetType(call.Method, out _);
+               ExecutionMethodTargetReuse.TryGetReusableTargetType(call.Method.ClrMethod, out _);
     }
 
     private static MethodInfo ResolveContainsMethod()

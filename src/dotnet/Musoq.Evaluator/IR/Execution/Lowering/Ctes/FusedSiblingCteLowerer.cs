@@ -150,8 +150,7 @@ internal sealed class FusedSiblingCteLowerer
     private static bool ContainsSideEffectSensitiveSiblingExpression(IReadOnlyList<ExecutionNode> nodes)
     {
         var block = new ExecutionBlock(nodes);
-        return ExecutionIrAnalysis.CollectExpressions<ExecutionMethodCall>(block).Any() ||
-               ExecutionIrAnalysis.CollectExpressions<ExecutionRawExpression>(block).Any();
+        return ExecutionIrAnalysis.CollectExpressions<ExecutionMethodCall>(block).Any();
     }
 
     private static bool TryExtractFusibleBuild(

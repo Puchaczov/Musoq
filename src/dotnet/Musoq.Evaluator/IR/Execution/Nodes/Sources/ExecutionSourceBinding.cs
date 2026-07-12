@@ -11,4 +11,26 @@ public sealed record ExecutionSourceBinding(
     IReadOnlyList<ExecutionExpression> Arguments,
     IReadOnlyList<FieldBinding> Fields,
     ExecutionColumnMetadata? InferredColumnsMetadata = null,
-    Type? SourceType = null);
+    ExecutionTypeRef? SourceType = null)
+{
+    internal ExecutionSourceBinding(
+        string schemaName,
+        string methodName,
+        string runtimeContextId,
+        int schemaFromIndex,
+        IReadOnlyList<ExecutionExpression> arguments,
+        IReadOnlyList<FieldBinding> fields,
+        ExecutionColumnMetadata? inferredColumnsMetadata,
+        Type sourceType)
+        : this(
+            schemaName,
+            methodName,
+            runtimeContextId,
+            schemaFromIndex,
+            arguments,
+            fields,
+            inferredColumnsMetadata,
+            ExecutionTypeRef.FromClr(sourceType))
+    {
+    }
+}

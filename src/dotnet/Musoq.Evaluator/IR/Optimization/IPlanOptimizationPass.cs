@@ -1,4 +1,3 @@
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
@@ -31,9 +30,5 @@ internal interface IPhysicalOptimizationPass : IPlanOptimizationPass<PhysicalNod
 }
 
 internal interface IExecutionIrOptimizationPass : IPlanOptimizationPass<ExecutionPlan>
-{
-}
-
-internal interface ICodegenReadabilityOptimizationPass : IPlanOptimizationPass<CompilationUnitSyntax>
 {
 }

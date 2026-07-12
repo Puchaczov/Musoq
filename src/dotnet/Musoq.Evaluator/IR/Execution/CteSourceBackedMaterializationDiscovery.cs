@@ -146,6 +146,6 @@ internal static class CteSourceBackedMaterializationDiscovery
             .Concat(appendRow.Contexts)
             .Concat(ExecutionIrAnalysis.GetContextLayoutExpressions(appendRow.ContextLayout))
             .SelectMany(ExecutionIrAnalysis.FlattenExpressions)
-            .Any(static expression => expression is ExecutionMethodCall or ExecutionRawExpression);
+            .Any(static expression => expression is ExecutionMethodCall);
     }
 }

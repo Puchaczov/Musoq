@@ -178,7 +178,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             {
                 if (IsNullExtendedContext(context, nullAlias))
                 {
-                    yield return new ExecutionLiteral(null, context.Type);
+                    yield return new ExecutionLiteral((object?)null, context.Type);
                     continue;
                 }
 
@@ -202,7 +202,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             }
 
             foreach (var context in tableRow.Contexts)
-                yield return new ExecutionLiteral(null, context.Type);
+                yield return new ExecutionLiteral((object?)null, context.Type);
 
             yield break;
         }

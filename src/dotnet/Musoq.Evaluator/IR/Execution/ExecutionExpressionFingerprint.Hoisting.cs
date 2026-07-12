@@ -58,26 +58,7 @@ internal static partial class ExecutionExpressionFingerprint
         return builder.ToString();
     }
 
-    private static string HoistMethod(MethodInfo method)
-    {
-        var builder = new StringBuilder();
-        builder.Append(method.Module.ModuleVersionId.ToString("N", CultureInfo.InvariantCulture));
-        builder.Append(':');
-        builder.Append(method.MetadataToken.ToString(CultureInfo.InvariantCulture));
-        builder.Append(':');
-        builder.Append(method.DeclaringType?.FullName);
-        builder.Append('.');
-        builder.Append(method.Name);
-
-        if (method.IsGenericMethod)
-        {
-            builder.Append('<');
-            builder.Append(string.Join(",", method.GetGenericArguments().Select(HoistType)));
-            builder.Append('>');
-        }
-
-        return builder.ToString();
-    }
+    private static string HoistMethod(ExecutionCallableRef method) => method.StableId;
 
     private static string HoistType(Type type)
     {
@@ -87,4 +68,6 @@ internal static partial class ExecutionExpressionFingerprint
         var genericType = type.GetGenericTypeDefinition();
         return $"{genericType.FullName}[{string.Join(",", type.GetGenericArguments().Select(HoistType))}]";
     }
+
+    private static string HoistType(ExecutionTypeRef type) => HoistType(type.ClrType);
 }

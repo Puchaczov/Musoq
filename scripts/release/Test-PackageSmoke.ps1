@@ -17,6 +17,178 @@ if (-not (Test-Path -LiteralPath $resolvedPackageDirectory)) {
     throw "Package directory was not found."
 }
 
+function Get-PackageArchiveEntries {
+    param(
+        [Parameter(Mandatory)]
+        [string] $PackagePath
+    )
+
+    Add-Type -AssemblyName System.IO.Compression
+    $archive = [System.IO.Compression.ZipFile]::OpenRead($PackagePath)
+    try {
+        return @($archive.Entries | ForEach-Object { $_.FullName })
+    }
+    finally {
+        $archive.Dispose()
+    }
+}
+
+function Get-PackageArchiveTextEntry {
+    param(
+        [Parameter(Mandatory)]
+        [string] $PackagePath,
+
+        [Parameter(Mandatory)]
+        [string] $EntryPath
+    )
+
+    Add-Type -AssemblyName System.IO.Compression
+    $archive = [System.IO.Compression.ZipFile]::OpenRead($PackagePath)
+    try {
+        $entry = $archive.GetEntry($EntryPath)
+        if ($null -eq $entry) {
+            throw "Package entry '$EntryPath' was not found in '$PackagePath'."
+        }
+
+        $reader = [System.IO.StreamReader]::new($entry.Open())
+        try {
+            return $reader.ReadToEnd()
+        }
+        finally {
+            $reader.Dispose()
+        }
+    }
+    finally {
+        $archive.Dispose()
+    }
+}
+
+function Assert-EqualPackageEntries {
+    param(
+        [Parameter(Mandatory)]
+        [string[]] $Expected,
+
+        [Parameter(Mandatory)]
+        [string[]] $Actual,
+
+        [Parameter(Mandatory)]
+        [string] $Description
+    )
+
+    $difference = Compare-Object -ReferenceObject @($Expected | Sort-Object) -DifferenceObject @($Actual | Sort-Object)
+    if ($null -ne $difference) {
+        $formattedDifference = ($difference | ForEach-Object { "$($_.SideIndicator) $($_.InputObject)" }) -join [Environment]::NewLine
+        throw "$Description did not match the expected package contents.$([Environment]::NewLine)$formattedDifference"
+    }
+}
+
+function Test-ConverterPackageContents {
+    param(
+        [Parameter(Mandatory)]
+        [pscustomobject] $Release,
+
+        [Parameter(Mandatory)]
+        [string] $PackageDirectory
+    )
+
+    $converterPackage = @($Release.Packages | Where-Object { $_.PackageId -eq 'Musoq.Converter' })
+    if ($converterPackage.Count -eq 0) {
+        return
+    }
+
+    $nupkgPath = Join-Path $PackageDirectory "Musoq.Converter.$($Release.Version).nupkg"
+    $snupkgPath = Join-Path $PackageDirectory "Musoq.Converter.$($Release.Version).snupkg"
+    if (-not (Test-Path -LiteralPath $nupkgPath) -or -not (Test-Path -LiteralPath $snupkgPath)) {
+        throw 'Converter package or symbol package was not found.'
+    }
+
+    $expectedTargetAssemblies = @(
+        'Musoq.Targets.Abstractions',
+        'Musoq.Targets.Execution',
+        'Musoq.Targets.Execution.Analysis',
+        'Musoq.Targets.CSharpClr'
+    )
+    $expectedNupkgDlls = @('lib/net10.0/Musoq.Converter.dll') + @($expectedTargetAssemblies | ForEach-Object { "lib/net10.0/$_.dll" })
+    $expectedTargetDocumentation = @($expectedTargetAssemblies | ForEach-Object { "lib/net10.0/$_.xml" })
+    $nupkgEntries = Get-PackageArchiveEntries -PackagePath $nupkgPath
+    $actualNupkgDlls = @($nupkgEntries | Where-Object { $_ -match '^lib/net10\.0/[^/]+\.dll$' })
+    Assert-EqualPackageEntries -Expected $expectedNupkgDlls -Actual $actualNupkgDlls -Description 'Converter lib/net10.0 assemblies'
+
+    foreach ($documentationPath in $expectedTargetDocumentation) {
+        if ($nupkgEntries -notcontains $documentationPath) {
+            throw "Bundled target documentation '$documentationPath' was not found."
+        }
+    }
+
+    if (-not ($nupkgEntries -contains 'README.md')) {
+        throw 'Converter package README was not found.'
+    }
+
+    if (@($nupkgEntries | Where-Object { $_ -match 'Musoq\.Targets\.TestPortable' }).Count -gt 0) {
+        throw 'Test-only portable target files must not be included in the converter package.'
+    }
+
+    $nuspec = Get-PackageArchiveTextEntry -PackagePath $nupkgPath -EntryPath 'Musoq.Converter.nuspec'
+    if ($nuspec -match '<dependency id="Musoq\.Targets\.') {
+        throw 'Converter package must bundle internal target assemblies instead of declaring Musoq.Targets package dependencies.'
+    }
+
+    if ($nuspec -notmatch '<repository [^>]*commit="[0-9a-f]{40}"') {
+        throw 'Converter package nuspec must contain the source repository commit.'
+    }
+
+    $expectedSnupkgPdbs = @('lib/net10.0/Musoq.Converter.pdb') + @($expectedTargetAssemblies | ForEach-Object { "lib/net10.0/$_.pdb" })
+    $snupkgEntries = Get-PackageArchiveEntries -PackagePath $snupkgPath
+    $actualSnupkgPdbs = @($snupkgEntries | Where-Object { $_ -match '^lib/net10\.0/[^/]+\.pdb$' })
+    Assert-EqualPackageEntries -Expected $expectedSnupkgPdbs -Actual $actualSnupkgPdbs -Description 'Converter symbol assemblies'
+}
+
+function Test-EvaluatorPackageContents {
+    param(
+        [Parameter(Mandatory)]
+        [pscustomobject] $Release,
+
+        [Parameter(Mandatory)]
+        [string] $PackageDirectory
+    )
+
+    $evaluatorPackage = @($Release.Packages | Where-Object { $_.PackageId -eq 'Musoq.Evaluator' })
+    if ($evaluatorPackage.Count -eq 0) {
+        return
+    }
+
+    $nupkgPath = Join-Path $PackageDirectory "Musoq.Evaluator.$($Release.Version).nupkg"
+    $snupkgPath = Join-Path $PackageDirectory "Musoq.Evaluator.$($Release.Version).snupkg"
+    if (-not (Test-Path -LiteralPath $nupkgPath) -or -not (Test-Path -LiteralPath $snupkgPath)) {
+        throw 'Evaluator package or symbol package was not found.'
+    }
+
+    $nupkgEntries = Get-PackageArchiveEntries -PackagePath $nupkgPath
+    Assert-EqualPackageEntries -Expected @(
+        'lib/net10.0/Musoq.Evaluator.dll',
+        'lib/net10.0/Musoq.Targets.Abstractions.dll'
+    ) -Actual @($nupkgEntries | Where-Object { $_ -match '^lib/net10\.0/[^/]+\.dll$' }) -Description 'Evaluator lib/net10.0 assemblies'
+
+    if ($nupkgEntries -notcontains 'lib/net10.0/Musoq.Targets.Abstractions.xml') {
+        throw 'Bundled target abstractions documentation was not found in the evaluator package.'
+    }
+
+    if (@($nupkgEntries | Where-Object { $_ -match 'Musoq\.Targets\.TestPortable' }).Count -gt 0) {
+        throw 'Test-only portable target files must not be included in the evaluator package.'
+    }
+
+    $nuspec = Get-PackageArchiveTextEntry -PackagePath $nupkgPath -EntryPath 'Musoq.Evaluator.nuspec'
+    if ($nuspec -match '<dependency id="Musoq\.Targets\.') {
+        throw 'Evaluator package must bundle target abstractions instead of declaring a Musoq.Targets package dependency.'
+    }
+
+    $snupkgEntries = Get-PackageArchiveEntries -PackagePath $snupkgPath
+    Assert-EqualPackageEntries -Expected @(
+        'lib/net10.0/Musoq.Evaluator.pdb',
+        'lib/net10.0/Musoq.Targets.Abstractions.pdb'
+    ) -Actual @($snupkgEntries | Where-Object { $_ -match '^lib/net10\.0/[^/]+\.pdb$' }) -Description 'Evaluator symbol assemblies'
+}
+
 function Get-SmokeProgram {
     param(
         [Parameter(Mandatory)]
@@ -116,6 +288,9 @@ $tempRoot = [System.IO.Path]::GetFullPath((Join-Path ([System.IO.Path]::GetTempP
 New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
 
 try {
+    Test-EvaluatorPackageContents -Release $release -PackageDirectory $resolvedPackageDirectory
+    Test-ConverterPackageContents -Release $release -PackageDirectory $resolvedPackageDirectory
+
     Invoke-ReleaseCommand -FilePath 'dotnet' -Arguments @(
         'new',
         'console',
@@ -170,6 +345,18 @@ $packageReferenceXml
 
     Invoke-ReleaseCommand -FilePath 'dotnet' -Arguments @('restore', $projectPath.FullName, '--nologo', '--verbosity', 'quiet') -WorkingDirectory $tempRoot
     Invoke-ReleaseCommand -FilePath 'dotnet' -Arguments @('build', $projectPath.FullName, '--configuration', 'Release', '--no-restore', '--nologo', '--verbosity', 'quiet') -WorkingDirectory $tempRoot
+    $assetsPath = Join-Path $tempRoot 'obj/project.assets.json'
+    if ((Get-Content -LiteralPath $assetsPath -Raw) -match '"Musoq\.Targets\.') {
+        throw 'Consumer restore must not resolve internal Musoq.Targets NuGet packages.'
+    }
+
+    $consumerOutputPath = Join-Path $tempRoot 'bin/Release/net10.0'
+    foreach ($targetAssembly in @('Musoq.Targets.Abstractions.dll', 'Musoq.Targets.Execution.dll', 'Musoq.Targets.Execution.Analysis.dll', 'Musoq.Targets.CSharpClr.dll')) {
+        if (-not (Test-Path -LiteralPath (Join-Path $consumerOutputPath $targetAssembly))) {
+            throw "Consumer output did not include bundled target assembly '$targetAssembly'."
+        }
+    }
+
     $output = Invoke-ReleaseCommandWithOutput -FilePath 'dotnet' -Arguments @('run', '--project', $projectPath.FullName, '--configuration', 'Release', '--no-build') -WorkingDirectory $tempRoot
 
     if (-not ($output -contains 'SMOKE_OK')) {
