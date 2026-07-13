@@ -12,14 +12,16 @@
       "packageId": "Musoq.Plugins",
       "projectPath": "src/dotnet/Musoq.Plugins/Musoq.Plugins.csproj",
       "versionProperty": "MusoqPluginsVersion",
-      "smokeTestMode": "assembly-load"
+      "smokeTestMode": "assembly-load",
+      "datasourceAbi": true
     },
     {
       "slug": "schema",
       "packageId": "Musoq.Schema",
       "projectPath": "src/dotnet/Musoq.Schema/Musoq.Schema.csproj",
       "versionProperty": "MusoqSchemaVersion",
-      "smokeTestMode": "assembly-load"
+      "smokeTestMode": "assembly-load",
+      "datasourceAbi": true
     },
     {
       "slug": "evaluator",

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -18,6 +19,16 @@ public sealed class ReleasePackagingGuardrailTests
 
             StringAssert.Contains(text, "<IsPackable>false</IsPackable>");
             StringAssert.Contains(text, "<GenerateDocumentationFile>true</GenerateDocumentationFile>");
+        }
+    }
+
+    [TestMethod]
+    public void NonReleaseProjects_ShouldNotBePackable()
+    {
+        foreach (var projectPath in NonReleaseProjectPaths)
+        {
+            var text = File.ReadAllText(Path.Combine(RepositoryRoot, projectPath));
+            StringAssert.Contains(text, "<IsPackable>false</IsPackable>");
         }
     }
 
@@ -94,12 +105,50 @@ public sealed class ReleasePackagingGuardrailTests
         StringAssert.Contains(smokeScript, "Consumer restore must not resolve internal Musoq.Targets NuGet packages.");
     }
 
+    [TestMethod]
+    public void ReleaseScripts_ShouldPassBehavioralTests()
+    {
+        var scriptPath = Path.Combine(RepositoryRoot, "scripts", "release", "Test-ReleaseScripts.ps1");
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "pwsh",
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        startInfo.ArgumentList.Add("-NoProfile");
+        startInfo.ArgumentList.Add("-NonInteractive");
+        startInfo.ArgumentList.Add("-File");
+        startInfo.ArgumentList.Add(scriptPath);
+
+        using var process = Process.Start(startInfo)
+            ?? throw new InvalidOperationException("Could not start PowerShell release-script tests.");
+        var standardOutput = process.StandardOutput.ReadToEnd();
+        var standardError = process.StandardError.ReadToEnd();
+        process.WaitForExit();
+
+        Assert.AreEqual(
+            0,
+            process.ExitCode,
+            $"Release-script tests failed.{Environment.NewLine}{standardOutput}{Environment.NewLine}{standardError}");
+    }
+
     private static string[] InternalTargetProjects { get; } =
     [
         "Musoq.Targets.Abstractions",
         "Musoq.Targets.Execution",
         "Musoq.Targets.Execution.Analysis",
         "Musoq.Targets.CSharpClr"
+    ];
+
+    private static string[] NonReleaseProjectPaths { get; } =
+    [
+        Path.Combine("src", "dotnet", "Musoq.Tests.Common", "Musoq.Tests.Common.csproj"),
+        Path.Combine("src", "dotnet", "Musoq.Playground", "Musoq.Playground.csproj"),
+        Path.Combine("src", "dotnet", "Musoq.Benchmarks", "Musoq.Benchmarks.csproj"),
+        Path.Combine("src", "dotnet", "examples", "data-sources", "csv", "Musoq.Examples.DataSources.Csv.csproj"),
+        Path.Combine("src", "dotnet", "examples", "data-sources", "git", "Musoq.Examples.DataSources.Git.csproj")
     ];
 
     private static string RepositoryRoot

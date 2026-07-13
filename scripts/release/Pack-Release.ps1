@@ -41,7 +41,7 @@ $manifestEntries = [System.Collections.Generic.List[string]]::new()
 
 foreach ($package in $release.Packages) {
     Write-Host "Packing $($package.PackageId)"
-    Invoke-ReleaseCommand -FilePath 'dotnet' -Arguments @(
+    $packArguments = @(
         'pack',
         $package.FullProjectPath,
         '--configuration',
@@ -53,6 +53,42 @@ foreach ($package in $release.Packages) {
         '--verbosity',
         'quiet'
     )
+    $restoreArguments = @()
+
+    if ($package.IsDatasourceAbi) {
+        $version = Get-MsBuildProperty -ProjectPath $package.FullProjectPath -PropertyName 'Version'
+        $baselineVersion = Get-DatasourceAbiBaselineVersion `
+            -PackageId $package.PackageId `
+            -Version $version
+
+        if ([string]::IsNullOrWhiteSpace($baselineVersion)) {
+            Write-Host "No earlier same-major baseline exists for $($package.PackageId) $version."
+        }
+        else {
+            Write-Host "Validating $($package.PackageId) $version against $baselineVersion."
+            $validationArguments = @(
+                '-p:EnablePackageValidation=true',
+                "-p:PackageValidationBaselineName=$($package.PackageId)",
+                "-p:PackageValidationBaselineVersion=$baselineVersion",
+                '-p:EnableStrictModeForCompatibleTfms=true',
+                '-p:GenerateCompatibilitySuppressionFile=false'
+            )
+            $restoreArguments = @(
+                'restore',
+                $package.FullProjectPath,
+                '--nologo',
+                '--verbosity',
+                'quiet'
+            ) + $validationArguments
+            $packArguments += $validationArguments
+        }
+    }
+
+    if ($restoreArguments.Count -gt 0) {
+        Invoke-ReleaseCommand -FilePath 'dotnet' -Arguments $restoreArguments
+    }
+
+    Invoke-ReleaseCommand -FilePath 'dotnet' -Arguments $packArguments
 
     $version = Get-MsBuildProperty -ProjectPath $package.FullProjectPath -PropertyName 'Version'
     $nupkgPath = Join-Path $resolvedOutputPath "$($package.PackageId).$version.nupkg"

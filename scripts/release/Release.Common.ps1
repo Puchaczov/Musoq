@@ -71,6 +71,9 @@ function Get-ReleasePackages {
             throw "Release package registry contains an invalid smoke test mode."
         }
 
+        $isDatasourceAbi = $package.PSObject.Properties.Name -contains 'datasourceAbi' -and
+            [bool]$package.datasourceAbi
+
         $fullProjectPath = Resolve-RepositoryPath -RelativePath ([string]$package.projectPath)
         if (-not (Test-Path -LiteralPath $fullProjectPath)) {
             throw "Release package project was not found."
@@ -83,10 +86,100 @@ function Get-ReleasePackages {
             FullProjectPath = $fullProjectPath
             VersionProperty = [string]$package.versionProperty
             SmokeTestMode = [string]$package.smokeTestMode
+            IsDatasourceAbi = $isDatasourceAbi
         }
     }
 
     return $packages
+}
+
+function ConvertTo-MusoqSemanticVersion {
+    param(
+        [Parameter(Mandatory)]
+        [string] $Version
+    )
+
+    try {
+        return [System.Management.Automation.SemanticVersion]::Parse($Version)
+    }
+    catch {
+        throw "Invalid semantic version '$Version'."
+    }
+}
+
+function Get-PublishedPackageVersions {
+    param(
+        [Parameter(Mandatory)]
+        [string] $PackageId
+    )
+
+    $baseUrl = if ([string]::IsNullOrWhiteSpace($env:MUSOQ_NUGET_FLAT_CONTAINER_BASE_URL)) {
+        'https://api.nuget.org/v3-flatcontainer'
+    }
+    else {
+        $env:MUSOQ_NUGET_FLAT_CONTAINER_BASE_URL.TrimEnd('/')
+    }
+
+    $packageSegment = $PackageId.ToLowerInvariant()
+    $indexUrl = "$baseUrl/$packageSegment/index.json"
+
+    try {
+        $response = Invoke-RestMethod -Method Get -Uri $indexUrl
+    }
+    catch {
+        throw "Failed to query published versions for '$PackageId' from '$indexUrl'. $($_.Exception.Message)"
+    }
+
+    if ($null -eq $response.versions) {
+        throw "NuGet version index for '$PackageId' did not contain a versions array."
+    }
+
+    return @($response.versions | ForEach-Object { [string]$_ })
+}
+
+function Get-DatasourceAbiBaselineVersion {
+    param(
+        [Parameter(Mandatory)]
+        [string] $PackageId,
+
+        [Parameter(Mandatory)]
+        [string] $Version,
+
+        [string[]] $AvailableVersions
+    )
+
+    $current = ConvertTo-MusoqSemanticVersion -Version $Version
+    $publishedVersions = if ($PSBoundParameters.ContainsKey('AvailableVersions')) {
+        @($AvailableVersions)
+    }
+    else {
+        @(Get-PublishedPackageVersions -PackageId $PackageId)
+    }
+
+    $candidates = foreach ($publishedVersion in $publishedVersions) {
+        try {
+            $parsed = ConvertTo-MusoqSemanticVersion -Version $publishedVersion
+        }
+        catch {
+            continue
+        }
+
+        if ($parsed.Major -ne $current.Major -or $parsed.CompareTo($current) -ge 0) {
+            continue
+        }
+
+        [PSCustomObject]@{
+            Parsed = $parsed
+            Raw = $publishedVersion
+        }
+    }
+
+    $baseline = $candidates | Sort-Object -Property Parsed -Descending | Select-Object -First 1
+    if ($null -eq $baseline) {
+        return $null
+    }
+
+    return [string]$baseline.Raw
 }
 
 function Get-MsBuildProperty {

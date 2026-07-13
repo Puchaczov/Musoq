@@ -39,6 +39,17 @@ Package versions live in [scripts/Versions.props](scripts/Versions.props).
 
 Do not hardcode package versions in individual package projects. The release scripts validate the evaluated MSBuild `Version` against the pushed release tag.
 
+### Datasource ABI packages
+
+`Musoq.Schema` and `Musoq.Plugins` are the supported binary contract for .NET datasource plugins.
+Datasource plugins bind to the host copies of these assemblies, so every same-major release of either
+package must remain binary compatible with previously published versions in that major.
+
+The release packer resolves the greatest published lower version in the same major and enables the
+.NET SDK package baseline validator for these two packages. A binary-breaking change fails packaging.
+Do not suppress package compatibility diagnostics for a same-major release; use a new major version
+when the datasource ABI must change. The first release in a new major has no prior baseline.
+
 ## Local Release Validation
 
 Run these before tagging:

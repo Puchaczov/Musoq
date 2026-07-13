@@ -4,6 +4,16 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.2-alpha.2
+
+See [release-notes/v17.0.2-alpha.2.md](release-notes/v17.0.2-alpha.2.md) for the curated GitHub Release text.
+
+### Release Infrastructure
+
+- Added datasource ABI package compatibility validation for `Musoq.Plugins` and `Musoq.Schema`.
+- Added release-script tests and packaging guardrails that prevent test-only projects from being packed.
+- Hardened full-train package validation and consumer smoke coverage for the release artifact set.
+
 ## 17.0.2-alpha.1
 
 See [release-notes/v17.0.2-alpha.1.md](release-notes/v17.0.2-alpha.1.md) for the curated GitHub Release text.
