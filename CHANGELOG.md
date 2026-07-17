@@ -4,6 +4,32 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.2-alpha.3
+
+See [release-notes/v17.0.2-alpha.3.md](release-notes/v17.0.2-alpha.3.md) for the curated GitHub Release text.
+
+### Musoq.Parser
+
+- Extended correlated subquery support across predicate, quantified, scalar, and `CROSS APPLY` forms, including null-aware semantics.
+
+### Musoq.Plugins
+
+- Added typed correlated scalar-subquery results and aggregate kernels used by indexed execution.
+
+### Musoq.Evaluator
+
+- Added a phase-aware correlated-subquery pipeline covering equality and bounded range correlation, composite keys, hash/single/mark/semi/anti join strategies, per-key scalar shaping, and CTE sidecar indexes.
+- Added deterministic empty-result, scalar-cardinality, null-key, set-operator, window, `QUALIFY`, `PIVOT`, `UNPIVOT`, and `ASOF` composition handling.
+
+### Musoq.Converter
+
+- Updated generated C# execution support for correlated subquery joins, typed scalar carriers, range frames, and bundled target assemblies.
+
+### Tooling and verification
+
+- Added correlated-subquery generated samples, integration coverage, performance gates, and benchmark report comparison tooling.
+- Unsupported correlated shapes are rejected with `MQ2024_InvalidSubquery` instead of falling back to hidden per-row execution.
+
 ## 17.0.2-alpha.2
 
 See [release-notes/v17.0.2-alpha.2.md](release-notes/v17.0.2-alpha.2.md) for the curated GitHub Release text.
