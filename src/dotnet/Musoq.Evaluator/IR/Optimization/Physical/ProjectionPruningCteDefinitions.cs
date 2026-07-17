@@ -343,6 +343,8 @@ internal static class ProjectionPruningCteDefinitions
     {
         return ColumnUsage.CollectColumnNames(join.LeftKey)
             .Concat(ColumnUsage.CollectColumnNames(join.RightKey))
+            .Concat(ColumnUsage.CollectColumnNames(join.LeftPartitionKeys))
+            .Concat(ColumnUsage.CollectColumnNames(join.RightPartitionKeys))
             .Concat(ColumnUsage.CollectColumnNames(join.Residual))
             .ToArray();
     }

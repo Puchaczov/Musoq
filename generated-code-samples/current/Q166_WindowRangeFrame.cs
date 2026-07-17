@@ -109,10 +109,12 @@ namespace GeneratedSample_Q166_WindowRangeFrame
                 var ko3ikoRows = ko3ikoRowsSource.Chunks;
                 var resultWindowRows = EvaluationHelper.MaterializeChunkedRowsList(ko3ikoRows);
                 var resultSumsOrderKeys = new WindowResultSumsOrderKeysKey[resultWindowRows.Count];
+                var resultSumsRangeKeys = new decimal[resultWindowRows.Count];
                 for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
                 {
                     Musoq.Evaluator.Tests.Schema.Basic.BasicEntity ko3iko = resultWindowRows[windowIndex];
                     resultSumsOrderKeys[windowIndex] = new WindowResultSumsOrderKeysKey(ko3iko.Population);
+                    resultSumsRangeKeys[windowIndex] = (decimal)ko3iko.Population;
                 }
 
                 var resultSumsPartitions = WindowFunctionHelpers.ResolvePartitionSet(resultWindowRows.Count, null);
@@ -136,8 +138,8 @@ namespace GeneratedSample_Q166_WindowRangeFrame
                     for (int resultSumsPartitionIndex = 0; resultSumsPartitionIndex < resultSumsPartitionCount; ++resultSumsPartitionIndex)
                     {
                         var resultSumsCurrentIndex = resultSumsPartitionIndices[resultSumsPartitionStart + resultSumsPartitionIndex];
-                        var resultSumsFrameStart = Math.Max(0, resultSumsPartitionIndex - 100);
-                        var resultSumsFrameEnd = resultSumsPartitionIndex;
+                        var resultSumsFrameStart = WindowFunctionHelpers.ResolveRangeFrameStart(resultSumsRangeKeys, resultSumsPartitionIndices, resultSumsPartitionStart, resultSumsPartitionCount, resultSumsPartitionIndex, -100, false);
+                        var resultSumsFrameEnd = WindowFunctionHelpers.ResolveRangeFrameEnd(resultSumsRangeKeys, resultSumsPartitionIndices, resultSumsPartitionStart, resultSumsPartitionCount, resultSumsPartitionIndex, 0, false);
                         var resultSumsFramePrefixStart = Math.Max(0, resultSumsFrameStart);
                         var resultSumsFramePrefixEnd = Math.Max(0, resultSumsFrameEnd + 1);
                         resultSums[resultSumsCurrentIndex] = resultSumsPrefixSum[resultSumsFramePrefixEnd] - resultSumsPrefixSum[resultSumsFramePrefixStart];

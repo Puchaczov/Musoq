@@ -24,6 +24,10 @@ public class SubqueryLoweringBenchmark : BenchmarkBase
     private CompiledQuery _correlatedExists = null!;
     private CompiledQuery _correlatedNotExists = null!;
     private CompiledQuery _scalarAggregate = null!;
+    private CompiledQuery _scalarNonAggregate = null!;
+    private CompiledQuery _scalarPartitionedTopOffset = null!;
+    private CompiledQuery _scalarGrouped = null!;
+    private CompiledQuery _scalarCorrelatedSetOperator = null!;
     private CompiledQuery _scalarSubqueryJoinOn = null!;
     private CompiledQuery _quantifiedAll = null!;
     private CompiledQuery _derivedCrossApply = null!;
@@ -31,6 +35,9 @@ public class SubqueryLoweringBenchmark : BenchmarkBase
     private CompiledQuery _compositeStringKey = null!;
     private CompiledQuery _compositeStringDecimalKey = null!;
     private CompiledQuery _predicateExpressionFallback = null!;
+    private CompiledQuery _predicateRangeMark = null!;
+    private CompiledQuery _predicatePartitionedRangeMark = null!;
+    private CompiledQuery _predicateCompositeRangeMark = null!;
     private CompiledQuery _correlatedApplySetOperator = null!;
 
     [GlobalSetup]
@@ -99,6 +106,48 @@ public class SubqueryLoweringBenchmark : BenchmarkBase
                        select Count(b.Email) from #B.Entities() b
                        where b.Animal = a.Animal
                    ) as AnimalCount
+            from #A.Entities() a
+            """);
+
+        _scalarNonAggregate = CreateProfileQuery("""
+            select a.FirstName,
+                   (
+                       select b.FirstName from #B.Entities() b
+                       where b.Email = a.Email
+                   ) as MatchedFirstName
+            from #A.Entities() a
+            """);
+
+        _scalarPartitionedTopOffset = CreateProfileQuery("""
+            select a.FirstName,
+                   (
+                       select b.FirstName from #B.Entities() b
+                       where b.Animal = a.Animal
+                       order by b.Date desc
+                       take 1
+                   ) as LatestFirstName
+            from #A.Entities() a
+            """);
+
+        _scalarGrouped = CreateProfileQuery("""
+            select a.FirstName,
+                   (
+                       select Count(b.Email) from #B.Entities() b
+                       where b.Animal = a.Animal
+                       group by b.Animal
+                   ) as AnimalCount
+            from #A.Entities() a
+            """);
+
+        _scalarCorrelatedSetOperator = CreateProfileQuery("""
+            select a.FirstName,
+                   (
+                       select b.Email from #B.Entities() b
+                       where b.Email = a.Email
+                       union (Email)
+                       select c.Email from #C.Entities() c
+                       where c.Email = a.Email
+                   ) as MatchedEmail
             from #A.Entities() a
             """);
 
@@ -172,6 +221,48 @@ public class SubqueryLoweringBenchmark : BenchmarkBase
             from #A.Entities() a
             """);
 
+        _predicateRangeMark = CreateProfileQuery("""
+            select a.FirstName,
+                   case
+                       when exists (
+                           select b.Email from #B.Entities() b
+                           where b.Date < a.Date
+                       )
+                       then 'Y'
+                       else 'N'
+                   end as HasEarlierMatch
+            from #A.Entities() a
+            """);
+
+        _predicatePartitionedRangeMark = CreateProfileQuery("""
+            select a.FirstName,
+                   case
+                       when exists (
+                           select b.Email from #B.Entities() b
+                           where b.Animal = a.Animal
+                             and b.Date < a.Date
+                       )
+                       then 'Y'
+                       else 'N'
+                   end as HasEarlierAnimalMatch
+            from #A.Entities() a
+            """);
+
+        _predicateCompositeRangeMark = CreateProfileQuery("""
+            select a.FirstName,
+                   case
+                       when exists (
+                           select b.Email from #B.Entities() b
+                           where b.Animal = a.Animal
+                             and b.Gender = a.Gender
+                             and b.Date < a.Date
+                       )
+                       then 'Y'
+                       else 'N'
+                   end as HasEarlierPeerMatch
+            from #A.Entities() a
+            """);
+
         _correlatedApplySetOperator = CreateProfileQuery("""
             select a.FirstName, d.Email
             from #A.Entities() a
@@ -222,6 +313,30 @@ public class SubqueryLoweringBenchmark : BenchmarkBase
     }
 
     [Benchmark]
+    public Table ScalarNonAggregateHashSingle()
+    {
+        return _scalarNonAggregate.Run();
+    }
+
+    [Benchmark]
+    public Table ScalarPartitionedTopOffset()
+    {
+        return _scalarPartitionedTopOffset.Run();
+    }
+
+    [Benchmark]
+    public Table ScalarGrouped()
+    {
+        return _scalarGrouped.Run();
+    }
+
+    [Benchmark]
+    public Table ScalarCorrelatedSetOperator()
+    {
+        return _scalarCorrelatedSetOperator.Run();
+    }
+
+    [Benchmark]
     public Table ScalarSubqueryJoinOn()
     {
         return _scalarSubqueryJoinOn.Run();
@@ -261,6 +376,24 @@ public class SubqueryLoweringBenchmark : BenchmarkBase
     public Table PredicateExpressionFallback()
     {
         return _predicateExpressionFallback.Run();
+    }
+
+    [Benchmark]
+    public Table PredicateRangeMark()
+    {
+        return _predicateRangeMark.Run();
+    }
+
+    [Benchmark]
+    public Table PredicatePartitionedRangeMark()
+    {
+        return _predicatePartitionedRangeMark.Run();
+    }
+
+    [Benchmark]
+    public Table PredicateCompositeRangeMark()
+    {
+        return _predicateCompositeRangeMark.Run();
     }
 
     [Benchmark]

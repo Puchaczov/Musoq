@@ -339,6 +339,7 @@ internal abstract partial class ExecutionIrRewriter
             (key, body, noMatchBody) => node with { Key = key, Body = body, NoMatchBody = noMatchBody });
     }
 
+
     protected virtual ExecutionNode RewriteStoreCteIndex(ExecutionStoreCteIndex node) => node;
 
     protected virtual ExecutionNode RewriteLoadCteIndex(ExecutionLoadCteIndex node) => node;
@@ -395,19 +396,33 @@ internal abstract partial class ExecutionIrRewriter
     protected virtual ExecutionNode RewriteCreateRangeIndex(ExecutionCreateRangeIndex node)
     {
         var candidates = RewriteExpression(node.Candidates);
+        var partitionKeys = node.PartitionKeys == null ? null : RewriteAsOfEqualityKeys(node.PartitionKeys);
         var candidateKey = RewriteExpression(node.CandidateKey);
-        return ReferenceEquals(candidates, node.Candidates) && ReferenceEquals(candidateKey, node.CandidateKey)
+        return ReferenceEquals(candidates, node.Candidates) &&
+               ReferenceEquals(partitionKeys, node.PartitionKeys) &&
+               ReferenceEquals(candidateKey, node.CandidateKey)
             ? node
-            : node with { Candidates = candidates, CandidateKey = candidateKey };
+            : node with { Candidates = candidates, PartitionKeys = partitionKeys, CandidateKey = candidateKey };
     }
 
     protected virtual ExecutionNode RewriteRangeProbe(ExecutionRangeProbe node)
     {
-        return RewriteExpressionAndBlockOwner(
-            node,
-            node.ProbeKey,
-            node.Body,
-            (probeKey, body) => node with { ProbeKey = probeKey, Body = body });
+        var partitionKeys = node.PartitionKeys == null ? null : RewriteAsOfEqualityKeys(node.PartitionKeys);
+        var probeKey = RewriteExpression(node.ProbeKey);
+        var body = RewriteBlock(node.Body);
+        var noMatchBody = RewriteOptionalBlock(node.NoMatchBody);
+        return ReferenceEquals(partitionKeys, node.PartitionKeys) &&
+               ReferenceEquals(probeKey, node.ProbeKey) &&
+               ReferenceEquals(body, node.Body) &&
+               ReferenceEquals(noMatchBody, node.NoMatchBody)
+            ? node
+            : node with
+            {
+                PartitionKeys = partitionKeys,
+                ProbeKey = probeKey,
+                Body = body,
+                NoMatchBody = noMatchBody
+            };
     }
 
     protected virtual ExecutionNode RewriteCreateAggregateLibrary(ExecutionCreateAggregateLibrary node) => node;

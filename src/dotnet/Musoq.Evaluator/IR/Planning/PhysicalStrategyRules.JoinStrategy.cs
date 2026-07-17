@@ -19,6 +19,38 @@ internal static partial class PhysicalStrategyRules
         ArgumentNullException.ThrowIfNull(left);
         ArgumentNullException.ThrowIfNull(right);
         ArgumentNullException.ThrowIfNull(compilationOptions);
+        if (kind is JoinKind.LeftSemi or JoinKind.LeftAntiSemi or JoinKind.LeftMark or JoinKind.LeftSingle)
+        {
+            var boundedHash = TryDecomposeHashJoin(kind, predicate, left, right, cardinalityFacts);
+            var boundedRange = TryDecomposeSortMergeJoin(kind, predicate, left, right);
+            if (boundedRange != null)
+            {
+                return JoinStrategyDecision.SortMerge(
+                    boundedRange,
+                    kind switch
+                    {
+                        JoinKind.LeftSingle => "Range-single join selected because scalar cardinality can be enforced over one indexed comparable range within its equality partition when present.",
+                        JoinKind.LeftAntiSemi => "Range anti-semi join selected because the indexed comparable range can prove absence within its equality partition.",
+                        JoinKind.LeftSemi => "Range semi-join selected because the indexed comparable range can stop after the first match within its equality partition.",
+                        _ => "Range-mark join selected because predicate truth can stop after the first indexed comparable-range match within its equality partition."
+                    });
+            }
+
+            if (boundedHash != null)
+            {
+                return JoinStrategyDecision.Hash(
+                    boundedHash,
+                    kind == JoinKind.LeftSingle
+                        ? $"Hash-single join selected because scalar cardinality enforcement requires its equi-key probe. {boundedHash.BuildSideReason}"
+                        : $"Bounded hash join selected because predicate truth can be resolved within one equi-key bucket. {boundedHash.BuildSideReason}");
+            }
+
+            return JoinStrategyDecision.NestedLoop(
+                kind == JoinKind.LeftSingle
+                    ? "Bounded scalar lowering requires an equi-key or one comparable range predicate; no eligible index key was found."
+                    : "Bounded mark lowering requires an equi-key or one comparable range predicate; no eligible index key was found.");
+        }
+
         if (compilationOptions.UseHashJoin)
         {
             var hashJoin = TryDecomposeHashJoin(kind, predicate, left, right, cardinalityFacts);

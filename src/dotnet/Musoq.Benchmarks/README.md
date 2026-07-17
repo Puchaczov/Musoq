@@ -1,5 +1,31 @@
 # Musoq Benchmarks
 
+## Correlated Subquery Performance Gate
+
+Capture three isolated `SubqueryLoweringBenchmark` reports before and after a change. Compare them with:
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks -c Release --no-build -- compare-reports `
+  --baseline <before-1.json> --baseline <before-2.json> --baseline <before-3.json> `
+  --current <after-1.json> --current <after-2.json> --current <after-3.json>
+```
+
+The command compares the median BenchmarkDotNet mean and allocation count for every baseline method,
+rejects incomplete reports, and fails when either metric regresses by more than 3%. Override the ratios
+only for a separately documented equivalence gate, such as the 1.10 limit for a new correlated rewrite
+against its hand-written set-based equivalent.
+
+The typed composite range-partition path was gated with three isolated `ShortRun` reports against the
+Wave 9 object-key implementation, using the same `PredicateCompositeRangeMark` harness in both cohorts:
+
+| Cohort | Median mean | Median allocation | Ratio vs. Wave 9 |
+| --- | ---: | ---: | ---: |
+| Wave 9 object composite key (`9540ebd71`) | 6.092 ms | 3.64 MB | 1.0000x / 1.0000x |
+| Typed nullable tuple key (`d85ac3fae`) | 5.071 ms | 2.83 MB | 0.8325x / 0.7765x |
+
+The repository comparator passed its default 1.03 time and allocation ceilings. These local numbers were
+captured on .NET 10.0.10 and should be treated as change evidence, not as a cross-machine throughput claim.
+
 ## Two-Mode Execution Baselines
 
 `TwoModeExecutionBenchmark` protects the typed enumerable work from silent performance drift. It measures table execution, public typed execution versus equivalent LINQ, compile-from-scratch versus reusable typed queries, caller-owned artifact load/run paths, table-backed typed profiling, serial versus parallel typed final projection, typed fallback materialization for `distinct/order/skip/take`, and the typed post-operation row helper path for `distinct/order/skip/take`.

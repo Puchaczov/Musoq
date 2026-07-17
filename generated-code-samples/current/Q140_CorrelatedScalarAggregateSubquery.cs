@@ -24,7 +24,7 @@ Cte
   Query
     MultiStatement
       Project [a.City as a.City, a.Country as a.Country, _sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, _sq_1._sq_1_value as _sq_1._sq_1_value]
-        Join [LeftOuter] [(_sq_1._sq_1_corr_0 = a.Country)]
+        Join [LeftSingle] [(_sq_1._sq_1_corr_0 = a.Country)]
           SchemaScan [#A.entities() as a]
           CteRef [_sq_1 as _sq_1]
       Project [a.City as a.City, _sq_1._sq_1_value as CountryPopulation]
@@ -45,7 +45,7 @@ PhysicalCte
   Query
     PhysicalMultiStatement
       PhysicalProject [a.City as a.City, a.Country as a.Country, _sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, _sq_1._sq_1_value as _sq_1._sq_1_value]
-        PhysicalHashJoin [LeftOuter] [build: _sq_1._sq_1_corr_0] [probe: a.Country]
+        PhysicalHashJoin [LeftSingle] [build: _sq_1._sq_1_corr_0] [probe: a.Country]
           PhysicalSchemaScan [#A.entities() as a]
           PhysicalCteRef [_sq_1 as _sq_1]
       PhysicalProject [a.City as a.City, _sq_1._sq_1_value as CountryPopulation]

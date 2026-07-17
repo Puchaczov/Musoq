@@ -74,9 +74,6 @@ public partial class HashOptionalSchemaComprehensiveTests
 
         Assert.AreEqual(2, table.Count);
     }
-
-
-
     [TestMethod]
     public void HashOptional_CaseWhenSimple_ShouldWork()
     {
@@ -232,7 +229,8 @@ public partial class HashOptionalSchemaComprehensiveTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("CityCount", typeof(long)), ("TotalPop", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Warsaw", 2L, 250m], ["Berlin", 1L, 200m]);
     }
 
     [TestMethod]

@@ -94,7 +94,11 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
                 strategy.SortMergeJoin.ComparisonKind,
                 strategy.SortMergeJoin.Residual,
                 left,
-                right),
+                right)
+            {
+                LeftPartitionKeys = strategy.SortMergeJoin.LeftPartitionKeys,
+                RightPartitionKeys = strategy.SortMergeJoin.RightPartitionKeys
+            },
             JoinStrategyKind.NestedLoop => new PhysicalNestedLoopJoinNode(
                 join.Kind,
                 join.OnPredicate,

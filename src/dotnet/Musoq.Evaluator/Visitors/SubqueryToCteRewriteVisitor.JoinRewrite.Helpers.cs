@@ -139,12 +139,8 @@ public partial class SubqueryToCteRewriteVisitor
 
     private static bool IsCardinalitySafeApplyCorrelation(SubqueryInfo info, Node expression)
     {
-        return info.Correlation?.Facts is
-               {
-                   HasEqualityKeys: true,
-                   NullSemantics: SubqueryCorrelationNullSemantics.EqualityComparison
-               } &&
-               IsEqualityOnlyApplyCorrelation(expression);
+        return info.Correlation?.Facts != null &&
+               (IsEqualityOnlyApplyCorrelation(expression) || SubqueryCorrelationUtilities.IsIndexedRangeCorrelation(expression) || PredicateApplyCorrelationShape.IsNullGuardedRange(expression));
     }
 
     private static bool IsEqualityOnlyApplyCorrelation(Node expression)
@@ -163,7 +159,7 @@ public partial class SubqueryToCteRewriteVisitor
         var predicateName = info.IsExists ? "EXISTS" : "IN";
         throw SubqueryDiagnosticFactory.InvalidSubquery(
             $"{predicateName} subquery expression rewrite",
-            $"Predicate {predicateName} subqueries used inside expression contexts currently require equality-only correlation predicates. Non-equality correlated predicates require APPLY lowering.",
+            $"Predicate {predicateName} subqueries used inside expression contexts require equality predicates, null guards, and at most one comparable range predicate.",
             info.PredicateNode);
     }
 }

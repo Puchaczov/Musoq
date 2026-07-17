@@ -4,7 +4,7 @@ namespace Musoq.Evaluator.Tests;
 
 public sealed partial class GeneratedCodeSamplesShapeTests
 {
-    private const int ExpectedSampleFileCount = 188;
+    private const int ExpectedSampleFileCount = 189;
     private const int InlineInArrayAllocationBudget = 0;
     private const string CrossApplySampleFileName = "Q19_CrossApply.cs";
     private const string OuterApplySampleFileName = "Q20_OuterApply.cs";
@@ -164,6 +164,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         "Q144_CorrelatedCompositeValueTypeSubquery.cs";
     private const string CorrelatedApplySelectiveDerivedTableSampleFileName =
         "Q145_CorrelatedApplySelectiveDerivedTable.cs";
+    private const string CorrelatedCompositeRangeMarkSampleFileName =
+        "Q186_CorrelatedCompositeRangeMark.cs";
     private const string CteSidecarHashJoinSampleFileName = "Q146_CteSidecarHashJoin.cs";
     private const string CteSidecarKeySetSemiJoinSampleFileName = "Q147_CteSidecarKeySetSemiJoin.cs";
     private const string CteSidecarFanoutThreeHashesSampleFileName = "Q148_CteSidecarFanoutThreeHashes.cs";

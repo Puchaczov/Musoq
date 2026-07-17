@@ -49,7 +49,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 resultTableName,
                 resultShapeName,
                 sources.Source),
-            JoinKind.LeftOuter or JoinKind.RightOuter => BuildOuterNestedLoopJoinTable(
+            JoinKind.LeftOuter or JoinKind.RightOuter or JoinKind.LeftMark => BuildOuterNestedLoopJoinTable(
                 join,
                 pipeline,
                 resultTableName,
@@ -130,7 +130,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     {
         return kind switch
         {
-            JoinKind.LeftOuter => new OuterNestedLoopSides(joinSources.Left, joinSources.Right),
+            JoinKind.LeftOuter or JoinKind.LeftMark => new OuterNestedLoopSides(joinSources.Left, joinSources.Right),
             JoinKind.RightOuter => new OuterNestedLoopSides(joinSources.Right, joinSources.Left),
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, @"Only outer join kinds have preserved and nullable sides.")
         };
@@ -165,12 +165,19 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             return TableBuildResult.Unsupported(appendBlocks.UnsupportedReason);
 
         var hasMatch = new ExecutionVariable($"{resultTableName}HasMatch", typeof(bool));
-        var matchedBody = CreateOuterHashJoinMatchedBody(
-            join.OnPredicate,
-            pipeline.Filter,
-            hasMatch,
-            projection.MatchedAppendRow,
-            sourceLookup);
+        var matchedBody = join.Kind == JoinKind.LeftMark
+            ? CreateMarkJoinMatchedBody(
+                join.OnPredicate,
+                pipeline.Filter,
+                hasMatch,
+                projection.MatchedAppendRow,
+                sourceLookup)
+            : CreateOuterHashJoinMatchedBody(
+                join.OnPredicate,
+                pipeline.Filter,
+                hasMatch,
+                projection.MatchedAppendRow,
+                sourceLookup);
         var sides = ResolveOuterNestedLoopSides(join.Kind, joinSources);
         var nodes = CreateJoinPrelude(joinSources, resultTable, projection.ResultShape);
         var innerRows = CreateNestedLoopInnerRows(sides.Inner, nodes);

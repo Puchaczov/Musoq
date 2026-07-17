@@ -214,11 +214,12 @@ public static partial class ExecutionPlanPrinter
                 AppendLabeledBlock(builder, prefix, "AsOfProbeNoMatch", asOfProbe.NoMatchBody, indentation + 2, skipWhenEmpty: true);
                 break;
             case ExecutionCreateRangeIndex createIndex:
-                builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}CreateRangeIndex [{createIndex.Index.Name} <- {FormatExpression(createIndex.Candidates)} by {FormatExpression(createIndex.CandidateKey)} {FormatBinaryOperator(createIndex.ComparisonKind)}]");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}CreateRangeIndex [{createIndex.Index.Name} <- {FormatExpression(createIndex.Candidates)} by {FormatRangeIndexKey(createIndex)} {FormatBinaryOperator(createIndex.ComparisonKind)}]");
                 break;
             case ExecutionRangeProbe rangeProbe:
-                builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}RangeProbe [{rangeProbe.Match.Name} <- {rangeProbe.Index.Name} where {FormatExpression(rangeProbe.ProbeKey)}]");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}RangeProbe [{rangeProbe.Match.Name} <- {rangeProbe.Index.Name} where {FormatRangeProbeKey(rangeProbe)}]{FormatMatchTracking(rangeProbe.MatchFound)}");
                 AppendBlock(builder, rangeProbe.Body, indentation + 2);
+                AppendLabeledBlock(builder, prefix, "RangeProbeNoMatch", rangeProbe.NoMatchBody, indentation + 2, skipWhenEmpty: true);
                 break;
             case ExecutionCreateAggregateLibrary library: builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}CreateAggregateLibrary [{library.Library.Name}: {FormatType(library.LibraryType)}]"); break;
             case ExecutionCreateAggregateContext context:

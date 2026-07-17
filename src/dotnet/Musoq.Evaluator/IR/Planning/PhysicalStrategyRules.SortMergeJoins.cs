@@ -14,18 +14,31 @@ internal static partial class PhysicalStrategyRules
         PhysicalNode left,
         PhysicalNode right)
     {
-        if (kind != JoinKind.Inner || predicate == null)
+        if (kind is not (JoinKind.Inner or JoinKind.LeftSemi or JoinKind.LeftAntiSemi or JoinKind.LeftMark or JoinKind.LeftSingle) || predicate == null)
             return null;
 
         var leftAliases = CollectAliases(left);
         var rightAliases = CollectAliases(right);
+
+        var leftPartitionKeys = new List<IrExpression>();
+        var rightPartitionKeys = new List<IrExpression>();
+        CollectHashJoinConditions(
+            predicate,
+            leftAliases,
+            rightAliases,
+            leftPartitionKeys,
+            rightPartitionKeys,
+            [],
+            allowConstantKeys: false);
 
         return TryFindSortMergeCondition(predicate, leftAliases, rightAliases, out var key)
             ? new SortMergeJoinDecomposition(
                 key.LeftKey,
                 key.RightKey,
                 key.ComparisonKind,
-                predicate)
+                predicate,
+                [..leftPartitionKeys],
+                [..rightPartitionKeys])
             : null;
     }
 

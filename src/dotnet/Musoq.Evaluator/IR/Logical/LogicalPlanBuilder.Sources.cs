@@ -205,6 +205,8 @@ public sealed partial class LogicalPlanBuilder
             JoinType.Cross => IrNodes.JoinKind.Cross,
             JoinType.LeftSemi => IrNodes.JoinKind.LeftSemi,
             JoinType.LeftAntiSemi => IrNodes.JoinKind.LeftAntiSemi,
+            JoinType.LeftMark => IrNodes.JoinKind.LeftMark,
+            JoinType.LeftSingle => IrNodes.JoinKind.LeftSingle,
             _ => throw UnsupportedShape.Of($"Join type '{joinType}'")
         };
 

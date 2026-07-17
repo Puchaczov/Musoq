@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
+using Musoq.Plugins;
 using ExecutionCSharpRenderer = Musoq.Targets.CSharpClr.ExecutionCSharpRenderer;
 
 namespace Musoq.Evaluator.Tests.IR;
@@ -29,6 +30,31 @@ public sealed partial class ExecutionCSharpRendererTests
             code);
         Assert.Contains("var libraryBase0 = new Musoq.Plugins.LibraryBase();", code);
         Assert.IsFalse(code.Contains("new ObjectsRow(new object[]", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public void RenderMethod_WhenBoundOverloadReceivesNull_ShouldPreserveParameterType()
+    {
+        var resultType = typeof(CorrelatedScalarSubqueryResult<decimal?>?);
+        var method = typeof(LibraryBase).GetMethod(
+            "__CorrelatedScalarSubqueryResult",
+            [resultType])!;
+        var target = new ExecutionVariable("libraryBase0", typeof(LibraryBase));
+        var call = new ExecutionMethodCall(
+            method,
+            [new ExecutionLiteral(null, resultType)],
+            null,
+            typeof(decimal?),
+            null,
+            target);
+        var renderer = new ExecutionCSharpRenderer();
+
+        var code = renderer
+            .RenderMethod(CreateProjectionPlan("Q_TypedNullMethodArgument", "Value", typeof(decimal?), call), "ExecutePlan")
+            .NormalizeWhitespace()
+            .ToFullString();
+
+        Assert.Contains("CorrelatedScalarSubqueryResult<decimal?>? )null", code);
     }
 
     [TestMethod]

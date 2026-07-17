@@ -267,10 +267,21 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             case ExecutionRangeProbe rangeProbe:
             {
                 var body = TransformCteSidecarAppendBlock(rangeProbe.Body, targetTable, rowShape, builds);
+                var noMatchBlock = rangeProbe.NoMatchBody;
+                var noMatchAppendCount = 0;
+                ExecutionCapacityHint? noMatchCapacityHint = null;
+                if (rangeProbe.NoMatchBody != null)
+                {
+                    var noMatch = TransformCteSidecarAppendBlock(rangeProbe.NoMatchBody, targetTable, rowShape, builds);
+                    noMatchBlock = noMatch.Block;
+                    noMatchAppendCount = noMatch.AppendCount;
+                    noMatchCapacityHint = noMatch.CapacityHint;
+                }
+
                 return new CteSidecarAppendNodeTransformResult(
-                    rangeProbe with { Body = body.Block },
-                    body.AppendCount,
-                    body.CapacityHint);
+                    rangeProbe with { Body = body.Block, NoMatchBody = noMatchBlock },
+                    body.AppendCount + noMatchAppendCount,
+                    body.CapacityHint ?? noMatchCapacityHint);
             }
             default:
                 return new CteSidecarAppendNodeTransformResult(node, 0, null);

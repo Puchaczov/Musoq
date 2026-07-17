@@ -11,7 +11,7 @@ namespace Musoq.Evaluator.Tests;
 public partial class SubqueryTests
 {
     [TestMethod]
-    public void WhenScalarSubquery_HasEqualityCorrelation_ShouldUseGroupedAggregateAndLeftJoin()
+    public void WhenScalarSubquery_HasEqualityCorrelation_ShouldUseGroupedAggregateAndHashSingle()
     {
         const string query = @"
             SELECT a.City, (
@@ -33,7 +33,8 @@ public partial class SubqueryTests
             ["PARIS", "PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", inspection.PhysicalPlanText);
+        Assert.Contains("PhysicalHashJoin [LeftSingle]", inspection.PhysicalPlanText);
+        Assert.Contains("-> ScalarHashSingle", inspection.PlanningText);
         Assert.Contains("_sq_1_corr_0", inspection.PhysicalPlanText);
     }
 
@@ -60,12 +61,13 @@ public partial class SubqueryTests
             ["PARIS", 450m]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", inspection.PhysicalPlanText);
+        Assert.Contains("PhysicalHashJoin [LeftSingle]", inspection.PhysicalPlanText);
+        Assert.Contains("-> ScalarHashSingle", inspection.PlanningText);
         Assert.Contains("_sq_1_corr_0", inspection.PhysicalPlanText);
     }
 
     [TestMethod]
-    public void WhenCorrelatedScalarSubquery_HasOrderByAndTake_ShouldExplainUnsupportedApplyFallback()
+    public void WhenCorrelatedScalarSubquery_HasOrderByAndTake_ShouldApplyLimitPerCorrelationKey()
     {
         const string query = @"
             SELECT a.City, (
@@ -76,13 +78,21 @@ public partial class SubqueryTests
             ) AS MatchCity
             FROM #A.entities() a";
 
-        var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreateScalarSources()));
+        var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(exception.Envelopes.Any(envelope => envelope.Code == DiagnosticCode.MQ2024_InvalidSubquery));
-        StringAssert.Contains(exception.Message, "Correlated scalar subqueries");
-        StringAssert.Contains(exception.Message, "ORDER BY");
-        StringAssert.Contains(exception.Message, "APPLY lowering");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("MatchCity", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW", "GDANSK"],
+            new object?[] { "BERLIN", null },
+            ["PARIS", "PARIS"]);
+
+        var inspection = CompileSubqueryForInspection(query);
+        Assert.Contains("WindowStrategy [WindowMaterialization] window -> MaterializeInput", inspection.PlanningText);
+        Assert.Contains("PhysicalHashJoin [LeftSingle]", inspection.PhysicalPlanText);
     }
 
     [TestMethod]
@@ -277,7 +287,7 @@ public partial class SubqueryTests
             ["BERLIN", 3L]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", inspection.PhysicalPlanText);
+        Assert.Contains("PhysicalHashJoin [LeftSingle]", inspection.PhysicalPlanText);
         Assert.Contains("_sq_1_value", inspection.PhysicalPlanText);
     }
 

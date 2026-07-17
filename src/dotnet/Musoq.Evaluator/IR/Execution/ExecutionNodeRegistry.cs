@@ -109,7 +109,7 @@ internal static class ExecutionNodeRegistry
         yield return Descriptor<ExecutionCreateAsOfIndex>(ExecutionRendererNodeFamily.Index);
         yield return Descriptor<ExecutionAsOfProbe>(ExecutionRendererNodeFamily.Index, ExecutionNodeChildBlockShape.Multiple, static node => AppendOptionalBlock(node.Body, node.NoMatchBody));
         yield return Descriptor<ExecutionCreateRangeIndex>(ExecutionRendererNodeFamily.Index);
-        yield return Descriptor<ExecutionRangeProbe>(ExecutionRendererNodeFamily.Index, ExecutionNodeChildBlockShape.Single, static node => [node.Body]);
+        yield return Descriptor<ExecutionRangeProbe>(ExecutionRendererNodeFamily.Index, ExecutionNodeChildBlockShape.Multiple, static node => AppendOptionalBlock(node.Body, node.NoMatchBody));
         yield return Descriptor<ExecutionSingleUsePipelineFusionCandidate>(ExecutionRendererNodeFamily.Unsupported, ExecutionNodeChildBlockShape.Single, static node => [node.Body]);
         yield return Descriptor<ExecutionCteReadOnceFusionCandidate>(ExecutionRendererNodeFamily.Unsupported, ExecutionNodeChildBlockShape.Single, static node => [node.Body]);
         yield return Descriptor<ExecutionCteSidecarIndexStoreCandidate>(ExecutionRendererNodeFamily.Unsupported);

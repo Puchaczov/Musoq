@@ -33,4 +33,21 @@ public static partial class PhysicalPlanPrinter
         PlanPrinterHelpers.AppendOrderFields(sb, [tieBreak]);
         sb.Append(']');
     }
+
+    private static void AppendSortMergePartitions(StringBuilder sb, PhysicalSortMergeJoinNode join)
+    {
+        if (join.LeftPartitionKeys.Length == 0)
+            return;
+
+        sb.Append(" [partitions: ");
+        for (var index = 0; index < join.LeftPartitionKeys.Length; index++)
+        {
+            if (index > 0)
+                sb.Append(", ");
+            sb.Append(IrExpressionPrinter.Print(join.LeftPartitionKeys[index]));
+            sb.Append(" = ");
+            sb.Append(IrExpressionPrinter.Print(join.RightPartitionKeys[index]));
+        }
+        sb.Append(']');
+    }
 }

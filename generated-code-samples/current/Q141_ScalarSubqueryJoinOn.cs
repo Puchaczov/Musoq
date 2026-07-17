@@ -16,19 +16,19 @@ logical plan representation string
 Cte
   Definition [_sq_1]
     MultiStatement
-      Project [c.Country as c.Country, AggRef(c.__ScalarSubqueryValue(c.City)) as c.__ScalarSubqueryValue(c.City)]
-        Aggregate [keys: c.Country] [aggs: __ScalarSubqueryValue(City)]
+      Project [c.Country as c.Country, AggRef(c.__CorrelatedScalarSubqueryValue(c.City)) as c.__CorrelatedScalarSubqueryValue(c.City)]
+        Aggregate [keys: c.Country] [aggs: __CorrelatedScalarSubqueryValue(City)]
           SchemaScan [#C.entities() as c]
-      Project [c.Country as _sq_1_corr_0, c.__ScalarSubqueryValue(c.City) as _sq_1_value]
+      Project [c.Country as _sq_1_corr_0, c.__CorrelatedScalarSubqueryValue(c.City) as _sq_1_value]
         CteRef [cScore as cScore]
   Query
     MultiStatement
       Project [a.City as a.City, a.Country as a.Country, _sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, _sq_1._sq_1_value as _sq_1._sq_1_value]
-        Join [LeftOuter] [(_sq_1._sq_1_corr_0 = a.Country)]
+        Join [LeftSingle] [(_sq_1._sq_1_corr_0 = a.Country)]
           SchemaScan [#A.entities() as a]
           CteRef [_sq_1 as _sq_1]
       Project [a_sq_1.a.City as a.City, a_sq_1.a.Country as a.Country, a_sq_1._sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, a_sq_1._sq_1._sq_1_value as _sq_1._sq_1_value, b.City as City]
-        Join [Inner] [(b.City = a_sq_1._sq_1._sq_1_value)]
+        Join [Inner] [(b.City = __CorrelatedScalarSubqueryResult(a_sq_1._sq_1._sq_1_value))]
           CteRef [a_sq_1 as a_sq_1]
           SchemaScan [#B.entities() as b]
       Project [a.City as a.City, b.City as b.City]
@@ -41,19 +41,19 @@ physical plan representation string
 PhysicalCte
   Definition [_sq_1]
     PhysicalMultiStatement
-      PhysicalProject [c.Country as c.Country, AggRef(c.__ScalarSubqueryValue(c.City)) as c.__ScalarSubqueryValue(c.City)]
-        PhysicalSingleKeyAggregate [key: c.Country (String)] [aggs: __ScalarSubqueryValue(City)]
+      PhysicalProject [c.Country as c.Country, AggRef(c.__CorrelatedScalarSubqueryValue(c.City)) as c.__CorrelatedScalarSubqueryValue(c.City)]
+        PhysicalSingleKeyAggregate [key: c.Country (String)] [aggs: __CorrelatedScalarSubqueryValue(City)]
           PhysicalSchemaScan [#C.entities() as c]
-      PhysicalProject [c.Country as _sq_1_corr_0, c.__ScalarSubqueryValue(c.City) as _sq_1_value]
+      PhysicalProject [c.Country as _sq_1_corr_0, c.__CorrelatedScalarSubqueryValue(c.City) as _sq_1_value]
         PhysicalCteRef [cScore as cScore]
   Query
     PhysicalMultiStatement
       PhysicalProject [a.City as a.City, a.Country as a.Country, _sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, _sq_1._sq_1_value as _sq_1._sq_1_value]
-        PhysicalHashJoin [LeftOuter] [build: _sq_1._sq_1_corr_0] [probe: a.Country]
+        PhysicalHashJoin [LeftSingle] [build: _sq_1._sq_1_corr_0] [probe: a.Country]
           PhysicalSchemaScan [#A.entities() as a]
           PhysicalCteRef [_sq_1 as _sq_1]
       PhysicalProject [a_sq_1.a.City as a.City, a_sq_1.a.Country as a.Country, a_sq_1._sq_1._sq_1_corr_0 as _sq_1._sq_1_corr_0, a_sq_1._sq_1._sq_1_value as _sq_1._sq_1_value, b.City as City]
-        PhysicalHashJoin [Inner] [build: a_sq_1._sq_1._sq_1_value] [probe: b.City]
+        PhysicalHashJoin [Inner] [build: __CorrelatedScalarSubqueryResult(a_sq_1._sq_1._sq_1_value)] [probe: b.City]
           PhysicalCteRef [a_sq_1 as a_sq_1]
           PhysicalSchemaScan [#B.entities() as b]
       PhysicalProject [a.City as a.City, b.City as b.City]
@@ -71,23 +71,23 @@ ExecutionPlan [compiled]
     AggregateGroup [Cte0AggregateGroup; keys: 1; typed aggs: 1]
     Generated [Cte0Row0]
       _sq_1_corr_0: string <- field _sq_1_corr_0
-      _sq_1_value: string <- field _sq_1_value
+      _sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1_value
     SourceEntity [a: BasicEntity]
       City: string <- property City
       Country: string <- property Country
     TableRow [_sq_1]
       _sq_1_corr_0: string <- field _sq_1_corr_0
-      _sq_1_value: string <- field _sq_1_value
+      _sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1_value
     Generated [Statement0Row0]
       a.City: string <- field a_City
       a.Country: string <- field a_Country
       _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
-      _sq_1._sq_1_value: string <- field _sq_1__sq_1_value
+      _sq_1._sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1__sq_1_value
     TableRow [a_sq_1]
       a.City: string <- field a_City
       a.Country: string <- field a_Country
       _sq_1._sq_1_corr_0: string <- field _sq_1__sq_1_corr_0
-      _sq_1._sq_1_value: string <- field _sq_1__sq_1_value
+      _sq_1._sq_1_value: CorrelatedScalarSubqueryResult<string> <- field _sq_1__sq_1_value
     SourceEntity [b: BasicEntity]
       City: string <- property City
     Generated [ResultRow0]
@@ -104,10 +104,12 @@ ExecutionPlan [compiled]
         TypedAggregateSet [Set(cte0Group.__agg0, city)]
     EnsureCapacity [cte0 <- cte0GroupsToFinalize.Count]
     ForEach [cte0FinalGroup in cte0GroupsToFinalize]
-      AppendRow [cte0 <- Cte0Row0(_sq_1_corr_0: cte0FinalGroup.c.Country, _sq_1_value: c.__ScalarSubqueryValue(c.City))]
+      AppendRow [cte0 <- Cte0Row0(_sq_1_corr_0: cte0FinalGroup.c.Country, _sq_1_value: c.__CorrelatedScalarSubqueryValue(c.City))]
     StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]
     SourceScan [a: BasicEntity] -> statement0_aRows
     CreateTable [statement0: Statement0Row0]
+    CreateObject [statement0_sq_1HashEmptyState: State<string>]
+    Let [statement0_sq_1HashEmptyValue: CorrelatedScalarSubqueryResult<string> = Get(statement0_sq_1HashEmptyState)]
     CreateHash [statement0_sq_1Hash: string -> Row; capacity: _cteRowResults.Slot0.Count]
     ForEach [_sq_1 in _cteRowResults.Slot0]
       HashAdd [statement0_sq_1Hash[_sq_1._sq_1_corr_0] += _sq_1]
@@ -117,14 +119,14 @@ ExecutionPlan [compiled]
           Assign [statement0_sq_1HashHasMatch = TRUE]
           AppendRow [statement0 <- Statement0Row0(a.City: a.City, a.Country: a.Country, _sq_1._sq_1_corr_0: _sq_1._sq_1_corr_0, _sq_1._sq_1_value: _sq_1._sq_1_value)]
       HashProbeNoMatch
-        AppendRow [statement0 <- Statement0Row0(a.City: a.City, a.Country: a.Country, _sq_1._sq_1_corr_0: NULL, _sq_1._sq_1_value: NULL)]
+        AppendRow [statement0 <- Statement0Row0(a.City: a.City, a.Country: a.Country, _sq_1._sq_1_corr_0: NULL, _sq_1._sq_1_value: statement0_sq_1HashEmptyValue)]
     StoreTable [statement0 -> _cteRowResults.Slot1: List<Statement0Row0>]
     CtePhase [cte2]
     SourceScan [b: BasicEntity] -> bRows
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     CreateHash [a_sq_1Hash: string -> Row; capacity: _cteRowResults.Slot1.Count]
     ForEach [a_sq_1 in _cteRowResults.Slot1]
-      HashAdd [a_sq_1Hash[a_sq_1._sq_1._sq_1_value] += a_sq_1]
+      HashAdd [a_sq_1Hash[__CorrelatedScalarSubqueryResult(a_sq_1._sq_1._sq_1_value)] += a_sq_1]
     ChunkedForEach [b in bRows]
       HashProbe [a_sq_1Hash[b.City] -> a_sq_1HashMatches]
         ForEach [a_sq_1 in a_sq_1HashMatches]
@@ -154,7 +156,7 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
         private static readonly Column[] __columns_compiled_cte0_1 = new Column[]
         {
             new Column("_sq_1_corr_0", typeof(string), 0),
-            new Column("_sq_1_value", typeof(string), 1)
+            new Column("_sq_1_value", typeof(Musoq.Plugins.CorrelatedScalarSubqueryResult<string>), 1)
         };
         private static readonly Column[] __columns_compiled_result_4 = new Column[]
         {
@@ -166,7 +168,7 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
             new Column("a.City", typeof(string), 0),
             new Column("a.Country", typeof(string), 1),
             new Column("_sq_1._sq_1_corr_0", typeof(string), 2),
-            new Column("_sq_1._sq_1_value", typeof(string), 3)
+            new Column("_sq_1._sq_1_value", typeof(Musoq.Plugins.CorrelatedScalarSubqueryResult<string>), 3)
         };
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_b_3 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 11) });
         private static readonly IReadOnlyCollection<ISchemaColumn> __schemaColumns_compiled_c_0 = Array.AsReadOnly(new ISchemaColumn[] { new Column("City", typeof(string), 11), new Column("Country", typeof(string), 12) });
@@ -224,7 +226,7 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
                     }
 
                     Statement0Row0 a_sq_1 = __storedTable1Rows[__storedTable1Index];
-                    string key = a_sq_1._sq_1__sq_1_value;
+                    string key = (string)Musoq.Plugins.CorrelatedScalarSubqueryResultExtractor.GetValue(a_sq_1._sq_1__sq_1_value);
                     if (key == null)
                         continue;
                     {
@@ -352,7 +354,7 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
             foreach (var cte0FinalGroup in cte0GroupsToFinalize)
             {
                 token.ThrowIfCancellationRequested();
-                cte0.Add(new Cte0Row0(cte0FinalGroup.__key0, Musoq.Plugins.ScalarSubqueryAggregateKernel<string>.Get(in cte0FinalGroup.__agg0)));
+                cte0.Add(new Cte0Row0(cte0FinalGroup.__key0, Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Get(in cte0FinalGroup.__agg0)));
             }
 
             return cte0;
@@ -365,6 +367,8 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
             var statement0_aRowsSource = __statement0_aSchema.GetRowSource<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>("entities", new SourceExecutionContext("a:1", sourceExecutionPlans["a:1"], token, __schemaColumns_compiled_c_0, sourceRuntimeSettingsBySourceContextId["a:1"], logger, OnDataSourceProgress), Array.Empty<object>());
             var statement0_aRows = statement0_aRowsSource.Chunks;
             var statement0 = new List<Statement0Row0>();
+            var statement0_sq_1HashEmptyState = new Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State();
+            Musoq.Plugins.CorrelatedScalarSubqueryResult<string> statement0_sq_1HashEmptyValue = (Musoq.Plugins.CorrelatedScalarSubqueryResult<string>)Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Get(statement0_sq_1HashEmptyState);
             var statement0_sq_1Hash = new Dictionary<string, HashJoinBucket<Cte0Row0>>(_cteRowResults.Slot0.Count);
             var __storedTable0Rows = _cteRowResults.Slot0;
             for (int __storedTable0Index = 0; __storedTable0Index < __storedTable0Rows.Count; ++__storedTable0Index)
@@ -420,7 +424,7 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
 
                             if (!statement0_sq_1HashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.City, a.Country, null, null));
+                                statement0.Add(new Statement0Row0(a.City, a.Country, null, statement0_sq_1HashEmptyValue));
                             }
                         }
 
@@ -452,7 +456,7 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
 
                             if (!statement0_sq_1HashHasMatch)
                             {
-                                statement0.Add(new Statement0Row0(a.City, a.Country, null, null));
+                                statement0.Add(new Statement0Row0(a.City, a.Country, null, statement0_sq_1HashEmptyValue));
                             }
                         }
 
@@ -482,7 +486,7 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
 
                     if (!statement0_sq_1HashHasMatch)
                     {
-                        statement0.Add(new Statement0Row0(a.City, a.Country, null, null));
+                        statement0.Add(new Statement0Row0(a.City, a.Country, null, statement0_sq_1HashEmptyValue));
                     }
                 }
             }
@@ -526,7 +530,7 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
                 }
 
                 string city = c.City;
-                Musoq.Plugins.ScalarSubqueryAggregateKernel<string>.Set(ref cte0Group.__agg0, (string)city);
+                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Set(ref cte0Group.__agg0, (string)city);
             }
         }
 
@@ -592,7 +596,7 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
 
         private sealed class Cte0AggregateGroup
         {
-            public Musoq.Plugins.ScalarSubqueryAggregateKernel<string>.State __agg0;
+            public Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.State __agg0;
             public readonly string __key0;
             public Cte0AggregateGroup(string __key0)
             {
@@ -601,20 +605,20 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
 
             public void MergeFrom(Cte0AggregateGroup source)
             {
-                Musoq.Plugins.ScalarSubqueryAggregateKernel<string>.Merge(ref this.__agg0, in source.__agg0);
+                Musoq.Plugins.CorrelatedScalarSubqueryAggregateKernel<string>.Merge(ref this.__agg0, in source.__agg0);
             }
         }
 
         private sealed class Cte0Row0
         {
-            public Cte0Row0(string __value0, string __value1)
+            public Cte0Row0(string __value0, Musoq.Plugins.CorrelatedScalarSubqueryResult<string> __value1)
             {
                 _sq_1_corr_0 = __value0;
                 _sq_1_value = __value1;
             }
 
             public string _sq_1_corr_0 { get; }
-            public string _sq_1_value { get; }
+            public Musoq.Plugins.CorrelatedScalarSubqueryResult<string> _sq_1_value { get; }
         }
 
         private sealed class CteRowResults
@@ -709,7 +713,7 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
 
         private sealed class Statement0Row0
         {
-            public Statement0Row0(string __value0, string __value1, string __value2, string __value3)
+            public Statement0Row0(string __value0, string __value1, string __value2, Musoq.Plugins.CorrelatedScalarSubqueryResult<string> __value3)
             {
                 a_City = __value0;
                 a_Country = __value1;
@@ -718,7 +722,7 @@ namespace GeneratedSample_Q141_ScalarSubqueryJoinOn
             }
 
             public string _sq_1__sq_1_corr_0 { get; }
-            public string _sq_1__sq_1_value { get; }
+            public Musoq.Plugins.CorrelatedScalarSubqueryResult<string> _sq_1__sq_1_value { get; }
             public string a_City { get; }
             public string a_Country { get; }
         }

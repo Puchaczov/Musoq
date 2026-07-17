@@ -13,6 +13,10 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         string identifier,
         PhysicalToExecutionLoweringSession session)
     {
+        session = session.WithScalarSubqueryEmptyResults(
+            MergeScalarSubqueryEmptyResults(
+                session.ScalarSubqueryEmptyResults,
+                CollectScalarSubqueryEmptyResults(cte)));
         var cteIndexes = CreateCteIndexes(cte);
         var cteDefinitionNames = cte.Definitions.Select(static definition => definition.Name).ToArray();
         var cteShapesByName = new Dictionary<string, GeneratedRowShape>(StringComparer.OrdinalIgnoreCase);

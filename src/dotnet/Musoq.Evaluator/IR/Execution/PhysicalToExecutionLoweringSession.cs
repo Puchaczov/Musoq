@@ -9,18 +9,22 @@ internal sealed class PhysicalToExecutionLoweringSession
         ExecutionStrategyPlan executionStrategies,
         IReadOnlyDictionary<string, FusedCteHashBuildSource>? fusedCteHashBuildSources = null,
         Dictionary<int, HashPayloadShape>? cteSidecarHashPayloadsBySlot = null,
-        bool suppressSidecarJoinPipeline = false)
+        bool suppressSidecarJoinPipeline = false,
+        IReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec>? scalarSubqueryEmptyResults = null)
     {
         ExecutionStrategies = executionStrategies;
         FusedCteHashBuildSources = fusedCteHashBuildSources;
         CteSidecarHashPayloadsBySlot = cteSidecarHashPayloadsBySlot ?? [];
         SuppressSidecarJoinPipeline = suppressSidecarJoinPipeline;
+        ScalarSubqueryEmptyResults = scalarSubqueryEmptyResults ??
+            new Dictionary<string, ScalarSubqueryEmptyResultSpec>(StringComparer.OrdinalIgnoreCase);
     }
 
     public ExecutionStrategyPlan ExecutionStrategies { get; }
     public IReadOnlyDictionary<string, FusedCteHashBuildSource>? FusedCteHashBuildSources { get; }
     public Dictionary<int, HashPayloadShape> CteSidecarHashPayloadsBySlot { get; }
     public bool SuppressSidecarJoinPipeline { get; }
+    public IReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec> ScalarSubqueryEmptyResults { get; }
 
     public PhysicalToExecutionLoweringSession WithFusedCteHashBuildSources(
         IReadOnlyDictionary<string, FusedCteHashBuildSource>? fusedCteHashBuildSources)
@@ -29,7 +33,8 @@ internal sealed class PhysicalToExecutionLoweringSession
             ExecutionStrategies,
             fusedCteHashBuildSources,
             CteSidecarHashPayloadsBySlot,
-            SuppressSidecarJoinPipeline);
+            SuppressSidecarJoinPipeline,
+            ScalarSubqueryEmptyResults);
     }
 
     public PhysicalToExecutionLoweringSession WithSidecarJoinPipelineSuppressed()
@@ -38,6 +43,18 @@ internal sealed class PhysicalToExecutionLoweringSession
             ExecutionStrategies,
             FusedCteHashBuildSources,
             CteSidecarHashPayloadsBySlot,
-            suppressSidecarJoinPipeline: true);
+            suppressSidecarJoinPipeline: true,
+            scalarSubqueryEmptyResults: ScalarSubqueryEmptyResults);
+    }
+
+    public PhysicalToExecutionLoweringSession WithScalarSubqueryEmptyResults(
+        IReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec> scalarSubqueryEmptyResults)
+    {
+        return new PhysicalToExecutionLoweringSession(
+            ExecutionStrategies,
+            FusedCteHashBuildSources,
+            CteSidecarHashPayloadsBySlot,
+            SuppressSidecarJoinPipeline,
+            scalarSubqueryEmptyResults);
     }
 }

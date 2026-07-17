@@ -293,21 +293,38 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         var candidateName = createIndex.Candidate.Name;
+        var typeArguments = new List<TypeSyntax>
+        {
+            CreateVariableTypeSyntax(createIndex.Candidate)
+        };
+        if (createIndex.PartitionKeys is { Count: > 0 })
+            typeArguments.Add(CreateTypeSyntax(createIndex.PartitionKeyType!.RequireClrType()));
+        typeArguments.Add(CreateTypeSyntax(createIndex.KeyType));
         var method = SyntaxFactory.GenericName(nameof(EvaluationHelper.CreateRangeJoinIndex))
             .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(
-            [
-                CreateVariableTypeSyntax(createIndex.Candidate),
-                CreateTypeSyntax(createIndex.KeyType)
-            ])));
+                typeArguments)));
+        var arguments = new List<ExpressionSyntax>
+        {
+            RenderExpression(createIndex.Candidates, context)
+        };
+        if (createIndex.PartitionKeys is { Count: > 0 } partitionKeys)
+        {
+            arguments.Add(CreateRangePartitionKeySelector(
+                partitionKeys,
+                static key => key.Right,
+                createIndex.PartitionKeyType!,
+                candidateName,
+                context));
+        }
+
+        arguments.Add(CreateRangeKeySelector(createIndex.CandidateKey, candidateName, context));
+        arguments.Add(CreateBinaryOpKindExpression(createIndex.ComparisonKind));
         var invocation = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
                     method))
-            .WithArgumentList(CreateArgumentList(
-                RenderExpression(createIndex.Candidates, context),
-                CreateRangeKeySelector(createIndex.CandidateKey, candidateName, context),
-                CreateBinaryOpKindExpression(createIndex.ComparisonKind)));
+            .WithArgumentList(CreateArgumentList(arguments));
 
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -315,27 +332,58 @@ public sealed partial class ExecutionCSharpRenderer
             invocation);
     }
 
-    private ForEachStatementSyntax RenderRangeProbe(
+    private StatementSyntax RenderRangeProbe(
         ExecutionRangeProbe rangeProbe,
         ExecutionRenderContext context)
     {
-        return StatementEmitter.CreateForeach(
+        var loop = StatementEmitter.CreateForeach(
             EscapeIdentifier(rangeProbe.Match.Name),
             CreateRangeIndexFindInvocation(rangeProbe, context),
             RenderBlock(rangeProbe.Body, context));
+        if (rangeProbe.MatchFound == null)
+            return loop;
+
+        var statements = new List<StatementSyntax>
+        {
+            CreateLocalDeclaration(
+                CreateTypeSyntax(typeof(bool)),
+                rangeProbe.MatchFound.Name,
+                SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)),
+            loop
+        };
+        if (rangeProbe.NoMatchBody is { Nodes.Count: > 0 } noMatchBody)
+        {
+            statements.Add(StatementEmitter.CreateIf(
+                SyntaxFactory.PrefixUnaryExpression(
+                    SyntaxKind.LogicalNotExpression,
+                    SyntaxFactory.IdentifierName(rangeProbe.MatchFound.Name)),
+                RenderBlock(noMatchBody, context)));
+        }
+
+        return SyntaxFactory.Block(statements);
     }
 
     private InvocationExpressionSyntax CreateRangeIndexFindInvocation(
         ExecutionRangeProbe rangeProbe,
         ExecutionRenderContext context)
     {
+        var arguments = new List<ExpressionSyntax>();
+        if (rangeProbe.PartitionKeys is { Count: > 0 } partitionKeys)
+        {
+            arguments.Add(CreateRangePartitionKeyExpression(
+                partitionKeys,
+                static key => key.Left,
+                rangeProbe.PartitionKeyType!,
+                context));
+        }
+
+        arguments.Add(RenderExpression(rangeProbe.ProbeKey, context));
         return SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(rangeProbe.Index.Name),
                     SyntaxFactory.IdentifierName(nameof(RangeJoinIndex<,>.Find))))
-            .WithArgumentList(CreateArgumentList(
-                RenderExpression(rangeProbe.ProbeKey, context)));
+            .WithArgumentList(CreateArgumentList(arguments));
     }
 
     private ParenthesizedLambdaExpressionSyntax CreateRangeKeySelector(
@@ -346,6 +394,53 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.ParenthesizedLambdaExpression(RenderExpression(candidateKey, context))
             .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(
                 SyntaxFactory.Parameter(SyntaxFactory.Identifier(EscapeIdentifier(candidateName))))));
+    }
+
+    private ParenthesizedLambdaExpressionSyntax CreateRangePartitionKeySelector(
+        IReadOnlyList<ExecutionAsOfEqualityKey> partitionKeys,
+        Func<ExecutionAsOfEqualityKey, ExecutionExpression> keySelector,
+        ExecutionTypeRef partitionKeyType,
+        string candidateName,
+        ExecutionRenderContext context)
+    {
+        return SyntaxFactory.ParenthesizedLambdaExpression(
+                CreateRangePartitionKeyExpression(partitionKeys, keySelector, partitionKeyType, context))
+            .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.Parameter(SyntaxFactory.Identifier(EscapeIdentifier(candidateName))))));
+    }
+
+    private ExpressionSyntax CreateRangePartitionKeyExpression(
+        IReadOnlyList<ExecutionAsOfEqualityKey> partitionKeys,
+        Func<ExecutionAsOfEqualityKey, ExecutionExpression> keySelector,
+        ExecutionTypeRef partitionKeyType,
+        ExecutionRenderContext context)
+    {
+        if (partitionKeyType.RequireClrType() == typeof(object))
+            return CreateAsOfEqualityKeyExpression(partitionKeys, keySelector, context);
+
+        if (partitionKeys.Count == 1)
+            return RenderExpression(keySelector(partitionKeys[0]), context);
+
+        var tuple = SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(partitionKeys
+            .Select(key => SyntaxFactory.Argument(RenderExpression(keySelector(key), context)))));
+        if (Nullable.GetUnderlyingType(partitionKeyType.RequireClrType()) == null)
+            return tuple;
+
+        var nullCondition = partitionKeys
+            .Select(keySelector)
+            .Where(static key => CanBeNull(key.ReturnType))
+            .Select(key => (ExpressionSyntax)SyntaxFactory.BinaryExpression(
+                SyntaxKind.EqualsExpression,
+                RenderExpression(key, context),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)))
+            .Aggregate(static (left, right) => SyntaxFactory.BinaryExpression(
+                SyntaxKind.LogicalOrExpression,
+                left,
+                right));
+        return SyntaxFactory.ConditionalExpression(
+            nullCondition,
+            SyntaxFactory.DefaultExpression(CreateTypeSyntax(partitionKeyType)),
+            tuple);
     }
 
     private static MemberAccessExpressionSyntax CreateBinaryOpKindExpression(BinaryOpKind kind)

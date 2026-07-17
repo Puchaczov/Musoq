@@ -81,7 +81,8 @@ public static partial class ExecutionPlanPrinter
         if (!type.IsGenericType)
             return type.Name;
 
-        var typeName = type.Name[..type.Name.IndexOf('`', StringComparison.Ordinal)];
+        var separatorIndex = type.Name.IndexOf('`', StringComparison.Ordinal);
+        var typeName = separatorIndex < 0 ? type.Name : type.Name[..separatorIndex];
         var arguments = string.Join(", ", Array.ConvertAll(type.GetGenericArguments(), FormatType));
         return $"{typeName}<{arguments}>";
     }

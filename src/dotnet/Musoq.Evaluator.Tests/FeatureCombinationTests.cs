@@ -162,8 +162,16 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // A (Age>30): Bob, Diana, Eve → 3 rows. B (City='London'): Alice, Charlie → 2 rows. UNION ALL: 5.
-        Assert.AreEqual(5, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Bob"],
+            ["Diana"],
+            ["Eve"],
+            ["Alice"],
+            ["Charlie"]);
     }
 
     [TestMethod]
@@ -515,8 +523,18 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // Order by Age: Alice(25), Charlie(28), Eve(31), Bob(35), Diana(42)
-        Assert.AreEqual(5, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Age", typeof(int)),
+            ("RangeSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 25, 53m],
+            ["Charlie", 28, 84m],
+            ["Eve", 31, 94m],
+            ["Bob", 35, 66m],
+            ["Diana", 42, 42m]);
     }
 
     [TestMethod]

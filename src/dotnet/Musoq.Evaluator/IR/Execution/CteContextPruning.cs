@@ -103,7 +103,11 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 Body = PruneCteContexts(probe.Body, table, oldShape, rowShape),
                 NoMatchBody = probe.NoMatchBody == null ? null : PruneCteContexts(probe.NoMatchBody, table, oldShape, rowShape)
             },
-            ExecutionRangeProbe probe => probe with { Body = PruneCteContexts(probe.Body, table, oldShape, rowShape) },
+            ExecutionRangeProbe probe => probe with
+            {
+                Body = PruneCteContexts(probe.Body, table, oldShape, rowShape),
+                NoMatchBody = probe.NoMatchBody == null ? null : PruneCteContexts(probe.NoMatchBody, table, oldShape, rowShape)
+            },
             ExecutionCteSidecarAppendRewriteCandidate { AppendRow: var append } candidate
                 when IsTarget(append.Table, table, append.RowShape, oldShape) => candidate with
             {

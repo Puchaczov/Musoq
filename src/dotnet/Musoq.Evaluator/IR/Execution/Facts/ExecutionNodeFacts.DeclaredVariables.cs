@@ -116,6 +116,8 @@ internal static partial class ExecutionNodeFacts
                 break;
             case ExecutionRangeProbe rangeProbe:
                 yield return rangeProbe.Match;
+                if (rangeProbe.MatchFound is not null)
+                    yield return rangeProbe.MatchFound;
                 break;
             case ExecutionCreateAggregateLibrary library:
                 yield return library.Library;

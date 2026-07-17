@@ -186,9 +186,9 @@ public static partial class PhysicalPlanPrinter
                 sb.Append(IrExpressionPrinter.Print(sortMergeJoin.LeftKey));
                 sb.Append("] [right: ");
                 sb.Append(IrExpressionPrinter.Print(sortMergeJoin.RightKey));
-                sb.Append("] [op: ");
-                sb.Append(FormatBinaryOperator(sortMergeJoin.ComparisonKind));
+                sb.Append("] [op: ").Append(FormatBinaryOperator(sortMergeJoin.ComparisonKind));
                 sb.Append(']');
+                AppendSortMergePartitions(sb, sortMergeJoin);
                 if (sortMergeJoin.Residual is not null)
                 {
                     sb.Append(" [residual: ");

@@ -18,7 +18,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 
         return joinType switch
         {
-            JoinType.OuterLeft or JoinType.AsOfLeft =>
+            JoinType.OuterLeft or JoinType.AsOfLeft or JoinType.LeftMark or JoinType.LeftSingle =>
                 output.MarkAliasesAsMaybeMissing(right.CompoundTables),
             JoinType.OuterRight =>
                 output.MarkAliasesAsMaybeMissing(left.CompoundTables),

@@ -1,19 +1,24 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Expressions;
 
+#pragma warning disable CS8714 // Null partition keys are rejected before Dictionary access.
+
 namespace Musoq.Evaluator.Helpers;
 
 public sealed class RangeJoinIndex<TRow, TKey>
     where TRow : class
 {
     private readonly RangeJoinEntry[] _entries;
+    private readonly IPartitionLookup? _partitionedEntries;
     private readonly BinaryOpKind _comparisonKind;
 
     private RangeJoinIndex(
         RangeJoinEntry[] entries,
+        IPartitionLookup? partitionedEntries,
         BinaryOpKind comparisonKind)
     {
         _entries = entries;
+        _partitionedEntries = partitionedEntries;
         _comparisonKind = comparisonKind;
     }
 
@@ -42,15 +47,28 @@ public sealed class RangeJoinIndex<TRow, TKey>
             ordinal++;
         }
 
-        entries.Sort(static (left, right) =>
-        {
-            var comparison = CompareKeys(left.Key, right.Key);
-            return comparison != 0
-                ? comparison
-                : left.Ordinal.CompareTo(right.Ordinal);
-        });
+        SortEntries(entries);
 
-        return new RangeJoinIndex<TRow, TKey>(entries.ToArray(), comparisonKind);
+        return new RangeJoinIndex<TRow, TKey>(entries.ToArray(), null, comparisonKind);
+    }
+
+    public static RangeJoinIndex<TRow, TKey> Create<TPartitionKey>(
+        IEnumerable<TRow> candidates,
+        Func<TRow, TPartitionKey> partitionKeySelector,
+        Func<TRow, TKey> keySelector,
+        BinaryOpKind comparisonKind)
+    {
+        ArgumentNullException.ThrowIfNull(candidates);
+        ArgumentNullException.ThrowIfNull(partitionKeySelector);
+        ArgumentNullException.ThrowIfNull(keySelector);
+        ValidateComparisonKind(comparisonKind);
+
+        var entries = new Dictionary<TPartitionKey, List<RangeJoinEntry>>();
+        var ordinal = 0;
+        foreach (var candidate in candidates)
+            AddPartitionedCandidate(entries, candidate, partitionKeySelector, keySelector, ref ordinal);
+
+        return CreatePartitioned(entries, comparisonKind);
     }
 
     public static RangeJoinIndex<TRow, TKey> CreateFromChunks(
@@ -86,15 +104,34 @@ public sealed class RangeJoinIndex<TRow, TKey>
             }
         }
 
-        entries.Sort(static (left, right) =>
-        {
-            var comparison = CompareKeys(left.Key, right.Key);
-            return comparison != 0
-                ? comparison
-                : left.Ordinal.CompareTo(right.Ordinal);
-        });
+        SortEntries(entries);
 
-        return new RangeJoinIndex<TRow, TKey>(entries.ToArray(), comparisonKind);
+        return new RangeJoinIndex<TRow, TKey>(entries.ToArray(), null, comparisonKind);
+    }
+
+    public static RangeJoinIndex<TRow, TKey> CreateFromChunks<TPartitionKey>(
+        IEnumerable<IReadOnlyList<TRow>> candidateChunks,
+        Func<TRow, TPartitionKey> partitionKeySelector,
+        Func<TRow, TKey> keySelector,
+        BinaryOpKind comparisonKind)
+    {
+        ArgumentNullException.ThrowIfNull(candidateChunks);
+        ArgumentNullException.ThrowIfNull(partitionKeySelector);
+        ArgumentNullException.ThrowIfNull(keySelector);
+        ValidateComparisonKind(comparisonKind);
+
+        var entries = new Dictionary<TPartitionKey, List<RangeJoinEntry>>();
+        var ordinal = 0;
+        foreach (var chunk in candidateChunks)
+        {
+            if (chunk is null)
+                continue;
+
+            for (var index = 0; index < chunk.Count; index++)
+                AddPartitionedCandidate(entries, chunk[index], partitionKeySelector, keySelector, ref ordinal);
+        }
+
+        return CreatePartitioned(entries, comparisonKind);
     }
 
     public RangeJoinMatch Find(TKey probeValue)
@@ -102,34 +139,51 @@ public sealed class RangeJoinIndex<TRow, TKey>
         if (IsNullKey(probeValue) || _entries.Length == 0)
             return RangeJoinMatch.Empty;
 
+        return Find(_entries, probeValue);
+    }
+
+    public RangeJoinMatch Find<TPartitionKey>(TPartitionKey partitionKey, TKey probeValue)
+    {
+        if (partitionKey is null || IsNullKey(probeValue) ||
+            _partitionedEntries is not PartitionLookup<TPartitionKey> partitions ||
+            !partitions.Entries.TryGetValue(partitionKey, out var entries))
+        {
+            return RangeJoinMatch.Empty;
+        }
+
+        return Find(entries, probeValue);
+    }
+
+    private RangeJoinMatch Find(RangeJoinEntry[] entries, TKey probeValue)
+    {
         return _comparisonKind switch
         {
-            BinaryOpKind.GreaterThan => CreateMatch(0, FindFirstGreaterOrEqual(probeValue)),
-            BinaryOpKind.GreaterOrEqual => CreateMatch(0, FindFirstGreaterThan(probeValue)),
-            BinaryOpKind.LessThan => CreateMatch(FindFirstGreaterThan(probeValue), _entries.Length),
-            BinaryOpKind.LessOrEqual => CreateMatch(FindFirstGreaterOrEqual(probeValue), _entries.Length),
+            BinaryOpKind.GreaterThan => CreateMatch(entries, 0, FindFirstGreaterOrEqual(entries, probeValue)),
+            BinaryOpKind.GreaterOrEqual => CreateMatch(entries, 0, FindFirstGreaterThan(entries, probeValue)),
+            BinaryOpKind.LessThan => CreateMatch(entries, FindFirstGreaterThan(entries, probeValue), entries.Length),
+            BinaryOpKind.LessOrEqual => CreateMatch(entries, FindFirstGreaterOrEqual(entries, probeValue), entries.Length),
             _ => throw new InvalidOperationException(
                 $"Unsupported range join comparison kind '{_comparisonKind}'.")
         };
     }
 
-    private RangeJoinMatch CreateMatch(int startInclusive, int endExclusive)
+    private static RangeJoinMatch CreateMatch(RangeJoinEntry[] entries, int startInclusive, int endExclusive)
     {
         if (startInclusive >= endExclusive)
             return RangeJoinMatch.Empty;
 
-        return new RangeJoinMatch(_entries, startInclusive, endExclusive);
+        return new RangeJoinMatch(entries, startInclusive, endExclusive);
     }
 
-    private int FindFirstGreaterOrEqual(TKey probeValue)
+    private static int FindFirstGreaterOrEqual(RangeJoinEntry[] entries, TKey probeValue)
     {
         var low = 0;
-        var high = _entries.Length;
+        var high = entries.Length;
 
         while (low < high)
         {
             var middle = low + ((high - low) / 2);
-            var comparison = CompareKeys(_entries[middle].Key, probeValue);
+            var comparison = CompareKeys(entries[middle].Key, probeValue);
 
             if (comparison < 0)
                 low = middle + 1;
@@ -140,15 +194,15 @@ public sealed class RangeJoinIndex<TRow, TKey>
         return low;
     }
 
-    private int FindFirstGreaterThan(TKey probeValue)
+    private static int FindFirstGreaterThan(RangeJoinEntry[] entries, TKey probeValue)
     {
         var low = 0;
-        var high = _entries.Length;
+        var high = entries.Length;
 
         while (low < high)
         {
             var middle = low + ((high - low) / 2);
-            var comparison = CompareKeys(_entries[middle].Key, probeValue);
+            var comparison = CompareKeys(entries[middle].Key, probeValue);
 
             if (comparison <= 0)
                 low = middle + 1;
@@ -157,6 +211,56 @@ public sealed class RangeJoinIndex<TRow, TKey>
         }
 
         return low;
+    }
+
+    private static void AddPartitionedCandidate<TPartitionKey>(
+        Dictionary<TPartitionKey, List<RangeJoinEntry>> entries,
+        TRow? candidate,
+        Func<TRow, TPartitionKey> partitionKeySelector,
+        Func<TRow, TKey> keySelector,
+        ref int ordinal)
+    {
+        if (candidate is null)
+            return;
+
+        var partitionKey = partitionKeySelector(candidate);
+        var key = keySelector(candidate);
+        if (partitionKey is null || IsNullKey(key))
+            return;
+
+        if (!entries.TryGetValue(partitionKey, out var partition))
+        {
+            partition = [];
+            entries.Add(partitionKey, partition);
+        }
+
+        partition.Add(new RangeJoinEntry(key, candidate, ordinal));
+        ordinal++;
+    }
+
+    private static RangeJoinIndex<TRow, TKey> CreatePartitioned<TPartitionKey>(
+        Dictionary<TPartitionKey, List<RangeJoinEntry>> entries,
+        BinaryOpKind comparisonKind)
+    {
+        var partitions = new Dictionary<TPartitionKey, RangeJoinEntry[]>(entries.Count);
+        foreach (var pair in entries)
+        {
+            SortEntries(pair.Value);
+            partitions.Add(pair.Key, pair.Value.ToArray());
+        }
+
+        return new RangeJoinIndex<TRow, TKey>([], new PartitionLookup<TPartitionKey>(partitions), comparisonKind);
+    }
+
+    private static void SortEntries(List<RangeJoinEntry> entries)
+    {
+        entries.Sort(static (left, right) =>
+        {
+            var comparison = CompareKeys(left.Key, right.Key);
+            return comparison != 0
+                ? comparison
+                : left.Ordinal.CompareTo(right.Ordinal);
+        });
     }
 
     private static void ValidateComparisonKind(BinaryOpKind comparisonKind)
@@ -194,6 +298,16 @@ public sealed class RangeJoinIndex<TRow, TKey>
         TKey Key,
         TRow Row,
         int Ordinal);
+
+    private interface IPartitionLookup
+    {
+    }
+
+    private sealed class PartitionLookup<TPartitionKey>(Dictionary<TPartitionKey, RangeJoinEntry[]> entries)
+        : IPartitionLookup
+    {
+        public Dictionary<TPartitionKey, RangeJoinEntry[]> Entries { get; } = entries;
+    }
 
     public readonly struct RangeJoinMatch
     {
@@ -248,3 +362,5 @@ public sealed class RangeJoinIndex<TRow, TKey>
         }
     }
 }
+
+#pragma warning restore CS8714

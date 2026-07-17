@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Musoq.Evaluator.IR.Optimization.Logical.Subqueries;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
@@ -24,6 +25,7 @@ public partial class SubqueryToCteRewriteVisitor
         RegisterReservedAliases(CollectFromAliases(from));
         var analysis = AnalyzeSubqueries(sourceQuery);
         ValidateSubqueryAnalysis(analysis);
+        RegisterRewriteRequests(CorrelatedSubqueryRewriteRequestBuilder.Build(sourceQuery, analysis));
         var (remainingExpr, subqueries) = where != null
             ? AttachCorrelation(ExtractPredicateSubqueries(where.Expression), analysis)
             : (null, []);

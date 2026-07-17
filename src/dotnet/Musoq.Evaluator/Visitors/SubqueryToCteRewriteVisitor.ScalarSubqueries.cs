@@ -11,6 +11,8 @@ namespace Musoq.Evaluator.Visitors;
 public partial class SubqueryToCteRewriteVisitor
 {
     private const string ScalarSubqueryAggregateName = "__ScalarSubqueryValue";
+    private const string CorrelatedScalarSubqueryAggregateName = "__CorrelatedScalarSubqueryValue";
+    private const string CorrelatedScalarSubqueryResultName = "__CorrelatedScalarSubqueryResult";
 
     private ScalarRewriteResult RewriteScalarSubqueries(
         SelectNode select,
@@ -31,7 +33,7 @@ public partial class SubqueryToCteRewriteVisitor
                 currentFrom,
                 join.CteRef,
                 join.JoinExpression,
-                JoinType.OuterLeft));
+                join.JoinType));
 
         return new ScalarRewriteResult(
             context.Select,
@@ -71,19 +73,21 @@ public partial class SubqueryToCteRewriteVisitor
         ScalarSubqueryRewrite scalarRewrite;
         if (queryNode == null)
         {
-            if (correlation is { IsCorrelated: true })
-                throw SubqueryDiagnosticFactory.InvalidSubquery(
-                    "scalar subquery validation",
-                    "Correlated scalar subqueries over set operators require APPLY lowering and are not supported yet.",
-                    node);
-
-            scalarRewrite = RewriteMaterializedUncorrelatedScalarSubquery(
-                subqueryBody,
-                GetSubqueryOutputColumnName(leafQuery.Select.Fields[0]),
-                cteName,
-                keyColumnName,
-                valueColumnName,
-                cteInnerExpressions);
+            scalarRewrite = correlation is { IsCorrelated: true }
+                ? RewriteCorrelatedScalarSetSubquery(
+                    subqueryBody,
+                    correlation,
+                    cteName,
+                    valueColumnName,
+                    node,
+                    cteInnerExpressions)
+                : RewriteMaterializedUncorrelatedScalarSubquery(
+                    subqueryBody,
+                    GetSubqueryOutputColumnName(leafQuery.Select.Fields[0]),
+                    cteName,
+                    keyColumnName,
+                    valueColumnName,
+                    cteInnerExpressions);
         }
         else
         {
@@ -91,7 +95,13 @@ public partial class SubqueryToCteRewriteVisitor
             cteInnerExpressions.AddRange(innerCtes);
 
             scalarRewrite = correlation is { IsCorrelated: true }
-                ? RewriteCorrelatedScalarSubquery(rewrittenSubquery, correlation, cteName, valueColumnName, node)
+                ? RewriteCorrelatedScalarSubquery(
+                    rewrittenSubquery,
+                    correlation,
+                    cteName,
+                    valueColumnName,
+                    node,
+                    cteInnerExpressions)
                 : RewriteUncorrelatedScalarSubquery(
                     rewrittenSubquery,
                     cteName,
@@ -102,19 +112,41 @@ public partial class SubqueryToCteRewriteVisitor
 
         cteInnerExpressions.Add(new CteInnerExpressionNode(scalarRewrite.Query, cteName));
 
-        var replacement = new AccessColumnNode(valueColumnName, cteName, default);
+        Node replacement = new AccessColumnNode(valueColumnName, cteName, default);
+        var joinType = JoinType.OuterLeft;
+        if (correlation is { IsCorrelated: true })
+        {
+            replacement = CreateCorrelatedScalarResultAccessor(
+                replacement,
+                correlation.CorrelatedAliases.Order(StringComparer.OrdinalIgnoreCase).First());
+            joinType = JoinType.LeftSingle;
+        }
+
         var cteRef = new Parser.InMemoryTableFromNode(cteName, cteName);
-        return new ScalarSubqueryJoin(cteRef, scalarRewrite.JoinExpression, replacement);
+        return new ScalarSubqueryJoin(cteRef, scalarRewrite.JoinExpression, replacement, joinType);
     }
 
-    private static ScalarSubqueryRewrite RewriteCorrelatedScalarSubquery(
+    private ScalarSubqueryRewrite RewriteCorrelatedScalarSubquery(
         QueryNode query,
         SubqueryCorrelationInfo correlation,
         string cteName,
         string valueColumnName,
-        ScalarSubqueryNode node)
+        ScalarSubqueryNode node,
+        List<CteInnerExpressionNode> cteInnerExpressions)
     {
         var valueExpression = query.Select.Fields[0].Expression;
+        if (RequiresResultMaterialization(query) &&
+            !RequiresUnsupportedCombinedScalarShape(query))
+        {
+            return RewriteMaterializedCorrelatedScalarSubquery(
+                query,
+                correlation,
+                cteName,
+                valueColumnName,
+                node,
+                cteInnerExpressions);
+        }
+
         if (RequiresCorrelatedAggregateApply(query))
             ThrowUnsupportedCorrelatedScalarResultMaterialization(node);
 
@@ -126,6 +158,10 @@ public partial class SubqueryToCteRewriteVisitor
         var correlated = conjuncts
             .Where(predicate => ReferencesAnyAlias(predicate, correlation.CorrelatedAliases))
             .ToArray();
+
+        if (TryRewriteRangeCorrelatedScalarSubquery(
+                query, correlation, cteName, valueColumnName, valueExpression, conjuncts, correlated, out var rangeRewrite))
+            return rangeRewrite;
 
         if (correlated.Length == 0 || correlated.Any(predicate => predicate is not EqualityNode))
             ThrowUnsupportedScalarCorrelation(node);
@@ -154,7 +190,7 @@ public partial class SubqueryToCteRewriteVisitor
         }
 
         fields[^1] = new FieldNode(
-            CreateDeferredScalarAggregate(valueExpression),
+            CreateDeferredCorrelatedScalarAggregate(valueExpression),
             fields.Length - 1,
             valueColumnName);
 
@@ -176,28 +212,6 @@ public partial class SubqueryToCteRewriteVisitor
             cteName);
 
         return new ScalarSubqueryRewrite(rewritten, joinPredicate);
-    }
-
-    private static bool RequiresResultMaterialization(QueryNode query)
-    {
-        return query.GroupBy != null ||
-               query.OrderBy != null ||
-               query.Skip != null ||
-               query.Take != null ||
-               query.Window != null ||
-               query.Qualify != null ||
-               query.Select.IsDistinct;
-    }
-
-    private static bool RequiresCorrelatedAggregateApply(QueryNode query)
-    {
-        return query.GroupBy != null ||
-               query.OrderBy != null ||
-               query.Skip != null ||
-               query.Take != null ||
-               query.Window != null ||
-               query.Qualify != null ||
-               query.Select.IsDistinct;
     }
 
     private static AccessMethodNode CreateScalarAggregate(Node expression)
@@ -226,7 +240,7 @@ public partial class SubqueryToCteRewriteVisitor
     {
         throw SubqueryDiagnosticFactory.InvalidSubquery(
             "correlated scalar subquery rewrite",
-            "Correlated scalar subqueries currently require equality predicates in the subquery WHERE clause.",
+            "Correlated scalar subqueries require equality predicates with at most one comparable range predicate in the subquery WHERE clause. Range-correlated aggregate forms are not supported.",
             node);
     }
 
@@ -235,7 +249,7 @@ public partial class SubqueryToCteRewriteVisitor
     {
         throw SubqueryDiagnosticFactory.InvalidSubquery(
             "correlated scalar subquery result materialization",
-            "Correlated scalar subqueries with DISTINCT, GROUP BY, ORDER BY, SKIP, TAKE, WINDOW, or QUALIFY inside the subquery body require APPLY lowering and are not supported yet.",
+            "Correlated scalar subqueries that combine SKIP or TAKE with DISTINCT, GROUP BY, WINDOW, or QUALIFY require a post-shaping partition stage and are not supported yet.",
             node);
     }
 

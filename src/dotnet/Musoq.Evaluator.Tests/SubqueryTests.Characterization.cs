@@ -36,8 +36,8 @@ public partial class SubqueryTests
             table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("-> PredicateLeftApply", inspection.PlanningText);
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", inspection.PhysicalPlanText);
+        Assert.Contains("-> PredicateHashMark", inspection.PlanningText);
+        Assert.Contains("PhysicalHashJoin [LeftMark]", inspection.PhysicalPlanText);
     }
 
     [TestMethod]
@@ -61,8 +61,8 @@ public partial class SubqueryTests
             table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("-> ScalarLeftJoin", inspection.PlanningText);
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", inspection.PhysicalPlanText);
+        Assert.Contains("-> ScalarHashSingle", inspection.PlanningText);
+        Assert.Contains("PhysicalHashJoin [LeftSingle]", inspection.PhysicalPlanText);
         AssertNoPerRowSubqueryExecution(inspection);
     }
 

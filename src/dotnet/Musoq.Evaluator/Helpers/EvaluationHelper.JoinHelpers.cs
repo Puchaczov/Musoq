@@ -170,12 +170,60 @@ public static partial class EvaluationHelper
     }
 
     public static RangeJoinIndex<T, TKey> CreateRangeJoinIndex<T, TKey>(
+        IEnumerable<T> candidates,
+        Func<T, object?> partitionKeySelector,
+        Func<T, TKey> keySelector,
+        BinaryOpKind comparisonKind)
+        where T : class
+    {
+        return RangeJoinIndex<T, TKey>.Create<object>(
+            candidates,
+            candidate => partitionKeySelector(candidate)!,
+            keySelector,
+            comparisonKind);
+    }
+
+    public static RangeJoinIndex<T, TKey> CreateRangeJoinIndex<T, TPartitionKey, TKey>(
+        IEnumerable<T> candidates,
+        Func<T, TPartitionKey> partitionKeySelector,
+        Func<T, TKey> keySelector,
+        BinaryOpKind comparisonKind)
+        where T : class
+    {
+        return RangeJoinIndex<T, TKey>.Create(candidates, partitionKeySelector, keySelector, comparisonKind);
+    }
+
+    public static RangeJoinIndex<T, TKey> CreateRangeJoinIndex<T, TKey>(
         IEnumerable<IReadOnlyList<T>> candidateChunks,
         Func<T, TKey> keySelector,
         BinaryOpKind comparisonKind)
         where T : class
     {
         return RangeJoinIndex<T, TKey>.CreateFromChunks(candidateChunks, keySelector, comparisonKind);
+    }
+
+    public static RangeJoinIndex<T, TKey> CreateRangeJoinIndex<T, TKey>(
+        IEnumerable<IReadOnlyList<T>> candidateChunks,
+        Func<T, object?> partitionKeySelector,
+        Func<T, TKey> keySelector,
+        BinaryOpKind comparisonKind)
+        where T : class
+    {
+        return RangeJoinIndex<T, TKey>.CreateFromChunks<object>(
+            candidateChunks,
+            candidate => partitionKeySelector(candidate)!,
+            keySelector,
+            comparisonKind);
+    }
+
+    public static RangeJoinIndex<T, TKey> CreateRangeJoinIndex<T, TPartitionKey, TKey>(
+        IEnumerable<IReadOnlyList<T>> candidateChunks,
+        Func<T, TPartitionKey> partitionKeySelector,
+        Func<T, TKey> keySelector,
+        BinaryOpKind comparisonKind)
+        where T : class
+    {
+        return RangeJoinIndex<T, TKey>.CreateFromChunks(candidateChunks, partitionKeySelector, keySelector, comparisonKind);
     }
 
     public static object? CreateAsOfEqualityKey(params object?[] parts)

@@ -16,6 +16,16 @@ public sealed partial class ExecutionCSharpRenderer
         var orderKeys = kernel.OrderKeys.Count == 0
             ? null
             : ResolveAggregateOrderKeyArray(kernel);
+        var requiresRangeKeys = kernel is
+        {
+            Frame.Kind: ExecutionWindowFrameKind.Range,
+            Descriptor.Mode: ExecutionWindowAggregateMode.BoundedRows
+        };
+        var rangeKeys = requiresRangeKeys
+            ? new ExecutionVariable(
+                GetWindowAggregateRangeKeysName(kernel),
+                kernel.OrderKeys[0].Expression.ReturnType.RequireClrType().MakeArrayType())
+            : null;
         var extractionStatements = new List<StatementSyntax>();
         var statements = new List<StatementSyntax>();
         var partitionBuilder = CreateWindowPartitionBuilderVariable(kernel.Results, partitionKeys, kernel.Partitions);
@@ -28,7 +38,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         AddWindowMethodTargetDeclarations(statements, kernel.MethodTargets);
 
-        if (partitionKeys is { ShouldExtract: true } || orderKeys is { ShouldExtract: true })
+        if (partitionKeys is { ShouldExtract: true } || orderKeys is { ShouldExtract: true } || requiresRangeKeys)
         {
             extractionStatements.AddRange(CreateIndexedItemDeclarations(
                 kernel.Item,
@@ -52,6 +62,14 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateWindowOrderKeyExpression(orderKeys, kernel.OrderKeys)));
         }
 
+        if (rangeKeys != null)
+        {
+            extractionStatements.Add(CreateWindowKeyArrayAssignment(
+                rangeKeys,
+                index.Name,
+                RenderExpression(kernel.OrderKeys[0].Expression)));
+        }
+
         if (ShouldMaterializeWindowKeyArray(partitionKeys))
         {
             statements.Add(CreateLocalDeclaration(
@@ -69,6 +87,16 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxFactory.IdentifierName("var"),
                 orderKeys.Variable.Name,
                 CreateWindowKeyArrayCreation(orderKeys, CreateBufferCountExpression(kernel.Buffer))));
+        }
+
+        if (rangeKeys != null)
+        {
+            statements.Add(CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                rangeKeys.Name,
+                CreateSizedArrayCreation(
+                    kernel.OrderKeys[0].Expression.ReturnType,
+                    CreateBufferCountExpression(kernel.Buffer))));
         }
 
         if (extractionStatements.Count > 0)
@@ -153,52 +181,18 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanUseFusedIntOrderAggregateKernel(ExecutionWindowAggregateKernel kernel)
     {
+        if (kernel is
+            {
+                Frame.Kind: ExecutionWindowFrameKind.Range,
+                Descriptor.Mode: ExecutionWindowAggregateMode.BoundedRows
+            })
+            return false;
+
         if (!CanUseFusedIntOrderWindow(kernel.OrderKeys))
             return false;
 
         var targetPartitions = kernel.SortedPartitions ?? kernel.Partitions;
         return targetPartitions is { ShouldCreate: true };
-    }
-
-    private List<StatementSyntax> RenderPartitionCountWindow(
-        ExecutionWindowAggregateKernel kernel,
-        ExecutionWindowKeyArray partitionKeys)
-    {
-        const string indexVariableName = "windowIndex";
-        var index = new ExecutionVariable(indexVariableName, typeof(int));
-        var builder = CreatePartitionCountBuilderVariable(kernel, partitionKeys);
-        var extractionStatements = new List<StatementSyntax>();
-        var statements = new List<StatementSyntax>();
-
-        AddWindowMethodTargetDeclarations(statements, kernel.MethodTargets);
-        statements.Add(CreatePartitionCountBuilderDeclaration(builder, kernel.Buffer));
-
-        extractionStatements.AddRange(CreateIndexedItemDeclarations(
-            kernel.Item,
-            kernel.Buffer,
-            index,
-            kernel.RowAccessMode));
-        extractionStatements.AddRange(CreatePartitionCountBuilderAddStatements(
-            builder,
-            partitionKeys,
-            kernel,
-            indexVariableName));
-
-        statements.Add(CreateIndexedForLoop(
-            indexVariableName,
-            kernel.Buffer,
-            StatementEmitter.CreateBlock(extractionStatements)));
-        statements.Add(CreateLocalDeclaration(
-            SyntaxFactory.IdentifierName("var"),
-            kernel.Results.Name,
-            SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName(builder.Name),
-                        SyntaxFactory.IdentifierName(nameof(WindowPartitionCountBuilder<>.ToResultInPlaceUnchecked))))
-                .WithArgumentList(CreateArgumentList())));
-
-        return statements;
     }
 
     private static ExecutionWindowPartitionSet GetWindowAggregateKernelPartitions(

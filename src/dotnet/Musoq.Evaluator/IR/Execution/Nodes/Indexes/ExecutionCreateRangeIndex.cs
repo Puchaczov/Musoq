@@ -10,7 +10,9 @@ public sealed record ExecutionCreateRangeIndex(
     ExecutionExpression Candidates,
     ExecutionExpression CandidateKey,
     ExecutionTypeRef KeyType,
-    BinaryOpKind ComparisonKind) : ExecutionNode
+    BinaryOpKind ComparisonKind,
+    IReadOnlyList<ExecutionAsOfEqualityKey>? PartitionKeys = null,
+    ExecutionTypeRef? PartitionKeyType = null) : ExecutionNode
 {
     internal ExecutionCreateRangeIndex(
         ExecutionVariable index,
@@ -18,8 +20,18 @@ public sealed record ExecutionCreateRangeIndex(
         ExecutionExpression candidates,
         ExecutionExpression candidateKey,
         Type keyType,
-        BinaryOpKind comparisonKind)
-        : this(index, candidate, candidates, candidateKey, ExecutionTypeRef.FromClr(keyType), comparisonKind)
+        BinaryOpKind comparisonKind,
+        IReadOnlyList<ExecutionAsOfEqualityKey>? partitionKeys = null,
+        Type? partitionKeyType = null)
+        : this(
+            index,
+            candidate,
+            candidates,
+            candidateKey,
+            ExecutionTypeRef.FromClr(keyType),
+            comparisonKind,
+            partitionKeys,
+            partitionKeyType == null ? null : ExecutionTypeRef.FromClr(partitionKeyType))
     {
     }
 }

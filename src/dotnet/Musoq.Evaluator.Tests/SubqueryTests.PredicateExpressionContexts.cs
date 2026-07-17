@@ -27,12 +27,18 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreatePredicateContextSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN:N", "PARIS:Y", "WARSAW:Y" },
-            table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("HasMatch", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["BERLIN", "N"],
+            ["PARIS", "Y"],
+            ["WARSAW", "Y"]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", inspection.PhysicalPlanText);
+        Assert.Contains("PhysicalHashJoin [LeftMark]", inspection.PhysicalPlanText);
         Assert.IsFalse(inspection.PhysicalPlanText.Contains("PhysicalHashJoin [LeftSemi]", System.StringComparison.Ordinal));
     }
 
@@ -51,12 +57,19 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreatePredicateContextSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "PARIS:LYON", "PARIS:PARIS", "WARSAW:KRAKOW", "WARSAW:WARSAW" },
-            table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["PARIS", "LYON"],
+            ["PARIS", "PARIS"],
+            ["WARSAW", "KRAKOW"],
+            ["WARSAW", "WARSAW"]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", inspection.PhysicalPlanText);
+        Assert.Contains("PhysicalHashJoin [LeftMark]", inspection.PhysicalPlanText);
     }
 
     [TestMethod]
@@ -75,9 +88,14 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreatePredicateContextSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "PARIS:1", "WARSAW:1" },
-            table.Select(row => $"{row.Values[0]}:{System.Convert.ToInt64(row.Values[1])}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("RankInCountry", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["PARIS", 1L],
+            ["WARSAW", 1L]);
     }
 
     [TestMethod]
@@ -95,9 +113,14 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreatePredicateContextSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "FRANCE:1", "POLAND:1" },
-            table.Select(row => $"{row.Values[0]}:{System.Convert.ToInt64(row.Values[1])}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Country", typeof(string)),
+            ("CityCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["FRANCE", 1L],
+            ["POLAND", 1L]);
     }
 
     [TestMethod]
@@ -136,11 +159,15 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreatePredicateContextSources()).Run(TestContext.CancellationToken);
 
-        var actual = table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray();
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN:False", "PARIS:True", "WARSAW:True" },
-            actual,
-            string.Join(", ", actual));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("BiggerThanAny", typeof(bool)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["BERLIN", false],
+            ["PARIS", true],
+            ["WARSAW", true]);
     }
 
     [TestMethod]
@@ -157,14 +184,18 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreatePredicateContextSources()).Run(TestContext.CancellationToken);
 
-        var actual = table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray();
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN:True", "PARIS:True", "WARSAW:True" },
-            actual,
-            string.Join(", ", actual));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("MissingSpain", typeof(bool)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["BERLIN", true],
+            ["PARIS", true],
+            ["WARSAW", true]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PhysicalNestedLoopJoin [LeftOuter]", inspection.PhysicalPlanText);
+        Assert.Contains("PhysicalHashJoin [LeftMark]", inspection.PhysicalPlanText);
         Assert.Contains("_sq_1._sq_1_key IS NULL as MissingSpain", inspection.PhysicalPlanText);
     }
 
@@ -182,19 +213,23 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreatePredicateContextSources()).Run(TestContext.CancellationToken);
 
-        var actual = table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray();
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN:True", "PARIS:False", "WARSAW:False" },
-            actual,
-            string.Join(", ", actual));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("HasNoCountryMatch", typeof(bool)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["BERLIN", true],
+            ["PARIS", false],
+            ["WARSAW", false]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", inspection.PhysicalPlanText);
+        Assert.Contains("PhysicalHashJoin [LeftMark]", inspection.PhysicalPlanText);
         Assert.Contains("_sq_1._sq_1_key IS NULL as HasNoCountryMatch", inspection.PhysicalPlanText);
     }
 
     [TestMethod]
-    public void WhenNonEqualityQuantifiedSubquery_IsUsedInSelectExpression_ShouldRejectUnsafeFallback()
+    public void WhenPartitionedRangeQuantifiedSubquery_IsUsedInSelectExpression_ShouldUsePartitionedRangeMark()
     {
         const string query = @"
             SELECT a.City,
@@ -205,14 +240,21 @@ public partial class SubqueryTests
             FROM #A.entities() a
             ORDER BY a.City";
 
-        var exception = Assert.Throws<MusoqQueryException>(() =>
-            CreateAndRunVirtualMachine(query, CreatePredicateContextSources()));
-
-        Assert.IsTrue(
-            exception.Envelopes.Any(envelope => envelope.Code == DiagnosticCode.MQ2024_InvalidSubquery),
-            $"Expected MQ2024, got {string.Join(", ", exception.Envelopes.Select(envelope => envelope.Code))}.");
-        StringAssert.Contains(exception.Message, "equality-only correlation");
-        StringAssert.Contains(exception.Message, "APPLY lowering");
+        var table = CreateAndRunVirtualMachine(query, CreatePredicateContextSources()).Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("BiggerThanAny", typeof(bool)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["BERLIN", false],
+            ["PARIS", false],
+            ["WARSAW", true]);
+        var inspection = CompileSubqueryForInspection(query);
+        Assert.Contains("PhysicalSortMergeJoin [LeftMark]", inspection.PhysicalPlanText);
+        Assert.Contains("[partitions:", inspection.PhysicalPlanText);
+        Assert.Contains("PredicateRangeMark", inspection.PlanningText);
+        AssertNoPerRowSubqueryExecution(inspection);
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> CreatePredicateContextSources()

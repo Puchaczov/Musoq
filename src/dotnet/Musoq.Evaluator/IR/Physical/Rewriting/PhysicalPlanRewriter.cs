@@ -147,7 +147,11 @@ internal static class PhysicalPlanRewriter
                     join.ComparisonKind,
                     join.Residual,
                     left,
-                    right),
+                    right)
+                {
+                    LeftPartitionKeys = join.LeftPartitionKeys,
+                    RightPartitionKeys = join.RightPartitionKeys
+                },
                 join),
             PhysicalNestedLoopApplyNode apply => RewritePair(
                 apply.Left,

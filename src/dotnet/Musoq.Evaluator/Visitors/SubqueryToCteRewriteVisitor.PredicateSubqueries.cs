@@ -27,7 +27,7 @@ public partial class SubqueryToCteRewriteVisitor
                 currentFrom,
                 join.CteRef,
                 join.JoinExpression,
-                JoinType.OuterLeft));
+                JoinType.LeftMark));
 
         return new PredicateRewriteResult(
             context.Select,

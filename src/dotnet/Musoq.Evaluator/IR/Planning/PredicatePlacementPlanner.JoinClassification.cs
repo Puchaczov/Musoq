@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
-
 namespace Musoq.Evaluator.IR.Planning;
 
 internal static partial class PredicatePlacementPlanner
@@ -105,12 +104,4 @@ internal static partial class PredicatePlacementPlanner
             "Inner join predicate aliases could not be matched to a planned join input.");
     }
 
-    private static string CreateJoinBoundaryReason(JoinKind joinKind) =>
-        joinKind switch
-        {
-            JoinKind.AsofInner or JoinKind.AsofLeft => $"{joinKind} join predicate remains at the post-join boundary to preserve ASOF ordering/probe semantics.",
-            JoinKind.LeftOuter or JoinKind.RightOuter or JoinKind.FullOuter => $"{joinKind} join predicate remains at the post-join boundary to preserve outer join row semantics.",
-            JoinKind.LeftSemi or JoinKind.LeftAntiSemi => $"{joinKind} join predicate remains at the post-join boundary to preserve semi-join row semantics.",
-            _ => $"{joinKind} join predicate remains at the post-join boundary to preserve join semantics."
-        };
 }

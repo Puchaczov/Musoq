@@ -148,10 +148,14 @@ internal static partial class RequiredColumnBoundaryPlanner
             var residualColumns = CollectColumns(join.Residual);
             var leftRequired = Merge(
                 FilterProducedColumns(join.Left, requiredAfter),
-                FilterProducedColumns(join.Left, CollectColumns(join.LeftKey).Concat(residualColumns)));
+                FilterProducedColumns(join.Left, CollectColumns(join.LeftKey)
+                    .Concat(CollectColumns(join.LeftPartitionKeys))
+                    .Concat(residualColumns)));
             var rightRequired = Merge(
                 FilterProducedColumns(join.Right, requiredAfter),
-                FilterProducedColumns(join.Right, CollectColumns(join.RightKey).Concat(residualColumns)));
+                FilterProducedColumns(join.Right, CollectColumns(join.RightKey)
+                    .Concat(CollectColumns(join.RightPartitionKeys))
+                    .Concat(residualColumns)));
 
             AddJoinEdgePlans(leftRequired, rightRequired, join.Left, join.Right);
             Visit(join.Left, leftRequired);

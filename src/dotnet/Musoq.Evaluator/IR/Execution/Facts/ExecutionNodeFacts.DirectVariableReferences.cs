@@ -140,6 +140,8 @@ internal static partial class ExecutionNodeFacts
             case ExecutionRangeProbe rangeProbe:
                 yield return rangeProbe.Match;
                 yield return rangeProbe.Index;
+                if (rangeProbe.MatchFound is not null)
+                    yield return rangeProbe.MatchFound;
                 break;
             case ExecutionCreateAggregateContext aggregateContext:
                 yield return aggregateContext.RootGroup;

@@ -77,6 +77,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         {
             JoinKind.Inner => BuildInnerHashJoinTable(context),
             JoinKind.LeftOuter or JoinKind.RightOuter => BuildOuterHashJoinTable(context),
+            JoinKind.LeftMark => BuildMarkHashJoinTable(context),
+            JoinKind.LeftSingle => BuildSingleHashJoinTable(context, session),
             JoinKind.FullOuter => BuildFullOuterHashJoinTable(context),
             JoinKind.LeftSemi => BuildSemiHashJoinTable(context, isAntiSemiJoin: false),
             JoinKind.LeftAntiSemi => BuildSemiHashJoinTable(context, isAntiSemiJoin: true),

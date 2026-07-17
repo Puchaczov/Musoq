@@ -99,6 +99,39 @@ order by a.City, b.Ordinal";
     }
 
     [TestMethod]
+    public void OuterApplyWithOrdinality_WindowLagAndQualify_ShouldPreserveEmptyRightSide()
+    {
+        const string query = @"
+select a.City, b.Value, b.Ordinal,
+       RowNumber() over (partition by a.City order by b.Ordinal) as rn,
+       Lag(b.Value, 1) over (partition by a.City order by b.Ordinal) as PreviousValue
+from #schema.first() a
+outer apply a.Values b with ordinality
+qualify RowNumber() over (partition by a.City order by b.Ordinal) <= 2
+order by a.City, b.Ordinal";
+        var source = new[]
+        {
+            new PrimitiveArrayRow { City = "Alpha", Values = [10d, 20d, 30d] },
+            new PrimitiveArrayRow { City = "Beta", Values = [] }
+        };
+
+        var table = CreateAndRunVirtualMachine(query, source).Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.Value", typeof(double?)),
+            ("b.Ordinal", typeof(int?)),
+            ("rn", typeof(long)),
+            ("PreviousValue", typeof(double?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Alpha", 10d, 0, 1L, null],
+            ["Alpha", 20d, 1, 2L, 10d],
+            ["Beta", null, null, 1L, null]);
+    }
+
+    [TestMethod]
     public void ChainedCrossApplyWithOrdinality_ShouldResetOrdinalForEachApplySource()
     {
         const string query = @"

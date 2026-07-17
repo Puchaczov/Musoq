@@ -25,6 +25,8 @@ internal static class ExecutionMethodTargetReuse
                                               method.Arguments[1].ReturnType.ClrType == typeof(string),
             nameof(LibraryBase.ToDecimal) => method.Arguments.Count == 1 &&
                                              CanRenderToDecimalWithoutTarget(method.Arguments[0].ReturnType.ClrType),
+            nameof(LibraryBase.__CorrelatedScalarSubqueryResult) =>
+                IsCorrelatedScalarSubqueryResultAccessor(method),
             _ => false
         };
     }
@@ -71,5 +73,16 @@ internal static class ExecutionMethodTargetReuse
                underlyingType == typeof(long) ||
                underlyingType == typeof(ulong) ||
                underlyingType == typeof(decimal);
+    }
+
+    private static bool IsCorrelatedScalarSubqueryResultAccessor(ExecutionMethodCall method)
+    {
+        if (method.Arguments.Count != 1)
+            return false;
+
+        var argumentType = method.Arguments[0].ReturnType.ClrType;
+        argumentType = Nullable.GetUnderlyingType(argumentType) ?? argumentType;
+        return argumentType.IsGenericType &&
+               argumentType.GetGenericTypeDefinition() == typeof(CorrelatedScalarSubqueryResult<>);
     }
 }

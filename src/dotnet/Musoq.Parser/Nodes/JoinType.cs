@@ -10,5 +10,7 @@ public enum JoinType
     AsOfLeft,
     Cross,
     LeftSemi,
-    LeftAntiSemi
+    LeftAntiSemi,
+    LeftMark,
+    LeftSingle
 }

@@ -24,7 +24,8 @@ internal sealed record NullExtendedProjectionContext(
     ExecutionVariable ResultTable,
     ProjectedField[] Fields,
     IReadOnlyDictionary<string, RowShape> SourceLookup,
-    string NullAlias);
+    string NullAlias,
+    IReadOnlyDictionary<string, ExecutionExpression>? NullAliasFieldDefaults = null);
 
 internal sealed record NullExtendedProjectedValue(
     string OutputName,

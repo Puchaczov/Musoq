@@ -125,7 +125,7 @@ public sealed class RuleBasedSkippedOptimizationBaselineTests : BasicEntityTestB
         var planningText = buildItems.RequirePlanningText();
 
         Assert.Contains("SubqueryStrategy", planningText);
-        Assert.Contains("PredicateLeftApply", planningText);
+        Assert.Contains("PredicateHashMark", planningText);
     }
 
     [TestMethod]

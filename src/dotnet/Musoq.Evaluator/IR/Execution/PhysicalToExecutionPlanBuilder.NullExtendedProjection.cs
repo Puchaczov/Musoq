@@ -17,6 +17,13 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             var baseValue = ConvertProjectedExpression(field, context.SourceLookup);
             var matchedValue = SubstituteRowPresenceAliases(baseValue, matchedPresence);
             var unmatchedBaseValue = SubstituteRowPresenceAliases(baseValue, unmatchedPresence);
+            if (context.NullAliasFieldDefaults != null)
+            {
+                unmatchedBaseValue = SubstituteNullAliasFieldDefaults(
+                    unmatchedBaseValue,
+                    context.NullAlias,
+                    context.NullAliasFieldDefaults);
+            }
 
             var unmatched = SubstituteOuterApplyRightAlias(unmatchedBaseValue, context.NullAlias);
             if (!unmatched.Supported)
@@ -24,6 +31,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
                 return NullExtendedProjectionBuildResult.Unsupported(
                     unmatched.UnsupportedReason);
             }
+
+            matchedValue = NarrowCorrelatedScalarCarrierProjection(matchedValue, unmatched);
 
             var resultType = unmatched.IsUnknown
                 ? LiftNullExtendedProjectionType(matchedValue.ReturnType.ClrType)
@@ -65,6 +74,19 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             CreateContextLayout(context.SourceLookup, context.NullAlias));
 
         return NullExtendedProjectionBuildResult.Success(resultShape, matchedAppendRow, unmatchedAppendRow);
+    }
+
+    private static ExecutionExpression SubstituteNullAliasFieldDefaults(
+        ExecutionExpression expression,
+        string nullAlias,
+        IReadOnlyDictionary<string, ExecutionExpression> defaults)
+    {
+        return new ExecutionExpressionSubstitutionRewriter(candidate =>
+            candidate is ExecutionFieldRead fieldRead &&
+            string.Equals(fieldRead.Alias, nullAlias, StringComparison.OrdinalIgnoreCase) &&
+            defaults.TryGetValue(fieldRead.FieldName, out var value)
+                ? value
+                : null).RewriteExpression(expression);
     }
 
     private static GeneratedRowShape CreateNullExtendedGeneratedShape(
@@ -278,4 +300,5 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     {
         return Nullable.GetUnderlyingType(resultType) == originalType;
     }
+
 }

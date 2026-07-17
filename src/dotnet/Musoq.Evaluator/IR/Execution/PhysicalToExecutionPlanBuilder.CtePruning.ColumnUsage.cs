@@ -225,7 +225,12 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             PhysicalNestedLoopJoinNode join => join.TieBreak == null
                 ? [join.OnPredicate]
                 : [join.OnPredicate, join.TieBreak.Expression],
-            PhysicalSortMergeJoinNode join => [join.LeftKey, join.RightKey, join.Residual],
+            PhysicalSortMergeJoinNode join => [
+                join.LeftKey,
+                join.RightKey,
+                ..join.LeftPartitionKeys,
+                ..join.RightPartitionKeys,
+                join.Residual],
             PhysicalSortNode sort => sort.Keys.Select(static key => key.Expression),
             PhysicalTopNNode top => top.Keys.Select(static key => key.Expression),
             PhysicalTopOffsetNode top => top.Keys.Select(static key => key.Expression),

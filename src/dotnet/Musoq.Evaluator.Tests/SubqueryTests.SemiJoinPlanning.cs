@@ -95,7 +95,7 @@ public partial class SubqueryTests
 
         var inspection = CompileSubqueryForInspection(query);
 
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", inspection.PhysicalPlanText);
+        Assert.Contains("PhysicalHashJoin [LeftMark]", inspection.PhysicalPlanText);
         Assert.IsFalse(inspection.PhysicalPlanText.Contains("PhysicalHashJoin [LeftSemi]", StringComparison.Ordinal));
     }
 

@@ -15,6 +15,9 @@ public partial class BuildMetadataAndInferTypesVisitor
             ? null
             : PopSemanticNode(nameof(VisitAccessMethod));
 
+        if (TryElideCorrelatedScalarSubqueryResultAccessor(node, args))
+            return;
+
         if (TryResolveDeferredScalarSubqueryValue(node, args))
             return;
 

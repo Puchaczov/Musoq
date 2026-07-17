@@ -21,6 +21,8 @@ public sealed partial class PhysicalToExecutionPlanBuilder
             lowering.ResultTable,
             lowering.ResultShape,
             CreateJoinResultCapacityCandidate(lowering.ResultTable, context.Sides.Probe));
+        if (lowering.PreludeNodes != null)
+            nodes.AddRange(lowering.PreludeNodes);
 
         if (context.CteSidecarIndex is { Kind: CteSidecarIndexKind.Hash } sidecar)
         {

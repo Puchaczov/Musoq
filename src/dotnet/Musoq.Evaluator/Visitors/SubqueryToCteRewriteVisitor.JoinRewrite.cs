@@ -20,7 +20,7 @@ public partial class SubqueryToCteRewriteVisitor
 
             if (subqueryInfo.RequiresLeftJoin)
             {
-                currentFrom = new Parser.JoinFromNode(currentFrom, join.CteRef, join.JoinExpression, JoinType.OuterLeft);
+                currentFrom = new Parser.JoinFromNode(currentFrom, join.CteRef, join.JoinExpression, JoinType.LeftMark);
                 if (remainingExpr != null)
                     remainingExpr = ReplacePredicateSubqueryNode(remainingExpr, subqueryInfo, join.Replacement);
             }
@@ -117,11 +117,9 @@ public partial class SubqueryToCteRewriteVisitor
             rewrittenSubquery = correlatedSubquery.Query;
             correlationJoinExpression = correlatedSubquery.JoinPredicate;
 
-            var joinPreservesLeftCardinality = !subqueryInfo.RequiresLeftJoin;
-            var joinBody = joinPreservesLeftCardinality
-                ? rewrittenSubquery
-                : AddDistinct(rewrittenSubquery);
-            cteBody = cteOutputNeedsRename ? RenameSelectColumn((QueryNode)joinBody, cteColumnName) : joinBody;
+            cteBody = cteOutputNeedsRename
+                ? RenameSelectColumn(rewrittenSubquery, cteColumnName)
+                : rewrittenSubquery;
         }
         else
         {
@@ -155,9 +153,7 @@ public partial class SubqueryToCteRewriteVisitor
             rewrittenSubquery = correlatedSubquery.Query;
             correlationJoinExpression = correlatedSubquery.JoinPredicate;
 
-            cteBody = subqueryInfo.RequiresLeftJoin
-                ? AddDistinct(rewrittenSubquery)
-                : rewrittenSubquery;
+            cteBody = rewrittenSubquery;
         }
         else
         {

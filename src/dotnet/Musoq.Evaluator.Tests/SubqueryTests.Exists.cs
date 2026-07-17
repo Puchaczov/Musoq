@@ -162,7 +162,7 @@ public partial class SubqueryTests
     }
 
     [TestMethod]
-    public void WhenExistsSubquery_IsInsideOrBranch_ShouldUsePredicateLeftApply()
+    public void WhenExistsSubquery_IsInsideOrBranch_ShouldUsePredicateHashMark()
     {
         const string query = @"
             SELECT a.City FROM #A.entities() a
@@ -178,8 +178,8 @@ public partial class SubqueryTests
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["BERLIN"], ["PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", inspection.PhysicalPlanText);
-        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateLeftApply", inspection.PlanningText);
+        Assert.Contains("PhysicalHashJoin [LeftMark]", inspection.PhysicalPlanText);
+        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateHashMark", inspection.PlanningText);
         Assert.IsFalse(inspection.PhysicalPlanText.Contains("PhysicalHashJoin [LeftSemi]", StringComparison.Ordinal));
     }
 

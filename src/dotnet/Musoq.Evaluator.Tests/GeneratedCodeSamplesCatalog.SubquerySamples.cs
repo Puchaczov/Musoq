@@ -87,7 +87,19 @@ internal static partial class GeneratedCodeSamplesCatalog
                   FROM #B.entities() b
                   WHERE b.Country = a.Country
                     AND b.City = a.City
-              ) d")
+              ) d"),
+            Basic(
+                "Q186_CorrelatedCompositeRangeMark",
+                "Subquery",
+                @"SELECT a.City,
+                     CASE WHEN EXISTS (
+                         SELECT b.City
+                         FROM #B.entities() b
+                         WHERE b.Country = a.Country
+                           AND b.City = a.City
+                           AND b.Population < a.Population
+                     ) THEN 'Y' ELSE 'N' END AS HasEarlierPeer
+              FROM #A.entities() a")
         ];
     }
 }

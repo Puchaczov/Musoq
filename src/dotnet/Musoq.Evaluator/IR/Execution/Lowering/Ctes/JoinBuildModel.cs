@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
@@ -70,7 +71,8 @@ internal sealed record HashJoinTableLowering(
     GeneratedRowShape ResultShape,
     ExecutionBlock MatchedBody,
     ExecutionBlock? NoMatchBody = null,
-    ExecutionVariable? HasMatch = null);
+    ExecutionVariable? HasMatch = null,
+    IReadOnlyList<ExecutionNode>? PreludeNodes = null);
 
 internal sealed record OuterNestedLoopSides(JoinSource Outer, JoinSource Inner);
 

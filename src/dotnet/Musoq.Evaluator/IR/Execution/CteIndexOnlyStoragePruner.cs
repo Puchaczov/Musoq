@@ -167,7 +167,10 @@ internal static class CteIndexOnlyStoragePruner
             case ExecutionRangeProbe probe:
                 return probe with
                 {
-                    Body = RemoveIndexOnlyCteRowStorage(probe.Body, tableName, rowTypeName, keepPayloadRows)
+                    Body = RemoveIndexOnlyCteRowStorage(probe.Body, tableName, rowTypeName, keepPayloadRows),
+                    NoMatchBody = probe.NoMatchBody == null
+                        ? null
+                        : RemoveIndexOnlyCteRowStorage(probe.NoMatchBody, tableName, rowTypeName, keepPayloadRows)
                 };
             case ExecutionFusedCteProducer producer:
                 return producer with

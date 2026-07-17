@@ -3,6 +3,7 @@ using System.Linq;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 using Musoq.Evaluator.IR.Optimization;
+using Musoq.Evaluator.IR.Optimization.Logical.Subqueries;
 
 namespace Musoq.Evaluator.IR.Optimization.Logical;
 
@@ -17,6 +18,11 @@ internal sealed class SubqueryToCteNormalizationPass : IPreLogicalNormalizationP
         var subqueryRewriter = new SubqueryToCteRewriteVisitor();
         var subqueryTraverser = new SubqueryToCteRewriteTraverseVisitor(subqueryRewriter);
         plan.Accept(subqueryTraverser);
+
+        var rewriteRequests = subqueryRewriter.RewriteRequests;
+        var decisions = CorrelatedSubqueryStrategyPlanner.Plan(rewriteRequests);
+        context.AnalysisFacts.Set(CorrelatedSubqueryPlanningFacts.RewriteRequests, rewriteRequests);
+        context.AnalysisFacts.Set(CorrelatedSubqueryPlanningFacts.Decisions, decisions);
 
         var normalized = subqueryTraverser.Root;
         var changed = !string.Equals(before, normalized.ToString(), StringComparison.Ordinal);

@@ -107,8 +107,8 @@ public partial class SubqueryTests
             table.Select(row => $"{row.Values[0]}:{Convert.ToDecimal(row.Values[1])}").ToArray());
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("-> ScalarLeftJoin", inspection.PlanningText);
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", inspection.PhysicalPlanText);
+        Assert.Contains("-> ScalarHashSingle", inspection.PlanningText);
+        Assert.Contains("PhysicalHashJoin [LeftSingle]", inspection.PhysicalPlanText);
     }
 
     [TestMethod]
@@ -199,8 +199,8 @@ public partial class SubqueryTests
         Assert.Contains("PhysicalHashJoin [LeftSemi]", predicate.PhysicalPlanText);
         AssertNoPerRowSubqueryExecution(predicate);
 
-        Assert.Contains("-> ScalarLeftJoin", scalar.PlanningText);
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", scalar.PhysicalPlanText);
+        Assert.Contains("-> ScalarHashSingle", scalar.PlanningText);
+        Assert.Contains("PhysicalHashJoin [LeftSingle]", scalar.PhysicalPlanText);
         AssertNoPerRowSubqueryExecution(scalar);
 
         Assert.Contains("-> DerivedTableJoin", derived.PlanningText);

@@ -33,7 +33,7 @@ internal static partial class PhysicalStrategyRules
             leftKeys,
             rightKeys,
             residuals,
-            kind is JoinKind.LeftSemi or JoinKind.LeftAntiSemi);
+            kind is JoinKind.LeftSemi or JoinKind.LeftAntiSemi or JoinKind.LeftMark);
         if (leftKeys.Count == 0)
             return null;
 
@@ -59,9 +59,9 @@ internal static partial class PhysicalStrategyRules
             return true;
         }
 
-        if (kind is JoinKind.LeftSemi or JoinKind.LeftAntiSemi)
+        if (kind is JoinKind.LeftSemi or JoinKind.LeftAntiSemi or JoinKind.LeftMark or JoinKind.LeftSingle)
         {
-            reason = "Semi and anti-semi joins keep the right side as the hash build side to preserve join semantics.";
+            reason = "Semi, anti-semi, mark, and single joins keep the right side as the hash build side to preserve join semantics.";
             return false;
         }
 

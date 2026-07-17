@@ -50,6 +50,8 @@ public sealed partial class ExecutionCSharpRenderer
             nameof(LibraryBase.Contains) => RenderLibraryBaseStringPredicate(methodCall, nameof(string.Contains), context),
             nameof(LibraryBase.StartsWith) => RenderLibraryBaseStringPredicate(methodCall, nameof(string.StartsWith), context),
             nameof(LibraryBase.ToDecimal) => RenderLibraryBaseNumericToDecimal(methodCall, context),
+            nameof(LibraryBase.__CorrelatedScalarSubqueryResult) =>
+                RenderCorrelatedScalarSubqueryResultAccessor(methodCall, context),
             _ when ExecutionMethodTargetReuse.CanRenderPerInvocation(methodCall) => RenderPerInvocationMethodCall(methodCall, context),
             _ => null
         };
@@ -102,6 +104,21 @@ public sealed partial class ExecutionCSharpRenderer
             SyntaxFactory.CastExpression(
                 CreateTypeSyntax(typeof(decimal?)),
                 RenderExpression(methodCall.Arguments[0], context)));
+    }
+
+    private ExpressionSyntax RenderCorrelatedScalarSubqueryResultAccessor(
+        ExecutionMethodCall methodCall,
+        ExecutionRenderContext context)
+    {
+        var invocation = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    CreateTypeSyntax(typeof(CorrelatedScalarSubqueryResultExtractor)),
+                    SyntaxFactory.IdentifierName(nameof(CorrelatedScalarSubqueryResultExtractor.GetValue))))
+            .WithArgumentList(SyntaxFactory.ArgumentList(
+                SyntaxFactory.SeparatedList(CreateMethodInvocationArguments(methodCall, context))));
+
+        return CastIfNeeded(invocation, methodCall.ReturnType);
     }
 
     private static ExpressionSyntax CreateOptionalParameterDefaultExpression(ParameterInfo parameter)

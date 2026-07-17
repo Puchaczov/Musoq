@@ -108,7 +108,7 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
-    public void CompileForInspection_WhenPredicateSubqueryUsesLeftApply_ShouldNotWarn()
+    public void CompileForInspection_WhenPredicateSubqueryUsesHashMark_ShouldNotWarn()
     {
         var result = Inspect(
             """
@@ -120,8 +120,8 @@ public partial class QueryInspectionTests
             ) or d.Dummy = 'missing'
             """);
 
-        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateLeftApply", result.PlanningText);
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", result.PhysicalPlanText);
+        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateHashMark", result.PlanningText);
+        Assert.Contains("PhysicalHashJoin [LeftMark]", result.PhysicalPlanText);
         AssertNoFallbackWarning(result);
     }
 }

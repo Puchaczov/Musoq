@@ -42,7 +42,7 @@ public partial class SubqueryTests
     }
 
     [TestMethod]
-    public void WhenCorrelatedInSubqueryHasResidualPredicate_ShouldKeepHashSemiJoinStrategy()
+    public void WhenCorrelatedInSubqueryHasResidualPredicate_ShouldUsePartitionedRangeSemiJoinStrategy()
     {
         const string query = @"
             SELECT a.City FROM #A.entities() a
@@ -53,14 +53,14 @@ public partial class SubqueryTests
 
         var inspection = CompileSubqueryForInspection(query);
 
-        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateSemiJoin", inspection.PlanningText);
-        Assert.Contains("PhysicalHashJoin [LeftSemi]", inspection.PhysicalPlanText);
+        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateRangeSemiJoin", inspection.PlanningText);
+        Assert.Contains("PhysicalSortMergeJoin [LeftSemi]", inspection.PhysicalPlanText);
         Assert.Contains("[residual:", inspection.PhysicalPlanText);
         AssertNoPerRowSubqueryExecution(inspection);
     }
 
     [TestMethod]
-    public void WhenScalarAggregateIsCorrelated_ShouldExposeScalarLeftJoinStrategy()
+    public void WhenScalarAggregateIsCorrelated_ShouldExposeScalarHashSingleStrategy()
     {
         const string query = @"
             SELECT a.City, (
@@ -71,9 +71,67 @@ public partial class SubqueryTests
 
         var inspection = CompileSubqueryForInspection(query);
 
-        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> ScalarLeftJoin", inspection.PlanningText);
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", inspection.PhysicalPlanText);
+        Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> ScalarHashSingle", inspection.PlanningText);
+        Assert.Contains("PhysicalHashJoin [LeftSingle]", inspection.PhysicalPlanText);
         Assert.Contains("_sq_1_value", inspection.PhysicalPlanText);
+        AssertNoPerRowSubqueryExecution(inspection);
+    }
+
+    [TestMethod]
+    public void WhenOrderedScalarIsCorrelated_ShouldRankPartitionsOnceAndHashProbeResults()
+    {
+        const string query = @"
+            SELECT a.City, (
+                SELECT b.City FROM #B.entities() b
+                WHERE b.Country = a.Country
+                ORDER BY b.Population DESC
+                TAKE 1
+            ) AS LargestCity
+            FROM #A.entities() a";
+
+        var inspection = CompileSubqueryForInspection(query);
+
+        Assert.Contains("PhysicalWindow", inspection.PhysicalPlanText);
+        Assert.Contains("PhysicalHashJoin [LeftSingle]", inspection.PhysicalPlanText);
+        Assert.Contains("WindowMaterialization", inspection.PlanningText);
+        AssertNoPerRowSubqueryExecution(inspection);
+    }
+
+    [TestMethod]
+    public void WhenGroupedScalarIsCorrelated_ShouldAggregateSetWiseAndHashProbeResults()
+    {
+        const string query = @"
+            SELECT a.City, (
+                SELECT Max(b.Population) FROM #B.entities() b
+                WHERE b.Country = a.Country
+                GROUP BY b.Country
+            ) AS LargestPopulation
+            FROM #A.entities() a";
+
+        var inspection = CompileSubqueryForInspection(query);
+
+        Assert.Contains("PhysicalSingleKeyAggregate", inspection.PhysicalPlanText);
+        Assert.Contains("PhysicalHashJoin [LeftSingle]", inspection.PhysicalPlanText);
+        AssertNoPerRowSubqueryExecution(inspection);
+    }
+
+    [TestMethod]
+    public void WhenScalarSetOperatorIsCorrelated_ShouldCombineBranchesOnceAndHashProbeResults()
+    {
+        const string query = @"
+            SELECT a.City, (
+                SELECT b.City FROM #B.entities() b
+                WHERE b.Country = a.Country
+                INTERSECT (City)
+                SELECT c.City FROM #C.entities() c
+                WHERE c.Country = a.Country
+            ) AS MatchCity
+            FROM #A.entities() a";
+
+        var inspection = CompileSubqueryForInspection(query);
+
+        Assert.Contains("PhysicalSetOp [Intersect]", inspection.PhysicalPlanText);
+        Assert.Contains("PhysicalHashJoin [LeftSingle]", inspection.PhysicalPlanText);
         AssertNoPerRowSubqueryExecution(inspection);
     }
 

@@ -12,5 +12,7 @@ public enum JoinKind
     AsofLeft,
     Cross,
     LeftSemi,
-    LeftAntiSemi
+    LeftAntiSemi,
+    LeftMark,
+    LeftSingle
 }

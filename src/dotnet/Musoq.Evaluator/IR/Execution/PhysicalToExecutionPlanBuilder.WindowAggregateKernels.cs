@@ -165,6 +165,9 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         return provider?.GetCapability(new WindowAggregateCapabilityContext(functionName, inputType, resultType));
     }
 
+    private static object CreateClrDefaultValue(Type type) =>
+        Activator.CreateInstance(type) ?? throw new InvalidOperationException($"Type {type.FullName} has no non-null CLR default value.");
+
     private static bool HasWindowAggregateCapability(
         WindowAggregateCapability capability,
         ExecutionWindowAggregateMode mode)

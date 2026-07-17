@@ -51,16 +51,16 @@ internal static class SubqueryLoweringStrategyPlanner
         switch (node)
         {
             case PhysicalHashJoinNode hashJoin:
-                RecordJoin(hashJoin.Kind, hashJoin.Left, hashJoin.Right, definitions, strategies);
+                RecordJoin(hashJoin.Kind, hashJoin.Left, hashJoin.Right, usesRangeIndex: false, definitions, strategies);
                 break;
             case PhysicalNestedLoopJoinNode nestedJoin:
-                RecordJoin(nestedJoin.Kind, nestedJoin.Left, nestedJoin.Right, definitions, strategies);
+                RecordJoin(nestedJoin.Kind, nestedJoin.Left, nestedJoin.Right, usesRangeIndex: false, definitions, strategies);
                 break;
             case PhysicalSortMergeJoinNode sortMergeJoin:
-                RecordJoin(sortMergeJoin.Kind, sortMergeJoin.Left, sortMergeJoin.Right, definitions, strategies);
+                RecordJoin(sortMergeJoin.Kind, sortMergeJoin.Left, sortMergeJoin.Right, usesRangeIndex: true, definitions, strategies);
                 break;
             case PhysicalCteRefNode cteRef:
-                RecordCteRef(cteRef, null, definitions, strategies);
+                RecordCteRef(cteRef, null, usesRangeIndex: false, definitions, strategies);
                 break;
         }
 
@@ -72,19 +72,21 @@ internal static class SubqueryLoweringStrategyPlanner
         JoinKind kind,
         PhysicalNode left,
         PhysicalNode right,
+        bool usesRangeIndex,
         IReadOnlyDictionary<string, PhysicalCteDefinition> definitions,
         Dictionary<string, SubqueryLoweringStrategyDecision> strategies)
     {
         if (TryGetBoundaryCteRef(left, out var leftCte))
-            RecordCteRef(leftCte, kind, definitions, strategies);
+            RecordCteRef(leftCte, kind, usesRangeIndex, definitions, strategies);
 
         if (TryGetBoundaryCteRef(right, out var rightCte))
-            RecordCteRef(rightCte, kind, definitions, strategies);
+            RecordCteRef(rightCte, kind, usesRangeIndex, definitions, strategies);
     }
 
     private static void RecordCteRef(
         PhysicalCteRefNode cteRef,
         JoinKind? joinKind,
+        bool usesRangeIndex,
         IReadOnlyDictionary<string, PhysicalCteDefinition> definitions,
         Dictionary<string, SubqueryLoweringStrategyDecision> strategies)
     {
@@ -94,10 +96,10 @@ internal static class SubqueryLoweringStrategyPlanner
         definitions.TryGetValue(cteRef.CteName, out var definition);
         strategies[cteRef.CteName] = new SubqueryLoweringStrategyDecision(
             cteRef.CteName,
-            Classify(cteRef.CteName, joinKind, definition),
+            Classify(cteRef.CteName, joinKind, usesRangeIndex, definition),
             joinKind,
             IsCorrelated(definition),
-            CreateReason(cteRef.CteName, joinKind, definition));
+            CreateReason(cteRef.CteName, joinKind, usesRangeIndex, definition));
     }
 
     private static bool TryGetBoundaryCteRef(PhysicalNode node, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out PhysicalCteRefNode? cteRef)
@@ -120,19 +122,33 @@ internal static class SubqueryLoweringStrategyPlanner
     private static SubqueryLoweringKind Classify(
         string cteName,
         JoinKind? joinKind,
+        bool usesRangeIndex,
         PhysicalCteDefinition? definition)
     {
         if (GeneratedSubqueryContract.IsDerivedTableCteName(cteName))
             return joinKind.HasValue ? SubqueryLoweringKind.DerivedTableJoin : SubqueryLoweringKind.DerivedTableScan;
 
         if (HasColumn(definition, GeneratedSubqueryContract.CreateValueColumnName(cteName)))
-            return SubqueryLoweringKind.ScalarLeftJoin;
+        {
+            if (joinKind == JoinKind.LeftSingle && usesRangeIndex)
+                return SubqueryLoweringKind.ScalarRangeSingle;
+
+            return joinKind == JoinKind.LeftSingle
+                ? SubqueryLoweringKind.ScalarHashSingle
+                : SubqueryLoweringKind.ScalarLeftJoin;
+        }
 
         return joinKind switch
         {
-            JoinKind.LeftSemi => SubqueryLoweringKind.PredicateSemiJoin,
-            JoinKind.LeftAntiSemi => SubqueryLoweringKind.PredicateAntiSemiJoin,
-            JoinKind.LeftOuter => SubqueryLoweringKind.PredicateLeftApply,
+            JoinKind.LeftSemi => usesRangeIndex
+                ? SubqueryLoweringKind.PredicateRangeSemiJoin
+                : SubqueryLoweringKind.PredicateSemiJoin,
+            JoinKind.LeftAntiSemi => usesRangeIndex
+                ? SubqueryLoweringKind.PredicateRangeAntiSemiJoin
+                : SubqueryLoweringKind.PredicateAntiSemiJoin,
+            JoinKind.LeftMark => usesRangeIndex
+                ? SubqueryLoweringKind.PredicateRangeMark
+                : SubqueryLoweringKind.PredicateHashMark,
             _ => SubqueryLoweringKind.PredicateCte
         };
     }
@@ -151,10 +167,13 @@ internal static class SubqueryLoweringStrategyPlanner
     private static string CreateReason(
         string cteName,
         JoinKind? joinKind,
+        bool usesRangeIndex,
         PhysicalCteDefinition? definition)
     {
         var correlation = IsCorrelated(definition) ? "correlated" : "uncorrelated";
-        var joinText = joinKind.HasValue ? $" using {joinKind.Value} join lowering" : " as a materialized CTE source";
+        var joinText = joinKind.HasValue
+            ? $" using {joinKind.Value} {(usesRangeIndex ? "range-index" : "join")} lowering"
+            : " as a materialized CTE source";
         return $"Generated {correlation} subquery CTE '{cteName}' is planned{joinText}.";
     }
 

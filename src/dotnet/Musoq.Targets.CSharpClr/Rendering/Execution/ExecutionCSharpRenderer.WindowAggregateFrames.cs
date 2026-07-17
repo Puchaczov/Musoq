@@ -36,15 +36,21 @@ public sealed partial class ExecutionCSharpRenderer
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 frameStartName,
-                CreateWindowAggregateFrameStartExpression(
+                CreateWindowAggregateFrameStartExpressionForKernel(
+                    kernel,
                     frame.Start,
+                    partitionIndicesName,
+                    partitionStartName,
                     partitionIndexName,
                     partitionCountName)),
             CreateLocalDeclaration(
                 SyntaxFactory.IdentifierName("var"),
                 frameEndName,
-                CreateWindowAggregateFrameEndExpression(
+                CreateWindowAggregateFrameEndExpressionForKernel(
+                    kernel,
                     frame.End,
+                    partitionIndicesName,
+                    partitionStartName,
                     partitionIndexName,
                     partitionCountName)),
             CreateLocalDeclaration(

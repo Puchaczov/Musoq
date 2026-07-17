@@ -21,7 +21,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     [DataRow(CorrelatedInSubquerySampleFileName, "PhysicalHashJoin [LeftSemi]")]
     [DataRow(CorrelatedNotExistsSubquerySampleFileName, "PhysicalHashJoin [LeftAntiSemi]")]
-    [DataRow(CorrelatedScalarAggregateSubquerySampleFileName, "PhysicalHashJoin [LeftOuter]")]
+    [DataRow(CorrelatedScalarAggregateSubquerySampleFileName, "PhysicalHashJoin [LeftSingle]")]
     [DataRow(ScalarSubqueryJoinOnSampleFileName, "PhysicalHashJoin [Inner]")]
     [DataRow(CorrelatedAllSubquerySampleFileName, "PhysicalHashJoin [LeftAntiSemi]")]
     [DataRow(CorrelatedApplyDerivedTableSampleFileName, "PhysicalHashJoin [Inner]")]
@@ -117,7 +117,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "Q139 should use a payload-free key set for equality-only anti-semi joins.");
         Assert.IsFalse(ExtractGeneratedCodeSection(samples[CorrelatedNotExistsSubquerySampleFileName]).Contains("_tableResults[0]", StringComparison.Ordinal),
             "Q139 should fuse the generated subquery directly into the key-set build.");
-        Assert.Contains("PhysicalHashJoin [LeftOuter]", samples[CorrelatedScalarAggregateSubquerySampleFileName]);
+        Assert.Contains("PhysicalHashJoin [LeftSingle]", samples[CorrelatedScalarAggregateSubquerySampleFileName]);
         Assert.Contains("AggregateGroup [Cte0AggregateGroup", samples[CorrelatedScalarAggregateSubquerySampleFileName]);
         Assert.Contains("PhysicalHashJoin [Inner]", samples[ScalarSubqueryJoinOnSampleFileName]);
         Assert.Contains(

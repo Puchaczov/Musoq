@@ -45,6 +45,7 @@ Instead of a script, you write a query.
   - [Inline Binary Decoding](#1-inline-binary-decoding)
   - [Declarative Text Log Parsing](#2-declarative-text-log-parsing)
   - [Strong Typing for Dynamic Data](#3-strong-typing-for-dynamic-data-table--couple)
+  - [Correlated Subqueries](#4-correlated-subqueries)
 - [The Developer Toolbox](#-the-developer-toolbox-beyond-ad-hoc-queries)
 - [How Musoq Fits in the Ecosystem](#-how-does-musoq-fit-into-the-sql-tooling-ecosystem)
 - [A Universe of Data Sources](#-available-data-sources)
@@ -180,6 +181,12 @@ select s.Shop, s.ProductName, s.Price
 from SourceOfReceipts('OpenAi', 'gpt-4o') s
 where s.Price > 100.00
 ```
+
+### 4. Correlated Subqueries
+
+Musoq decorrelates supported `IN`, `EXISTS`, quantified, scalar, and `CROSS APPLY` subqueries into hash or indexed range joins. Equality correlation, composite keys, scalar cardinality, per-key shaping, and one bounded range predicate are supported without hidden per-row execution.
+
+See the [correlated subquery support matrix and limitations](docs/correlated-subqueries.md).
 
 ---
 

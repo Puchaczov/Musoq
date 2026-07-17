@@ -219,4 +219,45 @@ public sealed class UnpivotCompositionTests : BasicEntityTestBase
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["A:PL", "Population", 10m]);
     }
 
+    [TestMethod]
+    public void Run_WhenPivotCteIsUnpivotedAndWindowed_ShouldPreserveMissingMeasureRows()
+    {
+        const string query = """
+                             with p as (
+                                 pivot #A.Entities()
+                                 on Month in ('Jan' as Jan, 'Feb' as Feb)
+                                 using Sum(Money) as Sales
+                                 group by City
+                             ), longRows as (
+                                 unpivot p s
+                                 on Month in (s.Jan as Jan, s.Feb as Feb)
+                                 using Sales
+                                 keep s.City as City
+                             )
+                             select City, Month, Sales,
+                                    RowNumber() over (partition by City order by Month) as Rank
+                             from longRows
+                             order by City, Month
+                             """;
+        var sources = CreateSingleSource(
+            new BasicEntity("NY", "Jan", 10m),
+            new BasicEntity("NY", "Feb", 20m),
+            new BasicEntity("LA", "Jan", 5m));
+
+        var table = CreateAndRunVirtualMachine(query, sources).Run();
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Month", typeof(string)),
+            ("Sales", typeof(decimal?)),
+            ("Rank", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["LA", "Feb", null, 1L],
+            ["LA", "Jan", 5m, 2L],
+            ["NY", "Feb", 20m, 1L],
+            ["NY", "Jan", 10m, 2L]);
+    }
+
 }

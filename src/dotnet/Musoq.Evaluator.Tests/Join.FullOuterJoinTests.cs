@@ -13,7 +13,7 @@ using PhysicalPlanPrinter = Musoq.Evaluator.IR.Physical.PhysicalPlanPrinter;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public class JoinFullOuterJoinTests : BasicEntityTestBase
+public partial class JoinFullOuterJoinTests : BasicEntityTestBase
 {
     public TestContext TestContext { get; set; }
 

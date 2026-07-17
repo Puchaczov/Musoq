@@ -56,6 +56,37 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         return ResolveCommonKeyType(join.RightKey.ReturnType, join.LeftKey.ReturnType);
     }
 
+    private static Type? ResolveRangeJoinPartitionKeyType(PhysicalSortMergeJoinNode join)
+    {
+        if (join.LeftPartitionKeys.Length == 0)
+            return null;
+
+        if (join.LeftPartitionKeys.Length == 1)
+            return ResolveCommonKeyType(
+                join.RightPartitionKeys[0].ReturnType,
+                join.LeftPartitionKeys[0].ReturnType);
+
+        var keyTypes = new Type[join.LeftPartitionKeys.Length];
+        if (keyTypes.Length > 7)
+            return typeof(object);
+
+        for (var index = 0; index < keyTypes.Length; index++)
+        {
+            var keyType = ResolveCommonKeyType(
+                join.RightPartitionKeys[index].ReturnType,
+                join.LeftPartitionKeys[index].ReturnType);
+            if (!CanUseTypedValueTupleHashJoinKeyPart(keyType))
+                return typeof(object);
+            keyTypes[index] = keyType;
+        }
+
+        var tupleType = CreateValueTupleType(keyTypes);
+        return join.LeftPartitionKeys.Concat(join.RightPartitionKeys).Any(static key =>
+            !key.ReturnType.IsValueType || Nullable.GetUnderlyingType(key.ReturnType) != null)
+            ? typeof(Nullable<>).MakeGenericType(tupleType)
+            : tupleType;
+    }
+
     private static bool TryResolveValueTupleHashJoinKeyTypes(
         PhysicalHashJoinNode join,
         out Type[] keyTypes)
@@ -70,10 +101,16 @@ public sealed partial class PhysicalToExecutionPlanBuilder
         {
             var buildType = join.BuildKeys[index].ReturnType;
             var probeType = join.ProbeKeys[index].ReturnType;
-            if (buildType != probeType || !CanUseTypedValueTupleHashJoinKeyPart(buildType))
+            var buildUnderlying = Nullable.GetUnderlyingType(buildType) ?? buildType;
+            var probeUnderlying = Nullable.GetUnderlyingType(probeType) ?? probeType;
+            if (buildUnderlying != probeUnderlying)
                 return false;
 
-            types[index] = buildType;
+            var keyType = ResolveCommonKeyType(buildType, probeType);
+            if (!CanUseTypedValueTupleHashJoinKeyPart(keyType))
+                return false;
+
+            types[index] = keyType;
         }
 
         keyTypes = types;

@@ -19,5 +19,6 @@ public partial class SubqueryToCteRewriteVisitor
     private sealed record ScalarSubqueryJoin(
         InMemoryTableFromNode CteRef,
         Node JoinExpression,
-        AccessColumnNode Replacement);
+        Node Replacement,
+        JoinType JoinType);
 }

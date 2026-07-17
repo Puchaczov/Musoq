@@ -33,6 +33,16 @@ internal static class SubqueryCorrelationUtilities
         return CollectAccessColumns(expression).Any(column => aliases.Contains(column.Alias));
     }
 
+    public static bool IsSingleRangeCorrelation(Node expression) =>
+        expression is GreaterNode or GreaterOrEqualNode or LessNode or LessOrEqualNode;
+
+    public static bool IsIndexedRangeCorrelation(Node expression)
+    {
+        var predicates = SplitConjuncts(expression);
+        return predicates.Count(IsSingleRangeCorrelation) == 1 &&
+               predicates.All(static predicate => predicate is EqualityNode or IsNullNode || IsSingleRangeCorrelation(predicate));
+    }
+
     public static AccessColumnNode[] CollectAccessColumns(Node expression)
     {
         var columns = new List<AccessColumnNode>();

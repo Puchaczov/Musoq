@@ -78,7 +78,7 @@ public sealed partial class ExecutionCSharpRenderer
                ExecutionIrAnalysis.CollectNodes<ExecutionStoreCteIndex>(task.Body).Any();
     }
 
-    private static bool CanRenderDefaultConstructibleObject(Type targetType) => CanReferenceType(targetType) && targetType.GetConstructor(Type.EmptyTypes) != null;
+    private static bool CanRenderDefaultConstructibleObject(Type targetType) => CanReferenceType(targetType) && (targetType.IsValueType || targetType.GetConstructor(Type.EmptyTypes) != null);
 
     private static bool CanRenderCreateHashPayload(ExecutionCreateHashPayload createPayload)
     {
@@ -216,6 +216,10 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return CanRenderExpression(createIndex.Candidates) &&
                CanRenderExpression(createIndex.CandidateKey) &&
+               (createIndex.PartitionKeys ?? []).All(static key => CanRenderExpression(key.Right)) &&
+               ((createIndex.PartitionKeys is not { Count: > 0 } && createIndex.PartitionKeyType == null) ||
+                (createIndex.PartitionKeys is { Count: > 0 } && createIndex.PartitionKeyType != null &&
+                 CanReferenceType(createIndex.PartitionKeyType))) &&
                CanRenderJoinEntityType(createIndex.Candidate.Type) &&
                CanRenderStrictKeyType(createIndex.KeyType);
     }
@@ -225,7 +229,14 @@ public sealed partial class ExecutionCSharpRenderer
         return CanRenderJoinEntityType(rangeProbe.Match.Type) &&
                CanRenderStrictKeyType(rangeProbe.KeyType) &&
                CanRenderExpression(rangeProbe.ProbeKey) &&
-               CanRenderBlock(rangeProbe.Body);
+               (rangeProbe.PartitionKeys ?? []).All(static key => CanRenderExpression(key.Left) && CanRenderExpression(key.Right)) &&
+               ((rangeProbe.PartitionKeys is not { Count: > 0 } && rangeProbe.PartitionKeyType == null) ||
+                (rangeProbe.PartitionKeys is { Count: > 0 } && rangeProbe.PartitionKeyType != null &&
+                 CanReferenceType(rangeProbe.PartitionKeyType))) &&
+               CanRenderMatchFound(rangeProbe.MatchFound) &&
+               (rangeProbe.NoMatchBody == null || rangeProbe.MatchFound != null) &&
+               CanRenderBlock(rangeProbe.Body) &&
+               CanRenderOptionalBlock(rangeProbe.NoMatchBody);
     }
 
     private static bool CanRenderJoinEntityType(Type entityType)

@@ -47,7 +47,22 @@ public sealed partial class ExecutionCSharpRenderer
                 throw new NotSupportedException($"Method {methodCall.Method.MethodName} is missing argument {parameter.Name}.");
             }
 
-            renderedArguments.Add(SyntaxFactory.Argument(RenderExpression(methodCall.Arguments[argumentIndex++], context)));
+            var argument = methodCall.Arguments[argumentIndex++];
+            var renderedArgument = RenderExpression(argument, context);
+            if (argument is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null })
+            {
+                var parameterType = parameter.ParameterType.IsByRef
+                    ? parameter.ParameterType.GetElementType()!
+                    : parameter.ParameterType;
+                if (!parameterType.IsValueType || Nullable.GetUnderlyingType(parameterType) != null)
+                {
+                    renderedArgument = SyntaxFactory.CastExpression(
+                        CreateTypeSyntax(parameterType),
+                        renderedArgument);
+                }
+            }
+
+            renderedArguments.Add(SyntaxFactory.Argument(renderedArgument));
         }
 
         if (argumentIndex != methodCall.Arguments.Count)

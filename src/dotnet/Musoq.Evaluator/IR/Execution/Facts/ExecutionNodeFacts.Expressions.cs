@@ -100,9 +100,13 @@ internal static partial class ExecutionNodeFacts
                     .Concat([asOfProbe.ProbeKey, asOfProbe.CandidateKey])
                     .Concat(OptionalExpression(asOfProbe.TieBreak?.Key));
             case ExecutionCreateRangeIndex createIndex:
-                return [createIndex.Candidates, createIndex.CandidateKey];
+                return new[] { createIndex.Candidates }
+                    .Concat((createIndex.PartitionKeys ?? []).Select(static key => key.Right))
+                    .Concat([createIndex.CandidateKey]);
             case ExecutionRangeProbe rangeProbe:
-                return [rangeProbe.ProbeKey];
+                return (rangeProbe.PartitionKeys ?? [])
+                    .SelectMany(static key => new[] { key.Left, key.Right })
+                    .Concat([rangeProbe.ProbeKey]);
             case ExecutionGetOrAddSingleKeyAggregateGroup getOrAdd:
                 return [getOrAdd.Key];
             case ExecutionGetOrAddValueTupleAggregateGroup getOrAdd:

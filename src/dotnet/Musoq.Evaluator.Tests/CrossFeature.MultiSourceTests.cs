@@ -43,8 +43,15 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // IN filters to NYC+LA (Alice, Bob, Charlie), then QUALIFY keeps top 2
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.City", typeof(string)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "NYC", 1L],
+            ["Bob", "LA", 2L]);
     }
 
     #endregion
@@ -457,7 +464,15 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)),
+            ("Names", typeof(string)),
+            ("Cnt", typeof(long)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["DE", "Charlie", 1L, 1L]);
     }
 
     #endregion

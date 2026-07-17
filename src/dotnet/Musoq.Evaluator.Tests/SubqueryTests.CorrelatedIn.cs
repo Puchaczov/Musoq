@@ -48,7 +48,7 @@ public partial class SubqueryTests
     }
 
     [TestMethod]
-    public void WhenInSubquery_HasNonEquiCorrelation_ShouldKeepResidualPredicate()
+    public void WhenInSubquery_HasNonEquiCorrelation_ShouldUsePartitionedRangeSemiJoin()
     {
         const string query = @"
             SELECT a.City FROM #A.entities() a
@@ -63,7 +63,8 @@ public partial class SubqueryTests
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["BERLIN"]);
 
         var inspection = CompileSubqueryForInspection(query);
-        Assert.Contains("PhysicalHashJoin [LeftSemi]", inspection.PhysicalPlanText);
+        Assert.Contains("PhysicalSortMergeJoin [LeftSemi]", inspection.PhysicalPlanText);
+        Assert.Contains("[partitions:", inspection.PhysicalPlanText);
         Assert.Contains("<", inspection.PhysicalPlanText);
     }
 
