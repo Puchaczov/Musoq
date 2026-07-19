@@ -260,4 +260,42 @@ public sealed class UnpivotCompositionTests : BasicEntityTestBase
             ["NY", "Jan", 10m, 2L]);
     }
 
+    [TestMethod]
+    public void Run_WhenPivotAndUnpivotAreQualified_ShouldKeepNullableMissingMeasure()
+    {
+        const string query = """
+                             with p as (
+                                 pivot #A.Entities()
+                                 on Month in ('Jan' as Jan, 'Feb' as Feb)
+                                 using Sum(Money) as Sales
+                                 group by City
+                             ), longRows as (
+                                 unpivot p s
+                                 on Month in (s.Jan as Jan, s.Feb as Feb)
+                                 using Sales
+                                 keep s.City as City
+                             )
+                             select City, Month, Sales,
+                                    RowNumber() over (partition by City order by Month) as Rank
+                             from longRows
+                             qualify RowNumber() over (partition by City order by Month) <= 1
+                             order by City, Month
+                             """;
+        var table = CreateAndRunVirtualMachine(query, CreateSingleSource(
+            new BasicEntity("NY", "Jan", 10m),
+            new BasicEntity("NY", "Feb", 20m),
+            new BasicEntity("LA", "Jan", 5m))).Run();
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Month", typeof(string)),
+            ("Sales", typeof(decimal?)),
+            ("Rank", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["LA", "Feb", null, 1L],
+            ["NY", "Feb", 20m, 1L]);
+    }
+
 }

@@ -37,10 +37,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        CollectionAssert.AreEqual(
-            new[] { "WARSAW", "PARIS" },
-            table.Select(row => (string)row.Values[0]).ToArray());
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("PhysicalHashJoin [LeftSemi]", inspection.PhysicalPlanText);
@@ -75,10 +73,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN", "PARIS" },
-            table.Select(row => (string)row.Values[0]).ToArray());
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["BERLIN"], ["PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("PhysicalHashJoin [LeftAntiSemi]", inspection.PhysicalPlanText);
@@ -128,9 +124,11 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", table[0].Values[0]);
-        Assert.AreEqual("POLAND", table[0].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "POLAND"]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("PhysicalHashJoin [LeftSemi]", inspection.PhysicalPlanText);

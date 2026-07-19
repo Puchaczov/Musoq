@@ -66,45 +66,18 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("b.Country", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("c.StreetName", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("c.HouseNumber", table.Columns.ElementAt(3).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
-
-        Assert.AreEqual(4, table.Count);
-
-        Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "New York" &&
-            (string)row[1] == "USA" &&
-            (string)row[2] == "Broadway" &&
-            (int)row[3] == 123
-        ), "First row should match New York, USA, Broadway, 123");
-
-        Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "New York" &&
-            (string)row[1] == "USA" &&
-            (string)row[2] == "Fifth Avenue" &&
-            (int)row[3] == 456
-        ), "Second row should match New York, USA, Fifth Avenue, 456");
-
-        Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "Los Angeles" &&
-            (string)row[1] == "USA" &&
-            (string)row[2] == "Broadway" &&
-            (int)row[3] == 123
-        ), "Third row should match Los Angeles, USA, Broadway, 123");
-
-        Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "Los Angeles" &&
-            (string)row[1] == "USA" &&
-            (string)row[2] == "Fifth Avenue" &&
-            (int)row[3] == 456
-        ), "Fourth row should match Los Angeles, USA, Fifth Avenue, 456");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.Country", typeof(string)),
+            ("c.StreetName", typeof(string)),
+            ("c.HouseNumber", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["New York", "USA", "Broadway", 123],
+            ["New York", "USA", "Fifth Avenue", 456],
+            ["Los Angeles", "USA", "Broadway", 123],
+            ["Los Angeles", "USA", "Fifth Avenue", 456]);
     }
 
     [TestMethod]
@@ -152,85 +125,23 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Columns.Count());
-        Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("a.Budget", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("b.Name", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("b.Salary", table.Columns.ElementAt(3).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
-        Assert.AreEqual("c.Value", table.Columns.ElementAt(4).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(4).ColumnType);
-
-        Assert.AreEqual(8, table.Count, "Table should have 8 entries");
-
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "IT" &&
-                (int)entry[1] == 500000 &&
-                (string)entry[2] == "John Doe" &&
-                (int)entry[3] == 50000 &&
-                (string)entry[4] == "C#"),
-            "Should have IT entry for John Doe with C#");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "IT" &&
-                (int)entry[1] == 500000 &&
-                (string)entry[2] == "John Doe" &&
-                (int)entry[3] == 50000 &&
-                (string)entry[4] == "JavaScript"),
-            "Should have IT entry for John Doe with JavaScript");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "IT" &&
-                (int)entry[1] == 500000 &&
-                (string)entry[2] == "Jane Smith" &&
-                (int)entry[3] == 60000 &&
-                (string)entry[4] == "C#"),
-            "Should have IT entry for Jane Smith with C#");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "IT" &&
-                (int)entry[1] == 500000 &&
-                (string)entry[2] == "Jane Smith" &&
-                (int)entry[3] == 60000 &&
-                (string)entry[4] == "JavaScript"),
-            "Should have IT entry for Jane Smith with JavaScript");
-
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "HR" &&
-                (int)entry[1] == 300000 &&
-                (string)entry[2] == "John Doe" &&
-                (int)entry[3] == 50000 &&
-                (string)entry[4] == "Communication"),
-            "Should have HR entry for John Doe with Communication");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "HR" &&
-                (int)entry[1] == 300000 &&
-                (string)entry[2] == "John Doe" &&
-                (int)entry[3] == 50000 &&
-                (string)entry[4] == "Negotiation"),
-            "Should have HR entry for John Doe with Negotiation");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "HR" &&
-                (int)entry[1] == 300000 &&
-                (string)entry[2] == "Jane Smith" &&
-                (int)entry[3] == 60000 &&
-                (string)entry[4] == "Communication"),
-            "Should have HR entry for Jane Smith with Communication");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "HR" &&
-                (int)entry[1] == 300000 &&
-                (string)entry[2] == "Jane Smith" &&
-                (int)entry[3] == 60000 &&
-                (string)entry[4] == "Negotiation"),
-            "Should have HR entry for Jane Smith with Negotiation");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Department", typeof(string)),
+            ("a.Budget", typeof(int)),
+            ("b.Name", typeof(string)),
+            ("b.Salary", typeof(int)),
+            ("c.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["IT", 500000, "John Doe", 50000, "C#"],
+            ["IT", 500000, "John Doe", 50000, "JavaScript"],
+            ["IT", 500000, "Jane Smith", 60000, "C#"],
+            ["IT", 500000, "Jane Smith", 60000, "JavaScript"],
+            ["HR", 300000, "John Doe", 50000, "Communication"],
+            ["HR", 300000, "John Doe", 50000, "Negotiation"],
+            ["HR", 300000, "Jane Smith", 60000, "Communication"],
+            ["HR", 300000, "Jane Smith", 60000, "Negotiation"]);
     }
 
     [TestMethod]
@@ -279,27 +190,15 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Columns.Count());
-        Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("b.Name", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "IT" &&
-            (string)row[1] == "John Doe" &&
-            (string)row[2] == "C#"
-        ), "First row should match IT, John Doe, C#");
-
-        Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "IT" &&
-            (string)row[1] == "Jane Smith" &&
-            (string)row[2] == "Java"
-        ), "Second row should match IT, Jane Smith, Java");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Department", typeof(string)),
+            ("b.Name", typeof(string)),
+            ("c.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["IT", "John Doe", "C#"],
+            ["IT", "Jane Smith", "Java"]);
     }
 
     [TestMethod]
@@ -348,18 +247,11 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("Count(a.Department)", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(1, table.Count, "Table should have 1 entry");
-
-        Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "IT" &&
-            (long)row[1] == 2L
-        ), "First row should match IT, 2");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Department", typeof(string)),
+            ("Count(a.Department)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["IT", 2L]);
     }
 
     [TestMethod]
@@ -392,45 +284,18 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Columns.Count());
-        Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("a.Surname", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-
-        Assert.AreEqual(5, table.Count, "Table should have 5 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "John" &&
-                (string)entry[1] == "Doe" &&
-                (string)entry[2] == "C#"),
-            "First entry for John Doe should match");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "John" &&
-                (string)entry[1] == "Doe" &&
-                (string)entry[2] == "JavaScript"),
-            "Second entry for John Doe should match");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "Jane" &&
-                (string)entry[1] == "Smith" &&
-                (string)entry[2] == "Java"),
-            "Entry for Jane Smith should match");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "Alice" &&
-                (string)entry[1] == "Johnson" &&
-                (string)entry[2] == "Communication"),
-            "First entry for Alice Johnson should match");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "Alice" &&
-                (string)entry[1] == "Johnson" &&
-                (string)entry[2] == "Negotiation"),
-            "Second entry for Alice Johnson should match");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Surname", typeof(string)),
+            ("c.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John", "Doe", "C#"],
+            ["John", "Doe", "JavaScript"],
+            ["Jane", "Smith", "Java"],
+            ["Alice", "Johnson", "Communication"],
+            ["Alice", "Johnson", "Negotiation"]);
     }
 
     [TestMethod]
@@ -463,34 +328,18 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Columns.Count());
-        Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("a.Surname", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-
-        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
-
-        Assert.AreEqual(2,
-            table.Count(row =>
-                (string)row[0] == "John" &&
-                (string)row[1] == "Doe" &&
-                ((string)row[2] == "C#" || (string)row[2] == "JavaScript")), "Expected data for John Doe not found");
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row[0] == "Jane" &&
-                (string)row[1] == "Smith" &&
-                (string)row[2] == "Java"),
-            "Expected data for Jane Smith not found");
-
-        Assert.AreEqual(2,
-            table.Count(row =>
-                (string)row[0] == "Alice" &&
-                (string)row[1] == "Johnson" &&
-                ((string)row[2] == "Communication" || (string)row[2] == "Negotiation")),
-            "Expected data for Alice Johnson not found");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Surname", typeof(string)),
+            ("c.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John", "Doe", "C#"],
+            ["John", "Doe", "JavaScript"],
+            ["Jane", "Smith", "Java"],
+            ["Alice", "Johnson", "Communication"],
+            ["Alice", "Johnson", "Negotiation"]);
     }
 
     [TestMethod]
@@ -504,20 +353,11 @@ public class CrossApplyMixedTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-
-        Assert.AreEqual("a.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual("d.Name", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(1, table.Count);
-
-        Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "Value" &&
-            (string)row[1] == "John"
-        ), "First row should match Value, John");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Value", typeof(string)),
+            ("d.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Value", "John"]);
     }
 
     [TestMethod]

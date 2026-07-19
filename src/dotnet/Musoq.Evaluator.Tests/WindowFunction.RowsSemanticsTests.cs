@@ -38,30 +38,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-
-        Assert.AreEqual(100m, Convert.ToDecimal(alice.Values[1]));
-        Assert.AreEqual(1000m, Convert.ToDecimal(diana.Values[1]));
-
-        // The two NYC rows must get DIFFERENT running sums (ROWS semantics).
-        // Under RANGE semantics, they would both get 600 (100+200+300).
-        var nycSums = table.Where(r =>
-        {
-            var name = (string)r.Values[0];
-            return name == "Bob" || name == "Charlie";
-        }).Select(r => Convert.ToDecimal(r.Values[1]))
-            .OrderBy(v => v).ToList();
-
-        Assert.HasCount(2, nycSums);
-        Assert.AreNotEqual(nycSums[0], nycSums[1]);
-
-        // Total at each NYC row: first NYC gets 100+first_pop, second gets 100+both_pops.
-        // Regardless of intra-tie order, the two sums must be {100+200, 100+200+300}
-        // or {100+300, 100+300+200} — either way the sorted pair is the smaller and 600.
-        Assert.AreEqual(600m, nycSums[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 100m], ["Charlie", 400m], ["Bob", 600m], ["Diana", 1000m]);
     }
 
     [TestMethod]
@@ -81,21 +62,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        Assert.AreEqual(1, Convert.ToInt32(alice.Values[1]));
-
-        // NYC rows: under ROWS semantics, counts are 2, 3, 4 (not all 4).
-        var nycCounts = table
-            .Where(r => (string)r.Values[0] != "Alice")
-            .Select(r => Convert.ToInt32(r.Values[1]))
-            .OrderBy(v => v).ToList();
-
-        Assert.HasCount(3, nycCounts);
-        Assert.AreEqual(2, nycCounts[0]);
-        Assert.AreEqual(3, nycCounts[1]);
-        Assert.AreEqual(4, nycCounts[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("RunCount", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1], ["Bob", 2], ["Charlie", 3], ["Diana", 4]);
     }
 
     [TestMethod]
@@ -114,20 +85,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        // Sorted by City: Alice(LA,100) → Bob(NYC,200) → Charlie(NYC,400)
-        // Running avg: 100/1=100, 300/2=150, 700/3≈233.33
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        Assert.AreEqual(100m, Convert.ToDecimal(alice.Values[1]));
-
-        var nycAvgs = table
-            .Where(r => (string)r.Values[0] != "Alice")
-            .Select(r => Convert.ToDecimal(r.Values[1]))
-            .OrderBy(v => v).ToList();
-
-        Assert.AreEqual(150m, nycAvgs[0]);
-        Assert.AreEqual(Math.Round(700m / 3m, 6), Math.Round(nycAvgs[1], 6));
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("RunAvg", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 100m], ["Bob", 150m], ["Charlie", 700m / 3m]);
     }
 
     [TestMethod]
@@ -145,20 +107,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        // Sorted: Alice(LA,50) → then two NYC rows in some order.
-        // Running min: 50, then min(50,first_nyc), then min(50,first_nyc,second_nyc)
-        // All running mins should be 50 since Alice is smallest.
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        Assert.AreEqual(50m, Convert.ToDecimal(alice.Values[1]));
-
-        // Both NYC rows: running min is still 50 (Alice's value persists).
-        var nycMins = table
-            .Where(r => (string)r.Values[0] != "Alice")
-            .Select(r => Convert.ToDecimal(r.Values[1])).ToList();
-
-        Assert.IsTrue(nycMins.All(v => v == 50m));
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("RunMin", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 50m], ["Bob", 50m], ["Charlie", 50m]);
     }
 
     [TestMethod]
@@ -176,22 +129,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        // Sorted: Alice(LA,50) → two NYC rows.
-        // Running max: 50, then grows as NYC rows accumulate.
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        Assert.AreEqual(50m, Convert.ToDecimal(alice.Values[1]));
-
-        // One NYC row should have max=300, the other depends on order.
-        // Both should be >= 50 and at least one should be 300.
-        var nycMaxes = table
-            .Where(r => (string)r.Values[0] != "Alice")
-            .Select(r => Convert.ToDecimal(r.Values[1]))
-            .OrderBy(v => v).ToList();
-
-        Assert.HasCount(2, nycMaxes);
-        Assert.AreEqual(300m, nycMaxes[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("RunMax", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 50m], ["Bob", 300m], ["Charlie", 300m]);
     }
 
     [TestMethod]
@@ -212,28 +154,12 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        // US partition sorted by City: NYC(100), NYC(200), SF(300)
-        // Running sums: 100, 300, 600 — the two NYC rows get different sums.
-        var usRows = table.Where(r => (string)r.Values[1] == "US")
-            .Select(r => Convert.ToDecimal(r.Values[2]))
-            .OrderBy(v => v).ToList();
-
-        Assert.HasCount(3, usRows);
-        Assert.AreEqual(100m, usRows[0]);
-        Assert.AreEqual(300m, usRows[1]);
-        Assert.AreEqual(600m, usRows[2]);
-
-        // UK partition sorted by City: London(400), London(500)
-        // Running sums: 400, 900 — different despite same ORDER BY value.
-        var ukSums = table.Where(r => (string)r.Values[1] == "UK")
-            .Select(r => Convert.ToDecimal(r.Values[2]))
-            .OrderBy(v => v).ToList();
-
-        Assert.HasCount(2, ukSums);
-        Assert.AreEqual(400m, ukSums[0]);
-        Assert.AreEqual(900m, ukSums[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("Country", typeof(string)), ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "US", 100m], ["Bob", "US", 300m], ["Charlie", "US", 600m],
+            ["Diana", "UK", 400m], ["Eve", "UK", 900m]);
     }
 
     // ========================================================================
@@ -257,20 +183,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        // All have same City, so order within ties is non-deterministic.
-        // But one row should have NULL (first), and each other row should
-        // have a non-null value from the previous row.
-        var nullCount = table.Count(r => r.Values[1] == null);
-        Assert.AreEqual(1, nullCount);
-
-        var nonNullRows = table.Where(r => r.Values[1] != null).ToList();
-        Assert.HasCount(2, nonNullRows);
-
-        // Each non-null LAG value should be one of the Population values.
-        var validPops = new HashSet<decimal> { 100m, 200m, 300m };
-        Assert.IsTrue(nonNullRows.All(r => validPops.Contains(Convert.ToDecimal(r.Values[1]))));
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("PrevPop", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", null], ["Bob", 100m], ["Charlie", 200m]);
     }
 
     [TestMethod]
@@ -288,17 +205,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        // One row (the last) should have NULL LEAD, others should have non-null.
-        var nullCount = table.Count(r => r.Values[1] == null);
-        Assert.AreEqual(1, nullCount);
-
-        var nonNullRows = table.Where(r => r.Values[1] != null).ToList();
-        Assert.HasCount(2, nonNullRows);
-
-        var validPops = new HashSet<decimal> { 100m, 200m, 300m };
-        Assert.IsTrue(nonNullRows.All(r => validPops.Contains(Convert.ToDecimal(r.Values[1]))));
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("NextPop", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 200m], ["Bob", 300m], ["Charlie", null]);
     }
 
     // ========================================================================
@@ -322,13 +233,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        // Under ROWS semantics, each row's LAST_VALUE is its own Population.
-        // All three LV values should be distinct (each row gets its own value).
-        var lvValues = table.Select(r => Convert.ToDecimal(r.Values[1])).OrderBy(v => v).ToList();
-        Assert.AreEqual(3, lvValues.Distinct().Count());
-        CollectionAssert.AreEquivalent(new[] { 100m, 200m, 300m }, lvValues);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("LV", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 100m], ["Bob", 200m], ["Charlie", 300m]);
     }
 
     [TestMethod]
@@ -347,17 +256,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        // Sorted: Alice(LA,100) → two NYC rows in some order.
-        // NTH_VALUE(Pop, 2): Alice gets NULL (only 1 row seen), both NYC rows get 2nd value.
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        Assert.IsNull(alice.Values[1]);
-
-        // Both NYC rows should have a non-null NTH_VALUE — the Population of the 2nd row.
-        var nycRows = table.Where(r => (string)r.Values[0] != "Alice").ToList();
-        Assert.HasCount(2, nycRows);
-        Assert.IsTrue(nycRows.All(r => r.Values[1] != null));
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("NV", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", null], ["Bob", 200m], ["Charlie", 200m]);
     }
 
     // ========================================================================
@@ -381,24 +284,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        Assert.AreEqual(1L, alice.Values[1]);
-
-        // Both NYC rows should have rank 2 (tied).
-        var nycRanks = table.Where(r =>
-        {
-            var name = (string)r.Values[0];
-            return name == "Bob" || name == "Charlie";
-        }).Select(r => (long)r.Values[1]).ToList();
-
-        Assert.HasCount(2, nycRanks);
-        Assert.IsTrue(nycRanks.All(r => r == 2L));
-
-        // Diana should have rank 4 (gap after two rank-2 rows).
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-        Assert.AreEqual(4L, diana.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("R", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L], ["Bob", 2L], ["Charlie", 2L], ["Diana", 4L]);
     }
 
     [TestMethod]
@@ -417,22 +307,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        Assert.AreEqual(1L, alice.Values[1]);
-
-        var nycRanks = table.Where(r =>
-        {
-            var name = (string)r.Values[0];
-            return name == "Bob" || name == "Charlie";
-        }).Select(r => (long)r.Values[1]).ToList();
-
-        Assert.IsTrue(nycRanks.All(r => r == 2L));
-
-        // Diana should have dense rank 3 (no gap).
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-        Assert.AreEqual(3L, diana.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("DR", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L], ["Bob", 2L], ["Charlie", 2L], ["Diana", 3L]);
     }
 
     [TestMethod]
@@ -450,13 +329,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        // All rows tied on City, but RowNumber still produces 1, 2, 3.
-        var rowNums = table.Select(r => (long)r.Values[1]).OrderBy(v => v).ToList();
-        Assert.AreEqual(1L, rowNums[0]);
-        Assert.AreEqual(2L, rowNums[1]);
-        Assert.AreEqual(3L, rowNums[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("RN", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L], ["Bob", 2L], ["Charlie", 3L]);
     }
 
     // ========================================================================
@@ -478,17 +355,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        // ASC: NULLs first → Bob(null)=1, Charlie(LA)=2, Alice(NYC)=3.
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        Assert.AreEqual(1L, bob.Values[1]);
-
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        Assert.AreEqual(2L, charlie.Values[1]);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        Assert.AreEqual(3L, alice.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("RN", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Bob", 1L], ["Charlie", 2L], ["Alice", 3L]);
     }
 
     [TestMethod]
@@ -506,17 +377,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        // DESC: NULLs last → Alice(NYC)=1, Charlie(LA)=2, Bob(null)=3.
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        Assert.AreEqual(1L, alice.Values[1]);
-
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        Assert.AreEqual(2L, charlie.Values[1]);
-
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        Assert.AreEqual(3L, bob.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("RN", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L], ["Charlie", 2L], ["Bob", 3L]);
     }
 
     [TestMethod]
@@ -534,21 +399,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        // ASC, NULLs first: null-rows come first, then LA.
-        // Running sum for null rows: 100, 300 (ROWS semantics — different values).
-        // Charlie(LA): 100+200+300 = 600.
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        Assert.AreEqual(600m, Convert.ToDecimal(charlie.Values[1]));
-
-        var nullSums = table.Where(r => (string)r.Values[0] != "Charlie")
-            .Select(r => Convert.ToDecimal(r.Values[1]))
-            .OrderBy(v => v).ToList();
-
-        Assert.HasCount(2, nullSums);
-        Assert.AreEqual(100m, nullSums[0]);
-        Assert.AreEqual(300m, nullSums[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 100m], ["Bob", 300m], ["Charlie", 600m]);
     }
 
     [TestMethod]
@@ -566,18 +421,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        // Two NULL rows are peers → both get rank 1.
-        var nullRanks = table.Where(r => (string)r.Values[0] != "Charlie")
-            .Select(r => (long)r.Values[1]).ToList();
-
-        Assert.HasCount(2, nullRanks);
-        Assert.IsTrue(nullRanks.All(r => r == 1L));
-
-        // Charlie(LA) → rank 3 (gap after two rank-1 rows).
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        Assert.AreEqual(3L, charlie.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("R", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L], ["Bob", 1L], ["Charlie", 3L]);
     }
 
     // ========================================================================
@@ -600,9 +448,11 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        Assert.IsTrue(table.All(r => Convert.ToDecimal(r.Values[1]) == 500m));
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("Total", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 500m], ["Bob", 500m], ["Charlie", 500m]);
     }
 
     [TestMethod]
@@ -620,8 +470,10 @@ public class WindowFunctionRowsSemanticsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        Assert.IsTrue(table.All(r => Convert.ToInt32(r.Values[1]) == 3));
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("Total", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 3], ["Bob", 3], ["Charlie", 3]);
     }
 }

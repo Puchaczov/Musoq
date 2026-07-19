@@ -35,12 +35,8 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-
-        Assert.AreEqual(2, table.Count);
-
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "John" && (string)r.Values[1] == "older"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Jane" && (string)r.Values[1] == "younger"));
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["John", "older"], ["Jane", "younger"]);
     }
 
     #endregion
@@ -65,8 +61,10 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(6, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("First", typeof(string)), ("Second", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["a", "b"], ["a", "c"], ["b", "a"], ["b", "c"], ["c", "a"], ["c", "b"]);
     }
 
     #endregion
@@ -96,7 +94,10 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)), ("t.Value", typeof(string)), ("o.OrderId", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "vip", 1]);
     }
 
     #endregion

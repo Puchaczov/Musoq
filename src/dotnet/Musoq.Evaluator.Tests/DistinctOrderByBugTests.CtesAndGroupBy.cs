@@ -38,10 +38,8 @@ public partial class DistinctOrderByBugTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Poland", table[0].Values[0]);
-        Assert.AreEqual("Germany", table[1].Values[0]);
-        Assert.AreEqual("France", table[2].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Poland"], ["Germany"], ["France"]);
     }
 
     #endregion
@@ -76,11 +74,8 @@ public partial class DistinctOrderByBugTests
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("Berlin", table[0].Values[0]);
-        Assert.AreEqual("Krakow", table[1].Values[0]);
-        Assert.AreEqual("Paris", table[2].Values[0]);
-        Assert.AreEqual("Warsaw", table[3].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Berlin"], ["Krakow"], ["Paris"], ["Warsaw"]);
     }
 
     [TestMethod]
@@ -105,11 +100,8 @@ public partial class DistinctOrderByBugTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("Warsaw", table[0].Values[0]);
-        Assert.AreEqual("Paris", table[1].Values[0]);
-        Assert.AreEqual("Krakow", table[2].Values[0]);
-        Assert.AreEqual("Berlin", table[3].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Warsaw"], ["Paris"], ["Krakow"], ["Berlin"]);
     }
 
     #endregion

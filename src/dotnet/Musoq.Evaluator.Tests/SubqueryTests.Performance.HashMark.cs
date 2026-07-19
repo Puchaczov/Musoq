@@ -1,4 +1,3 @@
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Evaluator.Tests;
@@ -15,6 +14,17 @@ public partial class SubqueryTests
                        WHERE b.Country = a.Country
                    ) THEN 'Y' ELSE 'N' END AS HasMatch
             FROM #A.entities() a";
+
+        var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("HasMatch", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW", "Y"],
+            ["BERLIN", "N"],
+            ["PARIS", "Y"]);
 
         var inspection = CompileSubqueryForInspection(query);
 
@@ -44,8 +54,14 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources(), options)
             .Run(TestContext.CancellationToken);
-        var values = table.Select(row => $"{row.Values[0]}:{row.Values[1]}").Order().ToArray();
-
-        CollectionAssert.AreEqual(new[] { "BERLIN:N", "PARIS:Y", "WARSAW:Y" }, values);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("HasMatch", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["BERLIN", "N"],
+            ["PARIS", "Y"],
+            ["WARSAW", "Y"]);
     }
 }

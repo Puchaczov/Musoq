@@ -39,12 +39,12 @@ public partial class DistinctComprehensiveTests
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        Assert.AreEqual(3, table.Count, "DISTINCT with WHERE should filter then deduplicate");
-
-        var countries = table.Select(row => row.Values[0]?.ToString()).OrderBy(c => c).ToArray();
-        Assert.AreEqual("France", countries[0], "First country should be France");
-        Assert.AreEqual("Germany", countries[1], "Second country should be Germany");
-        Assert.AreEqual("Poland", countries[2], "Third country should be Poland");
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["France"],
+            ["Germany"],
+            ["Poland"]);
     }
 
     [TestMethod]
@@ -70,11 +70,11 @@ public partial class DistinctComprehensiveTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Should have 2 distinct countries");
-
-        var countries = table.Select(row => (string)row.Values[0]).ToList();
-        Assert.Contains("Poland", countries, "Should contain Poland");
-        Assert.Contains("Germany", countries, "Should contain Germany");
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Poland"],
+            ["Germany"]);
     }
 
     [TestMethod]
@@ -103,11 +103,11 @@ public partial class DistinctComprehensiveTests
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        Assert.AreEqual(2, table.Count, "DISTINCT on aggregated sums should produce 2 unique values");
-
-        var actualValues = table.Select(r => (decimal)r.Values[0]).OrderBy(x => x).ToArray();
-        Assert.AreEqual(350m, actualValues[0], "First distinct value should be 350");
-        Assert.AreEqual(900m, actualValues[1], "Second distinct value should be 900");
+        TableMaterializationTestHelper.AssertColumns(table, ("PopSum", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [350m],
+            [900m]);
     }
 
     [TestMethod]
@@ -135,12 +135,12 @@ public partial class DistinctComprehensiveTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count, "CTE with DISTINCT should produce 3 unique countries");
-
-        var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.Contains("France", countries, "Should contain France");
-        Assert.Contains("Germany", countries, "Should contain Germany");
-        Assert.Contains("Poland", countries, "Should contain Poland");
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["France"],
+            ["Germany"],
+            ["Poland"]);
     }
 
     [TestMethod]
@@ -167,13 +167,14 @@ public partial class DistinctComprehensiveTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "CTE with DISTINCT should produce 2 unique city-country combinations");
-
-        var combinations = table.Select(row => (row.Values[0]?.ToString(), row.Values[1]?.ToString())).ToList();
-        Assert.IsTrue(combinations.Any(c => c is { Item1: "Berlin", Item2: "Germany" }),
-            "Should contain Berlin, Germany");
-        Assert.IsTrue(combinations.Any(c => c is { Item1: "Warsaw", Item2: "Poland" }),
-            "Should contain Warsaw, Poland");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Berlin", "Germany"],
+            ["Warsaw", "Poland"]);
     }
 
     [TestMethod]
@@ -199,9 +200,8 @@ public partial class DistinctComprehensiveTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "CTE with DISTINCT should produce 1 unique country");
-        var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.Contains("Poland", countries, "Should contain Poland");
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Poland"]);
     }
 
     [TestMethod]
@@ -227,11 +227,11 @@ public partial class DistinctComprehensiveTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "DISTINCT in outer query should deduplicate CTE results");
-
-        var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.Contains("Germany", countries, "Should contain Germany");
-        Assert.Contains("Poland", countries, "Should contain Poland");
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Germany"],
+            ["Poland"]);
     }
 
     [TestMethod]
@@ -257,11 +257,11 @@ public partial class DistinctComprehensiveTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Double DISTINCT should still produce 2 unique countries");
-
-        var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.Contains("Germany", countries, "Should contain Germany");
-        Assert.Contains("Poland", countries, "Should contain Poland");
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Germany"],
+            ["Poland"]);
     }
 
 }

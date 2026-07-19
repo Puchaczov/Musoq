@@ -27,7 +27,10 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("c.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "a"], ["John", "b"]);
     }
 
     [TestMethod]
@@ -51,7 +54,12 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("c.Name", typeof(string)), ("t.Value", typeof(string)), ("s.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John", "a", 1], ["John", "a", 2]);
     }
 
     [TestMethod]
@@ -78,8 +86,8 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("PersonName", typeof(string)), ("TagValue", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "a"], ["John", "b"]);
     }
 
     #endregion
@@ -105,7 +113,8 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(table, ("sub.Name", typeof(string)), ("sub.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "a"], ["John", "b"]);
     }
 
     [TestMethod]
@@ -133,7 +142,10 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("sub.Name", typeof(string)), ("sub.Tag", typeof(string)), ("o.OrderId", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "vip", 1]);
     }
 
     #endregion
@@ -157,8 +169,8 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["a"], ["b"], ["c"]);
     }
 
     [TestMethod]
@@ -178,7 +190,10 @@ public partial class ExploratoryCrossApplyBasicsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["John", "a"], ["John", "b"]);
     }
 
     #endregion

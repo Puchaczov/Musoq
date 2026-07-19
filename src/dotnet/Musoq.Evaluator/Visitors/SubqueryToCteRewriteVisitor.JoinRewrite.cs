@@ -17,6 +17,13 @@ public partial class SubqueryToCteRewriteVisitor
         foreach (var subqueryInfo in subqueries)
         {
             var join = PreparePredicateSubqueryJoin(subqueryInfo, cteInnerExpressions);
+            if (TryRewriteNullAwareNotIn(
+                    subqueryInfo,
+                    join,
+                    ref currentFrom,
+                    ref remainingExpr,
+                    cteInnerExpressions))
+                continue;
 
             if (subqueryInfo.RequiresLeftJoin)
             {

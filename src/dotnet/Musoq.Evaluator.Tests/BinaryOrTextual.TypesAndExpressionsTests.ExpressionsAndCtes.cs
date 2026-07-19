@@ -41,11 +41,13 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)3, table[0][0]);
-        var data = (byte[])table[0][1];
-        Assert.HasCount(6, data);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.Count", typeof(byte)),
+            ("h.Data", typeof(byte[])));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [(byte)3, new byte[] { 1, 2, 3, 4, 5, 6 }]);
     }
 
     [TestMethod]
@@ -81,13 +83,13 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)4, table[0][0]);
-        var data = (byte[])table[0][1];
-        Assert.HasCount(4, data);
-        Assert.AreEqual((byte)0x11, data[0]);
-        Assert.AreEqual((byte)0x44, data[3]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.Count", typeof(byte)),
+            ("h.Data", typeof(byte[])));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [(byte)4, new byte[] { 0x11, 0x22, 0x33, 0x44 }]);
     }
 
     [TestMethod]
@@ -123,14 +125,14 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)10, table[0][0]); // Total
-        Assert.AreEqual((byte)2, table[0][1]); // HeaderSize
-        var data = (byte[])table[0][2];
-        Assert.HasCount(8, data); // 10 - 2 = 8 bytes
-        Assert.AreEqual((byte)0x01, data[0]);
-        Assert.AreEqual((byte)0x08, data[7]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.Total", typeof(byte)),
+            ("h.HeaderSize", typeof(byte)),
+            ("h.Data", typeof(byte[])));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [(byte)10, (byte)2, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }]);
     }
 
     [TestMethod]
@@ -164,14 +166,11 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)3, table[0][0]); // Count
-        var values = (short[])table[0][1];
-        Assert.HasCount(3, values);
-        Assert.AreEqual((short)1, values[0]);
-        Assert.AreEqual((short)2, values[1]);
-        Assert.AreEqual((short)3, values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.Count", typeof(byte)),
+            ("h.Values", typeof(short[])));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)3, new short[] { 1, 2, 3 }]);
     }
 
     #endregion
@@ -222,14 +221,15 @@ public partial class BinaryOrTextualTypesAndExpressionsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert: Only files with Size > 100
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("medium.bin", table[0][0]);
-        Assert.AreEqual(2, table[0][1]);
-        Assert.AreEqual(150, table[0][2]);
-        Assert.AreEqual("large.bin", table[1][0]);
-        Assert.AreEqual(3, table[1][1]);
-        Assert.AreEqual(500, table[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("FileName", typeof(string)),
+            ("HeaderId", typeof(int)),
+            ("HeaderSize", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["medium.bin", 2, 150],
+            ["large.bin", 3, 500]);
     }
 
     private static byte[] CreateHeaderData(int id, int size)

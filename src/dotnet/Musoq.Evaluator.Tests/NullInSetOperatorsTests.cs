@@ -37,11 +37,14 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsNull(table[0].Values[0]);
-        Assert.AreEqual("001", table[0].Values[1]);
-        Assert.IsNull(table[1].Values[0]);
-        Assert.AreEqual("002", table[1].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Col1", typeof(object)),
+            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [null, "001"],
+            [null, "002"]);
     }
 
     #endregion
@@ -67,7 +70,11 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsGreaterThanOrEqualTo(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Col1", typeof(object)),
+            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [null, "001"]);
     }
 
     #endregion
@@ -90,8 +97,11 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null]);
     }
 
     #endregion
@@ -136,8 +146,8 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Both nulls are equal so union should deduplicate to 1 row");
-        Assert.IsNull(table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Col1", typeof(object)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [(object?)null]);
     }
 
     [TestMethod]
@@ -156,7 +166,11 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsGreaterThanOrEqualTo(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("NullKey", typeof(object)),
+            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [null, "001"]);
     }
 
     [TestMethod]
@@ -175,11 +189,14 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.IsNull(table[0].Values[1]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.IsNull(table[1].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Tag", typeof(object)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["001", null],
+            ["002", null]);
     }
 
     #endregion
@@ -202,7 +219,8 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0, table.Count, "null equals null so except should remove all rows");
+        TableMaterializationTestHelper.AssertColumns(table, ("Col1", typeof(object)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
     [TestMethod]
@@ -221,8 +239,11 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Tag", typeof(object)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null]);
     }
 
     #endregion
@@ -245,8 +266,8 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "null equals null so intersect should keep the row");
-        Assert.IsNull(table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Col1", typeof(object)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [(object?)null]);
     }
 
     [TestMethod]
@@ -265,8 +286,11 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Tag", typeof(object)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null]);
     }
 
     #endregion
@@ -289,7 +313,14 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Extra", typeof(object)),
+            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [null, "001"],
+            [null, "002"]);
     }
 
     [TestMethod]
@@ -308,7 +339,15 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Extra", typeof(object)),
+            ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["AAA", null, "CityA"],
+            ["BBB", null, "CityB"]);
     }
 
     [TestMethod]
@@ -327,7 +366,14 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Extra", typeof(object)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["001", null],
+            ["002", null]);
     }
 
     [TestMethod]
@@ -346,7 +392,14 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("null", typeof(object)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["001", null],
+            ["002", null]);
     }
 
     #endregion
@@ -374,11 +427,14 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.IsNull(table[0].Values[1]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.AreEqual("Warsaw", table[1].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["001", null],
+            ["002", "Warsaw"]);
     }
 
     [TestMethod]
@@ -397,11 +453,14 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual("Warsaw", table[0].Values[1]);
-        Assert.AreEqual("002", table[1].Values[0]);
-        Assert.IsNull(table[1].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["001", "Warsaw"],
+            ["002", null]);
     }
 
     #endregion
@@ -424,7 +483,14 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["001", null],
+            ["002", "Warsaw"]);
     }
 
     [TestMethod]
@@ -443,7 +509,14 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["001", "Warsaw"],
+            ["002", null]);
     }
 
     #endregion
@@ -466,8 +539,11 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", null]);
     }
 
     [TestMethod]
@@ -486,8 +562,11 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", "Warsaw"]);
     }
 
     #endregion
@@ -513,10 +592,15 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.IsNull(table[0].Values[1]);
-        Assert.AreEqual("Warsaw", table[1].Values[1]);
-        Assert.IsNull(table[2].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["001", null],
+            ["002", "Warsaw"],
+            ["003", null]);
     }
 
     [TestMethod]
@@ -538,10 +622,15 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Warsaw", table[0].Values[1]);
-        Assert.IsNull(table[1].Values[1]);
-        Assert.IsNull(table[2].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["001", "Warsaw"],
+            ["002", null],
+            ["003", null]);
     }
 
     [TestMethod]
@@ -563,7 +652,15 @@ public class NullInSetOperatorsTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Extra", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["001", null],
+            ["002", "Warsaw"],
+            ["003", null]);
     }
 
     #endregion

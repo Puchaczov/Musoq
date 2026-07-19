@@ -28,13 +28,8 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual(1, table.Count);
-
-        Assert.IsNull(table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { null });
     }
 
     [TestMethod]
@@ -54,15 +49,11 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual(8, table.Count, "Table should contain 8 rows");
-
-        var expectedStrings = new[] { "Lorem", "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing", "elit." };
-        foreach (var expected in expectedStrings)
-            Assert.IsTrue(table.Any(row => (string)row[0] == expected), $"Row with value {expected} not found");
+        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Lorem"], ["ipsum"], ["dolor"], ["sit"],
+            ["amet,"], ["consectetur"], ["adipiscing"], ["elit."]);
     }
 
     [TestMethod]
@@ -82,19 +73,11 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual(7, table.Count, "Table should contain 7 rows");
-
-        Assert.IsTrue(table.Any(row => (string)row[0] == "ipsum"), "Missing ipsum");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "dolor"), "Missing dolor");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "sit"), "Missing sit");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "amet,"), "Missing amet,");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "consectetur"), "Missing consectetur");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "adipiscing"), "Missing adipiscing");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "elit."), "Missing elit.");
+        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["ipsum"], ["dolor"], ["sit"], ["amet,"],
+            ["consectetur"], ["adipiscing"], ["elit."]);
     }
 
     [TestMethod]
@@ -115,18 +98,10 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual(6, table.Count, "Table should contain 6 rows");
-
-        Assert.IsTrue(table.Any(row => (string)row[0] == "ipsum"), "Missing ipsum");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "dolor"), "Missing dolor");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "sit"), "Missing sit");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "amet,"), "Missing amet,");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "consectetur"), "Missing consectetur");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "adipiscing"), "Missing adipiscing");
+        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["ipsum"], ["dolor"], ["sit"], ["amet,"], ["consectetur"], ["adipiscing"]);
     }
 
     [TestMethod]
@@ -147,14 +122,8 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry => (string)entry[0] == "consectetur"), "First entry should be 'consectetur'");
-        Assert.IsTrue(table.Any(entry => (string)entry[0] == "adipiscing"), "Second entry should be 'adipiscing'");
+        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["consectetur"], ["adipiscing"]);
     }
 
     [TestMethod]
@@ -175,33 +144,13 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("b.Length(b.Value)", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(int?), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("b.Count(b.Length(b.Value))", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(4, table.Count, "Table should have 4 entries");
-
-        Assert.IsTrue(table.Any(row =>
-            (int)row[0] == 5 &&
-            (long)row[1] == 5L
-        ), "First row should be 5, 5");
-
-        Assert.IsTrue(table.Any(row =>
-            (int)row[0] == 3 &&
-            (long)row[1] == 1L
-        ), "Second row should be 3, 1");
-
-        Assert.IsTrue(table.Any(row =>
-            (int)row[0] == 11 &&
-            (long)row[1] == 1L
-        ), "Third row should be 11, 1");
-
-        Assert.IsTrue(table.Any(row =>
-            (int)row[0] == 10 &&
-            (long)row[1] == 1L
-        ), "Fourth row should be 10, 1");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("b.Length(b.Value)", typeof(int?)),
+            ("b.Count(b.Length(b.Value))", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [5, 5L], [3, 1L], [11, 1L], [10, 1L]);
     }
 
     [TestMethod]
@@ -224,35 +173,11 @@ public class OuterApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("c.Value", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-
-        var expectedCount = words.Length * words.Length;
-        Assert.AreEqual(expectedCount, table.Count,
-            $"Should have {expectedCount} rows (each word combining with every word)");
-
-        foreach (var firstWord in words)
-        foreach (var secondWord in words)
-            Assert.IsTrue(
-                table.Any(row =>
-                    (string)row[0] == firstWord &&
-                    (string)row[1] == secondWord),
-                $"Combination of '{firstWord}' with '{secondWord}' not found"
-            );
-
-        foreach (var word in words)
-        {
-            var firstColumnCount = table.Count(row => (string)row[0] == word);
-            Assert.AreEqual(words.Length, firstColumnCount,
-                $"Word '{word}' should appear {words.Length} times in first column");
-
-            var secondColumnCount = table.Count(row => (string)row[1] == word);
-            Assert.AreEqual(words.Length, secondColumnCount,
-                $"Word '{word}' should appear {words.Length} times in second column");
-        }
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("b.Value", typeof(string)), ("c.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            words.SelectMany(first => words.Select(second => new object?[] { first, second })).ToArray());
     }
 
     private sealed class OuterApplyClass1

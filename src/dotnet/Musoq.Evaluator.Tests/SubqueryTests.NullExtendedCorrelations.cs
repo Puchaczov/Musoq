@@ -7,6 +7,117 @@ namespace Musoq.Evaluator.Tests;
 public partial class SubqueryTests
 {
     [TestMethod]
+    public void WhenCorrelatedOuterApplyHasNoMatch_ShouldPreserveNullAggregateAndWindow()
+    {
+        const string query = @"
+            SELECT a.Name, a.Country, applied.MatchCount,
+                   RowNumber() OVER (ORDER BY a.Name) AS rn
+            FROM #A.entities() a
+            OUTER APPLY (
+                SELECT c.Country, Count(c.City) AS MatchCount
+                FROM #C.entities() c
+                WHERE c.Country = a.Country
+                GROUP BY c.Country
+            ) applied
+            ORDER BY a.Name";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            ["#A"] =
+            [
+                new BasicEntity("Alice") { Country = "PL" },
+                new BasicEntity("Empty") { Country = "ES" }
+            ],
+            ["#C"] =
+            [
+                new BasicEntity("C1") { Country = "PL", City = "KRAKOW" },
+                new BasicEntity("C2") { Country = "PL", City = "GDANSK" }
+            ]
+        };
+
+        var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Country", typeof(string)),
+            ("applied.MatchCount", typeof(long?)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Alice", "PL", 2L, 1L],
+            ["Empty", "ES", null, 2L]);
+    }
+
+    [TestMethod]
+    public void WhenFullOuterJoinFeedsCorrelatedSubqueries_ShouldPreserveBothNullExtendedSides()
+    {
+        const string query = @"
+            SELECT a.Name AS LeftName,
+                   b.Name AS RightName,
+                   EXISTS (
+                       SELECT c.Name FROM #C.entities() c
+                       WHERE c.Country = a.Country
+                   ) AS HasLeftDetail,
+                   CASE WHEN a.Country IN (
+                       SELECT c.Country FROM #C.entities() c
+                       WHERE c.Id = a.Id
+                   ) THEN 'Y' ELSE 'N' END AS LeftIn,
+                   CASE WHEN b.Country IN (
+                       SELECT d.Country FROM #D.entities() d
+                       WHERE d.Id = b.Id
+                   ) THEN 'Y' ELSE 'N' END AS RightIn,
+                   (
+                       SELECT Max(d.Population) FROM #D.entities() d
+                       WHERE d.Country = b.Country
+                   ) AS RightMax
+            FROM #A.entities() a
+            FULL OUTER JOIN #B.entities() b ON a.Id = b.Id";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            ["#A"] =
+            [
+                new BasicEntity("A-MATCH") { Id = 1, Country = "PL" },
+                new BasicEntity("A-LEFT") { Id = 2, Country = "DE" },
+                new BasicEntity("A-NULL") { Id = 3, Country = null }
+            ],
+            ["#B"] =
+            [
+                new BasicEntity("B-MATCH") { Id = 1, Country = "PL" },
+                new BasicEntity("B-RIGHT") { Id = 4, Country = "FR" },
+                new BasicEntity("B-NULL") { Id = 5, Country = null }
+            ],
+            ["#C"] =
+            [
+                new BasicEntity("C-PL") { Id = 1, Country = "PL", Population = 10m }
+            ],
+            ["#D"] =
+            [
+                new BasicEntity("D-PL") { Id = 1, Country = "PL", Population = 10m },
+                new BasicEntity("D-FR") { Id = 4, Country = "FR", Population = 20m },
+                new BasicEntity("D-NULL") { Id = 5, Country = null, Population = 99m }
+            ]
+        };
+
+        var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("LeftName", typeof(string)),
+            ("RightName", typeof(string)),
+            ("HasLeftDetail", typeof(bool)),
+            ("LeftIn", typeof(string)),
+            ("RightIn", typeof(string)),
+            ("RightMax", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["A-MATCH", "B-MATCH", true, "Y", "Y", 10m],
+            ["A-LEFT", null, false, "N", "N", null],
+            ["A-NULL", null, false, "N", "N", null],
+            [null, "B-RIGHT", false, "N", "Y", 20m],
+            [null, "B-NULL", false, "N", "N", null]);
+    }
+
+    [TestMethod]
     public void WhenLeftJoinNullableKeyFeedsExistsAndScalarMax_ShouldNotMatchNullToNull()
     {
         const string query = @"

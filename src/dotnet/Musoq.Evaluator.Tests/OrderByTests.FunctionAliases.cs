@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -28,22 +27,11 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        Assert.AreEqual("1", table[0].Values[0]);
-        Assert.AreEqual(1, table[0].Values[1]);
-
-        Assert.AreEqual("2", table[1].Values[0]);
-        Assert.AreEqual(2, table[1].Values[1]);
-
-        Assert.AreEqual("3", table[2].Values[0]);
-        Assert.AreEqual(3, table[2].Values[1]);
-
-        Assert.AreEqual("10", table[3].Values[0]);
-        Assert.AreEqual(10, table[3].Values[1]);
-
-        Assert.AreEqual("20", table[4].Values[0]);
-        Assert.AreEqual(20, table[4].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Name", typeof(string)), ("NumValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "1", 1 }, new object?[] { "2", 2 },
+            new object?[] { "3", 3 }, new object?[] { "10", 10 }, new object?[] { "20", 20 });
     }
 
     [TestMethod]
@@ -67,22 +55,11 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        Assert.AreEqual("20", table[0].Values[0]);
-        Assert.AreEqual(20, table[0].Values[1]);
-
-        Assert.AreEqual("10", table[1].Values[0]);
-        Assert.AreEqual(10, table[1].Values[1]);
-
-        Assert.AreEqual("3", table[2].Values[0]);
-        Assert.AreEqual(3, table[2].Values[1]);
-
-        Assert.AreEqual("2", table[3].Values[0]);
-        Assert.AreEqual(2, table[3].Values[1]);
-
-        Assert.AreEqual("1", table[4].Values[0]);
-        Assert.AreEqual(1, table[4].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Name", typeof(string)), ("NumValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "20", 20 }, new object?[] { "10", 10 },
+            new object?[] { "3", 3 }, new object?[] { "2", 2 }, new object?[] { "1", 1 });
     }
 
     [TestMethod]
@@ -106,22 +83,11 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        Assert.AreEqual("1", table[0].Values[0]);
-        Assert.AreEqual(1, table[0].Values[1]);
-
-        Assert.AreEqual("2", table[1].Values[0]);
-        Assert.AreEqual(2, table[1].Values[1]);
-
-        Assert.AreEqual("3", table[2].Values[0]);
-        Assert.AreEqual(3, table[2].Values[1]);
-
-        Assert.AreEqual("10", table[3].Values[0]);
-        Assert.AreEqual(10, table[3].Values[1]);
-
-        Assert.AreEqual("20", table[4].Values[0]);
-        Assert.AreEqual(20, table[4].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Name", typeof(string)), ("NumValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "1", 1 }, new object?[] { "2", 2 },
+            new object?[] { "3", 3 }, new object?[] { "10", 10 }, new object?[] { "20", 20 });
     }
 
     [TestMethod]
@@ -145,13 +111,10 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        Assert.AreEqual(1, table[0].Values[0]);
-        Assert.AreEqual(2, table[1].Values[0]);
-        Assert.AreEqual(3, table[2].Values[0]);
-        Assert.AreEqual(10, table[3].Values[0]);
-        Assert.AreEqual(20, table[4].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("NumValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { 1 }, new object?[] { 2 }, new object?[] { 3 },
+            new object?[] { 10 }, new object?[] { 20 });
     }
 
     [TestMethod]
@@ -175,16 +138,10 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        Assert.AreEqual("3", table[0].Values[0]);
-        Assert.AreEqual(3, table[0].Values[1]);
-
-        Assert.AreEqual("10", table[1].Values[0]);
-        Assert.AreEqual(10, table[1].Values[1]);
-
-        Assert.AreEqual("20", table[2].Values[0]);
-        Assert.AreEqual(20, table[2].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Name", typeof(string)), ("NumValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "3", 3 }, new object?[] { "10", 10 }, new object?[] { "20", 20 });
     }
 
     [TestMethod]
@@ -196,11 +153,11 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("a", "jan", Convert.ToDecimal(100)),
-                    new BasicEntity("b", "jan", Convert.ToDecimal(20)),
-                    new BasicEntity("c", "jan", Convert.ToDecimal(3)),
-                    new BasicEntity("d", "jan", Convert.ToDecimal(1000)),
-                    new BasicEntity("e", "jan", Convert.ToDecimal(5))
+                    new BasicEntity("a", "jan", 100m),
+                    new BasicEntity("b", "jan", 20m),
+                    new BasicEntity("c", "jan", 3m),
+                    new BasicEntity("d", "jan", 1000m),
+                    new BasicEntity("e", "jan", 5m)
                 ]
             }
         };
@@ -208,14 +165,12 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        // String sort: "100", "1000", "20", "3", "5"
-        Assert.AreEqual("100", table[0].Values[1]);
-        Assert.AreEqual("1000", table[1].Values[1]);
-        Assert.AreEqual("20", table[2].Values[1]);
-        Assert.AreEqual("3", table[3].Values[1]);
-        Assert.AreEqual("5", table[4].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Money", typeof(decimal)), ("MoneyStr", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { 100m, "100" }, new object?[] { 1000m, "1000" },
+            new object?[] { 20m, "20" }, new object?[] { 3m, "3" },
+            new object?[] { 5m, "5" });
     }
 
     [TestMethod]
@@ -243,23 +198,11 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        // Integer sort: 1, 2, 3, 10, 20 (NOT string sort: "1", "10", "2", "20", "3")
-        Assert.AreEqual("1", table[0].Values[0]);
-        Assert.AreEqual(1, table[0].Values[1]);
-
-        Assert.AreEqual("2", table[1].Values[0]);
-        Assert.AreEqual(2, table[1].Values[1]);
-
-        Assert.AreEqual("3", table[2].Values[0]);
-        Assert.AreEqual(3, table[2].Values[1]);
-
-        Assert.AreEqual("10", table[3].Values[0]);
-        Assert.AreEqual(10, table[3].Values[1]);
-
-        Assert.AreEqual("20", table[4].Values[0]);
-        Assert.AreEqual(20, table[4].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("OldColumn", typeof(string)), ("NumValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "1", 1 }, new object?[] { "2", 2 },
+            new object?[] { "3", 3 }, new object?[] { "10", 10 }, new object?[] { "20", 20 });
     }
 
     [TestMethod]
@@ -283,22 +226,11 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        Assert.AreEqual("20", table[0].Values[0]);
-        Assert.AreEqual(20, table[0].Values[1]);
-
-        Assert.AreEqual("10", table[1].Values[0]);
-        Assert.AreEqual(10, table[1].Values[1]);
-
-        Assert.AreEqual("3", table[2].Values[0]);
-        Assert.AreEqual(3, table[2].Values[1]);
-
-        Assert.AreEqual("2", table[3].Values[0]);
-        Assert.AreEqual(2, table[3].Values[1]);
-
-        Assert.AreEqual("1", table[4].Values[0]);
-        Assert.AreEqual(1, table[4].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("OldColumn", typeof(string)), ("NumValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "20", 20 }, new object?[] { "10", 10 },
+            new object?[] { "3", 3 }, new object?[] { "2", 2 }, new object?[] { "1", 1 });
     }
 
     [TestMethod]
@@ -322,21 +254,10 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        Assert.AreEqual("1", table[0].Values[0]);
-        Assert.AreEqual(1, table[0].Values[1]);
-
-        Assert.AreEqual("2", table[1].Values[0]);
-        Assert.AreEqual(2, table[1].Values[1]);
-
-        Assert.AreEqual("3", table[2].Values[0]);
-        Assert.AreEqual(3, table[2].Values[1]);
-
-        Assert.AreEqual("10", table[3].Values[0]);
-        Assert.AreEqual(10, table[3].Values[1]);
-
-        Assert.AreEqual("20", table[4].Values[0]);
-        Assert.AreEqual(20, table[4].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("OldColumn", typeof(string)), ("NumValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "1", 1 }, new object?[] { "2", 2 },
+            new object?[] { "3", 3 }, new object?[] { "10", 10 }, new object?[] { "20", 20 });
     }
 }

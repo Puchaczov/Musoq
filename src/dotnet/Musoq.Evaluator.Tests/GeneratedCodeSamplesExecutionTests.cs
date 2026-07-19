@@ -30,10 +30,14 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        var counts = table.Rows.ToDictionary(row => (string)row[0], row => Convert.ToInt32(row[1]));
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(2500, counts["PL-large"]);
-        Assert.AreEqual(2500, counts["DE-large"]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("CountryKey", typeof(string)),
+            ("NameCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["PL-large", 2500L],
+            ["DE-large", 2500L]);
     }
 
     [TestMethod]
@@ -47,12 +51,16 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        var rows = table.Rows.ToDictionary(row => (string)row[0], row => (string)row[1]);
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("TargetWarsaw-match", rows["Alice"]);
-        Assert.AreEqual("TargetBerlin-match", rows["Bob"]);
-        Assert.IsTrue(rows.ContainsKey("Cara"));
-        Assert.IsTrue(rows.ContainsKey("Dora"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("MatchedName", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "TargetWarsaw-match"],
+            ["Bob", "TargetBerlin-match"],
+            ["Cara", "-match"],
+            ["Dora", "-match"]);
     }
 
     [TestMethod]
@@ -86,15 +94,14 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        var rows = table.Rows
-            .Select(static row => $"{(string)row[0]}|{(string)row[1]}")
-            .OrderBy(static row => row, StringComparer.Ordinal)
-            .ToArray();
-
-        CollectionAssert.AreEqual(
-            new[] { "Bob|Bob", "Cara|Cara" },
-            rows);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)),
+            ("q.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Bob", "Bob"],
+            ["Cara", "Cara"]);
     }
 
     [TestMethod]
@@ -107,10 +114,14 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        var rows = table.Rows.ToDictionary(row => (string)row[0], row => (string)row[1]);
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("PL", rows["Alice"]);
-        Assert.AreEqual("PL", rows["Cara"]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("l.Name", typeof(string)),
+            ("r.RequestedCountry", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "PL"],
+            ["Cara", "PL"]);
     }
 
     [TestMethod]
@@ -124,12 +135,17 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual(1, RowNumberFor(table, "Alice"));
-        Assert.AreEqual(2, RowNumberFor(table, "Cara"));
-        Assert.AreEqual(1, RowNumberFor(table, "Bob"));
-        Assert.AreEqual(1, RowNumberFor(table, "Dora"));
-        Assert.IsTrue(table.Rows.All(row => (string)row[2] == "-window"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("rn", typeof(long)),
+            ("WindowLabel", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L, "-window"],
+            ["Bob", 1L, "-window"],
+            ["Cara", 2L, "-window"],
+            ["Dora", 1L, "-window"]);
     }
 
     [TestMethod]
@@ -153,14 +169,16 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        var rows = table.Rows.ToDictionary(row => (string)row[0]);
-        Assert.AreEqual(9, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Label", typeof(string)),
+            ("Heavy", typeof(int)));
+        var expectedRows = new List<object[]>();
         for (var value = 4991; value <= 4999; value++)
-        {
-            var row = rows[$"Row{value}"];
-            Assert.AreEqual("hot", row[1]);
-            Assert.AreEqual(value * 5, row[2]);
-        }
+            expectedRows.Add([$"Row{value}", "hot", value * 5]);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, expectedRows.ToArray());
     }
 
     private CompiledQuery CompileSample(string fileName, ISchemaProvider provider)
@@ -174,11 +192,6 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
             provider,
             LoggerResolver,
             options);
-    }
-
-    private static int RowNumberFor(Table table, string name)
-    {
-        return Convert.ToInt32(table.Rows.Single(row => (string)row[0] == name)[1]);
     }
 
     private static BasicSchemaProvider<BasicEntity> CreateBasicProvider(

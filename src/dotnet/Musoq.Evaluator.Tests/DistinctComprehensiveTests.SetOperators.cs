@@ -41,10 +41,8 @@ public partial class DistinctComprehensiveTests
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        Assert.AreEqual(2, table.Count, "UNION ALL should return 2 rows (one from each side)");
-        var countries = table.Select(row => row.Values[0]?.ToString()).OrderBy(c => c).ToArray();
-        Assert.AreEqual("Germany", countries[0], "First country should be Germany");
-        Assert.AreEqual("Poland", countries[1], "Second country should be Poland");
+        TableMaterializationTestHelper.AssertColumns(table, ("c", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Germany"], ["Poland"]);
     }
 
 }

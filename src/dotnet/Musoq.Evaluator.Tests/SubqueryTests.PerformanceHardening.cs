@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -15,6 +14,10 @@ public partial class SubqueryTests
         const string query = @"
             SELECT a.City FROM #A.entities() a
             WHERE a.City IN (SELECT b.City FROM #B.entities() b)";
+
+        var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
 
@@ -32,6 +35,10 @@ public partial class SubqueryTests
                 SELECT b.City FROM #B.entities() b
                 WHERE b.Country = a.Country
             )";
+
+        var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["BERLIN"]);
 
         var inspection = CompileSubqueryForInspection(query);
 
@@ -51,6 +58,10 @@ public partial class SubqueryTests
                 WHERE b.Population < a.Population
             )";
 
+        var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
+
         var inspection = CompileSubqueryForInspection(query);
 
         Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateRangeSemiJoin", inspection.PlanningText);
@@ -68,6 +79,17 @@ public partial class SubqueryTests
                 WHERE b.Country = a.Country
             ) AS TotalPopulation
             FROM #A.entities() a";
+
+        var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("TotalPopulation", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW", 210m],
+            new object?[] { "BERLIN", null },
+            ["PARIS", 450m]);
 
         var inspection = CompileSubqueryForInspection(query);
 
@@ -89,6 +111,17 @@ public partial class SubqueryTests
             ) AS LargestCity
             FROM #A.entities() a";
 
+        var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("LargestCity", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW", "GDANSK"],
+            new object?[] { "BERLIN", null },
+            ["PARIS", "PARIS"]);
+
         var inspection = CompileSubqueryForInspection(query);
 
         Assert.Contains("PhysicalWindow", inspection.PhysicalPlanText);
@@ -104,9 +137,20 @@ public partial class SubqueryTests
             SELECT a.City, (
                 SELECT Max(b.Population) FROM #B.entities() b
                 WHERE b.Country = a.Country
-                GROUP BY b.Country
+            GROUP BY b.Country
             ) AS LargestPopulation
             FROM #A.entities() a";
+
+        var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("LargestPopulation", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW", 110m],
+            new object?[] { "BERLIN", null },
+            ["PARIS", 450m]);
 
         var inspection = CompileSubqueryForInspection(query);
 
@@ -128,6 +172,17 @@ public partial class SubqueryTests
             ) AS MatchCity
             FROM #A.entities() a";
 
+        var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("MatchCity", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW", "KRAKOW"],
+            new object?[] { "BERLIN", null },
+            ["PARIS", "PARIS"]);
+
         var inspection = CompileSubqueryForInspection(query);
 
         Assert.Contains("PhysicalSetOp [Intersect]", inspection.PhysicalPlanText);
@@ -145,6 +200,17 @@ public partial class SubqueryTests
                 WHERE b.Country = a.Country
             ) d";
 
+        var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("d.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW", "KRAKOW"],
+            ["WARSAW", "GDANSK"],
+            ["PARIS", "PARIS"]);
+
         var inspection = CompileSubqueryForInspection(query);
 
         Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _dt_1 -> DerivedTableJoin", inspection.PlanningText);
@@ -155,6 +221,8 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenDerivedApplyFeedsHashBuild_ShouldExposeSingleUseHashBuildFusionCandidate()
     {
+        // Plan-only by design: execution semantics are covered by
+        // WhenApplyDerivedTableIsCorrelated; this test isolates the fusion candidate boundary.
         const string query = @"
             SELECT a.City, d.City FROM #A.entities() a
             CROSS APPLY (
@@ -177,6 +245,8 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenScalarSubqueryJoinOnCreatesSingleUseStages_ShouldExposeFusionCandidates()
     {
+        // Plan-only by design: the companion scalar result-shaping tests cover execution;
+        // this test verifies the optimizer's single-use staging decisions.
         const string query = @"
             SELECT a.City, b.City
             FROM #A.entities() a
@@ -207,6 +277,7 @@ public partial class SubqueryTests
     [TestMethod]
     public void WhenCteIsReused_ShouldNotExposeSingleUseFusionCandidate()
     {
+        // Plan-only by design: CTE reuse is an optimizer boundary with no distinct result contract.
         const string query = @"
             WITH people AS (
                 SELECT p.Name, p.Country FROM #A.entities() p
@@ -224,83 +295,6 @@ public partial class SubqueryTests
         Assert.IsFalse(
             inspection.PlanningText.Contains("SingleUseProjectionFusion] cte:people -> Candidate", StringComparison.Ordinal),
             inspection.PlanningText);
-    }
-
-    [TestMethod]
-    public void WhenCompositeExistsSubqueryUsesReferenceAndValueKeys_ShouldUseTypedHashKeyAndPreserveNullSemantics()
-    {
-        const string query = @"
-            SELECT a.Name FROM #A.entities() a
-            WHERE EXISTS (
-                SELECT b.Name FROM #B.entities() b
-                WHERE b.Country = a.Country
-                  AND b.Population = a.Population
-            )";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity { Name = "match", Country = "PL", Population = 10m },
-                    new BasicEntity { Name = "left-null", Country = null, Population = 20m },
-                    new BasicEntity { Name = "no-match", Country = "DE", Population = 30m }
-                ]
-            },
-            {
-                "#B",
-                [
-                    new BasicEntity { Name = "right-match", Country = "PL", Population = 10m },
-                    new BasicEntity { Name = "right-null", Country = null, Population = 20m }
-                ]
-            }
-        };
-
-        var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
-        var inspection = CompileSubqueryForInspection(query);
-
-        CollectionAssert.AreEqual(new[] { "match" }, table.Select(row => (string)row.Values[0]).ToArray());
-        Assert.Contains("ValueTuple<int, string, decimal>", inspection.ExecutionPlanText);
-        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("CreateNullableHashJoinKey", StringComparison.Ordinal));
-        Assert.IsFalse(inspection.GeneratedCSharpCode.Contains("Dictionary<object, HashJoinBucket<", StringComparison.Ordinal));
-    }
-
-    [TestMethod]
-    public void WhenCompositeNotExistsSubqueryUsesReferenceAndValueKeys_ShouldTreatNullProbeAsNoMatch()
-    {
-        const string query = @"
-            SELECT a.Name FROM #A.entities() a
-            WHERE NOT EXISTS (
-                SELECT b.Name FROM #B.entities() b
-                WHERE b.Country = a.Country
-                  AND b.Population = a.Population
-            )";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity { Name = "match", Country = "PL", Population = 10m },
-                    new BasicEntity { Name = "left-null", Country = null, Population = 20m },
-                    new BasicEntity { Name = "no-match", Country = "DE", Population = 30m }
-                ]
-            },
-            {
-                "#B",
-                [
-                    new BasicEntity { Name = "right-match", Country = "PL", Population = 10m },
-                    new BasicEntity { Name = "right-null", Country = null, Population = 20m }
-                ]
-            }
-        };
-
-        var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
-        var inspection = CompileSubqueryForInspection(query);
-
-        CollectionAssert.AreEqual(
-            new[] { "left-null", "no-match" },
-            table.Select(row => (string)row.Values[0]).ToArray());
-        Assert.Contains("ValueTuple<int, string, decimal>", inspection.ExecutionPlanText);
-        Assert.Contains("PhysicalHashJoin [LeftAntiSemi]", inspection.PhysicalPlanText);
     }
 
     private static void AssertNoPerRowSubqueryExecution(QueryInspectionResult inspection)

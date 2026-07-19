@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -24,13 +23,15 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        Assert.AreEqual(100m, (decimal)alice.Values[1]);
-        Assert.AreEqual(200m, (decimal)bob.Values[1]);
-        Assert.AreEqual(200m, (decimal)charlie.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RunAvg", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 100m],
+            ["Bob", 200m],
+            ["Charlie", 200m]);
     }
 
     [TestMethod]
@@ -59,7 +60,16 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("b.City", typeof(string)),
+            ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "NYC", 100m],
+            ["Bob", null, 300m],
+            ["Charlie", "LA", 600m]);
     }
 
     [TestMethod]
@@ -82,7 +92,17 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsGreaterThan(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 100m],
+            ["Bob", 300m],
+            ["Bob", 400m],
+            ["Charlie", 500m],
+            ["Charlie", 600m]);
     }
 
     [TestMethod]
@@ -101,13 +121,16 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        Assert.AreEqual(300m, (decimal)alice.Values[2]);
-        Assert.AreEqual(500m, (decimal)bob.Values[2]);
-        Assert.AreEqual(300m, (decimal)charlie.Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("FwdSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 100m, 300m],
+            ["Bob", 200m, 500m],
+            ["Charlie", 300m, 300m]);
     }
 
     [TestMethod]

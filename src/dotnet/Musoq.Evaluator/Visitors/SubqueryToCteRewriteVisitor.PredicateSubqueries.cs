@@ -173,7 +173,7 @@ public partial class SubqueryToCteRewriteVisitor
             switch (node.Expression)
             {
                 case InQueryNode inQuery:
-                    Nodes.Push(PrepareSubquery(SubqueryInfo.CreateIn(inQuery, true)).Replacement);
+                    Nodes.Push(PrepareNotInSubquery(inQuery));
                     return;
 
                 case ExistsQueryNode existsQuery:

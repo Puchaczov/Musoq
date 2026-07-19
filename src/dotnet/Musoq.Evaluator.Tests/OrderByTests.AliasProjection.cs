@@ -17,9 +17,9 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("c", "mar", Convert.ToDecimal(300)),
-                    new BasicEntity("a", "jan", Convert.ToDecimal(100)),
-                    new BasicEntity("b", "feb", Convert.ToDecimal(200))
+                    new BasicEntity("c", "mar", 300m),
+                    new BasicEntity("a", "jan", 100m),
+                    new BasicEntity("b", "feb", 200m)
                 ]
             }
         };
@@ -27,10 +27,10 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(100m, table[0].Values[1]);
-        Assert.AreEqual(200m, table[1].Values[1]);
-        Assert.AreEqual(300m, table[2].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("CityName", typeof(string)), ("Amount", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["a", 100m], ["b", 200m], ["c", 300m]);
     }
 
     [TestMethod]
@@ -52,10 +52,10 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(520m, table[0].Values[1]);
-        Assert.AreEqual(205m, table[1].Values[1]);
-        Assert.AreEqual(110m, table[2].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Total", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["warsaw", 520m], ["gdansk", 205m], ["cracow", 110m]);
     }
 
     [TestMethod]
@@ -67,9 +67,9 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("amsterdam", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("berlin", "mar", Convert.ToDecimal(200))
+                    new BasicEntity("cracow", "jan", 300m),
+                    new BasicEntity("amsterdam", "feb", 100m),
+                    new BasicEntity("berlin", "mar", 200m)
                 ]
             }
         };
@@ -77,10 +77,10 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("amsterdam", table[0].Values[0]);
-        Assert.AreEqual("berlin", table[1].Values[0]);
-        Assert.AreEqual("cracow", table[2].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("CityName", typeof(string)), ("Amount", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["amsterdam", 100m], ["berlin", 200m], ["cracow", 300m]);
     }
 
     [TestMethod]
@@ -92,12 +92,12 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("a", "jan", Convert.ToDecimal(100)),
-                    new BasicEntity("a", "feb", Convert.ToDecimal(200)),
-                    new BasicEntity("a", "mar", Convert.ToDecimal(300)),
-                    new BasicEntity("b", "apr", Convert.ToDecimal(400)),
-                    new BasicEntity("b", "may", Convert.ToDecimal(500)),
-                    new BasicEntity("c", "jun", Convert.ToDecimal(600))
+                    new BasicEntity("a", "jan", 100m),
+                    new BasicEntity("a", "feb", 200m),
+                    new BasicEntity("a", "mar", 300m),
+                    new BasicEntity("b", "apr", 400m),
+                    new BasicEntity("b", "may", 500m),
+                    new BasicEntity("c", "jun", 600m)
                 ]
             }
         };
@@ -105,13 +105,8 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("a", table[0].Values[0]);
-        Assert.AreEqual(3L, table[0].Values[1]);
-        Assert.AreEqual("b", table[1].Values[0]);
-        Assert.AreEqual(2L, table[1].Values[1]);
-        Assert.AreEqual("c", table[2].Values[0]);
-        Assert.AreEqual(1L, table[2].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("CityCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["a", 3L], ["b", 2L], ["c", 1L]);
     }
 
     [TestMethod]
@@ -123,10 +118,10 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("a", "jan", Convert.ToDecimal(100)),
-                    new BasicEntity("a", "feb", Convert.ToDecimal(200)),
-                    new BasicEntity("b", "mar", Convert.ToDecimal(500)),
-                    new BasicEntity("c", "apr", Convert.ToDecimal(50))
+                    new BasicEntity("a", "jan", 100m),
+                    new BasicEntity("a", "feb", 200m),
+                    new BasicEntity("b", "mar", 500m),
+                    new BasicEntity("c", "apr", 50m)
                 ]
             }
         };
@@ -134,13 +129,8 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("b", table[0].Values[0]);
-        Assert.AreEqual(500m, table[0].Values[1]);
-        Assert.AreEqual("a", table[1].Values[0]);
-        Assert.AreEqual(300m, table[1].Values[1]);
-        Assert.AreEqual("c", table[2].Values[0]);
-        Assert.AreEqual(50m, table[2].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("TotalMoney", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["b", 500m], ["a", 300m], ["c", 50m]);
     }
 
     [TestMethod]
@@ -152,9 +142,9 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("a", "jan", Convert.ToDecimal(100)),
-                    new BasicEntity("b", "feb", Convert.ToDecimal(300)),
-                    new BasicEntity("c", "mar", Convert.ToDecimal(200))
+                    new BasicEntity("a", "jan", 100m),
+                    new BasicEntity("b", "feb", 300m),
+                    new BasicEntity("c", "mar", 200m)
                 ]
             }
         };
@@ -162,10 +152,8 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(300m, table[0].Values[1]);
-        Assert.AreEqual(200m, table[1].Values[1]);
-        Assert.AreEqual(100m, table[2].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("cityname", typeof(string)), ("AMOUNT", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["b", 300m], ["c", 200m], ["a", 100m]);
     }
 
     [TestMethod]
@@ -177,9 +165,9 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("a", "jan", Convert.ToDecimal(100)),
-                    new BasicEntity("b", "feb", Convert.ToDecimal(300)),
-                    new BasicEntity("c", "mar", Convert.ToDecimal(200))
+                    new BasicEntity("a", "jan", 100m),
+                    new BasicEntity("b", "feb", 300m),
+                    new BasicEntity("c", "mar", 200m)
                 ]
             }
         };
@@ -187,9 +175,8 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(300m, table[0].Values[1]);
-        Assert.AreEqual(200m, table[1].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Amount", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["b", 300m], ["c", 200m]);
     }
 
     [TestMethod]
@@ -213,11 +200,7 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("bravo", table[0].Values[0]);
-        Assert.AreEqual("charlie", table[1].Values[0]);
-        Assert.AreEqual("delta", table[2].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["bravo"], ["charlie"], ["delta"]);
     }
 }

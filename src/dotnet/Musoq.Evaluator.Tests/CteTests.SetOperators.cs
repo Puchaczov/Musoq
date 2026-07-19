@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -35,23 +34,14 @@ public partial class CteTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
-
-        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
-
-        Assert.AreEqual(3,
-            table.Count(row =>
-                (string)row.Values[1] == "POLAND" &&
-                new[] { "WARSAW", "CZESTOCHOWA", "KATOWICE" }.Contains((string)row.Values[0])),
-            "Expected 3 cities from Poland not found");
-
-        Assert.AreEqual(2,
-            table.Count(row =>
-                (string)row.Values[1] == "GERMANY" &&
-                new[] { "BERLIN", "MUNICH" }.Contains((string)row.Values[0])),
-            "Expected 2 cities from Germany not found");
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW", "POLAND"],
+            ["CZESTOCHOWA", "POLAND"],
+            ["KATOWICE", "POLAND"],
+            ["BERLIN", "GERMANY"],
+            ["MUNICH", "GERMANY"]);
     }
 
     [TestMethod]
@@ -82,36 +72,14 @@ public partial class CteTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
-
-        Assert.AreEqual(5, table.Count, "Table should have 5 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "WARSAW" &&
-                (string)entry.Values[1] == "POLAND"),
-            "Entry for WARSAW, POLAND should match");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "CZESTOCHOWA" &&
-                (string)entry.Values[1] == "POLAND"),
-            "Entry for CZESTOCHOWA, POLAND should match");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "KATOWICE" &&
-                (string)entry.Values[1] == "POLAND"),
-            "Entry for KATOWICE, POLAND should match");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "BERLIN" &&
-                (string)entry.Values[1] == "GERMANY"),
-            "Entry for BERLIN, GERMANY should match");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "MUNICH" &&
-                (string)entry.Values[1] == "GERMANY"),
-            "Entry for MUNICH, GERMANY should match");
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW", "POLAND"],
+            ["CZESTOCHOWA", "POLAND"],
+            ["KATOWICE", "POLAND"],
+            ["BERLIN", "GERMANY"],
+            ["MUNICH", "GERMANY"]);
     }
 
     [TestMethod]
@@ -143,16 +111,8 @@ public partial class CteTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
-
-        Assert.AreEqual(1, table.Count, "Table should have 1 entry");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "HELSINKI" &&
-            (string)entry.Values[1] == "FINLAND"
-        ), "First entry should be HELSINKI, FINLAND");
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["HELSINKI", "FINLAND"]);
     }
 
     [TestMethod]
@@ -185,16 +145,11 @@ public partial class CteTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
-
-        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
-
-        Assert.IsTrue(table.All(row =>
-                new[] { ("HELSINKI", "FINLAND"), ("WARSAW", "POLAND") }.Contains(((string)row.Values[0],
-                    (string)row.Values[1]))),
-            "Expected rows with values: (HELSINKI,FINLAND), (WARSAW,POLAND)");
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["HELSINKI", "FINLAND"],
+            ["WARSAW", "POLAND"]);
     }
 
     [TestMethod]
@@ -231,21 +186,11 @@ select City, Country from p";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
-
-        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "HELSINKI" &&
-                (string)row.Values[1] == "FINLAND"),
-            "Expected row for HELSINKI, FINLAND");
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "WARSAW" &&
-                (string)row.Values[1] == "POLAND"),
-            "Expected row for WARSAW, POLAND");
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["HELSINKI", "FINLAND"],
+            ["WARSAW", "POLAND"]);
     }
 
     [TestMethod]
@@ -289,25 +234,11 @@ select City, Country from #C.Entities()";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("Country", table.Columns.ElementAt(1).ColumnName);
-
-        Assert.AreEqual(3, table.Count);
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "HELSINKI" &&
-                (string)entry.Values[1] == "FINLAND"),
-            "First entry should be Helsinki, Finland");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "WARSAW" &&
-                (string)entry.Values[1] == "POLAND"),
-            "Second entry should be Warsaw, Poland");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "NEW YORK" &&
-                (string)entry.Values[1] == "USA"),
-            "Third entry should be New York, USA");
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["HELSINKI", "FINLAND"],
+            ["WARSAW", "POLAND"],
+            ["NEW YORK", "USA"]);
     }
 }

@@ -47,13 +47,15 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("debug", table[0][0]);
-        Assert.AreEqual("true", table[0][1]);
-        Assert.AreEqual("host", table[1][0]);
-        Assert.AreEqual("localhost", table[1][1]);
-        Assert.AreEqual("port", table[2][0]);
-        Assert.AreEqual("8080", table[2][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("kv.Key", typeof(string)),
+            ("kv.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["debug", "true"],
+            ["host", "localhost"],
+            ["port", "8080"]);
     }
 
     [TestMethod]
@@ -94,13 +96,15 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("001", table[0][0]);
-        Assert.AreEqual("Product A", table[0][1]);
-        Assert.AreEqual("100.50", table[0][2]);
-        Assert.AreEqual("002", table[1][0]);
-        Assert.AreEqual("Product B", table[1][1]);
-        Assert.AreEqual("250.00", table[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("r.Id", typeof(string)),
+            ("r.Name", typeof(string)),
+            ("r.Amount", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["001", "Product A", "100.50"],
+            ["002", "Product B", "250.00"]);
     }
 
     [TestMethod]
@@ -142,13 +146,15 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("2024-01-01 10:00:00", table[0][0]);
-        Assert.AreEqual("INFO", table[0][1]);
-        Assert.AreEqual("Application started", table[0][2]);
-        Assert.AreEqual("2024-01-01 10:00:05", table[1][0]);
-        Assert.AreEqual("ERROR", table[1][1]);
-        Assert.AreEqual("Connection failed", table[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("e.Timestamp", typeof(string)),
+            ("e.Level", typeof(string)),
+            ("e.Message", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["2024-01-01 10:00:00", "INFO", "Application started"],
+            ["2024-01-01 10:00:05", "ERROR", "Connection failed"]);
     }
 
     [TestMethod]
@@ -188,13 +194,15 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("00001", table[0][0]);
-        Assert.AreEqual("John Smith", table[0][1]);
-        Assert.AreEqual("0000100.50", table[0][2]);
-        Assert.AreEqual("00002", table[1][0]);
-        Assert.AreEqual("Jane Doe", table[1][1]);
-        Assert.AreEqual("0000250.00", table[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("r.Id", typeof(string)),
+            ("r.Name", typeof(string)),
+            ("r.Amount", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["00001", "John Smith", "0000100.50"],
+            ["00002", "Jane Doe", "0000250.00"]);
     }
 
     [TestMethod]
@@ -234,13 +242,15 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("200", table[0][0]);
-        Assert.AreEqual("OK", table[0][1]);
-        Assert.AreEqual("404", table[1][0]);
-        Assert.AreEqual("Not Found", table[1][1]);
-        Assert.AreEqual("500", table[2][0]);
-        Assert.AreEqual("Internal Server Error", table[2][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("s.Code", typeof(string)),
+            ("s.Status", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["200", "OK"],
+            ["404", "Not Found"],
+            ["500", "Internal Server Error"]);
     }
 
     #endregion

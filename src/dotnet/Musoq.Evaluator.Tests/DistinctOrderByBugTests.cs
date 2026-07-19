@@ -38,10 +38,11 @@ public partial class DistinctOrderByBugTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        Assert.AreEqual(3, table.Count);
-        Assert.IsNull(table[0].Values[0]);
-        Assert.AreEqual("Germany", table[1].Values[0]);
-        Assert.AreEqual("Poland", table[2].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { null },
+            new object?[] { "Germany" },
+            new object?[] { "Poland" });
     }
 
     #endregion
@@ -70,11 +71,12 @@ public partial class DistinctOrderByBugTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual(500m, table[0].Values[0]);
-        Assert.AreEqual(300m, table[1].Values[0]);
-        Assert.AreEqual(200m, table[2].Values[0]);
-        Assert.AreEqual(100m, table[3].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { 500m },
+            new object?[] { 300m },
+            new object?[] { 200m },
+            new object?[] { 100m });
     }
 
     #endregion
@@ -104,10 +106,11 @@ public partial class DistinctOrderByBugTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Poland", table[0].Values[0]);
-        Assert.AreEqual("Germany", table[1].Values[0]);
-        Assert.AreEqual("France", table[2].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Poland" },
+            new object?[] { "Germany" },
+            new object?[] { "France" });
     }
 
     #endregion
@@ -135,13 +138,13 @@ public partial class DistinctOrderByBugTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("France", table[0].Values[0]);
-        Assert.AreEqual(1L, table[0].Values[1]);
-        Assert.AreEqual("Germany", table[1].Values[0]);
-        Assert.AreEqual(2L, table[1].Values[1]);
-        Assert.AreEqual("Poland", table[2].Values[0]);
-        Assert.AreEqual(2L, table[2].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Country", typeof(string)),
+            ("Count(Country)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "France", 1L },
+            new object?[] { "Germany", 2L },
+            new object?[] { "Poland", 2L });
     }
 
     #endregion
@@ -170,22 +173,15 @@ public partial class DistinctOrderByBugTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        Assert.AreEqual("France", table[0].Values[0]);
-        Assert.AreEqual("Paris", table[0].Values[1]);
-
-        Assert.AreEqual("Germany", table[1].Values[0]);
-        Assert.AreEqual("Munich", table[1].Values[1]);
-
-        Assert.AreEqual("Germany", table[2].Values[0]);
-        Assert.AreEqual("Berlin", table[2].Values[1]);
-
-        Assert.AreEqual("Poland", table[3].Values[0]);
-        Assert.AreEqual("Warsaw", table[3].Values[1]);
-
-        Assert.AreEqual("Poland", table[4].Values[0]);
-        Assert.AreEqual("Krakow", table[4].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Country", typeof(string)),
+            ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "France", "Paris" },
+            new object?[] { "Germany", "Munich" },
+            new object?[] { "Germany", "Berlin" },
+            new object?[] { "Poland", "Warsaw" },
+            new object?[] { "Poland", "Krakow" });
     }
 
     #endregion
@@ -215,9 +211,10 @@ public partial class DistinctOrderByBugTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Germany", table[0].Values[0]);
-        Assert.AreEqual("France", table[1].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Germany" },
+            new object?[] { "France" });
     }
 
     #endregion

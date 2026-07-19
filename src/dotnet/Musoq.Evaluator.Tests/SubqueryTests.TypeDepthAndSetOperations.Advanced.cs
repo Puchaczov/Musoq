@@ -51,9 +51,11 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", (string)table[0].Values[0]);
-        Assert.AreEqual("KRAKOW", (string)table[0].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "KRAKOW"]);
     }
 
     // ── MEDIUM PRIORITY: Subquery with ORDER BY ───────────────────────────────
@@ -85,9 +87,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "WARSAW"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "BERLIN"));
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["BERLIN"]);
     }
 
     // ── MEDIUM PRIORITY: Subquery with SKIP ───────────────────────────────────
@@ -124,9 +125,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "PARIS"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "WARSAW"));
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["PARIS"], ["WARSAW"]);
     }
 
     // ── MEDIUM PRIORITY: Implicit type conversion ─────────────────────────────
@@ -157,8 +157,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("MATCH", (string)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["MATCH"]);
     }
 
     // ── MEDIUM PRIORITY: Subquery with DISTINCT already present ───────────────
@@ -190,8 +190,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", (string)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW"]);
     }
 
     // ── Error quality: Explanation and SuggestedFixes ──────────────────────────
@@ -223,9 +223,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "WARSAW"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "BERLIN"));
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["WARSAW"], ["BERLIN"]);
     }
 
     [TestMethod]

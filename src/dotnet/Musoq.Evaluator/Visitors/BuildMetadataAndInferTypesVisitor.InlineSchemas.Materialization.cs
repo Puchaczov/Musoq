@@ -48,7 +48,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (nestedType == null) throw new InvalidOperationException("Element type is null.");
 
-        if (nestedType.IsPrimitive || nestedType == typeof(string))
+        if (IsPrimitiveType(nestedType))
             return new DynamicTable([new SchemaColumn(nameof(PrimitiveTypeEntity<>.Value), 0, nestedType)]);
 
         var inlineSchemaFields = ResolveInlineSchemaFields(intendedTypeName);

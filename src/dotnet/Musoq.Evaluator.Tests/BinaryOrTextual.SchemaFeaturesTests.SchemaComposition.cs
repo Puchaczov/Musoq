@@ -53,12 +53,13 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x474E5089, table[0][0]); // Magic (from parent)
-        Assert.AreEqual((byte)1, table[0][1]); // Version (from parent)
-        Assert.AreEqual((byte)0xFF, table[0][2]); // Flags (from child)
-        Assert.AreEqual((short)4096, table[0][3]); // Length (from child)
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.Magic", typeof(int)),
+            ("h.Version", typeof(byte)),
+            ("h.Flags", typeof(byte)),
+            ("h.Length", typeof(short)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [0x474E5089, (byte)1, (byte)0xFF, (short)4096]);
     }
 
     [TestMethod]
@@ -97,10 +98,12 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var table = vm.Run(CancellationToken.None);
 
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual((byte)2, table[0][1]);
-        Assert.AreEqual((byte)3, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("l.A", typeof(byte)),
+            ("l.B", typeof(byte)),
+            ("l.C", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)1, (byte)2, (byte)3]);
     }
 
     [TestMethod]
@@ -137,10 +140,12 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var table = vm.Run(CancellationToken.None);
 
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(25, table[0][0]);
-        Assert.AreEqual(50, table[0][1]);
-        Assert.IsTrue((bool?)table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("d.Value", typeof(int)),
+            ("d.Doubled", typeof(int)),
+            ("d.IsPositive", typeof(bool)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [25, 50, true]);
     }
 
     #endregion
@@ -184,11 +189,12 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]); // HasExtra
-        Assert.AreEqual(0x12345678, table[0][1]); // ExtraData is present
-        Assert.AreEqual(42, table[0][2]); // Value
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("o.HasExtra", typeof(byte)),
+            ("o.ExtraData", typeof(int?)),
+            ("o.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)1, 0x12345678, 42]);
     }
 
     [TestMethod]
@@ -227,11 +233,12 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0, table[0][0]); // HasExtra
-        Assert.IsNull(table[0][1]); // ExtraData is null
-        Assert.AreEqual(42, table[0][2]); // Value
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("o.HasExtra", typeof(byte)),
+            ("o.ExtraData", typeof(int?)),
+            ("o.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)0, null, 42]);
     }
 
     [TestMethod]
@@ -274,11 +281,12 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert: Only extended.bin has ExtendedInfo
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("extended.bin", table[0][0]);
-        Assert.AreEqual((byte)1, table[0][1]);
-        Assert.AreEqual((short)0x1234, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("f.Name", typeof(string)),
+            ("r.Type", typeof(byte)),
+            ("r.ExtendedInfo", typeof(short?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["extended.bin", (byte)1, (short)0x1234]);
     }
 
     #endregion
@@ -321,10 +329,11 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)2, table[0][0]); // Version
-        Assert.AreEqual(1024, table[0][1]); // Size
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.Version", typeof(byte)),
+            ("h.Size", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)2, 1024]);
     }
 
     [TestMethod]
@@ -395,10 +404,11 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)5, table[0][0]);
-        Assert.AreEqual(12345, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("v.Version", typeof(byte)),
+            ("v.Data", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)5, 12345]);
     }
 
     #endregion
@@ -444,11 +454,12 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(8, table[0][0]); // HeaderSize
-        Assert.AreEqual(16, table[0][1]); // DataOffset
-        Assert.AreEqual(42, table[0][2]); // Data read from offset 16
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("i.HeaderSize", typeof(int)),
+            ("i.DataOffset", typeof(int)),
+            ("i.Data", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [8, 16, 42]);
     }
 
     [TestMethod]
@@ -488,11 +499,12 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]); // HasData
-        Assert.AreEqual(10, table[0][1]); // DataOffset
-        Assert.AreEqual(999, table[0][2]); // Data
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("c.HasData", typeof(byte)),
+            ("c.DataOffset", typeof(int)),
+            ("c.Data", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)1, 10, 999]);
     }
 
     #endregion

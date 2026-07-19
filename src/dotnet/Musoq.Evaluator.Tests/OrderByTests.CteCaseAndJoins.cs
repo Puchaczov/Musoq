@@ -18,11 +18,11 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
-                    new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("katowice", "feb", 100m),
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("cracow", "jan", 10m),
+                    new BasicEntity("glasgow", "feb", -10m)
                 ]
             }
         };
@@ -30,23 +30,14 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        Assert.AreEqual(5, table.Count, "Table should have 5 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "glasgow"),
-            "First entry should be 'glasgow'");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "cracow"),
-            "Second entry should be 'cracow'");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "katowice" && table.Count(e => (string)e.Values[0] == "katowice") == 2),
-            "Two entries should be 'katowice'");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "czestochowa"),
-            "Last entry should be 'czestochowa'");
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["glasgow"],
+            ["cracow"],
+            ["katowice"],
+            ["katowice"],
+            ["czestochowa"]);
     }
 
     [TestMethod]
@@ -59,11 +50,11 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
-                    new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("katowice", "feb", 100m),
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("cracow", "jan", 10m),
+                    new BasicEntity("glasgow", "feb", -10m)
                 ]
             }
         };
@@ -72,13 +63,14 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "czestochowa"), "Missing czestochowa");
-        Assert.AreEqual(2, table.Count(row => (string)row.Values[0] == "katowice"),
-            "Should have exactly 2 rows with katowice");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "cracow"), "Missing cracow");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "glasgow"), "Missing glasgow");
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["czestochowa"],
+            ["katowice"],
+            ["katowice"],
+            ["cracow"],
+            ["glasgow"]);
     }
 
     [TestMethod]
@@ -91,11 +83,11 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
-                    new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("katowice", "feb", 100m),
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("cracow", "jan", 10m),
+                    new BasicEntity("glasgow", "feb", -10m)
                 ]
             }
         };
@@ -104,13 +96,14 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
-
-        Assert.IsTrue(table.Count(row => (string)row.Values[0] == "katowice") == 2 &&
-                      table.Any(row => (string)row.Values[0] == "czestochowa") &&
-                      table.Any(row => (string)row.Values[0] == "cracow") &&
-                      table.Any(row => (string)row.Values[0] == "glasgow"),
-            "Expected two rows with katowice and one row each with czestochowa, cracow, and glasgow");
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["czestochowa"],
+            ["katowice"],
+            ["katowice"],
+            ["cracow"],
+            ["glasgow"]);
     }
 
     [TestMethod]
@@ -123,11 +116,11 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
-                    new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("katowice", "feb", 100m),
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("cracow", "jan", 10m),
+                    new BasicEntity("glasgow", "feb", -10m)
                 ]
             }
         };
@@ -136,16 +129,14 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
-
-        var expectedCities = new[] { "czestochowa", "katowice", "cracow", "glasgow" };
-        Assert.IsTrue(expectedCities.All(city =>
-                table.Any(row => (string)row.Values[0] == city)),
-            "Not all expected cities found in table");
-
-        Assert.AreEqual(2,
-            table.Count(row =>
-                (string)row.Values[0] == "katowice"), "Expected 2 rows with Katowice");
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["czestochowa"],
+            ["katowice"],
+            ["katowice"],
+            ["cracow"],
+            ["glasgow"]);
     }
 
     [TestMethod]
@@ -158,11 +149,11 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
-                    new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("katowice", "feb", 100m),
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("cracow", "jan", 10m),
+                    new BasicEntity("glasgow", "feb", -10m)
                 ]
             }
         };
@@ -170,32 +161,17 @@ public partial class OrderByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
 
         var table = vm.Run(TestContext.CancellationToken);
-        Assert.AreEqual(5, table.Count, "Table should have 5 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "czestochowa" &&
-                (decimal)entry.Values[1] == 400m),
-            "First entry should be czestochowa with 400m");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "katowice" &&
-                (decimal)entry.Values[1] == 300m),
-            "Second entry should be katowice with 300m");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "katowice" &&
-                (decimal)entry.Values[1] == 100m),
-            "Third entry should be katowice with 100m");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "cracow" &&
-                (decimal)entry.Values[1] == 10m),
-            "Fourth entry should be cracow with 10m");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "glasgow" &&
-                (decimal)entry.Values[1] == -10m),
-            "Fifth entry should be glasgow with -10m");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Money", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["czestochowa", 400m],
+            ["katowice", 300m],
+            ["katowice", 100m],
+            ["cracow", 10m],
+            ["glasgow", -10m]);
     }
 
     [TestMethod]
@@ -207,11 +183,11 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
-                    new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("katowice", "feb", 100m),
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("cracow", "jan", 10m),
+                    new BasicEntity("glasgow", "feb", -10m)
                 ]
             }
         };
@@ -220,12 +196,14 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("glasgow", table[0].Values[0]);
-        Assert.AreEqual("cracow", table[1].Values[0]);
-        Assert.AreEqual("katowice", table[2].Values[0]);
-        Assert.AreEqual("katowice", table[3].Values[0]);
-        Assert.AreEqual("czestochowa", table[4].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["glasgow"],
+            ["cracow"],
+            ["katowice"],
+            ["katowice"],
+            ["czestochowa"]);
     }
 
     [TestMethod]
@@ -237,11 +215,11 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
-                    new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("katowice", "feb", 100m),
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("cracow", "jan", 10m),
+                    new BasicEntity("glasgow", "feb", -10m)
                 ]
             }
         };
@@ -250,12 +228,14 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("czestochowa", table[0].Values[0]);
-        Assert.AreEqual("katowice", table[1].Values[0]);
-        Assert.AreEqual("katowice", table[2].Values[0]);
-        Assert.AreEqual("cracow", table[3].Values[0]);
-        Assert.AreEqual("glasgow", table[4].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["czestochowa"],
+            ["katowice"],
+            ["katowice"],
+            ["cracow"],
+            ["glasgow"]);
     }
 
     [TestMethod]
@@ -267,11 +247,11 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
-                    new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("katowice", "feb", 100m),
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("cracow", "jan", 10m),
+                    new BasicEntity("glasgow", "feb", -10m)
                 ]
             }
         };
@@ -280,12 +260,14 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("glasgow", table[0].Values[0]);
-        Assert.AreEqual("cracow", table[1].Values[0]);
-        Assert.AreEqual("katowice", table[2].Values[0]);
-        Assert.AreEqual("katowice", table[3].Values[0]);
-        Assert.AreEqual("czestochowa", table[4].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["glasgow"],
+            ["cracow"],
+            ["katowice"],
+            ["katowice"],
+            ["czestochowa"]);
     }
 
     [TestMethod]
@@ -298,11 +280,11 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("katowice", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
-                    new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("katowice", "feb", 100m),
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("cracow", "jan", 10m),
+                    new BasicEntity("glasgow", "feb", -10m)
                 ]
             }
         };
@@ -311,12 +293,14 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("czestochowa", table[0].Values[0]);
-        Assert.AreEqual("katowice", table[1].Values[0]);
-        Assert.AreEqual("katowice", table[2].Values[0]);
-        Assert.AreEqual("cracow", table[3].Values[0]);
-        Assert.AreEqual("glasgow", table[4].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["czestochowa"],
+            ["katowice"],
+            ["katowice"],
+            ["cracow"],
+            ["glasgow"]);
     }
 
     [TestMethod]
@@ -329,10 +313,10 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
-                    new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("cracow", "jan", 10m),
+                    new BasicEntity("glasgow", "feb", -10m)
                 ]
             }
         };
@@ -341,11 +325,13 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("glasgow", table[0].Values[0]);
-        Assert.AreEqual("cracow", table[1].Values[0]);
-        Assert.AreEqual("katowice", table[2].Values[0]);
-        Assert.AreEqual("czestochowa", table[3].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["glasgow"],
+            ["cracow"],
+            ["katowice"],
+            ["czestochowa"]);
     }
 
     [TestMethod]
@@ -358,10 +344,10 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
-                    new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("cracow", "jan", 10m),
+                    new BasicEntity("glasgow", "feb", -10m)
                 ]
             }
         };
@@ -370,11 +356,13 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("czestochowa", table[0].Values[0]);
-        Assert.AreEqual("katowice", table[1].Values[0]);
-        Assert.AreEqual("cracow", table[2].Values[0]);
-        Assert.AreEqual("glasgow", table[3].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["czestochowa"],
+            ["katowice"],
+            ["cracow"],
+            ["glasgow"]);
     }
 
     [TestMethod]
@@ -387,10 +375,10 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
-                    new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("cracow", "jan", 10m),
+                    new BasicEntity("glasgow", "feb", -10m)
                 ]
             }
         };
@@ -399,11 +387,13 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("cracow", table[0].Values[0]);
-        Assert.AreEqual("czestochowa", table[1].Values[0]);
-        Assert.AreEqual("glasgow", table[2].Values[0]);
-        Assert.AreEqual("katowice", table[3].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["cracow"],
+            ["czestochowa"],
+            ["glasgow"],
+            ["katowice"]);
     }
 
     [TestMethod]
@@ -416,10 +406,10 @@ public partial class OrderByTests
         {
             {
                 "#A", [
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(10)),
-                    new BasicEntity("glasgow", "feb", Convert.ToDecimal(-10))
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("cracow", "jan", 10m),
+                    new BasicEntity("glasgow", "feb", -10m)
                 ]
             }
         };
@@ -428,11 +418,13 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("katowice", table[0].Values[0]);
-        Assert.AreEqual("glasgow", table[1].Values[0]);
-        Assert.AreEqual("czestochowa", table[2].Values[0]);
-        Assert.AreEqual("cracow", table[3].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["katowice"],
+            ["glasgow"],
+            ["czestochowa"],
+            ["cracow"]);
     }
 
     [TestMethod]
@@ -457,9 +449,12 @@ public partial class OrderByTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-
-        Assert.AreEqual("System.String", table[0].Values[0]);
-        Assert.AreEqual(3L, table[0].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.GetTypeName(a.Name)", typeof(string)),
+            ("a.Count(a.Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["System.String", 3L]);
     }
 }

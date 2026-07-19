@@ -6,6 +6,45 @@ namespace Musoq.Evaluator.Tests;
 public partial class JoinFullOuterJoinTests
 {
     [TestMethod]
+    public void FullOuterJoin_WindowAndQualify_ShouldKeepMatchedAndUnmatchedRows()
+    {
+        const string query = """
+                             with joined as (
+                                 select
+                                     case
+                                         when b is missing then 'LeftOnly'
+                                         when a is missing then 'RightOnly'
+                                         else 'Matched'
+                                     end as State,
+                                     a.Id as LeftId,
+                                     b.Id as RightId
+                                 from #A.entities() a
+                                 full outer join #B.entities() b on a.Id = b.Id
+                             )
+                             select State, LeftId, RightId,
+                                    RowNumber() over (partition by State order by State) as Rank
+                             from joined
+                             qualify RowNumber() over (partition by State order by State) <= 1
+                             order by State
+                             """;
+        var table = Run(query, CreateSources(
+            [new BasicEntity { Id = 1 }, new BasicEntity { Id = 2 }],
+            [new BasicEntity { Id = 2 }, new BasicEntity { Id = 3 }]));
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("State", typeof(string)),
+            ("LeftId", typeof(int?)),
+            ("RightId", typeof(int?)),
+            ("Rank", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["LeftOnly", 1, null, 1L],
+            ["Matched", 2, 2, 1L],
+            ["RightOnly", null, 3, 1L]);
+    }
+
+    [TestMethod]
     public void FullOuterJoin_InCteClassifiedGroupedAndRanked_ShouldPreserveRowPresence()
     {
         const string query = @"

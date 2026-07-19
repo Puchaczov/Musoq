@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -13,7 +12,7 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
     [TestMethod]
     public void WhenRowNumberOverOrderByName_ShouldAssignSequentialNumbers()
     {
-        var query = "select Name, RowNumber() over (order by Name) from #A.Entities()";
+        var query = "select Name, RowNumber() over (order by Name) as rn from #A.Entities()";
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { Population = 300 },
             new BasicEntity("Alice") { Population = 100 },
@@ -22,23 +21,19 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var rows = table.OrderBy(r => (long)r.Values[1]).ToList();
-
-        Assert.AreEqual("Alice", rows[0].Values[0]);
-        Assert.AreEqual(1L, rows[0].Values[1]);
-        Assert.AreEqual("Bob", rows[1].Values[0]);
-        Assert.AreEqual(2L, rows[1].Values[1]);
-        Assert.AreEqual("Charlie", rows[2].Values[0]);
-        Assert.AreEqual(3L, rows[2].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L],
+            ["Bob", 2L],
+            ["Charlie", 3L]);
     }
 
     [TestMethod]
     public void WhenRowNumberOverPartitionByCity_ShouldNumberWithinPartitions()
     {
         var query =
-            "select Name, City, RowNumber() over (partition by City order by Name) from #A.Entities()";
+            "select Name, City, RowNumber() over (partition by City order by Name) as rn from #A.Entities()";
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { City = "NYC", Population = 300 },
             new BasicEntity("Alice") { City = "LA", Population = 100 },
@@ -48,23 +43,17 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var laRows = table.Where(r => (string)r.Values[1] == "LA")
-            .OrderBy(r => (long)r.Values[2]).ToList();
-        Assert.HasCount(2, laRows);
-        Assert.AreEqual("Alice", laRows[0].Values[0]);
-        Assert.AreEqual(1L, laRows[0].Values[2]);
-        Assert.AreEqual("Diana", laRows[1].Values[0]);
-        Assert.AreEqual(2L, laRows[1].Values[2]);
-
-        var nycRows = table.Where(r => (string)r.Values[1] == "NYC")
-            .OrderBy(r => (long)r.Values[2]).ToList();
-        Assert.HasCount(2, nycRows);
-        Assert.AreEqual("Bob", nycRows[0].Values[0]);
-        Assert.AreEqual(1L, nycRows[0].Values[2]);
-        Assert.AreEqual("Charlie", nycRows[1].Values[0]);
-        Assert.AreEqual(2L, nycRows[1].Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", 1L],
+            ["Diana", "LA", 2L],
+            ["Bob", "NYC", 1L],
+            ["Charlie", "NYC", 2L]);
     }
 
     [TestMethod]
@@ -80,21 +69,21 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(100m, Convert.ToDecimal(alice.Values[1]));
-        Assert.AreEqual(300m, Convert.ToDecimal(bob.Values[1]));
-        Assert.AreEqual(600m, Convert.ToDecimal(charlie.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RunningTotal", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 100m],
+            ["Bob", 300m],
+            ["Charlie", 600m]);
     }
 
     [TestMethod]
     public void WhenCountOverPartitionByCity_ShouldCountPerPartition()
     {
-        var query = "select Name, City, Count(Name) over (partition by City) from #A.Entities()";
+        var query = "select Name, City, Count(Name) over (partition by City) as CityCount from #A.Entities()";
         var sources = CreateSingleSource(
             new BasicEntity("Alice") { City = "LA", Population = 100 },
             new BasicEntity("Bob") { City = "NYC", Population = 200 },
@@ -105,24 +94,24 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        var laRows = table.Where(r => (string)r.Values[1] == "LA").ToList();
-        Assert.HasCount(2, laRows);
-        Assert.AreEqual(2, Convert.ToInt32(laRows[0].Values[2]));
-        Assert.AreEqual(2, Convert.ToInt32(laRows[1].Values[2]));
-
-        var nycRows = table.Where(r => (string)r.Values[1] == "NYC").ToList();
-        Assert.HasCount(3, nycRows);
-        Assert.AreEqual(3, Convert.ToInt32(nycRows[0].Values[2]));
-        Assert.AreEqual(3, Convert.ToInt32(nycRows[1].Values[2]));
-        Assert.AreEqual(3, Convert.ToInt32(nycRows[2].Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("CityCount", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", 2],
+            ["Charlie", "LA", 2],
+            ["Bob", "NYC", 3],
+            ["Diana", "NYC", 3],
+            ["Eve", "NYC", 3]);
     }
 
     [TestMethod]
     public void WhenCountOverPartitionByCityWithNullValues_ShouldIgnoreNullCountedValues()
     {
-        var query = "select Name, City, Count(Name) over (partition by City) from #A.Entities()";
+        var query = "select Name, City, Count(Name) over (partition by City) as CityCount from #A.Entities()";
         var sources = CreateSingleSource(
             new BasicEntity("Alice") { City = "LA" },
             new BasicEntity { Name = null, City = "LA" },
@@ -133,19 +122,24 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var laRows = table.Where(r => (string)r.Values[1] == "LA").ToList();
-        Assert.HasCount(2, laRows);
-        Assert.IsTrue(laRows.All(row => Convert.ToInt32(row.Values[2]) == 1));
-
-        var nycRows = table.Where(r => (string)r.Values[1] == "NYC").ToList();
-        Assert.HasCount(3, nycRows);
-        Assert.IsTrue(nycRows.All(row => Convert.ToInt32(row.Values[2]) == 2));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("CityCount", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", 1],
+            [null, "LA", 1],
+            ["Bob", "NYC", 2],
+            [null, "NYC", 2],
+            ["Charlie", "NYC", 2]);
     }
 
     [TestMethod]
     public void WhenRankOverOrderByPopulation_ShouldHandleTies()
     {
-        var query = "select Name, Rank() over (order by Population) from #A.Entities()";
+        var query = "select Name, Rank() over (order by Population) as rnk from #A.Entities()";
         var sources = CreateSingleSource(
             new BasicEntity("Alice") { Population = 100 },
             new BasicEntity("Bob") { Population = 200 },
@@ -155,23 +149,19 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-
-        Assert.AreEqual(1L, alice.Values[1]);
-        Assert.AreEqual(2L, bob.Values[1]);
-        Assert.AreEqual(2L, charlie.Values[1]);
-        Assert.AreEqual(4L, diana.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("rnk", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L],
+            ["Bob", 2L],
+            ["Charlie", 2L],
+            ["Diana", 4L]);
     }
 
     [TestMethod]
     public void WhenDenseRankOverOrderByPopulation_ShouldNotSkipRanks()
     {
-        var query = "select Name, DenseRank() over (order by Population) from #A.Entities()";
+        var query = "select Name, DenseRank() over (order by Population) as dense_rnk from #A.Entities()";
         var sources = CreateSingleSource(
             new BasicEntity("Alice") { Population = 100 },
             new BasicEntity("Bob") { Population = 200 },
@@ -181,17 +171,13 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-
-        Assert.AreEqual(1L, alice.Values[1]);
-        Assert.AreEqual(2L, bob.Values[1]);
-        Assert.AreEqual(2L, charlie.Values[1]);
-        Assert.AreEqual(3L, diana.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("dense_rnk", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L],
+            ["Bob", 2L],
+            ["Charlie", 2L],
+            ["Diana", 3L]);
     }
 
     [TestMethod]
@@ -207,22 +193,22 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var laRows = table.Where(r => (string)r.Values[1] == "LA").ToList();
-        Assert.HasCount(2, laRows);
-        Assert.AreEqual(400m, Convert.ToDecimal(laRows[0].Values[2]));
-        Assert.AreEqual(400m, Convert.ToDecimal(laRows[1].Values[2]));
-
-        var nycRows = table.Where(r => (string)r.Values[1] == "NYC").ToList();
-        Assert.HasCount(1, nycRows);
-        Assert.AreEqual(200m, Convert.ToDecimal(nycRows[0].Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("CityTotal", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", 400m],
+            ["Charlie", "LA", 400m],
+            ["Bob", "NYC", 200m]);
     }
 
     [TestMethod]
     public void WhenRowNumberOverOrderByNameDesc_ShouldUseDescendingOrder()
     {
-        var query = "select Name, RowNumber() over (order by Name desc) from #A.Entities()";
+        var query = "select Name, RowNumber() over (order by Name desc) as rn from #A.Entities()";
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { Population = 300 },
             new BasicEntity("Alice") { Population = 100 },
@@ -231,22 +217,19 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(3L, alice.Values[1]);
-        Assert.AreEqual(2L, bob.Values[1]);
-        Assert.AreEqual(1L, charlie.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 3L],
+            ["Bob", 2L],
+            ["Charlie", 1L]);
     }
 
     [TestMethod]
     public void WhenWindowFunctionWithWhereClause_ShouldFilterBeforeWindowing()
     {
         var query =
-            "select Name, RowNumber() over (order by Name) from #A.Entities() where Population > 150";
+            "select Name, RowNumber() over (order by Name) as rn from #A.Entities() where Population > 150";
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { Population = 300 },
             new BasicEntity("Alice") { Population = 100 },
@@ -256,22 +239,19 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-
-        Assert.AreEqual(1L, bob.Values[1]);
-        Assert.AreEqual(2L, charlie.Values[1]);
-        Assert.AreEqual(3L, diana.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Bob", 1L],
+            ["Charlie", 2L],
+            ["Diana", 3L]);
     }
 
     [TestMethod]
     public void WhenLagOverOrderByName_ShouldReturnPreviousValue()
     {
         var query =
-            "select Name, Lag(Population) over (order by Name) from #A.Entities()";
+            "select Name, Lag(Population) over (order by Name) as previous_population from #A.Entities()";
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { Population = 300 },
             new BasicEntity("Alice") { Population = 100 },
@@ -280,22 +260,22 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.IsNull(alice.Values[1]);
-        Assert.AreEqual(100m, Convert.ToDecimal(bob.Values[1]));
-        Assert.AreEqual(200m, Convert.ToDecimal(charlie.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("previous_population", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", null],
+            ["Bob", 100m],
+            ["Charlie", 200m]);
     }
 
     [TestMethod]
     public void WhenLeadOverOrderByName_ShouldReturnNextValue()
     {
         var query =
-            "select Name, Lead(Population) over (order by Name) from #A.Entities()";
+            "select Name, Lead(Population) over (order by Name) as next_population from #A.Entities()";
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { Population = 300 },
             new BasicEntity("Alice") { Population = 100 },
@@ -304,22 +284,22 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(200m, Convert.ToDecimal(alice.Values[1]));
-        Assert.AreEqual(300m, Convert.ToDecimal(bob.Values[1]));
-        Assert.IsNull(charlie.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("next_population", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 200m],
+            ["Bob", 300m],
+            ["Charlie", null]);
     }
 
     [TestMethod]
     public void WhenAvgOverOrderByName_ShouldComputeRunningAverage()
     {
         var query =
-            "select Name, Avg(Population) over (order by Name) from #A.Entities()";
+            "select Name, Avg(Population) over (order by Name) as running_average from #A.Entities()";
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { Population = 300 },
             new BasicEntity("Alice") { Population = 100 },
@@ -328,22 +308,22 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(100m, Convert.ToDecimal(alice.Values[1]));
-        Assert.AreEqual(150m, Convert.ToDecimal(bob.Values[1]));
-        Assert.AreEqual(200m, Convert.ToDecimal(charlie.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("running_average", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 100m],
+            ["Bob", 150m],
+            ["Charlie", 200m]);
     }
 
     [TestMethod]
     public void WhenMinOverPartitionByCity_ShouldComputePartitionMinimum()
     {
         var query =
-            "select Name, City, Min(Population) over (partition by City) from #A.Entities()";
+            "select Name, City, Min(Population) over (partition by City) as partition_min from #A.Entities()";
         var sources = CreateSingleSource(
             new BasicEntity("Alice") { City = "LA", Population = 100 },
             new BasicEntity("Bob") { City = "NYC", Population = 200 },
@@ -352,23 +332,23 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var laRows = table.Where(r => (string)r.Values[1] == "LA").ToList();
-        Assert.HasCount(2, laRows);
-        Assert.AreEqual(100m, Convert.ToDecimal(laRows[0].Values[2]));
-        Assert.AreEqual(100m, Convert.ToDecimal(laRows[1].Values[2]));
-
-        var nycRows = table.Where(r => (string)r.Values[1] == "NYC").ToList();
-        Assert.HasCount(1, nycRows);
-        Assert.AreEqual(200m, Convert.ToDecimal(nycRows[0].Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("partition_min", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", 100m],
+            ["Charlie", "LA", 100m],
+            ["Bob", "NYC", 200m]);
     }
 
     [TestMethod]
     public void WhenMaxOverPartitionByCity_ShouldComputePartitionMaximum()
     {
         var query =
-            "select Name, City, Max(Population) over (partition by City) from #A.Entities()";
+            "select Name, City, Max(Population) over (partition by City) as partition_max from #A.Entities()";
         var sources = CreateSingleSource(
             new BasicEntity("Alice") { City = "LA", Population = 100 },
             new BasicEntity("Bob") { City = "NYC", Population = 200 },
@@ -377,22 +357,22 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var laRows = table.Where(r => (string)r.Values[1] == "LA").ToList();
-        Assert.HasCount(2, laRows);
-        Assert.AreEqual(300m, Convert.ToDecimal(laRows[0].Values[2]));
-        Assert.AreEqual(300m, Convert.ToDecimal(laRows[1].Values[2]));
-
-        var nycRows = table.Where(r => (string)r.Values[1] == "NYC").ToList();
-        Assert.HasCount(1, nycRows);
-        Assert.AreEqual(200m, Convert.ToDecimal(nycRows[0].Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("partition_max", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", 300m],
+            ["Charlie", "LA", 300m],
+            ["Bob", "NYC", 200m]);
     }
 
     [TestMethod]
     public void WhenRowNumberWithUnderscoreForm_ShouldWorkIdentically()
     {
-        var query = "select Name, ROW_NUMBER() over (order by Name) from #A.Entities()";
+        var query = "select Name, ROW_NUMBER() over (order by Name) as rn from #A.Entities()";
         var sources = CreateSingleSource(
             new BasicEntity("Charlie") { Population = 300 },
             new BasicEntity("Alice") { Population = 100 },
@@ -401,22 +381,18 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var rows = table.OrderBy(r => (long)r.Values[1]).ToList();
-
-        Assert.AreEqual("Alice", rows[0].Values[0]);
-        Assert.AreEqual(1L, rows[0].Values[1]);
-        Assert.AreEqual("Bob", rows[1].Values[0]);
-        Assert.AreEqual(2L, rows[1].Values[1]);
-        Assert.AreEqual("Charlie", rows[2].Values[0]);
-        Assert.AreEqual(3L, rows[2].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L],
+            ["Bob", 2L],
+            ["Charlie", 3L]);
     }
 
     [TestMethod]
     public void WhenDenseRankWithUnderscoreForm_ShouldWorkIdentically()
     {
-        var query = "select Name, DENSE_RANK() over (order by Population) from #A.Entities()";
+        var query = "select Name, DENSE_RANK() over (order by Population) as dense_rnk from #A.Entities()";
         var sources = CreateSingleSource(
             new BasicEntity("Alice") { Population = 100 },
             new BasicEntity("Bob") { Population = 200 },
@@ -426,17 +402,13 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-
-        Assert.AreEqual(1L, alice.Values[1]);
-        Assert.AreEqual(2L, bob.Values[1]);
-        Assert.AreEqual(2L, charlie.Values[1]);
-        Assert.AreEqual(3L, diana.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("dense_rnk", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L],
+            ["Bob", 2L],
+            ["Charlie", 2L],
+            ["Diana", 3L]);
     }
 
     #region NTILE Dedicated Tests
@@ -453,9 +425,12 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        foreach (var row in table)
-            Assert.AreEqual(1L, row.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Bucket", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L],
+            ["Bob", 1L],
+            ["Charlie", 1L]);
     }
 
     [TestMethod]
@@ -471,17 +446,13 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-
-        Assert.AreEqual(1L, alice.Values[1]);
-        Assert.AreEqual(1L, bob.Values[1]);
-        Assert.AreEqual(2L, charlie.Values[1]);
-        Assert.AreEqual(2L, diana.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Bucket", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L],
+            ["Bob", 1L],
+            ["Charlie", 2L],
+            ["Diana", 2L]);
     }
 
     [TestMethod]
@@ -497,17 +468,13 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(row => (string)row.Values[0] == "Alice");
-        var bob = table.Single(row => (string)row.Values[0] == "Bob");
-        var charlie = table.Single(row => (string)row.Values[0] == "Charlie");
-        var diana = table.Single(row => (string)row.Values[0] == "Diana");
-
-        Assert.AreEqual(1L, alice.Values[1]);
-        Assert.AreEqual(1L, bob.Values[1]);
-        Assert.AreEqual(2L, charlie.Values[1]);
-        Assert.AreEqual(2L, diana.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Bucket", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L],
+            ["Bob", 1L],
+            ["Charlie", 2L],
+            ["Diana", 2L]);
     }
 
     [TestMethod]
@@ -522,15 +489,12 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(1L, alice.Values[1]);
-        Assert.AreEqual(2L, bob.Values[1]);
-        Assert.AreEqual(3L, charlie.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Bucket", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L],
+            ["Bob", 2L],
+            ["Charlie", 3L]);
     }
 
     [TestMethod]
@@ -548,17 +512,17 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-
-        Assert.AreEqual(1L, alice.Values[2]);
-        Assert.AreEqual(2L, bob.Values[2]);
-        Assert.AreEqual(1L, charlie.Values[2]);
-        Assert.AreEqual(2L, diana.Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("Bucket", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "NYC", 1L],
+            ["Bob", "NYC", 2L],
+            ["Charlie", "LA", 1L],
+            ["Diana", "LA", 2L]);
     }
 
     [TestMethod]
@@ -575,20 +539,14 @@ public class WindowFunctionBasicTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-        var eve = table.Single(r => (string)r.Values[0] == "Eve");
-
-        // 5 rows / 3 buckets = [2, 2, 1]. First two buckets get extra rows
-        Assert.AreEqual(1L, alice.Values[1]);
-        Assert.AreEqual(1L, bob.Values[1]);
-        Assert.AreEqual(2L, charlie.Values[1]);
-        Assert.AreEqual(2L, diana.Values[1]);
-        Assert.AreEqual(3L, eve.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Bucket", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L],
+            ["Bob", 1L],
+            ["Charlie", 2L],
+            ["Diana", 2L],
+            ["Eve", 3L]);
     }
 
     #endregion

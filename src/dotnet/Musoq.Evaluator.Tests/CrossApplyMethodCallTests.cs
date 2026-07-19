@@ -28,11 +28,8 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
     [TestMethod]
@@ -52,20 +49,11 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual(8, table.Count, "Table should contain 8 rows");
-
-        Assert.IsTrue(table.Any(row => (string)row[0] == "Lorem"), "Missing Lorem row");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "ipsum"), "Missing ipsum row");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "dolor"), "Missing dolor row");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "sit"), "Missing sit row");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "amet,"), "Missing amet, row");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "consectetur"), "Missing consectetur row");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "adipiscing"), "Missing adipiscing row");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "elit."), "Missing elit. row");
+        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Lorem"], ["ipsum"], ["dolor"], ["sit"],
+            ["amet,"], ["consectetur"], ["adipiscing"], ["elit."]);
     }
 
     [TestMethod]
@@ -91,47 +79,11 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("c.Value", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-
-        var expectedTotalCount = words.Length * words.Length;
-        Assert.AreEqual(expectedTotalCount, table.Count,
-            "Total count should be square of number of words");
-
-        var expectedPairs = from firstWord in words
-            from secondWord in words
-            select (First: firstWord, Second: secondWord);
-
-        var actualPairs = table
-            .Select(row => (First: (string)row[0], Second: (string)row[1]))
-            .ToList();
-
-        foreach (var expected in expectedPairs)
-            Assert.IsTrue(
-                actualPairs.Any(actual =>
-                    actual.First == expected.First &&
-                    actual.Second == expected.Second),
-                $"Missing combination: First='{expected.First}', Second='{expected.Second}'"
-            );
-
-        foreach (var word in words)
-        {
-            var expectedFrequency = words.Length;
-            var actualFrequency = actualPairs.Count(p => p.First == word);
-            Assert.AreEqual(expectedFrequency, actualFrequency,
-                $"Word '{word}' should appear {expectedFrequency} times in first column");
-        }
-
-        foreach (var word in words)
-        {
-            var expectedFrequency = words.Length;
-            var actualFrequency = actualPairs.Count(p => p.Second == word);
-            Assert.AreEqual(expectedFrequency, actualFrequency,
-                $"Word '{word}' should appear {expectedFrequency} times in second column");
-        }
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("b.Value", typeof(string)), ("c.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            words.SelectMany(first => words.Select(second => new object?[] { first, second })).ToArray());
     }
 
     [TestMethod]
@@ -158,45 +110,11 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("c.Value", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(16, table.Count);
-
-        var expectedPairs = new List<(string Number, string Word)>();
-
-        foreach (var number in new[] { "1", "2" })
-        foreach (var word in words)
-            expectedPairs.Add((number, word));
-
-        var actualPairs = table
-            .Select(row => (Number: (string)row[0], Word: (string)row[1]))
-            .ToList();
-
-        foreach (var expected in expectedPairs)
-            Assert.IsTrue(
-                actualPairs.Any(actual =>
-                    actual.Number == expected.Number &&
-                    actual.Word == expected.Word),
-                $"Missing combination: Number={expected.Number}, Word={expected.Word}"
-            );
-
-        foreach (var number in new[] { "1", "2" })
-            Assert.AreEqual(
-                words.Length,
-                actualPairs.Count(p => p.Number == number),
-                $"Number {number} should appear exactly {words.Length} times"
-            );
-
-        foreach (var word in words)
-            Assert.AreEqual(
-                2,
-                actualPairs.Count(p => p.Word == word),
-                $"Word '{word}' should appear exactly 2 times"
-            );
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("b.Value", typeof(string)), ("c.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            new[] { "1", "2" }.SelectMany(number => words.Select(word => new object?[] { number, word })).ToArray());
     }
 
     [TestMethod]
@@ -222,46 +140,11 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("c.Value", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(char), table.Columns.ElementAt(1).ColumnType);
-
-        var expectedTotalCount = words.Sum(word => word.Length);
-        Assert.AreEqual(expectedTotalCount, table.Count,
-            "Total count should match sum of all word lengths");
-
-        var expectedPairs = words
-            .SelectMany(word => word.Select(ch => (Word: word, Character: ch)))
-            .ToList();
-
-        var actualPairs = table
-            .Select(row => (Word: (string)row[0], Character: (char)row[1]))
-            .ToList();
-
-        foreach (var expected in expectedPairs)
-            Assert.IsTrue(
-                actualPairs.Any(actual =>
-                    actual.Word == expected.Word &&
-                    actual.Character == expected.Character),
-                $"Missing combination: Word='{expected.Word}', Character='{expected.Character}'"
-            );
-
-        foreach (var word in words)
-        {
-            var expectedFrequency = word.Length;
-            var actualFrequency = actualPairs.Count(p => p.Word == word);
-            Assert.AreEqual(expectedFrequency, actualFrequency,
-                $"Word '{word}' should appear {expectedFrequency} times (once for each of its characters)");
-        }
-
-        foreach (var actual in actualPairs)
-            Assert.Contains(
-                actual.Character,
-                actual.Word,
-                $"Character '{actual.Character}' should not be paired with word '{actual.Word}' as it's not part of that word"
-            );
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("b.Value", typeof(string)), ("c.Value", typeof(char)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            words.SelectMany(word => word.Select(character => new object?[] { word, character })).ToArray());
     }
 
     [TestMethod]
@@ -282,39 +165,12 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
         var expectedWords = inputText.Split(' ')
             .Skip(1)
             .ToList();
-
-        Assert.AreEqual(expectedWords.Count, table.Count,
-            "Result should contain all words except the first one");
-
-        var actualWords = table
-            .Select(row => (string)row[0])
-            .ToList();
-
-        foreach (var expectedWord in expectedWords)
-            Assert.AreEqual(
-                1,
-                actualWords.Count(word => word == expectedWord),
-                $"Word '{expectedWord}' should appear exactly once in the results"
-            );
-
-        foreach (var actualWord in actualWords)
-            Assert.Contains(
-                actualWord,
-                expectedWords, $"Found unexpected word '{actualWord}' in results"
-            );
-
-        var firstWord = inputText.Split(' ')[0];
-        Assert.DoesNotContain(
-            firstWord,
-            actualWords, $"First word '{firstWord}' should not appear in results due to Skip(1)"
-        );
+        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table, expectedWords.Select(word => new object?[] { word }).ToArray());
     }
 
     [TestMethod]
@@ -335,16 +191,10 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual(6, table.Count, "Table should contain 6 rows");
-
         var expectedWords = new[] { "ipsum", "dolor", "sit", "amet,", "consectetur", "adipiscing" };
-        Assert.IsTrue(expectedWords.All(word =>
-                table.Any(row => (string)row[0] == word)),
-            "Not all expected words found in table");
+        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table, expectedWords.Select(word => new object?[] { word }).ToArray());
     }
 
     [TestMethod]
@@ -365,23 +215,10 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual(2, table.Count);
-
-        var actualWords = table
-            .Select(row => (string)row[0])
-            .ToList();
-
         var expectedWords = new[] { "consectetur", "adipiscing" };
-        foreach (var expectedWord in expectedWords)
-            Assert.AreEqual(
-                1,
-                actualWords.Count(word => word == expectedWord),
-                $"Word '{expectedWord}' should appear exactly once in the results"
-            );
+        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table, expectedWords.Select(word => new object?[] { word }).ToArray());
     }
 
     [TestMethod]
@@ -402,29 +239,13 @@ public class CrossApplyMethodCallTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("b.Length(b.Value)", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(int?), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("b.Count(Length(b.Value))", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(4, table.Count);
-
-        Assert.IsTrue(table.Any(row =>
-            (int)row[0] == 5 &&
-            (long)row[1] == 5L));
-
-        Assert.IsTrue(table.Any(row =>
-            (int)row[0] == 3 &&
-            (long)row[1] == 1L));
-
-        Assert.IsTrue(table.Any(row =>
-            (int)row[0] == 11 &&
-            (long)row[1] == 1L));
-
-        Assert.IsTrue(table.Any(row =>
-            (int)row[0] == 10 &&
-            (long)row[1] == 1L));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("b.Length(b.Value)", typeof(int?)),
+            ("b.Count(Length(b.Value))", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [5, 5L], [3, 1L], [11, 1L], [10, 1L]);
     }
 
     private sealed class CrossApplyClass1

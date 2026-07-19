@@ -29,15 +29,14 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Table should have 2 rows (one per city)");
-
-        var nycRow = table.FirstOrDefault(row => (string)row.Values[0] == "NYC");
-        var laRow = table.FirstOrDefault(row => (string)row.Values[0] == "LA");
-
-        Assert.IsNotNull(nycRow);
-        Assert.IsNotNull(laRow);
-        Assert.AreEqual(2L, nycRow.Values[1], "NYC should have 2 distinct names (John, Jane)");
-        Assert.AreEqual(3L, laRow.Values[1], "LA should have 3 distinct names (Bob, Alice, Carol)");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Count(Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["NYC", 2L],
+            ["LA", 3L]);
     }
 
     [TestMethod]
@@ -61,8 +60,8 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Table should have 1 row");
-        Assert.AreEqual(3L, table[0].Values[0], "Should have 3 distinct names (John, Jane, Bob)");
+        TableMaterializationTestHelper.AssertColumns(table, ("Count(Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [3L]);
     }
 
     [TestMethod]
@@ -85,8 +84,8 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Table should have 1 row");
-        Assert.AreEqual(2L, table[0].Values[0], "Should have 2 distinct names (John, Jane), nulls excluded");
+        TableMaterializationTestHelper.AssertColumns(table, ("Count(Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [2L]);
     }
 
     [TestMethod]
@@ -109,8 +108,8 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Table should have 1 row");
-        Assert.AreEqual(3L, table[0].Values[0], "Should have 3 distinct population values (100, 200, 300)");
+        TableMaterializationTestHelper.AssertColumns(table, ("Count(Population)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [3L]);
     }
 
     [TestMethod]
@@ -132,8 +131,8 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Table should have 1 row");
-        Assert.AreEqual(1L, table[0].Values[0], "Should have 1 distinct name");
+        TableMaterializationTestHelper.AssertColumns(table, ("Count(Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1L]);
     }
 
     [TestMethod]
@@ -155,8 +154,8 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Table should have 1 row");
-        Assert.AreEqual(4L, table[0].Values[0], "Should have 4 distinct names");
+        TableMaterializationTestHelper.AssertColumns(table, ("Count(Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [4L]);
     }
 
     [TestMethod]
@@ -179,8 +178,8 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Table should have 1 row");
-        Assert.AreEqual(600m, table[0].Values[0], "Sum of distinct values should be 100 + 200 + 300 = 600");
+        TableMaterializationTestHelper.AssertColumns(table, ("Sum(Population)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [600m]);
     }
 
     [TestMethod]
@@ -203,15 +202,14 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Table should have 2 rows");
-
-        var rowA = table.FirstOrDefault(r => r.Values[0] as string == "A");
-        var rowB = table.FirstOrDefault(r => r.Values[0] as string == "B");
-
-        Assert.IsNotNull(rowA);
-        Assert.IsNotNull(rowB);
-        Assert.AreEqual(300m, rowA.Values[1], "Sum of distinct for A should be 100 + 200 = 300");
-        Assert.AreEqual(50m, rowB.Values[1], "Sum of distinct for B should be 50");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Sum(Population)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["A", 300m],
+            ["B", 50m]);
     }
 
     [TestMethod]
@@ -233,8 +231,8 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Table should have 1 row");
-        Assert.AreEqual(200m, table[0].Values[0], "Avg of distinct values should be (100 + 200 + 300) / 3 = 200");
+        TableMaterializationTestHelper.AssertColumns(table, ("Avg(Population)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [200m]);
     }
 
     [TestMethod]
@@ -256,8 +254,8 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Table should have 1 row");
-        Assert.AreEqual(100m, table[0].Values[0], "Min of distinct values should be 100");
+        TableMaterializationTestHelper.AssertColumns(table, ("Min(Population)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [100m]);
     }
 
     [TestMethod]
@@ -279,7 +277,7 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Table should have 1 row");
-        Assert.AreEqual(500m, table[0].Values[0], "Max of distinct values should be 500");
+        TableMaterializationTestHelper.AssertColumns(table, ("Max(Population)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [500m]);
     }
 }

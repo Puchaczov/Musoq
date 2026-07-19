@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Tests;
 ///     These use UnknownQueryTestsBase for dynamic schema testing.
 /// </summary>
 [TestClass]
-public class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
+public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
 {
     public TestContext TestContext { get; set; }
 

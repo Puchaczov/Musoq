@@ -41,48 +41,19 @@ public class OuterApplyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(6, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("a.Country", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("a.Population", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("b.Country", table.Columns.ElementAt(3).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(3).ColumnType);
-        Assert.AreEqual("b.Money", table.Columns.ElementAt(4).ColumnName);
-        Assert.AreEqual(typeof(decimal?), table.Columns.ElementAt(4).ColumnType);
-        Assert.AreEqual("b.Month", table.Columns.ElementAt(5).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
-
-        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "City1" &&
-            (string)entry[1] == "Country1" &&
-            (int)entry[2] == 100 &&
-            (string)entry[3] == "Country1" &&
-            (decimal)entry[4] == 1000m &&
-            (string)entry[5] == "January"
-        ), "First entry should match City1 details");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "City2" &&
-            (string)entry[1] == "Country1" &&
-            (int)entry[2] == 200 &&
-            (string)entry[3] == "Country1" &&
-            (decimal)entry[4] == 1000m &&
-            (string)entry[5] == "January"
-        ), "Second entry should match City2 details");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "City3" &&
-            (string)entry[1] == "Country2" &&
-            (int)entry[2] == 300 &&
-            entry[3] == null &&
-            entry[4] == null &&
-            entry[5] == null
-        ), "Third entry should match City3 details");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("a.Country", typeof(string)),
+            ("a.Population", typeof(int)),
+            ("b.Country", typeof(string)),
+            ("b.Money", typeof(decimal?)),
+            ("b.Month", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["City1", "Country1", 100, "Country1", 1000m, "January"],
+            ["City2", "Country1", 200, "Country1", 1000m, "January"],
+            ["City3", "Country2", 300, null, null, null]);
     }
 
     [TestMethod]
@@ -115,33 +86,18 @@ public class OuterApplyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("a.Country", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual("b.Money", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual("b.Month", table.Columns.ElementAt(3).ColumnName);
-
-        Assert.AreEqual(4, table.Count, "Table should contain 4 rows");
-
-        Assert.AreEqual(4,
-            table.Count(row =>
-                new[] { "City1", "City2" }.Contains((string)row[0]) &&
-                (string)row[1] == "Country1" &&
-                new[] { 1000m, 2000m }.Contains((decimal)row[2]) &&
-                new[] { "January", "February" }.Contains((string)row[3])),
-            "Expected 4 rows matching the pattern: (City1|City2), Country1, (1000|2000), (January|February)");
-
-        Assert.AreEqual(2,
-            table.Count(row =>
-                (string)row[0] == "City1" &&
-                new[] { (1000m, "January"), (2000m, "February") }.Contains(((decimal)row[2], (string)row[3]))),
-            "Expected 2 rows for City1 with correct amount/month combinations");
-
-        Assert.AreEqual(2,
-            table.Count(row =>
-                (string)row[0] == "City2" &&
-                new[] { (1000m, "January"), (2000m, "February") }.Contains(((decimal)row[2], (string)row[3]))),
-            "Expected 2 rows for City2 with correct amount/month combinations");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("a.Country", typeof(string)),
+            ("b.Money", typeof(decimal?)),
+            ("b.Month", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["City1", "Country1", 1000m, "January"],
+            ["City1", "Country1", 2000m, "February"],
+            ["City2", "Country1", 1000m, "January"],
+            ["City2", "Country1", 2000m, "February"]);
     }
 
     [TestMethod]
@@ -172,18 +128,15 @@ public class OuterApplyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("a.Country", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual("b.Money", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual("b.Month", table.Columns.ElementAt(3).ColumnName);
-
-        Assert.AreEqual(1, table.Count);
-
-        Assert.AreEqual("City1", table[0][0]);
-        Assert.AreEqual("Country1", table[0][1]);
-        Assert.IsNull(table[0][2]);
-        Assert.IsNull(table[0][3]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("a.Country", typeof(string)),
+            ("b.Money", typeof(decimal?)),
+            ("b.Month", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["City1", "Country1", null, null]);
     }
 
     [TestMethod]
@@ -229,30 +182,17 @@ public class OuterApplyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("a.Country", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual("b.Money", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual("b.Month", table.Columns.ElementAt(3).ColumnName);
-        Assert.AreEqual("c.Address", table.Columns.ElementAt(4).ColumnName);
-
-        Assert.AreEqual(2, table.Count);
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row[0] == "City1" &&
-                (string)row[1] == "Country1" &&
-                (decimal)row[2] == 1000m &&
-                (string)row[3] == "January" &&
-                (string)row[4] == "Address1"),
-            "Expected row with City1, Country1, 1000, January, Address1 not found");
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row[0] == "City2" &&
-                (string)row[1] == "Country2" &&
-                (decimal)row[2] == 2000m &&
-                (string)row[3] == "February" &&
-                row[4] == null),
-            "Expected row with City2, Country2, 2000, February, null not found");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("a.Country", typeof(string)),
+            ("b.Money", typeof(decimal?)),
+            ("b.Month", typeof(string)),
+            ("c.Address", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["City1", "Country1", 1000m, "January", "Address1"],
+            ["City2", "Country2", 2000m, "February", null]);
     }
 
     [TestMethod]
@@ -291,30 +231,16 @@ public class OuterApplyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Columns.Count());
-        Assert.AreEqual("a.Country", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("TotalMoney", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual("TransactionCount", table.Columns.ElementAt(2).ColumnName);
-
-        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "Country1" &&
-                (decimal)entry[1] == 6000m &&
-                (long)entry[2] == 4L),
-            "First entry should represent Country1 with total 6000m and 4 transactions");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "Country2" &&
-                (decimal)entry[1] == 3000m &&
-                (long)entry[2] == 1L),
-            "Second entry should represent Country2 with total 3000m and 1 transaction");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "Country3" &&
-                entry[1] == null &&
-                (long)entry[2] == 0L),
-            "Third entry should represent Country3 with null total and 0 transactions");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Country", typeof(string)),
+            ("TotalMoney", typeof(decimal?)),
+            ("TransactionCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Country1", 6000m, 4L],
+            ["Country2", 3000m, 1L],
+            ["Country3", null, 0L]);
     }
 
     [TestMethod]
@@ -352,34 +278,17 @@ public class OuterApplyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual("a.Country", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual("b.Money", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual("b.Month", table.Columns.ElementAt(3).ColumnName);
-
-        Assert.AreEqual(3, table.Count, "Result should contain exactly 3 rows");
-
-        Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "City1" &&
-            (string)row[1] == "Country1" &&
-            (decimal)row[2] == 2000m &&
-            (string)row[3] == "February"
-        ), "Expected combination (City1, Country1, 2000, February) not found");
-
-        Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "City2" &&
-            (string)row[1] == "Country2" &&
-            (decimal)row[2] == 3000m &&
-            (string)row[3] == "March"
-        ), "Expected combination (City2, Country2, 3000, March) not found");
-
-        Assert.IsTrue(table.Any(row =>
-            (string)row[0] == "City3" &&
-            (string)row[1] == "Country3" &&
-            row[2] == null &&
-            row[3] == null
-        ), "Expected combination (City3, Country3, null, null) not found");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("a.Country", typeof(string)),
+            ("b.Money", typeof(decimal?)),
+            ("b.Month", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["City1", "Country1", 2000m, "February"],
+            ["City2", "Country2", 3000m, "March"],
+            ["City3", "Country3", null, null]);
     }
 
     private sealed class OuterApplyClass1

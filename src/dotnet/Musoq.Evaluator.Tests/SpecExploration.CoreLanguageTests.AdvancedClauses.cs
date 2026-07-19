@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -25,7 +24,10 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(4, table.Count, "UNION ALL should preserve all rows including duplicates");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "Alice" }, new object?[] { "Bob" },
+            new object?[] { "Bob" }, new object?[] { "Charlie" });
     }
 
     [TestMethod]
@@ -44,7 +46,9 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(3, table.Count, "UNION should deduplicate: Alice, Bob, Charlie");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "Alice" }, new object?[] { "Bob" }, new object?[] { "Charlie" });
     }
 
     [TestMethod]
@@ -63,8 +67,8 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count, "EXCEPT: Alice is in A but not in B");
-        Assert.AreEqual("Alice", table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "Alice" });
     }
 
     [TestMethod]
@@ -83,8 +87,8 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count, "INTERSECT: Only Bob appears in both");
-        Assert.AreEqual("Bob", table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "Bob" });
     }
 
     #endregion
@@ -109,10 +113,9 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
-        Assert.AreEqual("Bob", table[1][0]);
-        Assert.AreEqual("Charlie", table[2][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Alice" }, new object?[] { "Bob" }, new object?[] { "Charlie" });
     }
 
     [TestMethod]
@@ -133,10 +136,9 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Charlie", table[0][0]);
-        Assert.AreEqual("Bob", table[1][0]);
-        Assert.AreEqual("Alice", table[2][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Charlie" }, new object?[] { "Bob" }, new object?[] { "Alice" });
     }
 
     [TestMethod]
@@ -157,7 +159,8 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "Charlie" });
     }
 
     [TestMethod]
@@ -178,7 +181,9 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Alice" }, new object?[] { "Bob" });
     }
 
     [TestMethod]
@@ -193,7 +198,8 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(0, table.Count, "SKIP exceeding row count should return 0 rows (no error per spec)");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
     [TestMethod]
@@ -214,8 +220,8 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Bob", table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "Bob" });
     }
 
     #endregion
@@ -240,9 +246,10 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("POLAND", table[0][0]);
-        Assert.AreEqual("WARSAW", table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Country", typeof(string)), ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "POLAND", "WARSAW" });
     }
 
     [TestMethod]
@@ -261,8 +268,10 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, table.Columns.Count(), "Star expansion from CTE with 2 columns");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "WARSAW", "POLAND" });
     }
 
     [TestMethod]
@@ -282,9 +291,10 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("NYC", table[0][0]);
-        Assert.AreEqual(8000000m, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("p.City", typeof(string)), ("b.Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "NYC", 8000000m });
     }
 
     [TestMethod]
@@ -306,7 +316,9 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Alice" }, new object?[] { "Bob" });
     }
 
     #endregion
@@ -325,9 +337,10 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", table[0][0]);
-        Assert.AreEqual("POLAND", table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "WARSAW", "POLAND" });
     }
 
     [TestMethod]
@@ -347,8 +360,10 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "WARSAW", "POLAND" });
     }
 
     [TestMethod]
@@ -369,7 +384,10 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Country", typeof(string)), ("Count(Country)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "POLAND", 2L }, new object?[] { "GERMANY", 1L });
     }
 
     #endregion
@@ -379,7 +397,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
     [TestMethod]
     public void Spec_Null_Propagation_AdditionWithNull()
     {
-        var query = "select null + 1 from #A.Entities()";
+        var query = "select null + 1 as Value from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("a")] }
@@ -388,14 +406,14 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { null });
     }
 
     [TestMethod]
     public void Spec_Null_Propagation_SubtractionWithNull()
     {
-        var query = "select 10 - null from #A.Entities()";
+        var query = "select 10 - null as Value from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("a")] }
@@ -404,14 +422,14 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { null });
     }
 
     [TestMethod]
     public void Spec_Null_Propagation_MultiplicationWithNull()
     {
-        var query = "select null * 5 from #A.Entities()";
+        var query = "select null * 5 as Value from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("a")] }
@@ -420,14 +438,14 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { null });
     }
 
     [TestMethod]
     public void Spec_Null_Propagation_DivisionWithNull()
     {
-        var query = "select null / 2 from #A.Entities()";
+        var query = "select null / 2 as Value from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("a")] }
@@ -436,14 +454,14 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { null });
     }
 
     [TestMethod]
     public void Spec_Null_Propagation_ModuloWithNull()
     {
-        var query = "select null % 3 from #A.Entities()";
+        var query = "select null % 3 as Value from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("a")] }
@@ -452,14 +470,14 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { null });
     }
 
     [TestMethod]
     public void Spec_Null_Propagation_NullPlusNull()
     {
-        var query = "select null + null from #A.Entities()";
+        var query = "select null + null as Value from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity("a")] }
@@ -468,8 +486,8 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.IsNull(table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(object)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { null });
     }
 
     #endregion
@@ -488,8 +506,8 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0, table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Array[0]", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 0 });
     }
 
     [TestMethod]
@@ -504,8 +522,8 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, table[0][0], "Array[-1] should return the last element");
+        TableMaterializationTestHelper.AssertColumns(table, ("Array[-1]", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 2 });
     }
 
     [TestMethod]
@@ -520,8 +538,8 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Self.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "Alice" });
     }
 
     [TestMethod]
@@ -536,8 +554,8 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Self.Self.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "Alice" });
     }
 
     #endregion
@@ -554,7 +572,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
                     when City = 'Warsaw' then 'capital'
                     when City = 'Katowice' then 'silesia'
                     else 'other'
-                end
+                end as Category
             from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -570,13 +588,12 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(3, table.Count);
-
-
-        var results = table.ToDictionary(r => (string)r.Values[0], r => (string)r.Values[1]);
-        Assert.AreEqual("capital", results["Warsaw"]);
-        Assert.AreEqual("silesia", results["Katowice"]);
-        Assert.AreEqual("other", results["Radom"]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("City", typeof(string)), ("Category", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Warsaw", "capital" },
+            new object?[] { "Katowice", "silesia" },
+            new object?[] { "Radom", "other" });
     }
 
     [TestMethod]
@@ -588,7 +605,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
                 case
                     when Id > 100 then 'large'
                     else 'small'
-                end
+                end as Category
             from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -603,12 +620,11 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(2, table.Count);
-
-
-        var results = table.ToDictionary(r => (string)r.Values[0], r => (string)r.Values[1]);
-        Assert.AreEqual("large", results["Warsaw"]);
-        Assert.AreEqual("small", results["Radom"]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Name", typeof(string)), ("Category", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Warsaw", "large" },
+            new object?[] { "Radom", "small" });
     }
 
     [TestMethod]
@@ -621,7 +637,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
                     when Population >= 500d then 'large'
                     when Population >= 100d then 'medium'
                     else 'small'
-                end
+                end as Category
             from #A.Entities()";
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -637,13 +653,12 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(3, table.Count);
-
-
-        var results = table.ToDictionary(r => (string)r.Values[0], r => (string)r.Values[1]);
-        Assert.AreEqual("large", results["Warsaw"]);
-        Assert.AreEqual("medium", results["Katowice"]);
-        Assert.AreEqual("small", results["Radom"]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("City", typeof(string)), ("Category", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Warsaw", "large" },
+            new object?[] { "Katowice", "medium" },
+            new object?[] { "Radom", "small" });
     }
 
     [TestMethod]

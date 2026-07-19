@@ -23,7 +23,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var table = CompileSampleForExecution(CrossApplySampleFileName).Run();
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("ChildName", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
     [TestMethod]
@@ -31,7 +35,11 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var table = CompileSampleForExecution(OuterApplySampleFileName).Run();
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("OtherName", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
     [TestMethod]
@@ -85,19 +93,19 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var table = CompileSampleForExecution(ChainedApplyWindowSampleFileName).Run();
 
-        Assert.AreEqual(5, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual(1, table[0][2]);
-        Assert.AreEqual(1L, table[0][3]);
-        Assert.AreEqual("left", table[3][0]);
-        Assert.AreEqual(2, table[3][1]);
-        Assert.AreEqual(2, table[3][2]);
-        Assert.AreEqual(4L, table[3][3]);
-        Assert.AreEqual("right", table[4][0]);
-        Assert.AreEqual(3, table[4][1]);
-        Assert.AreEqual(3, table[4][2]);
-        Assert.AreEqual(1L, table[4][3]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("i.Name", typeof(string)),
+            ("FirstValue", typeof(int)),
+            ("SecondValue", typeof(int)),
+            ("RowNo", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["left", 1, 1, 1L],
+            ["left", 1, 2, 2L],
+            ["left", 2, 1, 3L],
+            ["left", 2, 2, 4L],
+            ["right", 3, 3, 1L]);
     }
 
     [TestMethod]
@@ -134,13 +142,15 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var table = CompileSampleForExecution(ChainedApplyMixedDistinctAggregateSortSampleFileName).Run();
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(6, table[0][1]);
-        Assert.AreEqual(3, table[0][2]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.AreEqual(3, table[1][1]);
-        Assert.AreEqual(3, table[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RepeatedSum", typeof(int?)),
+            ("DistinctSum", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["left", 6, 3],
+            ["right", 3, 3]);
     }
 
     [TestMethod]
@@ -180,17 +190,17 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var table = CompileSampleForExecution(ChainedApplyMixedDistinctMinMaxAggregateSortSampleFileName).Run();
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual(1, table[0][2]);
-        Assert.AreEqual(4, table[0][3]);
-        Assert.AreEqual(4, table[0][4]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.AreEqual(3, table[1][1]);
-        Assert.AreEqual(3, table[1][2]);
-        Assert.AreEqual(3, table[1][3]);
-        Assert.AreEqual(3, table[1][4]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RepeatedMin", typeof(int?)),
+            ("DistinctMin", typeof(int?)),
+            ("RepeatedMax", typeof(int?)),
+            ("DistinctMax", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["left", 1, 1, 4, 4],
+            ["right", 3, 3, 3, 3]);
     }
 
     [TestMethod]
@@ -229,13 +239,15 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var table = CompileSampleForExecution(ChainedApplyMixedDistinctAvgAggregateSortSampleFileName).Run();
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("right", table[0][0]);
-        Assert.AreEqual(3, table[0][1]);
-        Assert.AreEqual(3, table[0][2]);
-        Assert.AreEqual("left", table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
-        Assert.AreEqual(2, table[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RepeatedAvg", typeof(int?)),
+            ("DistinctAvg", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["right", 3, 3],
+            ["left", 2, 2]);
     }
 
     [TestMethod]
@@ -270,19 +282,18 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var table = CompileSampleForExecution(ChainedApplyMixedDistinctMinMaxAggregateWindowSampleFileName).Run();
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual(1, table[0][2]);
-        Assert.AreEqual(4, table[0][3]);
-        Assert.AreEqual(4, table[0][4]);
-        Assert.AreEqual(1L, table[0][5]);
-        Assert.AreEqual("right", table[1][0]);
-        Assert.AreEqual(3, table[1][1]);
-        Assert.AreEqual(3, table[1][2]);
-        Assert.AreEqual(3, table[1][3]);
-        Assert.AreEqual(3, table[1][4]);
-        Assert.AreEqual(2L, table[1][5]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RepeatedMin", typeof(int?)),
+            ("DistinctMin", typeof(int?)),
+            ("RepeatedMax", typeof(int?)),
+            ("DistinctMax", typeof(int?)),
+            ("MixedMinMaxRowNo", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["left", 1, 1, 4, 4, 1L],
+            ["right", 3, 3, 3, 3, 2L]);
     }
 
     [TestMethod]
@@ -315,15 +326,16 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var table = CompileSampleForExecution(ChainedApplyMixedDistinctAvgAggregateWindowSampleFileName).Run();
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("right", table[0][0]);
-        Assert.AreEqual(3, table[0][1]);
-        Assert.AreEqual(3, table[0][2]);
-        Assert.AreEqual(1L, table[0][3]);
-        Assert.AreEqual("left", table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
-        Assert.AreEqual(2, table[1][2]);
-        Assert.AreEqual(2L, table[1][3]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RepeatedAvg", typeof(int?)),
+            ("DistinctAvg", typeof(int?)),
+            ("MixedAvgRowNo", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["right", 3, 3, 1L],
+            ["left", 2, 2, 2L]);
     }
 
     [TestMethod]

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -8,6 +7,71 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class WindowFunctionFrameTests
 {
+    [TestMethod]
+    public void WhenMultipleWindowsUseDifferentPartitions_ShouldPreserveRowAssociations()
+    {
+        const string query = @"
+            select Name, City,
+                   RowNumber() over (order by Name) as GlobalNo,
+                   RowNumber() over (partition by City order by Name) as CityNo,
+                   Lag(Population) over (partition by City order by Name) as PreviousPopulation
+            from #A.entities()
+            order by Name";
+
+        var sources = CreateSingleSource(
+            new BasicEntity("Alice") { City = "LA", Population = 100m },
+            new BasicEntity("Bob") { City = "LA", Population = 200m },
+            new BasicEntity("Charlie") { City = "NYC", Population = 300m },
+            new BasicEntity("Diana") { City = "NYC", Population = 400m });
+
+        var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("GlobalNo", typeof(long)),
+            ("CityNo", typeof(long)),
+            ("PreviousPopulation", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Alice", "LA", 1L, 1L, null],
+            ["Bob", "LA", 2L, 2L, 100m],
+            ["Charlie", "NYC", 3L, 1L, null],
+            ["Diana", "NYC", 4L, 2L, 300m]);
+    }
+
+    [TestMethod]
+    public void WhenWindowCountsNullableValuesAcrossAFrame_ShouldPreserveNullRows()
+    {
+        const string query = @"
+            select Name, NullableValue,
+                   Count(NullableValue) over (
+                       partition by City
+                       order by Name
+                       rows between unbounded preceding and current row) as NonNullCount
+            from #A.entities()
+            order by Name";
+
+        var sources = CreateSingleSource(
+            new BasicEntity("Alice") { City = "LA", NullableValue = 1 },
+            new BasicEntity("Bob") { City = "LA", NullableValue = null },
+            new BasicEntity("Charlie") { City = "LA", NullableValue = 2 });
+
+        var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("NullableValue", typeof(int?)),
+            ("NonNullCount", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Alice", 1, 1],
+            ["Bob", null, 1],
+            ["Charlie", 2, 2]);
+    }
+
     [TestMethod]
     public void WhenFrameWithDescOrdering_ShouldComputeCorrectSlidingWindow()
     {
@@ -24,17 +88,16 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        // Sorted DESC: Diana(400), Charlie(300), Bob(200), Alice(100)
-        // Diana:   frame [Diana, Charlie] = 400 + 300 = 700
-        // Charlie: frame [Diana, Charlie, Bob] = 400 + 300 + 200 = 900
-        // Bob:     frame [Charlie, Bob, Alice] = 300 + 200 + 100 = 600
-        // Alice:   frame [Bob, Alice] = 200 + 100 = 300
-        AssertWindowResult(table, "Diana", 700m);
-        AssertWindowResult(table, "Charlie", 900m);
-        AssertWindowResult(table, "Bob", 600m);
-        AssertWindowResult(table, "Alice", 300m);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("SlideSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Diana", 700m],
+            ["Charlie", 900m],
+            ["Bob", 600m],
+            ["Alice", 300m]);
     }
 
     [TestMethod]
@@ -63,19 +126,16 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        // Sorted by Name: Alice(100), Bob(200), Charlie(300)
-        // Alice:   frame [Alice] = 100
-        // Bob:     frame [Alice, Bob] = 300
-        // Charlie: frame [Bob, Charlie] = 500
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(100m, Convert.ToDecimal(alice.Values[2]));
-        Assert.AreEqual(300m, Convert.ToDecimal(bob.Values[2]));
-        Assert.AreEqual(500m, Convert.ToDecimal(charlie.Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("b.City", typeof(string)),
+            ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "NYC", 100m],
+            ["Bob", "LA", 300m],
+            ["Charlie", "SF", 500m]);
     }
 
     [TestMethod]
@@ -96,20 +156,15 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // After WHERE: Bob(200), Charlie(300), Diana(400)
-        Assert.AreEqual(3, table.Count);
-
-        // Sorted by Name: Bob(200), Charlie(300), Diana(400)
-        // Bob:     frame [Bob] = 200
-        // Charlie: frame [Bob, Charlie] = 500
-        // Diana:   frame [Charlie, Diana] = 700
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-
-        Assert.AreEqual(200m, Convert.ToDecimal(bob.Values[1]));
-        Assert.AreEqual(500m, Convert.ToDecimal(charlie.Values[1]));
-        Assert.AreEqual(700m, Convert.ToDecimal(diana.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Bob", 200m],
+            ["Charlie", 500m],
+            ["Diana", 700m]);
     }
 
     [TestMethod]
@@ -138,12 +193,14 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // Running sums: Alice=100, Bob=300, Charlie=600, Diana=1000
-        // WHERE RunSum > 300 → Charlie(600), Diana(1000)
-        Assert.AreEqual(2, table.Count);
-
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Charlie" && Convert.ToDecimal(r.Values[1]) == 600m));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Diana" && Convert.ToDecimal(r.Values[1]) == 1000m));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Charlie", 600m],
+            ["Diana", 1000m]);
     }
 
     [TestMethod]
@@ -164,21 +221,18 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        // NYC partition DESC: Bob(200), Alice(100)
-        // Bob:   frame [Bob] = 200
-        // Alice: frame [Bob, Alice] = 300
-        AssertPartitionedWindowResult(table, "NYC", "Bob", 200m);
-        AssertPartitionedWindowResult(table, "NYC", "Alice", 300m);
-
-        // LA partition DESC: Eve(500), Diana(400), Charlie(300)
-        // Eve:     frame [Eve] = 500
-        // Diana:   frame [Eve, Diana] = 900
-        // Charlie: frame [Diana, Charlie] = 700
-        AssertPartitionedWindowResult(table, "LA", "Eve", 500m);
-        AssertPartitionedWindowResult(table, "LA", "Diana", 900m);
-        AssertPartitionedWindowResult(table, "LA", "Charlie", 700m);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Name", typeof(string)),
+            ("FrameSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["NYC", "Bob", 200m],
+            ["NYC", "Alice", 300m],
+            ["LA", "Eve", 500m],
+            ["LA", "Diana", 900m],
+            ["LA", "Charlie", 700m]);
     }
 
 }

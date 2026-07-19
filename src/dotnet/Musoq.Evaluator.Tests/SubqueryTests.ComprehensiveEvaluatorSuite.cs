@@ -44,9 +44,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateComprehensiveSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "GDANSK", "PARIS" },
-            table.Select(row => (string)row.Values[0]).ToArray());
+        TableMaterializationTestHelper.AssertColumns(table, ("f.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["GDANSK"], ["PARIS"]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("PhysicalCte", inspection.PhysicalPlanText);
@@ -81,9 +80,15 @@ public partial class SubqueryTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "Adam:Adam:match", "Alice:Alice:match", "Cara:miss" },
-            table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("Verdict", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Adam", "Adam:match"],
+            ["Alice", "Alice:match"],
+            ["Cara", "miss"]);
     }
 
     [TestMethod]
@@ -102,9 +107,14 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateComprehensiveSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "POLAND:700", "FRANCE:300" },
-            table.Select(row => $"{row.Values[0]}:{Convert.ToDecimal(row.Values[1])}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Country", typeof(string)),
+            ("TotalPopulation", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["POLAND", 700m],
+            ["FRANCE", 300m]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("-> ScalarHashSingle", inspection.PlanningText);
@@ -130,9 +140,14 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateComprehensiveSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN:1", "WARSAW:1" },
-            table.Select(row => $"{row.Values[0]}:{Convert.ToInt64(row.Values[1])}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("RankInCountry", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["BERLIN", 1L],
+            ["WARSAW", 1L]);
     }
 
     [TestMethod]
@@ -163,49 +178,15 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateComprehensiveSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "PARIS:LYON:2", "WARSAW:KRAKOW:2" },
-            table.Select(row => $"{row.Values[0]}:{row.Values[1]}:{Convert.ToInt64(row.Values[2])}").ToArray());
-    }
-
-    [TestMethod]
-    public void Comprehensive_SubqueryPlanningStrategies_ShouldExposeOptimizedShapes()
-    {
-        const string predicateQuery = @"
-            SELECT a.City FROM #A.entities() a
-            WHERE EXISTS (
-                SELECT b.City FROM #B.entities() b
-                WHERE b.Country = a.Country
-            )";
-        const string scalarQuery = @"
-            SELECT a.City, (
-                SELECT Sum(b.Population) FROM #B.entities() b
-                WHERE b.Country = a.Country
-            ) AS TotalPopulation
-            FROM #A.entities() a";
-        const string derivedQuery = @"
-            SELECT a.City, d.City
-            FROM #A.entities() a
-            CROSS APPLY (
-                SELECT c.City, c.Country FROM #C.entities() c
-                WHERE c.Country = a.Country
-            ) d";
-
-        var predicate = CompileSubqueryForInspection(predicateQuery);
-        var scalar = CompileSubqueryForInspection(scalarQuery);
-        var derived = CompileSubqueryForInspection(derivedQuery);
-
-        Assert.Contains("-> PredicateSemiJoin", predicate.PlanningText);
-        Assert.Contains("PhysicalHashJoin [LeftSemi]", predicate.PhysicalPlanText);
-        AssertNoPerRowSubqueryExecution(predicate);
-
-        Assert.Contains("-> ScalarHashSingle", scalar.PlanningText);
-        Assert.Contains("PhysicalHashJoin [LeftSingle]", scalar.PhysicalPlanText);
-        AssertNoPerRowSubqueryExecution(scalar);
-
-        Assert.Contains("-> DerivedTableJoin", derived.PlanningText);
-        Assert.Contains("PhysicalHashJoin [Inner]", derived.PhysicalPlanText);
-        AssertNoPerRowSubqueryExecution(derived);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("j.City", typeof(string)),
+            ("applied.MatchCount", typeof(long?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["PARIS", "LYON", 2L],
+            ["WARSAW", "KRAKOW", 2L]);
     }
 
     [TestMethod]

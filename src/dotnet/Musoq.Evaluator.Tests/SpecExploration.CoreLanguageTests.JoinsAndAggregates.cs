@@ -34,8 +34,10 @@ public partial class SpecExplorationCoreLanguageTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("NYC", table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.City", typeof(string)), ("b.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "NYC", "NYC" });
     }
 
     [TestMethod]
@@ -63,16 +65,11 @@ public partial class SpecExplorationCoreLanguageTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(2, table.Count);
-
-
-        var matchedRow = table[0][1] != null ? 0 : 1;
-        var unmatchedRow = 1 - matchedRow;
-
-        Assert.AreEqual("PersonA", table[matchedRow][0]);
-        Assert.AreEqual("PersonB", table[matchedRow][1]);
-        Assert.AreEqual("PersonC", table[unmatchedRow][0]);
-        Assert.IsNull(table[unmatchedRow][1], "Unmatched right side should be null");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "PersonA", "PersonB" },
+            new object?[] { "PersonC", null });
     }
 
     [TestMethod]
@@ -101,7 +98,11 @@ public partial class SpecExplorationCoreLanguageTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(4, table.Count, "Cartesian product of 2x2 should be 4 rows");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "A1", "B1" }, new object?[] { "A1", "B2" },
+            new object?[] { "A2", "B1" }, new object?[] { "A2", "B2" });
     }
 
     #endregion
@@ -126,7 +127,10 @@ public partial class SpecExplorationCoreLanguageTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Country", typeof(string)), ("Count(Country)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "POLAND", 2L }, new object?[] { "GERMANY", 1L });
     }
 
     [TestMethod]
@@ -147,7 +151,10 @@ public partial class SpecExplorationCoreLanguageTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Country", typeof(string)), ("Sum(Population)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "POLAND", 300m }, new object?[] { "GERMANY", 500m });
     }
 
     [TestMethod]
@@ -172,9 +179,10 @@ public partial class SpecExplorationCoreLanguageTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0][0]);
-        Assert.AreEqual(2L, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Name", typeof(string)), ("Count(Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Alice", 2L });
     }
 
     [TestMethod]
@@ -195,8 +203,8 @@ public partial class SpecExplorationCoreLanguageTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TokenSource.Token);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(3L, table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Count(Country)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 3L });
     }
 
     #endregion

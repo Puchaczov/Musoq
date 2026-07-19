@@ -37,8 +37,15 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)),
+            ("Tag", typeof(string)),
+            ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["John", "vip", "NYC"],
+            ["John", "vip", "LA"]);
     }
 
 
@@ -64,8 +71,14 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name1", typeof(string)),
+            ("Name2", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["John", "Jane"],
+            ["Jane", "John"]);
     }
 
 
@@ -93,8 +106,14 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("i.ProductName", typeof(string)),
+            ("PricePlusZero", typeof(decimal)),
+            ("QuantityTimesOne", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Widget", 10.50m, 2]);
     }
 
 
@@ -130,8 +149,16 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("o.OrderId", typeof(int)),
+            ("TotalPrice", typeof(decimal?)),
+            ("AvgPrice", typeof(decimal?)),
+            ("MinPrice", typeof(decimal?)),
+            ("MaxPrice", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [1, 60m, 20m, 10m, 30m]);
     }
 
 
@@ -156,10 +183,13 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-
-
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)),
+            ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Jane", "a"]);
     }
 
 
@@ -191,8 +221,13 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("o.OrderId", typeof(int)),
+            ("i.ProductName", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [1, "Expensive"]);
     }
 
 
@@ -213,8 +248,12 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("NameAge", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John - 30"]);
     }
 
 
@@ -237,8 +276,14 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Age", typeof(int)),
+            ("NameCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [30, 2L],
+            [25, 1L]);
     }
 
 
@@ -262,8 +307,14 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)),
+            ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John", "user"],
+            ["John", "viewer"]);
     }
 
 
@@ -287,8 +338,13 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)),
+            ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John", "admin"]);
     }
 
 
@@ -312,8 +368,14 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)),
+            ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John", "admin"],
+            ["John", "administrator"]);
     }
 
 
@@ -337,8 +399,14 @@ public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)),
+            ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John", "admin"],
+            ["John", "administrator"]);
     }
 
 

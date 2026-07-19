@@ -30,7 +30,10 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)), ("o.OrderId", typeof(int)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 1, "vip"]);
     }
 
     [TestMethod]
@@ -56,7 +59,11 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)), ("t.Value", typeof(string)), ("o.OrderId", typeof(int)),
+            ("o2.Total", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "vip", 1, 100m]);
     }
 
     #endregion
@@ -84,8 +91,8 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("o.OrderId", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", null]);
     }
 
     [TestMethod]
@@ -111,8 +118,8 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("o.OrderId", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 1], ["John", 2], ["John", 3]);
     }
 
     #endregion
@@ -140,8 +147,8 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("o.OrderId", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [null, 1]);
     }
 
     #endregion
@@ -167,8 +174,8 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, persons);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p1.Name", typeof(string)), ("p2.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["John", "Jane"], ["Jane", "John"]);
     }
 
     #endregion

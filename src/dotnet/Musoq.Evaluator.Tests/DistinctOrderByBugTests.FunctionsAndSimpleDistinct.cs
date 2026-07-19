@@ -30,10 +30,8 @@ public partial class DistinctOrderByBugTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("FRANCE", table[0].Values[0]);
-        Assert.AreEqual("GERMANY", table[1].Values[0]);
-        Assert.AreEqual("POLAND", table[2].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("ToUpperInvariant(Country)", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["FRANCE"], ["GERMANY"], ["POLAND"]);
     }
 
     /// <summary>
@@ -61,10 +59,8 @@ public partial class DistinctOrderByBugTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("FRANCE", table[0].Values[0]);
-        Assert.AreEqual("GERMANY", table[1].Values[0]);
-        Assert.AreEqual("POLAND", table[2].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("ToUpperInvariant(Country)", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["FRANCE"], ["GERMANY"], ["POLAND"]);
     }
 
     /// <summary>
@@ -90,10 +86,8 @@ public partial class DistinctOrderByBugTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("France", table[0].Values[0]);
-        Assert.AreEqual("Germany", table[1].Values[0]);
-        Assert.AreEqual("Poland", table[2].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["France"], ["Germany"], ["Poland"]);
     }
 
     #endregion
@@ -122,11 +116,8 @@ public partial class DistinctOrderByBugTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("Austria", table[0].Values[0]);
-        Assert.AreEqual("France", table[1].Values[0]);
-        Assert.AreEqual("Germany", table[2].Values[0]);
-        Assert.AreEqual("Poland", table[3].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Austria"], ["France"], ["Germany"], ["Poland"]);
     }
 
     [TestMethod]
@@ -151,11 +142,8 @@ public partial class DistinctOrderByBugTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("Poland", table[0].Values[0]);
-        Assert.AreEqual("Germany", table[1].Values[0]);
-        Assert.AreEqual("France", table[2].Values[0]);
-        Assert.AreEqual("Austria", table[3].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Poland"], ["Germany"], ["France"], ["Austria"]);
     }
 
     [TestMethod]
@@ -180,11 +168,8 @@ public partial class DistinctOrderByBugTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("Austria", table[0].Values[0]);
-        Assert.AreEqual("France", table[1].Values[0]);
-        Assert.AreEqual("Germany", table[2].Values[0]);
-        Assert.AreEqual("Poland", table[3].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Austria"], ["France"], ["Germany"], ["Poland"]);
     }
 
     #endregion

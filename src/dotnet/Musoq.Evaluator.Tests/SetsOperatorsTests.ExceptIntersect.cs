@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -24,8 +23,8 @@ public partial class SetsOperatorsTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("002", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["002"]);
     }
 
     [TestMethod]
@@ -41,8 +40,8 @@ public partial class SetsOperatorsTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("010", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["010"]);
     }
 
     [TestMethod]
@@ -60,7 +59,8 @@ public partial class SetsOperatorsTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
     [TestMethod]
@@ -80,8 +80,8 @@ select Name from #C.Entities() skip 3";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("002", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["002"]);
     }
 
     [TestMethod]
@@ -110,9 +110,8 @@ select Name from #D.Entities()";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(1, table.Count(r => (string)r.Values[0] == "002"), "Expected one row with '002'");
-        Assert.AreEqual(1, table.Count(r => (string)r.Values[0] == "008"), "Expected one row with '008'");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["002"], ["008"]);
     }
 
     [TestMethod]
@@ -128,8 +127,8 @@ select Name from #D.Entities()";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001"]);
     }
 
     [TestMethod]
@@ -150,8 +149,8 @@ select Name from #D.Entities()";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("005", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["005"]);
     }
 
     [TestMethod]
@@ -169,8 +168,8 @@ select Name from #D.Entities()";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001"]);
     }
 
     [TestMethod]
@@ -197,8 +196,8 @@ select Name from #C.Entities()";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("005", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["005"]);
     }
 
     [TestMethod]
@@ -227,10 +226,8 @@ select Name from #D.Entities()";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "007"), "Second entry should be '007'");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001"], ["007"]);
     }
 
     [TestMethod]
@@ -264,12 +261,11 @@ select City, Sum(Population) from #C.Entities() group by City";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Table should have 1 entry");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "001" &&
-            (decimal)entry.Values[1] == 200m
-        ), "First entry should be '001' with value 200");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Sum(Population)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", 200m]);
     }
 
     [TestMethod]
@@ -303,9 +299,11 @@ select City, Sum(Population) from #C.Entities() group by City";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
-        Assert.AreEqual(200m, table[0].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Sum(Population)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001", 200m]);
     }
 
     [TestMethod]
@@ -320,7 +318,8 @@ select City, Sum(Population) from #C.Entities() group by City";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
     [TestMethod]
@@ -335,8 +334,8 @@ select City, Sum(Population) from #C.Entities() group by City";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("001", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001"]);
     }
 
 }

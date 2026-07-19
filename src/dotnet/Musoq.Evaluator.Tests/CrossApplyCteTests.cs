@@ -55,47 +55,18 @@ select City, SourceCountry, Population, AppliedCountry, Money, Month from p";
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(6, table.Columns.Count());
-        Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("SourceCountry", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("Population", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("AppliedCountry", table.Columns.ElementAt(3).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(3).ColumnType);
-        Assert.AreEqual("Money", table.Columns.ElementAt(4).ColumnName);
-        Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(4).ColumnType);
-        Assert.AreEqual("Month", table.Columns.ElementAt(5).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
-
-        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
-
-        Assert.AreEqual(2,
-            table.Count(row =>
-                (string)row.Values[0] == "City1" &&
-                (string)row.Values[1] == "Country1" &&
-                (int)row.Values[2] == 100 &&
-                (string)row.Values[3] == "Country1" &&
-                ((decimal)row.Values[4] == 1000m || (decimal)row.Values[4] == 2000m)),
-            "Expected data for City1 not found");
-
-        Assert.AreEqual(2,
-            table.Count(row =>
-                (string)row.Values[0] == "City2" &&
-                (string)row.Values[1] == "Country1" &&
-                (int)row.Values[2] == 200 &&
-                (string)row.Values[3] == "Country1" &&
-                ((decimal)row.Values[4] == 1000m || (decimal)row.Values[4] == 2000m)),
-            "Expected data for City2 not found");
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "City3" &&
-                (string)row.Values[1] == "Country2" &&
-                (int)row.Values[2] == 300 &&
-                (string)row.Values[3] == "Country2" &&
-                (decimal)row.Values[4] == 3000m),
-            "Expected data for City3 not found");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)), ("SourceCountry", typeof(string)),
+            ("Population", typeof(int)), ("AppliedCountry", typeof(string)),
+            ("Money", typeof(decimal)), ("Month", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["City1", "Country1", 100, "Country1", 1000m, "January"],
+            ["City1", "Country1", 100, "Country1", 2000m, "February"],
+            ["City2", "Country1", 200, "Country1", 1000m, "January"],
+            ["City2", "Country1", 200, "Country1", 2000m, "February"],
+            ["City3", "Country2", 300, "Country2", 3000m, "March"]);
     }
 
     [TestMethod]
@@ -137,61 +108,18 @@ select a.City, a.Country, a.Population, b.Country, b.Money, b.Month from p a cro
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(6, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("a.Country", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("a.Population", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("b.Country", table.Columns.ElementAt(3).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(3).ColumnType);
-        Assert.AreEqual("b.Money", table.Columns.ElementAt(4).ColumnName);
-        Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(4).ColumnType);
-        Assert.AreEqual("b.Month", table.Columns.ElementAt(5).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(5).ColumnType);
-
-        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
-
-        Assert.AreEqual(1,
-            table.Count(row =>
-                (string)row.Values[0] == "City1" &&
-                (string)row.Values[1] == "Country1" &&
-                (int)row.Values[2] == 100 &&
-                (string)row.Values[3] == "Country1" &&
-                (decimal)row.Values[4] == 1000m), "Missing City1/Country1/100/Country1/1000 row");
-
-        Assert.AreEqual(1,
-            table.Count(row =>
-                (string)row.Values[0] == "City1" &&
-                (string)row.Values[1] == "Country1" &&
-                (int)row.Values[2] == 100 &&
-                (string)row.Values[3] == "Country1" &&
-                (decimal)row.Values[4] == 2000m), "Missing City1/Country1/100/Country1/2000 row");
-
-        Assert.AreEqual(1,
-            table.Count(row =>
-                (string)row.Values[0] == "City2" &&
-                (string)row.Values[1] == "Country1" &&
-                (int)row.Values[2] == 200 &&
-                (string)row.Values[3] == "Country1" &&
-                (decimal)row.Values[4] == 1000m), "Missing City2/Country1/200/Country1/1000 row");
-
-        Assert.AreEqual(1,
-            table.Count(row =>
-                (string)row.Values[0] == "City2" &&
-                (string)row.Values[1] == "Country1" &&
-                (int)row.Values[2] == 200 &&
-                (string)row.Values[3] == "Country1" &&
-                (decimal)row.Values[4] == 2000m), "Missing City2/Country1/200/Country1/2000 row");
-
-        Assert.AreEqual(1,
-            table.Count(row =>
-                (string)row.Values[0] == "City3" &&
-                (string)row.Values[1] == "Country2" &&
-                (int)row.Values[2] == 300 &&
-                (string)row.Values[3] == "Country2" &&
-                (decimal)row.Values[4] == 3000m), "Missing City3/Country2/300/Country2/3000 row");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)), ("a.Country", typeof(string)),
+            ("a.Population", typeof(int)), ("b.Country", typeof(string)),
+            ("b.Money", typeof(decimal)), ("b.Month", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["City1", "Country1", 100, "Country1", 1000m, "January"],
+            ["City1", "Country1", 100, "Country1", 2000m, "February"],
+            ["City2", "Country1", 200, "Country1", 1000m, "January"],
+            ["City2", "Country1", 200, "Country1", 2000m, "February"],
+            ["City3", "Country2", 300, "Country2", 3000m, "March"]);
     }
 
     [TestMethod]
@@ -216,51 +144,13 @@ select Name, Value from p";
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-
-        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual("Value", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(9, table.Count);
-
-        var expectedPairs = new List<(string Name, string Skill)>
-        {
-            ("Name1", "Skill1"), ("Name1", "Skill2"), ("Name1", "Skill3"),
-            ("Name2", "Skill4"), ("Name2", "Skill5"), ("Name2", "Skill6"),
-            ("Name3", "Skill7"), ("Name3", "Skill8"), ("Name3", "Skill9")
-        };
-
-        var actualPairs = table
-            .Select(row => (Name: row.Values[0], Skill: row.Values[1]))
-            .ToList();
-
-        foreach (var name in new[] { "Name1", "Name2", "Name3" })
-        {
-            var expectedSkills = expectedPairs
-                .Where(p => p.Name == name)
-                .Select(p => p.Skill)
-                .ToList();
-
-
-            var actualSkills = actualPairs
-                .Where(p => (string)p.Name == name)
-                .Select(p => p.Skill)
-                .ToList();
-
-
-            CollectionAssert.AreEquivalent(
-                expectedSkills,
-                actualSkills,
-                $"Skills for {name} do not match expected values"
-            );
-
-
-            Assert.AreEqual(3, actualPairs.Count(p => (string)p.Name == name),
-                $"{name} should appear exactly 3 times");
-        }
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Name1", "Skill1"], ["Name1", "Skill2"], ["Name1", "Skill3"],
+            ["Name2", "Skill4"], ["Name2", "Skill5"], ["Name2", "Skill6"],
+            ["Name3", "Skill7"], ["Name3", "Skill8"], ["Name3", "Skill9"]);
     }
 
     [TestMethod]
@@ -285,36 +175,13 @@ select a.Name, b.Value from first a cross apply a.Skills b";
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-
-        Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(1).ColumnName);
-
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual(9, table.Count, "Table should contain 9 rows");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name1" && (string)row.Values[1] == "Skill1"),
-            "Missing Name1/Skill1 row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name1" && (string)row.Values[1] == "Skill2"),
-            "Missing Name1/Skill2 row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name1" && (string)row.Values[1] == "Skill3"),
-            "Missing Name1/Skill3 row");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name2" && (string)row.Values[1] == "Skill4"),
-            "Missing Name2/Skill4 row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name2" && (string)row.Values[1] == "Skill5"),
-            "Missing Name2/Skill5 row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name2" && (string)row.Values[1] == "Skill6"),
-            "Missing Name2/Skill6 row");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name3" && (string)row.Values[1] == "Skill7"),
-            "Missing Name3/Skill7 row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name3" && (string)row.Values[1] == "Skill8"),
-            "Missing Name3/Skill8 row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Name3" && (string)row.Values[1] == "Skill9"),
-            "Missing Name3/Skill9 row");
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("a.Name", typeof(string)), ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Name1", "Skill1"], ["Name1", "Skill2"], ["Name1", "Skill3"],
+            ["Name2", "Skill4"], ["Name2", "Skill5"], ["Name2", "Skill6"],
+            ["Name3", "Skill7"], ["Name3", "Skill8"], ["Name3", "Skill9"]);
     }
 
     [TestMethod]
@@ -348,14 +215,16 @@ select a.Name, b.Value from first a cross apply a.Skills b";
             query,
             firstSource);
 
-        try
-        {
-            vm.Run(TestContext.CancellationToken);
-        }
-        catch (Exception exception)
-        {
-            Assert.Fail($"Expected not to throw exception but got: {exception}");
-        }
+        var table = vm.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("b.Name1", typeof(string)), ("b.Name2", typeof(string)), ("p.Value", typeof(string)));
+        var aggregateResult = string.Join(",", Enumerable.Repeat("Name1", 9));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [aggregateResult, aggregateResult, aggregateResult],
+            [aggregateResult, aggregateResult, aggregateResult]);
     }
 
     [TestMethod]
@@ -381,22 +250,13 @@ select a.Name, b.Value from first a cross apply a.Skills b";
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(6, table.Count, "Table should contain 3 rows");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "one"),
-            "Missing Skill1/one row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "two"),
-            "Missing Skill1/two row");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "one"),
-            "Missing Skill2/one row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "two"),
-            "Missing Skill2/two row");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "one"),
-            "Missing Skill3/one row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "two"),
-            "Missing Skill3/two row");
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("p.Value", typeof(string)), ("np.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Skill1", "one"], ["Skill1", "two"],
+            ["Skill2", "one"], ["Skill2", "two"],
+            ["Skill3", "one"], ["Skill3", "two"]);
     }
 
     [TestMethod]
@@ -422,22 +282,13 @@ select a.Name, b.Value from first a cross apply a.Skills b";
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(6, table.Count, "Table should contain 3 rows");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "one"),
-            "Missing Skill1/one row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "two"),
-            "Missing Skill1/two row");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "one"),
-            "Missing Skill2/one row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "two"),
-            "Missing Skill2/two row");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "one"),
-            "Missing Skill3/one row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "two"),
-            "Missing Skill3/two row");
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("p.Value", typeof(string)), ("np.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Skill1", "one"], ["Skill1", "two"],
+            ["Skill2", "one"], ["Skill2", "two"],
+            ["Skill3", "one"], ["Skill3", "two"]);
     }
 
     [TestMethod]
@@ -463,22 +314,13 @@ select a.Name, b.Value from first a cross apply a.Skills b";
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(6, table.Count, "Table should contain 3 rows");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "one"),
-            "Missing Skill1/one row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "two"),
-            "Missing Skill1/two row");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "one"),
-            "Missing Skill2/one row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "two"),
-            "Missing Skill2/two row");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "one"),
-            "Missing Skill3/one row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "two"),
-            "Missing Skill3/two row");
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("p.Value", typeof(string)), ("np.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Skill1", "one"], ["Skill1", "two"],
+            ["Skill2", "one"], ["Skill2", "two"],
+            ["Skill3", "one"], ["Skill3", "two"]);
     }
 
     [TestMethod]
@@ -504,22 +346,13 @@ select a.Name, b.Value from first a cross apply a.Skills b";
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(6, table.Count, "Table should contain 3 rows");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "one"),
-            "Missing Skill1/one row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill1" && (string)row.Values[1] == "two"),
-            "Missing Skill1/two row");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "one"),
-            "Missing Skill2/one row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill2" && (string)row.Values[1] == "two"),
-            "Missing Skill2/two row");
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "one"),
-            "Missing Skill3/one row");
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "Skill3" && (string)row.Values[1] == "two"),
-            "Missing Skill3/two row");
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("p.Value", typeof(string)), ("np.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Skill1", "one"], ["Skill1", "two"],
+            ["Skill2", "one"], ["Skill2", "two"],
+            ["Skill3", "one"], ["Skill3", "two"]);
     }
 
     private sealed class CrossApplyClass1

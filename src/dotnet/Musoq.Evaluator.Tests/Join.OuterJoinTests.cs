@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -32,21 +31,9 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, table.Columns.Count());
-
-        var column = table.Columns.ElementAt(0);
-        Assert.AreEqual(0, column.ColumnIndex);
-        Assert.AreEqual("a.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int), column.ColumnType);
-
-        column = table.Columns.ElementAt(1);
-        Assert.AreEqual(1, column.ColumnIndex);
-        Assert.AreEqual("b.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int?), column.ColumnType);
-
-        Assert.AreEqual(1, table[0][0]);
-        Assert.IsNull(table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.Id", typeof(int)), ("b.Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1, null });
     }
 
     [TestMethod]
@@ -63,17 +50,10 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(2, table.Columns.Count());
-
-        var rows = new HashSet<(int?, int?)>
-        {
-            ((int?)table[0][0], (int?)table[0][1]),
-            ((int?)table[1][0], (int?)table[1][1])
-        };
-
-        Assert.Contains((1, null), rows, "Expected row (1, null) not found");
-        Assert.Contains((2, 2), rows, "Expected row (2, 2) not found");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.Id", typeof(int)), ("b.Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { 1, null }, new object?[] { 2, 2 });
     }
 
     [TestMethod]
@@ -90,17 +70,10 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(2, table.Columns.Count());
-
-        var rows = new HashSet<(int?, int?)>
-        {
-            ((int?)table[0][0], (int?)table[0][1]),
-            ((int?)table[1][0], (int?)table[1][1])
-        };
-
-        Assert.Contains((1, null), rows, "Expected row (1, null) not found");
-        Assert.Contains((2, 2), rows, "Expected row (2, 2) not found");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("A.Id", typeof(int)), ("B.Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { 1, null }, new object?[] { 2, 2 });
     }
 
     [TestMethod]
@@ -126,27 +99,9 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(3, table.Columns.Count());
-
-        var column = table.Columns.ElementAt(0);
-        Assert.AreEqual(0, column.ColumnIndex);
-        Assert.AreEqual("a.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int), column.ColumnType);
-
-        column = table.Columns.ElementAt(1);
-        Assert.AreEqual(1, column.ColumnIndex);
-        Assert.AreEqual("b.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int?), column.ColumnType);
-
-        column = table.Columns.ElementAt(2);
-        Assert.AreEqual(2, column.ColumnIndex);
-        Assert.AreEqual("c.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int?), column.ColumnType);
-
-        Assert.AreEqual(1, table[0][0]);
-        Assert.IsNull(table[0][1]);
-        Assert.IsNull(table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.Id", typeof(int)), ("b.Id", typeof(int?)), ("c.Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1, null, null });
     }
 
     [TestMethod]
@@ -178,27 +133,9 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(3, table.Columns.Count());
-
-        var column = table.Columns.ElementAt(0);
-        Assert.AreEqual(0, column.ColumnIndex);
-        Assert.AreEqual("a.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int), column.ColumnType);
-
-        column = table.Columns.ElementAt(1);
-        Assert.AreEqual(1, column.ColumnIndex);
-        Assert.AreEqual("b.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int?), column.ColumnType);
-
-        column = table.Columns.ElementAt(2);
-        Assert.AreEqual(2, column.ColumnIndex);
-        Assert.AreEqual("c.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int?), column.ColumnType);
-
-        Assert.AreEqual(1, table[0][0]);
-        Assert.IsNull(table[0][1]);
-        Assert.IsNull(table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.Id", typeof(int)), ("b.Id", typeof(int?)), ("c.Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1, null, null });
     }
 
     [TestMethod]
@@ -232,37 +169,10 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(3, table.Columns.Count());
-
-        var column = table.Columns.ElementAt(0);
-        Assert.AreEqual(0, column.ColumnIndex);
-        Assert.AreEqual("a.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int), column.ColumnType);
-
-        column = table.Columns.ElementAt(1);
-        Assert.AreEqual(1, column.ColumnIndex);
-        Assert.AreEqual("b.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int?), column.ColumnType);
-
-        column = table.Columns.ElementAt(2);
-        Assert.AreEqual(2, column.ColumnIndex);
-        Assert.AreEqual("c.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int?), column.ColumnType);
-
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-            (int)entry[0] == 1 &&
-            (int)entry[1] == 1 &&
-            (int)entry[2] == 1
-        ), "First entry should be 1, 1, 1");
-
-        Assert.IsTrue(table.Any(entry =>
-            (int)entry[0] == 2 &&
-            entry[1] == null &&
-            entry[2] == null
-        ), "Second entry should be 2, null, null");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.Id", typeof(int)), ("b.Id", typeof(int?)), ("c.Id", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { 1, 1, 1 }, new object?[] { 2, null, null });
     }
 
     [TestMethod]
@@ -287,21 +197,9 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, table.Columns.Count());
-
-        var column = table.Columns.ElementAt(0);
-        Assert.AreEqual(0, column.ColumnIndex);
-        Assert.AreEqual("a.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int?), column.ColumnType);
-
-        column = table.Columns.ElementAt(1);
-        Assert.AreEqual(1, column.ColumnIndex);
-        Assert.AreEqual("b.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int), column.ColumnType);
-
-        Assert.IsNull(table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.Id", typeof(int?)), ("b.Id", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { null, 1 });
     }
 
     [TestMethod]
@@ -335,37 +233,10 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(3, table.Columns.Count());
-
-        var column = table.Columns.ElementAt(0);
-        Assert.AreEqual(0, column.ColumnIndex);
-        Assert.AreEqual("a.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int?), column.ColumnType);
-
-        column = table.Columns.ElementAt(1);
-        Assert.AreEqual(1, column.ColumnIndex);
-        Assert.AreEqual("b.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int?), column.ColumnType);
-
-        column = table.Columns.ElementAt(2);
-        Assert.AreEqual(2, column.ColumnIndex);
-        Assert.AreEqual("c.Id", column.ColumnName);
-        Assert.AreEqual(typeof(int), column.ColumnType);
-
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-            (int?)entry[0] == 1 &&
-            (int?)entry[1] == 1 &&
-            (int?)entry[2] == 1
-        ), "First entry should be 1, 1, 1");
-
-        Assert.IsTrue(table.Any(entry =>
-            entry[0] == null &&
-            entry[1] == null &&
-            (int?)entry[2] == 2
-        ), "Second entry should be null, null, 2");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.Id", typeof(int?)), ("b.Id", typeof(int?)), ("c.Id", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { 1, 1, 1 }, new object?[] { null, null, 2 });
     }
 
     [TestMethod]
@@ -398,10 +269,11 @@ public class JoinOuterJoinTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1m, table[0][0]);
-        Assert.AreEqual(2m, table[0][1]);
-        Assert.AreEqual(3m, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.ToDecimal(a.Id)", typeof(decimal?)),
+            ("b.ToDecimal(b.Id)", typeof(decimal?)),
+            ("c.ToDecimal(c.Id)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1m, 2m, 3m });
     }
 
     [TestMethod]
@@ -437,10 +309,11 @@ left outer join #C.entities() c on 1 = 1";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1m, table[0][0]);
-        Assert.AreEqual(2m, table[0][1]);
-        Assert.AreEqual(3m, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.ToDecimal(a.Id)", typeof(decimal?)),
+            ("b.ToDecimal(b.Id)", typeof(decimal?)),
+            ("c.ToDecimal(c.Id)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1m, 2m, 3m });
     }
 
     [TestMethod]
@@ -483,11 +356,12 @@ left outer join #D.entities() d on 1 = 1";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1m, table[0][0]);
-        Assert.AreEqual(2m, table[0][1]);
-        Assert.AreEqual(3m, table[0][2]);
-        Assert.AreEqual(4m, table[0][3]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.ToDecimal(a.Id)", typeof(decimal?)),
+            ("b.ToDecimal(b.Id)", typeof(decimal?)),
+            ("c.ToDecimal(c.Id)", typeof(decimal?)),
+            ("d.ToDecimal(d.Id)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1m, 2m, 3m, 4m });
     }
 
     [TestMethod]
@@ -520,10 +394,11 @@ left outer join #D.entities() d on 1 = 1";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1m, table[0][0]);
-        Assert.AreEqual(2m, table[0][1]);
-        Assert.AreEqual(3m, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.ToDecimal(a.Id)", typeof(decimal?)),
+            ("b.ToDecimal(b.Id)", typeof(decimal?)),
+            ("c.ToDecimal(c.Id)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1m, 2m, 3m });
     }
 
     [TestMethod]
@@ -556,10 +431,11 @@ left outer join #D.entities() d on 1 = 1";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1m, table[0][0]);
-        Assert.AreEqual(2m, table[0][1]);
-        Assert.AreEqual(3m, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.ToDecimal(a.Id)", typeof(decimal?)),
+            ("b.ToDecimal(b.Id)", typeof(decimal?)),
+            ("c.ToDecimal(c.Id)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 1m, 2m, 3m });
     }
 
     [TestMethod]
@@ -593,25 +469,10 @@ select LeftCountry, RightCountry from third
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-
-        Assert.AreEqual("LeftCountry", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual("RightCountry", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(2, table.Count);
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "Poland" &&
-                (string)entry[1] == "Poland"),
-            "First entry should be Poland");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "Germany" &&
-                (string)entry[1] == "Germany"),
-            "Second entry should be Germany");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("LeftCountry", typeof(string)), ("RightCountry", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "Poland", "Poland" }, new object?[] { "Germany", "Germany" });
     }
 
     [TestMethod]
@@ -645,24 +506,9 @@ select LeftCountry, RightCountry from third
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-
-        Assert.AreEqual("LeftCountry", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual("RightCountry", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row[0] == "Poland" &&
-                (string)row[1] == "Poland"),
-            "Expected row with Poland in both columns");
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row[0] == "Germany" &&
-                (string)row[1] == "Germany"),
-            "Expected row with Germany in both columns");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("LeftCountry", typeof(string)), ("RightCountry", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "Poland", "Poland" }, new object?[] { "Germany", "Germany" });
     }
 }

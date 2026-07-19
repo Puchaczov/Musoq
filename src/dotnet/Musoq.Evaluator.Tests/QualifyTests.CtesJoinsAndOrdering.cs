@@ -132,13 +132,15 @@ public partial class QualifyTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // Rows: Alice(1), Bob(2), Charlie(3), Diana(4) → exclude rn=2 → 3 rows
-        Assert.AreEqual(3, table.Count);
-
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Alice"));
-        Assert.IsFalse(table.Any(r => (string)r.Values[0] == "Bob"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Charlie"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Diana"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Alice", 1L],
+            ["Charlie", 3L],
+            ["Diana", 4L]);
     }
 
     [TestMethod]
@@ -161,19 +163,16 @@ public partial class QualifyTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // 2 partitions → 1 row each → 2 rows
-        Assert.AreEqual(2, table.Count);
-
-        var nyc = table.Single(r => (string)r.Values[1] == "NYC");
-        var la = table.Single(r => (string)r.Values[1] == "LA");
-
-        Assert.AreEqual("Alice", nyc.Values[0]);
-        Assert.AreEqual(1L, nyc.Values[2]);
-        Assert.AreEqual(2, Convert.ToInt32(nyc.Values[3]));
-
-        Assert.AreEqual("Charlie", la.Values[0]);
-        Assert.AreEqual(1L, la.Values[2]);
-        Assert.AreEqual(3, Convert.ToInt32(la.Values[3]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("rn", typeof(long)),
+            ("cnt", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "NYC", 1L, 2],
+            ["Charlie", "LA", 1L, 3]);
     }
 
 }

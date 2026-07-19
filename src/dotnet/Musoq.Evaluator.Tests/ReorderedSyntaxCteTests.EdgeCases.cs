@@ -31,13 +31,8 @@ public partial class ReorderedSyntaxCteTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row =>
-            (string)row.Values[0] == "WARSAW" &&
-            (string)row.Values[1] == "Large"));
-        Assert.IsTrue(table.Any(row =>
-            (string)row.Values[0] == "KATOWICE" &&
-            (string)row.Values[1] == "Small"));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Size", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "Large"], ["KATOWICE", "Small"]);
     }
 
     [TestMethod]
@@ -62,10 +57,10 @@ public partial class ReorderedSyntaxCteTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", table[0].Values[0]);
-        Assert.AreEqual(1000m, table[0].Values[1]);
-        Assert.AreEqual(600m, table[0].Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)), ("DoubledPop", typeof(decimal)), ("IncreasedPop", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", 1000m, 600m]);
     }
 
     [TestMethod]
@@ -90,8 +85,8 @@ public partial class ReorderedSyntaxCteTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "POLAND"]);
     }
 
     [TestMethod]
@@ -116,8 +111,8 @@ public partial class ReorderedSyntaxCteTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "POLAND"]);
     }
 
     [TestMethod]
@@ -145,9 +140,10 @@ public partial class ReorderedSyntaxCteTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "WARSAW"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "BERLIN"));
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["WARSAW", "POLAND"], ["BERLIN", "GERMANY"]);
     }
 
     [TestMethod]
@@ -172,9 +168,10 @@ public partial class ReorderedSyntaxCteTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("WARSAW", table[0].Values[0]);
-        Assert.AreEqual("poland", table[0].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("UpperCity", typeof(string)), ("LowerCountry", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "poland"]);
     }
 
 }

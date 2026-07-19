@@ -76,6 +76,8 @@ internal static class PrimitiveTypeResolver
         if (type == null)
             return false;
 
+        type = StripNullable(type);
+
         return type.IsPrimitive ||
                type == typeof(string) ||
                type == typeof(decimal) ||

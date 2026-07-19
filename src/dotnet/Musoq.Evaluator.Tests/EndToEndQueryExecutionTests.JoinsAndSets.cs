@@ -28,8 +28,8 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("NYC", table[0][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Cnt", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["NYC", 2L]);
     }
 
     [TestMethod]
@@ -53,7 +53,10 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)), ("Country", typeof(string)), ("Cnt", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["NYC", "USA", 2L], ["LA", "USA", 1L]);
     }
 
 
@@ -77,7 +80,8 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["PersonA", "PersonB"], ["PersonC", null]);
     }
 
     [TestMethod]
@@ -99,7 +103,8 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["PersonA", "PersonB"], [null, "PersonC"]);
     }
 
     [TestMethod]
@@ -118,7 +123,10 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(4, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["A1", "B1"], ["A1", "B2"], ["A2", "B1"], ["A2", "B2"]);
     }
 
     [TestMethod]
@@ -139,7 +147,10 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)), ("b.Name", typeof(string)), ("c.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["A", "B", "C"]);
     }
 
     [TestMethod]
@@ -161,7 +172,8 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)), ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["PersonA", "PersonB"], ["PersonB", "PersonA"]);
     }
 
 
@@ -182,7 +194,8 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(4, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["A"], ["B"], ["B"], ["C"]);
     }
 
     [TestMethod]
@@ -201,7 +214,8 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A"], ["B"], ["C"]);
     }
 
     [TestMethod]
@@ -220,7 +234,8 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A"], ["C"]);
     }
 
     [TestMethod]
@@ -239,7 +254,8 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["B"], ["C"]);
     }
 
 
@@ -266,7 +282,8 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["B"], ["C"]);
     }
 
     [TestMethod]
@@ -296,7 +313,8 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["B"], ["C"]);
     }
 
 
@@ -319,7 +337,8 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["NYC", "USA"], ["LA", "USA"]);
     }
 
     [TestMethod]
@@ -340,7 +359,8 @@ public partial class EndToEndQueryExecutionTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run();
 
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["LA"], ["NYC"]);
     }
 
 

@@ -23,8 +23,15 @@ public partial class QualifyTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.All(r => (string)r.Values[1] == "NYC"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("CityCount", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "NYC", 2],
+            ["Charlie", "NYC", 2]);
     }
 
     [TestMethod]
@@ -43,8 +50,15 @@ public partial class QualifyTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsGreaterThan(0, table.Count);
-        Assert.IsTrue(table.All(r => (decimal)r.Values[2] > 200m));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("RunAvg", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Bob", 500m, 300m],
+            ["Charlie", 300m, 300m]);
     }
 
     [TestMethod]
@@ -66,8 +80,16 @@ public partial class QualifyTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.All(r => (long)r.Values[2] == 1L));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("rn", typeof(long)),
+            ("Label", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "NYC", 1L, "first"],
+            ["Charlie", "LA", 1L, "first"]);
     }
 
     [TestMethod]
@@ -88,8 +110,14 @@ public partial class QualifyTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Alice", "NYC", 1L]);
     }
 
     [TestMethod]
@@ -111,8 +139,15 @@ public partial class QualifyTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.All(r => (long)r.Values[2] == 1L));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "NYC", 1L],
+            ["Bob", "LA", 1L]);
     }
 
     [TestMethod]
@@ -138,8 +173,16 @@ public partial class QualifyTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.All(r => (long)r.Values[3] <= 2L));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("CityCount", typeof(long)),
+            ("TotalPop", typeof(decimal?)),
+            ("PopRank", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["NYC", 2L, 400m, 1L],
+            ["LA", 1L, 200m, 2L]);
     }
 
 }

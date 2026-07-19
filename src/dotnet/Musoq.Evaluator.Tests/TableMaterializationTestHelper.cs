@@ -79,6 +79,15 @@ internal static class TableMaterializationTestHelper
         if (expected is string)
             return expected.Equals(actual);
 
+        if (expected is IEnumerable expectedSequence && actual is IEnumerable actualSequence)
+        {
+            var expectedItems = expectedSequence.Cast<object?>().ToArray();
+            var actualItems = actualSequence.Cast<object?>().ToArray();
+
+            return expectedItems.Length == actualItems.Length &&
+                   expectedItems.Zip(actualItems, ValuesEqual).All(static result => result);
+        }
+
         if (expected is IStructuralEquatable structural)
             return structural.Equals(actual, StructuralComparisons.StructuralEqualityComparer);
 

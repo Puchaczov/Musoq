@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -42,9 +41,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "BERLIN"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "PARIS"));
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["BERLIN"], ["PARIS"]);
     }
 
     [TestMethod]
@@ -76,9 +74,14 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "POLAND" && (decimal)r.Values[1] == 900m));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "GERMANY" && (decimal)r.Values[1] == 250m));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Country", typeof(string)),
+            ("Sum(a.Population)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["POLAND", 900m],
+            ["GERMANY", 250m]);
     }
 
     // ── HIGH PRIORITY: NULL handling ───────────────────────────────────────────
@@ -110,9 +113,14 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "HAS_VALUE" && (int?)r.Values[1] == 10));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "IS_NULL" && r.Values[1] == null));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.NullableValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["HAS_VALUE", 10],
+            new object?[] { "IS_NULL", null });
     }
 
     [TestMethod]
@@ -144,8 +152,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("VAL_10", (string)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["VAL_10"]);
     }
 
     [TestMethod]
@@ -175,8 +183,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("VAL_30", (string)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["VAL_30"]);
     }
 
     // ── HIGH PRIORITY: Function call as left operand ──────────────────────────
@@ -208,9 +216,8 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "warsaw"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "berlin"));
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["warsaw"], ["berlin"]);
     }
 
     // ── HIGH PRIORITY: OR with IN subquery ─────────────────────────────────────
@@ -241,9 +248,11 @@ public partial class SubqueryTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "WARSAW"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "BERLIN"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "PARIS"));
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["WARSAW"],
+            ["BERLIN"],
+            ["PARIS"]);
     }
 }

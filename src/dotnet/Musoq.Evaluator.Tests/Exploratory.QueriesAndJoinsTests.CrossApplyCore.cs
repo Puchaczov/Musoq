@@ -24,8 +24,8 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "a"], ["John", "c"]);
     }
 
     [TestMethod]
@@ -45,8 +45,8 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "a"], ["John", "c"], ["John", "e"]);
     }
 
     [TestMethod]
@@ -66,8 +66,8 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "test1"], ["John", "test2"]);
     }
 
     [TestMethod]
@@ -87,8 +87,8 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("s.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 20], ["John", 30], ["John", 40]);
     }
 
     #endregion
@@ -111,8 +111,12 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)), ("DoubleScore", typeof(int)), ("BonusScore", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John", 20, 110], ["John", 40, 120], ["John", 60, 130]);
     }
 
     [TestMethod]
@@ -132,8 +136,8 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(120, table[0].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("TotalDoubleScore", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 120]);
     }
 
     #endregion
@@ -169,7 +173,10 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)), ("pt.Value", typeof(string)), ("oi.ProductName", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "vip", "Widget"]);
     }
 
     #endregion
@@ -192,10 +199,10 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual("Prefix", table[0].Values[0]);
-        Assert.AreEqual("tag1", table[0].Values[1]);
-        Assert.AreEqual("Suffix", table[0].Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Prefix", typeof(string)), ("t.Value", typeof(string)), ("Suffix", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Prefix", "tag1", "Suffix"]);
     }
 
     #endregion
@@ -218,8 +225,10 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("part.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John Doe Smith", "John"], ["John Doe Smith", "Doe"], ["John Doe Smith", "Smith"]);
     }
 
     #endregion

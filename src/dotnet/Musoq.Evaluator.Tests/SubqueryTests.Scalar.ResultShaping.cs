@@ -20,6 +20,10 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("MatchCountry", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["WARSAW", "POLAND"],
@@ -62,6 +66,10 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("LargestPopulation", typeof(decimal?)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["WARSAW", 110m],
@@ -101,6 +109,10 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("MatchCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["WARSAW", "GDANSK"],
@@ -122,6 +134,10 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("MatchCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["WARSAW", "GDANSK"],
@@ -143,6 +159,10 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateScalarSources()).Run(TestContext.CancellationToken);
 
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("MatchCity", typeof(string)));
         TableMaterializationTestHelper.AssertRowsUnordered(
             table,
             ["WARSAW", "GDANSK"],

@@ -81,12 +81,11 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        foreach (var row in table)
-        {
-            Assert.AreEqual(600m, Convert.ToDecimal(row.Values[1]), $"Each row should see whole partition total; Name={row.Values[0]}");
-        }
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("Total", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 600m], ["Bob", 600m], ["Charlie", 600m]);
     }
 
     [TestMethod]
@@ -104,15 +103,11 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(600m, Convert.ToDecimal(alice.Values[1]));
-        Assert.AreEqual(500m, Convert.ToDecimal(bob.Values[1]));
-        Assert.AreEqual(300m, Convert.ToDecimal(charlie.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("RevSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 600m], ["Bob", 500m], ["Charlie", 300m]);
     }
 
     [TestMethod]
@@ -131,17 +126,13 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-
-        Assert.AreEqual(100m, Convert.ToDecimal(alice.Values[2]));
-        Assert.AreEqual(400m, Convert.ToDecimal(charlie.Values[2]));
-        Assert.AreEqual(200m, Convert.ToDecimal(bob.Values[2]));
-        Assert.AreEqual(600m, Convert.ToDecimal(diana.Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)), ("City", typeof(string)), ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "NYC", 100m], ["Charlie", "NYC", 400m],
+            ["Bob", "LA", 200m], ["Diana", "LA", 600m]);
     }
 
     [TestMethod]
@@ -159,15 +150,11 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(1, Convert.ToInt32(alice.Values[1]));
-        Assert.AreEqual(2, Convert.ToInt32(bob.Values[1]));
-        Assert.AreEqual(3, Convert.ToInt32(charlie.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("RunCount", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1], ["Bob", 2], ["Charlie", 3]);
     }
 
     [TestMethod]
@@ -185,15 +172,11 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(100m, Convert.ToDecimal(alice.Values[1]));
-        Assert.AreEqual(150m, Convert.ToDecimal(bob.Values[1]));
-        Assert.AreEqual(200m, Convert.ToDecimal(charlie.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("RunAvg", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 100m], ["Bob", 150m], ["Charlie", 200m]);
     }
 
     [TestMethod]
@@ -213,20 +196,12 @@ public partial class WindowFunctionFrameTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(300m, Convert.ToDecimal(alice.Values[1]));
-        Assert.AreEqual(300m, Convert.ToDecimal(alice.Values[2]));
-
-        Assert.AreEqual(100m, Convert.ToDecimal(bob.Values[1]));
-        Assert.AreEqual(300m, Convert.ToDecimal(bob.Values[2]));
-
-        Assert.AreEqual(100m, Convert.ToDecimal(charlie.Values[1]));
-        Assert.AreEqual(300m, Convert.ToDecimal(charlie.Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)), ("RunMin", typeof(decimal?)), ("RunMax", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 300m, 300m], ["Bob", 100m, 300m], ["Charlie", 100m, 300m]);
     }
 
     #endregion

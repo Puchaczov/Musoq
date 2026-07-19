@@ -13,14 +13,18 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
     [TestMethod]
     public void WhenEmptySource_ShouldReturnEmptyTable()
     {
-        var query = "select Name, RowNumber() over (order by Name) from #A.entities()";
+        var query = "select Name, RowNumber() over (order by Name) as RowNum from #A.entities()";
 
         var sources = CreateSingleSource();
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RowNum", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
     [TestMethod]
@@ -39,11 +43,12 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", table[0].Values[0]);
-        Assert.AreEqual(1L, table[0].Values[1]);
-        Assert.IsNull(table[0].Values[2]);
-        Assert.IsNull(table[0].Values[3]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)), ("RowNum", typeof(long)),
+            ("PrevPop", typeof(decimal?)), ("NextPop", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table, ["Alice", 1L, null, null]);
     }
 
     [TestMethod]
@@ -61,15 +66,12 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(1L, alice.Values[2]);
-        Assert.AreEqual(2L, bob.Values[2]);
-        Assert.AreEqual(3L, charlie.Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)), ("City", typeof(string)), ("RowNum", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "NYC", 1L], ["Bob", "NYC", 2L], ["Charlie", "NYC", 3L]);
     }
 
     [TestMethod]
@@ -85,15 +87,11 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.IsNull(alice.Values[1]);
-        Assert.AreEqual("Alice", bob.Values[1]);
-        Assert.AreEqual("Bob", charlie.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("PrevName", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", null], ["Bob", "Alice"], ["Charlie", "Bob"]);
     }
 
     [TestMethod]
@@ -109,15 +107,11 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual("Bob", alice.Values[1]);
-        Assert.AreEqual("Charlie", bob.Values[1]);
-        Assert.IsNull(charlie.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("NextName", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "Bob"], ["Bob", "Charlie"], ["Charlie", null]);
     }
 
     [TestMethod]
@@ -136,19 +130,13 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var laRows = table.Where(r => (string)r.Values[1] == "LA")
-            .OrderBy(r => (long)r.Values[2]).ToList();
-        Assert.HasCount(2, laRows);
-        Assert.AreEqual(1L, laRows[0].Values[2]);
-        Assert.AreEqual(2L, laRows[1].Values[2]);
-
-        var nullRows = table.Where(r => r.Values[1] == null)
-            .OrderBy(r => (long)r.Values[2]).ToList();
-        Assert.HasCount(2, nullRows);
-        Assert.AreEqual(1L, nullRows[0].Values[2]);
-        Assert.AreEqual(2L, nullRows[1].Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)), ("City", typeof(string)), ("RowNum", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", 1L], ["Diana", "LA", 2L],
+            ["Bob", null, 1L], ["Charlie", null, 2L]);
     }
 
     [TestMethod]
@@ -168,11 +156,14 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(100, table.Count);
-
-        var lastRow = table.Single(r => (string)r.Values[0] == "Name100");
-        Assert.AreEqual(100L, lastRow.Values[1]);
-        Assert.AreEqual(5050m, Convert.ToDecimal(lastRow.Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)), ("RowNum", typeof(long)), ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            Enumerable.Range(1, 100)
+                .Select(i => new object?[] { $"Name{i:D3}", (long)i, i * (i + 1) / 2m })
+                .ToArray());
     }
 
     [TestMethod]
@@ -190,7 +181,9 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("RowNum", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
     [TestMethod]
@@ -208,15 +201,11 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-
-        Assert.AreEqual(300m, Convert.ToDecimal(charlie.Values[1]));
-        Assert.AreEqual(500m, Convert.ToDecimal(bob.Values[1]));
-        Assert.AreEqual(600m, Convert.ToDecimal(alice.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Charlie", 300m], ["Bob", 500m], ["Alice", 600m]);
     }
 
     [TestMethod]
@@ -234,16 +223,11 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        // Ordered by Name: Alice(2) → Bob(3) → Charlie(4)
-        Assert.AreEqual(2m, Convert.ToDecimal(alice.Values[1]));
-        Assert.AreEqual(6m, Convert.ToDecimal(bob.Values[1]));
-        Assert.AreEqual(24m, Convert.ToDecimal(charlie.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table, ("Name", typeof(string)), ("Product", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 2m], ["Bob", 6m], ["Charlie", 24m]);
     }
 
     [TestMethod]
@@ -262,25 +246,13 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var laRows = table.Where(r => (string)r.Values[1] == "LA")
-            .OrderBy(r => (string)r.Values[0]).ToList();
-
-        // LA partition ordered by Name: Alice(2) → Diana(4)
-        Assert.AreEqual("Alice", laRows[0].Values[0]);
-        Assert.AreEqual(2m, Convert.ToDecimal(laRows[0].Values[2]));
-        Assert.AreEqual("Diana", laRows[1].Values[0]);
-        Assert.AreEqual(8m, Convert.ToDecimal(laRows[1].Values[2]));
-
-        var nycRows = table.Where(r => (string)r.Values[1] == "NYC")
-            .OrderBy(r => (string)r.Values[0]).ToList();
-
-        // NYC partition ordered by Name: Bob(3) → Charlie(5)
-        Assert.AreEqual("Bob", nycRows[0].Values[0]);
-        Assert.AreEqual(3m, Convert.ToDecimal(nycRows[0].Values[2]));
-        Assert.AreEqual("Charlie", nycRows[1].Values[0]);
-        Assert.AreEqual(15m, Convert.ToDecimal(nycRows[1].Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)), ("City", typeof(string)), ("Product", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", 2m], ["Diana", "LA", 8m],
+            ["Bob", "NYC", 3m], ["Charlie", "NYC", 15m]);
     }
 
     [TestMethod]
@@ -300,21 +272,12 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        // RunningProduct: Alice(2) → Bob(2*3=6) → Charlie(2*3*4=24)
-        Assert.AreEqual(2m, Convert.ToDecimal(alice.Values[1]));
-        Assert.AreEqual(6m, Convert.ToDecimal(bob.Values[1]));
-        Assert.AreEqual(24m, Convert.ToDecimal(charlie.Values[1]));
-
-        // RunningSum: Alice(2) → Bob(2+3=5) → Charlie(2+3+4=9)
-        Assert.AreEqual(2m, Convert.ToDecimal(alice.Values[2]));
-        Assert.AreEqual(5m, Convert.ToDecimal(bob.Values[2]));
-        Assert.AreEqual(9m, Convert.ToDecimal(charlie.Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)), ("Product", typeof(decimal)), ("RunningSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 2m, 2m], ["Bob", 6m, 5m], ["Charlie", 24m, 9m]);
     }
 
     [TestMethod]

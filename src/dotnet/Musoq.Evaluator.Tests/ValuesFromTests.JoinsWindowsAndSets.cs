@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -32,13 +31,15 @@ order by entity.Name";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Legacy.Package", table[0][0]);
-        Assert.IsFalse((bool)table[0][1]);
-        Assert.AreEqual("Newtonsoft.Json", table[1][0]);
-        Assert.IsTrue((bool)table[1][1]);
-        Assert.AreEqual("Other.Package", table[2][0]);
-        Assert.IsNull(table[2][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("entity.Name", typeof(string)),
+            ("policy.Approved", typeof(bool?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Legacy.Package", false],
+            ["Newtonsoft.Json", true],
+            ["Other.Package", null]);
     }
 
     [TestMethod]
@@ -60,11 +61,14 @@ order by policy.Name";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Missing.Package", table[0][0]);
-        Assert.IsNull(table[0][1]);
-        Assert.AreEqual("Newtonsoft.Json", table[1][0]);
-        Assert.AreEqual("Newtonsoft.Json", table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("policy.Name", typeof(string)),
+            ("entity.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Missing.Package", null],
+            ["Newtonsoft.Json", "Newtonsoft.Json"]);
     }
 
     [TestMethod]
@@ -86,15 +90,16 @@ order by entity.Name, policy.Flag";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("Legacy.Package", table[0][0]);
-        Assert.AreEqual("A", table[0][1]);
-        Assert.AreEqual("Legacy.Package", table[1][0]);
-        Assert.AreEqual("B", table[1][1]);
-        Assert.AreEqual("Newtonsoft.Json", table[2][0]);
-        Assert.AreEqual("A", table[2][1]);
-        Assert.AreEqual("Newtonsoft.Json", table[3][0]);
-        Assert.AreEqual("B", table[3][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("entity.Name", typeof(string)),
+            ("policy.Flag", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Legacy.Package", "A"],
+            ["Legacy.Package", "B"],
+            ["Newtonsoft.Json", "A"],
+            ["Newtonsoft.Json", "B"]);
     }
 
     [TestMethod]
@@ -114,9 +119,11 @@ order by Sum(scores.Score) desc";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("red", table[0][0]);
-        Assert.AreEqual(5, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("scores.Team", typeof(string)),
+            ("Sum(scores.Score)", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["red", 5]);
     }
 
     [TestMethod]
@@ -134,9 +141,8 @@ order by scores.Team";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("blue", table[0][0]);
-        Assert.AreEqual("red", table[1][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("scores.Team", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["blue"], ["red"]);
     }
 
     [TestMethod]
@@ -155,13 +161,15 @@ order by scores.Team";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("blue", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual(1L, table[0][2]);
-        Assert.AreEqual("red", table[1][0]);
-        Assert.AreEqual(3, table[1][1]);
-        Assert.AreEqual(1L, table[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("scores.Team", typeof(string)),
+            ("scores.Score", typeof(int)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["blue", 1, 1L],
+            ["red", 3, 1L]);
     }
 
     [TestMethod]
@@ -183,22 +191,18 @@ order by scores.Score";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("first", table[0][0]);
-        Assert.AreEqual(1L, table[0][1]);
-        Assert.AreEqual(1L, table[0][2]);
-        Assert.AreEqual(1L, table[0][3]);
-        Assert.IsNull(table[0][4]);
-        Assert.AreEqual("second", table[1][0]);
-        Assert.AreEqual(2L, table[1][1]);
-        Assert.AreEqual(2L, table[1][2]);
-        Assert.AreEqual(2L, table[1][3]);
-        Assert.AreEqual(10, table[1][4]);
-        Assert.AreEqual("third", table[2][0]);
-        Assert.AreEqual(3L, table[2][1]);
-        Assert.AreEqual(3L, table[2][2]);
-        Assert.AreEqual(3L, table[2][3]);
-        Assert.AreEqual(20, table[2][4]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("scores.Name", typeof(string)),
+            ("rn", typeof(long)),
+            ("rnk", typeof(long)),
+            ("dense_rnk", typeof(long)),
+            ("previous_score", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["first", 1L, 1L, 1L, null],
+            ["second", 2L, 2L, 2L, 10],
+            ["third", 3L, 3L, 3L, 20]);
     }
 
     [TestMethod]
@@ -219,17 +223,12 @@ from values {
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
-        var names = new HashSet<string>
-        {
-            (string)table[0][0],
-            (string)table[1][0],
-            (string)table[2][0]
-        };
-
-        Assert.AreEqual(3, table.Count);
-        CollectionAssert.AreEquivalent(
-            new[] { "Legacy.Package", "Newtonsoft.Json", "Other.Package" },
-            names.ToArray());
+        TableMaterializationTestHelper.AssertColumns(table, ("packages.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Legacy.Package"],
+            ["Newtonsoft.Json"],
+            ["Other.Package"]);
     }
 
     [TestMethod]
@@ -254,9 +253,11 @@ order by packages.Name";
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Legacy.Package", table[0][0]);
-        Assert.AreEqual("Other.Package", table[1][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("packages.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Legacy.Package"],
+            ["Other.Package"]);
     }
 
 }

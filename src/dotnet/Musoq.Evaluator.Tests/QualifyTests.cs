@@ -26,10 +26,14 @@ public partial class QualifyTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Alice"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Bob"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Alice", 1L],
+            ["Bob", 2L]);
     }
 
     [TestMethod]
@@ -49,10 +53,15 @@ public partial class QualifyTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "LA" && (string)r.Values[1] == "Alice"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "NYC" && (string)r.Values[1] == "Bob"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Name", typeof(string)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["LA", "Alice", 1L],
+            ["NYC", "Bob", 1L]);
     }
 
     [TestMethod]
@@ -72,10 +81,14 @@ public partial class QualifyTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Alice"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Charlie"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("dr", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Alice", 1L],
+            ["Charlie", 1L]);
     }
 
     [TestMethod]
@@ -93,7 +106,11 @@ public partial class QualifyTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
     [TestMethod]
@@ -112,7 +129,15 @@ public partial class QualifyTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Alice", 1L],
+            ["Bob", 2L],
+            ["Charlie", 3L]);
     }
 
     [TestMethod]
@@ -134,7 +159,13 @@ public partial class QualifyTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Bob", 2L]);
     }
 
     [TestMethod]
@@ -155,9 +186,13 @@ public partial class QualifyTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Alice"));
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Bob"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Alice", 1L],
+            ["Bob", 2L]);
     }
 }

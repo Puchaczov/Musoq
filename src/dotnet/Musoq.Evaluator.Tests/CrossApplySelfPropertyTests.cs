@@ -30,11 +30,11 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.Value", typeof(double)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
     [TestMethod]
@@ -56,41 +56,18 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual(6, table.Count, "Table should have 6 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "City1" &&
-            Math.Abs((double)entry.Values[1] - 1d) < 0.0001
-        ), "First entry should be City1 with value 1");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "City2" &&
-            Math.Abs((double)entry.Values[1] - 2d) < 0.0001
-        ), "First City2 entry should be City2 with value 2");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "City2" &&
-            Math.Abs((double)entry.Values[1] - 3d) < 0.0001
-        ), "Second City2 entry should be City2 with value 3");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "City3" &&
-            Math.Abs((double)entry.Values[1] - 4d) < 0.0001
-        ), "First City3 entry should be City3 with value 4");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "City3" &&
-            Math.Abs((double)entry.Values[1] - 5d) < 0.0001
-        ), "Second City3 entry should be City3 with value 5");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "City3" &&
-            Math.Abs((double)entry.Values[1] - 6d) < 0.0001
-        ), "Third City3 entry should be City3 with value 6");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.Value", typeof(double)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["City1", 1d],
+            ["City2", 2d],
+            ["City2", 3d],
+            ["City3", 4d],
+            ["City3", 5d],
+            ["City3", 6d]);
     }
 
     [TestMethod]
@@ -112,41 +89,18 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual(6, table.Count, "Table should have 6 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "City1" &&
-                Math.Abs(Convert.ToDouble(entry.Values[1]) - 1d) < 0.0001),
-            "First entry should match expected values");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "City2" &&
-                Math.Abs(Convert.ToDouble(entry.Values[1]) - 2d) < 0.0001),
-            "Second entry should match expected values");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "City2" &&
-                Math.Abs(Convert.ToDouble(entry.Values[1]) - 3d) < 0.0001),
-            "Third entry should match expected values");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "City3" &&
-                Math.Abs(Convert.ToDouble(entry.Values[1]) - 4d) < 0.0001),
-            "Fourth entry should match expected values");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "City3" &&
-                Math.Abs(Convert.ToDouble(entry.Values[1]) - 5d) < 0.0001),
-            "Fifth entry should match expected values");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "City3" &&
-                Math.Abs(Convert.ToDouble(entry.Values[1]) - 6d) < 0.0001),
-            "Sixth entry should match expected values");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.Value", typeof(double)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["City1", 1d],
+            ["City2", 2d],
+            ["City2", 3d],
+            ["City3", 4d],
+            ["City3", 5d],
+            ["City3", 6d]);
     }
 
     [TestMethod]
@@ -185,34 +139,19 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("b.Value1", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("b.Value2", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
-
-        Assert.AreEqual(6, table.Count, "Table should contain 6 rows");
-
-        Assert.AreEqual(1,
-            table.Count(row =>
-                (string)row.Values[0] == "City1" &&
-                (string)row.Values[1] == "Value1" &&
-                (int)row.Values[2] == 1), "Expected data for City1 not found");
-
-        Assert.AreEqual(2,
-            table.Count(row =>
-                (string)row.Values[0] == "City2" &&
-                new[] { "Value2", "Value3" }.Contains((string)row.Values[1]) &&
-                ((int)row.Values[2] == 2 || (int)row.Values[2] == 3)), "Expected data for City2 not found");
-
-        Assert.AreEqual(3,
-            table.Count(row =>
-                (string)row.Values[0] == "City3" &&
-                new[] { "Value4", "Value5", "Value6" }.Contains((string)row.Values[1]) &&
-                ((int)row.Values[2] == 4 || (int)row.Values[2] == 5 || (int)row.Values[2] == 6)),
-            "Expected data for City3 not found");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.Value1", typeof(string)),
+            ("b.Value2", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["City1", "Value1", 1],
+            ["City2", "Value2", 2],
+            ["City2", "Value3", 3],
+            ["City3", "Value4", 4],
+            ["City3", "Value5", 5],
+            ["City3", "Value6", 6]);
     }
 
     [TestMethod]
@@ -251,51 +190,19 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("b.Value1", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("b.Value2", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
-
-        Assert.AreEqual(6, table.Count, "Table should have 6 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "City1" &&
-                (string)entry.Values[1] == "Value1" &&
-                Convert.ToInt32(entry.Values[2]) == 1),
-            "First entry should match expected values");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "City2" &&
-                (string)entry.Values[1] == "Value2" &&
-                Convert.ToInt32(entry.Values[2]) == 2),
-            "Second entry should match expected values");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "City2" &&
-                (string)entry.Values[1] == "Value3" &&
-                Convert.ToInt32(entry.Values[2]) == 3),
-            "Third entry should match expected values");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "City3" &&
-                (string)entry.Values[1] == "Value4" &&
-                Convert.ToInt32(entry.Values[2]) == 4),
-            "Fourth entry should match expected values");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "City3" &&
-                (string)entry.Values[1] == "Value5" &&
-                Convert.ToInt32(entry.Values[2]) == 5),
-            "Fifth entry should match expected values");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "City3" &&
-                (string)entry.Values[1] == "Value6" &&
-                Convert.ToInt32(entry.Values[2]) == 6),
-            "Sixth entry should match expected values");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.Value1", typeof(string)),
+            ("b.Value2", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["City1", "Value1", 1],
+            ["City2", "Value2", 2],
+            ["City2", "Value3", 3],
+            ["City3", "Value4", 4],
+            ["City3", "Value5", 5],
+            ["City3", "Value6", 6]);
     }
 
     [TestMethod]
@@ -318,69 +225,18 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("b.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(double), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("c.Value", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(double), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(16, table.Count, "Result should contain exactly 16 value pairs");
-
-        var actualPairs = table
-            .Select(row => (First: (double)row.Values[0], Second: (double)row.Values[1]))
-            .ToList();
-
-        var expectedPairs = new List<(double First, double Second)>
-        {
-            (1.0, 1.1),
-
-
-            (2.0, 2.1),
-            (2.0, 2.2),
-            (2.0, 3.3),
-
-
-            (3.0, 2.1),
-            (3.0, 2.2),
-            (3.0, 3.3),
-
-
-            (4.0, 4.1),
-            (4.0, 5.1),
-            (4.0, 6.1),
-
-
-            (5.0, 4.1),
-            (5.0, 5.1),
-            (5.0, 6.1),
-
-
-            (6.0, 4.1),
-            (6.0, 5.1),
-            (6.0, 6.1)
-        };
-
-        foreach (var expected in expectedPairs)
-        {
-            var matchCount = actualPairs.Count(actual =>
-                Math.Abs(actual.First - expected.First) < 0.0001 &&
-                Math.Abs(actual.Second - expected.Second) < 0.0001
-            );
-
-            Assert.AreEqual(1, matchCount,
-                $"Pair ({expected.First}, {expected.Second}) should appear exactly once");
-        }
-
-        var firstValues = new[] { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
-
-        foreach (var firstValue in firstValues)
-        {
-            var expectedCount = Math.Abs(firstValue - 1.0) < 0.00001 ? 1 : 3;
-            var actualCount = actualPairs.Count(p => Math.Abs(p.First - firstValue) < 0.0001);
-
-            Assert.AreEqual(expectedCount, actualCount,
-                $"First value {firstValue} should appear {expectedCount} times");
-        }
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("b.Value", typeof(double)),
+            ("c.Value", typeof(double)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [1d, 1.1d],
+            [2d, 2.1d], [2d, 2.2d], [2d, 3.3d],
+            [3d, 2.1d], [3d, 2.2d], [3d, 3.3d],
+            [4d, 4.1d], [4d, 5.1d], [4d, 6.1d],
+            [5d, 4.1d], [5d, 5.1d], [5d, 6.1d],
+            [6d, 4.1d], [6d, 5.1d], [6d, 6.1d]);
     }
 
     [TestMethod]
@@ -435,31 +291,11 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("d.Value", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual(8, table.Count, "Result should contain exactly 8 values");
-
-        var actualValues = table
-            .Select(row => row.Values[0])
-            .ToList();
-
-        var expectedValues = Enumerable.Range(1, 8)
-            .Select(i => $"Value{i}")
-            .ToList();
-
-        foreach (var expectedValue in expectedValues)
-            Assert.AreEqual(
-                1,
-                actualValues.Count(value => (string)value == expectedValue),
-                $"Value '{expectedValue}' should appear exactly once in the results"
-            );
-
-        foreach (var actualValue in actualValues)
-            Assert.IsTrue(
-                expectedValues.Contains(actualValue),
-                $"Found unexpected value '{actualValue}' in results. Only values following the pattern 'Value1' through 'Value8' should be present."
-            );
+        TableMaterializationTestHelper.AssertColumns(table, ("d.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Value1"], ["Value2"], ["Value3"], ["Value4"],
+            ["Value5"], ["Value6"], ["Value7"], ["Value8"]);
     }
 
     [TestMethod]
@@ -482,8 +318,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("d.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table);
     }
 
     [TestMethod]
@@ -514,11 +350,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-
-        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
-        Assert.IsTrue(table.Any(row => (int)row.Values[0] == 1) && table.Any(row => (int)row.Values[0] == 2),
-            "Expected values 1 and 2 not found");
+        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1], [2]);
     }
 
     [TestMethod]
@@ -549,12 +382,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 1), "First entry should be 1");
-        Assert.IsTrue(table.Any(entry => (int)entry.Values[0] == 2), "Second entry should be 2");
+        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1], [2]);
     }
 
     [TestMethod]
@@ -587,11 +416,8 @@ public class CrossApplySelfPropertyTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-
-        Assert.AreEqual(1, table.Count);
-
-        Assert.AreEqual("System.Int32", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("b.GetTypeName(b.Value)", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["System.Int32"]);
     }
 
     private sealed class CrossApplyClass1

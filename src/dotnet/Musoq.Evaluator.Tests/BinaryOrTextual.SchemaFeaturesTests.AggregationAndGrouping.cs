@@ -45,10 +45,12 @@ public partial class BinaryOrTextualSchemaFeaturesTests
         var table = vm.Run(CancellationToken.None);
 
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1000, table[0][0]);
-        Assert.AreEqual(4L, table[0][1]);
-        Assert.AreEqual(250, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("TotalValue", typeof(int?)),
+            ("RecordCount", typeof(long)),
+            ("AvgValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1000, 4L, 250]);
     }
 
     [TestMethod]
@@ -94,20 +96,16 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(3, table.Count);
-        // Category 1: Sum=250, Count=2
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(250, table[0][1]);
-        Assert.AreEqual(2L, table[0][2]);
-        // Category 2: Sum=750, Count=3
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual(750, table[1][1]);
-        Assert.AreEqual(3L, table[1][2]);
-        // Category 3: Sum=500, Count=1
-        Assert.AreEqual((byte)3, table[2][0]);
-        Assert.AreEqual(500, table[2][1]);
-        Assert.AreEqual(1L, table[2][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("t.Category", typeof(byte)),
+            ("TotalAmount", typeof(int?)),
+            ("TransactionCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [(byte)1, 250, 2L],
+            [(byte)2, 750, 3L],
+            [(byte)3, 500, 1L]);
     }
 
     [TestMethod]
@@ -153,14 +151,14 @@ public partial class BinaryOrTextualSchemaFeaturesTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert: Only regions with total > 500
-        Assert.AreEqual(2, table.Count);
-        // Region 2: 900
-        Assert.AreEqual((byte)2, table[0][0]);
-        Assert.AreEqual(900, table[0][1]);
-        // Region 3: 600
-        Assert.AreEqual((byte)3, table[1][0]);
-        Assert.AreEqual(600, table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("s.Region", typeof(byte)),
+            ("TotalSales", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [(byte)2, 900],
+            [(byte)3, 600]);
     }
 
     private static BinaryEntity CreateTransactionEntity(string name, byte category, int amount)

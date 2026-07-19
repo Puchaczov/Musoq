@@ -54,11 +54,13 @@ public partial class BinaryOrTextualCoreBinaryTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual("host", table[0][1]);
-        Assert.AreEqual("localhost", table[0][2]);
-        Assert.AreEqual((byte)0xFF, table[0][3]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Version", typeof(byte)),
+            ("p.Config.Key", typeof(string)),
+            ("p.Config.Value", typeof(string)),
+            ("p.Checksum", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)1, "host", "localhost", (byte)0xFF]);
     }
 
 

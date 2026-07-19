@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -11,18 +10,18 @@ public partial class SpecExplorationCoreLanguageTests
     public void Spec_Join_SemiJoin()
     {
         var table = RunDirectJoinSpecQuery("select a.Name from #A.Entities() a semi join #B.Entities() b on a.Id = b.Id");
-        var rows = table.Select(row => (string)row[0]).OrderBy(name => name).ToArray();
-
-        CollectionAssert.AreEqual(new[] { "A1", "A3" }, rows);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "A1" },
+            new object?[] { "A3" });
     }
 
     [TestMethod]
     public void Spec_Join_AntiJoin()
     {
         var table = RunDirectJoinSpecQuery("select a.Name from #A.Entities() a anti join #B.Entities() b on a.Id = b.Id");
-        var rows = table.Select(row => (string)row[0]).ToArray();
-
-        CollectionAssert.AreEqual(new[] { "A2" }, rows);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "A2" });
     }
 
     private Tables.Table RunDirectJoinSpecQuery(string query)

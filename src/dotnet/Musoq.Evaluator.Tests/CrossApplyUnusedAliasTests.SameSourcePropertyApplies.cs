@@ -33,7 +33,8 @@ public partial class CrossApplyUnusedAliasTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(table, ("1", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1], [1], [1], [1]);
     }
 
     /// <summary>
@@ -60,8 +61,10 @@ public partial class CrossApplyUnusedAliasTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Columns.Count());
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Value", typeof(int)), ("b.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [1, 10], [1, 20], [2, 10], [2, 20]);
     }
 
     /// <summary>
@@ -88,7 +91,8 @@ public partial class CrossApplyUnusedAliasTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(table, ("b.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [10], [10], [20], [20]);
     }
 
     /// <summary>
@@ -115,8 +119,12 @@ public partial class CrossApplyUnusedAliasTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Columns.Count());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("m.Name", typeof(string)), ("a.Value", typeof(int)), ("b.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Test1", 1, 10], ["Test1", 1, 20], ["Test1", 2, 10], ["Test1", 2, 20]);
     }
 
     /// <summary>
@@ -144,8 +152,10 @@ public partial class CrossApplyUnusedAliasTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Columns.Count());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Value", typeof(int)), ("b.Value", typeof(int)), ("c.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1, 10, 100]);
     }
 
     /// <summary>
@@ -176,7 +186,12 @@ public partial class CrossApplyUnusedAliasTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("c.Name", typeof(string)), ("a.Value", typeof(int)), ("b.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Test1", 1, 10], ["Test1", 1, 20], ["Test1", 2, 10], ["Test1", 2, 20]);
     }
 
     /// <summary>
@@ -203,7 +218,12 @@ public partial class CrossApplyUnusedAliasTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Value", typeof(int)), ("b.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [1, "A"], [1, "B"], [1, "C"], [2, "A"], [2, "B"], [2, "C"]);
     }
 
     /// <summary>
@@ -229,8 +249,10 @@ public partial class CrossApplyUnusedAliasTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Columns.Count());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("m.Name", typeof(string)), ("a.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Test1", 1], ["Test1", 2]);
     }
 
     /// <summary>
@@ -258,7 +280,13 @@ public partial class CrossApplyUnusedAliasTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("m.Name", typeof(string)), ("a.Value", typeof(int?)), ("b.Value", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Test1", 1, 10], ["Test1", 1, 20], ["Test1", 2, 10], ["Test1", 2, 20],
+            ["Test2", null, 30]);
     }
 
     /// <summary>
@@ -285,7 +313,10 @@ public partial class CrossApplyUnusedAliasTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("m.Name", typeof(string)), ("a.Value", typeof(int)), ("b.Value", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Test1", 1, null], ["Test1", 2, null]);
     }
 
     #endregion

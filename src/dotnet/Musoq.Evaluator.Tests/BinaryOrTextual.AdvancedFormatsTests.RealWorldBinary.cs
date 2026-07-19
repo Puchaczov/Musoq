@@ -45,12 +45,13 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x89, table[0][0]);
-        Assert.AreEqual((byte)0x50, table[0][1]);
-        Assert.AreEqual((byte)0x4E, table[0][2]);
-        Assert.AreEqual((byte)0x47, table[0][3]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("s.B1", typeof(byte)),
+            ("s.B2", typeof(byte)),
+            ("s.B3", typeof(byte)),
+            ("s.B4", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)0x89, (byte)0x50, (byte)0x4E, (byte)0x47]);
     }
 
     [TestMethod]
@@ -86,14 +87,14 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0x01, table[0][0]);
-        Assert.AreEqual((short)5, table[0][1]);
-        var valueBytes = (byte[])table[0][2];
-        Assert.HasCount(5, valueBytes);
-        Assert.AreEqual((byte)0x10, valueBytes[0]);
-        Assert.AreEqual((byte)0x50, valueBytes[4]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("t.Type", typeof(byte)),
+            ("t.Length", typeof(short)),
+            ("t.Value", typeof(byte[])));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [(byte)0x01, (short)5, new byte[] { 0x10, 0x20, 0x30, 0x40, 0x50 }]);
     }
 
     [TestMethod]
@@ -133,14 +134,16 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)0x1234, table[0][0]);
-        Assert.AreEqual((byte)0x01, table[0][1]);
-        Assert.AreEqual((short)3, table[0][2]);
-        var payload = (byte[])table[0][3];
-        Assert.HasCount(3, payload);
-        Assert.AreEqual((short)6, table[0][4]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("m.Sync", typeof(short)),
+            ("m.MsgType", typeof(byte)),
+            ("m.PayloadLen", typeof(short)),
+            ("m.Payload", typeof(byte[])),
+            ("m.Checksum", typeof(short)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [(short)0x1234, (byte)0x01, (short)3, new byte[] { 1, 2, 3 }, (short)6]);
     }
 
     [TestMethod]
@@ -200,14 +203,15 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((short)1, table[0][0]); // Version
-        Assert.AreEqual((short)0x03, table[0][1]); // Flags
-        Assert.IsTrue((bool?)table[0][2]); // IsCompressed
-        Assert.IsTrue((bool?)table[0][3]); // HasIndex
-        Assert.IsFalse((bool?)table[0][4]); // IsEncrypted
-        Assert.AreEqual(100, table[0][5]); // RecordCount
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.Version", typeof(short)),
+            ("h.Flags", typeof(short)),
+            ("h.IsCompressed", typeof(bool)),
+            ("h.HasIndex", typeof(bool)),
+            ("h.IsEncrypted", typeof(bool)),
+            ("h.RecordCount", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(short)1, (short)0x03, true, true, false, 100]);
     }
 
     [TestMethod]
@@ -231,7 +235,12 @@ public partial class BinaryOrTextualAdvancedFormatsTests
             };
             select
                 m.VertexCount,
-                m.Vertices
+                m.Vertices[0].Position.X,
+                m.Vertices[0].Position.Y,
+                m.Vertices[0].Color,
+                m.Vertices[1].Position.X,
+                m.Vertices[1].Position.Y,
+                m.Vertices[1].Color
             from #test.files() f
             cross apply Interpret<Mesh>(f.Content) m";
 
@@ -267,11 +276,18 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, table[0][0]); // VertexCount
-        var vertices = (Array)table[0][1];
-        Assert.HasCount(2, vertices);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("m.VertexCount", typeof(int)),
+            ("m.Vertices[0].Position.X", typeof(float)),
+            ("m.Vertices[0].Position.Y", typeof(float)),
+            ("m.Vertices[0].Color", typeof(byte)),
+            ("m.Vertices[1].Position.X", typeof(float)),
+            ("m.Vertices[1].Position.Y", typeof(float)),
+            ("m.Vertices[1].Color", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [2, 1.0f, 2.0f, (byte)255, 3.0f, 4.0f, (byte)128]);
     }
 
     [TestMethod]
@@ -308,10 +324,11 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)2, table[0][0]); // RecordType
-        Assert.AreEqual(12345, table[0][1]); // IntValue
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("r.RecordType", typeof(byte)),
+            ("r.IntValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)2, 12345]);
     }
 
     [TestMethod]
@@ -352,11 +369,14 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         var table = vm.Run(CancellationToken.None);
 
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual((byte)1, table[0][0]);
-        Assert.AreEqual(350, table[0][1]);
-        Assert.AreEqual((byte)2, table[1][0]);
-        Assert.AreEqual(400, table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("r.Category", typeof(byte)),
+            ("TotalValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [(byte)1, 350],
+            [(byte)2, 400]);
     }
 
     private static byte[] CreateDataRecord(byte category, int value)

@@ -19,9 +19,9 @@ public partial class GroupByTests : BasicEntityTestBase
         {
             {
                 "#A", [
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("cracow", "jan", -200m)
                 ]
             }
         };
@@ -29,13 +29,12 @@ public partial class GroupByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual(Convert.ToDecimal(700), table[0].Values[0]);
-        Assert.AreEqual(Convert.ToDecimal(-200), table[0].Values[1]);
-        Assert.AreEqual(Convert.ToDecimal(700), table[1].Values[0]);
-        Assert.AreEqual(Convert.ToDecimal(-200), table[1].Values[1]);
-        Assert.AreEqual(Convert.ToDecimal(700), table[2].Values[0]);
-        Assert.AreEqual(Convert.ToDecimal(-200), table[2].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("SumIncome(Money, 1)", typeof(decimal?)), ("SumOutcome(Money, 1)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [700m, -200m], [700m, -200m], [700m, -200m]);
     }
 
     [TestMethod]
@@ -48,8 +47,8 @@ public partial class GroupByTests : BasicEntityTestBase
             {
                 "#A",
                 [
-                    new BasicEntity("jan", Convert.ToDecimal(400)), new BasicEntity("jan", Convert.ToDecimal(300)),
-                    new BasicEntity("jan", Convert.ToDecimal(-200))
+                    new BasicEntity("jan", 400m), new BasicEntity("jan", 300m),
+                    new BasicEntity("jan", -200m)
                 ]
             }
         };
@@ -57,10 +56,11 @@ public partial class GroupByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(Convert.ToDecimal(700), table[0].Values[0]);
-        Assert.AreEqual(Convert.ToDecimal(-200), table[0].Values[1]);
-        Assert.AreEqual(Convert.ToDecimal(500), table[0].Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("SumIncome(Money)", typeof(decimal?)), ("SumOutcome(Money)", typeof(decimal?)),
+            ("SumIncome(Money) - Abs(SumOutcome(Money))", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [700m, -200m, 500m]);
     }
 
     [TestMethod]
@@ -85,23 +85,8 @@ public partial class GroupByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "ABBA" &&
-                (long)row.Values[1] == 4L),
-            "Missing ABBA/4");
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "BABBA" &&
-                (long)row.Values[1] == 2L),
-            "Missing BABBA/2");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Count(Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["ABBA", 4L], ["BABBA", 2L]);
     }
 
 
@@ -128,15 +113,8 @@ public partial class GroupByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("CECCA", table[0].Values[0]);
-        Assert.AreEqual(1L, table[0].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Count(Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["CECCA", 1L]);
     }
 
     [TestMethod]
@@ -161,17 +139,8 @@ public partial class GroupByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("ABBA", table[0].Values[0]);
-        Assert.AreEqual(4L, table[0].Values[1]);
-        Assert.AreEqual("BABBA", table[1].Values[0]);
-        Assert.AreEqual(2L, table[1].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Count(Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["ABBA", 4L], ["BABBA", 2L]);
     }
 
     [TestMethod]
@@ -196,15 +165,8 @@ public partial class GroupByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("CECCA", table[0].Values[0]);
-        Assert.AreEqual(1L, table[0].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Count(Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["CECCA", 1L]);
     }
 
     [TestMethod]
@@ -228,28 +190,10 @@ public partial class GroupByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("Sum(Population)", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(decimal?), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "ABBA" &&
-            (decimal)entry.Values[1] == Convert.ToDecimal(710)
-        ), "First entry should be 'ABBA' with value 710");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "BABBA" &&
-            (decimal)entry.Values[1] == Convert.ToDecimal(200)
-        ), "Second entry should be 'BABBA' with value 200");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "CECCA" &&
-            (decimal)entry.Values[1] == Convert.ToDecimal(1000)
-        ), "Third entry should be 'CECCA' with value 1000");
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)), ("Sum(Population)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["ABBA", 710m], ["BABBA", 200m], ["CECCA", 1000m]);
     }
 
     [TestMethod]
@@ -273,36 +217,14 @@ public partial class GroupByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Columns.Count());
-        Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("City", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("Count(Country)", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("Count(City)", table.Columns.ElementAt(3).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(3).ColumnType);
-
-        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
-
-        Assert.AreEqual(2,
-            table.Count(row =>
-                (string)row.Values[0] == "POLAND" &&
-                new[] { "WARSAW", "CZESTOCHOWA" }.Contains((string)row.Values[1]) &&
-                (((long)row.Values[2] == 1L && (long)row.Values[3] == 1L) ||
-                 ((long)row.Values[2] == 2L && (long)row.Values[3] == 2L))), "Expected data for Polish cities not found");
-
-        Assert.AreEqual(2,
-            table.Count(row =>
-                (string)row.Values[0] == "UK" &&
-                new[] { "LONDON", "MANCHESTER" }.Contains((string)row.Values[1]) &&
-                (long)row.Values[2] == 1L && (long)row.Values[3] == 1L), "Expected data for UK cities not found");
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "ANGOLA" &&
-                (string)row.Values[1] == "LLL" &&
-                (long)row.Values[2] == 1L && (long)row.Values[3] == 1L),
-            "Expected data for Angola not found");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)), ("City", typeof(string)),
+            ("Count(Country)", typeof(long)), ("Count(City)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["POLAND", "WARSAW", 1L, 1L], ["POLAND", "CZESTOCHOWA", 2L, 2L],
+            ["UK", "LONDON", 1L, 1L], ["UK", "MANCHESTER", 1L, 1L], ["ANGOLA", "LLL", 1L, 1L]);
     }
 
 
@@ -331,18 +253,8 @@ public partial class GroupByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("Window(Population)", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(IEnumerable<decimal>), table.Columns.ElementAt(0).ColumnType);
-
-        var window = ((IEnumerable<decimal>)table[0][0]).ToArray();
-
-        Assert.AreEqual(5, window.Length);
-        Assert.AreEqual(500, window.ElementAt(0));
-        Assert.AreEqual(400, window.ElementAt(1));
-        Assert.AreEqual(250, window.ElementAt(2));
-        Assert.AreEqual(250, window.ElementAt(3));
-        Assert.AreEqual(350, window.ElementAt(4));
+        TableMaterializationTestHelper.AssertColumns(table, ("Window(Population)", typeof(IEnumerable<decimal>)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [new decimal[] { 500, 400, 250, 250, 350 }]);
     }
 
     [TestMethod]
@@ -367,27 +279,10 @@ public partial class GroupByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("Window(Population)", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(IEnumerable<decimal>), table.Columns.ElementAt(0).ColumnType);
-
-        for (var i = 0; i < 2; i++)
-        {
-            var window = ((IEnumerable<decimal>)table[i][0]).ToArray();
-
-            if (window.Length == 3)
-            {
-                Assert.AreEqual(500, window.ElementAt(0));
-                Assert.AreEqual(400, window.ElementAt(1));
-                Assert.AreEqual(250, window.ElementAt(2));
-            }
-            else
-            {
-                Assert.HasCount(2, window);
-                Assert.AreEqual(250, window.ElementAt(0));
-                Assert.AreEqual(350, window.ElementAt(1));
-            }
-        }
+        TableMaterializationTestHelper.AssertColumns(table, ("Window(Population)", typeof(IEnumerable<decimal>)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [new decimal[] { 500, 400, 250 }], [new decimal[] { 250, 350 }]);
     }
 
     [TestMethod]
@@ -412,38 +307,14 @@ public partial class GroupByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Columns.Count());
-        Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("City", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("Count(City, 1)", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("CountOfCities", table.Columns.ElementAt(3).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(3).ColumnType);
-
-        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "POLAND" &&
-                (string)entry.Values[1] == "WARSAW" &&
-                Convert.ToInt32(entry.Values[2]) == 3 &&
-                Convert.ToInt32(entry.Values[3]) == 1),
-            "Entry for POLAND - WARSAW should match expected values");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "POLAND" &&
-                (string)entry.Values[1] == "CZESTOCHOWA" &&
-                Convert.ToInt32(entry.Values[2]) == 3 &&
-                Convert.ToInt32(entry.Values[3]) == 1),
-            "Entry for POLAND - CZESTOCHOWA should match expected values");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "POLAND" &&
-                (string)entry.Values[1] == "KATOWICE" &&
-                Convert.ToInt32(entry.Values[2]) == 3 &&
-                Convert.ToInt32(entry.Values[3]) == 1),
-            "Entry for POLAND - KATOWICE should match expected values");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)), ("City", typeof(string)),
+            ("Count(City, 1)", typeof(long)), ("CountOfCities", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["POLAND", "WARSAW", 3L, 1L], ["POLAND", "CZESTOCHOWA", 3L, 1L],
+            ["POLAND", "KATOWICE", 3L, 1L]);
     }
 
     [TestMethod]
@@ -468,20 +339,11 @@ public partial class GroupByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Columns.Count());
-        Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("City", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("Count(City, 1)", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("CountOfCities", table.Columns.ElementAt(3).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(3).ColumnType);
-
-        Assert.AreEqual("POLAND", table[0].Values[0]);
-        Assert.AreEqual("CZESTOCHOWA", table[0].Values[1]);
-        Assert.AreEqual(3L, table[0].Values[2]);
-        Assert.AreEqual(1L, table[0].Values[3]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Country", typeof(string)), ("City", typeof(string)),
+            ("Count(City, 1)", typeof(long)), ("CountOfCities", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["POLAND", "CZESTOCHOWA", 3L, 1L]);
     }
 
     [TestMethod]
@@ -505,13 +367,7 @@ public partial class GroupByTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("Count(Country)", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(0).ColumnType);
-
-        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
-
-        Assert.IsTrue(table.Any(row => (long)row.Values[0] == 3L), "Missing value 3");
-        Assert.IsTrue(table.Any(row => (long)row.Values[0] == 2L), "Missing value 2");
+        TableMaterializationTestHelper.AssertColumns(table, ("Count(Country)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [3L], [2L]);
     }
 }

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -35,11 +34,10 @@ public partial class DistinctOrderByBugTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("Austria", table[0].Values[0]);
-        Assert.AreEqual("France", table[1].Values[0]);
-        Assert.AreEqual("Germany", table[2].Values[0]);
-        Assert.AreEqual("Poland", table[3].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Austria" }, new object?[] { "France" },
+            new object?[] { "Germany" }, new object?[] { "Poland" });
     }
 
     [TestMethod]
@@ -68,11 +66,10 @@ public partial class DistinctOrderByBugTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("Poland", table[0].Values[0]);
-        Assert.AreEqual("Germany", table[1].Values[0]);
-        Assert.AreEqual("France", table[2].Values[0]);
-        Assert.AreEqual("Austria", table[3].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Poland" }, new object?[] { "Germany" },
+            new object?[] { "France" }, new object?[] { "Austria" });
     }
 
     #endregion
@@ -105,11 +102,10 @@ public partial class DistinctOrderByBugTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("Poland", table[0].Values[0]);
-        Assert.AreEqual("Germany", table[1].Values[0]);
-        Assert.AreEqual("France", table[2].Values[0]);
-        Assert.AreEqual("Austria", table[3].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Poland" }, new object?[] { "Germany" },
+            new object?[] { "France" }, new object?[] { "Austria" });
     }
 
     [TestMethod]
@@ -138,11 +134,10 @@ public partial class DistinctOrderByBugTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        Assert.AreEqual("Austria", table[0].Values[0]);
-        Assert.AreEqual("France", table[1].Values[0]);
-        Assert.AreEqual("Germany", table[2].Values[0]);
-        Assert.AreEqual("Poland", table[3].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Austria" }, new object?[] { "France" },
+            new object?[] { "Germany" }, new object?[] { "Poland" });
     }
 
     #endregion
@@ -185,11 +180,17 @@ public partial class DistinctOrderByBugTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var names = table.Select(row => (string)row.Values[0]).ToList();
-        var sortedNames = names.OrderBy(n => n).ToList();
-
-        Assert.HasCount(sortedNames.Count, names);
-        CollectionAssert.AreEqual(sortedNames, names, "Results should be in ascending order");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Apple" }, new object?[] { "Banana" },
+            new object?[] { "Cherry" }, new object?[] { "Date" },
+            new object?[] { "Elderberry" }, new object?[] { "Fig" },
+            new object?[] { "Grape" }, new object?[] { "Honeydew" },
+            new object?[] { "Kiwi" }, new object?[] { "Lemon" },
+            new object?[] { "Mango" }, new object?[] { "Nectarine" },
+            new object?[] { "Orange" }, new object?[] { "Papaya" },
+            new object?[] { "Quince" }, new object?[] { "Raspberry" },
+            new object?[] { "Zebra" });
     }
 
     [TestMethod]
@@ -228,11 +229,17 @@ public partial class DistinctOrderByBugTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var names = table.Select(row => (string)row.Values[0]).ToList();
-        var sortedNames = names.OrderByDescending(n => n).ToList();
-
-        Assert.HasCount(sortedNames.Count, names);
-        CollectionAssert.AreEqual(sortedNames, names, "Results should be in descending order");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Zebra" }, new object?[] { "Raspberry" },
+            new object?[] { "Quince" }, new object?[] { "Papaya" },
+            new object?[] { "Orange" }, new object?[] { "Nectarine" },
+            new object?[] { "Mango" }, new object?[] { "Lemon" },
+            new object?[] { "Kiwi" }, new object?[] { "Honeydew" },
+            new object?[] { "Grape" }, new object?[] { "Fig" },
+            new object?[] { "Elderberry" }, new object?[] { "Date" },
+            new object?[] { "Cherry" }, new object?[] { "Banana" },
+            new object?[] { "Apple" });
     }
 
     #endregion

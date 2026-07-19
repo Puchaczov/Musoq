@@ -25,8 +25,8 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "admin"]);
     }
 
 
@@ -50,8 +50,10 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)), ("Upper", typeof(string)), ("Lower", typeof(string)), ("Reversed", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "JOHN", "john", "nhoJ"]);
     }
 
 
@@ -62,7 +64,6 @@ public partial class ExploratoryComplexPatternsTests
         const string query = @"
             select
                 p.Name,
-                GetDate() as CurrentDate,
                 Year(GetDate()) as CurrentYear
             from #schema.first() p";
 
@@ -74,8 +75,8 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("CurrentYear", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", System.DateTime.Now.Year]);
     }
 
 
@@ -100,8 +101,8 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", "admin"], ["Jane", "viewer"]);
     }
 
 
@@ -130,8 +131,10 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("Category", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John", "Adult"], ["Jane", "Senior"], ["Bob", "Retired"]);
     }
 
 
@@ -161,8 +164,12 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, persons, orders);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)), ("o.OrderId", typeof(int?)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John", 1, "a"], ["John", 1, "b"]);
     }
 
 
@@ -182,8 +189,8 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)), ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
 
@@ -206,8 +213,8 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John"], ["Bob"]);
     }
 
 
@@ -230,8 +237,8 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("TotalPeople", typeof(long)), ("TotalAge", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [2L, 55]);
     }
 
 
@@ -256,8 +263,8 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("p.Age", typeof(int)), ("PersonCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [30, 2L], [25, 1L]);
     }
 
 
@@ -289,9 +296,8 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Zebra", table[0].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("o.OrderId", typeof(int)), ("i.ProductName", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1, "Zebra"], [1, "Apple"]);
     }
 
 
@@ -323,8 +329,10 @@ public partial class ExploratoryComplexPatternsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)), ("TagCount", typeof(long)), ("AddressCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["John", 2L, 2L]);
     }
 
 

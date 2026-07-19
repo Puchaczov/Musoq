@@ -40,9 +40,11 @@ public partial class BinaryOrTextualCoreBinaryTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(0x12345678, table[0][0]);
-        Assert.AreEqual((short)0x0100, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.Magic", typeof(int)),
+            ("h.Version", typeof(short)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [0x12345678, (short)0x0100]);
     }
 
     [TestMethod]
@@ -80,13 +82,15 @@ public partial class BinaryOrTextualCoreBinaryTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("file1.bin", table[0][0]);
-        Assert.AreEqual(100, table[0][1]);
-        Assert.AreEqual("file2.bin", table[1][0]);
-        Assert.AreEqual(200, table[1][1]);
-        Assert.AreEqual("file3.bin", table[2][0]);
-        Assert.AreEqual(300, table[2][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("f.Name", typeof(string)),
+            ("h.Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["file1.bin", 100],
+            ["file2.bin", 200],
+            ["file3.bin", 300]);
     }
 
     [TestMethod]
@@ -124,9 +128,11 @@ public partial class BinaryOrTextualCoreBinaryTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("also_enabled.bin", table[0][0]); // 'a' comes before 'e'
-        Assert.AreEqual("enabled.bin", table[1][0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("f.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["also_enabled.bin"],
+            ["enabled.bin"]);
     }
 
     [TestMethod]
@@ -161,16 +167,12 @@ public partial class BinaryOrTextualCoreBinaryTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(1, table.Count);
-        var header = (byte[])table[0][0];
-        var data = (byte[])table[0][1];
-        Assert.HasCount(4, header);
-        Assert.HasCount(2, data);
-        Assert.AreEqual((byte)0xDE, header[0]);
-        Assert.AreEqual((byte)0xAD, header[1]);
-        Assert.AreEqual((byte)0xBE, header[2]);
-        Assert.AreEqual((byte)0xEF, header[3]);
-        Assert.AreEqual((byte)0x12, data[0]);
-        Assert.AreEqual((byte)0x34, data[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.Header", typeof(byte[])),
+            ("h.Data", typeof(byte[])));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [new byte[] { 0xDE, 0xAD, 0xBE, 0xEF }, new byte[] { 0x12, 0x34 }]);
     }
 }

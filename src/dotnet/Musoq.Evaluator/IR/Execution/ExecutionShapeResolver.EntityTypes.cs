@@ -93,6 +93,8 @@ public sealed partial class ExecutionShapeResolver
 
     private static bool IsScalar(Type type)
     {
+        type = Nullable.GetUnderlyingType(type) ?? type;
+
         return type.IsPrimitive
                || type == typeof(string)
                || type == typeof(decimal)

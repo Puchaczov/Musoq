@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -175,12 +174,12 @@ public partial class DistinctComprehensiveTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        Assert.AreEqual(3, table.Count, "NULL should be treated as a distinct value");
-
-        var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.Contains((string?)null, countries, "Should contain null");
-        Assert.Contains("Germany", countries, "Should contain Germany");
-        Assert.Contains("Poland", countries, "Should contain Poland");
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            new object?[] { null },
+            ["Germany"],
+            ["Poland"]);
     }
 
     /// <summary>

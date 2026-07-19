@@ -42,11 +42,8 @@ public partial class DistinctComprehensiveTests
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        Assert.AreEqual(2, table.Count, "DISTINCT should deduplicate join results");
-
-        var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.Contains("Germany", countries, "Should contain Germany");
-        Assert.Contains("Poland", countries, "Should contain Poland");
+        TableMaterializationTestHelper.AssertColumns(table, ("a.Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Germany"], ["Poland"]);
     }
 
 }

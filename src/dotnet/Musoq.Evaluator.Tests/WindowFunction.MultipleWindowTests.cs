@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -27,18 +25,16 @@ public class WindowFunctionMultipleWindowTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(1L, alice.Values[1]);
-        Assert.AreEqual(100m, Convert.ToDecimal(alice.Values[2]));
-        Assert.AreEqual(2L, bob.Values[1]);
-        Assert.AreEqual(300m, Convert.ToDecimal(bob.Values[2]));
-        Assert.AreEqual(3L, charlie.Values[1]);
-        Assert.AreEqual(600m, Convert.ToDecimal(charlie.Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RowNum", typeof(long)),
+            ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L, 100m],
+            ["Bob", 2L, 300m],
+            ["Charlie", 3L, 600m]);
     }
 
     [TestMethod]
@@ -60,25 +56,18 @@ public class WindowFunctionMultipleWindowTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        Assert.AreEqual(1L, alice.Values[1]);
-        Assert.AreEqual(1L, alice.Values[2]);
-        Assert.AreEqual(1L, alice.Values[3]);
-
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-        Assert.AreEqual(4L, diana.Values[1]);
-        Assert.AreEqual(4L, diana.Values[2]);
-        Assert.AreEqual(3L, diana.Values[3]);
-
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(2L, bob.Values[2]);
-        Assert.AreEqual(2L, charlie.Values[2]);
-        Assert.AreEqual(2L, bob.Values[3]);
-        Assert.AreEqual(2L, charlie.Values[3]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RowNum", typeof(long)),
+            ("RankVal", typeof(long)),
+            ("DenseVal", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 1L, 1L, 1L],
+            ["Bob", 2L, 2L, 2L],
+            ["Charlie", 3L, 2L, 2L],
+            ["Diana", 4L, 4L, 3L]);
     }
 
     [TestMethod]
@@ -98,15 +87,17 @@ public class WindowFunctionMultipleWindowTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var laRows = table.Where(r => (string)r.Values[1] == "LA").ToList();
-        Assert.AreEqual(400m, Convert.ToDecimal(laRows[0].Values[2]));
-        Assert.AreEqual(600m, Convert.ToDecimal(laRows[0].Values[3]));
-
-        var nycRows = table.Where(r => (string)r.Values[1] == "NYC").ToList();
-        Assert.AreEqual(200m, Convert.ToDecimal(nycRows[0].Values[2]));
-        Assert.AreEqual(600m, Convert.ToDecimal(nycRows[0].Values[3]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("CityTotal", typeof(decimal)),
+            ("GrandTotal", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", 400m, 600m],
+            ["Bob", "NYC", 200m, 600m],
+            ["Charlie", "LA", 400m, 600m]);
     }
 
     [TestMethod]
@@ -126,20 +117,16 @@ public class WindowFunctionMultipleWindowTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.IsNull(alice.Values[1]);
-        Assert.AreEqual(200m, Convert.ToDecimal(alice.Values[2]));
-
-        Assert.AreEqual(100m, Convert.ToDecimal(bob.Values[1]));
-        Assert.AreEqual(300m, Convert.ToDecimal(bob.Values[2]));
-
-        Assert.AreEqual(200m, Convert.ToDecimal(charlie.Values[1]));
-        Assert.IsNull(charlie.Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("PrevPop", typeof(decimal?)),
+            ("NextPop", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", null, 200m],
+            ["Bob", 100m, 300m],
+            ["Charlie", 200m, null]);
     }
 
     [TestMethod]
@@ -157,15 +144,15 @@ public class WindowFunctionMultipleWindowTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(200m, Convert.ToDecimal(alice.Values[1]));
-        Assert.AreEqual(600m, Convert.ToDecimal(bob.Values[1]));
-        Assert.AreEqual(1200m, Convert.ToDecimal(charlie.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("DoubledRunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 200m],
+            ["Bob", 600m],
+            ["Charlie", 1200m]);
     }
 
     [TestMethod]
@@ -184,13 +171,15 @@ public class WindowFunctionMultipleWindowTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Charlie", table[0].Values[0]);
-        Assert.AreEqual(600m, Convert.ToDecimal(table[0].Values[1]));
-        Assert.AreEqual("Bob", table[1].Values[0]);
-        Assert.AreEqual(300m, Convert.ToDecimal(table[1].Values[1]));
-        Assert.AreEqual("Alice", table[2].Values[0]);
-        Assert.AreEqual(100m, Convert.ToDecimal(table[2].Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Charlie", 600m],
+            ["Bob", 300m],
+            ["Alice", 100m]);
     }
 
     [TestMethod]
@@ -209,16 +198,16 @@ public class WindowFunctionMultipleWindowTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(1L, alice.Values[2]);
-        Assert.AreEqual(2L, diana.Values[2]);
-        Assert.AreEqual(3L, bob.Values[2]);
-        Assert.AreEqual(4L, charlie.Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("RowNum", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", 1L],
+            ["Diana", "LA", 2L],
+            ["Bob", "NYC", 3L],
+            ["Charlie", "NYC", 4L]);
     }
 }

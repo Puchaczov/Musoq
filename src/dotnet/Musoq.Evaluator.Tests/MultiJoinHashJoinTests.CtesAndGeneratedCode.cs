@@ -39,10 +39,10 @@ public partial class MultiJoinHashJoinTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Should have 1 matching row");
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B1", table[0][1]);
-        Assert.AreEqual("C1", table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)), ("b.Name", typeof(string)), ("c.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["A1", "B1", "C1"]);
     }
 
     /// <summary>
@@ -89,19 +89,14 @@ public partial class MultiJoinHashJoinTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Should have 2 rows");
-
-
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.AreEqual("B1", table[0][1]);
-        Assert.AreEqual("C1", table[0][2]);
-        Assert.AreEqual("D1", table[0][3]);
-
-
-        Assert.AreEqual("A2", table[1][0]);
-        Assert.AreEqual("B2", table[1][1]);
-        Assert.IsNull(table[1][2]);
-        Assert.IsNull(table[1][3]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)), ("b.Name", typeof(string)),
+            ("c.Name", typeof(string)), ("d.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["A1", "B1", "C1", "D1"],
+            ["A2", "B2", null, null]);
     }
 
     #endregion

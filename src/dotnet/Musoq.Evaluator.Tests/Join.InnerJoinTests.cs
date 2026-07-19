@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -25,14 +23,9 @@ public class JoinInnerJoinTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, table.Columns.Count());
-
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(2, table[0][0]);
-        Assert.AreEqual(2, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.Id", typeof(int)), ("b.Id", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 2, 2 });
     }
 
     [TestMethod]
@@ -49,10 +42,9 @@ public class JoinInnerJoinTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual(2, table[0][0]);
-        Assert.AreEqual(2, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("A.Id", typeof(int)), ("B.Id", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { 2, 2 });
     }
 
     [TestMethod]
@@ -75,7 +67,8 @@ inner join #C.entities() population on 1 = 1";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("countries.Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
     [TestMethod]
@@ -122,51 +115,16 @@ inner join #C.entities() population on cities.City = population.City";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Columns.Count());
-
-        Assert.AreEqual("countries.Country", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual(0, table.Columns.ElementAt(0).ColumnIndex);
-
-        Assert.AreEqual("cities.City", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual(1, table.Columns.ElementAt(1).ColumnIndex);
-
-        Assert.AreEqual("population.Population", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual(2, table.Columns.ElementAt(2).ColumnIndex);
-
-        Assert.AreEqual(5, table.Count, "Table should have 5 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "Poland" &&
-                (string)entry[1] == "Krakow" &&
-                (decimal)entry[2] == 400m),
-            "Entry for Krakow should match");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "Poland" &&
-                (string)entry[1] == "Wroclaw" &&
-                (decimal)entry[2] == 500m),
-            "Entry for Wroclaw should match");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "Poland" &&
-                (string)entry[1] == "Warszawa" &&
-                (decimal)entry[2] == 1000m),
-            "Entry for Warszawa should match");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "Poland" &&
-                (string)entry[1] == "Gdansk" &&
-                (decimal)entry[2] == 200m),
-            "Entry for Gdansk should match");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "Germany" &&
-                (string)entry[1] == "Berlin" &&
-                (decimal)entry[2] == 400m),
-            "Entry for Berlin should match");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("countries.Country", typeof(string)),
+            ("cities.City", typeof(string)),
+            ("population.Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "Poland", "Krakow", 400m },
+            new object?[] { "Poland", "Wroclaw", 500m },
+            new object?[] { "Poland", "Warszawa", 1000m },
+            new object?[] { "Poland", "Gdansk", 200m },
+            new object?[] { "Germany", "Berlin", 400m });
     }
 
     [TestMethod]
@@ -203,13 +161,11 @@ select p.Id, x.Id from p inner join x on p.Country = x.Country";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(table.Count == 5 && table.Columns.Count() == 2, "Table should contain 5 rows and 2 columns");
-
-        Assert.AreEqual(4, table.Count(row => (int)row[0] == 0), "Expected 4 rows with first column value 0");
-
-        Assert.IsTrue(table.All(row =>
-                new[] { (0, 0), (0, 1), (0, 2), (0, 3), (1, 4) }.Contains(((int)row[0], (int)row[1]))),
-            "Expected rows with values: (0,0), (0,1), (0,2), (0,3), (1,4)");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("p.Id", typeof(int)), ("x.Id", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { 0, 0 }, new object?[] { 0, 1 }, new object?[] { 0, 2 },
+            new object?[] { 0, 3 }, new object?[] { 1, 4 });
     }
 
     [TestMethod]
@@ -237,20 +193,10 @@ select p.Id, x.Id from p p inner join x on p.Country = x.Country";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
-        Assert.AreEqual(2, table.Columns.Count(), "Table should have 2 columns");
-
-        Assert.IsTrue(table.Any(entry =>
-            (int)entry[0] == 0 &&
-            (int)entry[1] == 0), "First entry should be 0, 0");
-
-        Assert.IsTrue(table.Any(entry =>
-            (int)entry[0] == 1 &&
-            (int)entry[1] == 1), "Second entry should be 1, 1");
-
-        Assert.IsTrue(table.Any(entry =>
-            (int)entry[0] == 2 &&
-            (int)entry[1] == 2), "Third entry should be 2, 2");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("p.Id", typeof(int)), ("x.Id", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { 0, 0 }, new object?[] { 1, 1 }, new object?[] { 2, 2 });
     }
 
     [TestMethod]
@@ -283,11 +229,10 @@ select p.Country, x.Country from p inner join x on p.Country = x.Country where p
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, table.Columns.Count());
-
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual("Poland", table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("p.Country", typeof(string)), ("x.Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Poland", "Poland" });
     }
 
     [TestMethod]
@@ -321,11 +266,10 @@ select p.Country, p.Count(p.Country) from p inner join x on p.Country = x.Countr
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, table.Columns.Count());
-
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual(2L, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("p.Country", typeof(string)), ("p.Count(p.Country)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Poland", 2L });
     }
 
     [TestMethod]
@@ -362,10 +306,12 @@ from #A.entities() a inner join #B.entities() b on 1 = 1 inner join #C.entities(
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(1m, table[0][0]);
-        Assert.AreEqual(2m, table[0][1]);
-        Assert.AreEqual(3m, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.ToDecimal(a.Id)", typeof(decimal?)),
+            ("b.ToDecimal(b.Id)", typeof(decimal?)),
+            ("c.ToDecimal(c.Id)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { 1m, 2m, 3m });
     }
 
     [TestMethod]
@@ -412,32 +358,16 @@ inner join #C.entities() population on cities.GetCity() = population.GetCity()";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(table.Count == 5 && table.Columns.Count() == 3, "Table should contain 5 rows and 3 columns");
-
-        Assert.IsTrue(table.Count(row => (string)row[0] == "Poland") == 4 &&
-                      table.Any(row =>
-                          (string)row[0] == "Poland" &&
-                          (string)row[1] == "Krakow" &&
-                          (decimal)row[2] == 400m) &&
-                      table.Any(row =>
-                          (string)row[0] == "Poland" &&
-                          (string)row[1] == "Wroclaw" &&
-                          (decimal)row[2] == 500m) &&
-                      table.Any(row =>
-                          (string)row[0] == "Poland" &&
-                          (string)row[1] == "Warszawa" &&
-                          (decimal)row[2] == 1000m) &&
-                      table.Any(row =>
-                          (string)row[0] == "Poland" &&
-                          (string)row[1] == "Gdansk" &&
-                          (decimal)row[2] == 200m),
-            "Expected four rows for Poland with cities Krakow(400), Wroclaw(500), Warszawa(1000), Gdansk(200)");
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row[0] == "Germany" &&
-                (string)row[1] == "Berlin" &&
-                (decimal)row[2] == 400m),
-            "Expected one row for Germany with city Berlin(400)");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("countries.GetCountry()", typeof(string)),
+            ("cities.GetCity()", typeof(string)),
+            ("population.GetPopulation()", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "Poland", "Krakow", 400m },
+            new object?[] { "Poland", "Wroclaw", 500m },
+            new object?[] { "Poland", "Warszawa", 1000m },
+            new object?[] { "Poland", "Gdansk", 200m },
+            new object?[] { "Germany", "Berlin", 400m });
     }
 
     [TestMethod]
@@ -465,19 +395,11 @@ inner join #A.entities() cities on countries.Country = cities.Country
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "Poland" &&
-            (string)entry[1] == "Krakow"
-        ), "First entry should be Poland, Krakow");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "Germany" &&
-            (string)entry[1] == "Berlin"
-        ), "Second entry should be Germany, Berlin");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("countries.GetCountry()", typeof(string)),
+            ("cities.GetCity()", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "Poland", "Krakow" }, new object?[] { "Germany", "Berlin" });
     }
 
     [TestMethod]
@@ -505,18 +427,10 @@ inner join #A.entities() t2 on t.Trim(t.Country) = t2.Trim(t2.Country)
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == " Poland " &&
-            (string)entry[1] == " Krakow"
-        ), "First entry should be Poland, Krakow");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "Germany " &&
-            (string)entry[1] == " Berlin"
-        ), "Second entry should be Germany, Berlin");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("t.Country", typeof(string)), ("t2.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { " Poland ", " Krakow" },
+            new object?[] { "Germany ", " Berlin" });
     }
 }

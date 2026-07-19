@@ -52,23 +52,16 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(3, table.Count);
-
-        var timestamps = table.Select(r => (string)r[0]).ToList();
-        var levels = table.Select(r => (string)r[1]).ToList();
-        var messages = table.Select(r => (string)r[2]).ToList();
-
-        Assert.Contains("2024-01-15T10:30:00", timestamps);
-        Assert.Contains("2024-01-15T10:30:01", timestamps);
-        Assert.Contains("2024-01-15T10:30:02", timestamps);
-
-        Assert.Contains("INFO", levels);
-        Assert.Contains("WARN", levels);
-        Assert.Contains("ERROR", levels);
-
-        Assert.Contains("Application started", messages);
-        Assert.Contains("Low memory detected", messages);
-        Assert.Contains("Connection failed", messages);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("log.Timestamp", typeof(string)),
+            ("log.Level", typeof(string)),
+            ("log.Message", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["2024-01-15T10:30:00", "INFO", "Application started"],
+            ["2024-01-15T10:30:01", "WARN", "Low memory detected"],
+            ["2024-01-15T10:30:02", "ERROR", "Connection failed"]);
     }
 
     /// <summary>
@@ -107,13 +100,15 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
 
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("debug", table[0][0]);
-        Assert.AreEqual("true", table[0][1]);
-        Assert.AreEqual("host", table[1][0]);
-        Assert.AreEqual("localhost", table[1][1]);
-        Assert.AreEqual("port", table[2][0]);
-        Assert.AreEqual("8080", table[2][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("kv.Key", typeof(string)),
+            ("kv.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["debug", "true"],
+            ["host", "localhost"],
+            ["port", "8080"]);
     }
 
     /// <summary>

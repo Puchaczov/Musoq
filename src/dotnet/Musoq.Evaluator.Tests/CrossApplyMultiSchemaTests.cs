@@ -67,27 +67,17 @@ public class CrossApplyMultiSchemaTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Columns.Count(), "Should have 3 columns: f.FullPath, s.Country, s.Money");
-        Assert.AreEqual(4, table.Count, "Should have 4 rows (2 files * 2 data entries)");
-
-        var rows = table.Select(row => (
-            FullPath: row.Values[0]?.ToString(),
-            Country: row.Values[1]?.ToString(),
-            Money: (decimal)row.Values[2]
-        )).ToList();
-
-        Assert.IsTrue(
-            rows.Any(r => r is { FullPath: "/path/to/test/file1.txt", Country: "Country1", Money: 1000m }),
-            "Should contain file1 with Country1");
-        Assert.IsTrue(
-            rows.Any(r => r is { FullPath: "/path/to/test/file1.txt", Country: "Country2", Money: 2000m }),
-            "Should contain file1 with Country2");
-        Assert.IsTrue(
-            rows.Any(r => r is { FullPath: "/path/to/test/file2.txt", Country: "Country1", Money: 1000m }),
-            "Should contain file2 with Country1");
-        Assert.IsTrue(
-            rows.Any(r => r is { FullPath: "/path/to/test/file2.txt", Country: "Country2", Money: 2000m }),
-            "Should contain file2 with Country2");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("f.FullPath", typeof(string)),
+            ("s.Country", typeof(string)),
+            ("s.Money", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["/path/to/test/file1.txt", "Country1", 1000m],
+            ["/path/to/test/file1.txt", "Country2", 2000m],
+            ["/path/to/test/file2.txt", "Country1", 1000m],
+            ["/path/to/test/file2.txt", "Country2", 2000m]);
     }
 
     /// <summary>
@@ -116,19 +106,15 @@ public class CrossApplyMultiSchemaTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Columns.Count());
-        Assert.AreEqual(2, table.Count, "Should have 2 rows (2 files * 1 data entry)");
-
-        var rows = table.Select(row => (
-            FullPath: row.Values[0]?.ToString(),
-            Country: row.Values[1]?.ToString(),
-            Money: (decimal)row.Values[2]
-        )).ToList();
-
-        Assert.IsTrue(rows.Any(r => r is { FullPath: "/path/to/file1.txt", Country: "Country1", Money: 1000m }),
-            "Should contain file1 with Country1");
-        Assert.IsTrue(rows.Any(r => r is { FullPath: "/path/to/file2.txt", Country: "Country1", Money: 1000m }),
-            "Should contain file2 with Country1");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("f.FullPath", typeof(string)),
+            ("s.Country", typeof(string)),
+            ("s.Money", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["/path/to/file1.txt", "Country1", 1000m],
+            ["/path/to/file2.txt", "Country1", 1000m]);
     }
 
     /// <summary>
@@ -162,18 +148,14 @@ public class CrossApplyMultiSchemaTests
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count(), "Should have 2 columns: FullPath, Country");
-        Assert.AreEqual(2, table.Count, "Should have 2 rows (1 file * 2 countries)");
-
-        var rows = table.Select(row => (
-            FullPath: row.Values[0]?.ToString(),
-            Country: row.Values[1]?.ToString()
-        )).ToList();
-
-        Assert.IsTrue(rows.Any(r => r is { FullPath: "/path/to/file1.txt", Country: "Country1" }),
-            "Should contain file1 with Country1");
-        Assert.IsTrue(rows.Any(r => r is { FullPath: "/path/to/file1.txt", Country: "Country2" }),
-            "Should contain file1 with Country2");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("FullPath", typeof(string)),
+            ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["/path/to/file1.txt", "Country1"],
+            ["/path/to/file1.txt", "Country2"]);
     }
 
     private CompiledQuery CreateVirtualMachineWithTwoSchemas(

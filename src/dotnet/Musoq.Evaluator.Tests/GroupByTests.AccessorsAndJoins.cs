@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -31,28 +29,11 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("Substring(Name, 0, 2)", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("Count(Substring(Name, 0, 2))", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "AA" &&
-            (long)entry.Values[1] == 3L
-        ), "First entry should be 'AA' with value 3");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "BB" &&
-            (long)entry.Values[1] == 2L
-        ), "Second entry should be 'BB' with value 2");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "CC" &&
-            (long)entry.Values[1] == 1L
-        ), "Third entry should be 'CC' with value 1");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Substring(Name, 0, 2)", typeof(string)),
+            ("Count(Substring(Name, 0, 2))", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "AA", 3L }, new object?[] { "BB", 2L }, new object?[] { "CC", 1L });
     }
 
     [TestMethod]
@@ -77,31 +58,12 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Columns.Count());
-        Assert.AreEqual("Name", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("Count(Name)", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("Inc(10)", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(decimal), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("1", table.Columns.ElementAt(3).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(3).ColumnType);
-
-        Assert.AreEqual(2, table.Count, "Table should contain 2 rows");
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "ABBA" &&
-                (long)row.Values[1] == 3L &&
-                (decimal)row.Values[2] == 11m &&
-                (int)row.Values[3] == 1),
-            "Expected row for ABBA with values 3, 11, 1");
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row.Values[0] == "BABBA" &&
-                (long)row.Values[1] == 2L &&
-                (decimal)row.Values[2] == 11m &&
-                (int)row.Values[3] == 1),
-            "Expected row for BABBA with values 2, 11, 1");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Name", typeof(string)), ("Count(Name)", typeof(long)),
+            ("Inc(10)", typeof(decimal)), ("1", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "ABBA", 3L, 11m, 1 },
+            new object?[] { "BABBA", 2L, 11m, 1 });
     }
 
     [TestMethod]
@@ -132,31 +94,12 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Columns.Count());
-        Assert.AreEqual("Country", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("City", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("Count", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("Sum", table.Columns.ElementAt(3).ColumnName);
-        Assert.AreEqual(typeof(decimal?), table.Columns.ElementAt(3).ColumnType);
-
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "POLAND" &&
-            (string)entry.Values[1] == "WARSAW" &&
-            (long)entry.Values[2] == 2L &&
-            (decimal)entry.Values[3] == Convert.ToDecimal(1000)
-        ), "First entry should match POLAND, WARSAW, 2, 1000");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "POLAND" &&
-            (string)entry.Values[1] == "KATOWICE" &&
-            (long)entry.Values[2] == 1L &&
-            (decimal)entry.Values[3] == Convert.ToDecimal(250)
-        ), "Second entry should match POLAND, KATOWICE, 1, 250");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Country", typeof(string)), ("City", typeof(string)),
+            ("Count", typeof(long)), ("Sum", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "POLAND", "WARSAW", 2L, 1000m },
+            new object?[] { "POLAND", "KATOWICE", 1L, 250m });
     }
 
     [TestMethod]
@@ -167,9 +110,9 @@ public partial class GroupByTests
         {
             {
                 "#A", [
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("cracow", "jan", -200m)
                 ]
             }
         };
@@ -177,8 +120,8 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("jan", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Month", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "jan" });
     }
 
     [TestMethod]
@@ -189,9 +132,9 @@ public partial class GroupByTests
         {
             {
                 "#A", [
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200))
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("cracow", "jan", -200m)
                 ]
             }
         };
@@ -199,8 +142,8 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("jan", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Self.Month", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { "jan" });
     }
 
     [TestMethod]
@@ -211,10 +154,10 @@ public partial class GroupByTests
         {
             {
                 "#A", [
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
-                    new BasicEntity("cracow", "feb", Convert.ToDecimal(100))
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("cracow", "jan", -200m),
+                    new BasicEntity("cracow", "feb", 100m)
                 ]
             }
         };
@@ -222,34 +165,27 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "jan" &&
-                (decimal)entry.Values[1] == 500m),
-            "First entry should have values 'jan' and 500m");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry.Values[0] == "feb" &&
-                (decimal)entry.Values[1] == 100m),
-            "Second entry should have values 'feb' and 100m");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Self.Month", typeof(string)), ("Sum(Self.Money)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "jan", 500m }, new object?[] { "feb", 100m });
     }
 
     [TestMethod]
     public void GroupByWithCaseWhenInSelectTest()
     {
         var query =
-            @"select (case when Self.Month = 'jan' then 'JANUARY' when Self.Month = 'feb' then 'FEBRUARY' else 'NONE' end) from #A.Entities() group by Self.Month";
+            @"select (case when Self.Month = 'jan' then 'JANUARY' when Self.Month = 'feb' then 'FEBRUARY' else 'NONE' end) as MonthName from #A.Entities() group by Self.Month";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {
                 "#A", [
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
-                    new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("cracow", "march", Convert.ToDecimal(100))
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("cracow", "jan", -200m),
+                    new BasicEntity("cracow", "feb", 100m),
+                    new BasicEntity("cracow", "march", 100m)
                 ]
             }
         };
@@ -257,11 +193,10 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
-
-        Assert.IsTrue(table.All(row =>
-                new[] { "JANUARY", "FEBRUARY", "NONE" }.Contains((string)row[0])),
-            "Expected rows with values: JANUARY, FEBRUARY, NONE in order");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("MonthName", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "JANUARY" }, new object?[] { "FEBRUARY" }, new object?[] { "NONE" });
     }
 
     [TestMethod]
@@ -274,11 +209,11 @@ public partial class GroupByTests
         {
             {
                 "#A", [
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
-                    new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("cracow", "march", Convert.ToDecimal(100))
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("cracow", "jan", -200m),
+                    new BasicEntity("cracow", "feb", 100m),
+                    new BasicEntity("cracow", "march", 100m)
                 ]
             }
         };
@@ -286,17 +221,11 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "jan"),
-            "First entry should be 'jan'");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "feb"),
-            "Second entry should be 'feb'");
-
-        Assert.IsTrue(table.Any(entry =>
-                (string)entry[0] == "march"),
-            "Third entry should be 'march'");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("case when e.Month = e.Month then e.Month else  end", typeof(string)),
+            ("Count(case when e.Month = e.Month then e.Month else  end)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "jan", 3L }, new object?[] { "feb", 1L }, new object?[] { "march", 1L });
     }
 
     [TestMethod]
@@ -309,11 +238,11 @@ public partial class GroupByTests
         {
             {
                 "#A", [
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
-                    new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("cracow", "march", Convert.ToDecimal(100))
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("cracow", "jan", -200m),
+                    new BasicEntity("cracow", "feb", 100m),
+                    new BasicEntity("cracow", "march", 100m)
                 ]
             }
         };
@@ -321,23 +250,11 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var column = table.Columns.ElementAt(0);
-        Assert.AreEqual("monthKey", column.ColumnName);
-        Assert.AreEqual(typeof(string), column.ColumnType);
-
-        column = table.Columns.ElementAt(1);
-        Assert.AreEqual("monthCount", column.ColumnName);
-        Assert.AreEqual(typeof(long), column.ColumnType);
-
-        column = table.Columns.ElementAt(2);
-        Assert.AreEqual("constantKey", column.ColumnName);
-        Assert.AreEqual(typeof(string), column.ColumnType);
-
-        Assert.AreEqual(3, table.Count, "Table should contain 3 rows");
-
-        Assert.IsTrue(table.Any(row => (string)row[0] == "jan"), "Missing jan row");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "feb"), "Missing feb row");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "march"), "Missing march row");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("monthKey", typeof(string)), ("monthCount", typeof(long)), ("constantKey", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "jan", 3L, "fake" }, new object?[] { "feb", 1L, "fake" },
+            new object?[] { "march", 1L, "fake" });
     }
 
     [TestMethod]
@@ -350,11 +267,11 @@ public partial class GroupByTests
         {
             {
                 "#A", [
-                    new BasicEntity("czestochowa", "jan", Convert.ToDecimal(400)),
-                    new BasicEntity("katowice", "jan", Convert.ToDecimal(300)),
-                    new BasicEntity("cracow", "jan", Convert.ToDecimal(-200)),
-                    new BasicEntity("cracow", "feb", Convert.ToDecimal(100)),
-                    new BasicEntity("cracow", "march", Convert.ToDecimal(100))
+                    new BasicEntity("czestochowa", "jan", 400m),
+                    new BasicEntity("katowice", "jan", 300m),
+                    new BasicEntity("cracow", "jan", -200m),
+                    new BasicEntity("cracow", "feb", 100m),
+                    new BasicEntity("cracow", "march", 100m)
                 ]
             }
         };
@@ -362,21 +279,11 @@ public partial class GroupByTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        var column = table.Columns.ElementAt(0);
-        Assert.AreEqual("firstColumn", column.ColumnName);
-        Assert.AreEqual(typeof(string), column.ColumnType);
-
-        column = table.Columns.ElementAt(1);
-        Assert.AreEqual("secondColumn", column.ColumnName);
-        Assert.AreEqual(typeof(long), column.ColumnType);
-
-        column = table.Columns.ElementAt(2);
-        Assert.AreEqual("thirdColumn", column.ColumnName);
-        Assert.AreEqual(typeof(string), column.ColumnType);
-
-        Assert.IsTrue(table.Any(entry => (string)entry[0] == "jan"), "First row should be 'jan'");
-        Assert.IsTrue(table.Any(entry => (string)entry[0] == "feb"), "Second row should be 'feb'");
-        Assert.IsTrue(table.Any(entry => (string)entry[0] == "march"), "Third row should be 'march'");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("firstColumn", typeof(string)), ("secondColumn", typeof(long)), ("thirdColumn", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "jan", 3L, "fake" }, new object?[] { "feb", 1L, "fake" },
+            new object?[] { "march", 1L, "fake" });
     }
 
     [TestMethod]
@@ -423,17 +330,10 @@ group by countries.GetCountry()";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "Poland" &&
-            (decimal)entry[1] == 2100m
-        ), "First entry should be Poland with 2100");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "Germany" &&
-            (decimal)entry[1] == 400m
-        ), "Second entry should be Germany with 400");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("Country", typeof(string)), ("Population", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "Poland", 2100m }, new object?[] { "Germany", 400m });
     }
 
     [TestMethod]
@@ -442,7 +342,7 @@ group by countries.GetCountry()";
         var query = @"
 select
     a.Country,
-    b.AggregateValues(b.City)
+    b.AggregateValues(b.City) as Cities
 from #A.entities() a
 inner join #B.entities() b on a.Country = b.Country
 where a.Country = 'Poland'
@@ -467,8 +367,10 @@ group by a.Country";
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual("Warsaw,Gdansk", table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.Country", typeof(string)), ("Cities", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Poland", "Warsaw,Gdansk" });
     }
 
     [TestMethod]
@@ -477,7 +379,7 @@ group by a.Country";
         var query = @"
 select
     a.Country,
-    b.AggregateValues(b.City)
+    b.AggregateValues(b.City) as Cities
 from #A.entities() a
 inner join #B.entities() b on a.Country = b.Country
 where b.Population > 200
@@ -502,8 +404,10 @@ group by a.Country";
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual("Poland", table[0][0]);
-        Assert.AreEqual("Gdansk", table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.Country", typeof(string)), ("Cities", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table,
+            new object?[] { "Poland", "Gdansk" });
     }
 
     [TestMethod]
@@ -512,7 +416,7 @@ group by a.Country";
         var query = @"
 select
     a.Country,
-    AggregateValues(GetElementAt(a.Country, 0))
+    AggregateValues(GetElementAt(a.Country, 0)) as FirstLetter
 from #A.entities() a
 group by a.Country";
 
@@ -530,17 +434,10 @@ group by a.Country";
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "Poland" &&
-            (string)entry[1] == "P"
-        ), "First entry should be Poland with 'P'");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "Brazil" &&
-            (string)entry[1] == "B"
-        ), "Second entry should be Brazil with 'B'");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.Country", typeof(string)), ("FirstLetter", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "Poland", "P" }, new object?[] { "Brazil", "B" });
     }
 
     [TestMethod]
@@ -549,7 +446,7 @@ group by a.Country";
         var query = @"
 select
     a.Country,
-    AggregateValues(a.Country[0])
+    AggregateValues(a.Country[0]) as FirstLetter
 from #A.entities() a
 group by a.Country";
 
@@ -567,17 +464,10 @@ group by a.Country";
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "Poland" &&
-            (string)entry[1] == "P"
-        ), "First entry should be Poland with 'P'");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry[0] == "Brazil" &&
-            (string)entry[1] == "B"
-        ), "Second entry should be Brazil with 'B'");
+        TableMaterializationTestHelper.AssertColumns(table,
+            ("a.Country", typeof(string)), ("FirstLetter", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            new object?[] { "Poland", "P" }, new object?[] { "Brazil", "B" });
     }
 
 }

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -45,11 +44,12 @@ public partial class DistinctComprehensiveTests
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        Assert.AreEqual(3, table.Count, "UNION should deduplicate across both sides");
-        var countries = table.Select(row => row.Values[0]?.ToString()).OrderBy(c => c).ToArray();
-        Assert.AreEqual("Germany", countries[0], "First country should be Germany");
-        Assert.AreEqual("Poland", countries[1], "Second country should be Poland");
-        Assert.AreEqual("Portugal", countries[2], "Third country should be Portugal");
+        TableMaterializationTestHelper.AssertColumns(table, ("c", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Germany"],
+            ["Poland"],
+            ["Portugal"]);
     }
 
     [TestMethod]
@@ -83,9 +83,8 @@ public partial class DistinctComprehensiveTests
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        Assert.AreEqual(1, table.Count, "EXCEPT should remove Germany from result");
-        var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.Contains("Poland", countries, "Should contain Poland");
+        TableMaterializationTestHelper.AssertColumns(table, ("c", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Poland"]);
     }
 
     [TestMethod]
@@ -120,9 +119,8 @@ public partial class DistinctComprehensiveTests
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        Assert.AreEqual(1, table.Count, "INTERSECT should return only common countries");
-        var countries = table.Select(row => row.Values[0]?.ToString()).ToList();
-        Assert.Contains("Germany", countries, "Should contain Germany");
+        TableMaterializationTestHelper.AssertColumns(table, ("c", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Germany"]);
     }
 
 }

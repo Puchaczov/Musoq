@@ -42,10 +42,11 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)0, table[0][0]);
-        var data = (byte[])table[0][1];
-        Assert.IsEmpty(data);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.Count", typeof(byte)),
+            ("h.Data", typeof(byte[])));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)0, Array.Empty<byte>()]);
     }
 
     [TestMethod]
@@ -87,10 +88,12 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((byte)255, table[0][0]);
-        Assert.AreEqual((short)32767, table[0][1]);
-        Assert.AreEqual(2147483647, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.MaxByte", typeof(byte)),
+            ("h.MaxShort", typeof(short)),
+            ("h.MaxInt", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)255, (short)32767, 2147483647]);
     }
 
     [TestMethod]
@@ -132,10 +135,12 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual((sbyte)-128, table[0][0]);
-        Assert.AreEqual((short)-32768, table[0][1]);
-        Assert.AreEqual(-2147483648, table[0][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.MinSByte", typeof(sbyte)),
+            ("h.MinShort", typeof(short)),
+            ("h.MinInt", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(sbyte)-128, (short)-32768, -2147483648]);
     }
 
     #endregion
@@ -178,12 +183,14 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(2, table.Count);
-        // Results ordered by Level (ERROR before INFO alphabetically)
-        Assert.AreEqual("ERROR", table[0][0]);
-        Assert.AreEqual("Failed to connect", table[0][1]);
-        Assert.AreEqual("INFO", table[1][0]);
-        Assert.AreEqual("Application started", table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Level", typeof(string)),
+            ("p.Message", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["ERROR", "Failed to connect"],
+            ["INFO", "Application started"]);
     }
 
     [TestMethod]
@@ -223,13 +230,15 @@ public partial class BinaryOrTextualAdvancedFormatsTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert - ordered by Name (Jane before John alphabetically)
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Jane Smith", table[0][0]);
-        Assert.AreEqual("25", table[0][1]);
-        Assert.AreEqual("Los Angeles", table[0][2]);
-        Assert.AreEqual("John Doe", table[1][0]);
-        Assert.AreEqual("30", table[1][1]);
-        Assert.AreEqual("New York", table[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)),
+            ("p.Age", typeof(string)),
+            ("p.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Jane Smith", "25", "Los Angeles"],
+            ["John Doe", "30", "New York"]);
     }
 
     #endregion

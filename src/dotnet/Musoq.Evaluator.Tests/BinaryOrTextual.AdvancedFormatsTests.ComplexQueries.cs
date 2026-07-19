@@ -55,12 +55,15 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert - only files with Count > 50
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("file1.bin", table[0][0]);
-        Assert.AreEqual(100, table[0][2]);
-        Assert.AreEqual("file3.bin", table[1][0]);
-        Assert.AreEqual(75, table[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("FileName", typeof(string)),
+            ("FileVersion", typeof(short)),
+            ("FileCount", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["file1.bin", (short)1, 100],
+            ["file3.bin", (short)1, 75]);
     }
 
     private static byte[] CreateHeader(short version, int count)
@@ -107,12 +110,8 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert - should have 3 distinct categories
-        Assert.AreEqual(3, table.Count);
-        var categories = table.Select(r => (int)r[0]).OrderBy(c => c).ToList();
-        Assert.AreEqual(1, categories[0]);
-        Assert.AreEqual(2, categories[1]);
-        Assert.AreEqual(3, categories[2]);
+        TableMaterializationTestHelper.AssertColumns(table, ("r.Category", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1], [2], [3]);
     }
 
     private static byte[] CreateRecord(int id, int value)
@@ -173,14 +172,16 @@ public partial class BinaryOrTextualAdvancedFormatsTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert - only records 2 and 3 have a valid parent (record 1)
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual(2, table[0][0]); // ChildId
-        Assert.AreEqual(200, table[0][1]); // ChildValue
-        Assert.AreEqual(1, table[0][2]); // ParentId
-        Assert.AreEqual(100, table[0][3]); // ParentValue
-        Assert.AreEqual(3, table[1][0]); // ChildId
-        Assert.AreEqual(300, table[1][1]); // ChildValue
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("ChildId", typeof(int)),
+            ("ChildValue", typeof(int)),
+            ("ParentId", typeof(int)),
+            ("ParentValue", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [2, 200, 1, 100],
+            [3, 300, 1, 100]);
     }
 
     private static byte[] CreateRecordWithParent(int id, int parentId, int value)

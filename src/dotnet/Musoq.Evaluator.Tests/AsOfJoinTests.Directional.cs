@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -40,21 +39,17 @@ asof join #B.entities() b on a.Population >= b.Population";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var rows = table.OrderByDescending(r => (decimal)r[1]).ToList();
-
-        // A1 (100) >= B1 (90) — closest match
-        Assert.AreEqual("A1", rows[0][0]);
-        Assert.AreEqual("B1", rows[0][2]);
-
-        // A2 (50) >= B2 (40) — closest match
-        Assert.AreEqual("A2", rows[1][0]);
-        Assert.AreEqual("B2", rows[1][2]);
-
-        // A3 (10) >= B3 (5) — closest match
-        Assert.AreEqual("A3", rows[2][0]);
-        Assert.AreEqual("B3", rows[2][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Population", typeof(decimal)),
+            ("b.Name", typeof(string)),
+            ("b.Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["A1", 100m, "B1", 90m],
+            ["A2", 50m, "B2", 40m],
+            ["A3", 10m, "B3", 5m]);
     }
 
     [TestMethod]
@@ -89,17 +84,16 @@ asof join #B.entities() b on a.Population > b.Population";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-
-        var rows = table.OrderByDescending(r => (decimal)r[1]).ToList();
-
-        // A1 (100) > B2 (50) — closest strictly less
-        Assert.AreEqual("A1", rows[0][0]);
-        Assert.AreEqual("B2", rows[0][2]);
-
-        // A2 (50) > B3 (30) — closest strictly less
-        Assert.AreEqual("A2", rows[1][0]);
-        Assert.AreEqual("B3", rows[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Population", typeof(decimal)),
+            ("b.Name", typeof(string)),
+            ("b.Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["A1", 100m, "B2", 50m],
+            ["A2", 50m, "B3", 30m]);
     }
 
     [TestMethod]
@@ -133,17 +127,16 @@ asof join #B.entities() b on a.Population <= b.Population";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-
-        var rows = table.OrderBy(r => (decimal)r[1]).ToList();
-
-        // A1 (10) <= B1 (20) — smallest right >= left
-        Assert.AreEqual("A1", rows[0][0]);
-        Assert.AreEqual("B1", rows[0][2]);
-
-        // A2 (50) <= B2 (60) — smallest right >= left
-        Assert.AreEqual("A2", rows[1][0]);
-        Assert.AreEqual("B2", rows[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Population", typeof(decimal)),
+            ("b.Name", typeof(string)),
+            ("b.Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["A1", 10m, "B1", 20m],
+            ["A2", 50m, "B2", 60m]);
     }
 
     [TestMethod]
@@ -178,17 +171,16 @@ asof join #B.entities() b on a.Population < b.Population";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-
-        var rows = table.OrderBy(r => (decimal)r[1]).ToList();
-
-        // A1 (10) < B2 (50) — smallest right strictly > left
-        Assert.AreEqual("A1", rows[0][0]);
-        Assert.AreEqual("B2", rows[0][2]);
-
-        // A2 (50) < B3 (60) — smallest right strictly > left
-        Assert.AreEqual("A2", rows[1][0]);
-        Assert.AreEqual("B3", rows[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Population", typeof(decimal)),
+            ("b.Name", typeof(string)),
+            ("b.Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["A1", 10m, "B2", 50m],
+            ["A2", 50m, "B3", 60m]);
     }
 
     [TestMethod]
@@ -218,7 +210,11 @@ asof join #B.entities() b on a.Population >= b.Population";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(0, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table);
     }
 
     [TestMethod]
@@ -248,9 +244,13 @@ asof left join #B.entities() b on a.Population >= b.Population";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("A1", table[0][0]);
-        Assert.IsNull(table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["A1", null]);
     }
 
     [TestMethod]
@@ -284,17 +284,16 @@ asof left join #B.entities() b on a.Population >= b.Population";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-
-        var rows = table.OrderByDescending(r => (decimal)r[1]).ToList();
-
-        // A1 (100) >= B1 (50) — match
-        Assert.AreEqual("A1", rows[0][0]);
-        Assert.AreEqual("B1", rows[0][2]);
-
-        // A2 (1) — no B <= 1, null
-        Assert.AreEqual("A2", rows[1][0]);
-        Assert.IsNull(rows[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Population", typeof(decimal)),
+            ("b.Name", typeof(string)),
+            ("b.Population", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["A1", 100m, "B1", 50m],
+            ["A2", 1m, null, null]);
     }
 
     [TestMethod]
@@ -332,17 +331,18 @@ asof join #B.entities() b on a.Country = b.Country and a.Population >= b.Populat
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-
-        var rows = table.OrderByDescending(r => (decimal)r[2]).ToList();
-
-        // A1 (US, 100) matched with B1 (US, 90) — closest US match
-        Assert.AreEqual("A1", rows[0][0]);
-        Assert.AreEqual("B1", rows[0][3]);
-
-        // A2 (UK, 80) matched with B3 (UK, 70) — closest UK match
-        Assert.AreEqual("A2", rows[1][0]);
-        Assert.AreEqual("B3", rows[1][3]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Country", typeof(string)),
+            ("a.Population", typeof(decimal)),
+            ("b.Name", typeof(string)),
+            ("b.Country", typeof(string)),
+            ("b.Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["A1", "US", 100m, "B1", "US", 90m],
+            ["A2", "UK", 80m, "B3", "UK", 70m]);
     }
 
     [TestMethod]
@@ -374,16 +374,14 @@ asof left join #B.entities() b on a.Country = b.Country and a.Population >= b.Po
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-
-        var rows = table.OrderBy(r => (string)r[0]).ToList();
-
-        // A1 (US, 100) matches B1 (US, 90)
-        Assert.AreEqual("A1", rows[0][0]);
-        Assert.AreEqual("B1", rows[0][2]);
-
-        // A2 (FR, 50) — no FR in B, null
-        Assert.AreEqual("A2", rows[1][0]);
-        Assert.IsNull(rows[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Country", typeof(string)),
+            ("b.Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["A1", "US", "B1"],
+            ["A2", "FR", null]);
     }
 }

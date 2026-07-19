@@ -50,9 +50,10 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["City1"], ["City1"], ["City2"], ["City2"], ["City3"]);
     }
 
     /// <summary>
@@ -90,7 +91,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)), ("b.Money", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1", 1000m]);
     }
 
     /// <summary>
@@ -114,9 +116,10 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["City1"], ["City1"], ["City1"], ["City2"], ["City2"]);
     }
 
     /// <summary>
@@ -156,7 +159,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["City1"], ["City2"]);
     }
 
     /// <summary>
@@ -189,9 +193,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("b.Money", table.Columns.ElementAt(0).ColumnName);
+        TableMaterializationTestHelper.AssertColumns(table, ("b.Money", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1000m]);
     }
 
     /// <summary>
@@ -224,7 +227,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1]);
     }
 
     /// <summary>
@@ -262,7 +266,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(table, ("c.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1"]);
     }
 
     /// <summary>
@@ -288,7 +293,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1,City2"], ["City1,City2"]);
     }
 
     /// <summary>
@@ -310,7 +316,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, firstSource);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(table, ("t.Text", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["hello world"], ["hello world"]);
     }
 
     /// <summary>
@@ -343,7 +350,12 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("a.Country", typeof(string)),
+            ("a.Population", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1", "Country1", 100]);
     }
 
     /// <summary>
@@ -382,7 +394,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)), ("c.Money", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1", 5000m]);
     }
 
     /// <summary>
@@ -419,7 +432,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1"]);
     }
 
     /// <summary>
@@ -453,7 +467,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1"], ["City2"]);
     }
 
     /// <summary>
@@ -491,9 +506,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2L, (long)table[0].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)), ("Cnt", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1", 2L]);
     }
 
     /// <summary>
@@ -516,8 +530,8 @@ public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["City1"], ["City1"], ["City1"]);
     }
 
     /// <summary>

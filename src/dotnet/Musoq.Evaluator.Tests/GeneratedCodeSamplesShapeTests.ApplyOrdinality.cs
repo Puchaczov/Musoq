@@ -26,16 +26,16 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     {
         var table = CompileSampleForExecution(ApplyWithOrdinalitySampleFileName).Run();
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("left", table[0][0]);
-        Assert.AreEqual(1, table[0][1]);
-        Assert.AreEqual(0, table[0][2]);
-        Assert.AreEqual("left", table[1][0]);
-        Assert.AreEqual(2, table[1][1]);
-        Assert.AreEqual(1, table[1][2]);
-        Assert.AreEqual("right", table[2][0]);
-        Assert.AreEqual(3, table[2][1]);
-        Assert.AreEqual(0, table[2][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("i.Name", typeof(string)),
+            ("Number", typeof(int)),
+            ("NumberOrdinal", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["left", 1, 0],
+            ["left", 2, 1],
+            ["right", 3, 0]);
     }
 
     [TestMethod]

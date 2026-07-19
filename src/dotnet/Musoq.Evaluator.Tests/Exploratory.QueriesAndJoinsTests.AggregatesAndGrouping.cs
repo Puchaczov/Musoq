@@ -26,11 +26,15 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
-
-        Assert.IsTrue(table.Any(row => row.Values[0].ToString() == "John" && (int)row.Values[1] == 10 && (long)row.Values[2] == 2L));
-        Assert.IsTrue(table.Any(row => row.Values[0].ToString() == "John" && (int)row.Values[1] == 20 && (long)row.Values[2] == 2L));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)),
+            ("s.Value", typeof(int)),
+            ("Cnt", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John", 10, 2L],
+            ["John", 20, 2L]);
     }
 
     #endregion
@@ -56,7 +60,13 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)),
+            ("HighScoreCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John", 3L]);
     }
 
     #endregion
@@ -85,8 +95,16 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)),
+            ("ScoreCount", typeof(long)),
+            ("TotalScore", typeof(int?)),
+            ("AvgScore", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John", 3L, 60, 20],
+            ["Jane", 4L, 80, 20]);
     }
 
     #endregion
@@ -114,8 +132,13 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Name", typeof(string)),
+            ("TagCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["John", 3L]);
     }
 
     #endregion
@@ -139,8 +162,14 @@ public partial class ExploratoryQueriesAndJoinsTests
         var vm = CreateAndRunVirtualMachine(query, source);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsNotNull(table);
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("t.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["a"],
+            ["b"],
+            ["c"]);
     }
 
     #endregion

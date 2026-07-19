@@ -117,6 +117,8 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool IsScalarEnumerableElement(Type elementType)
     {
+        elementType = Nullable.GetUnderlyingType(elementType) ?? elementType;
+
         return elementType.IsPrimitive ||
                elementType == typeof(string) ||
                elementType == typeof(decimal) ||

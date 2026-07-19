@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -28,10 +27,8 @@ select Name from #C.Entities()";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "Second entry should be '001'");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["002"], ["001"]);
     }
 
     [TestMethod]
@@ -54,10 +51,8 @@ select Name from #C.Entities()";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "Second entry should be '001'");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["002"], ["001"]);
     }
 
     [TestMethod]
@@ -80,8 +75,8 @@ select Name from #C.Entities() skip 3";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("002", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["002"]);
     }
 
     [TestMethod]
@@ -109,21 +104,19 @@ select Name from #C.Entities() skip 3";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "First entry should be '001'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "006"), "Second entry should be '006'");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["001"], ["006"]);
     }
 
     [TestMethod]
     public void MixedSourcesExceptUnionWithMultipleColumnsScenarioTest()
     {
         var query =
-            @"select Name, RandomNumber() from #A.Entities()
+            @"select Name, Population from #A.Entities()
 except (Name)
-select Name, RandomNumber() from #B.Entities()
+select Name, Population from #B.Entities()
 union (Name)
-select Name, RandomNumber() from #C.Entities()";
+select Name, Population from #C.Entities()";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -135,10 +128,14 @@ select Name, RandomNumber() from #C.Entities()";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count, "Table should have 2 entries");
-
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "002"), "First entry should be '002'");
-        Assert.IsTrue(table.Any(entry => (string)entry.Values[0] == "001"), "Second entry should be '001'");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["002", 0m],
+            ["001", 0m]);
     }
 
     [TestMethod]
@@ -166,22 +163,15 @@ select City, Sum(Population) from #C.Entities() group by City";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "001" &&
-            (decimal)entry.Values[1] == 200m
-        ), "First entry should be '001' with value 200");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "003" &&
-            (decimal)entry.Values[1] == 39m
-        ), "Second entry should be '003' with value 39");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "002" &&
-            (decimal)entry.Values[1] == 28m
-        ), "Third entry should be '002' with value 28");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Sum(Population)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["001", 200m],
+            ["003", 39m],
+            ["002", 28m]);
     }
 
     [TestMethod]
@@ -209,22 +199,15 @@ select City, Sum(Population) from #C.Entities() group by City";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count, "Table should have 3 entries");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "001" &&
-            (decimal)entry.Values[1] == 200m
-        ), "First entry should be '001' with value 200");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "003" &&
-            (decimal)entry.Values[1] == 39m
-        ), "Second entry should be '003' with value 39");
-
-        Assert.IsTrue(table.Any(entry =>
-            (string)entry.Values[0] == "002" &&
-            (decimal)entry.Values[1] == 28m
-        ), "Third entry should be '002' with value 28");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("Sum(Population)", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["001", 200m],
+            ["003", 39m],
+            ["002", 28m]);
     }
 
 }

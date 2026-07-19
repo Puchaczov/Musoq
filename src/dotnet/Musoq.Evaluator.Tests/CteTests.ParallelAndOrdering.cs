@@ -37,12 +37,15 @@ select p.City, p.Country, c.City as OtherCity from p inner join c on 1 = 1";
         var vm = CreateAndRunVirtualMachine(query, sources, compilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Columns.Count());
-        Assert.AreEqual(2, table.Count);
-
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "WARSAW"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[2] == "PARIS"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.City", typeof(string)),
+            ("p.Country", typeof(string)),
+            ("OtherCity", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["WARSAW", "POLAND", "PARIS"],
+            ["BERLIN", "GERMANY", "PARIS"]);
     }
 
     [TestMethod]
@@ -71,12 +74,13 @@ select * from d";
         var vm = CreateAndRunVirtualMachine(query, sources, compilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Columns.Count());
-        Assert.AreEqual("City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(2, table.Count);
-
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "WARSAW"));
-        Assert.IsTrue(table.Any(row => (string)row.Values[0] == "CZESTOCHOWA"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["WARSAW"],
+            ["CZESTOCHOWA"]);
     }
 
     [TestMethod]
@@ -113,11 +117,13 @@ select * from f";
         var vm = CreateAndRunVirtualMachine(query, sources, compilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual(1, table.Count);
-
-        Assert.AreEqual("WARSAW", (string)table[0].Values[0]);
-        Assert.AreEqual("PARIS", (string)table[0].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City1", typeof(string)),
+            ("City2", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["WARSAW", "PARIS"]);
     }
 
     [TestMethod]
@@ -145,22 +151,16 @@ select * from f";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        // Integer sort: 1, 2, 3, 10, 20 (NOT string sort: "1", "10", "2", "20", "3")
-        Assert.AreEqual("1", table[0].Values[0]);
-        Assert.AreEqual(1, table[0].Values[1]);
-
-        Assert.AreEqual("2", table[1].Values[0]);
-        Assert.AreEqual(2, table[1].Values[1]);
-
-        Assert.AreEqual("3", table[2].Values[0]);
-        Assert.AreEqual(3, table[2].Values[1]);
-
-        Assert.AreEqual("10", table[3].Values[0]);
-        Assert.AreEqual(10, table[3].Values[1]);
-
-        Assert.AreEqual("20", table[4].Values[0]);
-        Assert.AreEqual(20, table[4].Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("OldColumn", typeof(string)),
+            ("NumValue", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["1", 1],
+            ["2", 2],
+            ["3", 3],
+            ["10", 10],
+            ["20", 20]);
     }
 }

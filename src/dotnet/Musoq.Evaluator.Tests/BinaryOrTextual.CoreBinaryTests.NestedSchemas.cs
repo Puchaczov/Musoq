@@ -51,10 +51,12 @@ public partial class BinaryOrTextualCoreBinaryTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(42, table[0][0]); // Id
-        Assert.AreEqual(1.5f, (float)table[0][1], 0.001f); // Position.X
-        Assert.AreEqual(2.5f, (float)table[0][2], 0.001f); // Position.Y
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("v.Id", typeof(int)),
+            ("v.Position.X", typeof(float)),
+            ("v.Position.Y", typeof(float)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [42, 1.5f, 2.5f]);
     }
 
     [TestMethod]
@@ -72,7 +74,10 @@ public partial class BinaryOrTextualCoreBinaryTests
             };
             select
                 m.VertexCount,
-                m.Vertices
+                m.Vertices[0].X,
+                m.Vertices[0].Y,
+                m.Vertices[1].X,
+                m.Vertices[1].Y
             from #test.files() f
             cross apply Interpret<Mesh>(f.Content) m";
 
@@ -100,12 +105,14 @@ public partial class BinaryOrTextualCoreBinaryTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(2, table[0][0]); // VertexCount
-
-        var vertices = table[0][1] as object[];
-        Assert.IsNotNull(vertices);
-        Assert.HasCount(2, vertices);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("m.VertexCount", typeof(int)),
+            ("m.Vertices[0].X", typeof(float)),
+            ("m.Vertices[0].Y", typeof(float)),
+            ("m.Vertices[1].X", typeof(float)),
+            ("m.Vertices[1].Y", typeof(float)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [2, 1.0f, 2.0f, 3.0f, 4.0f]);
     }
 
 

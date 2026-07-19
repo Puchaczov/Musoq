@@ -27,8 +27,8 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test123", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Test123"]);
     }
 
     [TestMethod]
@@ -49,8 +49,8 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test123", table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Test123"]);
     }
 
     [TestMethod]
@@ -72,9 +72,11 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("NoNumbers", table[0].Values[0]);
-        Assert.AreEqual("HasNumbers", table[1].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Result", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["NoNumbers"],
+            ["HasNumbers"]);
     }
 
     [TestMethod]
@@ -96,8 +98,10 @@ public class ImplicitBooleanConversionTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("NoNumbers", table[0].Values[0]);
-        Assert.AreEqual("HasNumbers", table[1].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(table, ("Result", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["NoNumbers"],
+            ["HasNumbers"]);
     }
 }

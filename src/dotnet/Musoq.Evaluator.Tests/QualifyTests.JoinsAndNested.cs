@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -55,8 +54,16 @@ public partial class QualifyTests
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.IsGreaterThan(0, table.Count);
-        Assert.IsTrue(table.All(r => (decimal)r.Values[3] > 100m));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Bob", "NYC", 200m, 250m],
+            ["Charlie", "LA", 150m, 150m]);
     }
 
     [TestMethod]
@@ -80,23 +87,15 @@ public partial class QualifyTests
 
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
-        var rows = table
-            .Select(static row => new
-            {
-                Name = (string)row.Values[0],
-                City = (string)row.Values[1],
-                RunSum = (decimal)row.Values[2]
-            })
-            .OrderBy(static row => row.Name)
-            .ToArray();
-
-        Assert.AreEqual(2, rows.Length);
-        Assert.AreEqual("Bob", rows[0].Name);
-        Assert.AreEqual("NYC", rows[0].City);
-        Assert.AreEqual(250m, rows[0].RunSum);
-        Assert.AreEqual("Charlie", rows[1].Name);
-        Assert.AreEqual("LA", rows[1].City);
-        Assert.AreEqual(150m, rows[1].RunSum);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("b.Name", typeof(string)),
+            ("a.City", typeof(string)),
+            ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Bob", "NYC", 250m],
+            ["Charlie", "LA", 150m]);
     }
 
     [TestMethod]

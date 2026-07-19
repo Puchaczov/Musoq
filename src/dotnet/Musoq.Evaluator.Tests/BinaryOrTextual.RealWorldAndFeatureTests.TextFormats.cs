@@ -110,13 +110,19 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(4, table.Count);
-        var usernames = table.Select(r => (string)r[0]).ToList();
-        Assert.Contains("root", usernames);
-        Assert.Contains("daemon", usernames);
-        Assert.Contains("www-data", usernames);
-        Assert.Contains("developer", usernames);
-        Assert.DoesNotContain("nobody", usernames);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("p.Username", typeof(string)),
+            ("p.Uid", typeof(string)),
+            ("p.Gid", typeof(string)),
+            ("p.HomeDir", typeof(string)),
+            ("p.Shell", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["root", "0", "0", "/root", "/bin/bash"],
+            ["daemon", "1", "1", "/usr/sbin", "/usr/sbin/nologin"],
+            ["www-data", "33", "33", "/var/www", "/usr/sbin/nologin"],
+            ["developer", "1000", "1000", "/home/developer", "/bin/zsh"]);
     }
 
     /// <summary>
@@ -162,12 +168,16 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(2, table.Count);
-        var components = table.Select(r => (string)r[2]).ToList();
-        Assert.Contains("Database", components);
-        Assert.Contains("Auth", components);
-
-        Assert.IsTrue(table.All(r => (string)r[1] == "ERROR"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("l.Timestamp", typeof(string)),
+            ("l.Level", typeof(string)),
+            ("l.Component", typeof(string)),
+            ("l.Message", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["2024-01-05 10:30:01", "ERROR", "Database", "Connection timeout after 30s"],
+            ["2024-01-05 10:30:03", "ERROR", "Auth", "Invalid token for user admin"]);
     }
 
     /// <summary>
@@ -212,11 +222,15 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(3, table.Count);
-        var names = table.Select(r => (string)r[0]).ToList();
-        Assert.Contains("Content-Type", names);
-        Assert.Contains("Authorization", names);
-        Assert.Contains("User-Agent", names);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("h.Name", typeof(string)),
+            ("h.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Content-Type", "application/json"],
+            ["Authorization", "Bearer eyJhbGciOiJIUzI1NiIs"],
+            ["User-Agent", "MyApp/1.0.0"]);
     }
 
     /// <summary>
@@ -261,12 +275,18 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(4, table.Count);
-        var ids = table.Select(r => (string)r[0]).ToList();
-        Assert.Contains("001", ids);
-        Assert.Contains("002", ids);
-        Assert.Contains("003", ids);
-        Assert.Contains("004", ids);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("d.Id", typeof(string)),
+            ("d.Name", typeof(string)),
+            ("d.Value", typeof(string)),
+            ("d.Status", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["001", "Alpha", "100", "Active"],
+            ["002", "Beta", "200", "Pending"],
+            ["003", "Gamma", "300", "Complete"],
+            ["004", "Delta", "400", "Failed"]);
     }
 
     /// <summary>
@@ -308,11 +328,16 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(3, table.Count);
-        var names = table.Select(r => (string)r[0]).ToList();
-        Assert.Contains("Alice", names);
-        Assert.Contains("Bob", names);
-        Assert.Contains("Charlie", names);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("t.Name", typeof(string)),
+            ("t.Age", typeof(string)),
+            ("t.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "30", "New York"],
+            ["Bob", "25", "Los Angeles"],
+            ["Charlie", "35", "Chicago"]);
     }
 
     /// <summary>
@@ -359,11 +384,17 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(3, table.Count);
-        var products = table.Select(r => (string)r[1]).ToList();
-        Assert.Contains("Laptop", products);
-        Assert.Contains("Keyboard", products);
-        Assert.Contains("Monitor", products);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("c.ProductId", typeof(string)),
+            ("c.ProductName", typeof(string)),
+            ("c.Price", typeof(string)),
+            ("c.Quantity", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["P001", "Laptop", "999.99", "10"],
+            ["P003", "Keyboard", "79.99", "75"],
+            ["P005", "Monitor", "299.99", "25"]);
     }
 
     /// <summary>
@@ -458,11 +489,17 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(3, table.Count);
-        var names = table.Select(r => (string)r[0]).ToList();
-        Assert.Contains("John Smith", names);
-        Assert.Contains("Jane Doe", names);
-        Assert.Contains("Bob Wilson", names);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("c.Name", typeof(string)),
+            ("c.Address", typeof(string)),
+            ("c.Age", typeof(string)),
+            ("c.Salary", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["John Smith", "123 Main St", "35", "75000"],
+            ["Jane Doe", "456 Oak Ave", "28", "82000"],
+            ["Bob Wilson", "789 Pine Rd", "42", "95000"]);
     }
 
     /// <summary>
@@ -508,12 +545,16 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(4, table.Count);
-        var fields = table.Select(r => (string)r[0]).ToList();
-        Assert.Contains("From", fields);
-        Assert.Contains("To", fields);
-        Assert.Contains("Subject", fields);
-        Assert.Contains("Date", fields);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("e.Field", typeof(string)),
+            ("e.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["From", "sender@example.com"],
+            ["To", "recipient@example.com"],
+            ["Subject", "Important Meeting Tomorrow"],
+            ["Date", "Mon 5 Jan 2026 10:30:00"]);
     }
 
     /// <summary>
@@ -559,12 +600,15 @@ public partial class BinaryOrTextualRealWorldAndFeatureTests
             TestCompilationOptions);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(2, table.Count);
-        var hosts = table.Select(r => (string)r[1]).ToList();
-        Assert.Contains("api.example.com", hosts);
-        Assert.Contains("cdn.example.net", hosts);
-
-        Assert.IsTrue(table.All(r => (string)r[0] == "https"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("u.Protocol", typeof(string)),
+            ("u.Host", typeof(string)),
+            ("u.Path", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["https", "api.example.com", "v1/users"],
+            ["https", "cdn.example.net", "assets/image.png"]);
     }
 
     #endregion

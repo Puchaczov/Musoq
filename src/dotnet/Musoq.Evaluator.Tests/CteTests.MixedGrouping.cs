@@ -40,10 +40,12 @@ select c.GetBytes(c.Name) from first a
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count, "Table should have 1 entry");
-        Assert.IsTrue(table.Any(entry =>
-            Encoding.UTF8.GetString((byte[])entry.Values[0]) == "First"
-        ), "First entry should be 'First'");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("c.GetBytes(c.Name)", typeof(byte[])));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [Encoding.UTF8.GetBytes("First")]);
     }
 
     [TestMethod]
@@ -80,8 +82,12 @@ from first a
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("First", Encoding.UTF8.GetString((byte[])table[0].Values[0]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("c.GetBytes(c.Name)", typeof(byte[])));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            [Encoding.UTF8.GetBytes("First")]);
     }
 
     [TestMethod]
@@ -120,10 +126,14 @@ from first a
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("First", (string)table[0].Values[0]);
-        Assert.AreEqual("Second", (string)table[0].Values[1]);
-        Assert.AreEqual("First", Encoding.UTF8.GetString((byte[])table[0].Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("b.Name", typeof(string)),
+            ("c.GetBytes(c.Name)", typeof(byte[])));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["First", "Second", Encoding.UTF8.GetBytes("First")]);
     }
 
     [TestMethod]
@@ -172,7 +182,11 @@ from fourth c";
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("First", (string)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["First"]);
     }
 }

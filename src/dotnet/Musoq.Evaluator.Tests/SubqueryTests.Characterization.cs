@@ -31,9 +31,15 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateCharacterizationSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN:Y", "PARIS:Y", "WARSAW:Y" },
-            table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("m.City", typeof(string)),
+            ("m.HasMatch", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["BERLIN", "Y"],
+            ["PARIS", "Y"],
+            ["WARSAW", "Y"]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("-> PredicateHashMark", inspection.PlanningText);
@@ -56,9 +62,14 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateCharacterizationSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN:MUNICH", "WARSAW:KRAKOW" },
-            table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["BERLIN", "MUNICH"],
+            ["WARSAW", "KRAKOW"]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("-> ScalarHashSingle", inspection.PlanningText);
@@ -79,9 +90,8 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateCharacterizationSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "WARSAW" },
-            table.Select(row => (string)row.Values[0]).ToArray());
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW"]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("-> PredicateAntiSemiJoin", inspection.PlanningText);
@@ -106,9 +116,18 @@ public partial class SubqueryTests
 
         var table = CreateAndRunVirtualMachine(query, CreateCharacterizationSources()).Run(TestContext.CancellationToken);
 
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN:MUNICH", "PARIS:LYON", "PARIS:PARIS", "WARSAW:GDANSK", "WARSAW:KRAKOW", "WARSAW:WARSAW" },
-            table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("d.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["BERLIN", "MUNICH"],
+            ["PARIS", "LYON"],
+            ["PARIS", "PARIS"],
+            ["WARSAW", "GDANSK"],
+            ["WARSAW", "KRAKOW"],
+            ["WARSAW", "WARSAW"]);
 
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _dt_1 -> DerivedTableJoin", inspection.PlanningText);
@@ -134,9 +153,16 @@ public partial class SubqueryTests
         var table = CreateAndRunVirtualMachine(query, CreateCharacterizationSources()).Run(TestContext.CancellationToken);
         var inspection = CompileSubqueryForInspection(query);
 
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN:MUNICH", "PARIS:LYON", "WARSAW:GDANSK", "WARSAW:KRAKOW" },
-            table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray());
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("d.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["BERLIN", "MUNICH"],
+            ["PARIS", "LYON"],
+            ["WARSAW", "GDANSK"],
+            ["WARSAW", "KRAKOW"]);
         Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _dt_2 -> DerivedTableJoin", inspection.PlanningText);
     }
 
@@ -157,9 +183,8 @@ public partial class SubqueryTests
         var table = CreateAndRunVirtualMachine(query, CreateCharacterizationSources()).Run(TestContext.CancellationToken);
         var inspection = CompileSubqueryForInspection(query);
 
-        CollectionAssert.AreEqual(
-            new[] { "BERLIN", "PARIS", "WARSAW" },
-            table.Select(row => (string)row.Values[0]).ToArray());
+        TableMaterializationTestHelper.AssertColumns(table, ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["BERLIN"], ["PARIS"], ["WARSAW"]);
         Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_2 -> PredicateSemiJoin", inspection.PlanningText);
     }
 
@@ -180,8 +205,8 @@ public partial class SubqueryTests
         var table = CreateAndRunVirtualMachine(query, CreateCharacterizationSources()).Run(TestContext.CancellationToken);
         var inspection = CompileSubqueryForInspection(query);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(row => (string)row.Values[0] == "LYON"));
+        TableMaterializationTestHelper.AssertColumns(table, ("TopCity", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["LYON"], ["LYON"], ["LYON"]);
         Assert.Contains("_sm_2", inspection.PhysicalPlanText);
     }
 

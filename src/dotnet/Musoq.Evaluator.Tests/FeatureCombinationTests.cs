@@ -25,13 +25,15 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(2, table.Count, "Expected 2 categories: Senior and Junior");
-
-        var senior = table.Single(r => (string)r.Values[0] == "Senior");
-        Assert.AreEqual(3, Convert.ToInt32(senior.Values[1]), "Bob(35), Diana(42), Eve(31)");
-
-        var junior = table.Single(r => (string)r.Values[0] == "Junior");
-        Assert.AreEqual(2, Convert.ToInt32(junior.Values[1]), "Alice(25), Charlie(28)");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Category", typeof(string)),
+            ("Total", typeof(long)),
+            ("AvgSalary", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Senior", 3L, 65666.666666666666666666666666667m],
+            ["Junior", 2L, 52500m]);
     }
 
     #endregion
@@ -52,17 +54,15 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // Cities: Berlin(2), London(4), Paris(4) from doubled source
-        Assert.AreEqual(3, table.Count);
-
-        var berlin = table.Single(r => (string)r.Values[0] == "Berlin");
-        Assert.AreEqual(2, Convert.ToInt32(berlin.Values[1]));
-
-        var london = table.Single(r => (string)r.Values[0] == "London");
-        Assert.AreEqual(4, Convert.ToInt32(london.Values[1]));
-
-        var paris = table.Single(r => (string)r.Values[0] == "Paris");
-        Assert.AreEqual(4, Convert.ToInt32(paris.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("c.City", typeof(string)),
+            ("Appearances", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Berlin", 2L],
+            ["London", 4L],
+            ["Paris", 4L]);
     }
 
     #endregion
@@ -83,14 +83,15 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // City totals: Berlin=75000, London=105000, Paris=122000. All > 50000. ORDER BY City ASC, TAKE 5.
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Berlin", (string)table[0].Values[0]);
-        Assert.AreEqual(75000m, Convert.ToDecimal(table[0].Values[1]));
-        Assert.AreEqual("London", (string)table[1].Values[0]);
-        Assert.AreEqual(105000m, Convert.ToDecimal(table[1].Values[1]));
-        Assert.AreEqual("Paris", (string)table[2].Values[0]);
-        Assert.AreEqual(122000m, Convert.ToDecimal(table[2].Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("ct.City", typeof(string)),
+            ("ct.Total", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Berlin", 75000m],
+            ["London", 105000m],
+            ["Paris", 122000m]);
     }
 
     #endregion
@@ -109,14 +110,15 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // ORDER BY City ASC: Berlin(1), London(2), Paris(2)
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("Berlin", (string)table[0].Values[0]);
-        Assert.AreEqual(1, Convert.ToInt32(table[0].Values[1]));
-        Assert.AreEqual("London", (string)table[1].Values[0]);
-        Assert.AreEqual(2, Convert.ToInt32(table[1].Values[1]));
-        Assert.AreEqual("Paris", (string)table[2].Values[0]);
-        Assert.AreEqual(2, Convert.ToInt32(table[2].Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("g.City", typeof(string)),
+            ("g.Total", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Berlin", 1L],
+            ["London", 2L],
+            ["Paris", 2L]);
     }
 
     [TestMethod]
@@ -135,14 +137,14 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // Senior(3), Junior(2)
-        Assert.AreEqual(2, table.Count);
-
-        var senior = table.Single(r => (string)r.Values[0] == "Senior");
-        Assert.AreEqual(3, Convert.ToInt32(senior.Values[1]));
-
-        var junior = table.Single(r => (string)r.Values[0] == "Junior");
-        Assert.AreEqual(2, Convert.ToInt32(junior.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("ag.Bucket", typeof(string)),
+            ("ag.Total", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Senior", 3L],
+            ["Junior", 2L]);
     }
 
     #endregion
@@ -188,10 +190,22 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // 5 people + 5 order statuses = 10 rows
-        Assert.AreEqual(10, table.Count);
-        Assert.AreEqual(5, table.Count(r => (string)r.Values[1] == "People"));
-        Assert.AreEqual(5, table.Count(r => (string)r.Values[1] == "Orders"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("c.Name", typeof(string)),
+            ("c.Source", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "People"],
+            ["Bob", "People"],
+            ["Charlie", "People"],
+            ["Diana", "People"],
+            ["Eve", "People"],
+            ["Completed", "Orders"],
+            ["Pending", "Orders"],
+            ["Completed", "Orders"],
+            ["Cancelled", "Orders"],
+            ["Completed", "Orders"]);
     }
 
     #endregion
@@ -215,14 +229,14 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // London: Alice(250.50+150.00)+Charlie(75.25)=475.75, Paris: Bob(500.00)+Eve(1200.00)=1700.00
-        Assert.AreEqual(2, table.Count);
-
-        var london = table.Single(r => (string)r.Values[0] == "London");
-        Assert.AreEqual(475.75m, Convert.ToDecimal(london.Values[1]));
-
-        var paris = table.Single(r => (string)r.Values[0] == "Paris");
-        Assert.AreEqual(1700.00m, Convert.ToDecimal(paris.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("jd.City", typeof(string)),
+            ("TotalSpent", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["London", 475.75m],
+            ["Paris", 1700m]);
     }
 
     [TestMethod]
@@ -241,22 +255,17 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(5, table.Count, "Expected one row per person");
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        Assert.AreEqual(2, Convert.ToInt32(alice.Values[1]), "Alice has orders 100 and 101");
-
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        Assert.AreEqual(1, Convert.ToInt32(bob.Values[1]), "Bob has order 102");
-
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        Assert.AreEqual(1, Convert.ToInt32(charlie.Values[1]), "Charlie has order 103");
-
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-        Assert.AreEqual(0, Convert.ToInt32(diana.Values[1]), "Diana has no orders");
-
-        var eve = table.Single(r => (string)r.Values[0] == "Eve");
-        Assert.AreEqual(1, Convert.ToInt32(eve.Values[1]), "Eve has order 104");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("jd.Name", typeof(string)),
+            ("OrderCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 2L],
+            ["Bob", 1L],
+            ["Charlie", 1L],
+            ["Diana", 0L],
+            ["Eve", 1L]);
     }
 
     #endregion
@@ -276,9 +285,11 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count, "Expected single aggregated row");
-        Assert.AreEqual(2, Convert.ToInt32(table[0].Values[0]), "2 nested rows have Info IS NOT NULL");
-        Assert.AreEqual(170m, Convert.ToDecimal(table[0].Values[1]), "Sum(Score) = 90 + 80");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Total", typeof(long)),
+            ("TotalScore", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [2L, 170]);
     }
 
     [TestMethod]
@@ -293,14 +304,14 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // Alpha(1), Beta(1)
-        Assert.AreEqual(2, table.Count);
-
-        var alpha = table.Single(r => (string)r.Values[0] == "Alpha");
-        Assert.AreEqual(1, Convert.ToInt32(alpha.Values[1]));
-
-        var beta = table.Single(r => (string)r.Values[0] == "Beta");
-        Assert.AreEqual(1, Convert.ToInt32(beta.Values[1]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Info.Label", typeof(string)),
+            ("Total", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alpha", 1L],
+            ["Beta", 1L]);
     }
 
     #endregion
@@ -319,9 +330,11 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count, "Expected single aggregated row");
-        Assert.AreEqual(3m, Convert.ToDecimal(table[0].Values[0]), "Bob(35), Diana(42), Eve(31) are seniors");
-        Assert.AreEqual(2m, Convert.ToDecimal(table[0].Values[1]), "Alice(25), Charlie(28) are juniors");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("SeniorCount", typeof(int?)),
+            ("JuniorCount", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [3, 2]);
     }
 
     [TestMethod]
@@ -334,9 +347,10 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count, "Expected single row");
-        // Sum(Age) = 25+35+28+42+31 = 161 > 100 → 'Many'
-        Assert.AreEqual("Many", (string)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("case when Sum(Age) > 100 then Many else Few end", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Many"]);
     }
 
     #endregion
@@ -358,14 +372,15 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // Cities ordered: Berlin, London, Paris. QUALIFY keeps rn <= 2 → Berlin(rn=1), London(rn=2)
-        Assert.AreEqual(2, table.Count);
-
-        var berlin = table.Single(r => (string)r.Values[0] == "Berlin");
-        Assert.AreEqual(1, Convert.ToInt32(berlin.Values[1]), "Diana(42) is the only senior in Berlin");
-
-        var london = table.Single(r => (string)r.Values[0] == "London");
-        Assert.AreEqual(0, Convert.ToInt32(london.Values[1]), "No one in London is over 30");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("SeniorCount", typeof(long)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Berlin", 1L, 1L],
+            ["London", 0L, 2L]);
     }
 
     [TestMethod]
@@ -380,16 +395,15 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // Non-London: Bob(Paris), Diana(Berlin), Eve(Paris). Ordered by Name: Bob(1), Diana(2), Eve(3). QUALIFY keeps <= 2.
-        Assert.AreEqual(2, table.Count);
-
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        Assert.AreEqual("Paris", (string)bob.Values[1]);
-        Assert.AreEqual(1, Convert.ToInt32(bob.Values[2]));
-
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-        Assert.AreEqual("Berlin", (string)diana.Values[1]);
-        Assert.AreEqual(2, Convert.ToInt32(diana.Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Bob", "Paris", 1L],
+            ["Diana", "Berlin", 2L]);
     }
 
     #endregion
@@ -408,15 +422,14 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // Non-Berlin people: Alice(London,25), Bob(Paris,35), Charlie(London,28), Eve(Paris,31)
-        // Grouped by City: London, Paris
-        Assert.AreEqual(2, table.Count);
-
-        var london = table.Single(r => (string)r.Values[0] == "London");
-        Assert.AreEqual(1, Convert.ToInt32(london.Values[1]), "Only Charlie(28) passes Age > 25 in London");
-
-        var paris = table.Single(r => (string)r.Values[0] == "Paris");
-        Assert.AreEqual(2, Convert.ToInt32(paris.Values[1]), "Both Bob(35) and Eve(31) pass Age > 25 in Paris");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("FilteredCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["London", 1L],
+            ["Paris", 2L]);
     }
 
     [TestMethod]
@@ -430,11 +443,11 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        var seniorCount = Convert.ToInt32(table[0].Values[0]);
-        var totalCount = Convert.ToInt32(table[0].Values[1]);
-        Assert.AreEqual(3, seniorCount, "Bob(35), Diana(42), Eve(31) have Age > 30");
-        Assert.AreEqual(5, totalCount, "All 5 people counted");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("SeniorCount", typeof(long)),
+            ("TotalCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [3L, 5L]);
     }
 
     #endregion
@@ -454,17 +467,16 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // 3 cities: Berlin(Diana), London(Alice,Charlie), Paris(Bob,Eve)
-        Assert.AreEqual(3, table.Count);
-
-        var london = table.Single(r => (string)r.Values[0] == "London");
-        Assert.AreEqual(0, Convert.ToInt32(london.Values[2]), "No seniors in London (Alice=25, Charlie=28)");
-
-        var paris = table.Single(r => (string)r.Values[0] == "Paris");
-        Assert.AreEqual(2, Convert.ToInt32(paris.Values[2]), "Bob(35) and Eve(31) are seniors in Paris");
-
-        var berlin = table.Single(r => (string)r.Values[0] == "Berlin");
-        Assert.AreEqual(1, Convert.ToInt32(berlin.Values[2]), "Diana(42) is the only senior in Berlin");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("City", typeof(string)),
+            ("AllNames", typeof(string)),
+            ("SeniorCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Berlin", "Diana", 1L],
+            ["London", "Alice, Charlie", 0L],
+            ["Paris", "Bob, Eve", 2L]);
     }
 
     #endregion
@@ -579,10 +591,15 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // Age > 30: Bob(35,Paris), Diana(42,Berlin), Eve(31,Paris) → cities = {Paris, Berlin}
-        // People in Paris or Berlin: Bob, Diana, Eve
-        Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(r => new[] { "Bob", "Diana", "Eve" }.Contains((string)r.Values[0])));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Bob", "Paris"],
+            ["Diana", "Berlin"],
+            ["Eve", "Paris"]);
     }
 
     [TestMethod]
@@ -597,9 +614,15 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // Same IN logic: cities = {Paris, Berlin}, matching people = Bob, Diana, Eve
-        Assert.AreEqual(3, table.Count);
-        Assert.IsTrue(table.All(r => new[] { "Bob", "Diana", "Eve" }.Contains((string)r.Values[0])));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Bob", "Paris"],
+            ["Diana", "Berlin"],
+            ["Eve", "Paris"]);
     }
 
     [TestMethod]
@@ -614,11 +637,11 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        Assert.AreEqual(1, table.Count);
-        var filtered = Convert.ToInt32(table[0].Values[0]);
-        var total = Convert.ToInt32(table[0].Values[1]);
-        Assert.AreEqual(4, filtered, "Bob(35), Charlie(28), Diana(42), Eve(31) have Age > 25");
-        Assert.AreEqual(5, total, "All 5 people counted");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("FilteredCount", typeof(long)),
+            ("TotalCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [4L, 5L]);
     }
 
     [TestMethod]
@@ -633,9 +656,16 @@ public class FeatureCombinationTests : NegativeTestsBase
         var vm = CompileQuery(query);
         var table = vm.Run(CancellationToken.None);
 
-        // Alice has Salary=50000, excluded. Remaining: Bob(60000), Charlie(55000), Diana(75000), Eve(62000)
-        Assert.AreEqual(4, table.Count);
-        Assert.IsFalse(table.Any(r => (string)r.Values[0] == "Alice"), "Alice (Salary=50000) should be excluded");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Salary", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Bob", 60000m],
+            ["Charlie", 55000m],
+            ["Diana", 75000m],
+            ["Eve", 62000m]);
     }
 
     #endregion

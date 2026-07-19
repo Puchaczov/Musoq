@@ -26,14 +26,10 @@ public partial class DescStatementTests
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertDescriptionShape(table);
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("PersonName", table[0][0]);
-        Assert.AreEqual(0, table[0][1]);
-        Assert.AreEqual(typeof(string).FullName, table[0][2]);
-        Assert.AreEqual("Total", table[1][0]);
-        Assert.AreEqual(1, table[1][1]);
-        Assert.AreEqual(typeof(decimal).FullName, table[1][2]);
+        AssertDescriptionRows(
+            table,
+            ("PersonName", typeof(string)),
+            ("Total", typeof(decimal)));
     }
 
     [TestMethod]
@@ -44,10 +40,17 @@ public partial class DescStatementTests
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertDescriptionShape(table);
-        Assert.IsTrue(table.Any(static row => (string)row[0] == "Name"));
-        Assert.IsTrue(table.Any(static row => (string)row[0] == "Population"));
-        Assert.IsTrue(table.Any(static row => (string)row[0] == "NullableValue"));
+        AssertDescriptionRows(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)),
+            ("Time", typeof(DateTime)),
+            ("Id", typeof(int)),
+            ("NullableValue", typeof(int?)));
     }
 
     [TestMethod]
@@ -66,12 +69,10 @@ desc query (
         vm.Parameters["adjust"] = 10m;
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertDescriptionShape(table);
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("Label", table[0][0]);
-        Assert.AreEqual(typeof(string).FullName, table[0][2]);
-        Assert.AreEqual("Adjusted", table[1][0]);
-        Assert.AreEqual(typeof(decimal).FullName, table[1][2]);
+        AssertDescriptionRows(
+            table,
+            ("Label", typeof(string)),
+            ("Adjusted", typeof(decimal)));
     }
 
     [TestMethod]
@@ -128,11 +129,16 @@ desc query (
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertDescriptionContains(table, "EntityName", typeof(string));
-        AssertDescriptionContains(table, "WeightedPopulation", typeof(decimal));
-        AssertDescriptionDoesNotContain(table, "Name");
-        AssertDescriptionDoesNotContain(table, "City");
-        AssertDescriptionDoesNotContain(table, "Population");
+        AssertDescriptionRows(
+            table,
+            ("EntityName", typeof(string)),
+            ("Country", typeof(string)),
+            ("WeightedPopulation", typeof(decimal)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)),
+            ("Time", typeof(DateTime)),
+            ("Id", typeof(int)),
+            ("NullableValue", typeof(int?)));
     }
 
     [TestMethod]
@@ -289,49 +295,30 @@ desc query (
             TestCompilationOptions);
         var table = vm.Run(TestContext.CancellationToken);
 
-        AssertDescriptionShape(table);
         Assert.AreEqual(0, schemaProvider.RowSourceCalls);
-        Assert.AreEqual("Label", table[0][0]);
-        Assert.AreEqual(typeof(string).FullName, table[0][2]);
-        Assert.AreEqual("NextScore", table[1][0]);
-        Assert.AreEqual(typeof(int).FullName, table[1][2]);
+        AssertDescriptionRows(
+            table,
+            ("Label", typeof(string)),
+            ("NextScore", typeof(int)));
     }
 
     private static void AssertDescriptionShape(Table table)
     {
-        Assert.AreEqual(3, table.Columns.Count());
-        AssertColumn(table, 0, "Name", typeof(string));
-        AssertColumn(table, 1, "Index", typeof(int));
-        AssertColumn(table, 2, "Type", typeof(string));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Index", typeof(int)),
+            ("Type", typeof(string)));
     }
 
     private static void AssertDescriptionRows(Table table, params (string Name, Type Type)[] expectedRows)
     {
         AssertDescriptionShape(table);
-        Assert.AreEqual(expectedRows.Length, table.Count);
 
-        for (var index = 0; index < expectedRows.Length; index++)
-        {
-            Assert.AreEqual(expectedRows[index].Name, table[index][0]);
-            Assert.AreEqual(index, table[index][1]);
-            Assert.AreEqual(expectedRows[index].Type.FullName, table[index][2]);
-        }
-    }
-
-    private static void AssertDescriptionContains(Table table, string expectedName, Type expectedType)
-    {
-        AssertDescriptionShape(table);
-
-        var rows = table.Where(row => (string)row[0] == expectedName).ToArray();
-        Assert.AreEqual(1, rows.Length);
-        Assert.AreEqual(expectedType.FullName, rows[0][2]);
-    }
-
-    private static void AssertDescriptionDoesNotContain(Table table, string expectedName)
-    {
-        AssertDescriptionShape(table);
-
-        Assert.IsFalse(table.Any(row => (string)row[0] == expectedName));
+        var metadataRows = expectedRows
+            .Select((row, index) => (object?[])[row.Name, index, row.Type.FullName])
+            .ToArray();
+        TableMaterializationTestHelper.AssertRowsInOrder(table, metadataRows);
     }
 
     private sealed class MetadataOnlySchemaProvider : ISchemaProvider

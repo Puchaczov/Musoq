@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -22,9 +21,15 @@ public partial class SubqueryTests
         var sources = CreateRangeCorrelationSources();
 
         var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
-        var values = table.Select(row => $"{row.Values[0]}:{row.Values[1]}").ToArray();
-
-        CollectionAssert.AreEqual(new[] { "HIGH:Y", "LOW:N", "MID:Y" }, values);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("HasSmaller", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["HIGH", "Y"],
+            ["LOW", "N"],
+            ["MID", "Y"]);
         var inspection = CompileSubqueryForInspection(query);
         Assert.Contains("SubqueryStrategy [SubqueryLoweringStrategy] _sq_1 -> PredicateRangeMark", inspection.PlanningText);
         Assert.Contains("PhysicalSortMergeJoin [LeftMark]", inspection.PhysicalPlanText);

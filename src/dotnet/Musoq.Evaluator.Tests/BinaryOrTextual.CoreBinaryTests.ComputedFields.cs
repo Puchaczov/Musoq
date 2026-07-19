@@ -43,10 +43,12 @@ public partial class BinaryOrTextualCoreBinaryTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(10, table[0][0]); // Width
-        Assert.AreEqual(5, table[0][1]); // Height
-        Assert.AreEqual(50, table[0][2]); // Area = 10 * 5
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("r.Width", typeof(int)),
+            ("r.Height", typeof(int)),
+            ("r.Area", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [10, 5, 50]);
     }
 
     [TestMethod]
@@ -86,12 +88,14 @@ public partial class BinaryOrTextualCoreBinaryTests
 
         var table = vm.Run(CancellationToken.None);
 
-        // Assert: Only packets with Size > 1000
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("huge.bin", table[0][0]);
-        Assert.AreEqual(5000, table[0][1]);
-        Assert.AreEqual("large.bin", table[1][0]);
-        Assert.AreEqual(2000, table[1][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("f.Name", typeof(string)),
+            ("p.Size", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["huge.bin", 5000],
+            ["large.bin", 2000]);
     }
 
     [TestMethod]
@@ -133,11 +137,13 @@ public partial class BinaryOrTextualCoreBinaryTests
         var table = vm.Run(CancellationToken.None);
 
         // Assert
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(15, table[0][0]); // ValueA
-        Assert.AreEqual(7, table[0][1]); // ValueB
-        Assert.AreEqual(22, table[0][2]); // Sum = 15 + 7
-        Assert.AreEqual(8, table[0][3]); // Diff = 15 - 7
-        Assert.AreEqual(105, table[0][4]); // Product = 15 * 7
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("m.ValueA", typeof(int)),
+            ("m.ValueB", typeof(int)),
+            ("m.Sum", typeof(int)),
+            ("m.Diff", typeof(int)),
+            ("m.Product", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [15, 7, 22, 8, 105]);
     }
 }

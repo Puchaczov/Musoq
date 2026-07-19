@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -87,15 +86,16 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-
-        Assert.AreEqual(1, Convert.ToInt32(alice.Values[2]));
-        Assert.AreEqual(2, Convert.ToInt32(charlie.Values[2]));
-        Assert.AreEqual(1, Convert.ToInt32(bob.Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.City", typeof(string)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "NYC", 1L],
+            ["Charlie", "NYC", 2L],
+            ["Bob", "LA", 1L]);
     }
 
     #endregion
@@ -130,8 +130,14 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.IsFalse(table.Any(r => (string)r.Values[0] == "Alice"));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.City", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Bob", "LA"],
+            ["Charlie", "NYC"]);
     }
 
     #endregion
@@ -168,19 +174,17 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         // Alice(300) >= Y(250) closest match; Bob(200) >= X(150) closest; Charlie(100) < 150 → no match
-        Assert.AreEqual(2, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        Assert.AreEqual(300m, (decimal)alice.Values[1]);
-        Assert.AreEqual("Y", (string)alice.Values[2]);
-        Assert.AreEqual(250m, (decimal)alice.Values[3]);
-        Assert.AreEqual(1, Convert.ToInt32(alice.Values[4]));
-
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        Assert.AreEqual(200m, (decimal)bob.Values[1]);
-        Assert.AreEqual("X", (string)bob.Values[2]);
-        Assert.AreEqual(150m, (decimal)bob.Values[3]);
-        Assert.AreEqual(2, Convert.ToInt32(bob.Values[4]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Population", typeof(decimal)),
+            ("MatchedName", typeof(string)),
+            ("MatchedPop", typeof(decimal)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 300m, "Y", 250m, 1L],
+            ["Bob", 200m, "X", 150m, 2L]);
     }
 
     #endregion
@@ -222,14 +226,15 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // ASOF matches all 3 A rows (X=150 is closest for Alice/Bob, Y=50 for Charlie).
-        // IN filter keeps Alice and Charlie only.
-        Assert.AreEqual(2, table.Count);
-        foreach (var row in table)
-        {
-            var name = (string)row.Values[0];
-            Assert.IsTrue(name == "Alice" || name == "Charlie", $"Expected Alice or Charlie but got {name}");
-        }
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Population", typeof(decimal)),
+            ("MatchedName", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 300m, "X"],
+            ["Charlie", 100m, "Y"]);
     }
 
     #endregion
@@ -264,8 +269,13 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Alice", (string)table[0].Values[0]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Population", typeof(decimal)),
+            ("MatchedPop", typeof(decimal)),
+            ("rn", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice", 300m, 150m, 1L]);
     }
 
     #endregion
@@ -349,15 +359,16 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual(100m, Convert.ToDecimal(alice.Values[2]));
-        Assert.AreEqual(300m, Convert.ToDecimal(bob.Values[2]));
-        Assert.AreEqual(600m, Convert.ToDecimal(charlie.Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Population", typeof(decimal)),
+            ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 100m, 100m],
+            ["Bob", 200m, 300m],
+            ["Charlie", 300m, 600m]);
     }
 
     #endregion
@@ -391,14 +402,15 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // Both Alice(300) and Bob(200) >= X(150). Order by Name: Alice first.
-        Assert.AreEqual(2, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        Assert.AreEqual(300m, Convert.ToDecimal(alice.Values[2]));
-
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        Assert.AreEqual(500m, Convert.ToDecimal(bob.Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Population", typeof(decimal)),
+            ("RunSum", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 300m, 300m],
+            ["Bob", 200m, 500m]);
     }
 
     #endregion
@@ -429,13 +441,15 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-
-        var pl = table.Single(r => (string)r.Values[0] == "PL");
-        Assert.AreEqual(1, Convert.ToInt32(pl.Values[2]));
-
-        var de = table.Single(r => (string)r.Values[0] == "DE");
-        Assert.AreEqual(1, Convert.ToInt32(de.Values[2]));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Country", typeof(string)),
+            ("AllNames", typeof(string)),
+            ("BigCityCount", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["PL", "Alice, Bob", 1L],
+            ["DE", "Charlie", 1L]);
     }
 
     #endregion
@@ -559,19 +573,16 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // Chained ASOF JOINs: each A row yields exactly one closest match in B and one in C
-        Assert.AreEqual(2, table.Count);
-
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Alice"), "Alice should appear");
-        Assert.IsTrue(table.Any(r => (string)r.Values[0] == "Bob"), "Bob should appear");
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        Assert.AreEqual("Y", (string)alice.Values[2], "Alice (500) should match B=Y (400, closest <=500)");
-        Assert.AreEqual("Q", (string)alice.Values[3], "Alice (500) should match C=Q (250, closest <=500)");
-
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        Assert.AreEqual("X", (string)bob.Values[2], "Bob (300) should match B=X (200, closest <=300)");
-        Assert.AreEqual("Q", (string)bob.Values[3], "Bob (300) should match C=Q (250, closest <=300)");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Population", typeof(decimal)),
+            ("Match1", typeof(string)),
+            ("Match2", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 500m, "Y", "Q"],
+            ["Bob", 300m, "X", "Q"]);
     }
 
     #endregion
@@ -583,7 +594,8 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
     public void WhenAsOfJoinWithStarExclude_ShouldWork()
     {
         var query = @"
-            select a.* exclude (a.City, a.Country), b.Name as MatchedName
+            select a.* exclude (a.City, a.Country),
+                   b.Name as MatchedName
             from #A.entities() a
             asof join #B.entities() b on a.Population >= b.Population";
 
@@ -605,15 +617,20 @@ public class CrossFeatureMultiSourceTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        // Both Alice(300) and Bob(200) >= X(150). Star excludes City and Country.
-        Assert.AreEqual(2, table.Count);
-
-        var columnNames = table.Columns.Select(c => c.ColumnName).ToList();
-        Assert.IsFalse(columnNames.Any(c => c.Contains("City")), "City should be excluded");
-        Assert.IsFalse(columnNames.Any(c => c.Contains("Country")), "Country should be excluded");
-
-        var matchedNameIdx = columnNames.FindIndex(c => c.Contains("MatchedName"));
-        Assert.IsTrue(table.All(r => (string)r.Values[matchedNameIdx] == "X"), "Both rows should match X(150)");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Population", typeof(decimal)),
+            ("a.Money", typeof(decimal)),
+            ("a.Month", typeof(string)),
+            ("a.Time", typeof(DateTime)),
+            ("a.Id", typeof(int)),
+            ("a.NullableValue", typeof(int?)),
+            ("MatchedName", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 300m, 0m, "", default(DateTime), 0, null, "X"],
+            ["Bob", 200m, 0m, "", default(DateTime), 0, null, "X"]);
     }
 
     #endregion

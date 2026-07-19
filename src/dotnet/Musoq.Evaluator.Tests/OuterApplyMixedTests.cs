@@ -64,41 +64,18 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Columns.Count());
-        Assert.AreEqual("a.City", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("b.Country", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("c.StreetName", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("c.HouseNumber", table.Columns.ElementAt(3).ColumnName);
-        Assert.AreEqual(typeof(int?), table.Columns.ElementAt(3).ColumnType);
-
-        Assert.AreEqual(4, table.Count);
-
-        Assert.AreEqual(1, table.Count(r =>
-            (string)r[0] == "New York" &&
-            (string)r[1] == "USA" &&
-            (string)r[2] == "Broadway" &&
-            (int)r[3] == 123));
-
-        Assert.AreEqual(1, table.Count(r =>
-            (string)r[0] == "New York" &&
-            (string)r[1] == "USA" &&
-            (string)r[2] == "Fifth Avenue" &&
-            (int)r[3] == 456));
-
-        Assert.AreEqual(1, table.Count(r =>
-            (string)r[0] == "Los Angeles" &&
-            (string)r[1] == "USA" &&
-            (string)r[2] == "Broadway" &&
-            (int)r[3] == 123));
-
-        Assert.AreEqual(1, table.Count(r =>
-            (string)r[0] == "Los Angeles" &&
-            (string)r[1] == "USA" &&
-            (string)r[2] == "Fifth Avenue" &&
-            (int)r[3] == 456));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.Country", typeof(string)),
+            ("c.StreetName", typeof(string)),
+            ("c.HouseNumber", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["New York", "USA", "Broadway", 123],
+            ["New York", "USA", "Fifth Avenue", 456],
+            ["Los Angeles", "USA", "Broadway", 123],
+            ["Los Angeles", "USA", "Fifth Avenue", 456]);
     }
 
     [TestMethod]
@@ -146,35 +123,23 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Columns.Count());
-        Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("a.Budget", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("b.Name", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("b.Salary", table.Columns.ElementAt(3).ColumnName);
-        Assert.AreEqual(typeof(int?), table.Columns.ElementAt(3).ColumnType);
-        Assert.AreEqual("c.Value", table.Columns.ElementAt(4).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(4).ColumnType);
-
-        Assert.AreEqual(8, table.Count, "Table should contain 8 rows");
-
-        Assert.AreEqual(4,
-            table.Count(row =>
-                (string)row[0] == "IT" &&
-                (int)row[1] == 500000 &&
-                new[] { ("John Doe", 50000), ("Jane Smith", 60000) }.Contains(((string)row[2], (int)row[3])) &&
-                new[] { "C#", "JavaScript" }.Contains((string)row[4])),
-            "Expected 4 IT rows with correct employee and skill combinations");
-
-        Assert.AreEqual(4,
-            table.Count(row =>
-                (string)row[0] == "HR" &&
-                (int)row[1] == 300000 &&
-                new[] { ("John Doe", 50000), ("Jane Smith", 60000) }.Contains(((string)row[2], (int)row[3])) &&
-                new[] { "Communication", "Negotiation" }.Contains((string)row[4])),
-            "Expected 4 HR rows with correct employee and skill combinations");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Department", typeof(string)),
+            ("a.Budget", typeof(int)),
+            ("b.Name", typeof(string)),
+            ("b.Salary", typeof(int?)),
+            ("c.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["IT", 500000, "John Doe", 50000, "C#"],
+            ["IT", 500000, "John Doe", 50000, "JavaScript"],
+            ["IT", 500000, "Jane Smith", 60000, "C#"],
+            ["IT", 500000, "Jane Smith", 60000, "JavaScript"],
+            ["HR", 300000, "John Doe", 50000, "Communication"],
+            ["HR", 300000, "John Doe", 50000, "Negotiation"],
+            ["HR", 300000, "Jane Smith", 60000, "Communication"],
+            ["HR", 300000, "Jane Smith", 60000, "Negotiation"]);
     }
 
     [TestMethod]
@@ -223,22 +188,15 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Columns.Count());
-        Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("b.Name", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-
-        Assert.AreEqual(2, table.Count);
-
-        Assert.IsTrue(table.Any(row => (string)row[0] == "IT" &&
-                                       (string)row[1] == "John Doe" &&
-                                       (string)row[2] == "C#"), "Expected row with IT, John Doe, C# not found");
-        Assert.IsTrue(table.Any(row => (string)row[0] == "IT" &&
-                                       (string)row[1] == "Jane Smith" &&
-                                       (string)row[2] == "Java"), "Expected row with IT, Jane Smith, Java not found");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Department", typeof(string)),
+            ("b.Name", typeof(string)),
+            ("c.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["IT", "John Doe", "C#"],
+            ["IT", "Jane Smith", "Java"]);
     }
 
     [TestMethod]
@@ -287,16 +245,13 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Columns.Count());
-        Assert.AreEqual("a.Department", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("Count(a.Department)", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(long), table.Columns.ElementAt(1).ColumnType);
-
-        Assert.AreEqual(1, table.Count);
-
-        Assert.AreEqual("IT", table[0][0]);
-        Assert.AreEqual(2L, table[0][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Department", typeof(string)),
+            ("Count(a.Department)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["IT", 2L]);
     }
 
     [TestMethod]
@@ -329,50 +284,18 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Columns.Count());
-        Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("a.Surname", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-
-        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
-
-        Assert.IsTrue(table.Count(row =>
-                          (string)row[0] == "John" &&
-                          (string)row[1] == "Doe") == 2 &&
-                      table.Any(row =>
-                          (string)row[0] == "John" &&
-                          (string)row[1] == "Doe" &&
-                          (string)row[2] == "C#") &&
-                      table.Any(row =>
-                          (string)row[0] == "John" &&
-                          (string)row[1] == "Doe" &&
-                          (string)row[2] == "JavaScript"),
-            "Expected two rows for John Doe with C# and JavaScript skills");
-
-        Assert.IsTrue(table.Count(row =>
-                          (string)row[0] == "Jane" &&
-                          (string)row[1] == "Smith") == 1 &&
-                      table.Any(row =>
-                          (string)row[0] == "Jane" &&
-                          (string)row[1] == "Smith" &&
-                          (string)row[2] == "Java"),
-            "Expected one row for Jane Smith with Java skill");
-
-        Assert.IsTrue(table.Count(row =>
-                          (string)row[0] == "Alice" &&
-                          (string)row[1] == "Johnson") == 2 &&
-                      table.Any(row =>
-                          (string)row[0] == "Alice" &&
-                          (string)row[1] == "Johnson" &&
-                          (string)row[2] == "Communication") &&
-                      table.Any(row =>
-                          (string)row[0] == "Alice" &&
-                          (string)row[1] == "Johnson" &&
-                          (string)row[2] == "Negotiation"),
-            "Expected two rows for Alice Johnson with Communication and Negotiation skills");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Surname", typeof(string)),
+            ("c.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["John", "Doe", "C#"],
+            ["John", "Doe", "JavaScript"],
+            ["Jane", "Smith", "Java"],
+            ["Alice", "Johnson", "Communication"],
+            ["Alice", "Johnson", "Negotiation"]);
     }
 
     [TestMethod]
@@ -405,35 +328,18 @@ public class OuterApplyMixedTests : GenericEntityTestBase
 
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Columns.Count());
-        Assert.AreEqual("a.Name", table.Columns.ElementAt(0).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
-        Assert.AreEqual("a.Surname", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("c.Value", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(string), table.Columns.ElementAt(2).ColumnType);
-
-        Assert.AreEqual(5, table.Count, "Table should contain 5 rows");
-
-        Assert.AreEqual(2,
-            table.Count(row =>
-                (string)row[0] == "John" &&
-                (string)row[1] == "Doe" &&
-                new[] { "C#", "JavaScript" }.Contains((string)row[2])),
-            "Expected 2 rows for John Doe with C# and JavaScript skills");
-
-        Assert.IsTrue(table.Any(row =>
-                (string)row[0] == "Jane" &&
-                (string)row[1] == "Smith" &&
-                (string)row[2] == "Java"),
-            "Row for Jane Smith with Java skill not found");
-
-        Assert.AreEqual(2,
-            table.Count(row =>
-                (string)row[0] == "Alice" &&
-                (string)row[1] == "Johnson" &&
-                new[] { "Communication", "Negotiation" }.Contains((string)row[2])),
-            "Expected 2 rows for Alice Johnson with Communication and Negotiation skills");
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.Name", typeof(string)),
+            ("a.Surname", typeof(string)),
+            ("c.Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["John", "Doe", "C#"],
+            ["John", "Doe", "JavaScript"],
+            ["Jane", "Smith", "Java"],
+            ["Alice", "Johnson", "Communication"],
+            ["Alice", "Johnson", "Negotiation"]);
     }
 
     private sealed class OuterApplyClass1

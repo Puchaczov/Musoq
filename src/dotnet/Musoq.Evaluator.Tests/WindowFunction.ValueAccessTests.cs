@@ -1,4 +1,3 @@
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -22,10 +21,15 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        foreach (var row in table)
-            Assert.AreEqual("Alice", row.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("FV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "Alice"],
+            ["Bob", "Alice"],
+            ["Charlie", "Alice"]);
     }
 
     [TestMethod]
@@ -44,16 +48,17 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var la = table.Where(r => (string)r.Values[1] == "LA").ToList();
-        var nyc = table.Where(r => (string)r.Values[1] == "NYC").ToList();
-
-        foreach (var row in la)
-            Assert.AreEqual("Alice", row.Values[2]);
-
-        foreach (var row in nyc)
-            Assert.AreEqual("Bob", row.Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("FV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", "Alice"],
+            ["Diana", "LA", "Alice"],
+            ["Bob", "NYC", "Bob"],
+            ["Charlie", "NYC", "Bob"]);
     }
 
     [TestMethod]
@@ -71,10 +76,15 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        foreach (var row in table)
-            Assert.AreEqual(100m, row.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("FV", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 100m],
+            ["Bob", 100m],
+            ["Charlie", 100m]);
     }
 
     [TestMethod]
@@ -90,15 +100,15 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual("Alice", alice.Values[1]);
-        Assert.AreEqual("Bob", bob.Values[1]);
-        Assert.AreEqual("Charlie", charlie.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("LV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "Alice"],
+            ["Bob", "Bob"],
+            ["Charlie", "Charlie"]);
     }
 
     [TestMethod]
@@ -117,17 +127,17 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.AreEqual("Alice", alice.Values[2]);
-        Assert.AreEqual("Diana", diana.Values[2]);
-        Assert.AreEqual("Bob", bob.Values[2]);
-        Assert.AreEqual("Charlie", charlie.Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("LV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", "Alice"],
+            ["Diana", "LA", "Diana"],
+            ["Bob", "NYC", "Bob"],
+            ["Charlie", "NYC", "Charlie"]);
     }
 
     [TestMethod]
@@ -145,11 +155,15 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var lastPopulation = table[0].Values[1];
-        foreach (var row in table)
-            Assert.AreEqual(lastPopulation, row.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("LV", typeof(decimal?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", 200m],
+            ["Bob", 200m],
+            ["Charlie", 200m]);
     }
 
     [TestMethod]
@@ -167,15 +181,15 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.IsNull(alice.Values[1]);
-        Assert.AreEqual("Bob", bob.Values[1]);
-        Assert.AreEqual("Bob", charlie.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("NV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", null],
+            ["Bob", "Bob"],
+            ["Charlie", "Bob"]);
     }
 
     [TestMethod]
@@ -194,17 +208,17 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-
-        Assert.IsNull(alice.Values[2]);
-        Assert.AreEqual("Diana", diana.Values[2]);
-        Assert.IsNull(bob.Values[2]);
-        Assert.AreEqual("Charlie", charlie.Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("NV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", null],
+            ["Diana", "LA", "Diana"],
+            ["Bob", "NYC", null],
+            ["Charlie", "NYC", "Charlie"]);
     }
 
     [TestMethod]
@@ -222,10 +236,15 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        foreach (var row in table)
-            Assert.IsNull(row.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("NV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", null],
+            ["Bob", null],
+            ["Charlie", null]);
     }
 
     [TestMethod]
@@ -241,10 +260,15 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        foreach (var row in table)
-            Assert.AreEqual("Alice", row.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("FV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "Alice"],
+            ["Bob", "Alice"],
+            ["Charlie", "Alice"]);
     }
 
     [TestMethod]
@@ -260,15 +284,15 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(row => (string)row.Values[0] == "Alice");
-        var bob = table.Single(row => (string)row.Values[0] == "Bob");
-        var charlie = table.Single(row => (string)row.Values[0] == "Charlie");
-
-        Assert.AreEqual("Alice", alice.Values[1]);
-        Assert.AreEqual("Bob", bob.Values[1]);
-        Assert.AreEqual("Charlie", charlie.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("LV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "Alice"],
+            ["Bob", "Bob"],
+            ["Charlie", "Charlie"]);
     }
 
     [TestMethod]
@@ -284,15 +308,15 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        var alice = table.Single(row => (string)row.Values[0] == "Alice");
-        var bob = table.Single(row => (string)row.Values[0] == "Bob");
-        var charlie = table.Single(row => (string)row.Values[0] == "Charlie");
-
-        Assert.IsNull(alice.Values[1]);
-        Assert.AreEqual("Bob", bob.Values[1]);
-        Assert.AreEqual("Bob", charlie.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("NV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", null],
+            ["Bob", "Bob"],
+            ["Charlie", "Bob"]);
     }
 
     [TestMethod]
@@ -312,13 +336,16 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-
-        foreach (var row in table)
-        {
-            Assert.AreEqual(row.Values[2], row.Values[1]);
-            Assert.AreEqual("Alice", row.Values[1]);
-        }
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("NV", typeof(string)),
+            ("FV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "Alice", "Alice"],
+            ["Bob", "Alice", "Alice"],
+            ["Charlie", "Alice", "Alice"]);
     }
 
     [TestMethod]
@@ -337,22 +364,16 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        // Sorted: Alice, Bob, Charlie, Diana
-        // Alice:   frame [Alice, Bob]             → FirstValue = Alice
-        // Bob:     frame [Alice, Bob, Charlie]     → FirstValue = Alice
-        // Charlie: frame [Bob, Charlie, Diana]     → FirstValue = Bob
-        // Diana:   frame [Charlie, Diana]          → FirstValue = Charlie
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-
-        Assert.AreEqual("Alice", alice.Values[1]);
-        Assert.AreEqual("Alice", bob.Values[1]);
-        Assert.AreEqual("Bob", charlie.Values[1]);
-        Assert.AreEqual("Charlie", diana.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("FV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "Alice"],
+            ["Bob", "Alice"],
+            ["Charlie", "Bob"],
+            ["Diana", "Charlie"]);
     }
 
     [TestMethod]
@@ -371,22 +392,16 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        // Sorted: Alice, Bob, Charlie, Diana
-        // Alice:   frame [Alice, Bob]             → LastValue = Bob
-        // Bob:     frame [Alice, Bob, Charlie]     → LastValue = Charlie
-        // Charlie: frame [Bob, Charlie, Diana]     → LastValue = Diana
-        // Diana:   frame [Charlie, Diana]          → LastValue = Diana
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-
-        Assert.AreEqual("Bob", alice.Values[1]);
-        Assert.AreEqual("Charlie", bob.Values[1]);
-        Assert.AreEqual("Diana", charlie.Values[1]);
-        Assert.AreEqual("Diana", diana.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("LV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "Bob"],
+            ["Bob", "Charlie"],
+            ["Charlie", "Diana"],
+            ["Diana", "Diana"]);
     }
 
     [TestMethod]
@@ -405,22 +420,16 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-
-        // Sorted: Alice, Bob, Charlie, Diana
-        // Alice:   frame [Alice, Bob]             → NthValue(2) = Bob
-        // Bob:     frame [Alice, Bob, Charlie]     → NthValue(2) = Bob
-        // Charlie: frame [Bob, Charlie, Diana]     → NthValue(2) = Charlie
-        // Diana:   frame [Charlie, Diana]          → NthValue(2) = Diana
-        var alice = table.Single(r => (string)r.Values[0] == "Alice");
-        var bob = table.Single(r => (string)r.Values[0] == "Bob");
-        var charlie = table.Single(r => (string)r.Values[0] == "Charlie");
-        var diana = table.Single(r => (string)r.Values[0] == "Diana");
-
-        Assert.AreEqual("Bob", alice.Values[1]);
-        Assert.AreEqual("Bob", bob.Values[1]);
-        Assert.AreEqual("Charlie", charlie.Values[1]);
-        Assert.AreEqual("Diana", diana.Values[1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("NV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "Bob"],
+            ["Bob", "Bob"],
+            ["Charlie", "Charlie"],
+            ["Diana", "Diana"]);
     }
 
     [TestMethod]
@@ -441,16 +450,18 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        var la = table.Where(r => (string)r.Values[1] == "LA").ToList();
-        var nyc = table.Where(r => (string)r.Values[1] == "NYC").ToList();
-
-        foreach (var row in la)
-            Assert.AreEqual("Alice", row.Values[2]);
-
-        foreach (var row in nyc)
-            Assert.AreEqual("Bob", row.Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("FV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", "Alice"],
+            ["Diana", "LA", "Alice"],
+            ["Eve", "LA", "Alice"],
+            ["Bob", "NYC", "Bob"],
+            ["Charlie", "NYC", "Bob"]);
     }
 
     [TestMethod]
@@ -471,15 +482,17 @@ public class WindowFunctionValueAccessTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(5, table.Count);
-
-        var la = table.Where(r => (string)r.Values[1] == "LA").ToList();
-        var nyc = table.Where(r => (string)r.Values[1] == "NYC").ToList();
-
-        foreach (var row in la)
-            Assert.AreEqual("Eve", row.Values[2]);
-
-        foreach (var row in nyc)
-            Assert.AreEqual("Charlie", row.Values[2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("LV", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Alice", "LA", "Eve"],
+            ["Diana", "LA", "Eve"],
+            ["Eve", "LA", "Eve"],
+            ["Bob", "NYC", "Charlie"],
+            ["Charlie", "NYC", "Charlie"]);
     }
 }

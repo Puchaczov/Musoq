@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Generic;
@@ -30,12 +29,16 @@ order by a.City, b.Ordinal";
 
         var table = CreateAndRunVirtualMachine(query, source).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("b.Ordinal", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
-        AssertRow(table, 0, "Alpha", 10d, 0);
-        AssertRow(table, 1, "Alpha", 20d, 1);
-        AssertRow(table, 2, "Beta", 30d, 0);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.Value", typeof(double)),
+            ("b.Ordinal", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Alpha", 10d, 0],
+            ["Alpha", 20d, 1],
+            ["Beta", 30d, 0]);
     }
 
     [TestMethod]
@@ -60,15 +63,15 @@ order by child.Ordinal";
 
         var table = CreateAndRunVirtualMachine(query, source).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(2, table.Count);
-        Assert.AreEqual("child.Ordinal", table.Columns.ElementAt(2).ColumnName);
-        Assert.AreEqual(typeof(int), table.Columns.ElementAt(2).ColumnType);
-        Assert.AreEqual("first", table[0][0]);
-        Assert.AreEqual(7, table[0][1]);
-        Assert.AreEqual(0, table[0][2]);
-        Assert.AreEqual("second", table[1][0]);
-        Assert.AreEqual(11, table[1][1]);
-        Assert.AreEqual(1, table[1][2]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("child.Name", typeof(string)),
+            ("child.Score", typeof(int)),
+            ("child.Ordinal", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["first", 7, 0],
+            ["second", 11, 1]);
     }
 
     [TestMethod]
@@ -87,15 +90,15 @@ order by a.City, b.Ordinal";
 
         var table = CreateAndRunVirtualMachine(query, source).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("b.Ordinal", table.Columns.ElementAt(1).ColumnName);
-        Assert.AreEqual(typeof(int?), table.Columns.ElementAt(1).ColumnType);
-        Assert.AreEqual("Empty", table[0][0]);
-        Assert.IsNull(table[0][1]);
-        Assert.AreEqual("Full", table[1][0]);
-        Assert.AreEqual(0, table[1][1]);
-        Assert.AreEqual("Full", table[2][0]);
-        Assert.AreEqual(1, table[2][1]);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.Ordinal", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Empty", null],
+            ["Full", 0],
+            ["Full", 1]);
     }
 
     [TestMethod]
@@ -152,11 +155,19 @@ order by leftValue.Ordinal, rightValue.Ordinal";
 
         var table = CreateAndRunVirtualMachine(query, source).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(4, table.Count);
-        AssertChainedRow(table, 0, 1d, 0, 10d, 0);
-        AssertChainedRow(table, 1, 1d, 0, 20d, 1);
-        AssertChainedRow(table, 2, 2d, 1, 10d, 0);
-        AssertChainedRow(table, 3, 2d, 1, 20d, 1);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("leftValue.Value", typeof(double)),
+            ("leftValue.Ordinal", typeof(int)),
+            ("rightValue.Value", typeof(double)),
+            ("rightValue.Ordinal", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Alpha", 1d, 0, 10d, 0],
+            ["Alpha", 1d, 0, 20d, 1],
+            ["Alpha", 2d, 1, 10d, 0],
+            ["Alpha", 2d, 1, 20d, 1]);
     }
 
     [TestMethod]
@@ -174,10 +185,16 @@ order by b.Ordinal";
 
         var table = CreateAndRunVirtualMachine(query, source).Run(TestContext.CancellationToken);
 
-        Assert.AreEqual(3, table.Count);
-        AssertRow(table, 0, "Alpha", 3d, 0);
-        AssertRow(table, 1, "Alpha", 5d, 1);
-        AssertRow(table, 2, "Alpha", 8d, 2);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("a.City", typeof(string)),
+            ("b.Value", typeof(double)),
+            ("b.Ordinal", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            ["Alpha", 3d, 0],
+            ["Alpha", 5d, 1],
+            ["Alpha", 8d, 2]);
     }
 
     [TestMethod]
@@ -205,33 +222,6 @@ cross apply source.Items item with ordinality";
             DiagnosticCode.MQ2030_UnsupportedSyntax,
             DiagnosticPhase.Parse,
             "already exposes an Ordinal column");
-    }
-
-    private static void AssertRow(
-        Musoq.Evaluator.Tables.Table table,
-        int index,
-        string city,
-        double value,
-        int ordinal)
-    {
-        Assert.AreEqual(city, table[index][0]);
-        Assert.AreEqual(value, table[index][1]);
-        Assert.AreEqual(ordinal, table[index][2]);
-    }
-
-    private static void AssertChainedRow(
-        Musoq.Evaluator.Tables.Table table,
-        int index,
-        double leftValue,
-        int leftOrdinal,
-        double rightValue,
-        int rightOrdinal)
-    {
-        Assert.AreEqual("Alpha", table[index][0]);
-        Assert.AreEqual(leftValue, table[index][1]);
-        Assert.AreEqual(leftOrdinal, table[index][2]);
-        Assert.AreEqual(rightValue, table[index][3]);
-        Assert.AreEqual(rightOrdinal, table[index][4]);
     }
 
     private static IEnumerable<double> Enumerate(params double[] values)
