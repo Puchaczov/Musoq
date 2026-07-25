@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Name from #A.entities() order by Population + Money desc skip 1 take 3
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Take [3]
     Skip [1]
@@ -15,18 +13,16 @@ MultiStatement
           SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalTopOffset [skip 1, take 3] [(ko3iko.Population + ko3iko.Money) DESC]
     PhysicalProject [ko3iko.Name as Name]
       PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -48,6 +44,8 @@ ExecutionPlan [compiled]
     MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q110_OrderByTopOffsetHiddenKey

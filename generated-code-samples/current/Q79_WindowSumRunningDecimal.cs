@@ -1,21 +1,18 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Name, City, Sum(ToDecimal(Population)) over (partition by City order by Population) as running from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, ko3iko.City as City, WindowRef(0) as running]
     Window [Sum(idx:0; partition: ko3iko.City; order: ko3iko.Population; args: ToDecimal(ko3iko.Population))]
       SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, ko3iko.City as City, WindowRef(0) as running]
     PhysicalWindow [Sum(idx:0; partition: ko3iko.City; order: ko3iko.Population; args: ToDecimal(ko3iko.Population))]
@@ -23,9 +20,8 @@ PhysicalMultiStatement
         PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -46,6 +42,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name, City: ko3iko.City, running: resultSums[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q79_WindowSumRunningDecimal

@@ -1,7 +1,6 @@
 using System.Reflection;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
-using Musoq.Evaluator.Runtime;
 using Musoq.Schema;
 
 namespace Musoq.Converter;
@@ -28,7 +27,6 @@ public static partial class InstanceCreator
 
     private static void Build(BuildItems items, BuildChain chain)
     {
-        RuntimeLibraries.CreateReferences();
         chain.Build(items);
     }
 

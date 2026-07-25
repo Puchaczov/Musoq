@@ -22,7 +22,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             .Select(static sample => sample.FileName)
             .ToArray();
         var missingTableContractSamples = samples
-            .Where(static sample => !sample.Content.Contains("BaseOperations, ITableRunnable, IParameterizedRunnable", StringComparison.Ordinal))
+            .Where(static sample =>
+                !sample.Content.Contains("BaseOperations, ITableRunnable, IParameterizedRunnable", StringComparison.Ordinal) &&
+                !sample.Content.Contains("BaseOperations, ITableRunnable, IContextTableRunnable, IParameterizedRunnable", StringComparison.Ordinal))
             .Select(static sample => sample.FileName)
             .ToArray();
 

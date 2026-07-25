@@ -4,14 +4,28 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.IR.Execution;
 using static Musoq.Targets.CSharpClr.ExecutionSyntaxFactory;
-using Musoq.Evaluator.Visitors.Helpers;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 using ExecutionCSharpRenderer = Musoq.Targets.CSharpClr.ExecutionCSharpRenderer;
 
 namespace Musoq.Targets.CSharpClr;
 
-public sealed partial class CSharpRenderer(RenderContext context)
+public sealed partial class CSharpRenderer
 {
-    private readonly RenderContext _context = context ?? throw new ArgumentNullException(nameof(context));
+    private readonly RenderContext _context;
+    private readonly CSharpClrExecutionBindingContext _executionBindings;
+
+    public CSharpRenderer(RenderContext context)
+        : this(context, new CSharpClrExecutionBindingContext())
+    {
+    }
+
+    internal CSharpRenderer(
+        RenderContext context,
+        CSharpClrExecutionBindingContext executionBindings)
+    {
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _executionBindings = executionBindings ?? new CSharpClrExecutionBindingContext();
+    }
 
     public CompilationUnitSyntax RenderCompilationUnit(
         string queryIdentifier,
@@ -30,7 +44,8 @@ public sealed partial class CSharpRenderer(RenderContext context)
         var executionRenderer = new ExecutionCSharpRenderer(
             _context.ScriptParameterDefinitions,
             _context.ScriptVariableDefinitions,
-            _context.InstrumentationMode);
+            _context.InstrumentationMode,
+            _executionBindings);
         var unsupportedReason = executionRenderer.GetUnsupportedReason(plan);
         if (unsupportedReason != null)
             return ExecutionQueryRenderOutcome.Unsupported(unsupportedReason);

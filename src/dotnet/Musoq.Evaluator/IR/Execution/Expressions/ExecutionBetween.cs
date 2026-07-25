@@ -16,7 +16,7 @@ public sealed record ExecutionBetween(
         ExecutionExpression low,
         ExecutionExpression high,
         Type returnType)
-        : this(expression, low, high, ExecutionTypeRef.FromClr(returnType))
+        : this(expression, low, high, ExecutionClrBindingFactory.FromClr(returnType))
     {
     }
 }

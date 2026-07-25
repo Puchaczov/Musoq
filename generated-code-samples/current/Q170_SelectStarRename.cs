@@ -1,28 +1,24 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select * replace (Population * 2 as Population) rename (Name as EntityName, Population as WeightedPopulation) from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as EntityName, ko3iko.City as City, ko3iko.Country as Country, (ko3iko.Population * 2) as WeightedPopulation, ko3iko.Money as Money, ko3iko.Month as Month, ko3iko.Time as Time, ko3iko.Id as Id, ko3iko.NullableValue as NullableValue]
     SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as EntityName, ko3iko.City as City, ko3iko.Country as Country, (ko3iko.Population * 2) as WeightedPopulation, ko3iko.Money as Money, ko3iko.Month as Month, ko3iko.Time as Time, ko3iko.Id as Id, ko3iko.NullableValue as NullableValue]
     PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -53,6 +49,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(EntityName: ko3iko.Name, City: ko3iko.City, Country: ko3iko.Country, WeightedPopulation: (ko3iko.Population * 2), Money: ko3iko.Money, Month: ko3iko.Month, Time: ko3iko.Time, Id: ko3iko.Id, NullableValue: ko3iko.NullableValue)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q170_SelectStarRename

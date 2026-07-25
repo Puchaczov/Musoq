@@ -5,6 +5,7 @@ public sealed record ExecutionPlanBuildResult(
     ExecutionPlan? ExecutionPlan,
     string? UnsupportedReason)
 {
+    public bool IsBuilt => Supported;
     public static ExecutionPlanBuildResult CreateSupported(ExecutionPlan executionPlan)
     {
         ArgumentNullException.ThrowIfNull(executionPlan);

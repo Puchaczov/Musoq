@@ -35,7 +35,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
                 0,
                 [],
                 [ageField],
-                SourceType: ExecutionTypeRef.FromClr(typeof(Person))));
+                SourceType: ExecutionClrBindingFactory.FromClr(typeof(Person))));
         var rawTable = new ExecutionVariable("cte0", typeof(Table), rawShape.TypeName);
         var appendRaw = new ExecutionAppendRow(
             rawTable,
@@ -123,7 +123,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
                 0,
                 [],
                 [ageField],
-                SourceType: ExecutionTypeRef.FromClr(typeof(Person))));
+                SourceType: ExecutionClrBindingFactory.FromClr(typeof(Person))));
         var rawTable = new ExecutionVariable("cte0", typeof(Table), rawShape.TypeName);
         var appendRaw = new ExecutionAppendRow(
             rawTable,

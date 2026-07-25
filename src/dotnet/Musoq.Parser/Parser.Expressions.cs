@@ -44,7 +44,8 @@ public partial class Parser
             Consume(Current.TokenType);
 
 
-            if (curr.TokenType == TokenType.Dot && IsSqlKeywordToken(Current.TokenType))
+            if (curr.TokenType == TokenType.Dot &&
+                SqlKeywordTokenFacts.CanRepresentQualifiedIdentifier(Current.TokenType))
                 ReplaceCurrentToken(new ColumnToken(Current.Value, Current.Span));
 
             var right = ComposeArithmeticExpression(nextMinPrecedence);

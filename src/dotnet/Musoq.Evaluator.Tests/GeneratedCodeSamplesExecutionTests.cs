@@ -19,6 +19,49 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
 {
     public TestContext TestContext { get; set; }
 
+    public static IEnumerable<object[]> RecursiveSampleData => RecursiveCteSupportedCaseCatalog.Cases
+        .Where(static item => item.GeneratedSampleName != null)
+        .Select(static item => new object[] { item });
+
+    [TestMethod]
+    public void OrdinaryCteColumnListSample_WhenExecuted_ShouldReturnExportedColumnsAndRows()
+    {
+        var provider = CreateBasicProvider(
+        [
+            new BasicEntity { City = "Warsaw", Country = "PL" },
+            new BasicEntity { City = "Berlin", Country = "DE" }
+        ], []);
+        var table = CompileSample("Q187_CteColumnListOrdinary.cs", provider)
+            .Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("Nation", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Warsaw", "PL"],
+            ["Berlin", "DE"]);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(RecursiveSampleData))]
+    public void RecursiveSample_WhenExecuted_ShouldReturnItsCatalogResult(RecursiveCteSupportedCase testCase)
+    {
+        var vm = CompileSample(
+            $"{testCase.GeneratedSampleName}.cs",
+            testCase.CreateSchemaProvider?.Invoke() ?? CreateBasicProvider([], []));
+        var table = vm.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            testCase.ExpectedColumns.Select(static column => (column.Name, column.ClrType)).ToArray());
+        if (testCase.Ordered)
+            TableMaterializationTestHelper.AssertRowsInOrder(table, testCase.ExpectedRows.ToArray());
+        else
+            TableMaterializationTestHelper.AssertRowsUnordered(table, testCase.ExpectedRows.ToArray());
+    }
+
     [TestMethod]
     public void ScriptParameterGroupByHelperCaptureSample_WhenExecutedWithLargeSource_ShouldUseRuntimeParameters()
     {

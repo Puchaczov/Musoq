@@ -16,4 +16,12 @@ public class AliasesPositionsSymbol : Symbol
 
         return index - 1;
     }
+
+    internal AliasesPositionsSymbol Clone()
+    {
+        var clone = new AliasesPositionsSymbol();
+        foreach (var position in AliasesPositions)
+            clone.AliasesPositions.Add(position.Key, position.Value);
+        return clone;
+    }
 }

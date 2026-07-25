@@ -19,7 +19,8 @@ internal static class PhysicalOptimizationGroup
             new(new OrderingStrategySelectionPass(), "Select the ordering and top/offset strategy."),
             new(new WindowMaterializationPass(), "Select window materialization shape."),
             new(new SourcePredicatePhysicalRewritePass(), "Rewrite source nodes to honor pushed-down predicates."),
-            new(new SourcePlanPhysicalRewritePass(), "Rewrite source nodes to honor selected source plans.")
+            new(new SourcePlanPhysicalRewritePass(), "Rewrite source nodes to honor selected source plans."),
+            new(new RecursiveCteInvariantPlanningPass(), "Extract frontier-independent recursive inputs.")
         ]);
 
     public static IReadOnlyList<IPlanOptimizationPass<PhysicalNode>> Passes => Pipeline.Passes;

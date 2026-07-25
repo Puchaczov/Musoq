@@ -4,6 +4,7 @@ using System.Dynamic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
+using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Schema.Dynamic;
 
 namespace Musoq.Evaluator.Tests;
@@ -13,6 +14,15 @@ public class DynamicSourceQueryTests : DynamicQueryTestsBase
 {
     private static readonly CompilationOptions ExecutionIrCompilationOptions = new(
         usePrimitiveTypeValidation: false);
+
+    private const string KeywordCollisionQuery =
+        "select Exists, ANY, Some, All, Rows, Range, Qualify, Filter, Present, Missing, Substream, [Between], [End], [Case], [Select], [From], [Take] from #dynamic.all()";
+
+    private static readonly string[] KeywordCollisionColumns =
+    [
+        "Exists", "ANY", "Some", "All", "Rows", "Range", "Qualify", "Filter", "Present", "Missing",
+        "Substream", "Between", "End", "Case", "Select", "From", "Take"
+    ];
 
     public TestContext TestContext { get; set; }
 
@@ -355,6 +365,77 @@ inner join #location.all() location on weather.Location = location.Name
     }
 
     [TestMethod]
+    public void WithDynamicSource_ContextualExistsColumn_ShouldPass()
+    {
+        const string query = "select FullPath, Exists from #dynamic.all() take 5";
+        IDictionary<string, object?> expando = new ExpandoObject();
+        expando.Add("FullPath", @"D:\repos\Musoq.Cloud\src\dotnet\Musoq\bin\Debug\net10.0");
+        expando.Add("Exists", true);
+
+        var vm = CreateAndRunVirtualMachine(query, [(dynamic)expando]);
+
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(2, table.Columns.Count());
+        Assert.AreEqual("FullPath", table.Columns.ElementAt(0).ColumnName);
+        Assert.AreEqual("Exists", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(typeof(string), table.Columns.ElementAt(0).ColumnType);
+        Assert.AreEqual(typeof(bool), table.Columns.ElementAt(1).ColumnType);
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(expando["FullPath"], table[0][0]);
+        Assert.AreEqual(true, table[0][1]);
+    }
+
+    [TestMethod]
+    public void WithDynamicSource_WhenExecutionIrRendererIsEnabledForContextualExistsColumn_ShouldPass()
+    {
+        const string query = "select FullPath, Exists from #dynamic.all() take 5";
+        IDictionary<string, object?> expando = new ExpandoObject();
+        expando.Add("FullPath", @"D:\repos\Musoq.Cloud\src\dotnet\Musoq\bin\Debug\net10.0");
+        expando.Add("Exists", true);
+        var sources = new List<dynamic> { (dynamic)expando };
+
+        CreateDynamicInspection(query, sources);
+        var vm = CreateAndRunVirtualMachine(
+            query,
+            sources,
+            compilationOptions: ExecutionIrCompilationOptions);
+
+        var table = vm.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual("Exists", table.Columns.ElementAt(1).ColumnName);
+        Assert.AreEqual(true, table[0][1]);
+    }
+
+    [TestMethod]
+    public void WithDynamicSource_KeywordCollisionCatalog_ShouldPreserveValuesAndNames()
+    {
+        var sources = CreateKeywordCollisionSources();
+        var vm = CreateAndRunVirtualMachine(KeywordCollisionQuery, sources);
+
+        var table = vm.Run(TestContext.CancellationToken);
+
+        AssertKeywordCollisionResult(table);
+    }
+
+    [TestMethod]
+    public void WithDynamicSource_WhenExecutionIrRendererIsEnabledForKeywordCollisionCatalog_ShouldPreserveValuesAndNames()
+    {
+        var sources = CreateKeywordCollisionSources();
+
+        CreateDynamicInspection(KeywordCollisionQuery, sources);
+        var vm = CreateAndRunVirtualMachine(
+            KeywordCollisionQuery,
+            sources,
+            compilationOptions: ExecutionIrCompilationOptions);
+
+        var table = vm.Run(TestContext.CancellationToken);
+
+        AssertKeywordCollisionResult(table);
+    }
+
+    [TestMethod]
     public void WithDynamicSource_WhenExecutionIrRendererIsEnabledForKeywordColumns_ShouldUseExecutionRendererAdapter()
     {
         const string query = "select [case], [end] from #dynamic.all()";
@@ -400,5 +481,28 @@ inner join #location.all() location on weather.Location = location.Name
                 }),
             LoggerResolver,
             ExecutionIrCompilationOptions);
+    }
+
+    private static List<dynamic> CreateKeywordCollisionSources()
+    {
+        IDictionary<string, object?> expando = new ExpandoObject();
+        foreach (var column in KeywordCollisionColumns)
+            expando.Add(column, $"value:{column}");
+
+        return [(dynamic)expando];
+    }
+
+    private void AssertKeywordCollisionResult(Table table)
+    {
+        Assert.AreEqual(1, table.Count);
+        Assert.HasCount(KeywordCollisionColumns.Length, table.Columns);
+
+        for (var index = 0; index < KeywordCollisionColumns.Length; index++)
+        {
+            var column = KeywordCollisionColumns[index];
+            Assert.AreEqual(column, table.Columns.ElementAt(index).ColumnName);
+            Assert.AreEqual(typeof(string), table.Columns.ElementAt(index).ColumnType);
+            Assert.AreEqual($"value:{column}", table[0][index]);
+        }
     }
 }

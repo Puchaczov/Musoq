@@ -1,10 +1,41 @@
 using System.Globalization;
+using System.Linq;
 using System.Text;
 namespace Musoq.Evaluator.IR.Execution;
 
 public static partial class ExecutionPlanPrinter
 {
-    private static void AppendNode(StringBuilder builder, ExecutionNode node, int indentation) {
+    private static void AppendNode(StringBuilder builder, ExecutionNode node, int indentation)
+    {
+        var start = builder.Length;
+
+        if (ExecutionNodeRegistry.TryGetDescriptor(node, out var descriptor))
+        {
+            descriptor.Behavior.Printer(builder, node, indentation);
+            CaptureNodeDescription(builder, start, node);
+            return;
+        }
+
+        AppendNodeLegacy(builder, node, indentation);
+        CaptureNodeDescription(builder, start, node);
+    }
+
+    private static void CaptureNodeDescription(StringBuilder builder, int start, ExecutionNode node)
+    {
+        if (NodeDescriptions.Value is not { } descriptions || builder.Length <= start)
+            return;
+
+        var rendered = builder.ToString(start, builder.Length - start).Trim();
+        var lineEnd = rendered.IndexOf('\n');
+        if (lineEnd >= 0)
+            rendered = rendered[..lineEnd].TrimEnd('\r');
+
+        var nodeKindEnd = rendered.IndexOfAny([' ', '[']);
+        var nodeKind = nodeKindEnd < 0 ? rendered : rendered[..nodeKindEnd];
+        descriptions[node] = new ExecutionNodePrintDescription(rendered, nodeKind);
+    }
+
+    internal static void AppendNodeLegacy(StringBuilder builder, ExecutionNode node, int indentation) {
         var prefix = new string(' ', indentation);
 
         switch (node)
@@ -115,6 +146,24 @@ public static partial class ExecutionPlanPrinter
                 break;
             case ExecutionCreateGeneratedRow createRow:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}CreateGeneratedRow [{createRow.Row.Name} <- {createRow.RowShape.TypeName}({FormatRowValues(createRow.Values)})]");
+                break;
+            case ExecutionRecursiveCte recursiveCte:
+                builder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"{prefix}RecursiveCte [{recursiveCte.Name}; result {recursiveCte.Result.Name}; frontiers {recursiveCte.CurrentFrontier.Name}, {recursiveCte.NextFrontier.Name}; identity {FormatRecursiveIdentity(recursiveCte)}; max iterations {recursiveCte.MaxIterations}; max rows {recursiveCte.MaxRows}; max snapshot rows {recursiveCte.MaxSnapshotRows}]");
+                AppendLabeledBlock(builder, prefix, "  Anchor", recursiveCte.Anchor, indentation + 4);
+                AppendLabeledBlock(builder, prefix, "  InvariantSetup", recursiveCte.InvariantSetup, indentation + 4, skipWhenEmpty: true);
+                AppendLabeledBlock(builder, prefix, "  RecursiveMember", recursiveCte.RecursiveMember, indentation + 4);
+                break;
+            case ExecutionRecursiveCteAppend append:
+                builder.AppendLine(
+                    CultureInfo.InvariantCulture,
+                    $"{prefix}RecursiveAppend [{append.Frontier.Name} <- {append.AppendRow.RowShape.TypeName}({FormatRowValues(append.AppendRow.Values)}); identity {FormatRecursiveIdentity(append)}; guard {append.Result.Name}.Count + {append.Frontier.Name}.Count < {append.MaxRows}]");
+                break;
+            case ExecutionRecursiveCteSnapshotRowGuard guard:
+                builder.AppendLine(
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    $"{prefix}RecursiveSnapshotGuard [{guard.Counter.Name} < {guard.MaxRows}; {guard.Name}]");
                 break;
             case ExecutionCreateHashPayload createPayload:
                 builder.AppendLine(CultureInfo.InvariantCulture, $"{prefix}CreateHashPayload [{createPayload.Payload.Name} <- {createPayload.PayloadShape.TypeName}({FormatRowValues(createPayload.Values)})]");
@@ -439,5 +488,24 @@ public static partial class ExecutionPlanPrinter
         return TryGetTypedStoredTableSlot(store.TableIndex, out var generatedRowTypeName)
             ? $"{FormatCteRowResultSlot(store.TableIndex)}: {generatedRowTypeName}"
             : $"_tableResults[{store.TableIndex.ToString(CultureInfo.InvariantCulture)}]";
+    }
+
+    private static string FormatRecursiveIdentity(ExecutionRecursiveCte recursiveCte)
+    {
+        return recursiveCte.Seen == null
+            ? "none"
+            : $"{recursiveCte.IdentityMode} via {recursiveCte.Seen.Name} ({FormatRecursiveIdentityFields(recursiveCte.RowShape, recursiveCte.IdentityFieldIndexes)})";
+    }
+
+    private static string FormatRecursiveIdentity(ExecutionRecursiveCteAppend append)
+    {
+        return append.Seen == null
+            ? "none"
+            : $"{append.Seen.Name} ({FormatRecursiveIdentityFields(append.AppendRow.RowShape, append.IdentityFieldIndexes)})";
+    }
+
+    private static string FormatRecursiveIdentityFields(GeneratedRowShape shape, int[] fieldIndexes)
+    {
+        return string.Join(", ", fieldIndexes.Select(index => shape.Fields[index].Name));
     }
 }

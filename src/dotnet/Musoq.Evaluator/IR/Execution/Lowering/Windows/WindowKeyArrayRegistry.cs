@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Windows;
 
 internal sealed class WindowKeyArrayRegistry
 {

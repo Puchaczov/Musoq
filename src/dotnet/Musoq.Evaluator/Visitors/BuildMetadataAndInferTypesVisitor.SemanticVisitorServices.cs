@@ -9,4 +9,5 @@ public partial class BuildMetadataAndInferTypesVisitor
     private readonly SemanticQueryValidationService _queryValidationService;
     private readonly SemanticResultShapeBindingService _resultShapeBindingService;
     private readonly SemanticSourceBindingService _sourceBindingService;
+    private readonly SemanticMetadataSnapshotBuilder _metadataSnapshotBuilder = new();
 }

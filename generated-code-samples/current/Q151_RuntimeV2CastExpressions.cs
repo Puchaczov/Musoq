@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT (Quantity + 1)::Int64 as QuantityNext,
                          Population::Int32::String as PopulationText,
                          CreatedAt::DateTimeOffset as CreatedOffset
@@ -9,9 +8,8 @@ SELECT (Quantity + 1)::Int64 as QuantityNext,
                   ORDER BY Amount::Decimal
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Sort [ko3iko.Amount::Decimal]
     Project [(ko3iko.Quantity + 1)::Int64 as QuantityNext, ko3iko.Population::Int32::String as PopulationText, ko3iko.CreatedAt::DateTimeOffset as CreatedOffset]
@@ -19,9 +17,8 @@ MultiStatement
         SchemaScan [#features.items() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalSort [ko3iko.Amount::Decimal]
     PhysicalProject [(ko3iko.Quantity + 1)::Int64 as QuantityNext, ko3iko.Population::Int32::String as PopulationText, ko3iko.CreatedAt::DateTimeOffset as CreatedOffset]
@@ -29,9 +26,8 @@ PhysicalMultiStatement
         PhysicalSchemaScan [#features.items() as ko3iko] [pushdown: (ko3iko.Population::Int32 > 1000)]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2CastGroupingFeatureEntity]
@@ -62,6 +58,8 @@ ExecutionPlan [compiled]
     MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1, 2]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q151_RuntimeV2CastExpressions

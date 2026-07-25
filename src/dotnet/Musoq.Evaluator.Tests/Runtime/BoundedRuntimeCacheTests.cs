@@ -67,4 +67,19 @@ public sealed class BoundedRuntimeCacheTests
         Assert.AreEqual(1, factoryCalls);
         Assert.AreEqual(1, cache.Count);
     }
+
+    [TestMethod]
+    public void TypeKeyedCache_ShouldEvictStrongCollectibleLikeKeys()
+    {
+        var cache = new BoundedRuntimeCache<Type, string>(2);
+
+        cache.GetOrAdd(typeof(string), static _ => "string");
+        cache.GetOrAdd(typeof(int), static _ => "int");
+        cache.GetOrAdd(typeof(Guid), static _ => "guid");
+
+        Assert.AreEqual(2, cache.Count);
+        Assert.IsFalse(cache.TryGetValue(typeof(string), out _));
+        Assert.IsTrue(cache.TryGetValue(typeof(int), out _));
+        Assert.IsTrue(cache.TryGetValue(typeof(Guid), out _));
+    }
 }

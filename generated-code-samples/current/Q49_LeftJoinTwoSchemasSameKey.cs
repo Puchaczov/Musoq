@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select a.Id, b.Id from #A.entities() a left outer join #B.entities() b on a.Id = b.Id
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [a.Id as a.Id, b.Id as b.Id]
     Join [LeftOuter] [(a.Id = b.Id)]
@@ -16,9 +14,8 @@ MultiStatement
     CteRef [ab as ab]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [a.Id as a.Id, b.Id as b.Id]
     PhysicalHashJoin [LeftOuter] [build: b.Id] [probe: a.Id]
@@ -28,9 +25,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ab as ab]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [a: BasicEntity]
@@ -58,6 +54,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(a.Id: a.Id, b.Id: NULL)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q49_LeftJoinTwoSchemasSameKey

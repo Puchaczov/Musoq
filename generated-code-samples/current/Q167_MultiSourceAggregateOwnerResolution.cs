@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select a.Country, Count(a.Name) as NameCount from #A.entities() a inner join #B.entities() b on a.Id = b.Id group by a.Country
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [a.Name as a.Name, a.Country as a.Country, a.Id as a.Id, b.Id as b.Id]
     Join [Inner] [(a.Id = b.Id)]
@@ -19,9 +17,8 @@ MultiStatement
     CteRef [abScore as abScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [a.Name as a.Name, a.Country as a.Country, a.Id as a.Id, b.Id as b.Id]
     PhysicalHashJoin [Inner] [build: b.Id] [probe: a.Id]
@@ -34,9 +31,8 @@ PhysicalMultiStatement
     PhysicalCteRef [abScore as abScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [a: BasicEntity]
@@ -69,6 +65,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(a.Country: finalGroup.a.Country, NameCount: a.Count(a.Name))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q167_MultiSourceAggregateOwnerResolution

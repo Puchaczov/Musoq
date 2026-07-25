@@ -1,30 +1,26 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Name, City, NullableValue from #A.entities() order by NullableValue nulls last, City desc nulls first
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Sort [ko3iko.NullableValue NULLS LAST, ko3iko.City DESC NULLS FIRST]
     Project [ko3iko.Name as Name, ko3iko.City as City, ko3iko.NullableValue as NullableValue]
       SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalSort [ko3iko.NullableValue NULLS LAST, ko3iko.City DESC NULLS FIRST]
     PhysicalProject [ko3iko.Name as Name, ko3iko.City as City, ko3iko.NullableValue as NullableValue]
       PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -50,6 +46,8 @@ ExecutionPlan [compiled]
     MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1, 2]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q169_NullsFirstLastOrdering

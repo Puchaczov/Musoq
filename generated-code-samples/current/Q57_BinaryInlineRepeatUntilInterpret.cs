@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 binary InlineRepeatPacket {
                 Items: { Tag: byte, Value: short le } repeat until Items.Tag = 0
             };
@@ -12,9 +11,8 @@ binary InlineRepeatPacket {
             cross apply p.Items it
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [f.Content as f.Content, p.Items as p.Items]
     Apply [Cross]
@@ -28,9 +26,8 @@ MultiStatement
     CteRef [fpit as fpit]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [f.Content as f.Content, p.Items as p.Items]
     PhysicalNestedLoopApply [Cross]
@@ -44,9 +41,8 @@ PhysicalMultiStatement
     PhysicalCteRef [fpit as fpit]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [f: BinaryEntity]
@@ -82,6 +78,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(it.Tag: it.Tag, it.Value: it.Value)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q57_BinaryInlineRepeatUntilInterpret

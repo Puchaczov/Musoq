@@ -11,10 +11,30 @@ public sealed partial class RewriteQueryVisitor : IScopeAwareExpressionVisitor
     private int _queryIndex;
     private Scope? _scopeValue;
     private RootNode? _rootScript;
+    private RootNode? _phaseRoot;
 
     public RewriteQueryVisitor(CompilationOptions? compilationOptions = null)
     {
         _ = compilationOptions;
+    }
+
+    internal RewriteQueryVisitor(
+        RewriteQueryPhaseInput phaseInput,
+        CompilationOptions? compilationOptions = null)
+        : this(compilationOptions)
+    {
+        ArgumentNullException.ThrowIfNull(phaseInput);
+        phaseInput.Validate();
+        _phaseRoot = phaseInput.Root;
+    }
+
+    internal void ValidatePhaseRoot(RootNode root)
+    {
+        ArgumentNullException.ThrowIfNull(root);
+
+        if (_phaseRoot is not null && !ReferenceEquals(_phaseRoot, root))
+            throw new InvalidOperationException(
+                "Rewrite query phase input does not match the root being traversed.");
     }
 
     private Scope Scope => _scopeValue ?? throw new InvalidOperationException("Rewrite query visitor scope must be set before visiting query nodes.");

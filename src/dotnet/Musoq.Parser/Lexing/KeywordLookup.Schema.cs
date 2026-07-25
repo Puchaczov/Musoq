@@ -12,14 +12,8 @@ public static partial class KeywordLookup
     /// <returns>True if the text is a schema keyword.</returns>
     public static bool IsSchemaKeyword(string text)
     {
-        return SchemaKeywords.Contains(text);
+        return SchemaKeywordTypes.ContainsKey(text);
     }
-
-    /// <summary>
-    ///     Gets the token type for a schema keyword.
-    /// </summary>
-    /// <param name="text">The schema keyword text.</param>
-    /// <returns>The corresponding token type.</returns>
 
     /// <summary>
     ///     Gets the token type for a schema keyword.
@@ -30,13 +24,6 @@ public static partial class KeywordLookup
     {
         return SchemaKeywordTypes.GetValueOrDefault(text, TokenType.Word);
     }
-
-    /// <summary>
-    ///     Tries to get the token type for a schema keyword.
-    /// </summary>
-    /// <param name="text">The schema keyword text.</param>
-    /// <param name="tokenType">The token type if found.</param>
-    /// <returns>True if the text is a recognized schema keyword.</returns>
 
     /// <summary>
     ///     Tries to get the token type for a schema keyword.
@@ -60,7 +47,6 @@ public static partial class KeywordLookup
                 break;
             case 3:
                 if (EqualsKeyword(text, "int")) return Found(TokenType.IntType, out tokenType);
-                if (EqualsKeyword(text, "bit")) return Found(TokenType.Word, out tokenType);
                 break;
             case 4:
                 if (EqualsKeyword(text, "text")) return Found(TokenType.Text, out tokenType);
@@ -71,7 +57,6 @@ public static partial class KeywordLookup
                 if (EqualsKeyword(text, "utf8")) return Found(TokenType.Utf8, out tokenType);
                 if (EqualsKeyword(text, "trim")) return Found(TokenType.Trim, out tokenType);
                 if (EqualsKeyword(text, "null")) return Found(TokenType.Null, out tokenType);
-                if (EqualsKeyword(text, "term")) return Found(TokenType.Word, out tokenType);
                 if (EqualsKeyword(text, "rest")) return Found(TokenType.Rest, out tokenType);
                 if (EqualsKeyword(text, "lazy")) return Found(TokenType.Lazy, out tokenType);
                 break;
@@ -81,7 +66,6 @@ public static partial class KeywordLookup
                 if (EqualsKeyword(text, "ulong")) return Found(TokenType.ULongType, out tokenType);
                 if (EqualsKeyword(text, "float")) return Found(TokenType.FloatType, out tokenType);
                 if (EqualsKeyword(text, "align")) return Found(TokenType.Align, out tokenType);
-                if (EqualsKeyword(text, "utf16")) return Found(TokenType.Word, out tokenType);
                 if (EqualsKeyword(text, "ascii")) return Found(TokenType.Ascii, out tokenType);
                 if (EqualsKeyword(text, "rtrim")) return Found(TokenType.RTrim, out tokenType);
                 if (EqualsKeyword(text, "ltrim")) return Found(TokenType.LTrim, out tokenType);

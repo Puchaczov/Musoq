@@ -11,8 +11,8 @@ public static partial class ExecutionExpressionConverter
         IReadOnlyDictionary<string, RowShape> sourceShapes)
     {
         if (TryCreateDirectPresenceSource(rowPresence.Alias, sourceShapes, out var directSource))
-            return directSource.ReturnType.ClrType.IsValueType &&
-                   Nullable.GetUnderlyingType(directSource.ReturnType.ClrType) == null
+            return directSource.ReturnType.ResolveClrType().IsValueType &&
+                   Nullable.GetUnderlyingType(directSource.ReturnType.ResolveClrType()) == null
                 ? new ExecutionLiteral(rowPresence.IsPresent, typeof(bool))
                 : new ExecutionRowPresence(rowPresence.Alias, rowPresence.IsPresent, directSource);
 

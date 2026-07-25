@@ -6,4 +6,4 @@ using Musoq.Evaluator.Tables;
 namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionScalarRowStream(
-    ExecutionVariable Variable) : ExecutionExpression(ExecutionTypeRef.FromClr(typeof(object)));
+    ExecutionVariable Variable) : ExecutionExpression(ExecutionClrBindingFactory.FromClr(typeof(object)));

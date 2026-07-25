@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Sources;
 
 internal sealed record SingleKeyAggregateExecutionSource(
     IReadOnlyDictionary<string, RowShape> Lookup,
@@ -12,7 +12,7 @@ internal sealed record SingleKeyAggregateExecutionSource(
     ExecutionExpression? ParallelRows = null);
 
 internal sealed record SingleKeyAggregateExecutionSourceBuildResult(
-    bool Supported,
+    bool IsBuilt,
     SingleKeyAggregateExecutionSource Source,
     string UnsupportedReason)
 {

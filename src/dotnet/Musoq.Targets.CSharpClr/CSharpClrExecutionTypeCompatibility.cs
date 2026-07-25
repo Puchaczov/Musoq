@@ -5,12 +5,14 @@ namespace Musoq.Targets.CSharpClr;
 
 internal static class CSharpClrExecutionTypeCompatibility
 {
+    private static readonly CSharpClrExecutionBindingContext DefaultBindingContext = new();
+
     internal static Type RequireClrType(this ExecutionTypeRef typeRef) =>
-        typeRef?.ClrType ?? throw new ArgumentNullException(nameof(typeRef));
+        DefaultBindingContext.BindType(typeRef);
 
     internal static Type? RequireOptionalClrType(this ExecutionTypeRef? typeRef) =>
-        typeRef?.ClrType;
+        DefaultBindingContext.BindOptionalType(typeRef);
 
     internal static Type[] RequireClrTypes(this IEnumerable<ExecutionTypeRef> typeRefs) =>
-        typeRefs.Select(static typeRef => typeRef.RequireClrType()).ToArray();
+        DefaultBindingContext.BindTypes(typeRefs);
 }

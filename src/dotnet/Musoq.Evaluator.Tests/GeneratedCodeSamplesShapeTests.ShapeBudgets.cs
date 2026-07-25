@@ -76,6 +76,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         ["Pivot"] = new() { ContextsAccess = 0 },
         ["RuntimeV2"] = new() { ContextsAccess = 0 },
         ["RuntimeV2CastGrouping"] = new() { ContextsAccess = 0 },
+        ["RecursiveCte"] = new() { ContextsAccess = 0 },
         ["Scalar"] = new() { ContextsAccess = 0 },
         ["Scan"] = new() { ContextsAccess = 0 },
         ["Set"] = new(),

@@ -41,6 +41,8 @@ internal sealed class ExecutionRenderSession
     internal bool IncludeTableResults { get; set; } = true;
     internal bool UseQueryRunContext { get; set; }
     internal bool EmitChunkLoopCancellationChecks { get; set; } = true;
+    internal bool SkipInitialLoopCancellationCheck { get; set; }
+    internal string? RecursiveCteCancellationCounterName { get; set; }
     internal bool SuppressSingleKeyAggregateUpdateHelpers { get; set; }
     internal FinalShapeYieldSink? FinalShapeYieldSink { get; set; }
 }

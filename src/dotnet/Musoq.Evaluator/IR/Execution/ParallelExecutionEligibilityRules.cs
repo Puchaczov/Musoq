@@ -120,10 +120,10 @@ internal static class ParallelExecutionEligibilityRules
         ExecutionMethodCall methodCall,
         Func<ExecutionFieldRead, ParallelExecutionEligibilityCheck> fieldReadEligibility)
     {
-        if (methodCall.Method.ClrMethod.GetCustomAttribute<NonDeterministicAttribute>() != null)
+        if (methodCall.Method.ResolveClrMethod().GetCustomAttribute<NonDeterministicAttribute>() != null)
             return ParallelExecutionEligibilityCheck.Skipped($"Expression contains non-deterministic method {methodCall.Method.MethodName}.");
 
-        if (methodCall.Method.ClrMethod.GetParameters()
+        if (methodCall.Method.ResolveClrMethod().GetParameters()
             .Any(static parameter => parameter.GetCustomAttribute<InjectQueryStatsAttribute>() != null))
         {
             return ParallelExecutionEligibilityCheck.Skipped($"Expression calls {methodCall.Method.MethodName}, which injects query statistics.");

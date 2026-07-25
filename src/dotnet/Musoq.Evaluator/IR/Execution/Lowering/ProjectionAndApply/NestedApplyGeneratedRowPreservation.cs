@@ -1,4 +1,4 @@
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.ProjectionAndApply;
 
 internal enum NestedApplyGeneratedRowPreservation
 {

@@ -4,7 +4,7 @@ using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Planning;
-using Musoq.Evaluator.Utils;
+using Musoq.Evaluator.Visitors;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
@@ -19,6 +19,8 @@ namespace Musoq.Converter.Build;
 /// </summary>
 internal sealed record SemanticBuildArtifacts
 {
+    public required SemanticPhaseArtifacts Phase { get; init; }
+
     public required RootNode TransformedQueryTree { get; init; }
 
     public required IReadOnlyDictionary<SchemaFromNode, ISchemaColumn[]> UsedColumns { get; init; }
@@ -42,7 +44,7 @@ internal sealed record SemanticBuildArtifacts
 
     public required bool HasSourceRuntimeSettingValues { get; init; }
 
-    public Scope? PipelineScope { get; init; }
+    public required SemanticScopeArtifact ScopeArtifact { get; init; }
 
     public IReadOnlyDictionary<string, ISchemaColumn[]>? PipelineInferredColumns { get; init; }
 

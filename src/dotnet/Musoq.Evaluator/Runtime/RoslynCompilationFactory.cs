@@ -15,7 +15,7 @@ using Musoq.Schema;
 
 namespace Musoq.Evaluator.Runtime;
 
-internal sealed class RoslynCompilationFactory : ICSharpCompilationFactory
+internal sealed class RoslynCompilationFactory : ICSharpCompilationFactory, IDisposable
 {
     private readonly IRuntimeReferenceProvider _runtimeReferenceProvider;
     private readonly IMetadataReferenceCache _referenceCache;
@@ -24,6 +24,7 @@ internal sealed class RoslynCompilationFactory : ICSharpCompilationFactory
     private readonly Lazy<CSharpCompilation> _templateCompilation;
     private readonly HashSet<string> _preloadedPaths = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _preloadedPathsGate = new();
+    private int _disposed;
 
     public RoslynCompilationFactory(
         IRuntimeReferenceProvider runtimeReferenceProvider,
@@ -31,10 +32,10 @@ internal sealed class RoslynCompilationFactory : ICSharpCompilationFactory
     {
         _runtimeReferenceProvider = runtimeReferenceProvider ?? throw new ArgumentNullException(nameof(runtimeReferenceProvider));
         _referenceCache = referenceCache ?? throw new ArgumentNullException(nameof(referenceCache));
-        _threadLocalWorkspace = new ThreadLocal<AdhocWorkspace>(() => new AdhocWorkspace(), false);
+        _threadLocalWorkspace = new ThreadLocal<AdhocWorkspace>(() => new AdhocWorkspace(), true);
         _threadLocalGenerator = new ThreadLocal<SyntaxGenerator>(
             () => SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp),
-            false);
+            true);
         _templateCompilation = new Lazy<CSharpCompilation>(CreateTemplateCompilation);
     }
 
@@ -42,6 +43,7 @@ internal sealed class RoslynCompilationFactory : ICSharpCompilationFactory
     {
         get
         {
+            ThrowIfDisposed();
             _ = _templateCompilation.Value;
             lock (_preloadedPathsGate)
             {
@@ -50,15 +52,43 @@ internal sealed class RoslynCompilationFactory : ICSharpCompilationFactory
         }
     }
 
-    public AdhocWorkspace Workspace => _threadLocalWorkspace.Value ??
-                                       throw new InvalidOperationException("Roslyn workspace was not initialized for the current thread.");
+    public AdhocWorkspace Workspace
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _threadLocalWorkspace.Value ??
+                   throw new InvalidOperationException("Roslyn workspace was not initialized for the current thread.");
+        }
+    }
 
-    public SyntaxGenerator Generator => _threadLocalGenerator.Value ??
-                                        throw new InvalidOperationException("Roslyn syntax generator was not initialized for the current thread.");
+    public SyntaxGenerator Generator
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _threadLocalGenerator.Value ??
+                   throw new InvalidOperationException("Roslyn syntax generator was not initialized for the current thread.");
+        }
+    }
 
     public CSharpCompilation CreateCompilation(string assemblyName)
     {
+        ThrowIfDisposed();
         return _templateCompilation.Value.WithAssemblyName(assemblyName);
+    }
+
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            return;
+
+        foreach (var workspace in _threadLocalWorkspace.Values)
+            workspace.Dispose();
+
+        _threadLocalGenerator.Dispose();
+        _threadLocalWorkspace.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private CSharpCompilation CreateTemplateCompilation()
@@ -121,5 +151,10 @@ internal sealed class RoslynCompilationFactory : ICSharpCompilationFactory
         {
             return _preloadedPaths.Add(path);
         }
+    }
+
+    private void ThrowIfDisposed()
+    {
+        ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
     }
 }

@@ -1,14 +1,12 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT City, Department, Count(*) as Cnt
                   FROM #features.items()
                   GROUP BY 1, 2
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Department as ko3iko.Department, ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(*)) as ko3iko.Count(*)]
     Aggregate [keys: ko3iko.City, ko3iko.Department] [aggs: Count(*)]
@@ -17,9 +15,8 @@ MultiStatement
     CteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Department as ko3iko.Department, ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(*)) as ko3iko.Count(*)]
     PhysicalValueTupleAggregate [keys: ko3iko.City, ko3iko.Department] [aggs: Count(*)]
@@ -28,9 +25,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2CastGroupingFeatureEntity]
@@ -54,6 +50,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(City: finalGroup.ko3iko.City, Department: finalGroup.ko3iko.Department, Cnt: ko3iko.Count(*))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q153_RuntimeV2GroupByOrdinal

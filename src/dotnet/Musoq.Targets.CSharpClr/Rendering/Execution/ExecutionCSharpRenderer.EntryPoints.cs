@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Visitors.CodeGeneration;
-using Musoq.Evaluator.Visitors.Helpers;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer

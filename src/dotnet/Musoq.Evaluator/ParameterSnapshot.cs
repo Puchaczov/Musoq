@@ -10,7 +10,8 @@ internal static class ParameterSnapshot
 
     public static IReadOnlyDictionary<string, object?> EmptyReadOnly => Empty;
 
-    public static IDictionary<string, object?> EmptyDictionary => Empty;
+    public static IDictionary<string, object?> EmptyDictionary =>
+        new Dictionary<string, object?>(StringComparer.Ordinal);
 
     public static Dictionary<string, object?> CaptureMutableOrEmpty(
         IEnumerable<KeyValuePair<string, object?>>? parameters)
@@ -40,11 +41,9 @@ internal static class ParameterSnapshot
     public static IDictionary<string, object?> CaptureDictionaryOrEmpty(
         IEnumerable<KeyValuePair<string, object?>>? parameters)
     {
-        if (parameters == null)
-            return Empty;
-
-        var snapshot = new Dictionary<string, object?>(parameters, StringComparer.Ordinal);
-        return snapshot.Count == 0 ? Empty : new ReadOnlyDictionary<string, object?>(snapshot);
+        return parameters == null
+            ? new Dictionary<string, object?>(StringComparer.Ordinal)
+            : new Dictionary<string, object?>(parameters, StringComparer.Ordinal);
     }
 
     public static bool IsEmpty(IReadOnlyDictionary<string, object?> parameters)

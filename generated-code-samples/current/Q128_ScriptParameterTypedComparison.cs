@@ -1,33 +1,29 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 param(country: string)
               select Name, Country
               from #A.entities()
               where Country = $country
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, ko3iko.Country as Country]
     Filter [(ko3iko.Country = $country)]
       SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, ko3iko.Country as Country]
     PhysicalFilter [(ko3iko.Country = $country)]
       PhysicalSchemaScan [#A.entities() as ko3iko] [pushdown: (ko3iko.Country = $country)]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -46,6 +42,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(Name: ko3iko.Name, Country: country)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q128_ScriptParameterTypedComparison

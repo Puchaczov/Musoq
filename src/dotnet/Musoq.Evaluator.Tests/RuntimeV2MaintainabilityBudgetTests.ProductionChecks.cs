@@ -85,8 +85,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             .SelectMany(budget =>
             {
                 var directory = ToAbsolutePath(repositoryRoot, budget.RelativeDirectory);
-                return Directory
-                    .EnumerateFiles(directory, budget.SearchPattern)
+                return EnumerateSourceFamilyFiles(directory, budget.SearchPattern)
                     .Select(file => new SourceFileBudget(
                         Path.GetFileName(file),
                         CountBudgetedLines(file),
@@ -110,8 +109,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             .Select(budget =>
             {
                 var directory = ToAbsolutePath(repositoryRoot, budget.RelativeDirectory);
-                var lineCount = Directory
-                    .EnumerateFiles(directory, budget.SearchPattern)
+                var lineCount = EnumerateSourceFamilyFiles(directory, budget.SearchPattern)
                     .Sum(CountBudgetedLines);
 
                 return new SourceFileBudget(

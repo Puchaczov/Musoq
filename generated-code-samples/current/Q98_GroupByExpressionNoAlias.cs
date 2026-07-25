@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Country, Substring(City, IndexOf(City, ':')) as 'City', Count(City) as 'Count', Sum(Population) as 'Sum' from #A.Entities() group by Substring(City, IndexOf(City, ':')), Country
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Country as ko3iko.Country, Substring(ko3iko.City, IndexOf(ko3iko.City, ':')) as ko3iko.Substring(ko3iko.City, ko3iko.IndexOf(ko3iko.City, ':')), AggRef(ko3iko.Sum(ko3iko.Population)) as ko3iko.Sum(ko3iko.Population), AggRef(ko3iko.Count(ko3iko.City)) as ko3iko.Count(ko3iko.City)]
     Aggregate [keys: Substring(City, IndexOf(City, :)), Country] [aggs: Sum(Population), Count(City)]
@@ -15,9 +13,8 @@ MultiStatement
     CteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Country as ko3iko.Country, Substring(ko3iko.City, IndexOf(ko3iko.City, ':')) as ko3iko.Substring(ko3iko.City, ko3iko.IndexOf(ko3iko.City, ':')), AggRef(ko3iko.Sum(ko3iko.Population)) as ko3iko.Sum(ko3iko.Population), AggRef(ko3iko.Count(ko3iko.City)) as ko3iko.Count(ko3iko.City)]
     PhysicalValueTupleAggregate [keys: Substring(City, IndexOf(City, :)), Country] [aggs: Sum(Population), Count(City)]
@@ -26,9 +23,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -72,6 +68,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Country: ko3ikoScore.ko3iko.Country, City: ko3ikoScore.ko3iko.Substring(ko3iko.City, ko3iko.IndexOf(ko3iko.City, ':')), Count: ko3ikoScore.ko3iko.Count(ko3iko.City), Sum: ko3ikoScore.ko3iko.Sum(ko3iko.Population))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q98_GroupByExpressionNoAlias

@@ -5,9 +5,9 @@ using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
-internal sealed record SupportedPipeline(
+internal sealed record CteSupportedPipeline(
     PhysicalProjectNode Project,
     PhysicalNode Source,
     PhysicalFilterNode? Filter,
@@ -37,7 +37,7 @@ internal sealed record HashJoinSides(JoinSource Build, JoinSource Probe);
 
 internal sealed record HashJoinBuildContext(
     PhysicalHashJoinNode Join,
-    SupportedPipeline Pipeline,
+    CteSupportedPipeline Pipeline,
     JoinSources Sources,
     HashJoinSides Sides,
     IReadOnlyDictionary<string, RowShape> SourceLookup,
@@ -47,4 +47,6 @@ internal sealed record HashJoinBuildContext(
     ExecutionVariable Matches,
     string ResultTableName,
     string ResultShapeName,
-    CteSidecarIndexSpec? CteSidecarIndex = null);
+    LoweringScope Scope,
+    CteSidecarIndexSpec? CteSidecarIndex = null,
+    bool UsesRecursiveInvariantHash = false);

@@ -4,6 +4,32 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.3-alpha.1
+
+See [release-notes/v17.0.3-alpha.1.md](release-notes/v17.0.3-alpha.1.md) for the curated GitHub Release text.
+
+### Musoq.Parser
+
+- Added contextual `WITH RECURSIVE`, CTE column lists, recursive shape diagnostics, and keyed recursive `UNION` syntax.
+- Added named datasource argument syntax with source-only parser metadata and stable invalid-form diagnostics.
+
+### Musoq.Evaluator
+
+- Added iterative breadth-first semi-naive recursive CTE execution with typed reusable frontiers, full-row/keyed identity, stable typed invariant snapshots, direct reusable indexes, cancellation, and independently configurable row, iteration, and snapshot-row limits.
+- Added ordinary and recursive CTE composition, strict anchor-derived output typing, optimizer containment, and fixed-point column liveness.
+- Added compile-time binding of case-insensitive named datasource arguments, reflected optional defaults, deterministic overload diagnostics, and canonical positional lowering across direct, coupled, APPLY, and DESC source surfaces. Existing positional datasource calls and public `Musoq.Schema` signatures remain compatible.
+- Hardened named datasource maintenance paths: canonical vectors are reused by metadata/planning and property-source re-resolution, hidden or mismatched reflection parameters cannot become public names, unsupported function-shaped sources report `MQ2034`, and positional APPLY overloads remain compatible.
+
+### Musoq.Converter
+
+- Added dedicated recursive logical, physical, and execution plans plus CSharp CLR generation with context-free value-type frontier rows and cache/artifact signatures for effective recursive limits.
+
+### Tooling and verification
+
+- Expanded the corpus to 229 current generated-code samples and 13 profiled samples, with 68 supported recursive result contracts, 51 unsupported diagnostic contracts, computed pair coverage, Roslyn shape checks, and scoped mutation checks.
+- Added six-tier performance gates over three cohorts for eight handwritten-equivalent scenarios, full-mode and overhead regression, recursive compilation, and ordinary CTE regression.
+- Added CLI/server recursive limit transport and hard ceilings through run, inspect, scalar execution, watch, queues, and compiled-query caching.
+
 ## 17.0.2-alpha.3
 
 See [release-notes/v17.0.2-alpha.3.md](release-notes/v17.0.2-alpha.3.md) for the curated GitHub Release text.
@@ -153,3 +179,11 @@ See [release-notes/v17.0.0-alpha.1.md](release-notes/v17.0.0-alpha.1.md) for the
 ### Musoq.Converter
 
 - Added full-train Runtime V2 conversion surface notes covering the new parser/evaluator query features, TABLE/COUPLE source contracts, and interpretation schema syntax.
+
+### Runtime architecture
+
+- Completed the runtime-v2 execution ownership split across semantic phases, portable execution IR, physical lowering, target composition, generated-code rendering, and execution-plan dispatch.
+- Added immutable handoffs for execution artifacts and runtime metadata, per-run query state isolation, true asynchronous row execution, deferred-result lifetime leasing, generated assembly ownership, and bounded runtime caches.
+- Preserved diagnostic exception taxonomy and explicit compatibility boundaries while removing legacy lowering-kernel and interpreter lifetime coupling.
+
+- Added contextual-keyword collision catalogs, parser recovery coverage, named-source documentation ratchets, architecture budgets, and release guardrails for the completed runtime-v2 boundaries.

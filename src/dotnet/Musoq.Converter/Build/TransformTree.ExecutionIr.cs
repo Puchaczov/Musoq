@@ -17,16 +17,14 @@ public partial class TransformTree
         SemanticBuildArtifacts semantic,
         PlanningBuildArtifacts planning,
         ExecutionBuildArtifacts execution,
-        BuildMetadataAndInferTypesVisitor metadata,
-        BuildMetadataAndInferTypesTraverseVisitor metadataTraverser)
+        SemanticScopeArtifact scopeArtifact)
     {
         var renderRequest = CreateTargetRenderRequest(
             context,
             semantic,
             planning,
             execution,
-            metadata,
-            metadataTraverser);
+            scopeArtifact);
         var result = ExecutionTargetCatalog.Render(renderRequest);
         if (!result.Success)
         {
@@ -66,14 +64,13 @@ public partial class TransformTree
         SemanticBuildArtifacts semantic,
         PlanningBuildArtifacts planning,
         ExecutionBuildArtifacts execution,
-        BuildMetadataAndInferTypesVisitor metadata,
-        BuildMetadataAndInferTypesTraverseVisitor metadataTraverser)
+        SemanticScopeArtifact scopeArtifact)
     {
         var executionPlan = ResolveSupportedExecutionPlan(execution.ExecutionPlanBuildResult);
         var operationReport = ExecutionTargetOperationAnalyzer.Analyze(executionPlan);
         var compatibilityReport = ExecutionTargetCompatibilityAnalyzer.Analyze(executionPlan);
         var scriptBinding = CreateScriptBinding(semantic);
-        var references = CreateReferenceInventory(metadata);
+        var references = CreateReferenceInventory(semantic.Phase.Metadata.Assemblies);
         var runtimeContract = TargetRuntimeContractBuilder.Build(
             executionPlan,
             compatibilityReport,
@@ -83,7 +80,7 @@ public partial class TransformTree
         {
             TargetId = context.ExecutionTarget,
             Identity = new TargetRenderIdentity(context.AssemblyName),
-            Options = TargetRenderOptions.Empty,
+            Options = TargetRenderOptionsFactory.Create(context.EnableContextualExecution),
             ScriptBinding = scriptBinding,
             References = references,
             ExecutionPlan = executionPlan,
@@ -101,16 +98,16 @@ public partial class TransformTree
                     context.QueryResultMode,
                     scriptBinding,
                     references,
-                    TargetRenderOptions.Empty,
+                    TargetRenderOptionsFactory.Create(context.EnableContextualExecution),
                     new TargetRenderInputCompilerState(
                         context.AssemblyName,
                         context.OutputType,
                         context.AdditionalReferenceTypes,
                         context.InterpreterSourceCode,
-                        metadataTraverser.Scope,
+                        scopeArtifact.CreateScope(),
                         semantic.ScriptParameterDefinitions,
                         semantic.ScriptVariableDefinitions,
-                        metadata.Assemblies)))
+                        semantic.Phase.Metadata.Assemblies)))
         };
     }
 
@@ -126,10 +123,10 @@ public partial class TransformTree
     }
 
     private static TargetReferenceInventory CreateReferenceInventory(
-        BuildMetadataAndInferTypesVisitor metadata)
+        IReadOnlyList<System.Reflection.Assembly> assemblies)
     {
         return new TargetReferenceInventory(
-            metadata.Assemblies
+            assemblies
                 .Select(static assembly => assembly.FullName ?? assembly.GetName().Name ?? assembly.ToString())
                 .OrderBy(static name => name, StringComparer.Ordinal)
                 .ToArray());
@@ -161,8 +158,9 @@ public partial class TransformTree
         if (planning.PhysicalPlan == null)
             return new ExecutionStageBuildResult(new ExecutionBuildArtifacts(), context);
 
+        var executionScope = semantic.ScopeArtifact.CreateScope();
         var shapeResolver = new ExecutionShapeResolver(
-            semantic.PipelineScope,
+            executionScope,
             semantic.PipelineInferredColumns ?? new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal),
             schemaRegistry: context.SchemaRegistry);
         var builder = new PhysicalToExecutionPlanBuilder(

@@ -36,7 +36,7 @@ public sealed class PhysicalOptimizerTests
         Assert.AreSame(plan, result.InitialPlan);
         Assert.AreSame(plan, result.OptimizedPlan);
         Assert.AreEqual(properties, result.OptimizedProperties);
-        Assert.HasCount(10, result.Trace.Entries);
+        Assert.HasCount(11, result.Trace.Entries);
         Assert.AreEqual("SourcePredicateMetadata", result.Trace.Entries[0].PassName);
         Assert.AreEqual("SourceProjectionMetadata", result.Trace.Entries[1].PassName);
         Assert.AreEqual("ProjectionPruning", result.Trace.Entries[2].PassName);
@@ -47,6 +47,7 @@ public sealed class PhysicalOptimizerTests
         Assert.AreEqual("WindowMaterialization", result.Trace.Entries[7].PassName);
         Assert.AreEqual("SourcePredicatePhysicalRewrite", result.Trace.Entries[8].PassName);
         Assert.AreEqual("SourcePlanPhysicalRewrite", result.Trace.Entries[9].PassName);
+        Assert.AreEqual("RecursiveCteInvariantPlanning", result.Trace.Entries[10].PassName);
         Assert.IsTrue(result.Trace.Entries.All(static entry => !entry.IsChanged));
         AssertTraceEntriesAreMeaningful(result.Trace.Entries);
     }

@@ -13,17 +13,17 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         string[] retiredFiles =
         [
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.FieldReadHoisting.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.BlockFieldReadHoisting.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.RawAggregatePipelines.HoistedReads.cs",
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.FieldReadHoisting.cs",
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.BlockFieldReadHoisting.cs",
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.RawAggregatePipelines.HoistedReads.cs",
             "src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionHoistCandidateLoweringHelpers.cs",
             "src/dotnet/Musoq.Evaluator/IR/Execution/ExecutionMethodTargetCandidateHoisting.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.ExpressionHoisting.Collection.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.ExpressionHoisting.Plan.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.ExpressionHoisting.Replacement.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.ExpressionHoisting.Signatures.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.ExpressionHoisting.Usage.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.Types.HoistingAndResults.cs"
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.ExpressionHoisting.Collection.cs",
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.ExpressionHoisting.Plan.cs",
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.ExpressionHoisting.Replacement.cs",
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.ExpressionHoisting.Signatures.cs",
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.ExpressionHoisting.Usage.cs",
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.Types.HoistingAndResults.cs"
         ];
 
         var existing = retiredFiles
@@ -42,7 +42,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         var executionLoweringDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution");
         var lowererFiles = Directory
-            .EnumerateFiles(executionLoweringDirectory, "PhysicalToExecutionPlanBuilder*.cs")
+            .EnumerateFiles(executionLoweringDirectory, "PhysicalLoweringImplementation*.cs")
             .ToArray();
         string[] hoistingMarkers =
         [
@@ -118,7 +118,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var lowererFiles = Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "PhysicalToExecutionPlanBuilder*.cs")
+            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "PhysicalLoweringImplementation*.cs")
             .ToArray();
         string[] finalNodeMarkers =
         [
@@ -140,8 +140,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         string[] sidecarLowererFiles =
         [
-            ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.CteSidecarIndexes.cs"),
-            ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.CteSidecarIndexAppends.cs")
+            ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.CteSidecarIndexes.cs"),
+            ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.CteSidecarIndexAppends.cs")
         ];
         string[] finalRuntimeNodeMarkers =
         [
@@ -169,7 +169,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var lowererFiles = Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "PhysicalToExecutionPlanBuilder*.cs")
+            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "PhysicalLoweringImplementation*.cs")
             .ToArray();
         string[] disabledSidecarMarkers =
         [
@@ -210,7 +210,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var lowererFiles = Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "PhysicalToExecutionPlanBuilder*.cs")
+            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "PhysicalLoweringImplementation*.cs")
             .ToArray();
         string[] fallbackMarkers =
         [
@@ -233,7 +233,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         var executionLoweringDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution");
         var lowererFiles = Directory
-            .EnumerateFiles(executionLoweringDirectory, "PhysicalToExecutionPlanBuilder*.cs")
+            .EnumerateFiles(executionLoweringDirectory, "PhysicalLoweringImplementation*.cs")
             .ToArray();
         string[] registryMarkers =
         [

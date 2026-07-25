@@ -7,7 +7,8 @@ internal static class BenchmarkReportComparer
         IReadOnlyList<string> currentReportPaths,
         double maximumTimeRatio,
         double maximumAllocationRatio,
-        int minimumSamples = 3)
+        int minimumSamples = 3,
+        Func<string, bool>? methodFilter = null)
     {
         ValidateInputs(
             baselineReportPaths,
@@ -18,8 +19,12 @@ internal static class BenchmarkReportComparer
 
         var baselineReports = baselineReportPaths.Select(BenchmarkReportReader.Read).ToArray();
         var currentReports = currentReportPaths.Select(BenchmarkReportReader.Read).ToArray();
-        var baselineMethods = ValidateCohort("baseline", baselineReports);
+        var baselineMethods = ValidateCohort("baseline", baselineReports)
+            .Where(methodFilter ?? (static _ => true))
+            .ToHashSet(StringComparer.Ordinal);
         ValidateCohort("current", currentReports);
+        if (baselineMethods.Count == 0)
+            throw new InvalidDataException("The benchmark report filter selected no methods.");
 
         var comparisons = new List<BenchmarkComparison>(baselineMethods.Count);
         foreach (var method in baselineMethods.OrderBy(static method => method, StringComparer.Ordinal))

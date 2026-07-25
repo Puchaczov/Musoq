@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 let suffix: string = '_country'
                             let minCount: int = 2
                             select Country + $suffix as CountryKey, Count(Name) as NameCount
@@ -9,9 +8,8 @@ let suffix: string = '_country'
                             having Count(Name) >= $minCount
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [(ko3iko.Country || $suffix) as ko3iko.Country + $suffix, AggRef(ko3iko.Count(ko3iko.Name)) as ko3iko.Count(ko3iko.Name)]
     Having [(AggRef(ko3iko.Count(ko3iko.Name)) >= $minCount)]
@@ -21,9 +19,8 @@ MultiStatement
     CteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [(ko3iko.Country || $suffix) as ko3iko.Country + $suffix, AggRef(ko3iko.Count(ko3iko.Name)) as ko3iko.Count(ko3iko.Name)]
     PhysicalHaving [(AggRef(ko3iko.Count(ko3iko.Name)) >= $minCount)]
@@ -33,9 +30,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -60,6 +56,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(CountryKey: finalGroup.Country + $suffix, NameCount: ko3iko.Count(ko3iko.Name))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q133_ScriptVariableGroupByHavingCapture

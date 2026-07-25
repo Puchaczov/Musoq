@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
 internal sealed class FusedSiblingCteLowerer
 {
@@ -104,7 +105,7 @@ internal sealed class FusedSiblingCteLowerer
                 result,
                 out var storage);
 
-            if (!result.Supported ||
+            if (!result.IsBuilt ||
                 ContainsSideEffectSensitiveSiblingExpression(result.Nodes) ||
                 !TryExtractFusibleBuild(result, sourceTableIndex, out var setupNodes, out var loop, out var storeIndexNodes))
             {
@@ -157,11 +158,11 @@ internal sealed class FusedSiblingCteLowerer
         TableBuildResult result,
         int sourceTableIndex,
         out IReadOnlyList<ExecutionNode> setupNodes,
-        out ExecutionForEach loop,
+        [NotNullWhen(true)] out ExecutionForEach? loop,
         out IReadOnlyList<ExecutionNode> storeIndexNodes)
     {
         setupNodes = [];
-        loop = null!;
+        loop = null;
         storeIndexNodes = [];
 
         var nodes = result.Nodes.ToArray();

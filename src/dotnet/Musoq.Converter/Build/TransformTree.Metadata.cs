@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.Visitors;
 using Musoq.Evaluator.Visitors.Helpers.CteDependencyGraph;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
 
@@ -9,15 +11,33 @@ namespace Musoq.Converter.Build;
 public partial class TransformTree
 {
     private static SemanticBuildArtifacts BuildSemanticArtifacts(
-        RootNode transformedQueryTree,
-        BuildMetadataAndInferTypesVisitor metadata,
-        BuildMetadataAndInferTypesTraverseVisitor metadataTraverser,
-        CteExecutionPlan? cteExecutionPlan)
+        RootNode parsedQueryTree,
+        RootNode normalizedQueryTree,
+        RootNode metadataQueryTree,
+        RootNode rewrittenQueryTree,
+        SemanticMetadataSnapshot metadata,
+        SemanticScopeArtifact scopeArtifact,
+        CteExecutionPlan? cteExecutionPlan,
+        IReadOnlyList<Diagnostic> diagnostics)
     {
+        var phase = new SemanticPhaseArtifacts
+        {
+            ParsedQuery = parsedQueryTree,
+            NormalizedQuery = normalizedQueryTree,
+            MetadataQuery = metadataQueryTree,
+            RewrittenQuery = rewrittenQueryTree,
+            Metadata = metadata,
+            Scope = scopeArtifact,
+            Diagnostics = diagnostics.ToArray()
+        };
+
         return new SemanticBuildArtifacts
         {
-            TransformedQueryTree = transformedQueryTree,
-            UsedColumns = metadata.UsedColumns,
+            Phase = phase,
+            TransformedQueryTree = rewrittenQueryTree,
+            UsedColumns = metadata.UsedColumns.ToDictionary(
+                pair => pair.Key,
+                pair => pair.Value.ToArray()),
             UsedWhereNodes = metadata.UsedWhereNodes,
             SourcePlanRequestsPerSchema = metadata.SourcePlanRequestsPerSchema,
             SourceContractDiagnosticLocationsPerSchema = metadata.SourceContractDiagnosticLocationsPerSchema,
@@ -28,7 +48,7 @@ public partial class TransformTree
                 metadata.SourceRuntimeSettingDescriptionsBySourceContextId,
             HasDeclaredSourceRuntimeSettings = metadata.HasDeclaredSourceRuntimeSettings,
             HasSourceRuntimeSettingValues = metadata.HasSourceRuntimeSettingValues,
-            PipelineScope = metadataTraverser.Scope,
+            ScopeArtifact = scopeArtifact,
             PipelineInferredColumns = CreateAliasKeyedInferredColumns(metadata),
             PipelineUsedColumns = CreateAliasKeyedUsedColumns(metadata),
             CteExecutionPlan = cteExecutionPlan
@@ -51,7 +71,7 @@ public partial class TransformTree
     }
 
     private static Dictionary<string, ISchemaColumn[]> CreateAliasKeyedInferredColumns(
-        BuildMetadataAndInferTypesVisitor metadata)
+        SemanticMetadataSnapshot metadata)
     {
         var aliasKeyedColumns = new Dictionary<string, ISchemaColumn[]>(StringComparer.Ordinal);
 
@@ -64,17 +84,17 @@ public partial class TransformTree
 
             // Alias names can repeat across independent scopes (for example CTE branches).
             // Keep the latest inferred schema for that alias instead of throwing.
-            aliasKeyedColumns[alias] = inferredColumn.Value;
+            aliasKeyedColumns[alias] = inferredColumn.Value.ToArray();
         }
 
         foreach (var aliasColumnsPair in metadata.InferredColumnsByAlias)
-            aliasKeyedColumns[aliasColumnsPair.Key] = aliasColumnsPair.Value;
+            aliasKeyedColumns[aliasColumnsPair.Key] = aliasColumnsPair.Value.ToArray();
 
         return aliasKeyedColumns;
     }
 
     private static Dictionary<string, IReadOnlySet<string>> CreateAliasKeyedUsedColumns(
-        BuildMetadataAndInferTypesVisitor metadata)
+        SemanticMetadataSnapshot metadata)
     {
         var aliasKeyedUsed = new Dictionary<string, IReadOnlySet<string>>(StringComparer.Ordinal);
 

@@ -6,4 +6,6 @@ global using Musoq.Evaluator;
 global using Musoq.Evaluator.IR;
 global using Musoq.Evaluator.IR.CodeGeneration;
 global using Musoq.Evaluator.IR.Execution;
+global using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
+global using Musoq.Targets.CSharpClr.Optimization.Codegen;
 global using static Musoq.Targets.CSharpClr.ExecutionSyntaxFactory;

@@ -25,7 +25,21 @@ internal static class GeneratedCodeProfiledSamplesCatalog
         ProfiledFromExisting("P04_InnerJoin_Full", "Q03_InnerJoin.cs"),
         ProfiledFromExisting("P05_GroupBySingle_Full", "Q05_GroupBySingle.cs"),
         ProfiledFromExisting("P06_OrderBySkipTake_Full", "Q22_OrderBySkipTake.cs"),
-        ProfiledFromExisting("P07_ParallelCte_Full", "Q82_ParallelIndependentCtes.cs")
+        ProfiledFromExisting("P07_ParallelCte_Full", "Q82_ParallelIndependentCtes.cs"),
+        ProfiledFromExisting(
+            "P08_RecursiveUnionAll_Disabled",
+            "Q188_RecursiveUnionAllCounter.cs",
+            QueryInstrumentationMode.Disabled),
+        ProfiledFromExisting(
+            "P09_RecursiveUnionAll_SourceBoundaries",
+            "Q188_RecursiveUnionAllCounter.cs",
+            QueryInstrumentationMode.SourceBoundaries),
+        ProfiledFromExisting("P10_RecursiveUnionAll_Full", "Q188_RecursiveUnionAllCounter.cs"),
+        ProfiledFromExisting("P11_RecursiveKeyedUnion_Full", "Q193_RecursiveUnionSingleKeyCycle.cs"),
+        ProfiledFromExisting("P12_RecursiveInvariantIndexedEdges_Full", "Q203_RecursiveInvariantHashLookup.cs"),
+        ProfiledFromExisting(
+            "P13_RecursiveTypedInvariantDirectIndex_Full",
+            "Q224_RecursiveCompositeInvariantSubplan.cs")
     ];
 
     public static GeneratedCodeSample GetByFileName(string fileName)
@@ -50,7 +64,10 @@ internal static class GeneratedCodeProfiledSamplesCatalog
         };
     }
 
-    private static GeneratedCodeSample ProfiledFromExisting(string name, string sourceFileName)
+    private static GeneratedCodeSample ProfiledFromExisting(
+        string name,
+        string sourceFileName,
+        QueryInstrumentationMode instrumentationMode = QueryInstrumentationMode.Full)
     {
         var source = GeneratedCodeSamplesCatalog.GetByFileName(sourceFileName);
 
@@ -59,7 +76,7 @@ internal static class GeneratedCodeProfiledSamplesCatalog
             Name = name,
             FileName = $"{name}.cs",
             Category = "Profiled",
-            CompilationOptions = source.CompilationOptions.WithInstrumentationMode(QueryInstrumentationMode.Full)
+            CompilationOptions = source.CompilationOptions.WithInstrumentationMode(instrumentationMode)
         };
     }
 }

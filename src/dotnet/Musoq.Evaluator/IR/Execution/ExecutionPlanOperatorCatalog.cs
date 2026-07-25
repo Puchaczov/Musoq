@@ -48,12 +48,40 @@ public sealed class ExecutionPlanOperatorCatalog
     {
         ArgumentNullException.ThrowIfNull(plan);
 
-        var catalog = Create(ExecutionPlanPrinter.Print(plan));
-        var operatorsByNode = CreateOperatorNodeMap(plan, catalog.Operators);
+        var operators = new List<ExecutionPlanOperatorDescriptor>();
+        var operatorsByNode = new Dictionary<ExecutionNode, ExecutionPlanOperatorDescriptor>(
+            ExecutionNodeReferenceComparer.Instance);
+        var annotatedPlan = new StringBuilder();
+        var nodeDescriptions = ExecutionPlanPrinter.CaptureNodeDescriptions(plan);
+        var operatorIndex = 1;
+
+        foreach (var entry in EnumerateStructuredEntries(plan, nodeDescriptions))
+        {
+            var descriptor = new ExecutionPlanOperatorDescriptor(
+                $"op{operatorIndex.ToString(CultureInfo.InvariantCulture)}",
+                entry.DisplayName,
+                entry.NodeKind,
+                ResolveRowCountStrategy(entry.NodeKind))
+            {
+                OperationId = entry.OperationId
+            };
+
+            operators.Add(descriptor);
+            if (entry.Node is { } node)
+                operatorsByNode.Add(node, descriptor);
+
+            annotatedPlan
+                .Append(entry.IsRoot ? string.Empty : "    ")
+                .Append('[')
+                .Append(descriptor.Id)
+                .Append("] ")
+                .AppendLine(descriptor.DisplayName);
+            operatorIndex++;
+        }
 
         return new ExecutionPlanOperatorCatalog(
-            catalog.Operators,
-            catalog.AnnotatedExecutionPlanText,
+            operators,
+            annotatedPlan.ToString().TrimEnd(),
             operatorsByNode);
     }
 
@@ -101,143 +129,180 @@ public sealed class ExecutionPlanOperatorCatalog
         return new ExecutionPlanOperatorCatalog(operators, builder.ToString().TrimEnd());
     }
 
-    private static IReadOnlyDictionary<ExecutionNode, ExecutionPlanOperatorDescriptor> CreateOperatorNodeMap(
+    private static IEnumerable<StructuredOperatorEntry> EnumerateStructuredEntries(
         ExecutionPlan plan,
-        IReadOnlyList<ExecutionPlanOperatorDescriptor> operators)
+        IReadOnlyDictionary<ExecutionNode, ExecutionNodePrintDescription> descriptions)
     {
-        var result = new Dictionary<ExecutionNode, ExecutionPlanOperatorDescriptor>(
-            ExecutionNodeReferenceComparer.Instance);
-        var operatorIndex = FindBodyStartIndex(operators);
+        yield return new StructuredOperatorEntry(
+            null,
+            $"ExecutionPlan [{plan.Identifier}]",
+            "ExecutionPlan",
+            IsRoot: true);
+        yield return new StructuredOperatorEntry(null, "Shapes", "Shapes");
 
-        foreach (var node in EnumeratePrinterOrder(plan.Body))
+        foreach (var shape in plan.Shapes)
         {
-            while (operatorIndex < operators.Count && IsPlanLabel(operators[operatorIndex]))
-                operatorIndex++;
+            var shapeKind = shape switch
+            {
+                SourceEntityShape => "SourceEntity",
+                GeneratedRowShape => "Generated",
+                GeneratedRecordShape => "GeneratedRecord",
+                HashPayloadShape => "HashPayload",
+                AggregateGroupShape => "AggregateGroup",
+                TableRowShape => "TableRow",
+                ExpandoAdapterShape => "ExpandoAdapter",
+                _ => "UnknownShape"
+            };
+            yield return new StructuredOperatorEntry(null, shapeKind, shapeKind);
 
-            if (operatorIndex >= operators.Count)
-                break;
-
-            result[node] = operators[operatorIndex];
-            operatorIndex++;
+            foreach (var field in shape.Fields)
+                yield return new StructuredOperatorEntry(null, field.Name, field.Name);
         }
 
-        return result;
+        yield return new StructuredOperatorEntry(null, "Body", "Body");
+
+        foreach (var entry in EnumerateStructuredBlockEntries(plan.Body, descriptions))
+            yield return entry;
     }
 
-    private static int FindBodyStartIndex(IReadOnlyList<ExecutionPlanOperatorDescriptor> operators)
-    {
-        for (var index = 0; index < operators.Count; index++)
-        {
-            if (operators[index].NodeKind.Equals("Body", StringComparison.Ordinal))
-                return index + 1;
-        }
-
-        return 0;
-    }
-
-    private static bool IsPlanLabel(ExecutionPlanOperatorDescriptor descriptor)
-    {
-        return descriptor.NodeKind is
-            "ParallelTask" or
-            "ParallelMerge" or
-            "ParallelProject" or
-            "ParallelAccumulate" or
-            "HashProbeNoMatch" or
-            "KeySetProbeNoMatch" or
-            "AsOfProbeNoMatch";
-    }
-
-    private static IEnumerable<ExecutionNode> EnumeratePrinterOrder(ExecutionBlock block)
+    private static IEnumerable<StructuredOperatorEntry> EnumerateStructuredBlockEntries(
+        ExecutionBlock block,
+        IReadOnlyDictionary<ExecutionNode, ExecutionNodePrintDescription> descriptions)
     {
         foreach (var node in block.Nodes)
         {
-            yield return node;
+            var description = descriptions.TryGetValue(node, out var captured)
+                ? captured
+                : new ExecutionNodePrintDescription(node.GetType().Name, GetFallbackNodeKind(node));
+            yield return new StructuredOperatorEntry(
+                node,
+                description.DisplayName,
+                description.NodeKind,
+                ExecutionOperationCatalog.Resolve(node).Value);
 
-            foreach (var child in EnumeratePrinterOrder(node))
-                yield return child;
+            foreach (var entry in EnumerateStructuredNodeEntries(node, descriptions))
+                yield return entry;
         }
     }
 
-    private static IEnumerable<ExecutionNode> EnumeratePrinterOrder(ExecutionNode node)
+    private static IEnumerable<StructuredOperatorEntry> EnumerateStructuredNodeEntries(
+        ExecutionNode node,
+        IReadOnlyDictionary<ExecutionNode, ExecutionNodePrintDescription> descriptions)
     {
-        switch (node)
-        {
-            case ExecutionForEach forEach:
-                return EnumeratePrinterOrder(forEach.Body);
-            case ExecutionForEachWithOrdinality forEach:
-                return EnumeratePrinterOrder(forEach.Body);
-            case ExecutionForEachIndexed forEachIndexed:
-                return EnumeratePrinterOrder(forEachIndexed.Body);
-            case ExecutionParallelBlock parallel:
-                return EnumerateParallelBlock(parallel);
-            case ExecutionIf branch:
-                return EnumeratePrinterOrder(branch.Body);
-            case ExecutionHashProbe hashProbe:
-                return EnumerateProbeBlocks(hashProbe.Body, hashProbe.NoMatchBody);
-            case ExecutionKeySetProbe keySetProbe:
-                return EnumerateProbeBlocks(keySetProbe.Body, keySetProbe.NoMatchBody);
-            case ExecutionAsOfProbe asOfProbe:
-                return EnumerateProbeBlocks(asOfProbe.Body, asOfProbe.NoMatchBody);
-            case ExecutionRangeProbe rangeProbe:
-                return EnumeratePrinterOrder(rangeProbe.Body);
-            case ExecutionWindowKernelPlan plan:
-                return plan.Kernels;
-            case ExecutionParallelSingleKeyAggregateLoop parallelAggregate:
-                return EnumerateParallelAggregateLoop(parallelAggregate);
-            case ExecutionParallelFilterProjectLoop parallelProject:
-                return EnumerateParallelFilterProjectLoop(parallelProject);
-            case ExecutionFusedCteProducer fusedCte:
-                return EnumeratePrinterOrder(fusedCte.Body);
-            case ExecutionSingleUsePipelineFusionCandidate candidate:
-                return EnumeratePrinterOrder(candidate.Body);
-            case ExecutionCteReadOnceFusionCandidate candidate:
-                return EnumeratePrinterOrder(candidate.Body);
-            case ExecutionCteFusedProducerCandidate candidate:
-                return EnumeratePrinterOrder(candidate.Body);
-            default:
-                return Array.Empty<ExecutionNode>();
-        }
-    }
-
-    private static IEnumerable<ExecutionNode> EnumerateParallelBlock(ExecutionParallelBlock parallel)
-    {
-        foreach (var task in parallel.Tasks)
-        {
-            foreach (var node in EnumeratePrinterOrder(task.Body))
-                yield return node;
-        }
-
-        foreach (var node in EnumeratePrinterOrder(parallel.Merge.Body))
-            yield return node;
-    }
-
-    private static IEnumerable<ExecutionNode> EnumerateProbeBlocks(
-        ExecutionBlock body,
-        ExecutionBlock? noMatchBody)
-    {
-        foreach (var node in EnumeratePrinterOrder(body))
-            yield return node;
-
-        if (noMatchBody == null)
+        if (!ExecutionNodeRegistry.TryGetDescriptor(node, out var descriptor))
             yield break;
 
-        foreach (var node in EnumeratePrinterOrder(noMatchBody))
-            yield return node;
+        if (node is ExecutionRecursiveCteAppend)
+            yield break;
+
+        switch (node)
+        {
+            case ExecutionParallelBlock parallel:
+                foreach (var task in parallel.Tasks)
+                {
+                    yield return Label($"ParallelTask [{task.Name} -> {task.Output.Name}]");
+                    foreach (var entry in EnumerateStructuredBlockEntries(task.Body, descriptions))
+                        yield return entry;
+                }
+
+                yield return Label("ParallelMerge");
+                foreach (var entry in EnumerateStructuredBlockEntries(parallel.Merge.Body, descriptions))
+                    yield return entry;
+                yield break;
+            case ExecutionRecursiveCte recursiveCte:
+                yield return Label("Anchor");
+                foreach (var entry in EnumerateStructuredBlockEntries(recursiveCte.Anchor, descriptions))
+                    yield return entry;
+
+                if (recursiveCte.InvariantSetup.Nodes.Count > 0)
+                {
+                    yield return Label("InvariantSetup");
+                    foreach (var entry in EnumerateStructuredBlockEntries(recursiveCte.InvariantSetup, descriptions))
+                        yield return entry;
+                }
+
+                yield return Label("RecursiveMember");
+                foreach (var entry in EnumerateStructuredBlockEntries(recursiveCte.RecursiveMember, descriptions))
+                    yield return entry;
+                yield break;
+            case ExecutionHashProbe hashProbe:
+                foreach (var entry in EnumerateStructuredBlockEntries(hashProbe.Body, descriptions))
+                    yield return entry;
+                if (hashProbe.NoMatchBody is { Nodes.Count: > 0 } noMatchBody)
+                {
+                    yield return Label("HashProbeNoMatch");
+                    foreach (var entry in EnumerateStructuredBlockEntries(noMatchBody, descriptions))
+                        yield return entry;
+                }
+                yield break;
+            case ExecutionKeySetProbe keySetProbe:
+                foreach (var entry in EnumerateStructuredBlockEntries(keySetProbe.Body, descriptions))
+                    yield return entry;
+                if (keySetProbe.NoMatchBody is { Nodes.Count: > 0 } keySetNoMatchBody)
+                {
+                    yield return Label("KeySetProbeNoMatch");
+                    foreach (var entry in EnumerateStructuredBlockEntries(keySetNoMatchBody, descriptions))
+                        yield return entry;
+                }
+                yield break;
+            case ExecutionAsOfProbe asOfProbe:
+                foreach (var entry in EnumerateStructuredBlockEntries(asOfProbe.Body, descriptions))
+                    yield return entry;
+                if (asOfProbe.NoMatchBody is { Nodes.Count: > 0 } asOfNoMatchBody)
+                {
+                    yield return Label("AsOfProbeNoMatch");
+                    foreach (var entry in EnumerateStructuredBlockEntries(asOfNoMatchBody, descriptions))
+                        yield return entry;
+                }
+                yield break;
+            case ExecutionRangeProbe rangeProbe:
+                foreach (var entry in EnumerateStructuredBlockEntries(rangeProbe.Body, descriptions))
+                    yield return entry;
+                if (rangeProbe.NoMatchBody is { Nodes.Count: > 0 } rangeNoMatchBody)
+                {
+                    yield return Label("RangeProbeNoMatch");
+                    foreach (var entry in EnumerateStructuredBlockEntries(rangeNoMatchBody, descriptions))
+                        yield return entry;
+                }
+                yield break;
+            case ExecutionParallelSingleKeyAggregateLoop parallelAggregate:
+                yield return Label("ParallelAccumulate");
+                foreach (var entry in EnumerateStructuredBlockEntries(parallelAggregate.AggregateBody, descriptions))
+                    yield return entry;
+                yield break;
+            case ExecutionParallelFilterProjectLoop parallelProject:
+                yield return Label("ParallelProject");
+                foreach (var entry in EnumerateStructuredBlockEntries(parallelProject.ProjectionBody, descriptions))
+                    yield return entry;
+                yield break;
+            default:
+                foreach (var childBlock in descriptor.GetChildBlocks(node))
+                {
+                    foreach (var entry in EnumerateStructuredBlockEntries(childBlock, descriptions))
+                        yield return entry;
+                }
+                yield break;
+        }
     }
 
-    private static IEnumerable<ExecutionNode> EnumerateParallelAggregateLoop(
-        ExecutionParallelSingleKeyAggregateLoop parallelAggregate)
+    private static StructuredOperatorEntry Label(string label) =>
+        new(null, label, label);
+
+    private static string GetFallbackNodeKind(ExecutionNode node)
     {
-        foreach (var node in EnumeratePrinterOrder(parallelAggregate.AggregateBody))
-            yield return node;
+        const string prefix = "Execution";
+        var name = node.GetType().Name;
+        return name.StartsWith(prefix, StringComparison.Ordinal)
+            ? name[prefix.Length..]
+            : name;
     }
 
-    private static IEnumerable<ExecutionNode> EnumerateParallelFilterProjectLoop(
-        ExecutionParallelFilterProjectLoop parallelProject)
-    {
-        foreach (var node in EnumeratePrinterOrder(parallelProject.ProjectionBody))
-            yield return node;
-    }
+    private sealed record StructuredOperatorEntry(
+        ExecutionNode? Node,
+        string DisplayName,
+        string NodeKind,
+        string? OperationId = null,
+        bool IsRoot = false);
 
     private static string ExtractNodeKind(string content)
     {

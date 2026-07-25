@@ -13,9 +13,9 @@ public sealed class ProjectionAndApplyLoweringModelTests
         var success = ProjectionFieldCollectionResult.Success();
         var unsupported = ProjectionFieldCollectionResult.Unsupported("unsupported projection");
 
-        Assert.IsTrue(success.Supported);
+        Assert.IsTrue(success.IsBuilt);
         Assert.AreEqual(string.Empty, success.UnsupportedReason);
-        Assert.IsFalse(unsupported.Supported);
+        Assert.IsFalse(unsupported.IsBuilt);
         Assert.AreEqual("unsupported projection", unsupported.UnsupportedReason);
     }
 
@@ -24,7 +24,7 @@ public sealed class ProjectionAndApplyLoweringModelTests
     {
         var result = NullExtendedProjectionBuildResult.Unsupported("cannot substitute");
 
-        Assert.IsFalse(result.Supported);
+        Assert.IsFalse(result.IsBuilt);
         Assert.AreEqual("cannot substitute", result.UnsupportedReason);
         Assert.AreEqual(string.Empty, result.ResultShape.TypeName);
         Assert.HasCount(0, result.ResultShape.Fields);
@@ -37,7 +37,7 @@ public sealed class ProjectionAndApplyLoweringModelTests
     {
         var result = FullOuterNullExtendedProjectionBuildResult.Unsupported("cannot substitute");
 
-        Assert.IsFalse(result.Supported);
+        Assert.IsFalse(result.IsBuilt);
         Assert.AreEqual("cannot substitute", result.UnsupportedReason);
         Assert.AreEqual(string.Empty, result.ResultShape.TypeName);
         Assert.HasCount(0, result.ResultShape.Fields);
@@ -54,10 +54,10 @@ public sealed class ProjectionAndApplyLoweringModelTests
         var success = OuterApplyFilterBuildResult.Success(matched, unmatched);
         var unsupported = OuterApplyFilterBuildResult.Unsupported("bad filter");
 
-        Assert.IsTrue(success.Supported);
+        Assert.IsTrue(success.IsBuilt);
         Assert.AreSame(matched, success.MatchedAppendBlock);
         Assert.AreSame(unmatched, success.UnmatchedAppendBlock);
-        Assert.IsFalse(unsupported.Supported);
+        Assert.IsFalse(unsupported.IsBuilt);
         Assert.AreSame(ExecutionBlock.Empty, unsupported.MatchedAppendBlock);
         Assert.AreSame(ExecutionBlock.Empty, unsupported.UnmatchedAppendBlock);
         Assert.AreEqual("bad filter", unsupported.UnsupportedReason);
@@ -71,14 +71,14 @@ public sealed class ProjectionAndApplyLoweringModelTests
         var unknown = OuterApplyNullSubstitutionResult.Unknown();
         var unsupported = OuterApplyNullSubstitutionResult.Unsupported("raw expression");
 
-        Assert.IsTrue(known.Supported);
+        Assert.IsTrue(known.IsBuilt);
         Assert.IsFalse(known.IsUnknown);
         Assert.AreSame(expression, known.Expression);
-        Assert.IsTrue(unknown.Supported);
+        Assert.IsTrue(unknown.IsBuilt);
         Assert.IsTrue(unknown.IsUnknown);
         Assert.IsInstanceOfType<ExecutionLiteral>(unknown.Expression);
-        Assert.AreEqual(typeof(bool), unknown.Expression.ReturnType.ClrType);
-        Assert.IsFalse(unsupported.Supported);
+        Assert.AreEqual(typeof(bool), unknown.Expression.ReturnType.ResolveClrType());
+        Assert.IsFalse(unsupported.IsBuilt);
         Assert.IsTrue(unsupported.IsUnknown);
         Assert.AreEqual("raw expression", unsupported.UnsupportedReason);
     }
@@ -93,10 +93,10 @@ public sealed class ProjectionAndApplyLoweringModelTests
         var success = OuterApplyArgumentSubstitutionResult.Success(expressions, hasUnknown: true);
         var unsupported = OuterApplyArgumentSubstitutionResult.Unsupported("bad argument");
 
-        Assert.IsTrue(success.Supported);
+        Assert.IsTrue(success.IsBuilt);
         Assert.AreSame(expressions, success.Expressions);
         Assert.IsTrue(success.HasUnknown);
-        Assert.IsFalse(unsupported.Supported);
+        Assert.IsFalse(unsupported.IsBuilt);
         Assert.HasCount(0, unsupported.Expressions);
         Assert.IsTrue(unsupported.HasUnknown);
         Assert.AreEqual("bad argument", unsupported.UnsupportedReason);
@@ -111,16 +111,16 @@ public sealed class ProjectionAndApplyLoweringModelTests
         var unknown = OuterApplyCaseElseSubstitutionResult.Unknown();
         var unsupported = OuterApplyCaseElseSubstitutionResult.Unsupported("bad else");
 
-        Assert.IsTrue(known.Supported);
+        Assert.IsTrue(known.IsBuilt);
         Assert.IsFalse(known.IsUnknown);
         Assert.AreSame(expression, known.Expression);
-        Assert.IsTrue(knownNull.Supported);
+        Assert.IsTrue(knownNull.IsBuilt);
         Assert.IsFalse(knownNull.IsUnknown);
         Assert.IsNull(knownNull.Expression);
-        Assert.IsTrue(unknown.Supported);
+        Assert.IsTrue(unknown.IsBuilt);
         Assert.IsTrue(unknown.IsUnknown);
         Assert.IsNull(unknown.Expression);
-        Assert.IsFalse(unsupported.Supported);
+        Assert.IsFalse(unsupported.IsBuilt);
         Assert.IsTrue(unsupported.IsUnknown);
         Assert.AreEqual("bad else", unsupported.UnsupportedReason);
     }
@@ -132,7 +132,7 @@ public sealed class ProjectionAndApplyLoweringModelTests
 
         var result = OuterApplyNullSubstitutionService.SubstituteRightAlias(expression, "orders");
 
-        Assert.IsTrue(result.Supported);
+        Assert.IsTrue(result.IsBuilt);
         Assert.IsTrue(result.IsUnknown);
         Assert.IsInstanceOfType<ExecutionLiteral>(result.Expression);
     }
@@ -150,7 +150,7 @@ public sealed class ProjectionAndApplyLoweringModelTests
 
         var result = OuterApplyNullSubstitutionService.SubstituteRightAlias(expression, "orders");
 
-        Assert.IsTrue(result.Supported);
+        Assert.IsTrue(result.IsBuilt);
         Assert.IsFalse(result.IsUnknown);
         Assert.AreSame(fallback, result.Expression);
     }
@@ -169,13 +169,13 @@ public sealed class ProjectionAndApplyLoweringModelTests
 
         var result = OuterApplyNullSubstitutionService.SubstituteRightAlias(expression, "orders");
 
-        Assert.IsTrue(result.Supported);
+        Assert.IsTrue(result.IsBuilt);
         Assert.IsFalse(result.IsUnknown);
         var rewritten = Assert.IsInstanceOfType<ExecutionCaseWhen>(result.Expression);
-        Assert.AreEqual(typeof(int?), rewritten.ReturnType.ClrType);
+        Assert.AreEqual(typeof(int?), rewritten.ReturnType.ResolveClrType());
         var branchLiteral = Assert.IsInstanceOfType<ExecutionLiteral>(rewritten.Branches[0].Result);
         Assert.AreEqual(ExecutionConstantKind.Null, branchLiteral.Value.Kind);
-        Assert.AreEqual(typeof(int?), branchLiteral.ReturnType.ClrType);
+        Assert.AreEqual(typeof(int?), branchLiteral.ReturnType.ResolveClrType());
     }
 
     [TestMethod]
@@ -185,7 +185,7 @@ public sealed class ProjectionAndApplyLoweringModelTests
 
         var result = OuterApplyNullSubstitutionService.NormalizeBooleanOperand(expression);
 
-        Assert.IsTrue(result.Supported);
+        Assert.IsTrue(result.IsBuilt);
         var binary = Assert.IsInstanceOfType<ExecutionBinary>(result.Value);
         Assert.AreEqual(BinaryOpKind.Equal, binary.Kind);
         Assert.AreSame(expression, binary.Left);
@@ -196,11 +196,11 @@ public sealed class ProjectionAndApplyLoweringModelTests
     [TestMethod]
     public void OuterApplyNullSubstitutionService_WhenAggregateResultReferenceIsUnresolved_ShouldBeUnsupported()
     {
-        var expression = new ExecutionAggregateResultRef("sum-orders-total", "Sum(orders.Total)", ExecutionTypeRef.FromClr(typeof(decimal)));
+        var expression = new ExecutionAggregateResultRef("sum-orders-total", "Sum(orders.Total)", ExecutionClrBindingFactory.FromClr(typeof(decimal)));
 
         var result = OuterApplyNullSubstitutionService.SubstituteRightAlias(expression, "orders");
 
-        Assert.IsFalse(result.Supported);
+        Assert.IsFalse(result.IsBuilt);
         StringAssert.Contains(result.UnsupportedReason, nameof(ExecutionAggregateResultRef));
     }
 }

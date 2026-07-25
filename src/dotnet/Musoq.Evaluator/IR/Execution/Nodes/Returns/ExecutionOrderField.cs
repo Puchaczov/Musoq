@@ -15,7 +15,7 @@ public sealed record ExecutionOrderField(
         Type type,
         bool descending,
         Musoq.Evaluator.IR.Bindings.NullOrdering nullOrdering = Musoq.Evaluator.IR.Bindings.NullOrdering.Default)
-        : this(fieldName, outputIndex, ExecutionTypeRef.FromClr(type), descending, nullOrdering)
+        : this(fieldName, outputIndex, ExecutionClrBindingFactory.FromClr(type), descending, nullOrdering)
     {
     }
 }

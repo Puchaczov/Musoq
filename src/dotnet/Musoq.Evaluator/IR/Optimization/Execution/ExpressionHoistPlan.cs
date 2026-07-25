@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Optimization;

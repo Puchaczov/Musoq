@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Min(Temperature::Single) as MinTemperature,
                          Max(Temperature::Single) as MaxTemperature,
                          Avg(Temperature::Single) as AvgTemperature
@@ -8,9 +7,8 @@ select Min(Temperature::Single) as MinTemperature,
                   group by City
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Avg(ko3iko.Temperature::Single)) as ko3iko.Avg(ko3iko.Temperature::Single), AggRef(ko3iko.Max(ko3iko.Temperature::Single)) as ko3iko.Max(ko3iko.Temperature::Single), AggRef(ko3iko.Min(ko3iko.Temperature::Single)) as ko3iko.Min(ko3iko.Temperature::Single)]
     Aggregate [keys: City] [aggs: Avg(Temperature::Single), Max(Temperature::Single), Min(Temperature::Single)]
@@ -19,9 +17,8 @@ MultiStatement
     CteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Avg(ko3iko.Temperature::Single)) as ko3iko.Avg(ko3iko.Temperature::Single), AggRef(ko3iko.Max(ko3iko.Temperature::Single)) as ko3iko.Max(ko3iko.Temperature::Single), AggRef(ko3iko.Min(ko3iko.Temperature::Single)) as ko3iko.Min(ko3iko.Temperature::Single)]
     PhysicalSingleKeyAggregate [key: City (String)] [aggs: Avg(Temperature::Single), Max(Temperature::Single), Min(Temperature::Single)]
@@ -30,9 +27,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: WeatherMeasurementEntity]
@@ -60,6 +56,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(MinTemperature: ko3iko.Min(ko3iko.Temperature::Single), MaxTemperature: ko3iko.Max(ko3iko.Temperature::Single), AvgTemperature: ko3iko.Avg(ko3iko.Temperature::Single))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q185_RuntimeV2WeatherSingleAggregate

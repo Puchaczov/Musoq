@@ -133,7 +133,7 @@ public sealed class ExecutionPortableSymbolFactoryTests
     [TestMethod]
     public void ExecutionTypeRef_ShouldExposePortableDescriptorWithoutExposingClrType()
     {
-        var typeRef = ExecutionTypeRef.FromClr(typeof(int?));
+        var typeRef = ExecutionClrBindingFactory.FromClr(typeof(int?));
 
         Assert.AreEqual("nullable<primitive:int32>", typeRef.Descriptor.StableName);
         Assert.AreEqual(ExecutionPortableTypeKind.Nullable, typeRef.Descriptor.Kind);
@@ -141,8 +141,7 @@ public sealed class ExecutionPortableSymbolFactoryTests
         var clrType = typeof(ExecutionTypeRef).GetProperty(
             "ClrType",
             BindingFlags.Instance | BindingFlags.NonPublic);
-        Assert.IsNotNull(clrType);
-        Assert.IsFalse(clrType.GetMethod!.IsPublic);
+        Assert.IsNull(clrType);
     }
 
     [TestMethod]

@@ -21,11 +21,11 @@ public sealed class AggregateLoweringModelTests
         var success = AggregateSetBuildResult.Success(nodes, accumulators);
         var unsupported = AggregateSetBuildResult.Unsupported("missing kernel");
 
-        Assert.IsTrue(success.Supported);
+        Assert.IsTrue(success.IsBuilt);
         Assert.AreSame(nodes, success.Nodes);
         Assert.AreSame(accumulators, success.TypedAccumulators);
         Assert.AreEqual(string.Empty, success.UnsupportedReason);
-        Assert.IsFalse(unsupported.Supported);
+        Assert.IsFalse(unsupported.IsBuilt);
         Assert.HasCount(0, unsupported.Nodes);
         Assert.HasCount(0, unsupported.TypedAccumulators);
         Assert.AreEqual("missing kernel", unsupported.UnsupportedReason);
@@ -46,10 +46,10 @@ public sealed class AggregateLoweringModelTests
         var success = AggregateGroupValueCaptureBuildResult.Success(nodes, capturedValues);
         var unsupported = AggregateGroupValueCaptureBuildResult.Unsupported("raw expression");
 
-        Assert.IsTrue(success.Supported);
+        Assert.IsTrue(success.IsBuilt);
         Assert.AreSame(nodes, success.Nodes);
         Assert.AreSame(capturedValues, success.CapturedValues);
-        Assert.IsFalse(unsupported.Supported);
+        Assert.IsFalse(unsupported.IsBuilt);
         Assert.HasCount(0, unsupported.Nodes);
         Assert.HasCount(0, unsupported.CapturedValues);
         Assert.AreEqual("raw expression", unsupported.UnsupportedReason);

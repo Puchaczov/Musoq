@@ -39,7 +39,15 @@ public partial class BuildMetadataAndInferTypesVisitor
             _logger
         );
 
-        return schema.GetTableByName(schemaFrom.Method, metadataContext, SchemaArgumentBinder.BindStaticArguments(schemaFrom.Parameters));
+        var boundInvocation = schemaFrom is Musoq.Evaluator.Parser.SchemaFromNode semanticSource
+            ? semanticSource.BoundInvocation
+            : null;
+        var parameters = SchemaArgumentBinder.BindStaticArguments(
+            schemaFrom.Parameters,
+            invocation: boundInvocation);
+
+        return SchemaProviderBoundary.Invoke(() =>
+            schema.GetTableByName(schemaFrom.Method, metadataContext, parameters));
     }
 
     private void UpdateQueryAliasAndSymbolTable(PropertyFromNode node, ISchema schema, ISchemaTable table)
@@ -80,7 +88,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (_sourceBinding.AliasToSchemaFromNodeMap.TryGetValue(sourceAlias, out var schemaFrom))
         {
-            schema = _provider.GetSchema(schemaFrom.Schema);
+            schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaFrom.Schema));
             var sourceSymbol = FindTableSymbolInScopeHierarchy(sourceAlias);
             sourceTable = sourceSymbol.FullTable;
         }
@@ -102,6 +110,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (!schema.TryResolveMethod(node.Identifier, argTypes, entityType, out var method) &&
             !schema.TryResolveRawMethod(node.Identifier, argTypes, out method))
             return false;
+
+        if (args.HasNamedArguments)
+            throw new CannotResolveMethodException(
+                "Named arguments are supported only for explicitly coupled datasource calls.",
+                Musoq.Parser.Diagnostics.DiagnosticCode.MQ2034_InvalidNamedSourceArgument,
+                args.Span);
 
         var returnType = method.ReturnType;
         var convertedTable = TurnTypeIntoTableWithDiagnostics(returnType, node);

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
 namespace Musoq.Evaluator.Runtime;
@@ -31,12 +30,7 @@ internal sealed class RuntimeReferenceProvider : IRuntimeReferenceProvider
     private readonly IMetadataReferenceCache _referenceCache;
     private readonly Func<string?> _runtimeDirectoryProvider;
     private readonly IReadOnlyList<string> _essentialAssemblyNames;
-    private readonly object _lockGuard = new();
-    private readonly ManualResetEvent _manualResetEvent = new(false);
-    private MetadataReference[]? _references;
-    private bool _hasLoadedReferences;
-    private bool _readInProgress;
-    private bool _readFinished;
+    private readonly Lazy<MetadataReference[]> _references;
 
     public RuntimeReferenceProvider(IMetadataReferenceCache referenceCache)
         : this(referenceCache, GetDefaultRuntimeDirectory, DefaultEssentialAssemblyNames)
@@ -51,52 +45,19 @@ internal sealed class RuntimeReferenceProvider : IRuntimeReferenceProvider
         _referenceCache = referenceCache ?? throw new ArgumentNullException(nameof(referenceCache));
         _runtimeDirectoryProvider = runtimeDirectoryProvider ?? throw new ArgumentNullException(nameof(runtimeDirectoryProvider));
         _essentialAssemblyNames = (essentialAssemblyNames ?? DefaultEssentialAssemblyNames).ToArray();
+        _references = new Lazy<MetadataReference[]>(
+            LoadReferences,
+            LazyThreadSafetyMode.ExecutionAndPublication);
     }
 
     public MetadataReference[] References
     {
-        get
-        {
-            if (_hasLoadedReferences)
-                return _references ?? [];
-
-            CreateReferences();
-            _manualResetEvent.WaitOne();
-
-            return _references ?? [];
-        }
+        get => _references.Value.ToArray();
     }
 
     public void CreateReferences()
     {
-        if (_hasLoadedReferences)
-            return;
-
-        if (_readFinished)
-            return;
-
-        lock (_lockGuard)
-        {
-            if (_readInProgress)
-                return;
-
-            _readInProgress = true;
-
-            _ = Task.Run(() =>
-            {
-                try
-                {
-                    _references = LoadReferences();
-                }
-                finally
-                {
-                    _hasLoadedReferences = true;
-                    _readInProgress = false;
-                    _readFinished = true;
-                    _manualResetEvent.Set();
-                }
-            });
-        }
+        _ = _references.Value;
     }
 
     private MetadataReference[] LoadReferences()

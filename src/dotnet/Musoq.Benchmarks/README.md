@@ -1,5 +1,69 @@
 # Musoq Benchmarks
 
+## Recursive CTE performance gate
+
+`RecursiveCteBenchmark` compares generated recursive execution with an equivalent typed handwritten semi-naive loop across chain, tree, diamond, cycle, duplicate-heavy keyed, wide-row, invariant-snapshot, indexed-edge, correlated-apply, and empty-anchor cases. Every scenario runs with both `ParallelizationMode.None` and `ParallelizationMode.Full`; the recursive fixed-point loop remains sequential in both modes. Schema metadata is reused by both operations, while source enumeration and recursive snapshots occur for each operation.
+
+The release gate has six tiers:
+
+- Sequential generated-versus-handwritten equivalence for chain, tree, diamond, cycle, duplicate-heavy keyed, wide rows, invariant snapshots, and indexed edges: `1.25x` time and `1.20x` allocation ceilings.
+- Full-mode before/after regression for the same eight scenarios: `1.03x` ceilings.
+- Separate correlated-apply and empty-anchor before/after overhead gates: `1.03x` ceilings.
+- Recursive compilation before/after regression for chain, wide rows, and indexed edges in both modes: `1.03x` ceilings.
+- Existing ordinary `CteSidecarIndexBenchmark.SingleHash*` before/after regression: `1.03x` ceilings.
+
+Capture three isolated runtime reports at the baseline commit and three at the candidate commit. Each run takes several minutes because BenchmarkDotNet isolates 40 parameterized operations:
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj -c Release -- `
+  --filter "*RecursiveCteBenchmark*" --exporters json `
+  --artifacts artifacts/recursive-cte-benchmark/baseline-runtime-1
+```
+
+At both commits also capture three compilation reports and three focused ordinary-CTE reports:
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj -c Release -- `
+  --filter "*RecursiveCteCompilationBenchmark*" --exporters json `
+  --artifacts artifacts/recursive-cte-benchmark/baseline-compilation-1
+
+dotnet run --project src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj -c Release -- `
+  --filter "*CteSidecarIndexBenchmark.SingleHash*" --exporters json `
+  --artifacts artifacts/recursive-cte-benchmark/baseline-ordinary-1
+```
+
+Repeat each command for samples 2 and 3, then repeat all three cohorts at the candidate commit under `current-*` artifact directories. Apply the complete release gate:
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj -c Release --no-build -- `
+  gate-recursive `
+  --baseline-runtime <baseline-runtime-1.json> --baseline-runtime <baseline-runtime-2.json> --baseline-runtime <baseline-runtime-3.json> `
+  --current-runtime <current-runtime-1.json> --current-runtime <current-runtime-2.json> --current-runtime <current-runtime-3.json> `
+  --baseline-compilation <baseline-compilation-1.json> --baseline-compilation <baseline-compilation-2.json> --baseline-compilation <baseline-compilation-3.json> `
+  --current-compilation <current-compilation-1.json> --current-compilation <current-compilation-2.json> --current-compilation <current-compilation-3.json> `
+  --baseline-ordinary <baseline-ordinary-1.json> --baseline-ordinary <baseline-ordinary-2.json> --baseline-ordinary <baseline-ordinary-3.json> `
+  --current-ordinary <current-ordinary-1.json> --current-ordinary <current-ordinary-2.json> --current-ordinary <current-ordinary-3.json>
+```
+
+For a fast equivalence-only check, pass three current runtime reports with `--report`. The gate rejects partial cohorts, inconsistent method sets, missing mode/scenario combinations, and filters that select no methods.
+
+On 2026-07-21 with .NET 10.0.10, the expanded three-cohort sequential equivalence gate measured these median ratios:
+
+| Scenario | Time | Allocation |
+| --- | ---: | ---: |
+| Chain | 0.6282x | 0.6293x |
+| Tree | 0.7056x | 0.7111x |
+| Diamond | 0.7050x | 0.7340x |
+| Cycle | 0.7104x | 0.6750x |
+| DuplicateHeavyKeyed | 0.8459x | 0.8047x |
+| WideRows | 0.4569x | 0.4835x |
+| InvariantSnapshot | 0.9489x | 0.6257x |
+| IndexedEdges | 0.6856x | 0.6751x |
+
+The Wave 7 gate-only change used the same unchanged runtime cohort as both sides to validate all before/after selectors; every full-mode, overhead, compilation, and ordinary-CTE comparison reported `1.0000x`. A release decision must instead use distinct baseline and candidate cohorts. Compilation characterization medians for the six cases were approximately 69–99 ms and 6.3–8.3 MB per fresh compile.
+
+These are local change evidence, not cross-machine throughput claims. Do not commit raw BenchmarkDotNet artifacts; store only commands and summarized median ratios.
+
 ## Correlated Subquery Performance Gate
 
 Capture three isolated `SubqueryLoweringBenchmark` reports before and after a change. Compare them with:

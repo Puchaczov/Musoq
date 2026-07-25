@@ -27,6 +27,7 @@ internal static class CSharpClrTargetComposition
         return new CSharpClrRenderInputs
         {
             CompilationOptions = context.CompilationOptions,
+            ExecutionBindings = new CSharpClrExecutionBindingContext(),
             AssemblyName = compilerState.CompilationUnitName,
             NamespaceName = SanitizeNameForNamespace(compilerState.CompilationUnitName),
             QueryResultMode = context.QueryResultMode,
@@ -36,7 +37,11 @@ internal static class CSharpClrTargetComposition
             Scope = compilerState.Scope,
             ScriptParameterDefinitions = compilerState.ScriptParameterDefinitions,
             ScriptVariableDefinitions = compilerState.ScriptVariableDefinitions,
-            ReferenceAssemblies = compilerState.ReferenceAssemblies
+            ReferenceAssemblies = compilerState.ReferenceAssemblies,
+            EnableContextualExecution = context.Options.Values.TryGetValue(
+                "EnableContextualExecution",
+                out var contextualExecution) &&
+                string.Equals(contextualExecution, "true", StringComparison.OrdinalIgnoreCase)
         };
     }
 

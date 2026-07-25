@@ -28,6 +28,7 @@ internal static partial class GeneratedCodeSamplesCatalog
         samples.AddRange(CreateUnpivotSamples());
         samples.AddRange(CreatePivotSamples());
         samples.AddRange(CreateClassicTailSamples());
+        samples.AddRange(CreateRecursiveCteSamples());
 
         return samples;
     }

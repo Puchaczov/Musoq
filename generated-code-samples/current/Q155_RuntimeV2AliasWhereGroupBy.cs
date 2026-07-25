@@ -1,15 +1,13 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT City as c, Count(*) as Cnt
                   FROM #features.items()
                   WHERE c <> ''
                   GROUP BY c
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(*)) as ko3iko.Count(*)]
     Aggregate [keys: c] [aggs: Count(*)]
@@ -19,9 +17,8 @@ MultiStatement
     CteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(*)) as ko3iko.Count(*)]
     PhysicalSingleKeyAggregate [key: c (String)] [aggs: Count(*)]
@@ -31,9 +28,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2CastGroupingFeatureEntity]
@@ -57,6 +53,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(c: finalGroup.c, Cnt: ko3iko.Count(*))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q155_RuntimeV2AliasWhereGroupBy

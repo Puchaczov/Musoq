@@ -232,13 +232,13 @@ public sealed class PortableSubsetTargetAssemblyTests
             nameof(CustomCoalesce),
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
         var call = new ExecutionMethodCall(
-            ExecutionCallableRef.FromClr(method),
+            ExecutionClrBindingFactory.FromClr(method),
             [
                 new ExecutionLiteral("left", typeof(string)),
                 new ExecutionLiteral("right", typeof(string))
             ],
             "Coalesce",
-            ExecutionTypeRef.FromClr(typeof(string)),
+            ExecutionClrBindingFactory.FromClr(typeof(string)),
             null);
         var plan = new ExecutionPlan(
             "Q_CustomCoalesce",
@@ -291,8 +291,7 @@ public sealed class PortableSubsetTargetAssemblyTests
         Assert.IsNotNull(descriptor);
         Assert.IsTrue(descriptor.GetMethod!.IsPublic);
         Assert.AreEqual("Musoq.Targets.Abstractions.ExecutionPortableTypeDescriptor", descriptor.PropertyType.FullName);
-        Assert.IsNotNull(clrType);
-        Assert.IsFalse(clrType.GetMethod!.IsPublic);
+        Assert.IsNull(clrType);
     }
 
     [TestMethod]
@@ -306,8 +305,7 @@ public sealed class PortableSubsetTargetAssemblyTests
         Assert.IsNotNull(descriptor);
         Assert.IsTrue(descriptor.GetMethod!.IsPublic);
         Assert.AreEqual("Musoq.Targets.Abstractions.ExecutionPortableCallableDescriptor", descriptor.PropertyType.FullName);
-        Assert.IsNotNull(clrMethod);
-        Assert.IsFalse(clrMethod.GetMethod!.IsPublic);
+        Assert.IsNull(clrMethod);
     }
 
     [TestMethod]

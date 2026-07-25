@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Name, Population from #A.entities() order by Population desc take 5
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Take [5]
     Sort [ko3iko.Population DESC]
@@ -14,18 +12,16 @@ MultiStatement
         SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalTopN [5] [ko3iko.Population DESC]
     PhysicalProject [ko3iko.Name as Name, ko3iko.Population as Population]
       PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -47,6 +43,8 @@ ExecutionPlan [compiled]
     MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q85_OrderByTake

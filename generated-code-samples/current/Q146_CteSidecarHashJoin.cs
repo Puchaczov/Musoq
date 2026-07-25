@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with indexed as (select Id, Name from #A.entities()) select b.Name, i.Name from #B.entities() b inner join indexed i on b.Id = i.Id
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [indexed]
     MultiStatement
@@ -22,9 +20,8 @@ Cte
         CteRef [bi as bi]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [indexed]
     PhysicalMultiStatement
@@ -40,9 +37,8 @@ PhysicalCte
         PhysicalCteRef [bi as bi]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -81,6 +77,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(b.Name: b.Name, i.Name: i.Name)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q146_CteSidecarHashJoin

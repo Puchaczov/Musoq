@@ -47,6 +47,7 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ2023_MissingAsKeyword] = "Missing AS keyword before alias",
         [DiagnosticCode.MQ2024_InvalidSubquery] = "Invalid subquery",
         [DiagnosticCode.MQ2025_MissingSelectKeyword] = "Missing SELECT keyword",
+        [DiagnosticCode.MQ2034_InvalidNamedSourceArgument] = "Invalid named datasource argument: {0}",
         [DiagnosticCode.MQ2026_InvalidCaseExpression] = "Invalid CASE expression",
         [DiagnosticCode.MQ2027_MissingWhenClause] = "Missing WHEN clause in CASE expression",
         [DiagnosticCode.MQ2028_MissingThenClause] = "Missing THEN clause in CASE expression",
@@ -94,6 +95,19 @@ public static class ErrorCatalog
         [DiagnosticCode.MQ3069_StarRenameDuplicateTarget] = "Duplicate target column '{0}' in RENAME list.",
         [DiagnosticCode.MQ3070_StarRenameColumnNotFound] = "RENAME references non-existent output column '{0}'.",
         [DiagnosticCode.MQ3071_SourceContractError] = "Source contract error: {0}",
+        [DiagnosticCode.MQ3072_RecursiveCteRequiresKeyword] = "Recursive CTE '{0}' requires WITH RECURSIVE.",
+        [DiagnosticCode.MQ3073_InvalidRecursiveCteShape] = "Invalid recursive CTE shape: {0}",
+        [DiagnosticCode.MQ3074_InvalidRecursiveCteReference] = "Invalid recursive CTE reference: {0}",
+        [DiagnosticCode.MQ3075_UnsupportedRecursiveCteOperator] = "Operator '{0}' is not supported in a recursive CTE member.",
+        [DiagnosticCode.MQ3076_RecursiveCteOutputMismatch] = "Recursive CTE output mismatch: {0}",
+        [DiagnosticCode.MQ3077_CteColumnListCountMismatch] =
+            "CTE '{0}' declares {1} column name(s), but its query projects {2} column(s).",
+        [DiagnosticCode.MQ3078_DuplicateCteColumnName] = "CTE '{0}' declares duplicate column name '{1}'.",
+        [DiagnosticCode.MQ3079_UnknownSourceArgument] = "Datasource argument '{0}' is not present in the selected source signature.",
+        [DiagnosticCode.MQ3080_DuplicateSourceArgument] = "Datasource argument '{0}' was supplied more than once.",
+        [DiagnosticCode.MQ3081_MissingRequiredSourceArgument] = "Required datasource argument '{0}' was not supplied.",
+        [DiagnosticCode.MQ3082_AmbiguousSourceInvocation] = "Datasource invocation is ambiguous: {0}",
+        [DiagnosticCode.MQ3083_NamedSourceArgumentsRequireMetadata] = "Named datasource arguments require reflected source metadata for '{0}'.",
 
         // Schema Definition Errors (MQ4xxx)
         [DiagnosticCode.MQ4001_InvalidBinarySchemaField] = "Invalid binary schema field '{0}'",
@@ -145,6 +159,12 @@ public static class ErrorCatalog
             "Could not bind to data source constructor for '{0}'",
         [DiagnosticCode.MQ7002_DataSourceIteratorError] =
             "Data source entered invalid iterator state",
+        [DiagnosticCode.MQ7007_RecursiveCteIterationLimitExceeded] =
+            "Recursive CTE iteration limit of {0} was exceeded.",
+        [DiagnosticCode.MQ7008_RecursiveCteRowLimitExceeded] =
+            "Recursive CTE row limit of {0} was exceeded.",
+        [DiagnosticCode.MQ7009_RecursiveCteSnapshotLimitExceeded] =
+            "Recursive CTE invariant snapshot row limit of {0} was exceeded.",
 
         // Code Generation Errors (MQ8xxx)
         [DiagnosticCode.MQ8001_CodeGenerationFailed] =

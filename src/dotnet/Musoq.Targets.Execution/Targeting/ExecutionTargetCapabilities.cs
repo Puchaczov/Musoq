@@ -52,7 +52,7 @@ internal sealed record ExecutionTargetCapabilities(
         ],
         CSharpClrSymbolPortabilities,
         CSharpClrSymbolPortabilities,
-        ExecutionOperationCatalog.AllOperationIds,
+        ExecutionOperationCatalog.CSharpClrSupportedOperationIds,
         [ExecutionSemanticsContract.Version1.Version],
         [
             ExecutionTargetFeatureKind.ConstantKind,

@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.IR.Execution;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Evaluator.Tests.Architecture;
 
@@ -407,6 +409,31 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
         Assert.IsEmpty(
             Directory.EnumerateFiles(evaluatorCodeGenerationRoot, "CSharpRenderer*.cs").ToArray(),
             "High-level generated C# renderer partials must stay in Musoq.Targets.CSharpClr.");
+    }
+
+    [TestMethod]
+    public void CSharpQueryCodeGeneration_ShouldBeOwnedByCSharpClrTarget()
+    {
+        var evaluatorTypes = typeof(PhysicalToExecutionPlanBuilder).Assembly.GetTypes();
+        var evaluatorCodeGenerationTypes = evaluatorTypes
+            .Where(type => type.Namespace?.StartsWith(
+                "Musoq.Evaluator.Visitors.CodeGeneration",
+                StringComparison.Ordinal) == true)
+            .ToArray();
+        var targetTypes = typeof(CompiledQueryClassRenderer).Assembly.GetTypes();
+        var targetCodeGenerationTypes = targetTypes
+            .Where(type => type.Namespace?.StartsWith(
+                "Musoq.Targets.CSharpClr.Rendering.CodeGeneration",
+                StringComparison.Ordinal) == true)
+            .ToArray();
+
+        Assert.IsEmpty(
+            evaluatorCodeGenerationTypes,
+            "Evaluator must not own C# query-rendering helper types: " +
+            string.Join(", ", evaluatorCodeGenerationTypes.Select(type => type.FullName)));
+        Assert.IsNotEmpty(targetCodeGenerationTypes);
+        Assert.AreSame(typeof(CompiledQueryClassRenderer).Assembly, typeof(ClassEmitter).Assembly);
+        Assert.AreSame(typeof(CompiledQueryClassRenderer).Assembly, typeof(MethodDeclarationHelper).Assembly);
     }
 
     [TestMethod]
@@ -1065,7 +1092,7 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
             "Activator.CreateInstance",
             "src/dotnet/Musoq.Evaluator/Build/InterpreterCompilationUnit.cs",
             "src/dotnet/Musoq.Evaluator/Helpers/SafeArrayAccess.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.WindowAggregateKernels.cs",
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.WindowAggregateKernels.cs",
             "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.Diagnostics.CoreAndSymbols.cs",
             "src/dotnet/Musoq.Targets.CSharpClr/ClrAssemblyExecutableActivator.cs");
     }
@@ -1085,16 +1112,10 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
         AssertTextAppearsExactlyIn(
             repositoryRoot,
             productionFiles,
-            "Assembly.Load(",
-            "src/dotnet/Musoq.Evaluator/Build/DefaultAssemblyLoader.cs",
-            "src/dotnet/Musoq.Targets.CSharpClr/ClrAssemblyExecutableActivator.cs");
-        AssertTextAppearsExactlyIn(
-            repositoryRoot,
-            productionFiles,
             "Activator.CreateInstance",
             "src/dotnet/Musoq.Evaluator/Build/InterpreterCompilationUnit.cs",
             "src/dotnet/Musoq.Evaluator/Helpers/SafeArrayAccess.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.WindowAggregateKernels.cs",
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.WindowAggregateKernels.cs",
             "src/dotnet/Musoq.Evaluator/Visitors/BuildMetadataAndInferTypesVisitor.Diagnostics.CoreAndSymbols.cs",
             "src/dotnet/Musoq.Targets.CSharpClr/ClrAssemblyExecutableActivator.cs");
     }
@@ -1145,16 +1166,8 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
             "src/dotnet/Musoq.Evaluator/Build/IInterpreterReferenceProvider.cs",
             "src/dotnet/Musoq.Evaluator/Build/InterpreterCompilationUnit.cs",
             "src/dotnet/Musoq.Evaluator/Helpers/SyntaxHelper.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/CodegenHelperExtractionBoundaries.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/CodegenHelperExtractionCandidateKind.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/CodegenHelperExtractionInfo.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/CodegenHelperExtractionMetadata.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/CodegenHelperExtractionRole.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/GeneratedRowNamingPolicy.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.AggregateHelpers.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Optimization/Execution/ExpressionHoistPlan.cs",
-            "src/dotnet/Musoq.Evaluator/IR/Optimization/Execution/ExpressionHoistPlanner.cs",
             "src/dotnet/Musoq.Evaluator/Runtime/DefaultMetadataReferenceCache.cs",
+            "src/dotnet/Musoq.Evaluator/Runtime/EvaluatorRuntimeEnvironment.cs",
             "src/dotnet/Musoq.Evaluator/Runtime/ICSharpCompilationFactory.cs",
             "src/dotnet/Musoq.Evaluator/Runtime/IMetadataReferenceCache.cs",
             "src/dotnet/Musoq.Evaluator/Runtime/IRuntimeReferenceProvider.cs",
@@ -1163,21 +1176,6 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
             "src/dotnet/Musoq.Evaluator/Runtime/RoslynSharedFactory.cs",
             "src/dotnet/Musoq.Evaluator/Runtime/RuntimeLibraries.cs",
             "src/dotnet/Musoq.Evaluator/Runtime/RuntimeReferenceProvider.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/CodeGeneration/ClassEmitter.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/CodeGeneration/CompilationContextManager.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/CodeGeneration/LegacyCodeGenerationSyntaxFactory.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/CodeGeneration/QueryEmitter.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/CodeGeneration/RedundantParenthesisRewriter.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/CodeGeneration/SchemaColumnMetadataSyntax.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/CodeGeneration/SchemaNodeEmitter.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/CodeGeneration/ScriptParameterSyntaxFactory.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/CodeGeneration/StatementEmitter.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/Helpers/MethodDeclarationHelper.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/Helpers/MethodDeclarationHelper.DataSourceProgress.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/Helpers/MethodDeclarationHelper.Parameters.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/Helpers/MethodDeclarationHelper.PhaseTracking.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/Helpers/MethodDeclarationHelper.RuntimeSettings.cs",
-            "src/dotnet/Musoq.Evaluator/Visitors/Helpers/MethodDeclarationHelper.Typed.cs"
         }.ToHashSet(StringComparer.Ordinal);
 
         var actual = evaluatorFiles
@@ -1234,6 +1232,7 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
         {
             "src/dotnet/Musoq.Converter/Build/RenderingBuildArtifacts.cs",
             "src/dotnet/Musoq.Converter/ExecutionTargets/BuildItems.Rendering.cs",
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/CodeGeneration/CompilationContextManager.cs",
             "src/dotnet/Musoq.Targets.CSharpClr/CSharpClrArtifactCompatibility.cs",
             "src/dotnet/Musoq.Targets.CSharpClr/RenderedQueryArtifact.cs"
         };

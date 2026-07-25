@@ -1,21 +1,18 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Name, Sum(Population) filter (where Population > 100) over (order by Name) as FilteredPopulation from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, WindowRef(0) as FilteredPopulation]
     Window [Sum(idx:0; order: ko3iko.Name; args: ko3iko.Population; filter: (ko3iko.Population > 100))]
       SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, WindowRef(0) as FilteredPopulation]
     PhysicalWindow [Sum(idx:0; order: ko3iko.Name; args: ko3iko.Population; filter: (ko3iko.Population > 100))]
@@ -23,9 +20,8 @@ PhysicalMultiStatement
         PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -44,6 +40,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name, FilteredPopulation: resultSums[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q165_WindowAggregateFilter

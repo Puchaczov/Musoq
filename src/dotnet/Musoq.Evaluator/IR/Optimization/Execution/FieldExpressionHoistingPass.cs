@@ -232,7 +232,7 @@ internal sealed class FieldExpressionHoistingPass : IExecutionIrOptimizationPass
         private static string CreateHoistedVariableName(ExecutionFieldRead read, ISet<string> usedNames)
         {
             var candidate = read.FieldName.Split('.').LastOrDefault(static part => !string.IsNullOrWhiteSpace(part)) ?? "field";
-            candidate = GeneratedRowNamingPolicy.CreateLoweringIdentifierCandidate(candidate, usedNames.Count);
+            candidate = ExecutionSymbolicNamePolicy.CreateLoweringIdentifierCandidate(candidate, usedNames.Count);
             candidate = char.ToLowerInvariant(candidate[0]) + candidate[1..];
 
             var variableName = candidate;

@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select a.Name, b.City, Sum(a.Population) over (order by a.Name rows between 1 preceding and current row) as RunSum from #A.entities() a inner join #A.entities() b on a.Id = b.Id
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [a.Name as a.Name, a.Population as a.Population, a.Id as a.Id, b.City as b.City, b.Id as b.Id]
     Join [Inner] [(a.Id = b.Id)]
@@ -17,9 +15,8 @@ MultiStatement
       CteRef [ab as ab]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [a.Name as a.Name, a.Population as a.Population, a.Id as a.Id, b.City as b.City, b.Id as b.Id]
     PhysicalHashJoin [Inner] [build: b.Id] [probe: a.Id]
@@ -31,9 +28,8 @@ PhysicalMultiStatement
         PhysicalCteRef [ab as ab]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [a: BasicEntity]
@@ -79,6 +75,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(a.Name: ab.a.Name, b.City: ab.b.City, RunSum: resultSums[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q44_WindowFrameWithJoin

@@ -1,6 +1,6 @@
 # Runtime Testability Coverage Notes
 
-Last updated: 2026-07-05
+Last updated: 2026-07-23
 
 ## Coverage Command
 
@@ -19,7 +19,7 @@ Latest remediation gate:
 
 - Command: `dotnet test src/dotnet/Musoq.sln --no-restore`
 - Scope: full solution gate after each architecture wave.
-- Latest result: 15221 passed, 4 skipped.
+- Latest result: 16710 passed, 4 skipped (Parser 1693, Schema 457, Evaluator 9424, Converter 856, Plugins 4161, CSV examples 43, Git examples 45, Benchmarks 31).
 
 ## Directly Covered Runtime Seams
 
@@ -34,6 +34,7 @@ Latest remediation gate:
 - Physical planning ratchets: final guardrails require optimizer shape facts, prevent physical optimization passes from consuming `PlanProperties` directly, keep execution strategies keyed by `PhysicalNodeId`, and keep parallel planning on shared `IrExpressionTraversal`/`IrExpressionFacts`.
 - Renderer seams: renderer session reuse, explicit `ExecutionRenderSession` flow, mutable-field-free renderer facade behavior, node family dispatch, registry traversal metadata, and capability decisions have focused tests; generated renderer output has semantic compile tests for CTE indexes, hash/keyset paths, windows, final shape output, strict casts, set operations, and profiling scopes.
 - Semantic analysis seams: `SemanticAnalysisState` owns semantic mutable bags behind the visitor facade. Source binding, column/property binding, method binding, result-shape binding, query validation, diagnostic reporting, expression-diagnostic facts, and set-operator fact services now have directly testable internal seams and architecture guardrails that keep them as top-level services instead of visitor-private artifacts.
+- Named datasource arguments: `NamedArgumentAstTests` and `NamedDatasourceArgumentParserTests` cover aligned names/spans, clone/rewrite preservation, positional-prefix/named-suffix grammar, unsupported scalar/row-access/DESC FUNCTIONS contexts, comments, multiline calls, and parser diagnostics. `NamedDatasourceArgumentFoundationTests`, `NamedDatasourceArgumentEvaluatorTests`, and `NamedDatasourceArgumentBinderMatrixTests` cover reflected names/defaults, hidden metadata parameters, metadata-less rejection, coupled/DESC/DESC SETTINGS binding, exact/assignable/ambiguous overloads, duplicate/unknown/missing/incompatible diagnostics, canonical runtime vectors, optional-default DESC rendering, property-source re-resolution, and public `Musoq.Schema` compatibility. `QueryInspectionTests` and the named evaluator surface tests cover JOIN, correlated CROSS APPLY, DESC QUERY, logical/physical/execution plans, generated C# label erasure, runtime correlated rows, and positional APPLY overload compatibility. The final full-solution gate records 16710 passed and 4 skipped.
 - Parser traversal seams: `ParserNodeTraversalRegistry` owns parser-node child descriptors, including special ordering for CTEs, set operators, queries, and source nodes. Guardrails require every concrete parser node to be registered or explicitly leaf/unsupported and keep `ParserNodeChildTraversal` as a registry-backed adapter.
 - Evaluator spec-diff syntax coverage: core scalar and row-source syntax, subquery and join behavior, aggregate/window/reshape/set syntax, TABLE/COUPLE/DESC contracts, and binary/text interpretation profile syntax now have evaluator tests that assert result columns and exact rows. Aggregate `FILTER` coverage includes `Count()`, `Count(*)`, `Count(distinct ...)`, and window/composition regressions. Ordered row assertions are used only when the query contains an explicit final `ORDER BY`; otherwise unordered row assertions are used.
 - Remaining architecture remediation baseline: ratchets now freeze current optimizer root pass inventory, direct `PlanProperties` construction pressure, legacy node-keyed execution-strategy construction, renderer mutable-session references, planning-internal `PlanProperties` parameter use, and `BuildItems` raw-dictionary compatibility behavior.

@@ -16,7 +16,7 @@ public sealed record ExecutionStrictCast(
         string targetTypeName,
         Type returnType,
         ExecutionVariable? target = null)
-        : this(expression, targetTypeName, ExecutionTypeRef.FromClr(returnType), target)
+        : this(expression, targetTypeName, ExecutionClrBindingFactory.FromClr(returnType), target)
     {
     }
 }

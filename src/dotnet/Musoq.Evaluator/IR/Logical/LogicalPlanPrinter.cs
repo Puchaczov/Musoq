@@ -153,6 +153,23 @@ public static class LogicalPlanPrinter
                 PrintNode(setOp.Right, sb, indent + 2);
                 break;
 
+            case RecursiveCteNode recursiveCte:
+                sb.Append(prefix).Append("RecursiveCte [");
+                sb.Append(recursiveCte.Name);
+                sb.Append("] [");
+                sb.Append(recursiveCte.UnionKind);
+                if (recursiveCte.Keys.Length > 0)
+                {
+                    sb.Append(": ");
+                    PlanPrinterHelpers.AppendNames(sb, recursiveCte.Keys);
+                }
+                sb.AppendLine("]");
+                sb.Append(prefix).AppendLine("  Anchor");
+                PrintNode(recursiveCte.Anchor, sb, indent + 4);
+                sb.Append(prefix).AppendLine("  RecursiveMember");
+                PrintNode(recursiveCte.RecursiveMember, sb, indent + 4);
+                break;
+
             case CteNode cte:
                 sb.Append(prefix).AppendLine("Cte");
                 foreach (var def in cte.Definitions)

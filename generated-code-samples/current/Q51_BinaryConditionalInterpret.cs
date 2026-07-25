@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 binary OptionalPacket {
                 HasValue: byte,
                 Value: int le when HasValue = 1
@@ -12,9 +11,8 @@ binary OptionalPacket {
             cross apply Interpret<OptionalPacket>(f.Content) p
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [f.Content as f.Content, p.HasValue as p.HasValue, p.Value as p.Value]
     Apply [Cross]
@@ -24,9 +22,8 @@ MultiStatement
     CteRef [fp as fp]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [f.Content as f.Content, p.HasValue as p.HasValue, p.Value as p.Value]
     PhysicalNestedLoopApply [Cross]
@@ -36,9 +33,8 @@ PhysicalMultiStatement
     PhysicalCteRef [fp as fp]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [f: BinaryEntity]
@@ -60,6 +56,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(p.HasValue: p.HasValue, p.Value: p.Value)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q51_BinaryConditionalInterpret

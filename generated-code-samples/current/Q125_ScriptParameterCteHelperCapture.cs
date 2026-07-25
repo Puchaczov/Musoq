@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 param(country: string)
               with filtered as (
                   select Name, City, $country as RequestedCountry
@@ -12,9 +11,8 @@ param(country: string)
               inner join filtered r on l.Name = r.Name
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [filtered]
     MultiStatement
@@ -31,9 +29,8 @@ Cte
         CteRef [lr as lr]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [filtered]
     PhysicalMultiStatement
@@ -50,9 +47,8 @@ PhysicalCte
         PhysicalCteRef [lr as lr]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -98,6 +94,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(l.Name: l.Name, r.RequestedCountry: r.RequestedCountry)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q125_ScriptParameterCteHelperCapture

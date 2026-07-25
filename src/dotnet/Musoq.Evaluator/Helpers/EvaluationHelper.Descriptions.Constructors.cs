@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.Visitors;
+using Musoq.Schema;
 using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Helpers;
@@ -22,8 +24,16 @@ public static partial class EvaluationHelper
             if (constructor.ConstructorInfo.Arguments.Length > maxColumns)
                 maxColumns = constructor.ConstructorInfo.Arguments.Length;
 
-            foreach (var param in constructor.ConstructorInfo.Arguments)
-                row.Add($"{param.Name}: {param.Type.FullName}");
+            var signature = SchemaSourceSignature.Create(constructor);
+
+            for (var index = 0; index < signature.Parameters.Length; index++)
+            {
+                var param = signature.Parameters[index];
+                var suffix = param.HasDefaultValue
+                    ? $" = {SchemaSourceDefaultFormatter.Format(param.DefaultValue)}"
+                    : string.Empty;
+                row.Add($"{param.Name}: {param.ParameterType.FullName}{suffix}");
+            }
         }
 
         maxColumns += 1;
@@ -47,4 +57,5 @@ public static partial class EvaluationHelper
 
         return descTable;
     }
+
 }

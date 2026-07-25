@@ -1,15 +1,13 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 param(suffix: string, fallback: string)
               select a.Name, Coalesce(b.Name + $suffix, $fallback) as MatchedName
               from #A.entities() a
               left outer join #B.entities() b on a.City + $suffix = b.City + $suffix
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [a.Name as a.Name, a.City as a.City, b.Name as b.Name, b.City as b.City]
     Join [LeftOuter] [((a.City || $suffix) = (b.City || $suffix))]
@@ -19,9 +17,8 @@ MultiStatement
     CteRef [ab as ab]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [a.Name as a.Name, a.City as a.City, b.Name as b.Name, b.City as b.City]
     PhysicalHashJoin [LeftOuter] [build: (b.City || $suffix)] [probe: (a.City || $suffix)]
@@ -31,9 +28,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ab as ab]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [a: BasicEntity]
@@ -77,6 +73,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(a.Name: ab.a.Name, MatchedName: Coalesce((ab.b.Name || $suffix), $fallback))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q124_ScriptParameterJoinHelperCapture

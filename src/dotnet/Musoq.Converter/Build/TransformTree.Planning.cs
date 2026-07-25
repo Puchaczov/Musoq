@@ -1,4 +1,6 @@
+using System.Runtime.ExceptionServices;
 using System.Collections.Generic;
+using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Optimization;
@@ -42,12 +44,11 @@ public partial class TransformTree
 
     private static PlanningStageBuildResult? BuildPlans(
         SemanticBuildArtifacts semantic,
-        BuildMetadataAndInferTypesVisitor metadata,
         TransformPipelineContext context)
     {
         try
         {
-            var aliasKeyedColumns = CreateAliasKeyedInferredColumns(metadata);
+            var aliasKeyedColumns = CreateAliasKeyedInferredColumns(semantic.Phase.Metadata);
             var logicalBuilder = new LogicalPlanBuilder(aliasKeyedColumns);
             var logicalTraverser = new LogicalPlanBuildTraverseVisitor(logicalBuilder);
             semantic.TransformedQueryTree.Accept(logicalTraverser);
@@ -60,6 +61,7 @@ public partial class TransformTree
                 context.DiagnosticContext);
             var logicalOptimizationResult = logicalOptimizer.Optimize(logicalTraverser.Result);
             var logicalArtifacts = new LogicalPlanningArtifacts(logicalOptimizationResult.InitialPlan, logicalOptimizationResult.OptimizedPlan, logicalOptimizationResult.Trace);
+            var planningScope = semantic.ScopeArtifact.CreateScope();
             var planningContext = new PlanningContext(
                 logicalArtifacts,
                 context.CompilationOptions,
@@ -69,9 +71,9 @@ public partial class TransformTree
                 semantic.SourcePlanRequestsPerSchema,
                 semantic.PipelineInferredColumns ?? aliasKeyedColumns,
                 semantic.PipelineUsedColumns ?? new Dictionary<string, IReadOnlySet<string>>(StringComparer.OrdinalIgnoreCase),
-                semantic.PipelineScope,
+                planningScope,
                 context.SchemaRegistry,
-                ExecutionPlanningShapeResolverAdapter.Create(semantic.PipelineScope, semantic.PipelineInferredColumns ?? aliasKeyedColumns, schemaRegistry: context.SchemaRegistry),
+                ExecutionPlanningShapeResolverAdapter.Create(planningScope, semantic.PipelineInferredColumns ?? aliasKeyedColumns, schemaRegistry: context.SchemaRegistry),
                 semantic.CteExecutionPlan)
             {
                 SourceContractDiagnosticLocationsBySource = semantic.SourceContractDiagnosticLocationsPerSchema
@@ -112,10 +114,19 @@ public partial class TransformTree
         {
             throw;
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
         {
-            throw new InvalidOperationException(
-                "Physical plan building failed. See inner exception for the root cause.", ex);
+            throw;
+        }
+        catch (SchemaProviderFailureException providerFailure)
+        {
+            ExceptionDispatchInfo.Capture(providerFailure.InnerException ?? providerFailure).Throw();
+            throw new InvalidOperationException("Schema provider failure rethrow did not propagate.");
+        }
+        catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
+        {
+            context.DiagnosticContext.ReportException(ex);
+            return null;
         }
     }
 

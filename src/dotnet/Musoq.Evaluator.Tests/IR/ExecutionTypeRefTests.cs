@@ -14,21 +14,29 @@ public sealed class ExecutionTypeRefTests
     [TestMethod]
     public void FromClr_WhenCreatedRepeatedly_ShouldExposeStablePortableIdentity()
     {
-        var first = ExecutionTypeRef.FromClr(typeof(Dictionary<string, int?>));
-        var second = ExecutionTypeRef.FromClr(typeof(Dictionary<string, int?>));
+        var first = ExecutionClrBindingFactory.FromClr(typeof(Dictionary<string, int?>));
+        var second = ExecutionClrBindingFactory.FromClr(typeof(Dictionary<string, int?>));
 
         Assert.AreEqual(first, second);
         Assert.AreEqual(first.StableId, second.StableId);
-        Assert.AreEqual(typeof(Dictionary<string, int?>), first.ClrType);
+        Assert.AreEqual(typeof(Dictionary<string, int?>), first.ResolveClrType());
         Assert.DoesNotContain(", Version=", first.StableId);
     }
 
     [TestMethod]
-    public void CSharpCompatibility_WhenTypeRefIsProvided_ShouldRequireClrSidecar()
+    public void CSharpCompatibility_WhenTypeRefIsProvided_ShouldBindFromDescriptor()
     {
-        var typeRef = ExecutionTypeRef.FromClr(typeof(decimal?));
+        var typeRef = ExecutionClrBindingFactory.FromClr(typeof(decimal?));
 
         Assert.AreEqual(typeof(decimal?), typeRef.RequireClrType());
+    }
+
+    [TestMethod]
+    public void FromClr_WhenValueTupleIsBound_ShouldReconstructTheClosedTupleType()
+    {
+        var typeRef = ExecutionClrBindingFactory.FromClr(typeof((int Left, int Right)));
+
+        Assert.AreEqual(typeof((int Left, int Right)), typeRef.ResolveClrType());
     }
 
     [TestMethod]

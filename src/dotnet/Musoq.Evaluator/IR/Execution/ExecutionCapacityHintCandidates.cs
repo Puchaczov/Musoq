@@ -122,7 +122,7 @@ internal static class ExecutionCapacityHintCandidates
 
     public static string CreateCapacityVariableName(ExecutionVariable target)
     {
-        return GeneratedRowNamingPolicy.CreateLoweringIdentifierCandidate(
+        return ExecutionSymbolicNamePolicy.CreateLoweringIdentifierCandidate(
             $"{target.Name}Capacity",
             0);
     }

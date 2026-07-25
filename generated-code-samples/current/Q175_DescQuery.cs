@@ -1,30 +1,28 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 desc query (select Name as PersonName, Population + Money as Total from #A.entities())
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 DescQuery
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalDescQuery
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
 
   Body
     ReturnDesc [query Query]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q175_DescQuery

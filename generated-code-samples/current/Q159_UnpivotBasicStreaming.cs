@@ -1,33 +1,29 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 unpivot #A.entities() s
                   on Metric in (s.Population as Population, s.Money as Money)
                   using Amount
                   keep s.Country as Country
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [__unpivot.Country as Country, __unpivot.Metric as Metric, __unpivot.Amount as Amount]
     Unpivot [name: Metric; value: Amount; entries: s.Population as Population, s.Money as Money; keep: s.Country as Country] as __unpivot
       SchemaScan [#A.entities() as s]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [__unpivot.Country as Country, __unpivot.Metric as Metric, __unpivot.Amount as Amount]
     PhysicalUnpivot [name: Metric; value: Amount; entries: s.Population as Population, s.Money as Money; keep: s.Country as Country] as __unpivot
       PhysicalSchemaScan [#A.entities() as s]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [s: BasicEntity]
@@ -55,6 +51,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(Country: __unpivot.Country, Metric: __unpivot.Metric, Amount: __unpivot.Amount)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q159_UnpivotBasicStreaming

@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 binary GenericItem {
                 Value: byte
             };
@@ -18,9 +17,8 @@ binary GenericItem {
             cross apply c.Items.Data d
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [f.Content as f.Content, c.Items as c.Items]
     Apply [Cross]
@@ -34,9 +32,8 @@ MultiStatement
     CteRef [fcd as fcd]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [f.Content as f.Content, c.Items as c.Items]
     PhysicalNestedLoopApply [Cross]
@@ -50,9 +47,8 @@ PhysicalMultiStatement
     PhysicalCteRef [fcd as fcd]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [f: BinaryEntity]
@@ -88,6 +84,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(ItemValue: d.Value)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q58_BinaryGenericInterpret

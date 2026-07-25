@@ -1,32 +1,28 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT Id, Name, Value, Category, HeavyComputation(Value) as Heavy
               FROM #test.entities()
               WHERE Value > 100
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Id as Id, ko3iko.Name as Name, ko3iko.Value as Value, ko3iko.Category as Category, HeavyComputation(ko3iko.Value) as Heavy]
     Filter [(ko3iko.Value > 100)]
       SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Id as Id, ko3iko.Name as Name, ko3iko.Value as Value, ko3iko.Category as Category, HeavyComputation(ko3iko.Value) as Heavy]
     PhysicalFilter [(ko3iko.Value > 100)]
       PhysicalSchemaScan [#test.entities() as ko3iko] [pushdown: (ko3iko.Value > 100)]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2RegressionEntity]
@@ -52,6 +48,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(Id: ko3iko.Id, Name: ko3iko.Name, Value: value, Category: ko3iko.Category, Heavy: HeavyComputation(value))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q116_RuntimeV2ParallelTableAddBenchmark

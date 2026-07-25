@@ -1,33 +1,29 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 param(minPopulation: int)
               select Name, Population
               from #A.entities()
               where Population >= $minPopulation
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, ko3iko.Population as Population]
     Filter [(ko3iko.Population >= $minPopulation)]
       SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, ko3iko.Population as Population]
     PhysicalFilter [(ko3iko.Population >= $minPopulation)]
       PhysicalSchemaScan [#A.entities() as ko3iko] [pushdown: (ko3iko.Population >= $minPopulation)]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -46,6 +42,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(Name: ko3iko.Name, Population: population)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q129_ScriptParameterNumericWideningComparison

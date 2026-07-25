@@ -7,6 +7,7 @@ using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Schema;
+using Musoq.Schema.DataSources;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 using NotSupportedException = System.NotSupportedException;
 
@@ -165,11 +166,22 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (left is not QueryNode leftQuery)
             throw new InvalidOperationException($"Expected left side of {setOperatorName} to be a query node.");
 
-        if (node.Keys.Length > 0 && !ValidateSetOperatorKeys(leftQuery, node.Keys, node))
+        var keys = node.Keys;
+        if (node.Keys.Length > 0 && _activeRecursiveCteName != null)
+        {
+            if (!TryCanonicalizeRecursiveSetOperatorKeys(leftQuery, node.Keys, node, out keys))
+            {
+                PushSemanticNode(left);
+                PushSemanticNode(right);
+                PushSemanticNode(CreateSetOperatorNode(setOperatorName, node, keys, left, right));
+                return;
+            }
+        }
+        else if (node.Keys.Length > 0 && !ValidateSetOperatorKeys(leftQuery, node.Keys, node))
         {
             PushSemanticNode(left);
             PushSemanticNode(right);
-            PushSemanticNode(CreateSetOperatorNode(setOperatorName, node, left, right));
+            PushSemanticNode(CreateSetOperatorNode(setOperatorName, node, keys, left, right));
             return;
         }
 
@@ -177,14 +189,19 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.CurrentScope[MetaAttributes.SetOperatorName] = key;
 
         if (right is QueryNode rightAsQueryNode)
-            MakeSureBothSideFieldsAreOfAssignableTypes(leftQuery, rightAsQueryNode, key);
+        {
+            if (_activeRecursiveCteName is { } recursiveCteName)
+                ValidateRecursiveCteOutput(leftQuery, rightAsQueryNode, key, recursiveCteName);
+            else
+                MakeSureBothSideFieldsAreOfAssignableTypes(leftQuery, rightAsQueryNode, key);
+        }
         else
             MakeSureBothSideFieldsAreOfAssignableTypes(leftQuery, PreviousSetOperatorPositionKey(), key);
 
-        SetOperatorFieldPositions.Add(key,
-            CreateSetOperatorPositionIndexes(leftQuery, node.Keys));
-        SetOperatorFieldTypes.Add(key,
-            CreateSetOperatorPositionTypes(leftQuery, node.Keys));
+        MutableSetOperatorFieldPositions.Add(key,
+            CreateSetOperatorPositionIndexes(leftQuery, keys));
+        MutableSetOperatorFieldTypes.Add(key,
+            CreateSetOperatorPositionTypes(leftQuery, keys));
 
         var rightMethodName = TraversalFrame.PopMethod(VisitorName, "Visit(SetOperatorNode).RightMethod");
         var leftMethodName = TraversalFrame.PopMethod(VisitorName, "Visit(SetOperatorNode).LeftMethod");
@@ -194,7 +211,48 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.CurrentScope.ScopeSymbolTable.AddSymbol(methodName,
             _sourceBinding.CurrentScope.Child[0].ScopeSymbolTable.GetSymbol(leftQuery.From.Alias));
 
-        PushSemanticNode(CreateSetOperatorNode(setOperatorName, node, left, right));
+        PushSemanticNode(CreateSetOperatorNode(setOperatorName, node, keys, left, right));
+    }
+
+    private bool TryCanonicalizeRecursiveSetOperatorKeys(
+        QueryNode anchor,
+        IReadOnlyList<string> keys,
+        Node node,
+        out string[] canonicalKeys)
+    {
+        var exportedNames = anchor.Select.Fields
+            .Select(static field => field.FieldName)
+            .Where(static fieldName => !string.IsNullOrWhiteSpace(fieldName))
+            .ToArray();
+        canonicalKeys = new string[keys.Count];
+
+        for (var keyIndex = 0; keyIndex < keys.Count; keyIndex++)
+        {
+            var key = keys[keyIndex];
+            var canonicalName = exportedNames.FirstOrDefault(exportedName =>
+                string.Equals(exportedName, key, StringComparison.OrdinalIgnoreCase));
+            if (canonicalName != null)
+            {
+                canonicalKeys[keyIndex] = canonicalName;
+                continue;
+            }
+
+            if (DiagnosticContext != null)
+            {
+                DiagnosticContext.ReportUnknownColumn(key, exportedNames, node);
+                return false;
+            }
+
+            var columns = anchor.Select.Fields
+                .Select((field, index) => (ISchemaColumn)new SchemaColumn(
+                    field.FieldName,
+                    index,
+                    field.Expression.ReturnType ?? typeof(object)))
+                .ToArray();
+            PrepareAndThrowUnknownColumnExceptionMessage(key, columns, node.SpanOrEmpty());
+        }
+
+        return true;
     }
 
     private bool ValidateSetOperatorKeys(QueryNode query, IReadOnlyCollection<string> keys, Node node)
@@ -218,15 +276,20 @@ public partial class BuildMetadataAndInferTypesVisitor
         throw new InvalidOperationException($"Unknown column '{missingKey}'.");
     }
 
-    private static SetOperatorNode CreateSetOperatorNode(string setOperatorName, SetOperatorNode node, Node left, Node right)
+    private static SetOperatorNode CreateSetOperatorNode(
+        string setOperatorName,
+        SetOperatorNode node,
+        string[] keys,
+        Node left,
+        Node right)
     {
         return setOperatorName switch
         {
-            "Union" => new UnionNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
-            "UnionAll" => new UnionAllNode(node.ResultTableName, node.Keys, left, right, node.IsNested,
+            "Union" => new UnionNode(node.ResultTableName, keys, left, right, node.IsNested, node.IsTheLastOne),
+            "UnionAll" => new UnionAllNode(node.ResultTableName, keys, left, right, node.IsNested,
                 node.IsTheLastOne),
-            "Except" => new ExceptNode(node.ResultTableName, node.Keys, left, right, node.IsNested, node.IsTheLastOne),
-            "Intersect" => new IntersectNode(node.ResultTableName, node.Keys, left, right, node.IsNested,
+            "Except" => new ExceptNode(node.ResultTableName, keys, left, right, node.IsNested, node.IsTheLastOne),
+            "Intersect" => new IntersectNode(node.ResultTableName, keys, left, right, node.IsNested,
                 node.IsTheLastOne),
             _ => throw new NotSupportedException($"Set operator '{setOperatorName}' is not supported.")
         };

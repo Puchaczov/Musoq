@@ -42,7 +42,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var castLikeMethodCalls = expressions
             .OfType<ExecutionMethodCall>()
             .Where(static method => IsStrictCastHelperName(method.Method.MethodName))
-            .Select(static method => $"{method.Method.ClrMethod.DeclaringType?.FullName}.{method.Method.MethodName}")
+            .Select(static method => $"{method.Method.ResolveClrMethod().DeclaringType?.FullName}.{method.Method.MethodName}")
             .ToArray();
 
         Assert.HasCount(3, strictCasts);

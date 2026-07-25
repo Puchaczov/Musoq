@@ -123,16 +123,40 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
     }
 
     public virtual IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId =>
-        InternalSourceRuntimeSettingsBySourceContextId;
+        new Dictionary<string, IReadOnlyDictionary<string, string>>(
+            InternalSourceRuntimeSettingsBySourceContextId.ToDictionary(
+                pair => pair.Key,
+                pair => (IReadOnlyDictionary<string, string>)new Dictionary<string, string>(pair.Value),
+                StringComparer.Ordinal),
+            StringComparer.Ordinal);
 
     public virtual IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId =>
-        InternalSourceRuntimeSettingDescriptionsBySourceContextId;
+        new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>(
+            InternalSourceRuntimeSettingDescriptionsBySourceContextId.ToDictionary(
+                pair => pair.Key,
+                pair => (IReadOnlyList<SourceRuntimeSettingDescription>)pair.Value.ToArray(),
+                StringComparer.Ordinal),
+            StringComparer.Ordinal);
 
-    public List<Assembly> Assemblies => _methodResolution.Assemblies;
+    public List<Assembly> Assemblies => new(_methodResolution.Assemblies);
 
-    public IDictionary<string, int[]> SetOperatorFieldPositions => _queryState.SetOperatorFieldPositions;
+    public IDictionary<string, int[]> SetOperatorFieldPositions =>
+        _queryState.SetOperatorFieldPositions.ToDictionary(
+            pair => pair.Key,
+            pair => pair.Value.ToArray(),
+            StringComparer.Ordinal);
 
-    public IDictionary<string, Type[]> SetOperatorFieldTypes => _queryState.SetOperatorFieldTypes;
+    public IDictionary<string, Type[]> SetOperatorFieldTypes =>
+        _queryState.SetOperatorFieldTypes.ToDictionary(
+            pair => pair.Key,
+            pair => pair.Value.ToArray(),
+            StringComparer.Ordinal);
+
+    internal List<Assembly> MutableAssemblies => _methodResolution.Assemblies;
+
+    internal IDictionary<string, int[]> MutableSetOperatorFieldPositions => _queryState.SetOperatorFieldPositions;
+
+    internal IDictionary<string, Type[]> MutableSetOperatorFieldTypes => _queryState.SetOperatorFieldTypes;
 
     public SchemaRegistry? SchemaRegistry { get; }
 
@@ -232,10 +256,10 @@ public partial class BuildMetadataAndInferTypesVisitor : DefensiveVisitorBase, I
 
     private void AddAssembly(Assembly asm)
     {
-        if (Assemblies.Contains(asm))
+        if (MutableAssemblies.Contains(asm))
             return;
 
-        Assemblies.Add(asm);
+        MutableAssemblies.Add(asm);
     }
 
 }

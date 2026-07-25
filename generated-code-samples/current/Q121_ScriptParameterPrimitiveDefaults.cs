@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 param(
                   flag: bool = true,
                   code: char = 'x',
@@ -11,25 +10,22 @@ param(
               from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [$flag as $flag, $code as $code, $limit as $limit, $id as $id, $created as $created]
     SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [$flag as $flag, $code as $code, $limit as $limit, $id as $id, $created as $created]
     PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -61,6 +57,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0($flag: $flag, $code: $code, $limit: $limit, $id: $id, $created: $created)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q121_ScriptParameterPrimitiveDefaults

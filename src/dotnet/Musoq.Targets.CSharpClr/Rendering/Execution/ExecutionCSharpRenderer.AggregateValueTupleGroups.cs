@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Visitors.CodeGeneration;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 

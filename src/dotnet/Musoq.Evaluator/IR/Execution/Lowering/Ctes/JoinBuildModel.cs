@@ -4,10 +4,10 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
 internal sealed record InterpretSourceValidationResult(
-    bool Supported,
+    bool IsBuilt,
     string UnsupportedReason)
 {
     public static InterpretSourceValidationResult Success()
@@ -22,7 +22,7 @@ internal sealed record InterpretSourceValidationResult(
 }
 
 internal sealed record SourceBuildResult(
-    bool Supported,
+    bool IsBuilt,
     JoinSource Source,
     string UnsupportedReason)
 {
@@ -48,7 +48,7 @@ internal sealed record SourceBuildResult(
 }
 
 internal sealed record JoinSourcesBuildResult(
-    bool Supported,
+    bool IsBuilt,
     JoinSources Source,
     string UnsupportedReason)
 {
@@ -92,7 +92,7 @@ internal readonly record struct NormalizedAsOfJoinKey(
     BinaryOpKind Kind);
 
 internal sealed record AsOfProbeBuildResult(
-    bool Supported,
+    bool IsBuilt,
     GeneratedRowShape ResultShape,
     ExecutionAsOfProbe Probe,
     string UnsupportedReason)

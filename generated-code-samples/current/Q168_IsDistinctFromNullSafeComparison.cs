@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 from values {
     { Label: 'same', LeftValue: 1, RightValue: 1 },
     { Label: 'different', LeftValue: 1, RightValue: 2 },
@@ -12,25 +11,22 @@ select pairs.Label,
        pairs.LeftValue is not distinct from pairs.RightValue as IsSame
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [pairs.Label as pairs.Label, (pairs.LeftValue IS DISTINCT FROM pairs.RightValue) as IsDifferent, (pairs.LeftValue IS NOT DISTINCT FROM pairs.RightValue) as IsSame]
     ValuesScan [4 rows as pairs]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [pairs.Label as pairs.Label, (pairs.LeftValue IS DISTINCT FROM pairs.RightValue) as IsDifferent, (pairs.LeftValue IS NOT DISTINCT FROM pairs.RightValue) as IsSame]
     PhysicalValuesScan [4 rows as pairs]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     UnknownShape [ValuesRowShape]
@@ -51,6 +47,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(pairs.Label: pairs.Label, IsDifferent: (leftValue IS DISTINCT FROM rightValue), IsSame: (leftValue IS NOT DISTINCT FROM rightValue))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q168_IsDistinctFromNullSafeComparison

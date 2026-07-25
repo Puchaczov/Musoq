@@ -90,7 +90,7 @@ public sealed partial class ExecutionCSharpRenderer
             ? RenderNullableTemporalSubtractionValue(binary, context)
             : expression is ExecutionBinary nullableBinary &&
               CanRenderBinaryAsNullableTarget(nullableBinary, targetType)
-                ? RenderExpression(nullableBinary with { ReturnType = ExecutionTypeRef.FromClr(targetType) }, context)
+                ? RenderExpression(nullableBinary with { ReturnType = ExecutionClrBindingFactory.FromClr(targetType) }, context)
             : RenderExpression(expression, context);
     }
 
@@ -161,7 +161,7 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context)
     {
         return value is ExecutionFieldRead { AccessStrategy: ContextAccess or GeneratedRowContextAccess } fieldRead
-            ? RenderExpression(fieldRead with { ReturnType = ExecutionTypeRef.FromClr(typeof(object)) }, context)
+            ? RenderExpression(fieldRead with { ReturnType = ExecutionClrBindingFactory.FromClr(typeof(object)) }, context)
             : RenderExpression(value, context);
     }
 

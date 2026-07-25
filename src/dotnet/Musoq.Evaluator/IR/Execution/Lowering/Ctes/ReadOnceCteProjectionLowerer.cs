@@ -7,17 +7,17 @@ using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
 internal sealed class ReadOnceCteProjectionLowerer(
     Func<PhysicalNode, PhysicalNode> unwrapSingleStatement,
-    Func<PhysicalNode, SupportedPipeline?> decomposeSupportedPipeline,
+    Func<PhysicalNode, CteSupportedPipeline?> decomposeSupportedPipeline,
     Func<PhysicalProjectNode, PhysicalFilterNode?, PhysicalProjectNode, PhysicalCteRefNode, FinalJoinProjectionRewrite?> rewriteFinalJoinProjection,
     Func<PhysicalNode, bool> canInlineFinalProjectionSource)
 {
     public ReadOnceCteProjectionFusion? TryCreateFusion(
         PhysicalCteDefinition[] definitions,
-        SupportedPipeline finalPipeline,
+        CteSupportedPipeline finalPipeline,
         PhysicalCteRefNode finalCteRef,
         CteStrategyDecision strategy)
     {
@@ -149,7 +149,7 @@ internal sealed class ReadOnceCteProjectionLowerer(
                canInlineFinalProjectionSource(source);
     }
 
-    private static bool IsPipelineDeterministic(SupportedPipeline pipeline)
+    private static bool IsPipelineDeterministic(CteSupportedPipeline pipeline)
     {
         return AreProjectedFieldsDeterministic(pipeline.Project) &&
                IsFilterDeterministic(pipeline.Filter);
@@ -173,7 +173,7 @@ internal sealed class ReadOnceCteProjectionLowerer(
 
     private static ReadOnceCteProjectionFusion CreateFusion(
         int rootDefinitionIndex,
-        SupportedPipeline pipeline,
+        CteSupportedPipeline pipeline,
         List<int> fusedDefinitionIndexes)
     {
         fusedDefinitionIndexes.Sort();

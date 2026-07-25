@@ -176,7 +176,7 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
             0,
             [],
             sourceShape.Fields,
-            SourceType: ExecutionTypeRef.FromClr(typeof(SampleEntity)));
+            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity)));
         var plan = new ExecutionPlan(
             "Q_ReadinessRuntime",
             [sourceShape, resultShape],
@@ -372,7 +372,7 @@ public sealed class ExecutionTargetCompatibilityAnalyzerTests
             0,
             [],
             sourceShape.Fields,
-            SourceType: ExecutionTypeRef.FromClr(typeof(SampleEntity)));
+            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity)));
         var plan = new ExecutionPlan(
             "Q_AuditShapes",
             [sourceShape, resultShape],

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Visitors.CodeGeneration;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -37,6 +37,9 @@ public sealed partial class ExecutionCSharpRenderer
                 ExecutionCreateObject createObject => [ExecutionCSharpRenderer.RenderCreateObject(createObject)],
                 ExecutionIf branch => [renderer.RenderIf(branch, renderContext)],
                 ExecutionCreateGeneratedRow createRow => [renderer.RenderCreateGeneratedRow(createRow, renderContext)],
+                ExecutionRecursiveCte recursiveCte => renderer.RenderRecursiveCte(recursiveCte, renderContext),
+                ExecutionRecursiveCteAppend recursiveAppend => renderer.RenderRecursiveCteAppend(recursiveAppend, renderContext),
+                ExecutionRecursiveCteSnapshotRowGuard snapshotGuard => ExecutionCSharpRenderer.RenderRecursiveCteSnapshotRowGuard(snapshotGuard),
                 ExecutionAppendRow appendRow => [renderer.RenderAppendRow(appendRow, renderContext)],
                 ExecutionAppendExistingRow appendRow => [renderer.RenderAppendExistingRow(appendRow, renderContext)],
                 ExecutionAppendRecord appendRecord => [renderer.RenderAppendRecord(appendRecord)],

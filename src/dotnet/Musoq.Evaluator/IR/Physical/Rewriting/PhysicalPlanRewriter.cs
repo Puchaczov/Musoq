@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Physical.Rewriting;
@@ -170,9 +172,35 @@ internal static class PhysicalPlanRewriter
                     setOperation.FieldIndexes,
                     setOperation.FieldTypes),
                 setOperation),
+            PhysicalRecursiveCteNode recursiveCte => RewriteRecursiveCte(recursiveCte, rewriteNode),
             PhysicalCteNode cte => RewriteCte(cte, rewriteNode),
             PhysicalMultiStatementNode multiStatement => RewriteMultiStatement(multiStatement, rewriteNode),
             _ => node
+        };
+    }
+
+    private static PhysicalNode RewriteRecursiveCte(
+        PhysicalRecursiveCteNode recursiveCte,
+        Func<PhysicalNode, PhysicalNode> rewriteNode)
+    {
+        var anchor = rewriteNode(recursiveCte.Anchor);
+        var member = rewriteNode(recursiveCte.RecursiveMember);
+        var invariants = recursiveCte.Invariants
+            .Select(invariant => invariant with { Plan = rewriteNode(invariant.Plan) })
+            .ToArray();
+        if (ReferenceEquals(anchor, recursiveCte.Anchor) &&
+            ReferenceEquals(member, recursiveCte.RecursiveMember) &&
+            invariants.Select(static invariant => invariant.Plan)
+                .SequenceEqual(recursiveCte.Invariants.Select(static invariant => invariant.Plan), ReferenceEqualityComparer.Instance))
+        {
+            return recursiveCte;
+        }
+
+        return recursiveCte with
+        {
+            Anchor = anchor,
+            RecursiveMember = member,
+            Invariants = invariants
         };
     }
 

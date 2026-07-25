@@ -27,6 +27,7 @@ public static partial class InstanceCreator
         var items = CreateBuildItems(script, assemblyName, schemaProvider, diagnosticContext);
         items.EmitPdb = Debugger.IsAttached;
         items.CompilationOptions = compilationOptions;
+        items[BuildItemKeys.EnableContextualExecution] = true;
         items.StopAfterPlanning = true;
 
         Exception? caughtException = null;
@@ -39,7 +40,17 @@ public static partial class InstanceCreator
             caughtException = ce;
             diagnosticContext.ReportException(ce);
         }
-        catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
+        catch (AstValidationException ave)
+        {
+            caughtException = ave;
+            diagnosticContext.ReportException(ave);
+        }
+        catch (MultiStatementQueryException mse)
+        {
+            caughtException = mse;
+            diagnosticContext.ReportException(mse);
+        }
+        catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
             caughtException = ex;
             diagnosticContext.ReportException(ex);

@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Diagnostics;
-using Musoq.Evaluator.Visitors.Helpers;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 

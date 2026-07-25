@@ -43,7 +43,7 @@ public sealed class CteSidecarGlobalSupportGuardrailTests
             "Musoq.Evaluator",
             "IR",
             "Execution",
-            "PhysicalToExecutionPlanBuilder.SingleUseSidecarJoinChains.cs"));
+            "PhysicalLoweringImplementation.SingleUseSidecarJoinChains.cs"));
 
         foreach (var stageKind in new[] { "StandardJoin", "AsOfJoin", "Apply", "CrossJoin" })
             Assert.Contains(stageKind, modelText);
@@ -55,7 +55,7 @@ public sealed class CteSidecarGlobalSupportGuardrailTests
                      "PhysicalNestedLoopJoinNode { Kind: JoinKind.AsofInner or JoinKind.AsofLeft } => SidecarJoinPipelineStageKind.AsOfJoin",
                      "PhysicalNestedLoopJoinNode or PhysicalHashJoinNode or PhysicalSortMergeJoinNode => SidecarJoinPipelineStageKind.StandardJoin",
                      "BuildDelegatedSidecarEnabledMultiStatementTable",
-                     "session.WithSidecarJoinPipelineSuppressed()"
+                     "scope.WithSidecarJoinPipelineSuppressed()"
                  })
         {
             Assert.Contains(requiredMapping, chainText);
@@ -112,7 +112,7 @@ public sealed class CteSidecarGlobalSupportGuardrailTests
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var guardedFiles = new[]
         {
-            Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution", "PhysicalToExecutionPlanBuilder.SingleUseSidecarJoinChains.cs"),
+            Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution", "PhysicalLoweringImplementation.SingleUseSidecarJoinChains.cs"),
             Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution", "Lowering", "Ctes", "SidecarJoinCteLowerer.cs")
         };
 

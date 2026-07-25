@@ -133,26 +133,30 @@ public class CompilationOptions(
     /// </summary>
     public bool ForceTableResultMaterialization { get; } = forceTableResultMaterialization;
 
+    public RecursiveCteExecutionLimits RecursiveCteLimits { get; private init; } = new();
+
     public bool UsesDefaultSourceRuntimeSettingsResolver =>
         ReferenceEquals(SourceRuntimeSettingsResolver, EmptySourceRuntimeSettingsResolver.Instance);
 
     public CompilationOptions WithInstrumentationMode(QueryInstrumentationMode mode) =>
-        new(
-            ParallelizationMode,
-            UseHashJoin,
-            UseSortMergeJoin,
-            UseCommonSubexpressionElimination,
-            UseConstantFolding,
-            UsePrimitiveTypeValidation,
-            UseCteParallelization,
-            UseCteSidecarIndexes,
-            SourceRuntimeSettingsResolver,
-            mode,
-            MaxDegreeOfParallelismOverride,
-            ForceTableResultMaterialization);
+        Clone(instrumentationMode: mode);
 
     public CompilationOptions WithTableResultMaterialization(bool force = true) =>
-        new(
+        Clone(forceTableResultMaterialization: force);
+
+    public CompilationOptions WithRecursiveCteLimits(RecursiveCteExecutionLimits limits)
+    {
+        ArgumentNullException.ThrowIfNull(limits);
+
+        return Clone(recursiveCteLimits: limits);
+    }
+
+    private CompilationOptions Clone(
+        QueryInstrumentationMode? instrumentationMode = null,
+        bool? forceTableResultMaterialization = null,
+        RecursiveCteExecutionLimits? recursiveCteLimits = null)
+    {
+        return new CompilationOptions(
             ParallelizationMode,
             UseHashJoin,
             UseSortMergeJoin,
@@ -162,7 +166,11 @@ public class CompilationOptions(
             UseCteParallelization,
             UseCteSidecarIndexes,
             SourceRuntimeSettingsResolver,
-            InstrumentationMode,
+            instrumentationMode ?? InstrumentationMode,
             MaxDegreeOfParallelismOverride,
-            force);
+            forceTableResultMaterialization ?? ForceTableResultMaterialization)
+        {
+            RecursiveCteLimits = recursiveCteLimits ?? RecursiveCteLimits
+        };
+    }
 }

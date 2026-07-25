@@ -4,13 +4,33 @@ using Musoq.Schema;
 
 namespace Musoq.Evaluator.IR.Execution;
 
-public sealed record AggregateGroupShape(
-    string TypeName,
-    IReadOnlyList<AggregateGroupKeyField> Keys,
-    IReadOnlyList<AggregateCapturedField> CapturedFields,
-    IReadOnlyList<AggregateAccumulatorField> Accumulators,
-    IReadOnlyList<AggregateGroupOwnerField> OwnerFields) : RowShape(TypeName, [])
+public sealed record AggregateGroupShape : RowShape
 {
+    public AggregateGroupShape(
+        string typeName,
+        IReadOnlyList<AggregateGroupKeyField> keys,
+        IReadOnlyList<AggregateCapturedField> capturedFields,
+        IReadOnlyList<AggregateAccumulatorField> accumulators,
+        IReadOnlyList<AggregateGroupOwnerField> ownerFields)
+        : base(typeName, [])
+    {
+        TypeName = typeName;
+        Keys = ExecutionIrCollections.Freeze(keys);
+        CapturedFields = ExecutionIrCollections.Freeze(capturedFields);
+        Accumulators = ExecutionIrCollections.Freeze(accumulators);
+        OwnerFields = ExecutionIrCollections.Freeze(ownerFields);
+    }
+
+    public string TypeName { get; init; }
+
+    public IReadOnlyList<AggregateGroupKeyField> Keys { get; init; }
+
+    public IReadOnlyList<AggregateCapturedField> CapturedFields { get; init; }
+
+    public IReadOnlyList<AggregateAccumulatorField> Accumulators { get; init; }
+
+    public IReadOnlyList<AggregateGroupOwnerField> OwnerFields { get; init; }
+
     public AggregateGroupShape(
         string typeName,
         IReadOnlyList<AggregateGroupKeyField> keys,

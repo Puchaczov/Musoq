@@ -3,7 +3,7 @@ using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Tables;
-using Musoq.Evaluator.Visitors.CodeGeneration;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -26,7 +26,7 @@ public sealed partial class ExecutionCSharpRenderer
             yield return cacheDeclaration;
 
         var bodyStatements = new List<StatementSyntax>();
-        if (session.EmitChunkLoopCancellationChecks)
+        if (session.EmitChunkLoopCancellationChecks && !session.SkipInitialLoopCancellationCheck)
             bodyStatements.Add(QueryEmitter.GenerateCancellationCheck());
 
         bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
@@ -78,7 +78,9 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName(forEach.Ordinal.Name)))
         };
         if (session.EmitChunkLoopCancellationChecks)
-            bodyStatements.Insert(0, CreatePeriodicCancellationCheck(forEach.Ordinal.Name));
+            bodyStatements.Insert(0, CreatePeriodicCancellationCheck(
+                forEach.Ordinal.Name,
+                session.SkipInitialLoopCancellationCheck));
 
         bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
         bodyStatements.AddRange(RenderBlock(forEach.Body, context).Statements);
@@ -106,7 +108,7 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var session = context.Session;
         var bodyStatements = new List<StatementSyntax>();
-        if (session.EmitChunkLoopCancellationChecks)
+        if (session.EmitChunkLoopCancellationChecks && !session.SkipInitialLoopCancellationCheck)
             bodyStatements.Add(QueryEmitter.GenerateCancellationCheck());
 
         bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
@@ -163,7 +165,9 @@ public sealed partial class ExecutionCSharpRenderer
             itemInitializer);
         var bodyStatements = new List<StatementSyntax> { itemDeclaration };
         if (session.EmitChunkLoopCancellationChecks)
-            bodyStatements.Insert(0, CreatePeriodicCancellationCheck(indexVariable.Name));
+            bodyStatements.Insert(0, CreatePeriodicCancellationCheck(
+                indexVariable.Name,
+                session.SkipInitialLoopCancellationCheck));
 
         bodyStatements.AddRange(LoopOperatorProfilingStatementFactory.Create(IsOperatorProfilingEnabledFor(context), session.OperatorCatalog, forEach));
         using (EnterGeneratedRowVariableType(context, forEach.Item.Name, rowsVariable.GeneratedRowTypeName!))
@@ -286,7 +290,9 @@ public sealed partial class ExecutionCSharpRenderer
         var session = context.Session;
         var bodyStatements = new List<StatementSyntax>();
         if (session.EmitChunkLoopCancellationChecks)
-            bodyStatements.Add(CreatePeriodicCancellationCheck(forEachIndexed.Index.Name));
+            bodyStatements.Add(CreatePeriodicCancellationCheck(
+                forEachIndexed.Index.Name,
+                session.SkipInitialLoopCancellationCheck));
 
         bodyStatements.AddRange(CreateIndexedItemDeclarations(
             forEachIndexed.Item,

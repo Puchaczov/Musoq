@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select distinct City, Country from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Country as ko3iko.Country, ko3iko.City as ko3iko.City]
     Aggregate [keys: City, Country] [aggs: ]
@@ -15,9 +13,8 @@ MultiStatement
     CteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Country as ko3iko.Country, ko3iko.City as ko3iko.City]
     PhysicalValueTupleAggregate [keys: City, Country] [aggs: ]
@@ -26,9 +23,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -49,6 +45,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(City: city, Country: country)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q08_Distinct

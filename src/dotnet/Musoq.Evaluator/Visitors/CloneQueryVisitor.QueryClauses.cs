@@ -50,6 +50,9 @@ public partial class CloneQueryVisitor
                     node.QueryId, false);
         if (node.HasSpan)
             cloned.WithSpan(node.Span);
+        if (node is Parser.SchemaFromNode boundSource &&
+            boundSource.BoundInvocation is { } boundInvocation)
+            cloned.SetBoundInvocation(boundInvocation);
         Nodes.Push(cloned);
     }
 

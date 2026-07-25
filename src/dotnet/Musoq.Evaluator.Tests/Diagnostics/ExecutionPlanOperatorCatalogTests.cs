@@ -32,6 +32,26 @@ public sealed class ExecutionPlanOperatorCatalogTests
     }
 
     [TestMethod]
+    public void Create_FromPlan_ShouldMapNodesThroughStructuredChildBlocks()
+    {
+        var first = new ExecutionCreateTable(
+            new ExecutionVariable("results", typeof(Table)),
+            new GeneratedRowShape("ResultRow", []));
+        var second = new ExecutionReturnTable(new ExecutionVariable("results", typeof(Table)));
+        var plan = new ExecutionPlan("structured", [], new ExecutionBlock([first, second]));
+
+        var catalog = ExecutionPlanOperatorCatalog.Create(plan);
+
+        Assert.HasCount(2, catalog.NodeOperators);
+        Assert.IsTrue(catalog.TryGetDescriptor(first, out var firstDescriptor));
+        Assert.IsTrue(catalog.TryGetDescriptor(second, out var secondDescriptor));
+        Assert.AreEqual("CreateTable", firstDescriptor.NodeKind);
+        Assert.AreEqual("ReturnTable", secondDescriptor.NodeKind);
+        Assert.AreEqual("op4", firstDescriptor.Id);
+        Assert.AreEqual("op5", secondDescriptor.Id);
+    }
+
+    [TestMethod]
     public void Create_WhenPlanContainsBlankLines_DoesNotAssignIdsToBlankLines()
     {
         var catalog = ExecutionPlanOperatorCatalog.Create("""

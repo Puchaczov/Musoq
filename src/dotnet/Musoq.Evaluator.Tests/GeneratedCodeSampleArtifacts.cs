@@ -11,7 +11,7 @@ using Musoq.Converter.Build;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Physical;
-using Musoq.Evaluator.Visitors.CodeGeneration;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 using PhysicalPlanPrinter = Musoq.Evaluator.IR.Physical.PhysicalPlanPrinter;
 
 namespace Musoq.Evaluator.Tests;
@@ -108,7 +108,8 @@ internal static class GeneratedCodeSampleArtifacts
             options.SourceRuntimeSettingsResolver,
             options.InstrumentationMode,
             SnapshotMaxDegreeOfParallelism,
-            options.ForceTableResultMaterialization);
+            options.ForceTableResultMaterialization)
+            .WithRecursiveCteLimits(options.RecursiveCteLimits);
     }
 
     public static void Write(GeneratedCodeSample sample, ILoggerResolver loggerResolver)
@@ -154,10 +155,12 @@ internal static class GeneratedCodeSampleArtifacts
     {
         var builder = new StringBuilder();
 
-        AppendInspectionComment(builder, "raw query string", sample.Query);
-        AppendInspectionComment(builder, "logical plan representation string", GetLogicalPlanText(sample, buildItems));
-        AppendInspectionComment(builder, "physical plan representation string", GetPhysicalPlanText(sample, buildItems));
-        AppendInspectionComment(builder, "intermediate representation", GetExecutionPlanText(buildItems));
+        AppendInspectionSection(builder, "Parsed Query", sample.Query);
+        AppendInspectionSection(builder, "Logical Plan", GetLogicalPlanText(sample, buildItems));
+        AppendInspectionSection(builder, "Physical Plan", GetPhysicalPlanText(sample, buildItems));
+        AppendInspectionSection(builder, "Execution Plan", GetExecutionPlanText(buildItems));
+        builder.AppendLine("// === Generated C# ===");
+        builder.AppendLine();
 
         foreach (var tree in compilation.SyntaxTrees)
         {
@@ -254,10 +257,12 @@ internal static class GeneratedCodeSampleArtifacts
     {
         var builder = new StringBuilder();
 
-        AppendInspectionComment(builder, "raw query string", sample.Query);
-        AppendInspectionComment(builder, "logical plan representation string", inspection.LogicalPlanText);
-        AppendInspectionComment(builder, "physical plan representation string", inspection.PhysicalPlanText);
-        AppendInspectionComment(builder, "intermediate representation", inspection.ExecutionPlanText);
+        AppendInspectionSection(builder, "Parsed Query", sample.Query);
+        AppendInspectionSection(builder, "Logical Plan", inspection.LogicalPlanText);
+        AppendInspectionSection(builder, "Physical Plan", inspection.PhysicalPlanText);
+        AppendInspectionSection(builder, "Execution Plan", inspection.ExecutionPlanText);
+        builder.AppendLine("// === Generated C# ===");
+        builder.AppendLine();
 
         if (sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode &&
             TryAppendRawCombinedSyntaxTrees(builder, string.Empty, inspection.GeneratedCSharpCode))
@@ -273,11 +278,10 @@ internal static class GeneratedCodeSampleArtifacts
         return $"{builder.ToString().TrimEnd()}{Environment.NewLine}";
     }
 
-    private static void AppendInspectionComment(StringBuilder builder, string title, string content)
+    private static void AppendInspectionSection(StringBuilder builder, string title, string content)
     {
+        builder.AppendLine($"// === {title} ===");
         builder.AppendLine("/*");
-        builder.AppendLine(title);
-        builder.AppendLine();
         builder.AppendLine(EscapeBlockComment(content.Trim()));
         builder.AppendLine("*/");
         builder.AppendLine();

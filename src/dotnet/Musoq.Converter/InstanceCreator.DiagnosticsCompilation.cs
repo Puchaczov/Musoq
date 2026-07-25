@@ -71,6 +71,7 @@ public static partial class InstanceCreator
         items.EmitPdb = Debugger.IsAttached;
         items.EmitExecutionPlanText = requireExecutionPlan;
         items.CompilationOptions = effectiveCompilationOptions;
+        items[BuildItemKeys.EnableContextualExecution] = true;
 
         Exception? caughtException = null;
         try
@@ -84,7 +85,17 @@ public static partial class InstanceCreator
             caughtException = ce;
             diagnosticContext.ReportException(ce);
         }
-        catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
+        catch (AstValidationException ave)
+        {
+            caughtException = ave;
+            diagnosticContext.ReportException(ave);
+        }
+        catch (MultiStatementQueryException mse)
+        {
+            caughtException = mse;
+            diagnosticContext.ReportException(mse);
+        }
+        catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
             caughtException = ex;
             diagnosticContext.ReportException(ex);
@@ -98,7 +109,7 @@ public static partial class InstanceCreator
         var runnableType = LoadRunnableType(items);
         var runnable = CreateRunnable(
             runnableType,
-            new QueryRuntimeBinding(
+                new QueryRuntimeBinding(
                 items.SchemaProvider,
                 items.SourceRuntimeSettingsBySourceContextId,
                 items.SourceRuntimeSettingDescriptionsBySourceContextId,

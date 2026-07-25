@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with p as (
                       pivot #A.entities()
                       on Month in ('Jan' as Jan, 'Feb' as Feb)
@@ -9,9 +8,8 @@ with p as (
                   select Jan, Feb from p
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [p]
     MultiStatement
@@ -26,9 +24,8 @@ Cte
         CteRef [p as p]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [p]
     PhysicalMultiStatement
@@ -43,9 +40,8 @@ PhysicalCte
         PhysicalCteRef [p as p]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -80,6 +76,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Jan: p.Jan, Feb: p.Feb)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q164_PivotCteNoGroupBy

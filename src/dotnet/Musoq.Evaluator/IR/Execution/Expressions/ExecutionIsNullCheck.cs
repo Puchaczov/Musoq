@@ -11,7 +11,7 @@ public sealed record ExecutionIsNullCheck(
     ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
 {
     internal ExecutionIsNullCheck(ExecutionExpression expression, bool isNegated, Type returnType)
-        : this(expression, isNegated, ExecutionTypeRef.FromClr(returnType))
+        : this(expression, isNegated, ExecutionClrBindingFactory.FromClr(returnType))
     {
     }
 }

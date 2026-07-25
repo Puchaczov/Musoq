@@ -16,7 +16,7 @@ public sealed record ExecutionEnumerableSource(
         Type enumerableType,
         ExecutionEnumerableChunkMode chunkMode = ExecutionEnumerableChunkMode.ObjectOrReflected,
         string? enumerableTypeName = null)
-        : this(rows, source, ExecutionTypeRef.FromClr(enumerableType), chunkMode, enumerableTypeName)
+        : this(rows, source, ExecutionClrBindingFactory.FromClr(enumerableType), chunkMode, enumerableTypeName)
     {
     }
 }

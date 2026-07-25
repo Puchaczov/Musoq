@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 binary TlvRecord {
                 Type: byte,
                 Length: byte,
@@ -13,9 +12,8 @@ binary TlvRecord {
             cross apply Interpret<TlvRecord>(f.Content) t
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [f.Content as f.Content, t.Type as t.Type, t.Length as t.Length]
     Apply [Cross]
@@ -25,9 +23,8 @@ MultiStatement
     CteRef [ft as ft]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [f.Content as f.Content, t.Type as t.Type, t.Length as t.Length]
     PhysicalNestedLoopApply [Cross]
@@ -37,9 +34,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ft as ft]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [f: BinaryEntity]
@@ -62,6 +58,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(t.Type: t.Type, t.Length: t.Length)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q16_BinaryInterpret

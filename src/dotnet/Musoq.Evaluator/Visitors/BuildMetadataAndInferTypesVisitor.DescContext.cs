@@ -19,4 +19,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private bool IsDescribingSourceRuntimeSettings =>
         _descTypes.Count > 0 && _descTypes.Peek() == DescForType.Settings;
+
+    private bool IsDescribingConstructors =>
+        _descTypes.Count > 0 && _descTypes.Peek() == DescForType.Constructors;
 }

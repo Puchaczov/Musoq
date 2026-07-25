@@ -20,6 +20,19 @@ public sealed partial class PhysicalPlanBuilder
         return new PhysicalCteNode(definitions, Lower(node.Query, strategyPlan));
     }
 
+    private PhysicalRecursiveCteNode LowerRecursiveCte(
+        RecursiveCteNode node,
+        PhysicalStrategyPlan strategyPlan)
+    {
+        return new PhysicalRecursiveCteNode(
+            node.Name,
+            Lower(node.Anchor, strategyPlan),
+            Lower(node.RecursiveMember, strategyPlan),
+            node.UnionKind,
+            node.Keys, node.IdentityFieldIndexes,
+            []);
+    }
+
     private PhysicalMultiStatementNode LowerMultiStatement(MultiStatementNode node, PhysicalStrategyPlan strategyPlan)
     {
         var statements = new PhysicalNode[node.Statements.Length];

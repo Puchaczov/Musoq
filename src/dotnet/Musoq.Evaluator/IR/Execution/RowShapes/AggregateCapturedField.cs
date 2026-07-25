@@ -10,7 +10,7 @@ public sealed record AggregateCapturedField(
     ExecutionTypeRef Type)
 {
     internal AggregateCapturedField(string name, string fieldName, Type type)
-        : this(name, fieldName, ExecutionTypeRef.FromClr(type))
+        : this(name, fieldName, ExecutionClrBindingFactory.FromClr(type))
     {
     }
 }

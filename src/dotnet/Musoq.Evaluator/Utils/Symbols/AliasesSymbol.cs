@@ -15,4 +15,12 @@ public class AliasesSymbol : Symbol
     {
         return _aliases.Contains(alias);
     }
+
+    internal AliasesSymbol Clone()
+    {
+        var clone = new AliasesSymbol();
+        foreach (var alias in _aliases)
+            clone.AddAlias(alias);
+        return clone;
+    }
 }

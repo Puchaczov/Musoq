@@ -52,6 +52,12 @@ public partial class BuildItems : Dictionary<string, object>
         set => SetRequired(BuildItemKeys.RawQueryTree, value);
     }
 
+    internal SemanticPhaseArtifacts? SemanticPhaseArtifacts
+    {
+        get => GetOptional<SemanticPhaseArtifacts>(BuildItemKeys.SemanticPhaseArtifacts);
+        set => SetOptional(BuildItemKeys.SemanticPhaseArtifacts, value);
+    }
+
     public string RawQuery
     {
         get => TryGetArtifact<string>(BuildItemKeys.RawQuery, out var str)

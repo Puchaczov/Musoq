@@ -83,13 +83,13 @@ public sealed class ExecutionConstantValue : IEquatable<ExecutionConstantValue>
 
         if (value.GetType().IsEnum)
         {
-            var enumType = ExecutionTypeRef.FromClr(value.GetType());
+            var enumType = ExecutionClrBindingFactory.FromClr(value.GetType());
             var underlyingType = Enum.GetUnderlyingType(value.GetType());
             var underlyingValue = Convert.ChangeType(value, underlyingType, CultureInfo.InvariantCulture);
             return new ExecutionConstantValue(
                 ExecutionConstantKind.Enum,
                 enumType: enumType,
-                enumUnderlyingValue: FromClr(underlyingValue, ExecutionTypeRef.FromClr(underlyingType)));
+                enumUnderlyingValue: FromClr(underlyingValue, ExecutionClrBindingFactory.FromClr(underlyingType)));
         }
 
         return value switch
@@ -126,7 +126,7 @@ public sealed class ExecutionConstantValue : IEquatable<ExecutionConstantValue>
             TimeSpan timeSpan => new ExecutionConstantValue(ExecutionConstantKind.TimeSpan, ticks: timeSpan.Ticks),
             _ => new ExecutionConstantValue(
                 ExecutionConstantKind.ClrOnly,
-                clrOnlyType: ExecutionTypeRef.FromClr(value.GetType()),
+                clrOnlyType: ExecutionClrBindingFactory.FromClr(value.GetType()),
                 clrOnlyValue: value)
         };
     }
@@ -167,7 +167,7 @@ public sealed class ExecutionConstantValue : IEquatable<ExecutionConstantValue>
             ExecutionConstantKind.Guid when GuidBytes.Count == 16 => new Guid(GuidBytes.ToArray(), bigEndian: true),
             ExecutionConstantKind.TimeSpan => new TimeSpan(Ticks),
             ExecutionConstantKind.Enum when EnumType != null && EnumUnderlyingValue != null =>
-                Enum.ToObject(EnumType.ClrType, EnumUnderlyingValue.ToClrValue()!),
+                Enum.ToObject(EnumType.ResolveClrType(), EnumUnderlyingValue.ToClrValue()!),
             ExecutionConstantKind.ClrOnly => ClrOnlyValue,
             _ => throw InvalidEncoding()
         };

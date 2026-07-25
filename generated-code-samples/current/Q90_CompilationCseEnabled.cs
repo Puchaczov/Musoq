@@ -1,30 +1,26 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Population as LeftPopulation, Population as RightPopulation from #A.Entities() where Population = Population
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Population as LeftPopulation, ko3iko.Population as RightPopulation]
     Filter [(ko3iko.Population = ko3iko.Population)]
       SchemaScan [#A.Entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Population as LeftPopulation, ko3iko.Population as RightPopulation]
     PhysicalFilter [(ko3iko.Population = ko3iko.Population)]
       PhysicalSchemaScan [#A.Entities() as ko3iko] [pushdown: (ko3iko.Population = ko3iko.Population)]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -42,6 +38,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(LeftPopulation: population, RightPopulation: population)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q90_CompilationCseEnabled

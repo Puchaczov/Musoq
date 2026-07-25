@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 binary Rectangle {
                 Width: int le,
                 Height: int le,
@@ -14,9 +13,8 @@ binary Rectangle {
             cross apply Interpret<Rectangle>(f.Content) r
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [f.Content as f.Content, r.Width as r.Width, r.Height as r.Height, r.Area as r.Area]
     Apply [Cross]
@@ -26,9 +24,8 @@ MultiStatement
     CteRef [fr as fr]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [f.Content as f.Content, r.Width as r.Width, r.Height as r.Height, r.Area as r.Area]
     PhysicalNestedLoopApply [Cross]
@@ -38,9 +35,8 @@ PhysicalMultiStatement
     PhysicalCteRef [fr as fr]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [f: BinaryEntity]
@@ -64,6 +60,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(r.Width: r.Width, r.Height: r.Height, r.Area: r.Area)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q53_BinaryComputedInterpret

@@ -1,21 +1,18 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Name, City, RowNumber() over (partition by City order by Population desc) as rn, Sum(Population) over (partition by City) as total from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, ko3iko.City as City, WindowRef(0) as rn, WindowRef(1) as total]
     Window [RowNumber(idx:0; partition: ko3iko.City; order: ko3iko.Population DESC), Sum(idx:1; partition: ko3iko.City; args: ko3iko.Population)]
       SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, ko3iko.City as City, WindowRef(0) as rn, WindowRef(1) as total]
     PhysicalWindow [RowNumber(idx:0; partition: ko3iko.City; order: ko3iko.Population DESC), Sum(idx:1; partition: ko3iko.City; args: ko3iko.Population)]
@@ -23,9 +20,8 @@ PhysicalMultiStatement
         PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -48,6 +44,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name, City: ko3iko.City, rn: resultRowNumbers0[windowIndex], total: resultSums1[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q13_MultipleWindows

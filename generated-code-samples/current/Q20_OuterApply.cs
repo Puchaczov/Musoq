@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select a.Name, b.Name as OtherName from #A.entities() a outer apply #B.entities() b
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [a.Name as a.Name, b.Name as b.Name]
     Apply [Outer]
@@ -16,9 +14,8 @@ MultiStatement
     CteRef [ab as ab]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [a.Name as a.Name, b.Name as b.Name]
     PhysicalNestedLoopApply [Outer]
@@ -28,9 +25,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ab as ab]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [a: BasicEntity]
@@ -55,6 +51,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(a.Name: a.Name, OtherName: NULL)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q20_OuterApply

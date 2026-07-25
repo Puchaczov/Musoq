@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 from values {
                   { Name: 'Newtonsoft.Json', Approved: true, Score: 10ui },
                   { Name: 'Legacy.Package', Approved: false, Score: 20ui }
@@ -9,27 +8,24 @@ from values {
               select packages.Name, packages.Score
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [packages.Name as packages.Name, packages.Score as packages.Score]
     Filter [(packages.Approved = FALSE)]
       ValuesScan [2 rows as packages]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [packages.Name as packages.Name, packages.Score as packages.Score]
     PhysicalFilter [(packages.Approved = FALSE)]
       PhysicalValuesScan [2 rows as packages]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     UnknownShape [ValuesRowShape]
@@ -48,6 +44,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(packages.Name: packages.Name, packages.Score: packages.Score)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q117_ValuesRowLiterals

@@ -1,23 +1,20 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT Name,
                      RowNumber() over (order by Salary desc) as rn
               FROM #test.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, WindowRef(0) as rn]
     Window [RowNumber(idx:0; order: ko3iko.Salary DESC)]
       SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, WindowRef(0) as rn]
     PhysicalWindow [RowNumber(idx:0; order: ko3iko.Salary DESC)]
@@ -25,9 +22,8 @@ PhysicalMultiStatement
         PhysicalSchemaScan [#test.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2RegressionEntity]
@@ -46,6 +42,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name, rn: resultRowNumbers[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q111_RuntimeV2WindowBenchmarkRowNumberNoPartition

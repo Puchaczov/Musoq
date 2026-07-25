@@ -1,6 +1,8 @@
 using System.Linq;
+using System.Collections.Generic;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
+using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using IrNodes = Musoq.Evaluator.IR.Logical.Nodes;
@@ -83,9 +85,10 @@ public sealed partial class LogicalPlanBuilder
         var methodName = from?.Method ?? string.Empty;
         var column = node.Column?.ToString();
         var sourceContextId = from?.Id ?? string.Empty;
-        var arguments = from?.Parameters.Args
-            .Select(_converter.Convert)
-            .ToArray() ?? [];
+        var arguments = from is Musoq.Evaluator.Parser.SchemaFromNode semanticSource &&
+                        semanticSource.BoundInvocation is { } invocation
+            ? ConvertArguments(from.Parameters, invocation)
+            : from?.Parameters.Args.Select(_converter.Convert).ToArray() ?? [];
 
         var descType = node.Type switch
         {
@@ -161,7 +164,63 @@ public sealed partial class LogicalPlanBuilder
     {
         ArgumentNullException.ThrowIfNull(node);
         var plan = _nodeStack.Pop();
+        if (node.IsRecursiveDefinition)
+        {
+            if (plan is not IrNodes.SetOperationNode setOperation)
+                throw UnsupportedShape.Of($"Recursive CTE '{node.Name}' did not lower to a set-operation boundary.");
+
+            var unionKind = setOperation.Kind switch
+            {
+                IrNodes.SetOpKind.UnionAll => IrNodes.RecursiveCteUnionKind.All,
+                IrNodes.SetOpKind.Union when setOperation.Keys.Length == 0 =>
+                    IrNodes.RecursiveCteUnionKind.FullRow,
+                IrNodes.SetOpKind.Union => IrNodes.RecursiveCteUnionKind.Keyed,
+                _ => throw UnsupportedShape.Of(
+                    $"Recursive CTE '{node.Name}' has unsupported set operation '{setOperation.Kind}'.")
+            };
+
+            plan = new IrNodes.RecursiveCteNode(
+                node.Name,
+                setOperation.Left,
+                setOperation.Right,
+                unionKind,
+                setOperation.Keys,
+                ResolveRecursiveIdentityFieldIndexes(
+                    node.Name,
+                    unionKind,
+                    setOperation.Keys,
+                    setOperation.Left.OutputSchema));
+        }
+
         _cteDefinitions.Add(new IrNodes.CteDefinition(node.Name, plan));
+    }
+
+    private static int[] ResolveRecursiveIdentityFieldIndexes(
+        string cteName,
+        IrNodes.RecursiveCteUnionKind unionKind,
+        IReadOnlyList<string> keys,
+        OutputSchema outputSchema)
+    {
+        if (unionKind != IrNodes.RecursiveCteUnionKind.Keyed)
+            return [];
+
+        var indexes = new int[keys.Count];
+        for (var keyIndex = 0; keyIndex < keys.Count; keyIndex++)
+        {
+            var key = keys[keyIndex];
+            var fieldIndex = Array.FindIndex(
+                outputSchema.Columns,
+                column => string.Equals(column.Name, key, StringComparison.OrdinalIgnoreCase));
+            if (fieldIndex < 0)
+            {
+                throw new InvalidOperationException(
+                    $"Recursive CTE '{cteName}' key '{key}' was not resolved during semantic binding.");
+            }
+
+            indexes[keyIndex] = fieldIndex;
+        }
+
+        return indexes;
     }
 
     public void Visit(OrderByNode node)

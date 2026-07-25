@@ -6,7 +6,7 @@ using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.Tables;
-using Musoq.Evaluator.Visitors.CodeGeneration;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 

@@ -1,14 +1,12 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT FirstName, LastName, Email
               FROM #test.entities()
               SKIP 100 TAKE 100
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Take [100]
     Skip [100]
@@ -16,9 +14,8 @@ MultiStatement
         SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalTake [100]
     PhysicalSkip [100]
@@ -26,9 +23,8 @@ PhysicalMultiStatement
         PhysicalSchemaScan [#test.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2RegressionEntity]
@@ -55,6 +51,8 @@ ExecutionPlan [compiled]
       Assign [__resultTakeRemaining = (__resultTakeRemaining - 1)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q103_RuntimeV2SkipTakeNoOrder

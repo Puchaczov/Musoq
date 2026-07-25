@@ -20,99 +20,82 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(AccessColumnNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        try
-        {
-            var hasProcessedQueryId = _sourceBinding.CurrentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
-            var primaryIdentifier = hasProcessedQueryId
-                ? _sourceBinding.CurrentScope[MetaAttributes.ProcessedQueryId]
-                : _sourceBinding.Identifier;
-            var identifier = string.IsNullOrEmpty(primaryIdentifier) ? node.Alias : primaryIdentifier;
+        var hasProcessedQueryId = _sourceBinding.CurrentScope.ContainsAttribute(MetaAttributes.ProcessedQueryId);
+        var primaryIdentifier = hasProcessedQueryId
+            ? _sourceBinding.CurrentScope[MetaAttributes.ProcessedQueryId]
+            : _sourceBinding.Identifier;
+        var identifier = string.IsNullOrEmpty(primaryIdentifier) ? node.Alias : primaryIdentifier;
 
-            if (string.IsNullOrEmpty(identifier))
-                throw VisitorException.CreateForProcessingFailure(
-                    VisitorName,
-                    VisitorOperationNames.VisitAccessColumnNode,
-                    "No valid identifier found for column access",
-                    "Ensure the query has proper FROM clause and table aliases are correctly specified."
-                );
-
-            var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
-            if (tableSymbol == null)
-                throw VisitorException.CreateForProcessingFailure(
-                    VisitorName,
-                    VisitorOperationNames.VisitAccessColumnNode,
-                    $"Table symbol not found for identifier '{identifier}'",
-                    "Verify that the table or alias is properly defined in the query."
-                );
-
-            if (!string.IsNullOrEmpty(node.Alias) && !tableSymbol.ContainsAlias(node.Alias))
-            {
-                if (TryReportUnknownAlias(node.Alias, tableSymbol.CompoundTables, node))
-                    return;
-
-                throw VisitorException.CreateForProcessingFailure(
-                    VisitorName,
-                    VisitorOperationNames.VisitAccessColumnNode,
-                    $"Unknown alias '{node.Alias}'",
-                    "Verify that the alias is defined in the FROM or JOIN clause.");
-            }
-
-            var tuple = !string.IsNullOrEmpty(node.Alias)
-                ? tableSymbol.GetTableByAlias(node.Alias)
-                : tableSymbol.GetTableByColumnName(node.Name);
-
-            ISchemaColumn? column;
-            try
-            {
-                column = tuple.Table?.GetColumnByName(node.Name);
-            }
-            catch (KeyNotFoundException)
-            {
-                column = null;
-            }
-            catch (InvalidOperationException)
-            {
-                column = null;
-            }
-
-            if (column == null)
-            {
-                TryReportOrThrowUnknownColumn(node.Name, tuple.Table?.Columns ?? [], node);
-                return;
-            }
-
-            if (tuple.TableName == null)
-            {
-                TryReportOrThrowUnknownColumn(node.Name, tuple.Table?.Columns ?? [], node);
-                return;
-            }
-
-            AddAssembly(column.ColumnType.Assembly);
-            node.ChangeReturnType(column.ColumnType);
-
-            var usedColumns = _sourceBinding.UsedColumns
-                .Where(c => c.Key.Alias == tuple.TableName && c.Key.QueryId == _sourceBinding.SchemaFromKey)
-                .Select(f => f.Value)
-                .FirstOrDefault();
-
-            if (usedColumns is not null)
-                if (usedColumns.All(c => c.ColumnName != column.ColumnName))
-                    usedColumns.Add(column);
-
-            var accessColumn = new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Span,
-                column.IntendedTypeName);
-            PushSemanticNode(accessColumn);
-        }
-        catch (Exception ex) when (ex is not VisitorException)
-        {
-            throw new VisitorException(
+        if (string.IsNullOrEmpty(identifier))
+            throw VisitorException.CreateForProcessingFailure(
                 VisitorName,
                 VisitorOperationNames.VisitAccessColumnNode,
-                $"Failed to process column access for '{node.Name}': {ex.Message}. " +
-                "Check that the column exists in the specified table and that table aliases are correct.",
-                ex
+                "No valid identifier found for column access",
+                "Ensure the query has proper FROM clause and table aliases are correctly specified."
             );
+
+        var tableSymbol = _sourceBinding.CurrentScope.ScopeSymbolTable.GetSymbol<TableSymbol>(identifier);
+        if (tableSymbol == null)
+            throw VisitorException.CreateForProcessingFailure(
+                VisitorName,
+                VisitorOperationNames.VisitAccessColumnNode,
+                $"Table symbol not found for identifier '{identifier}'",
+                "Verify that the table or alias is properly defined in the query."
+            );
+
+        if (!string.IsNullOrEmpty(node.Alias) && !tableSymbol.ContainsAlias(node.Alias))
+        {
+            if (TryReportUnknownAlias(node.Alias, tableSymbol.CompoundTables, node))
+                return;
+
+            throw VisitorException.CreateForProcessingFailure(
+                VisitorName,
+                VisitorOperationNames.VisitAccessColumnNode,
+                $"Unknown alias '{node.Alias}'",
+                "Verify that the alias is defined in the FROM or JOIN clause.");
         }
+
+        var tuple = !string.IsNullOrEmpty(node.Alias)
+            ? tableSymbol.GetTableByAlias(node.Alias)
+            : tableSymbol.GetTableByColumnName(node.Name);
+
+        ISchemaColumn? column;
+        try
+        {
+            column = tuple.Table?.GetColumnByName(node.Name);
+        }
+        catch (KeyNotFoundException)
+        {
+            column = null;
+        }
+
+        if (column == null)
+        {
+            TryReportOrThrowUnknownColumn(node.Name, tuple.Table?.Columns ?? [], node);
+            return;
+        }
+
+        if (tuple.TableName == null)
+        {
+            TryReportOrThrowUnknownColumn(node.Name, tuple.Table?.Columns ?? [], node);
+            return;
+        }
+
+        AddAssembly(column.ColumnType.Assembly);
+        node.ChangeReturnType(column.ColumnType);
+
+        var usedColumns = _sourceBinding.UsedColumns
+            .Where(c => c.Key.Alias == tuple.TableName && c.Key.QueryId == _sourceBinding.SchemaFromKey)
+            .Select(f => f.Value)
+            .FirstOrDefault();
+
+        if (usedColumns is not null)
+            if (usedColumns.All(c => c.ColumnName != column.ColumnName))
+                usedColumns.Add(column);
+
+        var accessColumn = new AccessColumnNode(column.ColumnName, tuple.TableName, column.ColumnType, node.Span,
+            column.IntendedTypeName);
+        PushSemanticNode(accessColumn);
     }
 
     public override void Visit(AllColumnsNode node)

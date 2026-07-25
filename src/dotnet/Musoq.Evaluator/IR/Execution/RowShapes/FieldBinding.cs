@@ -39,10 +39,10 @@ public sealed record FieldBinding
             name,
             qualifiedName,
             outputIndex,
-            ExecutionTypeRef.FromClr(type),
+            ExecutionClrBindingFactory.FromClr(type),
             nullability,
             accessStrategy,
-            ExecutionTypeRef.FromOptionalClr(publicType),
+            ExecutionClrBindingFactory.FromOptionalClr(publicType),
             readModifiers)
     {
     }

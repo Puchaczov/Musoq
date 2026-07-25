@@ -2,6 +2,7 @@
 using System.Linq;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
+using Musoq.Evaluator.Visitors;
 
 namespace Musoq.Evaluator;
 
@@ -10,6 +11,13 @@ namespace Musoq.Evaluator;
 /// </summary>
 public sealed class QueryAnalysisResult
 {
+    /// <summary>
+    /// Gets the immutable semantic handoff when analysis reached metadata binding.
+    /// This is intentionally internal because it is an evaluator/converter boundary,
+    /// not part of the public diagnostic contract.
+    /// </summary>
+    internal SemanticPhaseArtifacts? SemanticArtifacts { get; init; }
+
     /// <summary>
     ///     Gets the root node of the parsed query, or null if parsing failed completely.
     /// </summary>

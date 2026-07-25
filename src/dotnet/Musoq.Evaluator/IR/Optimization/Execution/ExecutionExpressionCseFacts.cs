@@ -181,9 +181,9 @@ internal static partial class ExecutionExpressionCseFacts
     private static bool IsSafeWholeStrictCastCseCandidate(ExecutionStrictCast strictCast)
     {
         return !StrictCastLibraryConversionFacts.IsPassThrough(
-                   strictCast.Expression.ReturnType.ClrType,
-                   strictCast.ReturnType.ClrType) &&
-               IsCseResultTypeStable(strictCast.ReturnType.ClrType) &&
+                   strictCast.Expression.ReturnType.ResolveClrType(),
+                   strictCast.ReturnType.ResolveClrType()) &&
+               IsCseResultTypeStable(strictCast.ReturnType.ResolveClrType()) &&
                IsDeterministicExpression(strictCast.Expression);
     }
 
@@ -191,9 +191,9 @@ internal static partial class ExecutionExpressionCseFacts
         ExecutionMethodCall methodCall,
         bool hasExplicitTargetMetadata)
     {
-        if (methodCall.ReturnType.ClrType == typeof(void) ||
+        if (methodCall.ReturnType.ResolveClrType() == typeof(void) ||
             methodCall.InjectedSource != null ||
-            !IsCseResultTypeStable(methodCall.ReturnType.ClrType) ||
+            !IsCseResultTypeStable(methodCall.ReturnType.ResolveClrType()) ||
             !IsDeterministicMethod(methodCall.Method) ||
             !methodCall.Arguments.All(IsDeterministicExpression))
         {
@@ -256,7 +256,7 @@ internal static partial class ExecutionExpressionCseFacts
         !method.GetParameters().Any(static parameter => parameter.GetCustomAttribute<InjectQueryStatsAttribute>() != null);
 
     public static bool IsDeterministicMethod(ExecutionCallableRef method) =>
-        IsDeterministicMethod(method.ClrMethod);
+        IsDeterministicMethod(method.ResolveClrMethod());
 
     public static int GetExpressionDepth(ExecutionExpression expression)
     {

@@ -34,7 +34,7 @@ public sealed class TableLoweringServiceTests
 
         var result = planner.Create("result", "ResultRow", publicFields, operations, sourceLookup);
 
-        Assert.IsTrue(result.Supported, result.UnsupportedReason);
+        Assert.IsTrue(result.IsBuilt, result.UnsupportedReason);
         Assert.HasCount(2, result.Value.MaterializedFields);
         Assert.AreEqual("Name", result.Value.MaterializedFields[0].OutputName);
         Assert.AreEqual("__sortKey0", result.Value.MaterializedFields[1].OutputName);
@@ -60,7 +60,7 @@ public sealed class TableLoweringServiceTests
             rowShape,
             [new TakeOperation(2)]));
 
-        Assert.IsTrue(result.Supported, result.UnsupportedReason);
+        Assert.IsTrue(result.IsBuilt, result.UnsupportedReason);
         Assert.HasCount(1, nodes);
         var take = Assert.IsInstanceOfType<ExecutionTakeTable>(nodes[0]);
         Assert.AreEqual("rowsTaken", take.Target.Name);
@@ -85,7 +85,7 @@ public sealed class TableLoweringServiceTests
             IsDistinct: true,
             FinalProjection: finalProjection));
 
-        Assert.IsFalse(result.Supported);
+        Assert.IsFalse(result.IsBuilt);
         StringAssert.Contains(result.UnsupportedReason, "distinct lowering");
         StringAssert.Contains(result.UnsupportedReason, "hidden sort fields");
     }

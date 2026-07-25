@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select City, Count(City) from #A.entities() group by City skip 1 take 3
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(ko3iko.City)) as ko3iko.Count(ko3iko.City)]
     Aggregate [keys: City] [aggs: Count(City)]
@@ -17,9 +15,8 @@ MultiStatement
         CteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(ko3iko.City)) as ko3iko.Count(ko3iko.City)]
     PhysicalSingleKeyAggregate [key: City (String)] [aggs: Count(City)]
@@ -30,9 +27,8 @@ PhysicalMultiStatement
         PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -56,6 +52,8 @@ ExecutionPlan [compiled]
     SliceShapeRows [result -> resultSliced, skip 1, take 3]
     ReturnDeferredTable [resultSliced: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q30_GroupBySkipTake

@@ -4,13 +4,13 @@ using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Windows;
 
 internal sealed record WindowPipeline(
     PhysicalProjectNode Project,
     WindowRegistration[] Registrations,
     IrExpression? QualifyPredicate,
-    SourcePipeline Source,
+    LoweringSourcePipeline Source,
     IReadOnlyList<PostOperation> PostOperations);
 
 internal sealed record WindowQualifyTopRankPlan(
@@ -18,7 +18,7 @@ internal sealed record WindowQualifyTopRankPlan(
     IReadOnlyDictionary<int, long> UpperBounds);
 
 internal sealed record WindowMaterializationContext(
-    SourcePipeline SourcePipeline,
+    LoweringSourcePipeline LoweringSourcePipeline,
     ExecutionExpression SourceRows,
     ExecutionVariable Buffer,
     ExecutionVariable Source,
@@ -56,7 +56,7 @@ internal enum WindowResultNameMode
 }
 
 internal sealed record WindowRegistrationBuildResult(
-    bool Supported,
+    bool IsBuilt,
     WindowRegistration? Registration,
     ExecutionRankingWindowFunction? RankingFunction,
     ExecutionOffsetWindowFunction? OffsetFunction,
@@ -91,7 +91,7 @@ internal sealed record WindowRegistrationBuildResult(
 }
 
 internal sealed record WindowComputationBuildResult(
-    bool Supported,
+    bool IsBuilt,
     WindowRegistration? Registration,
     ExecutionNode Node,
     ExecutionVariable Results,
@@ -119,7 +119,7 @@ internal sealed record WindowComputationBuildResult(
 }
 
 internal sealed record OffsetWindowArgumentsBuildResult(
-    bool Supported,
+    bool IsBuilt,
     ExecutionExpression Value,
     ExecutionExpression Offset,
     ExecutionExpression DefaultValue,
@@ -141,7 +141,7 @@ internal sealed record OffsetWindowArgumentsBuildResult(
 }
 
 internal sealed record PluginWindowArgumentsBuildResult(
-    bool Supported,
+    bool IsBuilt,
     ExecutionExpression Value,
     IReadOnlyList<ExecutionExpression> Arguments,
     IReadOnlyList<bool> RowScopedArguments,

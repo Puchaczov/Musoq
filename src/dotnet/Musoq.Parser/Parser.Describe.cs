@@ -60,7 +60,7 @@ public partial class Parser
         {
             var sourceAlias = Current.Value;
             var schemaName = EnsureHashPrefix(sourceAlias);
-            var accessMethod = ComposeAccessMethod(sourceAlias);
+            var accessMethod = ComposeAccessMethod(sourceAlias, true);
 
             var fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, string.Empty, 1);
             return TryParseColumnClause(fromNode);
@@ -76,7 +76,7 @@ public partial class Parser
             FromNode fromNode;
             if (Current is FunctionToken)
             {
-                var accessMethod = ComposeAccessMethod(string.Empty);
+                var accessMethod = ComposeAccessMethod(string.Empty, true);
 
                 fromNode = new SchemaFromNode(name, accessMethod.Name, accessMethod.Arguments, string.Empty, 1);
                 return TryParseColumnClause(fromNode);

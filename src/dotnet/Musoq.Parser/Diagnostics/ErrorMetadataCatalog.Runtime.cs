@@ -60,5 +60,8 @@ internal static class RuntimeErrorMetadataCatalog
                 "Add the parameter to the param(...) block if the query should accept it."
             ],
             "Core Spec - Script Parameters");
+
+        foreach (var entry in RecursiveCteRuntimeErrorMetadata.Build())
+            yield return entry;
     }
 }

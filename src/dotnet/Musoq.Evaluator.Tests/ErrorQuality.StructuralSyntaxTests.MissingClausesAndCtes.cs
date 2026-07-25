@@ -382,7 +382,7 @@ SELECT * FROM MyData md";
     }
 
     [TestMethod]
-    public void P_CTE_03_RecursiveCte()
+    public void P_CTE_03_RecursiveCteWithoutKeyword()
     {
         // Arrange — Recursive CTE referencing itself
         var analyzer = CreateAnalyzer();
@@ -396,14 +396,9 @@ SELECT * FROM Recursive r";
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert — Should explain recursion is not supported
-        AssertHasOneOfErrorCodes(result, "recursive CTE not supported",
-            DiagnosticCode.MQ2001_UnexpectedToken,
-            DiagnosticCode.MQ2013_InvalidCTE,
-            DiagnosticCode.MQ3003_UnknownTable,
-            DiagnosticCode.MQ3016_CircularReference,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        // Assert — The self-reference is valid only when the contextual keyword is present.
+        AssertHasOneOfErrorCodes(result, "recursive CTE requires WITH RECURSIVE",
+            DiagnosticCode.MQ3072_RecursiveCteRequiresKeyword);
     }
 
     [TestMethod]

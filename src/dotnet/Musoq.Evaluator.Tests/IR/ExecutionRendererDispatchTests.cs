@@ -17,6 +17,94 @@ public sealed class ExecutionRendererDispatchTests
     }
 
     [TestMethod]
+    public void RecursiveCteNodes_ShouldBeRenderableTableControlFlowWithDeclaredChildren()
+    {
+        var rowShape = new GeneratedRowShape("RecursiveRow", []);
+        var result = new ExecutionVariable("result", typeof(object), "List<RecursiveRow>");
+        var current = new ExecutionVariable("current", typeof(object), "List<RecursiveRow>");
+        var next = new ExecutionVariable("next", typeof(object), "List<RecursiveRow>");
+        var snapshotRows = new ExecutionVariable("snapshotRows", typeof(int));
+        var anchor = new ExecutionBlock([new ExecutionContinue()]);
+        var invariantSetup = new ExecutionBlock([new ExecutionLet(
+            new ExecutionVariable("snapshot", typeof(object)),
+            new ExecutionLiteral(null, typeof(object)))]);
+        var member = new ExecutionBlock([new ExecutionBreak()]);
+        var appendRow = new ExecutionAppendRow(current, rowShape, []);
+        var append = new ExecutionRecursiveCteAppend("walk", result, current, null, [], 10, appendRow);
+        var snapshotGuard = new ExecutionRecursiveCteSnapshotRowGuard("walk", snapshotRows, 10);
+        var recursive = new ExecutionRecursiveCte(
+            "walk",
+            0,
+            result,
+            current,
+            next,
+            snapshotRows,
+            null,
+            ExecutionRecursiveCteIdentityMode.None,
+            [],
+            rowShape,
+            anchor,
+            invariantSetup,
+            member,
+            5,
+            10,
+            10);
+
+        Assert.AreEqual(ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeRegistry.GetRendererFamily(recursive));
+        Assert.AreEqual(ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeRegistry.GetRendererFamily(append));
+        Assert.AreEqual(ExecutionRendererNodeFamily.TableControlFlow, ExecutionNodeRegistry.GetRendererFamily(snapshotGuard));
+        Assert.IsTrue(ExecutionCSharpRenderer.CanRenderNode(recursive));
+        Assert.IsTrue(ExecutionCSharpRenderer.CanRenderNode(append));
+        Assert.IsTrue(ExecutionCSharpRenderer.CanRenderNode(snapshotGuard));
+        CollectionAssert.AreEqual(new[] { anchor, invariantSetup, member }, ExecutionNodeRegistry.GetChildBlocks(recursive).ToArray());
+        Assert.AreSame(appendRow, ExecutionNodeRegistry.GetChildBlocks(append).Single().Nodes.Single());
+    }
+
+    [TestMethod]
+    public void RecursiveInvariantSinks_ShouldUseOneOwningCteSnapshotCounter()
+    {
+        var field = new FieldBinding(
+            "Id",
+            "Id",
+            0,
+            ExecutionClrBindingFactory.FromClr(typeof(int)),
+            FieldNullability.NotNullable,
+            new GeneratedFieldAccess("Id"));
+        var shape = new GeneratedRowShape("InvariantRow", [field]);
+        var counter = new ExecutionVariable("snapshotRows", typeof(int));
+        var row = new ExecutionVariable("row", typeof(object), shape.TypeName);
+        var append = new ExecutionAppendRow(
+            new ExecutionVariable("working", typeof(object)),
+            shape,
+            [new ExecutionRowValue("Id", new ExecutionLiteral(1, typeof(int)))]);
+        var snapshotSink = new RecursiveCteInvariantSnapshotSink(
+            "walk",
+            new ExecutionVariable("snapshot", typeof(object), $"List<{shape.TypeName}>") ,
+            shape,
+            counter,
+            7);
+        var hashSink = new RecursiveCteInvariantHashSink(
+            "walk",
+            new ExecutionVariable("hash", typeof(object)),
+            row,
+            shape,
+            new ExecutionLiteral(1, typeof(int)),
+            ExecutionClrBindingFactory.FromClr(typeof(int)),
+            counter,
+            7);
+
+        var snapshotBlock = Assert.IsInstanceOfType<ExecutionScopedBlock>(snapshotSink.CreateAppend(append));
+        var hashBlock = Assert.IsInstanceOfType<ExecutionScopedBlock>(hashSink.CreateAppend(append));
+        var snapshotGuard = Assert.IsInstanceOfType<ExecutionRecursiveCteSnapshotRowGuard>(snapshotBlock.Body.Nodes[0]);
+        var hashGuard = Assert.IsInstanceOfType<ExecutionRecursiveCteSnapshotRowGuard>(hashBlock.Body.Nodes[0]);
+
+        Assert.AreSame(counter, snapshotGuard.Counter);
+        Assert.AreSame(counter, hashGuard.Counter);
+        Assert.AreEqual(7, snapshotGuard.MaxRows);
+        Assert.AreEqual(7, hashGuard.MaxRows);
+    }
+
+    [TestMethod]
     public void GetFamily_WhenCteIndexStorageNode_ShouldReturnTableControlFlow()
     {
         var node = new ExecutionStoreCteIndex(

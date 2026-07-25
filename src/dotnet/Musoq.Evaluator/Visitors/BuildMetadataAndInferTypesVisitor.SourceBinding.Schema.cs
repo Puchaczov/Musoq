@@ -1,4 +1,5 @@
 using System.Threading;
+using System.Collections.Generic;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.TemporarySchemas;
@@ -22,16 +23,21 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             schema = _provider.GetSchema(node.Schema);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedSchemaLookupFailure(ex))
         {
-            if (ex is IDiagnosticException)
-                throw;
-
             var span = node.HasSpan ? node.Span : TextSpan.Empty;
             throw new UnknownInterpretationSchemaException(
                 node.Schema,
                 $"Unknown schema '{node.Schema}'.",
                 span);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new SchemaProviderFailureException(ex);
         }
 
         const bool hasExternallyProvidedTypes = false;
@@ -46,17 +52,41 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var schemaArgsNode = (ArgsListNode)PopSemanticNode();
         _scriptParameters.ValidateSchemaArguments(schemaArgsNode, node);
+        var queryId = node.QueryId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        BoundSchemaInvocation? boundInvocation = null;
+        if (!IsDescribingConstructors)
+        {
+            var bindingResult = SchemaSourceArgumentBinder.Bind(
+                schemaArgsNode,
+                SchemaProviderBoundary.Invoke(() => schema.GetRawConstructors(
+                    node.Method,
+                    new SourceMetadataContext(
+                        queryId,
+                        CancellationToken.None,
+                        GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
+                        new Dictionary<string, string>(),
+                        _logger))));
+            if (bindingResult.Failure is { } bindingFailure)
+                throw new CannotResolveMethodException(
+                    bindingFailure.Message,
+                    bindingFailure.Code,
+                    bindingFailure.Span);
+
+            boundInvocation = bindingResult.Invocation;
+        }
         var staticSchemaArguments = SchemaArgumentBinder.BindStaticArguments(
             schemaArgsNode,
             _scriptParameters.DefinitionsByName,
-            _scriptVariables.DefinitionsByName);
+            _scriptVariables.DefinitionsByName,
+            boundInvocation);
         var aliasedSchemaFromNode = new Parser.SchemaFromNode(node.Schema, node.Method, schemaArgsNode,
             _sourceBinding.QueryAlias, node.QueryId, hasExternallyProvidedTypes);
+        if (boundInvocation != null)
+            aliasedSchemaFromNode.SetBoundInvocation(boundInvocation);
         if (node.HasSpan)
             aliasedSchemaFromNode.WithSpan(node.Span);
 
         var isDesc = _sourceBinding.CurrentScope.Name == "Desc";
-        var queryId = node.QueryId.ToString(System.Globalization.CultureInfo.InvariantCulture);
         var sourceRuntimeSettings = isDesc && string.IsNullOrWhiteSpace(node.Method)
             ? RetrieveInitialSourceRuntimeSettings(aliasedSchemaFromNode.Id, aliasedSchemaFromNode)
             : ResolveSourceRuntimeSettings(
@@ -67,7 +97,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 queryId,
                 mode: GetSourceRuntimeSettingsResolutionMode());
         var table = !isDesc
-            ? schema.GetTableByName(
+            ? SchemaProviderBoundary.Invoke(() => schema.GetTableByName(
                 node.Method,
                 new SourceMetadataContext(
                     queryId,
@@ -76,7 +106,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                     sourceRuntimeSettings,
                     _logger
                 ),
-                staticSchemaArguments)
+                staticSchemaArguments))
             : new DynamicTable([]);
 
         _sourceBinding.SchemaFromInfo.Add(_sourceBinding.QueryAlias, (_sourceBinding.SchemaFromKey, aliasedSchemaFromNode.Id));

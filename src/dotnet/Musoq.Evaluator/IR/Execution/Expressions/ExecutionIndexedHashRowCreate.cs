@@ -16,7 +16,7 @@ public sealed record ExecutionIndexedHashRowCreate(
         ExecutionVariable index,
         Type returnType,
         string? generatedRowTypeName = null)
-        : this(row, index, ExecutionTypeRef.FromClr(returnType), generatedRowTypeName)
+        : this(row, index, ExecutionClrBindingFactory.FromClr(returnType), generatedRowTypeName)
     {
     }
 }

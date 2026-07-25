@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Optimization;
@@ -99,16 +98,16 @@ internal static class ExpressionHoistPlanner
 
     private static string NormalizeCastTargetName(ExecutionStrictCast strictCast)
     {
-        var targetType = Nullable.GetUnderlyingType(strictCast.ReturnType.ClrType) ?? strictCast.ReturnType.ClrType;
+        var targetType = Nullable.GetUnderlyingType(strictCast.ReturnType.ResolveClrType()) ?? strictCast.ReturnType.ResolveClrType();
         return targetType == typeof(string) ? nameof(String) : targetType.Name;
     }
 
     private static string CreateHoistedVariableName(string candidate, HashSet<string> usedNames)
     {
-        var normalized = SyntaxHelper.ToCamelCase(GeneratedRowNamingPolicy.CreateLoweringIdentifierCandidate(candidate, usedNames.Count));
+        var normalized = SyntaxHelper.ToCamelCase(ExecutionSymbolicNamePolicy.CreateLoweringIdentifierCandidate(candidate, usedNames.Count));
         if (string.IsNullOrWhiteSpace(normalized))
             normalized = "__expr";
-        if (SyntaxFacts.GetKeywordKind(normalized) != SyntaxKind.None)
+        if (ExecutionSymbolicNamePolicy.IsReservedIdentifier(normalized))
             normalized += "Value";
 
         var variableName = normalized;

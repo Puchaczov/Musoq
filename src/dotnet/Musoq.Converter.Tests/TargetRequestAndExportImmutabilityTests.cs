@@ -56,6 +56,7 @@ public sealed class TargetRequestAndExportImmutabilityTests
 
         var inputs = new CSharpClrRenderInputs
         {
+            ExecutionBindings = new CSharpClrExecutionBindingContext(),
             CompilationOptions = new CompilationOptions(),
             AssemblyName = "TargetInputs",
             NamespaceName = "TargetInputs",

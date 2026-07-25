@@ -27,6 +27,14 @@ internal abstract partial class ExecutionIrRewriter
     public virtual ExecutionNode RewriteNode(ExecutionNode node) {
         ArgumentNullException.ThrowIfNull(node);
 
+        return ExecutionNodeRegistry.TryGetDescriptor(node, out var descriptor)
+            ? descriptor.Behavior.Rewriter(this, node)
+            : RewriteNodeLegacy(node);
+    }
+
+    internal ExecutionNode RewriteNodeLegacy(ExecutionNode node) {
+        ArgumentNullException.ThrowIfNull(node);
+
         return node switch
         {
             ExecutionSourceScan sourceScan => RewriteSourceScan(sourceScan),
@@ -56,6 +64,9 @@ internal abstract partial class ExecutionIrRewriter
             ExecutionMethodTargetDeclarationCandidate candidate => RewriteMethodTargetDeclarationCandidate(candidate),
             ExecutionIf ifNode => RewriteIf(ifNode),
             ExecutionCreateGeneratedRow createRow => RewriteCreateGeneratedRow(createRow),
+            ExecutionRecursiveCte recursiveCte => RewriteRecursiveCte(recursiveCte),
+            ExecutionRecursiveCteAppend recursiveAppend => RewriteRecursiveCteAppend(recursiveAppend),
+            ExecutionRecursiveCteSnapshotRowGuard snapshotGuard => RewriteRecursiveCteSnapshotRowGuard(snapshotGuard),
             ExecutionCreateHashPayload createPayload => RewriteCreateHashPayload(createPayload),
             ExecutionAppendRow appendRow => RewriteAppendRow(appendRow),
             ExecutionAppendExistingRow appendExistingRow => RewriteAppendExistingRow(appendExistingRow),

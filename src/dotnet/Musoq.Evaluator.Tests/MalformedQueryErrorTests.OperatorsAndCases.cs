@@ -55,7 +55,7 @@ public partial class MalformedQueryErrorTests
         var ex = Assert.Throws<MusoqQueryException>(() =>
             CompileQuery("SELECT Name FROM #test.people() WHERE BETWEEN 20 AND 30"));
 
-        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "Invalid operand types");
+        AssertErrorEnvelope(ex, DiagnosticCode.MQ2001_UnexpectedToken, DiagnosticPhase.Parse, "cannot be used here");
         AssertHasGuidance(ex);
     }
 

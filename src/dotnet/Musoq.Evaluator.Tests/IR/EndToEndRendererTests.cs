@@ -15,7 +15,7 @@ using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.Basic;
-using Musoq.Evaluator.Visitors.CodeGeneration;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 using Musoq.Schema;
 using Microsoft.CodeAnalysis.Editing;
 

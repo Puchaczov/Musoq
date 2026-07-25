@@ -34,7 +34,7 @@ public sealed partial class PhysicalToExecutionPlanBuilderTests
                 0,
                 [],
                 [ageField],
-                SourceType: ExecutionTypeRef.FromClr(typeof(Person))));
+                SourceType: ExecutionClrBindingFactory.FromClr(typeof(Person))));
         var rawTable = new ExecutionVariable("cte0", typeof(Table), rawShape.TypeName);
         var method = typeof(Math).GetMethod(nameof(Math.Abs), [typeof(int)])!;
         var appendWithCall = new ExecutionAppendRow(

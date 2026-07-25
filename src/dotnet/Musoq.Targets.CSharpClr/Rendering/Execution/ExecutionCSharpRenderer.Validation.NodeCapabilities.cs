@@ -33,6 +33,9 @@ public sealed partial class ExecutionCSharpRenderer
             ExecutionCreateObject createObject => CanRenderDefaultConstructibleObject(createObject.Target.Type.RequireClrType()),
             ExecutionIf branch => CanRenderExpression(branch.Condition) && CanRenderBlock(branch.Body),
             ExecutionCreateGeneratedRow createRow => CanRenderRowConstruction(createRow.Values, createRow.Contexts, createRow.ContextLayout),
+            ExecutionRecursiveCte recursiveCte => CanRenderRecursiveCte(recursiveCte),
+            ExecutionRecursiveCteAppend append => CanRenderRecursiveCteAppend(append),
+            ExecutionRecursiveCteSnapshotRowGuard guard => guard.MaxRows > 0,
             ExecutionCreateHashPayload createPayload => CanRenderCreateHashPayload(createPayload),
             ExecutionAppendRow appendRow => CanRenderRowConstruction(appendRow.Values, appendRow.Contexts, appendRow.ContextLayout),
             ExecutionAppendExistingRow => true,
@@ -89,10 +92,5 @@ public sealed partial class ExecutionCSharpRenderer
             _ => false
         };
     }
-    private static void ValidateSourceScan(ExecutionSourceScan sourceScan)
-    {
-        if (!CanRenderIdentifier(sourceScan.Rows.Name))
-            throw new InvalidOperationException(
-                $"Execution source rows variable '{sourceScan.Rows.Name}' is not a supported C# identifier.");
-    }
+
 }

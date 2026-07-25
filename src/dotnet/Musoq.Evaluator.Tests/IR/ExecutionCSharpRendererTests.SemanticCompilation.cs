@@ -100,14 +100,14 @@ public sealed partial class ExecutionCSharpRendererTests
                 new ExecutionKeySetAdd(
                     index,
                     new ExecutionLiteral(1, typeof(int)),
-                    ExecutionTypeRef.FromClr(typeof(int)),
+                    ExecutionClrBindingFactory.FromClr(typeof(int)),
                     KeyVariableName: "cteBuildKey"),
                 new ExecutionStoreCteIndex(index, 0, ExecutionCteSidecarIndexKind.KeySet, typeof(int)),
                 new ExecutionLoadCteIndex(loadedIndex, 0, ExecutionCteSidecarIndexKind.KeySet, typeof(int)),
                 new ExecutionKeySetProbe(
                     loadedIndex,
                     new ExecutionLiteral(1, typeof(int)),
-                    ExecutionTypeRef.FromClr(typeof(int)),
+                    ExecutionClrBindingFactory.FromClr(typeof(int)),
                     new ExecutionBlock(
                     [
                         new ExecutionAppendRow(
@@ -138,12 +138,12 @@ public sealed partial class ExecutionCSharpRendererTests
                 new ExecutionKeySetAdd(
                     keySet,
                     new ExecutionLiteral(10, typeof(int)),
-                    ExecutionTypeRef.FromClr(typeof(int)),
+                    ExecutionClrBindingFactory.FromClr(typeof(int)),
                     KeyVariableName: "buildKey"),
                 new ExecutionKeySetProbe(
                     keySet,
                     new ExecutionLiteral(10, typeof(int)),
-                    ExecutionTypeRef.FromClr(typeof(int)),
+                    ExecutionClrBindingFactory.FromClr(typeof(int)),
                     new ExecutionBlock(
                     [
                         new ExecutionAppendRow(
@@ -221,8 +221,8 @@ public sealed partial class ExecutionCSharpRendererTests
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionCreateHash(
                     hash,
-                    ExecutionTypeRef.FromClr(typeof(int)),
-                    ExecutionTypeRef.FromClr(typeof(object)),
+                    ExecutionClrBindingFactory.FromClr(typeof(int)),
+                    ExecutionClrBindingFactory.FromClr(typeof(object)),
                     GeneratedRowTypeName: payloadShape.TypeName),
                 new ExecutionCreateObject(b),
                 new ExecutionCreateHashPayload(

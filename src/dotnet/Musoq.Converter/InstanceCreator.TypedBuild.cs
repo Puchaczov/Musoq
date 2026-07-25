@@ -4,7 +4,6 @@ using System.Linq;
 using Musoq.Converter.Build;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
-using Musoq.Evaluator.Runtime;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 
@@ -38,7 +37,6 @@ public static partial class InstanceCreator
         items.OutputType = typeof(TOut);
         items.AdditionalReferenceTypes = CreateTypedReferenceTypes<TOut>(additionalReferenceTypes);
 
-        RuntimeLibraries.CreateReferences();
         Build(items, createBuildChain(loggerResolver));
         RejectUnsupportedMultiStatementQuery(items.RawQueryTree);
 

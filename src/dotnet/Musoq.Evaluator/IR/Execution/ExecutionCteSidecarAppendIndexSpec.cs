@@ -17,7 +17,7 @@ internal sealed record ExecutionCteSidecarAppendIndexSpec(
         Type keyType,
         HashPayloadShape? payloadShape,
         IReadOnlyList<ExecutionRowValue> payloadValues)
-        : this(index, key, kind, ExecutionTypeRef.FromClr(keyType), payloadShape, payloadValues)
+        : this(index, key, kind, ExecutionClrBindingFactory.FromClr(keyType), payloadShape, payloadValues)
     {
     }
 }

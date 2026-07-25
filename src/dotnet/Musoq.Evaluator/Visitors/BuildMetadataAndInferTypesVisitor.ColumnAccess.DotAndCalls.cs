@@ -180,6 +180,6 @@ public partial class BuildMetadataAndInferTypesVisitor
         for (var i = node.Args.Length - 1; i >= 0; --i)
             args[i] = PopSemanticNode(VisitorOperationNames.VisitArgsListNode);
 
-        PushSemanticNode(new ArgsListNode(args));
+        PushSemanticNode(new ArgsListNode(args, node.ArgumentNames, default));
     }
 }

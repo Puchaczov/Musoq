@@ -19,8 +19,8 @@ public sealed record ExecutionCreateHash(
         string? generatedRowTypeName = null)
         : this(
             hash,
-            ExecutionTypeRef.FromClr(keyType),
-            ExecutionTypeRef.FromClr(rowType),
+            ExecutionClrBindingFactory.FromClr(keyType),
+            ExecutionClrBindingFactory.FromClr(rowType),
             capacityHint,
             generatedRowTypeName)
     {

@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 binary BitsRepeatPacket {
                 Flags: bits[1] repeat until Flags = 0
             };
@@ -11,9 +10,8 @@ binary BitsRepeatPacket {
             cross apply p.Flags f
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [file.Content as file.Content, p.Flags as p.Flags]
     Apply [Cross]
@@ -27,9 +25,8 @@ MultiStatement
     CteRef [filepf as filepf]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [file.Content as file.Content, p.Flags as p.Flags]
     PhysicalNestedLoopApply [Cross]
@@ -43,9 +40,8 @@ PhysicalMultiStatement
     PhysicalCteRef [filepf as filepf]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [file: BinaryEntity]
@@ -79,6 +75,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(FlagValue: f.Value)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q60_BinaryBitsRepeatUntilInterpret

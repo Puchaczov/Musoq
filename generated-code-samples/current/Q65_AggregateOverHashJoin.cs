@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select a.City as City, Count(b.Name) as MatchCount from #A.entities() a inner join #B.entities() b on a.City = b.City group by a.City
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [a.City as a.City, b.Name as b.Name, b.City as b.City]
     Join [Inner] [(a.City = b.City)]
@@ -19,9 +17,8 @@ MultiStatement
     CteRef [abScore as abScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [a.City as a.City, b.Name as b.Name, b.City as b.City]
     PhysicalHashJoin [Inner] [build: b.City] [probe: a.City]
@@ -34,9 +31,8 @@ PhysicalMultiStatement
     PhysicalCteRef [abScore as abScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [a: BasicEntity]
@@ -68,6 +64,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(City: finalGroup.a.City, MatchCount: a.Count(b.Name))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q65_AggregateOverHashJoin

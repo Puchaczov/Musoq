@@ -10,6 +10,7 @@ public static partial class ExecutionPlanPrinter
     private static readonly AsyncLocal<IReadOnlyDictionary<int, string>?> TypedStoredTableSlots = new();
     private static readonly AsyncLocal<FinalShapePrintContext?> FinalShapeContext = new();
     private static readonly AsyncLocal<IReadOnlyDictionary<string, string>?> TypedRowBuffers = new();
+    private static readonly AsyncLocal<Dictionary<ExecutionNode, ExecutionNodePrintDescription>?> NodeDescriptions = new();
 
     public static string Print(ExecutionPlan plan)
     {
@@ -49,6 +50,27 @@ public static partial class ExecutionPlanPrinter
         return $"ExecutionPlanUnsupported [{reason}]";
     }
 
+    internal static IReadOnlyDictionary<ExecutionNode, ExecutionNodePrintDescription> CaptureNodeDescriptions(
+        ExecutionPlan plan)
+    {
+        ArgumentNullException.ThrowIfNull(plan);
+
+        var previous = NodeDescriptions.Value;
+        var descriptions = new Dictionary<ExecutionNode, ExecutionNodePrintDescription>(
+            ExecutionNodePrintReferenceComparer.Instance);
+        NodeDescriptions.Value = descriptions;
+
+        try
+        {
+            Print(plan);
+            return descriptions;
+        }
+        finally
+        {
+            NodeDescriptions.Value = previous;
+        }
+    }
+
     private static void AppendBlock(StringBuilder builder, ExecutionBlock block, int indentation)
     {
         foreach (var node in block.Nodes)
@@ -82,4 +104,16 @@ public static partial class ExecutionPlanPrinter
         string RowTypeName,
         string ShapeTypeName,
         IReadOnlyDictionary<string, string> SourceBuffers);
+
+    private sealed class ExecutionNodePrintReferenceComparer : IEqualityComparer<ExecutionNode>
+    {
+        public static readonly ExecutionNodePrintReferenceComparer Instance = new();
+
+        public bool Equals(ExecutionNode? x, ExecutionNode? y) => ReferenceEquals(x, y);
+
+        public int GetHashCode(ExecutionNode obj) =>
+            System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(obj);
+    }
 }
+
+internal sealed record ExecutionNodePrintDescription(string DisplayName, string NodeKind);

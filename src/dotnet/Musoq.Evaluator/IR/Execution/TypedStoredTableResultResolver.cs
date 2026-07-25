@@ -11,6 +11,13 @@ internal static class TypedStoredTableResultResolver
         var results = new Dictionary<int, TypedStoredTableResult>();
         var usageShapes = CollectStoredTableRowsUsageShapes(plan.Body);
 
+        foreach (var recursive in ExecutionIrAnalysis.CollectNodes<ExecutionRecursiveCte>(plan.Body))
+        {
+            var result = new TypedStoredTableResult(recursive.TableIndex, recursive.RowShape);
+            if (IsTypedStoredTableResultCompatibleWithUsages(result, usageShapes))
+                AddTypedStoredTableResult(results, result);
+        }
+
         foreach (var result in StoredTableBuildDiscovery.Collect(plan.Body)
                      .Select(TryCreateTypedStoredTableResult)
                      .Where(result => result != null && IsTypedStoredTableResultCompatibleWithUsages(result, usageShapes)))

@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with cte as (select distinct a.Country as Country from #A.Entities() a inner join #B.Entities() b on a.Country = b.Country) select Country from cte
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [cte]
     MultiStatement
@@ -25,9 +23,8 @@ Cte
         CteRef [cte as cte]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [cte]
     PhysicalMultiStatement
@@ -46,9 +43,8 @@ PhysicalCte
         PhysicalCteRef [cte as cte]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [a: BasicEntity]
@@ -82,6 +78,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Country: cte.Country)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q50_CteDistinctJoinByCountry

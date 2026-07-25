@@ -1,4 +1,3 @@
-using System.Reflection;
 using Musoq.Evaluator.IR.Execution.Portability;
 using Musoq.Targets.Abstractions;
 
@@ -6,10 +5,9 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed class ExecutionCallableRef : IEquatable<ExecutionCallableRef>
 {
-    private ExecutionCallableRef(ExecutionPortableCallableDescriptor portableCallable, MethodInfo clrMethod)
+    internal ExecutionCallableRef(ExecutionPortableCallableDescriptor portableCallable)
     {
         Descriptor = portableCallable ?? throw new ArgumentNullException(nameof(portableCallable));
-        ClrMethod = clrMethod ?? throw new ArgumentNullException(nameof(clrMethod));
     }
 
     public string StableId => Descriptor.StableName;
@@ -21,11 +19,6 @@ public sealed class ExecutionCallableRef : IEquatable<ExecutionCallableRef>
     internal bool IsStatic => Descriptor.IsStatic;
 
     public ExecutionPortableCallableDescriptor Descriptor { get; }
-
-    internal MethodInfo ClrMethod { get; }
-
-    internal static ExecutionCallableRef FromClr(MethodInfo clrMethod) =>
-        new(ExecutionPortableSymbolFactory.FromMethod(clrMethod), clrMethod);
 
     public bool Equals(ExecutionCallableRef? other) =>
         other is not null && string.Equals(StableId, other.StableId, StringComparison.Ordinal);

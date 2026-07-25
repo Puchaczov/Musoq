@@ -457,8 +457,40 @@ public class CompiledQueryArtifactApiTests
             new CompilationOptions(useCteSidecarIndexes: true));
 
         Assert.AreNotEqual(withoutSidecars, withSidecars);
-        StringAssert.Contains(withoutSidecars, "UseCteSidecarIndexes = False");
-        StringAssert.Contains(withSidecars, "UseCteSidecarIndexes = True");
+        StringAssert.Contains(
+            withoutSidecars,
+            CompilationOptionsFingerprint.Compute(new CompilationOptions(useCteSidecarIndexes: false)));
+        StringAssert.Contains(
+            withSidecars,
+            CompilationOptionsFingerprint.Compute(new CompilationOptions(useCteSidecarIndexes: true)));
+    }
+
+    [TestMethod]
+    public void RecursiveCteLimits_WhenChanged_ShouldSeparateCacheAndArtifactSignatures()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+        var provider = new ArtifactSchemaProvider(new ArtifactSchema("single"));
+        var lower = new CompilationOptions().WithRecursiveCteLimits(new(20, 30, 40));
+        var higher = new CompilationOptions().WithRecursiveCteLimits(new(20, 30, 400));
+
+        var lowerCacheSignature = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
+            query,
+            provider,
+            lower);
+        var higherCacheSignature = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
+            query,
+            provider,
+            higher);
+
+        Assert.AreNotEqual(lowerCacheSignature, higherCacheSignature);
+        StringAssert.Contains(lowerCacheSignature, CompilationOptionsFingerprint.Compute(lower));
+        StringAssert.Contains(higherCacheSignature, CompilationOptionsFingerprint.Compute(higher));
+        Assert.AreNotEqual(
+            CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(lower),
+            CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(higher));
+        Assert.AreEqual(
+            CompilationOptionsFingerprint.Compute(lower),
+            CompiledQueryArtifactSupport.ComputeCompilationOptionsSignature(lower));
     }
 
     [TestMethod]

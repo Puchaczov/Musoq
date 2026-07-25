@@ -3,15 +3,25 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
+using Microsoft.CSharp.RuntimeBinder;
 using Musoq.Evaluator.Runtime;
 
 namespace Musoq.Evaluator.Helpers;
 
 public static partial class EvaluationHelper
 {
-    private static readonly BoundedRuntimeCache<NestedValueAccessorKey, Func<object?, object?>> NestedValueAccessors =
+    private static readonly WeakTypeRuntimeCache<BoundedRuntimeCache<string, Func<object?, object?>>> NestedValueAccessors =
         new(RuntimeCacheOptions.DynamicAccessorCacheSize);
     private static readonly object MissingNestedValue = new();
+
+    internal static void ClearNestedValueAccessorCache() => NestedValueAccessors.Clear();
+
+    internal static int GetNestedValueAccessorCacheCount(Type type)
+    {
+        return NestedValueAccessors.TryGetValue(type, out var cache)
+            ? cache.Count
+            : 0;
+    }
 
     public static object? CreateNullableHashJoinKey(params object?[]? parts)
     {
@@ -69,9 +79,15 @@ public static partial class EvaluationHelper
             return value => GetNestedValue(value, columnPath);
         }
 
-        return NestedValueAccessors.GetOrAdd(
-            new NestedValueAccessorKey(type, columnPath),
-            static key => CreateClrNestedValueAccessor(key.Type, key.ColumnPath));
+        var accessorsForType = NestedValueAccessors.GetOrAdd(
+            type,
+            static _ => new BoundedRuntimeCache<string, Func<object?, object?>>(
+                RuntimeCacheOptions.DynamicAccessorCacheSize,
+                StringComparer.Ordinal));
+
+        return accessorsForType.GetOrAdd(
+            columnPath,
+            path => CreateClrNestedValueAccessor(type, path));
     }
 
     private static bool CanUseCachedClrNestedValueAccessor(Type type, string columnPath)
@@ -258,7 +274,11 @@ public static partial class EvaluationHelper
             if (dynamicObject.TryGetMember(new SimpleGetMemberBinder(memberName), out value))
                 return true;
         }
-        catch
+        catch (RuntimeBinderException)
+        {
+            // A dynamic binder miss is treated as an unresolved member.
+        }
+        catch (MissingMemberException)
         {
             // Fall through — member is unresolved.
         }
@@ -278,7 +298,5 @@ public static partial class EvaluationHelper
                 System.Dynamic.BindingRestrictions.GetTypeRestriction(target.Expression, target.LimitType));
         }
     }
-
-    private readonly record struct NestedValueAccessorKey(Type Type, string ColumnPath);
 
 }

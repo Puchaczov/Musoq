@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select a.Name, b.Name from #A.entities() a inner join #B.entities() b on a.Id = b.Id and a.Population = b.Population
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [a.Name as a.Name, a.Population as a.Population, a.Id as a.Id, b.Name as b.Name, b.Population as b.Population, b.Id as b.Id]
     Join [Inner] [((a.Id = b.Id) AND (a.Population = b.Population))]
@@ -16,9 +14,8 @@ MultiStatement
     CteRef [ab as ab]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [a.Name as a.Name, a.Population as a.Population, a.Id as a.Id, b.Name as b.Name, b.Population as b.Population, b.Id as b.Id]
     PhysicalHashJoin [Inner] [build: b.Id, b.Population] [probe: a.Id, a.Population]
@@ -28,9 +25,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ab as ab]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [a: BasicEntity]
@@ -59,6 +55,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(a.Name: a.Name, b.Name: b.Name)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q83_CompositeHashJoin

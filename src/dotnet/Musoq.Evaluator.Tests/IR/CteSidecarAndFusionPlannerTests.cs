@@ -168,6 +168,7 @@ public sealed class CteSidecarAndFusionPlannerTests
             out var result);
 
         Assert.IsTrue(pruned);
+        Assert.IsNotNull(result);
         Assert.HasCount(1, result.Payload.Shape.Fields);
         Assert.AreEqual("B", result.Payload.Shape.Fields[0].Name);
         Assert.HasCount(1, result.Payload.Values);

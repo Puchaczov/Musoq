@@ -20,6 +20,8 @@ internal sealed record CSharpClrRenderInputs : TargetBackendRenderInputs
     {
     }
 
+    public required CSharpClrExecutionBindingContext ExecutionBindings { get; init; }
+
     public required CompilationOptions CompilationOptions { get; init; }
 
     public required string AssemblyName { get; init; }
@@ -57,6 +59,8 @@ internal sealed record CSharpClrRenderInputs : TargetBackendRenderInputs
         get => _referenceAssemblies;
         init => _referenceAssemblies = Freeze(value);
     }
+
+    public bool EnableContextualExecution { get; init; }
 
     private static IReadOnlyList<T> Freeze<T>(IEnumerable<T>? values)
     {

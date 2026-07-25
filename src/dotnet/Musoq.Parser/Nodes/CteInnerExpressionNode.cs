@@ -1,14 +1,47 @@
 ﻿namespace Musoq.Parser.Nodes;
 
-public class CteInnerExpressionNode(Node value, string name) : Node
+public class CteInnerExpressionNode : Node
 {
-    public Node Value { get; } = value;
+    public CteInnerExpressionNode(Node value, string name)
+        : this(value, name, [], false)
+    {
+    }
 
-    public string Name { get; } = name;
+    public CteInnerExpressionNode(Node value, string name, CteColumnName[] columns)
+        : this(value, name, columns, false)
+    {
+    }
+
+    public CteInnerExpressionNode(
+        Node value,
+        string name,
+        CteColumnName[] columns,
+        bool isRecursiveDefinition)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(name);
+        ArgumentNullException.ThrowIfNull(columns);
+
+        Value = value;
+        Name = name;
+        Columns = columns;
+        IsRecursiveDefinition = isRecursiveDefinition;
+    }
+
+    public Node Value { get; }
+
+    public string Name { get; }
+
+    public CteColumnName[] Columns { get; }
+
+    public string[] ColumnNames => Array.ConvertAll(Columns, static column => column.Name);
+
+    public bool IsRecursiveDefinition { get; }
 
     public override Type ReturnType => typeof(void);
 
-    public override string Id => $"{nameof(CteInnerExpressionNode)}{Value.Id}";
+    public override string Id =>
+        $"{nameof(CteInnerExpressionNode)}{(IsRecursiveDefinition ? "Recursive" : string.Empty)}{Value.Id}{string.Concat(Array.ConvertAll(Columns, static column => column.Name))}";
 
     public override void Accept(IExpressionVisitor visitor)
     {
@@ -18,6 +51,10 @@ public class CteInnerExpressionNode(Node value, string name) : Node
 
     public override string ToString()
     {
-        return $"{Name} as {Value.ToString()}";
+        var columns = Columns.Length == 0
+            ? string.Empty
+            : $" ({string.Join(", ", Array.ConvertAll(Columns, static column => column.Name))})";
+
+        return $"{Name}{columns} as {Value.ToString()}";
     }
 }

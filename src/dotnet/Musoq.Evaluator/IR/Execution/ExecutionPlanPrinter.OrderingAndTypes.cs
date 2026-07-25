@@ -87,7 +87,7 @@ public static partial class ExecutionPlanPrinter
         return $"{typeName}<{arguments}>";
     }
 
-    private static string FormatType(ExecutionTypeRef type) => FormatType(type.ClrType);
+    private static string FormatType(ExecutionTypeRef type) => FormatType(type.ResolveClrType());
 
     private static readonly FrozenDictionary<Type, string> TypeAliases = new Dictionary<Type, string>()
     {

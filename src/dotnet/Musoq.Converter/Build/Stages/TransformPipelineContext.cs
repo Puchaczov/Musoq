@@ -26,6 +26,8 @@ internal sealed record TransformPipelineContext
 
     public required bool StopAfterPlanning { get; init; }
 
+    public required bool EnableContextualExecution { get; init; }
+
     public required QueryResultMode QueryResultMode { get; init; }
 
     public required ExecutionTargetId ExecutionTarget { get; init; }
@@ -56,6 +58,7 @@ internal sealed record TransformPipelineContext
             SchemaRegistry = items.SchemaRegistry,
             EmitExecutionPlanText = items.EmitExecutionPlanText,
             StopAfterPlanning = items.StopAfterPlanning,
+            EnableContextualExecution = items.TryGetValue(BuildItemKeys.EnableContextualExecution, out var contextualExecution) && contextualExecution is true,
             QueryResultMode = items.QueryResultMode,
             ExecutionTarget = items.ExecutionTarget,
             QueryMethodRenderMetadata = items.QueryMethodRenderMetadata,

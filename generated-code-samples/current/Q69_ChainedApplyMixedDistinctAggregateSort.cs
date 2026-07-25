@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select i.Name as Name, Sum(n.Value) as RepeatedSum, Sum(distinct n.Value) as DistinctSum from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Sum(distinct n.Value) desc, Sum(n.Value) desc, i.Name
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Sort [AggRef(inm.Sum(distinct n.Value)) DESC, AggRef(inm.Sum(n.Value)) DESC, i.Name]
     Project [i.Name as Name, AggRef(inm.Sum(n.Value)) as RepeatedSum, AggRef(inm.Sum(distinct n.Value)) as DistinctSum]
@@ -18,9 +16,8 @@ MultiStatement
           PropertySource [i.Numbers as m] [apply: Cross] [type: Int32[]]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalSort [AggRef(inm.Sum(distinct n.Value)) DESC, AggRef(inm.Sum(n.Value)) DESC, i.Name]
     PhysicalProject [i.Name as Name, AggRef(inm.Sum(n.Value)) as RepeatedSum, AggRef(inm.Sum(distinct n.Value)) as DistinctSum]
@@ -32,9 +29,8 @@ PhysicalMultiStatement
           PhysicalPropertySource [i.Numbers as m] [apply: Cross] [type: Int32[]]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [i: GeneratedApplySampleEntity]
@@ -69,6 +65,8 @@ ExecutionPlan [compiled]
     SortShapeRows [result -> resultSorted by DistinctSum DESC, RepeatedSum DESC, Name ASC]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q69_ChainedApplyMixedDistinctAggregateSort

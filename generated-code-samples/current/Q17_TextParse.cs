@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 text LogLine {
                 Timestamp: until ' ',
                 Level: until ' ',
@@ -14,9 +13,8 @@ text LogLine {
             cross apply Parse<LogLine>(f.Line) l
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [f.Line as f.Line, l.Timestamp as l.Timestamp, l.Level as l.Level, l.Message as l.Message]
     Apply [Cross]
@@ -26,9 +24,8 @@ MultiStatement
     CteRef [fl as fl]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [f.Line as f.Line, l.Timestamp as l.Timestamp, l.Level as l.Level, l.Message as l.Message]
     PhysicalNestedLoopApply [Cross]
@@ -38,9 +35,8 @@ PhysicalMultiStatement
     PhysicalCteRef [fl as fl]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [f: TextEntity]
@@ -64,6 +60,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(l.Timestamp: l.Timestamp, l.Level: l.Level, l.Message: l.Message)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q17_TextParse

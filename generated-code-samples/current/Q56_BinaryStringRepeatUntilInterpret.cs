@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 binary StringRepeatPacket {
                 Names: string[3] ascii repeat until Names = 'END'
             };
@@ -11,9 +10,8 @@ binary StringRepeatPacket {
             cross apply p.Names n
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [f.Content as f.Content, p.Names as p.Names]
     Apply [Cross]
@@ -27,9 +25,8 @@ MultiStatement
     CteRef [fpn as fpn]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [f.Content as f.Content, p.Names as p.Names]
     PhysicalNestedLoopApply [Cross]
@@ -43,9 +40,8 @@ PhysicalMultiStatement
     PhysicalCteRef [fpn as fpn]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [f: BinaryEntity]
@@ -79,6 +75,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(Text: n.Value)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q56_BinaryStringRepeatUntilInterpret

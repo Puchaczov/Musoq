@@ -6,7 +6,7 @@ using Musoq.Evaluator.Diagnostics;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.Runtime;
-using Musoq.Evaluator.Visitors.Helpers;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 using static Musoq.Targets.CSharpClr.ExecutionSyntaxFactory;
 using ExecutionCSharpRenderer = Musoq.Targets.CSharpClr.ExecutionCSharpRenderer;
 

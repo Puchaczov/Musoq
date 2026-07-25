@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -123,6 +124,66 @@ public sealed class CompiledQueryDeferredTableTests
             runnable.RaisePhase(QueryPhase.Select);
             runnable.RaiseDataSourceProgress(DataSourcePhase.RowsRead);
             yield return new TestRow("a");
+        }
+    }
+
+    [TestMethod]
+    public async Task Dispose_ShouldWaitUntilDeferredResultIsMaterialized()
+    {
+        var owner = new TrackingLifetimeOwner();
+        var query = new CompiledQuery(
+            new DeferredTableRunnable((_, token) => QueryRows.DeferredTable("result", Columns, Rows, token)),
+            owner);
+
+        var table = query.Run(CancellationToken.None);
+        var dispose = Task.Run(query.Dispose);
+
+        Assert.IsFalse(dispose.Wait(TimeSpan.FromMilliseconds(100)));
+        Assert.AreEqual(1, table.Count);
+
+        await dispose;
+        Assert.IsTrue(owner.IsDisposed);
+        return;
+
+        static IEnumerable<TestRow> Rows(CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            yield return new TestRow("a");
+        }
+    }
+
+    [TestMethod]
+    public async Task TableDispose_ShouldReleaseDeferredResultLifetime()
+    {
+        var owner = new TrackingLifetimeOwner();
+        var query = new CompiledQuery(
+            new DeferredTableRunnable((_, token) => QueryRows.DeferredTable("result", Columns, Rows, token)),
+            owner);
+
+        var table = query.Run(CancellationToken.None);
+        var dispose = Task.Run(query.Dispose);
+
+        Assert.IsFalse(dispose.Wait(TimeSpan.FromMilliseconds(100)));
+        table.Dispose();
+
+        await dispose;
+        Assert.IsTrue(owner.IsDisposed);
+        return;
+
+        static IEnumerable<TestRow> Rows(CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            yield return new TestRow("a");
+        }
+    }
+
+    private sealed class TrackingLifetimeOwner : IDisposable
+    {
+        public bool IsDisposed { get; private set; }
+
+        public void Dispose()
+        {
+            IsDisposed = true;
         }
     }
 

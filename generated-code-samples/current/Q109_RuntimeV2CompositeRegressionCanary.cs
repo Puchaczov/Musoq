@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT Name,
                      Department,
                      Salary,
@@ -15,9 +14,8 @@ SELECT Name,
               SKIP 10 TAKE 20
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Take [20]
     Skip [10]
@@ -28,9 +26,8 @@ MultiStatement
               SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalTopOffset [skip 10, take 20] [ko3iko.Department, ko3iko.Salary DESC, ExpensiveCompute(ko3iko.Value) DESC]
     PhysicalProject [ko3iko.Name as Name, ko3iko.Department as Department, ko3iko.Salary as Salary, ExpensiveCompute(ko3iko.Value) as Computed, WindowRef(0) as RunningSalary, WindowRef(1) as SalaryRank]
@@ -40,9 +37,8 @@ PhysicalMultiStatement
             PhysicalSchemaScan [#test.entities() as ko3iko] [pushdown: Contains(ko3iko.Email, 'gmail'), StartsWith(ko3iko.FirstName, 'A')]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2RegressionEntity]
@@ -72,6 +68,8 @@ ExecutionPlan [compiled]
     TopOffsetShapeRows [result -> resultTopOffset by Department ASC, Salary DESC, Computed DESC, skip 10, take 20, BoundedHeap]
     ReturnDeferredTable [resultTopOffset: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q109_RuntimeV2CompositeRegressionCanary

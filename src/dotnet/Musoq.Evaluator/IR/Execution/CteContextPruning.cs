@@ -3,16 +3,16 @@ using System.Linq;
 
 namespace Musoq.Evaluator.IR.Execution;
 
-public sealed partial class PhysicalToExecutionPlanBuilder
+internal sealed partial class PhysicalLoweringImplementation
 {
     private static TableBuildResult ApplyCteContextPruning(
         TableBuildResult result,
         string definitionName,
         CteDefinitionPruningPlan pruningPlan)
     {
-        var canDropDynamicProjectedContexts = result.Supported &&
+        var canDropDynamicProjectedContexts = result.IsBuilt &&
                                               CanDropDynamicProjectedContexts(result.RowShape);
-        if (!result.Supported ||
+        if (!result.IsBuilt ||
             (!pruningPlan.CanDropContexts(definitionName) && !canDropDynamicProjectedContexts) ||
             result.RowShape.Contexts.Count == 0 ||
             (!canDropDynamicProjectedContexts && !ContainsStoredCteIndex(result.Nodes)))
@@ -47,7 +47,7 @@ public sealed partial class PhysicalToExecutionPlanBuilder
     private static bool CanDropDynamicProjectedContexts(GeneratedRowShape rowShape)
     {
         return rowShape.Contexts.Count > 0 &&
-               rowShape.Contexts.All(static context => DynamicEntityBoundary.IsStringObjectDictionaryContext(context.Type.ClrType)) &&
+               rowShape.Contexts.All(static context => DynamicEntityBoundary.IsStringObjectDictionaryContext(context.Type.ResolveClrType())) &&
                CanUseProjectedGeneratedFieldAccess(rowShape);
     }
 

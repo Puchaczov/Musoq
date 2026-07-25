@@ -18,7 +18,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (_sourceBinding.AliasToSchemaFromNodeMap.TryGetValue(node.SourceAlias, out var schemaFrom))
         {
-            schema = _provider.GetSchema(schemaFrom.Schema);
+            schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaFrom.Schema));
             table = GetTableFromSchema(schema, schemaFrom);
         }
         else
@@ -144,7 +144,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (_sourceBinding.AliasToSchemaFromNodeMap.TryGetValue(node.SourceAlias, out var schemaFrom))
         {
-            schema = _provider.GetSchema(schemaFrom.Schema);
+            schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaFrom.Schema));
         }
         else
         {

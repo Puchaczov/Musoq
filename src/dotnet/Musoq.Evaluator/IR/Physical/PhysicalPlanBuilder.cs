@@ -82,6 +82,7 @@ public sealed partial class PhysicalPlanBuilder
             JoinNode join => LowerJoin(join, strategyPlan),
             ApplyNode apply => new PhysicalNestedLoopApplyNode(apply.Kind, Lower(apply.Left, strategyPlan), Lower(apply.Right, strategyPlan), apply.WithOrdinality),
             SetOperationNode setOperation => LowerSetOperation(setOperation, strategyPlan),
+            RecursiveCteNode recursiveCte => LowerRecursiveCte(recursiveCte, strategyPlan),
             CteNode cte => LowerCte(cte, strategyPlan),
             MultiStatementNode multiStatement => LowerMultiStatement(multiStatement, strategyPlan),
             _ => throw UnsupportedShape.Of($"Logical node type '{node.GetType().Name}'", "the physical plan builder")

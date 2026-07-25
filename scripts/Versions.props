@@ -1,9 +1,9 @@
 <Project>
   <PropertyGroup>
-    <MusoqParserVersion>17.0.2-alpha.4</MusoqParserVersion>
-    <MusoqPluginsVersion>17.0.2-alpha.4</MusoqPluginsVersion>
-    <MusoqSchemaVersion>17.0.2-alpha.4</MusoqSchemaVersion>
-    <MusoqEvaluatorVersion>17.0.2-alpha.4</MusoqEvaluatorVersion>
-    <MusoqConverterVersion>17.0.2-alpha.4</MusoqConverterVersion>
+    <MusoqParserVersion>17.0.3-alpha.1</MusoqParserVersion>
+    <MusoqPluginsVersion>17.0.3-alpha.1</MusoqPluginsVersion>
+    <MusoqSchemaVersion>17.0.3-alpha.1</MusoqSchemaVersion>
+    <MusoqEvaluatorVersion>17.0.3-alpha.1</MusoqEvaluatorVersion>
+    <MusoqConverterVersion>17.0.3-alpha.1</MusoqConverterVersion>
   </PropertyGroup>
 </Project>

@@ -13,7 +13,7 @@ public sealed record ExecutionWindowGeneratedKeyPart(
         Type type,
         bool descending,
         NullOrdering nullOrdering = NullOrdering.Default)
-        : this(ExecutionTypeRef.FromClr(type), descending, nullOrdering)
+        : this(ExecutionClrBindingFactory.FromClr(type), descending, nullOrdering)
     {
     }
 }

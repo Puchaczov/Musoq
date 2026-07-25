@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.SetOperations;
 
 internal sealed record SetOperationPipeline(
     PhysicalSetOperationNode SetOperation,

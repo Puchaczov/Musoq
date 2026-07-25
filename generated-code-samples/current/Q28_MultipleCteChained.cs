@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with cte1 as (select Name, City, Population from #A.entities() where Population > 0), cte2 as (select Name, City from cte1 where City is not null) select Name, City from cte2
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [cte1]
     MultiStatement
@@ -24,9 +22,8 @@ Cte
         CteRef [cte2 as cte2]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [cte1]
     PhysicalMultiStatement
@@ -44,9 +41,8 @@ PhysicalCte
         PhysicalCteRef [cte2 as cte2]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -68,6 +64,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(Name: ko3iko.Name, City: city)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q28_MultipleCteChained

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Musoq.Evaluator.Visitors.CodeGeneration;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -218,7 +218,9 @@ public sealed partial class ExecutionCSharpRenderer
         var bodyStatements = new List<StatementSyntax>();
 
         if (context.Session.EmitChunkLoopCancellationChecks)
-            bodyStatements.Add(CreatePeriodicCancellationCheck(indexVariableName));
+            bodyStatements.Add(CreatePeriodicCancellationCheck(
+                indexVariableName,
+                context.Session.SkipInitialLoopCancellationCheck));
 
         bodyStatements.Add(CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
@@ -228,10 +230,12 @@ public sealed partial class ExecutionCSharpRenderer
         return bodyStatements;
     }
 
-    private static IfStatementSyntax CreatePeriodicCancellationCheck(string indexVariableName)
+    private static IfStatementSyntax CreatePeriodicCancellationCheck(
+        string indexVariableName,
+        bool skipInitial = false,
+        int mask = 1023)
     {
-        return StatementEmitter.CreateIf(
-            SyntaxFactory.BinaryExpression(
+        ExpressionSyntax condition = SyntaxFactory.BinaryExpression(
                 SyntaxKind.EqualsExpression,
                 SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.BinaryExpression(
@@ -239,10 +243,23 @@ public sealed partial class ExecutionCSharpRenderer
                         SyntaxFactory.IdentifierName(indexVariableName),
                         SyntaxFactory.LiteralExpression(
                             SyntaxKind.NumericLiteralExpression,
-                            SyntaxFactory.Literal(1023)))),
+                            SyntaxFactory.Literal(mask)))),
                 SyntaxFactory.LiteralExpression(
                     SyntaxKind.NumericLiteralExpression,
-                    SyntaxFactory.Literal(0))),
+                    SyntaxFactory.Literal(0)));
+        if (skipInitial)
+        {
+            condition = SyntaxFactory.BinaryExpression(
+                SyntaxKind.LogicalAndExpression,
+                SyntaxFactory.BinaryExpression(
+                    SyntaxKind.NotEqualsExpression,
+                    SyntaxFactory.IdentifierName(indexVariableName),
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))),
+                condition);
+        }
+
+        return StatementEmitter.CreateIf(
+            condition,
             StatementEmitter.CreateBlock(QueryEmitter.GenerateCancellationCheck()));
     }
 }

@@ -268,7 +268,7 @@ internal static class ExecutionTargetCompatibilityAnalyzer
         return $"{name}<{string.Join(", ", type.GetGenericArguments().Select(FormatType))}>";
     }
 
-    private static string FormatType(ExecutionTypeRef type) => type.ClrDisplayName;
+    private static string FormatType(ExecutionTypeRef type) => type.ClrDisplayName();
 
     private sealed class RequirementSink
     {
@@ -303,7 +303,7 @@ internal static class ExecutionTargetCompatibilityAnalyzer
         {
             Add(
                 ExecutionTargetRequirementKind.ClrTypeUsage,
-                type.ClrDisplayName,
+                type.ClrDisplayName(),
                 typeSymbol: type.Descriptor);
         }
 

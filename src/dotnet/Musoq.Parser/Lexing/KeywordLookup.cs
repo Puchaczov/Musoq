@@ -8,7 +8,6 @@ public static partial class KeywordLookup
 {
     private static readonly FrozenDictionary<string, TokenType> Keywords = CreateKeywords();
     private static readonly FrozenDictionary<string, TokenType> SchemaKeywordTypes = CreateSchemaKeywordTypes();
-    private static readonly FrozenSet<string> SchemaKeywords = CreateSchemaKeywords();
     private static readonly FrozenDictionary<string, TokenType> Operators = CreateOperators();
 
     private static FrozenDictionary<string, TokenType> CreateKeywords()
@@ -96,21 +95,6 @@ public static partial class KeywordLookup
         }.ToFrozenDictionary(StringComparer.Ordinal);
     }
 
-    private static FrozenSet<string> CreateSchemaKeywords()
-    {
-        return new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "binary", "text", "le", "be",
-            "byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong",
-            "float", "double", "bits", "align", "string",
-            "utf8", "utf16le", "utf16be", "ascii", "latin1", "ebcdic",
-            "trim", "rtrim", "ltrim", "nullterm", "check", "at",
-            "pattern", "literal", "until", "between", "chars", "token",
-            "rest", "whitespace", "optional", "repeat", "switch", "nested",
-            "escaped", "greedy", "lazy", "lower", "upper", "capture", "extends"
-        }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
-    }
-
     private static FrozenDictionary<string, TokenType> CreateSchemaKeywordTypes()
     {
         return new Dictionary<string, TokenType>(StringComparer.OrdinalIgnoreCase)
@@ -135,6 +119,7 @@ public static partial class KeywordLookup
             { "utf8", TokenType.Utf8 },
             { "utf16le", TokenType.Utf16Le },
             { "utf16be", TokenType.Utf16Be },
+            { "null", TokenType.Null },
             { "ascii", TokenType.Ascii },
             { "latin1", TokenType.Latin1 },
             { "ebcdic", TokenType.Ebcdic },

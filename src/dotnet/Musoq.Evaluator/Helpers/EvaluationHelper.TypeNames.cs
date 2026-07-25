@@ -1,14 +1,17 @@
-﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Musoq.Evaluator.Runtime;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Helpers;
 
 public static partial class EvaluationHelper
 {
-    private static readonly ConcurrentDictionary<Type, string> CastableTypeCache = new();
+    private static readonly WeakTypeRuntimeCache<string> CastableTypeCache =
+        new(RuntimeCacheOptions.CastableTypeCacheSize);
+
+    internal static void ClearCastableTypeCache() => CastableTypeCache.Clear();
 
     public static string GetCastableType(Type type)
     {

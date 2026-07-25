@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with u as (
                       unpivot #A.entities() s
                       on Metric in (s.NullableValue as NullableValue, null as ExplicitNull)
@@ -14,9 +13,8 @@ with u as (
                   take 5
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [u]
     MultiStatement
@@ -32,9 +30,8 @@ Cte
               CteRef [u as u]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [u]
     PhysicalMultiStatement
@@ -48,9 +45,8 @@ PhysicalCte
           PhysicalCteRef [u as u]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [s: BasicEntity]
@@ -91,6 +87,8 @@ ExecutionPlan [compiled]
     TopOffsetShapeRows [result -> resultTopOffset by Label ASC, Metric ASC, skip 1, take 5, BoundedHeap]
     ReturnDeferredTable [resultTopOffset: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q160_UnpivotCteNullableOrdering

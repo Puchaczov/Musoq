@@ -5,7 +5,7 @@ public sealed record ExecutionWindowResultRef(
     ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
 {
     internal ExecutionWindowResultRef(int windowIndex, Type returnType)
-        : this(windowIndex, ExecutionTypeRef.FromClr(returnType))
+        : this(windowIndex, ExecutionClrBindingFactory.FromClr(returnType))
     {
     }
 }

@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Name from #A.entities() intersect (Name) select Name from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 SetOp [Intersect]
   MultiStatement
     Project [ko3iko.Name as Name]
@@ -16,9 +14,8 @@ SetOp [Intersect]
       SchemaScan [#A.entities() as vo04qt]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalSetOp [Intersect]
   PhysicalMultiStatement
     PhysicalProject [ko3iko.Name as Name]
@@ -28,9 +25,8 @@ PhysicalSetOp [Intersect]
       PhysicalSchemaScan [#A.entities() as vo04qt]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -54,6 +50,8 @@ ExecutionPlan [compiled]
     SetOperation [result = left Intersect right, HashSet]
     ReturnDeferredTable [result: LeftRow0 <- LeftShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q29_Intersect

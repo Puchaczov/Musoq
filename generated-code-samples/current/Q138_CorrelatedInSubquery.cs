@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT a.City
               FROM #A.entities() a
               WHERE a.City IN (
@@ -10,9 +9,8 @@ SELECT a.City
               )
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [_sq_1]
     MultiStatement
@@ -26,9 +24,8 @@ Cte
           CteRef [_sq_1 as _sq_1]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [_sq_1]
     PhysicalMultiStatement
@@ -42,9 +39,8 @@ PhysicalCte
           PhysicalCteRef [_sq_1 as _sq_1]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [a: BasicEntity]
@@ -72,6 +68,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(a.City: a.City)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q138_CorrelatedInSubquery

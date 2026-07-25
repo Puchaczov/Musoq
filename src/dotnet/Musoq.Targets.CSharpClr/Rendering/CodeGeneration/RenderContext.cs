@@ -31,6 +31,8 @@ public sealed class RenderContext
 
     public bool ForceTableResultMaterialization { get; }
 
+    public bool EnableContextualExecution { get; }
+
     public TableViaRowsResultInfo? TableViaRowsResult { get; private set; }
 
     public RenderContext(SyntaxGenerator generator, RenderContextOptions? options = null)
@@ -48,6 +50,7 @@ public sealed class RenderContext
         OutputType = options.OutputType;
         FinalResultSinkKind = options.FinalResultSinkKind;
         ForceTableResultMaterialization = options.ForceTableResultMaterialization;
+        EnableContextualExecution = options.EnableContextualExecution;
     }
 
     public void AddClassMember(SyntaxNode member)

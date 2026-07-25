@@ -10,7 +10,7 @@ public sealed record ExecutionScriptVariableRead(
     ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
 {
     internal ExecutionScriptVariableRead(string name, Type returnType)
-        : this(name, ExecutionTypeRef.FromClr(returnType))
+        : this(name, ExecutionClrBindingFactory.FromClr(returnType))
     {
     }
 }

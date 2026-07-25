@@ -1,6 +1,8 @@
 ﻿using Musoq.Parser.Nodes;
 using Musoq.Schema.DataSources;
 
+using Musoq.Evaluator.Visitors;
+
 namespace Musoq.Evaluator.Parser;
 
 public class SchemaFromNode(
@@ -18,6 +20,13 @@ public class SchemaFromNode(
     public override string Id => _positionalId;
 
     public bool HasExternallyProvidedTypes { get; } = hasExternallyProvidedTypes;
+
+    internal BoundSchemaInvocation? BoundInvocation { get; private set; }
+
+    internal void SetBoundInvocation(BoundSchemaInvocation invocation)
+    {
+        BoundInvocation = invocation ?? throw new ArgumentNullException(nameof(invocation));
+    }
 
     public override int GetHashCode()
     {

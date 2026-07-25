@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 unpivot #A.entities() s
                   on Metric in (s.Population as Population)
                   using Amount
@@ -13,9 +12,8 @@ unpivot #A.entities() s
                   order by Name
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 SetOp [UnionAll]
   MultiStatement
     Project [__unpivot.Name as Name, __unpivot.Metric as Metric, __unpivot.Amount as Amount]
@@ -28,9 +26,8 @@ SetOp [UnionAll]
           SchemaScan [#B.entities() as s]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalSetOp [UnionAll]
   PhysicalMultiStatement
     PhysicalProject [__unpivot.Name as Name, __unpivot.Metric as Metric, __unpivot.Amount as Amount]
@@ -43,9 +40,8 @@ PhysicalSetOp [UnionAll]
           PhysicalSchemaScan [#B.entities() as s]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [s: BasicEntity]
@@ -90,6 +86,8 @@ ExecutionPlan [compiled]
     SetOperation [result = left UnionAll rightSorted, AppendLoop]
     ReturnDeferredTable [result: LeftRow0 <- LeftShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q161_UnpivotSetOperator

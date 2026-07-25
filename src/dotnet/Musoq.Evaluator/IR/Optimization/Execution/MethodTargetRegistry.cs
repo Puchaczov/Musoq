@@ -18,8 +18,8 @@ internal sealed class MethodTargetRegistry(string namePrefix, MethodTargetRegist
     public void AddExisting(ExecutionVariable variable)
     {
         _usedNames.Add(variable.Name);
-        if (typeof(Musoq.Plugins.LibraryBase).IsAssignableFrom(variable.Type.ClrType))
-            _variables.TryAdd(variable.Type.ClrType, variable);
+        if (typeof(Musoq.Plugins.LibraryBase).IsAssignableFrom(variable.Type.ResolveClrType()))
+            _variables.TryAdd(variable.Type.ResolveClrType(), variable);
     }
 
     public void ForgetReusableTargets()
@@ -52,9 +52,9 @@ internal sealed class MethodTargetRegistry(string namePrefix, MethodTargetRegist
     }
     public ExecutionVariable? GetOrAddCache(ExecutionMethodCall method, ExecutionVariable target)
     {
-        var keyType = method.Arguments[0].ReturnType.ClrType;
-        var valueType = method.ReturnType.ClrType;
-        var cacheKey = new MethodCacheKey(method.Method.ClrMethod, keyType, valueType);
+        var keyType = method.Arguments[0].ReturnType.ResolveClrType();
+        var valueType = method.ReturnType.ResolveClrType();
+        var cacheKey = new MethodCacheKey(method.Method.ResolveClrMethod(), keyType, valueType);
         if (_caches.TryGetValue(cacheKey, out var cache))
             return cache;
         var cacheType = typeof(ConcurrentDictionary<,>).MakeGenericType(keyType, valueType);
@@ -99,12 +99,12 @@ internal sealed class MethodTargetRegistry(string namePrefix, MethodTargetRegist
     }
     private string CreateUniqueName(string candidate)
     {
-        var baseName = GeneratedRowNamingPolicy.CreateLoweringIdentifierCandidate(candidate, 0);
+        var baseName = ExecutionSymbolicNamePolicy.CreateLoweringIdentifierCandidate(candidate, 0);
         var name = baseName;
         var disambiguator = 1;
         while (!_usedNames.Add(name))
         {
-            name = GeneratedRowNamingPolicy.CreateLoweringIdentifierCandidate(
+            name = ExecutionSymbolicNamePolicy.CreateLoweringIdentifierCandidate(
                 $"{baseName}_{disambiguator.ToString(CultureInfo.InvariantCulture)}",
                 0);
             disambiguator++;

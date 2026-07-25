@@ -962,8 +962,8 @@ public sealed partial class ExecutionCSharpRendererTests
                 new ExecutionCreateTable(resultTable, resultShape),
                 new ExecutionCreateHash(
                     hash,
-                    ExecutionTypeRef.FromClr(typeof(string)),
-                    ExecutionTypeRef.FromClr(typeof(object)),
+                    ExecutionClrBindingFactory.FromClr(typeof(string)),
+                    ExecutionClrBindingFactory.FromClr(typeof(object)),
                     GeneratedRowTypeName: payloadShape.TypeName),
                 new ExecutionForEach(
                     b,

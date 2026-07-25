@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT Id as C01,
                      Name as C02,
                      FirstName as C03,
@@ -54,25 +53,22 @@ SELECT Id as C01,
               FROM #test.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Id as C01, ko3iko.Name as C02, ko3iko.FirstName as C03, ko3iko.LastName as C04, ko3iko.Email as C05, ko3iko.Value as C06, ko3iko.Category as C07, ko3iko.Department as C08, ko3iko.Salary as C09, (ko3iko.Value + 1) as C10, (ko3iko.Value + 2) as C11, (ko3iko.Value + 3) as C12, (ko3iko.Value + 4) as C13, (ko3iko.Value + 5) as C14, (ko3iko.Value + 6) as C15, (ko3iko.Value + 7) as C16, (ko3iko.Value + 8) as C17, (ko3iko.Value + 9) as C18, (ko3iko.Value + 10) as C19, (ko3iko.Value + 11) as C20, (ko3iko.Salary + 1) as C21, (ko3iko.Salary + 2) as C22, (ko3iko.Salary + 3) as C23, (ko3iko.Salary + 4) as C24, (ko3iko.Salary + 5) as C25, (ko3iko.Salary + 6) as C26, (ko3iko.Salary + 7) as C27, (ko3iko.Salary + 8) as C28, (ko3iko.Salary + 9) as C29, (ko3iko.Salary + 10) as C30, ((ko3iko.Name || '-') || ko3iko.Category) as C31, ((ko3iko.FirstName || ' ') || ko3iko.LastName) as C32, ((ko3iko.Department || ':') || ko3iko.Category) as C33, ((ko3iko.Email || ':') || ko3iko.Name) as C34, (ko3iko.Value * 2) as C35, (ko3iko.Value * 3) as C36, (ko3iko.Value * 4) as C37, (ko3iko.Salary * 2) as C38, (ko3iko.Salary * 3) as C39, (ko3iko.Salary * 4) as C40, (ko3iko.Value - ko3iko.Salary) as C41, (ko3iko.Salary - ko3iko.Value) as C42, (ko3iko.Value + ko3iko.Salary) as C43, (ko3iko.Value % 10) as C44, (ko3iko.Salary % 10) as C45, (ko3iko.Value > 100) as C46, (ko3iko.Salary > 1000) as C47, (((ko3iko.Category = 'A') OR (ko3iko.Category = 'B')) OR (ko3iko.Category = 'C')) as C48, CASE WHEN (ko3iko.Value > 100) THEN 'High' ELSE 'Low' END as C49, CASE WHEN (ko3iko.Salary > 1000) THEN 'Large' ELSE 'Small' END as C50]
     SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Id as C01, ko3iko.Name as C02, ko3iko.FirstName as C03, ko3iko.LastName as C04, ko3iko.Email as C05, ko3iko.Value as C06, ko3iko.Category as C07, ko3iko.Department as C08, ko3iko.Salary as C09, (ko3iko.Value + 1) as C10, (ko3iko.Value + 2) as C11, (ko3iko.Value + 3) as C12, (ko3iko.Value + 4) as C13, (ko3iko.Value + 5) as C14, (ko3iko.Value + 6) as C15, (ko3iko.Value + 7) as C16, (ko3iko.Value + 8) as C17, (ko3iko.Value + 9) as C18, (ko3iko.Value + 10) as C19, (ko3iko.Value + 11) as C20, (ko3iko.Salary + 1) as C21, (ko3iko.Salary + 2) as C22, (ko3iko.Salary + 3) as C23, (ko3iko.Salary + 4) as C24, (ko3iko.Salary + 5) as C25, (ko3iko.Salary + 6) as C26, (ko3iko.Salary + 7) as C27, (ko3iko.Salary + 8) as C28, (ko3iko.Salary + 9) as C29, (ko3iko.Salary + 10) as C30, ((ko3iko.Name || '-') || ko3iko.Category) as C31, ((ko3iko.FirstName || ' ') || ko3iko.LastName) as C32, ((ko3iko.Department || ':') || ko3iko.Category) as C33, ((ko3iko.Email || ':') || ko3iko.Name) as C34, (ko3iko.Value * 2) as C35, (ko3iko.Value * 3) as C36, (ko3iko.Value * 4) as C37, (ko3iko.Salary * 2) as C38, (ko3iko.Salary * 3) as C39, (ko3iko.Salary * 4) as C40, (ko3iko.Value - ko3iko.Salary) as C41, (ko3iko.Salary - ko3iko.Value) as C42, (ko3iko.Value + ko3iko.Salary) as C43, (ko3iko.Value % 10) as C44, (ko3iko.Salary % 10) as C45, (ko3iko.Value > 100) as C46, (ko3iko.Salary > 1000) as C47, (((ko3iko.Category = 'A') OR (ko3iko.Category = 'B')) OR (ko3iko.Category = 'C')) as C48, CASE WHEN (ko3iko.Value > 100) THEN 'High' ELSE 'Low' END as C49, CASE WHEN (ko3iko.Salary > 1000) THEN 'Large' ELSE 'Small' END as C50]
     PhysicalSchemaScan [#test.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2RegressionEntity]
@@ -154,6 +150,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(C01: ko3iko.Id, C02: name, C03: firstName, C04: lastName, C05: email, C06: value, C07: category, C08: department, C09: salary, C10: (value + 1), C11: (value + 2), C12: (value + 3), C13: (value + 4), C14: (value + 5), C15: (value + 6), C16: (value + 7), C17: (value + 8), C18: (value + 9), C19: (value + 10), C20: (value + 11), C21: (salary + 1), C22: (salary + 2), C23: (salary + 3), C24: (salary + 4), C25: (salary + 5), C26: (salary + 6), C27: (salary + 7), C28: (salary + 8), C29: (salary + 9), C30: (salary + 10), C31: ((name || '-') || category), C32: ((firstName || ' ') || lastName), C33: ((department || ':') || category), C34: ((email || ':') || name), C35: (value * 2), C36: (value * 3), C37: (value * 4), C38: (salary * 2), C39: (salary * 3), C40: (salary * 4), C41: (value - salary), C42: (salary - value), C43: (value + salary), C44: (value % 10), C45: (salary % 10), C46: __expr, C47: __expr1, C48: (((category = 'A') OR (category = 'B')) OR (category = 'C')), C49: CASE WHEN __expr THEN 'High' ELSE 'Low' END, C50: CASE WHEN __expr1 THEN 'Large' ELSE 'Small' END)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q107_RuntimeV2LexerManyColumns

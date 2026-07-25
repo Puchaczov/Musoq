@@ -1,30 +1,26 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT Name,
                      CASE WHEN ExpensiveMethod(Value) > 200 THEN 'High' ELSE 'Low' END
               FROM #test.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, CASE WHEN (ExpensiveMethod(ko3iko.Value) > 200) THEN 'High' ELSE 'Low' END as case when ExpensiveMethod(Value) > 200 then High else Low end]
     SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, CASE WHEN (ExpensiveMethod(ko3iko.Value) > 200) THEN 'High' ELSE 'Low' END as case when ExpensiveMethod(Value) > 200 then High else Low end]
     PhysicalSchemaScan [#test.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BenchmarkParityEntity]
@@ -43,6 +39,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(Name: ko3iko.Name, case when ExpensiveMethod(Value) > 200 then High else Low end: CASE WHEN (ExpensiveMethod(ko3iko.Value) > 200) THEN 'High' ELSE 'Low' END)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q177_BenchmarkCseCaseNoDuplicateMaterialized

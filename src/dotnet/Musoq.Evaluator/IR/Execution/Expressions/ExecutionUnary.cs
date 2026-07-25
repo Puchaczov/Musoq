@@ -11,7 +11,7 @@ public sealed record ExecutionUnary(
     ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
 {
     internal ExecutionUnary(UnaryOpKind kind, ExecutionExpression operand, Type returnType)
-        : this(kind, operand, ExecutionTypeRef.FromClr(returnType))
+        : this(kind, operand, ExecutionClrBindingFactory.FromClr(returnType))
     {
     }
 }

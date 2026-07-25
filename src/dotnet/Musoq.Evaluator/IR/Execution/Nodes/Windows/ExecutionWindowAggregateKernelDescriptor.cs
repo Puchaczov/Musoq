@@ -19,9 +19,9 @@ public sealed record ExecutionWindowAggregateKernelDescriptor(
         : this(
             function,
             mode,
-            ExecutionTypeRef.FromClr(inputType),
-            ExecutionTypeRef.FromClr(resultType),
-            ExecutionTypeRef.FromClr(accumulatorType))
+            ExecutionClrBindingFactory.FromClr(inputType),
+            ExecutionClrBindingFactory.FromClr(resultType),
+            ExecutionClrBindingFactory.FromClr(accumulatorType))
     {
     }
 }

@@ -1,15 +1,13 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT City, Count(*) as cnt
                   FROM #features.items()
                   GROUP BY City
                   HAVING cnt > 1
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(*)) as ko3iko.Count(*)]
     Having [(AggRef(ko3iko.Count(*)) > 1)]
@@ -19,9 +17,8 @@ MultiStatement
     CteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(*)) as ko3iko.Count(*)]
     PhysicalHaving [(AggRef(ko3iko.Count(*)) > 1)]
@@ -31,9 +28,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2CastGroupingFeatureEntity]
@@ -56,6 +52,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(City: finalGroup.City, cnt: ko3iko.Count(*))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q156_RuntimeV2HavingAggregateAlias

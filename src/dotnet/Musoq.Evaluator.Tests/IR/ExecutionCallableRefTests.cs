@@ -15,8 +15,8 @@ public sealed class ExecutionCallableRefTests
         var method = typeof(string).GetMethod(nameof(string.Contains), [typeof(string)]);
         Assert.IsNotNull(method);
 
-        var first = ExecutionCallableRef.FromClr(method);
-        var second = ExecutionCallableRef.FromClr(method);
+        var first = ExecutionClrBindingFactory.FromClr(method);
+        var second = ExecutionClrBindingFactory.FromClr(method);
 
         Assert.AreEqual(first, second);
         Assert.AreEqual(first.StableId, second.StableId);
@@ -30,11 +30,11 @@ public sealed class ExecutionCallableRefTests
     }
 
     [TestMethod]
-    public void CSharpCompatibility_WhenCallableRefIsProvided_ShouldRequireClrSidecar()
+    public void CSharpCompatibility_WhenCallableRefIsProvided_ShouldBindFromDescriptor()
     {
         var method = typeof(string).GetMethod(nameof(string.Contains), [typeof(string)]);
         Assert.IsNotNull(method);
 
-        Assert.AreSame(method, ExecutionCallableRef.FromClr(method).RequireClrMethod());
+        Assert.AreSame(method, ExecutionClrBindingFactory.FromClr(method).RequireClrMethod());
     }
 }

@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
 internal sealed record TableBuildResult(
-    bool Supported,
+    bool IsBuilt,
     IReadOnlyList<RowShape> Shapes,
     IReadOnlyList<ExecutionNode> Nodes,
     ExecutionVariable Table,
@@ -48,4 +48,22 @@ internal sealed record TableBuildResult(
             null,
             reason);
     }
+}
+
+internal sealed record LoweredTable(
+    IReadOnlyList<RowShape> Shapes,
+    IReadOnlyList<ExecutionNode> Nodes,
+    ExecutionVariable Table,
+    GeneratedRowShape RowShape,
+    FinalShapeResult FinalResult)
+{
+    public static LoweredTable FromBuilt(TableBuildResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        if (!result.IsBuilt || result.FinalResult is not { } finalResult)
+            throw new InvalidOperationException("A lowered table product requires a complete built result.");
+        return new(result.Shapes, result.Nodes, result.Table, result.RowShape, finalResult);
+    }
+
+    public TableBuildResult ToCompatibilityResult() => TableBuildResult.Success(Shapes, Nodes, Table, RowShape);
 }

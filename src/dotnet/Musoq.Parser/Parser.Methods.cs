@@ -5,7 +5,7 @@ namespace Musoq.Parser;
 
 public partial class Parser
 {
-    private AccessMethodNode ComposeAccessMethod(string alias)
+    private AccessMethodNode ComposeAccessMethod(string alias, bool allowNamedArguments = false)
     {
         ArgsListNode args;
         bool isDistinct;
@@ -13,7 +13,7 @@ public partial class Parser
         if (Current is FunctionToken func)
         {
             Consume(TokenType.Function);
-            (args, isDistinct) = ComposeArgsWithDistinct();
+            (args, isDistinct) = ComposeArgsWithDistinct(allowNamedArguments);
             var (hasFilter, filterExpression, filterExpressionText) = TryApplyFilterClause();
             return new AccessMethodNode(func, args, null, false, null, alias, isDistinct)
             {
@@ -28,7 +28,7 @@ public partial class Parser
             Consume(TokenType.MethodAccess);
             Consume(TokenType.Dot);
             var token = (FunctionToken)ConsumeAndGetToken(TokenType.Function);
-            (args, isDistinct) = ComposeArgsWithDistinct();
+            (args, isDistinct) = ComposeArgsWithDistinct(allowNamedArguments);
             var (hasFilter2, filterExpression2, filterExpressionText2) = TryApplyFilterClause();
 
             return new AccessMethodNode(token, args, null, false,

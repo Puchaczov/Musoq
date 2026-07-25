@@ -233,6 +233,16 @@ internal static class ParserErrorMetadataCatalog
             "Core Spec - SELECT Clause");
 
         yield return Entry(
+            DiagnosticCode.MQ2034_InvalidNamedSourceArgument,
+            "A datasource argument label is malformed, appears after a named argument, or is used outside a datasource call.",
+            [
+                "Use a simple identifier followed by a colon and an expression.",
+                "Place all positional arguments before named arguments.",
+                "Use named arguments only when invoking a datasource source."
+            ],
+            "Core Spec - FROM Arguments");
+
+        yield return Entry(
             DiagnosticCode.MQ2026_InvalidCaseExpression,
             "Musoq supports searched CASE only (CASE WHEN ... THEN ... END), not simple CASE (CASE expr WHEN value ...).",
             ["Rewrite as: CASE WHEN expr = value THEN result ELSE default END."],

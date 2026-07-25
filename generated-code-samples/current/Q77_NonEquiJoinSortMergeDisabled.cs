@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select a.Name, b.Name from #A.entities() a inner join #A.entities() b on a.Population > b.Population + 950
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [a.Name as a.Name, a.Population as a.Population, b.Name as b.Name, b.Population as b.Population]
     Join [Inner] [(a.Population > (b.Population + 950))]
@@ -16,9 +14,8 @@ MultiStatement
     CteRef [ab as ab]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [a.Name as a.Name, a.Population as a.Population, b.Name as b.Name, b.Population as b.Population]
     PhysicalNestedLoopJoin [Inner] [(a.Population > (b.Population + 950))]
@@ -28,9 +25,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ab as ab]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [a: BasicEntity]
@@ -55,6 +51,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(a.Name: a.Name, b.Name: b.Name)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q77_NonEquiJoinSortMergeDisabled

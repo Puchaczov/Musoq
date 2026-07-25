@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with base as ( select Name, City, Population from #A.entities() where Population > 0) select b.Name, a.City, Sum(b.Population) over (partition by a.City order by b.Name rows between unbounded preceding and current row) as RunSum from base b inner join #A.entities() a on b.Name = a.Name qualify Sum(b.Population) over (partition by a.City order by b.Name rows between unbounded preceding and current row) > 100
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [base]
     MultiStatement
@@ -25,9 +23,8 @@ Cte
             CteRef [ba as ba]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [base]
     PhysicalMultiStatement
@@ -47,9 +44,8 @@ PhysicalCte
               PhysicalCteRef [ba as ba]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -106,6 +102,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(b.Name: ba.b.Name, a.City: ba.a.City, RunSum: resultSums[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q47_CteJoinFrameQualify

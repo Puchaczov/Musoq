@@ -178,12 +178,9 @@ public partial class CompilationPipelineErrorTests
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Parser returns MQ2030_UnsupportedSyntax: "Token (EndOfFile) at position X cannot be used here"
-        AssertHasOneOfErrorCodes(result, "trailing = operator without operand",
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2020_MissingOperand,
-            DiagnosticCode.MQ2017_UnexpectedEndOfFile,
-            DiagnosticCode.MQ2016_IncompleteStatement);
+        // Assert - Parser returns one typed MQ2001 diagnostic.
+        AssertHasExactlyOneErrorCode(result, "trailing = operator without operand",
+            DiagnosticCode.MQ2001_UnexpectedToken);
     }
 
     [TestMethod]
@@ -196,12 +193,9 @@ public partial class CompilationPipelineErrorTests
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Parser returns MQ2030_UnsupportedSyntax: "Token (EndOfFile) at position X cannot be used here"
-        AssertHasOneOfErrorCodes(result, "trailing AND without right operand",
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2020_MissingOperand,
-            DiagnosticCode.MQ2017_UnexpectedEndOfFile,
-            DiagnosticCode.MQ2016_IncompleteStatement);
+        // Assert - Parser returns one typed MQ2001 diagnostic.
+        AssertHasExactlyOneErrorCode(result, "trailing AND without right operand",
+            DiagnosticCode.MQ2001_UnexpectedToken);
     }
 
     [TestMethod]

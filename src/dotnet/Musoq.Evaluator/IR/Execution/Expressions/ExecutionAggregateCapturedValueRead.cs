@@ -16,7 +16,7 @@ public sealed record ExecutionAggregateCapturedValueRead(
         string valueName,
         Type returnType,
         AggregateCapturedField capturedField)
-        : this(group, valueName, ExecutionTypeRef.FromClr(returnType), capturedField)
+        : this(group, valueName, ExecutionClrBindingFactory.FromClr(returnType), capturedField)
     {
     }
 }

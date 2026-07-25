@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select City, Sum(Population) from #A.Entities() group by City union (City) select City, Sum(Population) from #A.Entities() group by City
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 SetOp [Union]
   MultiStatement
     Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Sum(ko3iko.Population)) as ko3iko.Sum(ko3iko.Population)]
@@ -22,9 +20,8 @@ SetOp [Union]
       CteRef [vo04qtScore as vo04qtScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalSetOp [Union]
   PhysicalMultiStatement
     PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Sum(ko3iko.Population)) as ko3iko.Sum(ko3iko.Population)]
@@ -40,9 +37,8 @@ PhysicalSetOp [Union]
       PhysicalCteRef [vo04qtScore as vo04qtScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -84,6 +80,8 @@ ExecutionPlan [compiled]
     SetOperation [result = left Union right, HashSet]
     ReturnDeferredTable [result: LeftRow0 <- LeftShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q99_UnionWithGroupBySides

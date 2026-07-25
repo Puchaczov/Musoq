@@ -43,7 +43,7 @@ public sealed partial class RewriteQueryVisitor
         for (var i = node.Args.Length - 1; i >= 0; --i)
             args[i] = Nodes.Pop();
 
-        Nodes.Push(new ArgsListNode(args));
+        Nodes.Push(new ArgsListNode(args, node.ArgumentNames, default));
     }
 
     public void Visit(WhereNode node)

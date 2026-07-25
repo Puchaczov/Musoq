@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Logging.Abstractions;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Evaluator;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Nodes;
@@ -64,10 +65,14 @@ internal static partial class SourcePlanningPlanner
         SchemaFromNode? sourceNode,
         SourcePlanRequest request)
     {
-        var schema = context.SchemaProvider.GetSchema(scan.SchemaName);
-        var parameters = sourceNode != null
-            ? SchemaArgumentBinder.BindStaticArguments(sourceNode.Parameters)
-            : [];
+        var schema = SchemaProviderBoundary.Invoke(() => context.SchemaProvider.GetSchema(scan.SchemaName));
+        var parameters = sourceNode is Musoq.Evaluator.Parser.SchemaFromNode semanticSource
+            ? SchemaArgumentBinder.BindStaticArguments(
+                semanticSource.Parameters,
+                invocation: semanticSource.BoundInvocation)
+            : sourceNode != null
+                ? SchemaArgumentBinder.BindStaticArguments(sourceNode.Parameters)
+                : [];
         var metadataContext = new SourceMetadataContext(
             request.Identity.SourceContextId,
             CancellationToken.None,
@@ -75,12 +80,13 @@ internal static partial class SourcePlanningPlanner
             request.SourceRuntimeSettings,
             NullLogger.Instance);
 
-        var descriptor = schema.DescribeSource(
+        var descriptor = SchemaProviderBoundary.Invoke(() => schema.DescribeSource(
             scan.MethodName,
             new SourceDescribeContext(request.Identity, metadataContext),
-            parameters);
+            parameters));
 
-        var result = schema.TryPlanSource(scan.MethodName, request, parameters) ?? SourcePlanResult.RejectAll(request);
+        var result = SchemaProviderBoundary.Invoke(() => schema.TryPlanSource(scan.MethodName, request, parameters))
+                     ?? SourcePlanResult.RejectAll(request);
         result = OptimizationDiagnosticOriginMarker.Mark(result, "TryPlanSource");
         result = SourceContractDiagnosticOriginMarker.Mark(result, "TryPlanSource");
         result = OptimizationDiagnosticOriginMarker.Prepend(result, descriptor.Diagnostics, "DescribeSource");

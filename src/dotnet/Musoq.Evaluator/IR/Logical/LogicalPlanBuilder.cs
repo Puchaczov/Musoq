@@ -44,4 +44,5 @@ public sealed partial class LogicalPlanBuilder : IExpressionVisitor
     }
 
     public LogicalNode? Result => _nodeStack.Count > 0 ? _nodeStack.Peek() : null;
+
 }

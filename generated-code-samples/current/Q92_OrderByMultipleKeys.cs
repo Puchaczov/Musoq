@@ -1,30 +1,26 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select City, Country, Name, Population from #A.entities() order by Country, City desc, Population desc, Name
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Sort [ko3iko.Country, ko3iko.City DESC, ko3iko.Population DESC, ko3iko.Name]
     Project [ko3iko.City as City, ko3iko.Country as Country, ko3iko.Name as Name, ko3iko.Population as Population]
       SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalSort [ko3iko.Country, ko3iko.City DESC, ko3iko.Population DESC, ko3iko.Name]
     PhysicalProject [ko3iko.City as City, ko3iko.Country as Country, ko3iko.Name as Name, ko3iko.Population as Population]
       PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -53,6 +49,8 @@ ExecutionPlan [compiled]
     MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1, 2, 3]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q92_OrderByMultipleKeys

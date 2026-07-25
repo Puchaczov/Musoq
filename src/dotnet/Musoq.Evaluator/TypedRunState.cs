@@ -7,7 +7,8 @@ namespace Musoq.Evaluator;
 
 public sealed class TypedRunState
 {
-    private readonly IDictionary<string, object?> _parameters;
+    private readonly object _runtimeGate = new();
+    private readonly SynchronizedParameterDictionary _parameters;
     private readonly IReadOnlyList<ScriptParameterDefinition> _parameterDefinitions;
     private readonly IReadOnlyList<ScriptParameterContract> _parameterContracts;
     private readonly IReadOnlyList<ScriptParameterDefinition> _requiredParameters;
@@ -18,7 +19,9 @@ public sealed class TypedRunState
         IReadOnlyList<ScriptParameterDefinition>? parameterDefinitions = null,
         IDictionary<string, object?>? parameters = null)
     {
-        _parameters = parameters ?? new Dictionary<string, object?>(StringComparer.Ordinal);
+        _parameters = new SynchronizedParameterDictionary(
+            _runtimeGate,
+            parameters);
         _parameterDefinitions = parameterDefinitions?.ToArray() ?? Array.Empty<ScriptParameterDefinition>();
         _parameterContracts = _parameterDefinitions
             .Select(static definition => definition.Contract)
@@ -60,7 +63,7 @@ public sealed class TypedRunState
     {
         return new TypedQueryRunOptions(
             token,
-            ParameterSnapshot.CaptureMutableOrEmpty(_parameters),
+            _parameters.Snapshot(),
             PhaseChangedHandlers,
             DataSourceProgressHandlers);
     }

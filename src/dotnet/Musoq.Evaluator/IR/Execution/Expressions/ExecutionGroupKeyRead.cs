@@ -16,7 +16,7 @@ public sealed record ExecutionGroupKeyRead(
         string keyName,
         Type returnType,
         AggregateGroupKeyField? key = null)
-        : this(group, keyName, ExecutionTypeRef.FromClr(returnType), key)
+        : this(group, keyName, ExecutionClrBindingFactory.FromClr(returnType), key)
     {
     }
 }

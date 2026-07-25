@@ -8,7 +8,7 @@ using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Plugins;
 using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.PostOperations;
 
 internal sealed class PostOperationPlanner
 {
@@ -19,7 +19,7 @@ internal sealed class PostOperationPlanner
     public PostOperationPlanner(Func<string, int, string>? createIdentifierCandidate = null)
     {
         _createIdentifierCandidate = createIdentifierCandidate ??
-                                     GeneratedRowNamingPolicy.CreateLoweringIdentifierCandidate;
+                                     ExecutionSymbolicNamePolicy.CreateLoweringIdentifierCandidate;
     }
 
     public PostOperationResult CreatePostOperation(
@@ -172,7 +172,7 @@ internal sealed class PostOperationPlanner
         GeneratedRowShape rowShape)
     {
         var keys = CreatePostOperationOrderFields("sort", operation.Keys, operation.ProjectedFields, rowShape);
-        if (!keys.Supported)
+        if (!keys.IsBuilt)
             return PostOperationResult.Unsupported(keys.UnsupportedReason);
 
         var target = new ExecutionVariable($"{sourceTable.Name}Sorted", typeof(object));
@@ -195,7 +195,7 @@ internal sealed class PostOperationPlanner
         GeneratedRowShape rowShape)
     {
         var keys = CreatePostOperationOrderFields("top-n", operation.Keys, operation.ProjectedFields, rowShape);
-        if (!keys.Supported)
+        if (!keys.IsBuilt)
             return PostOperationResult.Unsupported(keys.UnsupportedReason);
 
         var target = new ExecutionVariable($"{sourceTable.Name}TopN", typeof(object));
@@ -219,7 +219,7 @@ internal sealed class PostOperationPlanner
         GeneratedRowShape rowShape)
     {
         var keys = CreatePostOperationOrderFields("top-offset", operation.Keys, operation.ProjectedFields, rowShape);
-        if (!keys.Supported)
+        if (!keys.IsBuilt)
             return PostOperationResult.Unsupported(keys.UnsupportedReason);
 
         var target = new ExecutionVariable($"{sourceTable.Name}TopOffset", typeof(object));
@@ -302,7 +302,7 @@ internal sealed class PostOperationPlanner
             target);
     }
 
-    private static BuildResult<IReadOnlyList<ExecutionOrderField>> CreatePostOperationOrderFields(
+    private static LoweringAttempt<IReadOnlyList<ExecutionOrderField>> CreatePostOperationOrderFields(
         string operationName,
         IReadOnlyList<OrderField> orderKeys,
         IReadOnlyList<ProjectedField> projectedFields,
@@ -315,14 +315,14 @@ internal sealed class PostOperationPlanner
             var field = RowShapeLookup.ResolveProjectedField(rowShape, key, projectedFields);
             if (field == null)
             {
-                return BuildResult<IReadOnlyList<ExecutionOrderField>>.Unsupported(
+                return LoweringAttempt<IReadOnlyList<ExecutionOrderField>>.Unsupported(
                     $"Execution IR {operationName} lowering cannot resolve order key '{IrExpressionPrinter.Print(key.Expression)}' in projected fields.");
             }
 
             keys.Add(new ExecutionOrderField(field.Name, field.OutputIndex, field.Type, key.Descending, key.NullOrdering));
         }
 
-        return BuildResult<IReadOnlyList<ExecutionOrderField>>.Success(keys);
+        return LoweringAttempt<IReadOnlyList<ExecutionOrderField>>.Built(keys);
     }
 
     private static ExecutionColumnMetadata CreateTablePostOperationMetadata(
@@ -339,7 +339,7 @@ internal sealed class PostOperationPlanner
 
     private static bool CanUseBoundedTopOffset(IReadOnlyList<ExecutionOrderField> keys)
     {
-        return keys.Count > 0 && keys.All(static key => IsSupportedTopOffsetKeyType(key.Type.ClrType));
+        return keys.Count > 0 && keys.All(static key => IsSupportedTopOffsetKeyType(key.Type.ResolveClrType()));
     }
 
     private static bool IsSupportedTopOffsetKeyType(Type type)

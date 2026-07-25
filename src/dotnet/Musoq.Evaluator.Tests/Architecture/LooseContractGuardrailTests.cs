@@ -147,7 +147,8 @@ public sealed class LooseContractGuardrailTests
             "OrderingStrategySelectionPass",
             "WindowMaterializationPass",
             "SourcePredicatePhysicalRewritePass",
-            "SourcePlanPhysicalRewritePass");
+            "SourcePlanPhysicalRewritePass",
+            "RecursiveCteInvariantPlanningPass");
 
         AssertPassOrder(
             ExecutionIrOptimizationGroup.Passes,

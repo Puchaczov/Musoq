@@ -16,7 +16,7 @@ public sealed record ExecutionArrayAccess(
         ExecutionExpression index,
         Type elementType,
         Type returnType)
-        : this(array, index, ExecutionTypeRef.FromClr(elementType), ExecutionTypeRef.FromClr(returnType))
+        : this(array, index, ExecutionClrBindingFactory.FromClr(elementType), ExecutionClrBindingFactory.FromClr(returnType))
     {
     }
 }

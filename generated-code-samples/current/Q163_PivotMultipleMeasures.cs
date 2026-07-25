@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 pivot #A.entities()
                   on Month in ('Jan' as Jan, 'Feb' as Feb)
                   using Sum(Money) as Sales, Count(*) as Orders
@@ -8,9 +7,8 @@ pivot #A.entities()
                   order by City
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(*) filter (where Month = 'Feb')) as ko3iko.Count(*) filter (where Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'), AggRef(ko3iko.Count(*) filter (where Month = 'Jan')) as ko3iko.Count(*) filter (where Month = 'Jan'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')]
     Aggregate [keys: City] [aggs: Count(*) filter (where Month = 'Feb'), Sum(Money) filter (where Month = 'Feb'), Count(*) filter (where Month = 'Jan'), Sum(Money) filter (where Month = 'Jan')]
@@ -20,9 +18,8 @@ MultiStatement
       CteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(*) filter (where Month = 'Feb')) as ko3iko.Count(*) filter (where Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'), AggRef(ko3iko.Count(*) filter (where Month = 'Jan')) as ko3iko.Count(*) filter (where Month = 'Jan'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')]
     PhysicalSingleKeyAggregate [key: City (String)] [aggs: Count(*) filter (where Month = 'Feb'), Sum(Money) filter (where Month = 'Feb'), Count(*) filter (where Month = 'Jan'), Sum(Money) filter (where Month = 'Jan')]
@@ -32,9 +29,8 @@ PhysicalMultiStatement
       PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -66,6 +62,8 @@ ExecutionPlan [compiled]
     SortShapeRows [result -> resultSorted by City ASC]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q163_PivotMultipleMeasures

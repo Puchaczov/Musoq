@@ -259,7 +259,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             {
                 var name = Path.GetFileName(file);
                 return name.StartsWith("PhysicalPlanBuilder", StringComparison.Ordinal) ||
-                       name.StartsWith("PhysicalToExecutionPlanBuilder", StringComparison.Ordinal) ||
+                       name.StartsWith("PhysicalLoweringImplementation", StringComparison.Ordinal) ||
                        name.StartsWith("ExecutionCSharpRenderer", StringComparison.Ordinal);
             })
             .ToArray();
@@ -275,7 +275,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
                 var relativePath = Path.GetRelativePath(executionRoot, file).Replace(Path.DirectorySeparatorChar, '/');
                 var name = Path.GetFileName(file);
                 return name.StartsWith("ExecutionCSharpRenderer", StringComparison.Ordinal) ||
-                       name.StartsWith("PhysicalToExecutionPlanBuilder", StringComparison.Ordinal) ||
+                       name.StartsWith("PhysicalLoweringImplementation", StringComparison.Ordinal) ||
                        relativePath.StartsWith("Lowering/", StringComparison.Ordinal) ||
                        relativePath.StartsWith("Rendering/", StringComparison.Ordinal);
             })

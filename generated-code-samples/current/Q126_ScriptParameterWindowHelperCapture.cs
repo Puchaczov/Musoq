@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 param(country: string, label: string)
               select Name,
                      RowNumber() over (
@@ -11,18 +10,16 @@ param(country: string, label: string)
               from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, WindowRef(0) as rn, $label as WindowLabel]
     Window [RowNumber(idx:0; partition: CASE WHEN (ko3iko.Country = $country) THEN $country ELSE ko3iko.Country END; order: (ko3iko.Name || $label))]
       SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, WindowRef(0) as rn, $label as WindowLabel]
     PhysicalWindow [RowNumber(idx:0; partition: CASE WHEN (ko3iko.Country = $country) THEN $country ELSE ko3iko.Country END; order: (ko3iko.Name || $label))]
@@ -30,9 +27,8 @@ PhysicalMultiStatement
         PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -52,6 +48,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name, rn: resultRowNumbers[windowIndex], WindowLabel: $label)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q126_ScriptParameterWindowHelperCapture

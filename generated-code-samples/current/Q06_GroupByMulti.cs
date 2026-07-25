@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select City, Country, Count(Name) from #A.entities() group by City, Country
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Country as ko3iko.Country, ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(ko3iko.Name)) as ko3iko.Count(ko3iko.Name)]
     Aggregate [keys: City, Country] [aggs: Count(Name)]
@@ -15,9 +13,8 @@ MultiStatement
     CteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Country as ko3iko.Country, ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(ko3iko.Name)) as ko3iko.Count(ko3iko.Name)]
     PhysicalValueTupleAggregate [keys: City, Country] [aggs: Count(Name)]
@@ -26,9 +23,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -54,6 +50,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(City: finalGroup.City, Country: finalGroup.Country, Count(Name): ko3iko.Count(ko3iko.Name))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q06_GroupByMulti

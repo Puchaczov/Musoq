@@ -4,8 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Evaluator.Visitors.CodeGeneration;
-using Musoq.Evaluator.Visitors.Helpers;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -69,7 +68,8 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
             _context.Generator,
             DefaultClassName,
             members,
-            IsInstrumentationEnabled);
+            IsInstrumentationEnabled,
+            _context.EnableContextualExecution);
     }
 
     private IEnumerable<string> ResolveNamespaces(IReadOnlyList<SyntaxNode> members)
@@ -143,7 +143,8 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                     computeMethodName,
                     resultInfo,
                     _context.ScriptParameterDefinitions,
-                    _context.ForceTableResultMaterialization);
+                    _context.ForceTableResultMaterialization,
+                    _context.EnableContextualExecution);
             }
             else
             {
@@ -152,7 +153,8 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                     computeMethodName,
                     resultInfo,
                     _context.ScriptParameterDefinitions,
-                    forceTableResultMaterialization: _context.ForceTableResultMaterialization);
+                    forceTableResultMaterialization: _context.ForceTableResultMaterialization,
+                    enableContextualExecution: _context.EnableContextualExecution);
             }
         }
         else if (_context.TableViaRowsResult != null)
@@ -164,7 +166,8 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                     computeMethodName,
                     _context.TableViaRowsResult,
                     _context.ScriptParameterDefinitions,
-                    _context.ForceTableResultMaterialization);
+                    _context.ForceTableResultMaterialization,
+                    _context.EnableContextualExecution);
             }
             else
             {
@@ -174,7 +177,8 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                     _context.TableViaRowsResult,
                     _context.ScriptParameterDefinitions,
                     useLifecycleWrapper: false,
-                    forceTableResultMaterialization: _context.ForceTableResultMaterialization);
+                    forceTableResultMaterialization: _context.ForceTableResultMaterialization,
+                    enableContextualExecution: _context.EnableContextualExecution);
             }
         }
         else if (IsInstrumentationEnabled)
@@ -183,14 +187,18 @@ public sealed class CompiledQueryClassRenderer(RenderContext context)
                 members,
                 $"{computeMethodName}(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token, null)",
                 $"{computeMethodName}(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token, profileRecorder)",
-                _context.ScriptParameterDefinitions);
+                _context.ScriptParameterDefinitions,
+                $"{computeMethodName}(queryContext.Provider!, queryContext.SourceRuntimeSettingsBySourceContextId, queryContext.SourceExecutionPlans, queryContext.Logger!, queryContext.CancellationToken, null)",
+                _context.EnableContextualExecution);
         }
         else
         {
             ClassEmitter.AddRunnableMembers(
                 members,
                 $"{computeMethodName}(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token)",
-                _context.ScriptParameterDefinitions);
+                _context.ScriptParameterDefinitions,
+                $"{computeMethodName}(queryContext.Provider!, queryContext.SourceRuntimeSettingsBySourceContextId, queryContext.SourceExecutionPlans, queryContext.Logger!, queryContext.CancellationToken)",
+                _context.EnableContextualExecution);
         }
 
         return members;

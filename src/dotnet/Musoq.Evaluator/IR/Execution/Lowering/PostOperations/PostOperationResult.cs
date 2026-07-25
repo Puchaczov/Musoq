@@ -1,7 +1,7 @@
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.PostOperations;
 
 internal sealed record PostOperationResult(
-    bool Supported,
+    bool IsBuilt,
     ExecutionNode Node,
     ExecutionVariable Target,
     string UnsupportedReason)

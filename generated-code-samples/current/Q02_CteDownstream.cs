@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with cte as (select Name, Population from #A.entities() where Population > 0) select Name, Population from cte
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [cte]
     MultiStatement
@@ -19,9 +17,8 @@ Cte
         CteRef [cte as cte]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [cte]
     PhysicalMultiStatement
@@ -34,9 +31,8 @@ PhysicalCte
         PhysicalCteRef [cte as cte]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -56,6 +52,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(Name: ko3iko.Name, Population: population)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q02_CteDownstream

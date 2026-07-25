@@ -27,16 +27,16 @@ public sealed class WindowLoweringModelTests
         var plugin = WindowRegistrationBuildResult.SuccessPlugin(registration, pluginFactory);
         var unsupported = WindowRegistrationBuildResult.Unsupported("unsupported frame");
 
-        Assert.IsTrue(ranking.Supported);
+        Assert.IsTrue(ranking.IsBuilt);
         Assert.AreSame(registration, ranking.Registration);
         Assert.AreEqual(ExecutionRankingWindowFunction.RowNumber, ranking.RankingFunction);
         Assert.IsNull(ranking.OffsetFunction);
-        Assert.IsTrue(offset.Supported);
+        Assert.IsTrue(offset.IsBuilt);
         Assert.AreEqual(ExecutionOffsetWindowFunction.Lag, offset.OffsetFunction);
         Assert.IsNull(offset.RankingFunction);
-        Assert.IsTrue(plugin.Supported);
+        Assert.IsTrue(plugin.IsBuilt);
         Assert.AreSame(pluginFactory, plugin.PluginFactory);
-        Assert.IsFalse(unsupported.Supported);
+        Assert.IsFalse(unsupported.IsBuilt);
         Assert.AreEqual("unsupported frame", unsupported.UnsupportedReason);
     }
 
@@ -50,11 +50,11 @@ public sealed class WindowLoweringModelTests
         var success = WindowComputationBuildResult.Success(registration, node, results);
         var unsupported = WindowComputationBuildResult.Unsupported("bad window");
 
-        Assert.IsTrue(success.Supported);
+        Assert.IsTrue(success.IsBuilt);
         Assert.AreSame(registration, success.Registration);
         Assert.AreSame(node, success.Node);
         Assert.AreSame(results, success.Results);
-        Assert.IsFalse(unsupported.Supported);
+        Assert.IsFalse(unsupported.IsBuilt);
         Assert.IsInstanceOfType<ExecutionMaterializeList>(unsupported.Node);
         Assert.AreEqual(string.Empty, unsupported.Results.Name);
         Assert.AreEqual("bad window", unsupported.UnsupportedReason);
@@ -70,12 +70,12 @@ public sealed class WindowLoweringModelTests
         var success = OffsetWindowArgumentsBuildResult.Success(value, offset, defaultValue);
         var unsupported = OffsetWindowArgumentsBuildResult.Unsupported("bad offset");
 
-        Assert.IsTrue(success.Supported);
+        Assert.IsTrue(success.IsBuilt);
         Assert.AreSame(value, success.Value);
         Assert.AreSame(offset, success.Offset);
         Assert.AreSame(defaultValue, success.DefaultValue);
-        Assert.IsFalse(unsupported.Supported);
-        Assert.AreEqual(typeof(object), unsupported.Value.ReturnType.ClrType);
+        Assert.IsFalse(unsupported.IsBuilt);
+        Assert.AreEqual(typeof(object), unsupported.Value.ReturnType.ResolveClrType());
         Assert.AreEqual("bad offset", unsupported.UnsupportedReason);
     }
 
@@ -96,12 +96,12 @@ public sealed class WindowLoweringModelTests
         var success = PluginWindowArgumentsBuildResult.Success(value, arguments, rowScoped, methodTargets);
         var unsupported = PluginWindowArgumentsBuildResult.Unsupported("bad plugin");
 
-        Assert.IsTrue(success.Supported);
+        Assert.IsTrue(success.IsBuilt);
         Assert.AreSame(value, success.Value);
         Assert.AreSame(arguments, success.Arguments);
         Assert.AreSame(rowScoped, success.RowScopedArguments);
         Assert.AreSame(methodTargets, success.MethodTargets);
-        Assert.IsFalse(unsupported.Supported);
+        Assert.IsFalse(unsupported.IsBuilt);
         Assert.HasCount(0, unsupported.Arguments);
         Assert.HasCount(0, unsupported.RowScopedArguments);
         Assert.HasCount(0, unsupported.MethodTargets);

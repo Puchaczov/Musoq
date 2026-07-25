@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Bindings;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.ProjectionAndApply;
 
 internal sealed record ProjectionFieldCollectionResult(
-    bool Supported,
+    bool IsBuilt,
     string UnsupportedReason)
 {
     public static ProjectionFieldCollectionResult Success()
@@ -36,7 +36,7 @@ internal sealed record NullExtendedProjectedValue(
     ExecutionExpression UnmatchedValue);
 
 internal sealed record NullExtendedProjectionBuildResult(
-    bool Supported,
+    bool IsBuilt,
     GeneratedRowShape ResultShape,
     ExecutionAppendRow MatchedAppendRow,
     ExecutionAppendRow UnmatchedAppendRow,
@@ -70,7 +70,7 @@ internal sealed record FullOuterNullExtendedProjectedValue(
     ExecutionExpression RightOnlyValue);
 
 internal sealed record FullOuterNullExtendedProjectionBuildResult(
-    bool Supported,
+    bool IsBuilt,
     GeneratedRowShape ResultShape,
     ExecutionAppendRow MatchedAppendRow,
     ExecutionAppendRow LeftOnlyAppendRow,
@@ -103,7 +103,7 @@ internal sealed record FullOuterNullExtendedProjectionBuildResult(
 }
 
 internal sealed record OuterApplyFilterBuildResult(
-    bool Supported,
+    bool IsBuilt,
     ExecutionBlock MatchedAppendBlock,
     ExecutionBlock UnmatchedAppendBlock,
     string UnsupportedReason)
@@ -122,7 +122,7 @@ internal sealed record OuterApplyFilterBuildResult(
 }
 
 internal sealed record OuterApplyNullSubstitutionResult(
-    bool Supported,
+    bool IsBuilt,
     bool IsUnknown,
     ExecutionExpression Expression,
     string UnsupportedReason)
@@ -144,7 +144,7 @@ internal sealed record OuterApplyNullSubstitutionResult(
 }
 
 internal sealed record OuterApplyArgumentSubstitutionResult(
-    bool Supported,
+    bool IsBuilt,
     IReadOnlyList<ExecutionExpression> Expressions,
     bool HasUnknown,
     string UnsupportedReason)
@@ -163,7 +163,7 @@ internal sealed record OuterApplyArgumentSubstitutionResult(
 }
 
 internal sealed record OuterApplyCaseElseSubstitutionResult(
-    bool Supported,
+    bool IsBuilt,
     bool IsUnknown,
     ExecutionExpression? Expression,
     string UnsupportedReason)

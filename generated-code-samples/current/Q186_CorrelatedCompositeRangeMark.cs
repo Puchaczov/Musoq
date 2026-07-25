@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT a.City,
                      CASE WHEN EXISTS (
                          SELECT b.City
@@ -12,9 +11,8 @@ SELECT a.City,
               FROM #A.entities() a
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [_sq_1]
     MultiStatement
@@ -30,9 +28,8 @@ Cte
         CteRef [a_sq_1 as a_sq_1]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [_sq_1]
     PhysicalMultiStatement
@@ -48,9 +45,8 @@ PhysicalCte
         PhysicalCteRef [a_sq_1 as a_sq_1]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [b: BasicEntity]
@@ -97,6 +93,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(a.City: a.City, HasEarlierPeer: CASE WHEN FALSE THEN 'Y' ELSE 'N' END)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q186_CorrelatedCompositeRangeMark

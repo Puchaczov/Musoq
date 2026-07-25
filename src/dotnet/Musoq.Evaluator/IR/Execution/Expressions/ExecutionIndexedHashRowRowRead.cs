@@ -10,7 +10,7 @@ public sealed record ExecutionIndexedHashRowRowRead(
     ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
 {
     internal ExecutionIndexedHashRowRowRead(ExecutionVariable indexedRow, Type returnType)
-        : this(indexedRow, ExecutionTypeRef.FromClr(returnType))
+        : this(indexedRow, ExecutionClrBindingFactory.FromClr(returnType))
     {
     }
 }

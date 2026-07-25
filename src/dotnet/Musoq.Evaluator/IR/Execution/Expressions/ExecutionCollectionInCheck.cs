@@ -16,7 +16,7 @@ public sealed record ExecutionCollectionInCheck(
         ExecutionScriptParameterRead collection,
         Type elementType,
         Type returnType)
-        : this(expression, collection, ExecutionTypeRef.FromClr(elementType), ExecutionTypeRef.FromClr(returnType))
+        : this(expression, collection, ExecutionClrBindingFactory.FromClr(elementType), ExecutionClrBindingFactory.FromClr(returnType))
     {
     }
 }

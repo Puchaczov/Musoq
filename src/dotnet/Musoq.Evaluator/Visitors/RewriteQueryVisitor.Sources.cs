@@ -23,12 +23,15 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(SchemaFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(
-            node is Parser.SchemaFromNode schemaFromNode
-                ? new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias,
-                    node.QueryId, schemaFromNode.HasExternallyProvidedTypes)
-                : new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias,
-                    node.QueryId, false));
+        var rewritten = node is Parser.SchemaFromNode schemaFromNode
+            ? new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias,
+                node.QueryId, schemaFromNode.HasExternallyProvidedTypes)
+            : new Parser.SchemaFromNode(node.Schema, node.Method, (ArgsListNode)Nodes.Pop(), node.Alias,
+                node.QueryId, false);
+        if (node is Parser.SchemaFromNode boundSource &&
+            boundSource.BoundInvocation is { } boundInvocation)
+            rewritten.SetBoundInvocation(boundInvocation);
+        Nodes.Push(rewritten);
     }
 
     public void Visit(JoinSourcesTableFromNode node)

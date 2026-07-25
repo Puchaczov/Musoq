@@ -15,12 +15,6 @@ public static partial class KeywordLookup
         return Operators.TryGetValue(text, out tokenType);
     }
 
-    /// <summary>
-    ///     Checks if the text is a schema-specific keyword.
-    /// </summary>
-    /// <param name="text">The text to check.</param>
-    /// <returns>True if the text is a schema keyword.</returns>
-
     private static bool EqualsKeyword(ReadOnlySpan<char> text, string keyword)
     {
         return text.Equals(keyword.AsSpan(), StringComparison.OrdinalIgnoreCase);
@@ -31,4 +25,5 @@ public static partial class KeywordLookup
         tokenType = value;
         return value != TokenType.Word;
     }
+
 }

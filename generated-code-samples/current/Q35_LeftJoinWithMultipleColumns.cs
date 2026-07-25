@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select a.Name, a.City, b.Country, b.Population from #A.entities() a left outer join #A.entities() b on a.Id = b.Id
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [a.Name as a.Name, a.City as a.City, a.Id as a.Id, b.Country as b.Country, b.Population as b.Population, b.Id as b.Id]
     Join [LeftOuter] [(a.Id = b.Id)]
@@ -16,9 +14,8 @@ MultiStatement
     CteRef [ab as ab]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [a.Name as a.Name, a.City as a.City, a.Id as a.Id, b.Country as b.Country, b.Population as b.Population, b.Id as b.Id]
     PhysicalHashJoin [LeftOuter] [build: b.Id] [probe: a.Id]
@@ -28,9 +25,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ab as ab]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [a: BasicEntity]
@@ -64,6 +60,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(a.Name: a.Name, a.City: a.City, b.Country: NULL, b.Population: NULL)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q35_LeftJoinWithMultipleColumns

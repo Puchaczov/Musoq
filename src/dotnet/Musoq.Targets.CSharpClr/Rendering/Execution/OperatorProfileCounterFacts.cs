@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Musoq.Evaluator.Diagnostics;
 using Musoq.Evaluator.IR.Execution.Facts;
-using Musoq.Evaluator.Visitors.CodeGeneration;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -62,6 +62,7 @@ internal static class OperatorProfileCounterFacts
                 ExecutionParallelSingleKeyAggregateLoop parallelAggregate => TryCreateCountExpression(parallelAggregate.SourceRows),
                 ExecutionHashProbe => CreateLiteralOne(),
                 ExecutionKeySetProbe => CreateLiteralOne(),
+                ExecutionRecursiveCteAppend => CreateLiteralOne(),
                 ExecutionGetOrAddSingleKeyAggregateGroup => CreateLiteralOne(),
                 ExecutionGetOrAddValueTupleAggregateGroup => CreateLiteralOne(),
                 _ => null
@@ -160,7 +161,7 @@ internal static class OperatorProfileCounterFacts
     }
 
     public static bool UsesLoopRowCounters(ExecutionNode node) =>
-        node is ExecutionForEach or ExecutionForEach or ExecutionForEachWithOrdinality or ExecutionForEachWithOrdinality or ExecutionForEachIndexed;
+        node is ExecutionForEach or ExecutionForEachWithOrdinality or ExecutionForEachIndexed or ExecutionRecursiveCte;
 
     public static bool IsCounterOnlyNode(ExecutionNode node) =>
         node is
@@ -178,6 +179,7 @@ internal static class OperatorProfileCounterFacts
             ExecutionHashProbe or
             ExecutionKeySetAdd or
             ExecutionKeySetProbe or
+            ExecutionRecursiveCteAppend or
             ExecutionAggregateSet or
             ExecutionAggregateCapturedValueSet ||
         node is ExecutionForEach forEach && IsProbeMatchLoop(forEach);
@@ -202,6 +204,7 @@ internal static class OperatorProfileCounterFacts
             "HashProbe" or
             "KeySetAdd" or
             "KeySetProbe" or
+            "RecursiveAppend" or
             "TypedAggregateSet" or
             "AggregateCapturedValueSet" ||
         IsProbeMatchLoopDescriptor(descriptor);

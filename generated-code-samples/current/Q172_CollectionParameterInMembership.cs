@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 param(ids: int[])
               select Name, Id
               from #A.entities()
@@ -8,9 +7,8 @@ param(ids: int[])
               order by Name
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Sort [ko3iko.Name]
     Project [ko3iko.Name as Name, ko3iko.Id as Id]
@@ -18,9 +16,8 @@ MultiStatement
         SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalSort [ko3iko.Name]
     PhysicalProject [ko3iko.Name as Name, ko3iko.Id as Id]
@@ -28,9 +25,8 @@ PhysicalMultiStatement
         PhysicalSchemaScan [#A.entities() as ko3iko] [pushdown: ko3iko.Id IN $ids]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -55,6 +51,8 @@ ExecutionPlan [compiled]
     MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q172_CollectionParameterInMembership

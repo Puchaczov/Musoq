@@ -1,23 +1,20 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT Name, Department,
                      Sum(ToDecimal(Salary)) over (partition by Department order by Salary) as RunningSalary
               FROM #test.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, ko3iko.Department as Department, WindowRef(0) as RunningSalary]
     Window [Sum(idx:0; partition: ko3iko.Department; order: ko3iko.Salary; args: ToDecimal(ko3iko.Salary))]
       SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, ko3iko.Department as Department, WindowRef(0) as RunningSalary]
     PhysicalWindow [Sum(idx:0; partition: ko3iko.Department; order: ko3iko.Salary; args: ToDecimal(ko3iko.Salary))]
@@ -25,9 +22,8 @@ PhysicalMultiStatement
         PhysicalSchemaScan [#test.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2RegressionEntity]
@@ -48,6 +44,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name, Department: ko3iko.Department, RunningSalary: resultSums[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q101_RuntimeV2WindowRunningSum

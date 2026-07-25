@@ -26,7 +26,7 @@ public sealed class TargetRuntimeContractBuilderTests
             0,
             [],
             shape.Fields,
-            SourceType: ExecutionTypeRef.FromClr(typeof(SampleEntity)));
+            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity)));
         var plan = new ExecutionPlan(
             "Q_Source",
             [shape],
@@ -63,7 +63,7 @@ public sealed class TargetRuntimeContractBuilderTests
             0,
             [],
             shape.Fields,
-            SourceType: ExecutionTypeRef.FromClr(typeof(SampleEntity)));
+            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity)));
         var plan = new ExecutionPlan(
             "Q_SourceAbi",
             [shape],
@@ -126,7 +126,7 @@ public sealed class TargetRuntimeContractBuilderTests
             0,
             [new ExecutionLiteral("argument", typeof(string))],
             shape.Fields,
-            SourceType: ExecutionTypeRef.FromClr(typeof(SampleEntity)));
+            SourceType: ExecutionClrBindingFactory.FromClr(typeof(SampleEntity)));
         var plan = new ExecutionPlan(
             "Q_SourcePortableAbi",
             [shape],

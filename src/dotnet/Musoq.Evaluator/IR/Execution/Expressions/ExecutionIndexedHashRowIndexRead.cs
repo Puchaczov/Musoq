@@ -6,4 +6,4 @@ using Musoq.Evaluator.Tables;
 namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionIndexedHashRowIndexRead(
-    ExecutionVariable IndexedRow) : ExecutionExpression(ExecutionTypeRef.FromClr(typeof(int)));
+    ExecutionVariable IndexedRow) : ExecutionExpression(ExecutionClrBindingFactory.FromClr(typeof(int)));

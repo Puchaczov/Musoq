@@ -4,7 +4,7 @@ using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
 internal sealed class SingleUseHashBuildFusionLowerer
 {
@@ -21,6 +21,7 @@ internal sealed class SingleUseHashBuildFusionLowerer
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
         int schemaFromIndex,
+        LoweringScope scope,
         out FusedCteHashBuildSource fusion);
 
     private readonly Func<PhysicalCteNode, IReadOnlyDictionary<string, CteReferenceClassification>> _classifyCteReferences;
@@ -45,7 +46,8 @@ internal sealed class SingleUseHashBuildFusionLowerer
         IReadOnlyCollection<string> cteDefinitionNames,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
-        IReadOnlyDictionary<string, int> schemaFromIndexes)
+        IReadOnlyDictionary<string, int> schemaFromIndexes,
+        LoweringScope scope)
     {
         var classifications = _classifyCteReferences(cte);
         var fusions = new Dictionary<string, FusedCteHashBuildSource>(StringComparer.OrdinalIgnoreCase);
@@ -64,6 +66,7 @@ internal sealed class SingleUseHashBuildFusionLowerer
                     cteIndexes,
                     cteShapesByName,
                     schemaFromIndexes[definition.Name],
+                    scope,
                     out var fusion))
             {
                 continue;

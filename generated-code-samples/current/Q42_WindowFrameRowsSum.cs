@@ -1,21 +1,18 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Name, Population, Sum(Population) over (order by Name rows between 1 preceding and current row) as RunSum from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, ko3iko.Population as Population, WindowRef(0) as RunSum]
     Window [Sum(idx:0; order: ko3iko.Name; args: ko3iko.Population; frame: rows between 1 preceding and current row)]
       SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, ko3iko.Population as Population, WindowRef(0) as RunSum]
     PhysicalWindow [Sum(idx:0; order: ko3iko.Name; args: ko3iko.Population; frame: rows between 1 preceding and current row)]
@@ -23,9 +20,8 @@ PhysicalMultiStatement
         PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -45,6 +41,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name, Population: ko3iko.Population, RunSum: resultSums[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q42_WindowFrameRowsSum

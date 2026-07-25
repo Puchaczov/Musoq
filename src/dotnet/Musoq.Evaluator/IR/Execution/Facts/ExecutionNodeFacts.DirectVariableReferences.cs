@@ -80,6 +80,24 @@ internal static partial class ExecutionNodeFacts
             case ExecutionCreateGeneratedRow createRow:
                 yield return createRow.Row;
                 break;
+            case ExecutionRecursiveCte recursiveCte:
+                yield return recursiveCte.Result;
+                yield return recursiveCte.CurrentFrontier;
+                yield return recursiveCte.NextFrontier;
+                yield return recursiveCte.SnapshotRows;
+                if (recursiveCte.Seen != null)
+                    yield return recursiveCte.Seen;
+                break;
+            case ExecutionRecursiveCteSnapshotRowGuard guard:
+                yield return guard.Counter;
+                break;
+            case ExecutionRecursiveCteAppend append:
+                yield return append.Result;
+                yield return append.Frontier;
+                yield return append.AppendRow.Table;
+                if (append.Seen != null)
+                    yield return append.Seen;
+                break;
             case ExecutionCreateHashPayload createPayload:
                 yield return createPayload.Payload;
                 break;

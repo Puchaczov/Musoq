@@ -144,7 +144,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         foreach (var schemaFrom in _sourceBinding.AliasToSchemaFromNodeMap.Values)
         {
-            var schema = _provider.GetSchema(schemaFrom.Schema);
+            var schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaFrom.Schema));
             if (schema.TryResolveWindowFunction(functionName, out var resolved))
             {
                 factoryMethod = resolved;
@@ -154,7 +154,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         foreach (var schemaName in _sourceBinding.AllUsedSchemaNames)
         {
-            var schema = _provider.GetSchema(schemaName);
+            var schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaName));
             if (schema.TryResolveWindowFunction(functionName, out var resolved))
             {
                 factoryMethod = resolved;

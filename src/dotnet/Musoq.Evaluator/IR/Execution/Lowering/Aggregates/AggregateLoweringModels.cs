@@ -4,20 +4,20 @@ using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Aggregates;
 
 internal sealed record AggregateOnlyPipeline(
     PhysicalProjectNode Project,
     AggregateBinding[] Bindings,
-    SourcePipeline Source,
+    LoweringSourcePipeline Source,
     IrExpression? HavingPredicate,
     IReadOnlyList<PostOperation> PostOperations);
 
-internal sealed record SingleKeyAggregatePipeline(
+internal sealed record AggregateSingleKeyPipeline(
     PhysicalProjectNode Project,
     PhysicalSingleKeyAggregateNode Aggregate,
     AggregateBinding[] Bindings,
-    SourcePipeline Source,
+    LoweringSourcePipeline Source,
     IrExpression? HavingPredicate,
     IrExpression GroupKey,
     string GroupKeyName,
@@ -27,7 +27,7 @@ internal sealed record SingleKeyAggregatePipeline(
 internal sealed record ValueTupleAggregatePipeline(
     PhysicalProjectNode Project,
     AggregateBinding[] Bindings,
-    SourcePipeline Source,
+    LoweringSourcePipeline Source,
     IrExpression? HavingPredicate,
     IrExpression[] GroupKeys,
     string[] GroupKeyNames,
@@ -92,7 +92,7 @@ internal sealed record AggregateTableCompletion(
     bool IsDistinct);
 
 internal sealed record AggregateSetBuildResult(
-    bool Supported,
+    bool IsBuilt,
     IReadOnlyList<ExecutionNode> Nodes,
     IReadOnlyDictionary<string, AggregateAccumulatorField> TypedAccumulators,
     string UnsupportedReason)
@@ -119,7 +119,7 @@ internal sealed record AggregateCapturedValue(
     Type ValueType);
 
 internal sealed record AggregateGroupValueCaptureBuildResult(
-    bool Supported,
+    bool IsBuilt,
     IReadOnlyList<ExecutionNode> Nodes,
     IReadOnlyDictionary<string, AggregateCapturedValue> CapturedValues,
     string UnsupportedReason)

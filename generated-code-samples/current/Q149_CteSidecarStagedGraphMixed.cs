@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with raw as (select Id, Name, City, Country, Population from #A.entities()), names as (select Id, Name from raw), cities as (select Id, City from raw), eligible as (select Id from raw where Population > 0), joined as (select b.Id, n.Name, c.City from #B.entities() b inner join names n on b.Id = n.Id inner join cities c on b.Id = c.Id) select j.Id, j.Name, j.City from joined j semi join eligible e on j.Id = e.Id
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [raw]
     MultiStatement
@@ -45,9 +43,8 @@ Cte
           CteRef [eligible as e]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [raw]
     PhysicalMultiStatement
@@ -86,9 +83,8 @@ PhysicalCte
           PhysicalCteRef [eligible as e]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -168,6 +164,8 @@ ExecutionPlan [compiled]
                 AppendShape [result <- ResultShape0(j.Id: b.Id, j.Name: n.Name, j.City: c.City)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q149_CteSidecarStagedGraphMixed

@@ -10,7 +10,7 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private const int WideGeneratedRowColumnMapThreshold = 16;
 
-    private ClassDeclarationSyntax RenderGeneratedRowClass(
+    private MemberDeclarationSyntax RenderGeneratedRowClass(
         GeneratedRowShape shape,
         IReadOnlySet<GeneratedRowContextConstructor>? usedConstructors,
         ExecutionRenderContext context)
@@ -20,6 +20,9 @@ public sealed partial class ExecutionCSharpRenderer
             ResolveGeneratedRowCarrierBoundary(shape, context),
             ResolveGeneratedRowContextCarrierKind(shape, usedConstructors, context),
             context.Session.GeneratedRowTypesRequiringRowBase.Contains(shape.TypeName));
+
+        if (!shape.RequiresRowBase && shape.EmitAsValueType)
+            return RenderRowCarrierStruct(shape.TypeName, shape.Fields, GetGeneratedFieldName);
 
         if (!shape.RequiresRowBase)
             return RenderGeneratedRowCarrierClass(shape, usedConstructors);
@@ -77,6 +80,9 @@ public sealed partial class ExecutionCSharpRenderer
     {
         if (context.Session.GeneratedRowTypesUsedAtPublicBoundary.Contains(shape.TypeName))
             return GeneratedRowCarrierBoundary.Public;
+
+        if (shape.EmitAsValueType)
+            return GeneratedRowCarrierBoundary.Internal;
 
         return context.Session.TypedStoredTableResults.Values.Any(result =>
             string.Equals(result.RowShape.TypeName, shape.TypeName, StringComparison.Ordinal))

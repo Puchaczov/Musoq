@@ -6,7 +6,7 @@ using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tables;
 
-public partial class Table : IndexedList<Key, Row>, IReadOnlyCollection<Row>, IReadOnlyTable
+public partial class Table : IndexedList<Key, Row>, IReadOnlyCollection<Row>, IReadOnlyTable, IDisposable
 {
     private readonly Dictionary<int, Column> _columnsByIndex;
     private readonly Dictionary<string, List<Column>> _columnsByName;

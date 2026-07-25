@@ -1,5 +1,6 @@
 using BenchmarkDotNet.Attributes;
 using Musoq.Benchmarks.Baselines;
+using Musoq.Parser.Lexing;
 using Musoq.Parser.Tokens;
 
 namespace Musoq.Benchmarks;
@@ -50,6 +51,13 @@ public class LexerOptimizationBenchmark
         "myColumn", "tableName", "func123", "col_name"
     ];
 
+    private static readonly string[] ProductionKeywordInputs =
+    [
+        "SELECT", "select", "Select", "FROM", "from", "From", "WHERE", "where", "Where",
+        "AND", "and", "And", "EXISTS", "exists", "Exists", "ANY", "some", "All",
+        "CONTAINS", "contains", "Contains", "WINDOW", "window", "column_name", "not_a_keyword"
+    ];
+
     /// <summary>
     ///     Baseline: Switch-based lookup with ToLowerInvariant allocation.
     /// </summary>
@@ -82,5 +90,31 @@ public class LexerOptimizationBenchmark
         }
 
         return count;
+    }
+
+    [Benchmark(Description = "Production span lookup")]
+    public int KeywordLookup_ProductionSpanBased()
+    {
+        var checksum = 0;
+        foreach (var keyword in ProductionKeywordInputs)
+        {
+            if (KeywordLookup.TryGetKeyword(keyword.AsSpan(), out var tokenType))
+                checksum = unchecked((checksum * 31) + (int)tokenType);
+        }
+
+        return checksum;
+    }
+
+    [Benchmark(Description = "Production string lookup")]
+    public int KeywordLookup_ProductionStringBased()
+    {
+        var checksum = 0;
+        foreach (var keyword in ProductionKeywordInputs)
+        {
+            if (KeywordLookup.TryGetKeyword(keyword, out var tokenType))
+                checksum = unchecked((checksum * 31) + (int)tokenType);
+        }
+
+        return checksum;
     }
 }

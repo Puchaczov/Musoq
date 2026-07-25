@@ -13,10 +13,22 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(JoinFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var tieBreak = node.TieBreak == null ? null : (FieldOrderedNode)PopSemanticNode();
+        var tieBreakNode = node.TieBreak == null ? null : PopSemanticNode();
+        if (tieBreakNode is not null && tieBreakNode is not FieldOrderedNode)
+            throw VisitorException.CreateForProcessingFailure(
+                nameof(BuildMetadataAndInferTypesVisitor),
+                nameof(Visit),
+                "ASOF JOIN tie-break expression did not produce an ordered field.");
+
+        var tieBreak = tieBreakNode as FieldOrderedNode;
         var expression = PopSemanticNode();
-        var joinedTable = (FromNode)PopSemanticNode();
-        var source = (FromNode)PopSemanticNode();
+        var joinedTableNode = PopSemanticNode();
+        var sourceNode = PopSemanticNode();
+        if (joinedTableNode is not FromNode joinedTable || sourceNode is not FromNode source)
+            throw VisitorException.CreateForProcessingFailure(
+                nameof(BuildMetadataAndInferTypesVisitor),
+                nameof(Visit),
+                "JOIN inputs did not produce source nodes.");
 
         if (node.JoinType is JoinType.AsOf or JoinType.AsOfLeft)
             ValidateAsOfJoinCondition(expression, source, joinedTable, tieBreak);

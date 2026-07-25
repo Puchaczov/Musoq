@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select i.Name as Name, Avg(n.Value) as ValueAvg, Min(n.Value) as ValueMin, Max(n.Value) as ValueMax from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name having Max(n.Value) >= 2 qualify RowNumber() over (order by Avg(n.Value) desc, Min(n.Value), Max(n.Value) desc) <= 1 order by Name
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [i.Name as i.Name, AggRef(inm.Max(n.Value)) as inm.Max(n.Value), AggRef(inm.Min(n.Value)) as inm.Min(n.Value), AggRef(inm.Avg(n.Value)) as inm.Avg(n.Value)]
     Having [(AggRef(inm.Max(n.Value)) >= 2)]
@@ -23,9 +21,8 @@ MultiStatement
           CteRef [inmScore as inmScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [i.Name as i.Name, AggRef(inm.Max(n.Value)) as inm.Max(n.Value), AggRef(inm.Min(n.Value)) as inm.Min(n.Value), AggRef(inm.Avg(n.Value)) as inm.Avg(n.Value)]
     PhysicalHaving [(AggRef(inm.Max(n.Value)) >= 2)]
@@ -43,9 +40,8 @@ PhysicalMultiStatement
             PhysicalCteRef [inmScore as inmScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [i: GeneratedApplySampleEntity]
@@ -100,6 +96,8 @@ ExecutionPlan [compiled]
     SortShapeRows [result -> resultSorted by Name ASC]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q75_ChainedApplyGroupedAggregateQualifyWindow

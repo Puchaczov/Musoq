@@ -305,6 +305,19 @@ couple A.Entities with table MyTable as Source;
 6. COUPLE does not define or override column read modifiers; it only binds the TABLE contract to the source alias
 7. The alias behaves like a method and is invoked with parentheses
 8. Arguments can be passed to the aliased source at query time
+
+Arguments at invocation time may use the reflected table-constructor names:
+
+```sql
+select * from Data(limit: 2, required: '4')
+select * from Data('4', limit: 2)
+```
+
+Names are case-insensitive and may be reordered after a positional prefix.
+Optional reflected defaults are applied when omitted. The TABLE declaration
+controls output shape only; it does not rename constructor parameters. Named
+arguments require `GetRawConstructors()` metadata and are lowered to the same
+canonical positional vector used by direct schema calls.
 9. Setting values are resolved by the host and are not written inline in SQL
 
 Duplicate `table` options, duplicate `settings` options, and `couple ... with` statements without at least one option are invalid.

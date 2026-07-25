@@ -10,7 +10,7 @@ public sealed record ExecutionCreateKeySet(
     ExecutionCapacityHint? CapacityHint = null) : ExecutionNode
 {
     internal ExecutionCreateKeySet(ExecutionVariable set, Type keyType, ExecutionCapacityHint? capacityHint = null)
-        : this(set, ExecutionTypeRef.FromClr(keyType), capacityHint)
+        : this(set, ExecutionClrBindingFactory.FromClr(keyType), capacityHint)
     {
     }
 }

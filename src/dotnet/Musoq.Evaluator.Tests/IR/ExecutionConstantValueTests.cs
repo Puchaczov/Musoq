@@ -29,9 +29,9 @@ public sealed class ExecutionConstantValueTests
     [TestMethod]
     public void FromClr_WhenFloatingPointEdgesAreProvided_ShouldPreserveIeeeBits()
     {
-        var single = ExecutionConstantValue.FromClr(-0.0f, ExecutionTypeRef.FromClr(typeof(float)));
+        var single = ExecutionConstantValue.FromClr(-0.0f, ExecutionClrBindingFactory.FromClr(typeof(float)));
         var nan = BitConverter.Int64BitsToDouble(unchecked((long)0x7ff8000000000042UL));
-        var doubleValue = ExecutionConstantValue.FromClr(nan, ExecutionTypeRef.FromClr(typeof(double)));
+        var doubleValue = ExecutionConstantValue.FromClr(nan, ExecutionClrBindingFactory.FromClr(typeof(double)));
 
         Assert.AreEqual(unchecked((uint)BitConverter.SingleToInt32Bits(-0.0f)), single.FloatingPointBits);
         Assert.AreEqual(0x7ff8000000000042UL, doubleValue.FloatingPointBits);
@@ -47,10 +47,10 @@ public sealed class ExecutionConstantValueTests
         var dateTimeOffset = new DateTimeOffset(638500000000000000L, TimeSpan.FromHours(2));
         var guid = Guid.Parse("00112233-4455-6677-8899-aabbccddeeff");
 
-        var stringValue = ExecutionConstantValue.FromClr(text, ExecutionTypeRef.FromClr(typeof(string)));
-        var dateTimeValue = ExecutionConstantValue.FromClr(dateTime, ExecutionTypeRef.FromClr(typeof(DateTime)));
-        var offsetValue = ExecutionConstantValue.FromClr(dateTimeOffset, ExecutionTypeRef.FromClr(typeof(DateTimeOffset)));
-        var guidValue = ExecutionConstantValue.FromClr(guid, ExecutionTypeRef.FromClr(typeof(Guid)));
+        var stringValue = ExecutionConstantValue.FromClr(text, ExecutionClrBindingFactory.FromClr(typeof(string)));
+        var dateTimeValue = ExecutionConstantValue.FromClr(dateTime, ExecutionClrBindingFactory.FromClr(typeof(DateTime)));
+        var offsetValue = ExecutionConstantValue.FromClr(dateTimeOffset, ExecutionClrBindingFactory.FromClr(typeof(DateTimeOffset)));
+        var guidValue = ExecutionConstantValue.FromClr(guid, ExecutionClrBindingFactory.FromClr(typeof(Guid)));
 
         CollectionAssert.AreEqual(new ushort[] { 0x0041, 0xD83D, 0xDE00 }, stringValue.Utf16CodeUnits.ToArray());
         Assert.AreEqual(dateTime.Ticks, dateTimeValue.Ticks);
@@ -66,29 +66,29 @@ public sealed class ExecutionConstantValueTests
     [TestMethod]
     public void FromClr_WhenEnumOrUnsupportedValueIsProvided_ShouldUseExplicitKinds()
     {
-        var enumValue = ExecutionConstantValue.FromClr(DayOfWeek.Friday, ExecutionTypeRef.FromClr(typeof(DayOfWeek)));
+        var enumValue = ExecutionConstantValue.FromClr(DayOfWeek.Friday, ExecutionClrBindingFactory.FromClr(typeof(DayOfWeek)));
         var unsupported = new UnsupportedConstant("value");
-        var clrOnly = ExecutionConstantValue.FromClr(unsupported, ExecutionTypeRef.FromClr(typeof(UnsupportedConstant)));
+        var clrOnly = ExecutionConstantValue.FromClr(unsupported, ExecutionClrBindingFactory.FromClr(typeof(UnsupportedConstant)));
 
         Assert.AreEqual(ExecutionConstantKind.Enum, enumValue.Kind);
         Assert.AreEqual(DayOfWeek.Friday, enumValue.ToClrValue());
-        Assert.AreEqual(typeof(DayOfWeek), enumValue.EnumType?.ClrType);
+        Assert.AreEqual(typeof(DayOfWeek), enumValue.EnumType?.ResolveClrType());
         Assert.AreEqual(ExecutionConstantKind.ClrOnly, clrOnly.Kind);
-        Assert.AreEqual(typeof(UnsupportedConstant), clrOnly.ClrOnlyType?.ClrType);
+        Assert.AreEqual(typeof(UnsupportedConstant), clrOnly.ClrOnlyType?.ResolveClrType());
         Assert.AreSame(unsupported, clrOnly.ToClrValue());
     }
 
     [TestMethod]
     public void ConstantSet_WhenInputCollectionChanges_ShouldRemainImmutable()
     {
-        var first = ExecutionConstantValue.FromClr(1, ExecutionTypeRef.FromClr(typeof(int)));
+        var first = ExecutionConstantValue.FromClr(1, ExecutionClrBindingFactory.FromClr(typeof(int)));
         var values = new[] { first };
         var set = new ExecutionConstantInSet(
-            ExecutionTypeRef.FromClr(typeof(int)),
+            ExecutionClrBindingFactory.FromClr(typeof(int)),
             values,
             ExecutionConstantInSetKind.Array);
 
-        values[0] = ExecutionConstantValue.FromClr(2, ExecutionTypeRef.FromClr(typeof(int)));
+        values[0] = ExecutionConstantValue.FromClr(2, ExecutionClrBindingFactory.FromClr(typeof(int)));
 
         Assert.AreSame(first, set.Values[0]);
     }
@@ -99,7 +99,7 @@ public sealed class ExecutionConstantValueTests
         ExecutionConstantKind kind,
         int bitWidth = 0)
     {
-        var value = ExecutionConstantValue.FromClr(expected, ExecutionTypeRef.FromClr(type));
+        var value = ExecutionConstantValue.FromClr(expected, ExecutionClrBindingFactory.FromClr(type));
 
         Assert.AreEqual(kind, value.Kind);
         Assert.AreEqual(bitWidth, value.BitWidth);

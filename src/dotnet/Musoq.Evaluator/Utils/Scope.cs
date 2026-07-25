@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Collections.ObjectModel;
 
 namespace Musoq.Evaluator.Utils;
 
@@ -56,5 +57,27 @@ public class Scope
         var scope = this;
         while (scope != null && scope.Name != name) scope = scope.Parent;
         return scope != null && scope.Name == name;
+    }
+
+    internal IReadOnlyDictionary<string, string> SnapshotAttributes()
+    {
+        return new ReadOnlyDictionary<string, string>(
+            new Dictionary<string, string>(_attributes, StringComparer.Ordinal));
+    }
+
+    internal ScopeSnapshot Snapshot()
+    {
+        return ScopeSnapshot.Capture(this);
+    }
+
+    internal void RestoreAttributes(IReadOnlyDictionary<string, string> attributes)
+    {
+        foreach (var attribute in attributes)
+            _attributes.Add(attribute.Key, attribute.Value);
+    }
+
+    internal void AddRestoredChild(Scope child)
+    {
+        _scopes.Add(child);
     }
 }

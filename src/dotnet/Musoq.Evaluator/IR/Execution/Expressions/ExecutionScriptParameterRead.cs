@@ -10,7 +10,7 @@ public sealed record ExecutionScriptParameterRead(
     ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
 {
     internal ExecutionScriptParameterRead(string name, Type returnType)
-        : this(name, ExecutionTypeRef.FromClr(returnType))
+        : this(name, ExecutionClrBindingFactory.FromClr(returnType))
     {
     }
 }

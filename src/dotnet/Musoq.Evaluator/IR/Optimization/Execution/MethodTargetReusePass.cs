@@ -151,7 +151,7 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
             var target = rewritten.Target;
             if (target == null)
             {
-                target = CurrentRegistry.GetOrAdd(rewritten.Method.ClrMethod, _preferredTargetNamePrefix);
+                target = CurrentRegistry.GetOrAdd(rewritten.Method.ResolveClrMethod(), _preferredTargetNamePrefix);
                 if (target == null)
                     return rewritten;
                 AssignedTargets++;
@@ -462,7 +462,7 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
         private string CreateRegistryPrefix()
         {
             var prefix = string.IsNullOrWhiteSpace(planIdentifier) ? "execution" : planIdentifier;
-            return GeneratedRowNamingPolicy.CreateLoweringIdentifierCandidate(
+            return ExecutionSymbolicNamePolicy.CreateLoweringIdentifierCandidate(
                 $"{prefix}{_nextRegistryIndex++.ToString(CultureInfo.InvariantCulture)}",
                 0);
         }

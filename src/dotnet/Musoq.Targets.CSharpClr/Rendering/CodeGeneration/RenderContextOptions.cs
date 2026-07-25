@@ -14,4 +14,5 @@ public sealed record RenderContextOptions(
     QueryResultMode ResultMode = QueryResultMode.Table,
     Type? OutputType = null,
     FinalResultSinkKind FinalResultSinkKind = FinalResultSinkKind.TableDirect,
-    bool ForceTableResultMaterialization = false);
+    bool ForceTableResultMaterialization = false,
+    bool EnableContextualExecution = false);

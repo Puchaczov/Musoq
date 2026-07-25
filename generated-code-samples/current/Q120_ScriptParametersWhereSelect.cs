@@ -1,33 +1,29 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 param(country: string, minPopulation: int = 100)
               select Name, Population, $country as RequestedCountry
               from #A.entities()
               where Country = $country and Population > $minPopulation
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, ko3iko.Population as Population, $country as RequestedCountry]
     Filter [((ko3iko.Country = $country) AND (ko3iko.Population > $minPopulation))]
       SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, ko3iko.Population as Population, $country as RequestedCountry]
     PhysicalFilter [((ko3iko.Country = $country) AND (ko3iko.Population > $minPopulation))]
       PhysicalSchemaScan [#A.entities() as ko3iko] [pushdown: (ko3iko.Country = $country), (ko3iko.Population > $minPopulation)]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -48,6 +44,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(Name: ko3iko.Name, Population: population, RequestedCountry: $country)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q120_ScriptParametersWhereSelect

@@ -9,7 +9,7 @@ using Musoq.Evaluator.Tests.Components;
 namespace Musoq.Evaluator.Tests;
 
 [TestClass]
-public sealed class GeneratedCodeProfiledSamplesShapeTests
+public sealed partial class GeneratedCodeProfiledSamplesShapeTests
 {
     private const string GeneratedCodeSectionMarker = "// === SyntaxTree:";
     private const string DisabledSimpleSelectWhereFileName = "P01_SimpleSelectWhere_Disabled.cs";
@@ -707,18 +707,18 @@ public sealed class GeneratedCodeProfiledSamplesShapeTests
 
     private static string ExtractIntermediateRepresentation(string sample, string fileName)
     {
-        const string header = "intermediate representation";
+        const string header = "// === Execution Plan ===";
 
         var headerIndex = sample.IndexOf(header, StringComparison.Ordinal);
         Assert.AreNotEqual(-1, headerIndex, $"{fileName} should contain an intermediate representation block.");
 
-        var contentStart = sample.IndexOf('\n', headerIndex);
+        var contentStart = sample.IndexOf("/*", headerIndex, StringComparison.Ordinal);
         Assert.AreNotEqual(-1, contentStart, $"{fileName} should contain an intermediate representation body.");
 
         var contentEnd = sample.IndexOf("*/", contentStart, StringComparison.Ordinal);
         Assert.AreNotEqual(-1, contentEnd, $"{fileName} should close the intermediate representation block.");
 
-        return sample[(contentStart + 1)..contentEnd].Trim();
+        return sample[(contentStart + 2)..contentEnd].Trim();
     }
 
     private static string ExtractMethod(string sample, string fileName, string methodSignaturePrefix)

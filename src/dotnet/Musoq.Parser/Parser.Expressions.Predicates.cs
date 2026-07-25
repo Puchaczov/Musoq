@@ -244,16 +244,20 @@ public partial class Parser
         return new InNode(left, new ArgsListNode(args.ToArray()));
     }
 
-    private ExistsQueryNode ComposeExistsExpression()
+    private Node ComposeExistsPredicateOrIdentifier()
     {
-        Consume(TokenType.Exists);
+        var token = ConsumeAndGetToken();
+
+        if (Current.TokenType != TokenType.LeftParenthesis)
+            return CreateContextualKeywordIdentifier(token);
+
         Consume(TokenType.LeftParenthesis);
 
         if (Current.TokenType != TokenType.Select && Current.TokenType != TokenType.From && Current.TokenType != TokenType.Pivot && Current.TokenType != TokenType.Unpivot)
             throw new SyntaxException(
                 "EXISTS requires a SELECT, FROM, PIVOT, or UNPIVOT subquery.",
                 _lexer.AlreadyResolvedQueryPart,
-                DiagnosticCode.MQ2024_InvalidSubquery,
+                DiagnosticCode.MQ2001_UnexpectedToken,
                 Current.Span);
 
         var subquery = ComposeSetOperators(1);

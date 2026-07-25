@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
@@ -117,9 +117,9 @@ internal static class RowShapeLookup
     {
         return sourceShape switch
         {
-            SourceEntityShape source when UsesReflectedMemberAccess(source) || !CanReferenceType(source.EntityType.ClrType) => typeof(object),
-            SourceEntityShape source => source.EntityType.ClrType,
-            ExpandoAdapterShape expando => expando.RuntimeType.ClrType,
+            SourceEntityShape source when UsesReflectedMemberAccess(source) || !CanReferenceType(source.EntityType.ResolveClrType()) => typeof(object),
+            SourceEntityShape source => source.EntityType.ResolveClrType(),
+            ExpandoAdapterShape expando => expando.RuntimeType.ResolveClrType(),
             TableRowShape => typeof(Row),
             ValuesRowShape => typeof(object),
             GeneratedRowShape => typeof(object),
@@ -131,8 +131,8 @@ internal static class RowShapeLookup
     {
         return sourceShape switch
         {
-            SourceEntityShape source => source.EntityType.ClrType,
-            ExpandoAdapterShape expando => expando.RuntimeType.ClrType,
+            SourceEntityShape source => source.EntityType.ResolveClrType(),
+            ExpandoAdapterShape expando => expando.RuntimeType.ResolveClrType(),
             TableRowShape => typeof(Row),
             ValuesRowShape => typeof(object),
             GeneratedRowShape => typeof(object),

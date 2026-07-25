@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with p as (select Name as Name from #A.entities()), q as (select Name as Name from #B.entities()) select p.Name, q.Name from p inner join q on p.Name = q.Name
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [p]
     MultiStatement
@@ -26,9 +24,8 @@ Cte
         CteRef [pq as pq]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [p]
     PhysicalMultiStatement
@@ -48,9 +45,8 @@ PhysicalCte
         PhysicalCteRef [pq as pq]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -97,6 +93,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(p.Name: p.Name, q.Name: q.Name)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_P07_ParallelCte_Full

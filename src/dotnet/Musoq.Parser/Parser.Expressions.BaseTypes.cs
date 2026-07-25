@@ -1,4 +1,6 @@
-﻿using Musoq.Parser.Nodes;
+﻿using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Exceptions;
+using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
 using KeyAccessToken = Musoq.Parser.Tokens.KeyAccessToken;
 using NumericAccessToken = Musoq.Parser.Tokens.NumericAccessToken;
@@ -9,6 +11,14 @@ public partial class Parser
 {
     private Node ComposeBaseTypes(int minPrecedence = 0)
     {
+        if (SqlKeywordTokenFacts.IsContextualExpressionIdentifier(Current.TokenType))
+        {
+            if (Current.TokenType == TokenType.Exists)
+                return ComposeExistsPredicateOrIdentifier();
+
+            return ComposeContextualKeywordIdentifier();
+        }
+
         switch (Current.TokenType)
         {
             case TokenType.Decimal:
@@ -29,6 +39,8 @@ public partial class Parser
             case TokenType.Take:
                 ReplaceCurrentToken(new FunctionToken(Current.Value, Current.Span));
                 return ComposeAccessMethod(string.Empty);
+            case TokenType.Function when IsExistsFunction(Current):
+                return ComposeExistsPredicateOrIdentifier();
             case TokenType.Function:
                 return TryComposeWindowFunction(ComposeAccessMethod(string.Empty));
             case TokenType.Identifier:
@@ -40,11 +52,6 @@ public partial class Parser
                 Consume(TokenType.Identifier);
 
                 return new IdentifierNode(column.Value, null, column.Span);
-            case TokenType.Any:
-            case TokenType.Some:
-            case TokenType.All:
-                token = ConsumeAndGetToken();
-                return new IdentifierNode(token.Value, null, token.Span);
             case TokenType.KeyAccess:
                 var keyAccess = (KeyAccessToken)Current;
                 Consume(TokenType.KeyAccess);
@@ -77,16 +84,17 @@ public partial class Parser
                 return new BooleanNode(false, token.Span);
             case TokenType.LeftParenthesis:
                 return ComposeParenthesizedExpressionOrScalarSubquery();
-            case TokenType.Exists:
-                return ComposeExistsExpression();
             case TokenType.Not:
                 Consume(TokenType.Not);
-                if (Current.TokenType == TokenType.Exists)
-                    return new NotNode(ComposeExistsExpression());
+                if (Current.TokenType == TokenType.Exists || IsExistsFunction(Current))
+                    return new NotNode(ComposeExistsPredicateOrIdentifier());
 
                 var previous = Previous ?? Current;
-                throw new NotSupportedException(
-                    $"Token {previous.Value}({previous.TokenType}) at position {previous.Span.Start} cannot be used here.");
+                throw new SyntaxException(
+                    $"Token {previous.Value}({previous.TokenType}) at position {previous.Span.Start} cannot be used here.",
+                    _lexer.AlreadyResolvedQueryPart,
+                    DiagnosticCode.MQ2001_UnexpectedToken,
+                    previous.Span);
             case TokenType.Hyphen:
                 Consume(TokenType.Hyphen);
                 return new StarNode(new IntegerNode("-1", "s"),
@@ -106,8 +114,11 @@ public partial class Parser
                 break;
         }
 
-        throw new NotSupportedException(
-            $"Token {Current.Value}({Current.TokenType}) at position {Current.Span.Start} cannot be used here.");
+        throw new SyntaxException(
+            $"Token {Current.Value}({Current.TokenType}) at position {Current.Span.Start} cannot be used here.",
+            _lexer.AlreadyResolvedQueryPart,
+            DiagnosticCode.MQ2001_UnexpectedToken,
+            Current.Span);
     }
 
 
@@ -159,6 +170,23 @@ public partial class Parser
         return new WordNode(token.Value, token.Span);
     }
 
+    private IdentifierNode ComposeContextualKeywordIdentifier()
+    {
+        return CreateContextualKeywordIdentifier(ConsumeAndGetToken());
+    }
+
+    private IdentifierNode CreateContextualKeywordIdentifier(Token token)
+    {
+        var identifier = _lexer.Input.Substring(token.Span.Start, token.Span.Length);
+        return new IdentifierNode(identifier, null, token.Span);
+    }
+
+    private static bool IsExistsFunction(Token token)
+    {
+        return token is FunctionToken function &&
+               function.Value.Equals(ExistsToken.TokenText, StringComparison.OrdinalIgnoreCase);
+    }
+
 
     private static bool IsSchemaKeywordToken(TokenType tokenType)
     {
@@ -179,38 +207,14 @@ public partial class Parser
                 TokenType.NullTerm or TokenType.Check or
                 TokenType.At or TokenType.Colon or
                 TokenType.Pattern or TokenType.Literal or
-                TokenType.Until or TokenType.Between or
+                TokenType.Until or
                 TokenType.Chars or TokenType.Token or
                 TokenType.Rest or TokenType.Whitespace or
                 TokenType.Optional or TokenType.Repeat or
                 TokenType.Switch or TokenType.Nested or
                 TokenType.Escaped or TokenType.Greedy or TokenType.Lazy or
                 TokenType.Lower or TokenType.Upper or
-                TokenType.Capture or TokenType.Extends or TokenType.End => true,
-            _ => false
-        };
-    }
-
-
-    private static bool IsSqlKeywordToken(TokenType tokenType)
-    {
-        return tokenType switch
-        {
-            TokenType.And or TokenType.Or or TokenType.Not or
-                TokenType.Where or TokenType.Select or TokenType.From or
-                TokenType.Pivot or TokenType.Unpivot or
-                TokenType.Like or TokenType.NotLike or TokenType.RLike or TokenType.NotRLike or
-                TokenType.As or TokenType.Is or TokenType.Null or
-                TokenType.Union or TokenType.UnionAll or TokenType.Except or TokenType.Intersect or
-                TokenType.GroupBy or TokenType.Having or TokenType.Contains or
-                TokenType.Skip or TokenType.Take or TokenType.With or
-                TokenType.InnerJoin or TokenType.OuterJoin or TokenType.CrossApply or TokenType.OuterApply or
-                TokenType.On or TokenType.OrderBy or TokenType.Asc or TokenType.Desc or
-                TokenType.Functions or TokenType.True or TokenType.False or
-                TokenType.In or TokenType.Exists or TokenType.Any or TokenType.Some or TokenType.All or
-                TokenType.NotIn or TokenType.Table or TokenType.Couple or
-                TokenType.Case or TokenType.When or TokenType.Then or TokenType.Else or
-                TokenType.Distinct or TokenType.ColumnKeyword or TokenType.Between => true,
+                TokenType.Capture or TokenType.Extends => true,
             _ => false
         };
     }

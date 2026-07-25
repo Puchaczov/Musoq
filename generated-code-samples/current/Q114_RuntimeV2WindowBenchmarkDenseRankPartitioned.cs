@@ -1,24 +1,21 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT Name,
                      Department,
                      DenseRank() over (partition by Department order by Salary desc) as rn
               FROM #test.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, ko3iko.Department as Department, WindowRef(0) as rn]
     Window [DenseRank(idx:0; partition: ko3iko.Department; order: ko3iko.Salary DESC)]
       SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, ko3iko.Department as Department, WindowRef(0) as rn]
     PhysicalWindow [DenseRank(idx:0; partition: ko3iko.Department; order: ko3iko.Salary DESC)]
@@ -26,9 +23,8 @@ PhysicalMultiStatement
         PhysicalSchemaScan [#test.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2RegressionEntity]
@@ -49,6 +45,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name, Department: ko3iko.Department, rn: resultDenseRanks[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q114_RuntimeV2WindowBenchmarkDenseRankPartitioned

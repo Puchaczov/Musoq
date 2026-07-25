@@ -8,9 +8,13 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private static Dictionary<int, string> CreateStoredRowsCacheNames(ExecutionBlock block)
     {
+        var recursiveTableIndexes = ExecutionIrAnalysis
+            .CollectNodes<ExecutionRecursiveCte>(block)
+            .Select(static recursive => recursive.TableIndex)
+            .ToHashSet();
         var singleStoreIndexes = CollectStoredTableIndexes(block)
             .GroupBy(static index => index)
-            .Where(static group => group.Count() == 1)
+            .Where(group => group.Count() == 1 && !recursiveTableIndexes.Contains(group.Key))
             .Select(static group => group.Key)
             .ToHashSet();
 

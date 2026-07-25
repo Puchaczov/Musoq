@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tables;
 
@@ -23,6 +24,43 @@ public static class QueryRows
         where TRow : Row
     {
         return new QueryRowShardedEnumerable<TRow>(shards);
+    }
+
+    public static async ValueTask<Table> MaterializeTableAsync<TRow>(
+        string name,
+        Column[] columns,
+        IAsyncEnumerable<TRow> rows,
+        CancellationToken cancellationToken)
+        where TRow : Row
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(columns);
+        ArgumentNullException.ThrowIfNull(rows);
+
+        var table = new Table(name, columns);
+        await foreach (var row in rows.WithCancellation(cancellationToken).ConfigureAwait(false))
+            table.AddDirect(row);
+
+        return table;
+    }
+
+    public static async ValueTask<Table> MaterializeChunkedTableAsync<TRow>(
+        string name,
+        Column[] columns,
+        IAsyncEnumerable<IReadOnlyList<TRow>> chunks,
+        CancellationToken cancellationToken)
+        where TRow : Row
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(columns);
+        ArgumentNullException.ThrowIfNull(chunks);
+
+        var table = new Table(name, columns);
+        await foreach (var chunk in chunks.WithCancellation(cancellationToken).ConfigureAwait(false))
+            foreach (var row in chunk)
+                table.AddDirect(row);
+
+        return table;
     }
 
     public static Table MaterializeTable<TRow>(

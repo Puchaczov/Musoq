@@ -74,6 +74,28 @@ public sealed class GeneratedCodeSamplesSnapshotTests
     }
 
     [TestMethod]
+    public void Catalog_WhenGenerated_ShouldExposeOrderedInspectionAndCodeSections()
+    {
+        var sample = GeneratedCodeSamplesCatalog.GetByFileName("Q223_RecursiveUncorrelatedApplySnapshot.cs");
+        var generated = GeneratedCodeSampleArtifacts.Generate(sample, _loggerResolver);
+        string[] markers =
+        [
+            "// === Parsed Query ===",
+            "// === Logical Plan ===",
+            "// === Physical Plan ===",
+            "// === Execution Plan ===",
+            "// === Generated C# ==="
+        ];
+        var previous = -1;
+        foreach (var marker in markers)
+        {
+            var current = generated.IndexOf(marker, StringComparison.Ordinal);
+            Assert.IsGreaterThan(previous, current, marker);
+            previous = current;
+        }
+    }
+
+    [TestMethod]
     [DynamicData(nameof(SampleData))]
     public void LocalSample_WhenRegenerated_ShouldMatchCatalogOutput(GeneratedCodeSample sample)
     {

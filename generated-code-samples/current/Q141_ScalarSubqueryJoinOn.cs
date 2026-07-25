@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT a.City, b.City
               FROM #A.entities() a
               INNER JOIN #B.entities() b ON b.City = (
@@ -10,9 +9,8 @@ SELECT a.City, b.City
               )
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [_sq_1]
     MultiStatement
@@ -35,9 +33,8 @@ Cte
         CteRef [a_sq_1b as a_sq_1b]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [_sq_1]
     PhysicalMultiStatement
@@ -60,9 +57,8 @@ PhysicalCte
         PhysicalCteRef [a_sq_1b as a_sq_1b]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [c: BasicEntity]
@@ -133,6 +129,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(a.City: a_sq_1.a.City, b.City: b.City)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q141_ScalarSubqueryJoinOn

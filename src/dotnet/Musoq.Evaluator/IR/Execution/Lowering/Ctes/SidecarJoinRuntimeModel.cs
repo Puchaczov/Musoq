@@ -3,7 +3,7 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
 internal abstract record SidecarJoinRuntimeOperation(
     IReadOnlySet<string> RequiredAliases,

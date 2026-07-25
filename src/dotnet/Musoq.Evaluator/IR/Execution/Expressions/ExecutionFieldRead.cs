@@ -16,7 +16,7 @@ public sealed record ExecutionFieldRead(
         string fieldName,
         Type returnType,
         FieldAccessStrategy? accessStrategy = null)
-        : this(alias, fieldName, ExecutionTypeRef.FromClr(returnType), accessStrategy)
+        : this(alias, fieldName, ExecutionClrBindingFactory.FromClr(returnType), accessStrategy)
     {
     }
 }

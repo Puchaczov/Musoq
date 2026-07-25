@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.PostOperations;
 
 internal abstract record PostOperation;
 

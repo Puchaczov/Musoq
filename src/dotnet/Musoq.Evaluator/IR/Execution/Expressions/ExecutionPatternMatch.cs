@@ -16,7 +16,7 @@ public sealed record ExecutionPatternMatch(
         ExecutionExpression pattern,
         PatternKind kind,
         Type returnType)
-        : this(expression, pattern, kind, ExecutionTypeRef.FromClr(returnType))
+        : this(expression, pattern, kind, ExecutionClrBindingFactory.FromClr(returnType))
     {
     }
 }

@@ -7,8 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils;
-using Musoq.Evaluator.Visitors.CodeGeneration;
-using Musoq.Evaluator.Visitors.Helpers;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Evaluator.Tests.IR;
 
@@ -67,6 +66,22 @@ public sealed class CompiledQueryClassRendererTests : IDisposable
         StringAssert.Contains(code, "return ComputeTable_ab_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, token);");
         StringAssert.Contains(code, "private Table ComputeTable_ab_0(");
         StringAssert.Contains(code, "throw new NotImplementedException();");
+    }
+
+    [TestMethod]
+    public void WhenContextualExecutionIsEnabled_ShouldEmitPerRunContract()
+    {
+        var context = new RenderContext(
+            _generator,
+            new RenderContextOptions(
+                AssemblyName: "Query.Compiled_Test",
+                EnableContextualExecution: true));
+        var renderer = new CompiledQueryClassRenderer(context);
+
+        var code = Normalize(renderer.Render("ab"));
+
+        StringAssert.Contains(code, "ITableRunnable, IContextTableRunnable, IParameterizedRunnable");
+        StringAssert.Contains(code, "public Table Run(QueryRunContext queryContext)");
     }
 
     [TestMethod]

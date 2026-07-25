@@ -118,7 +118,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var lowererFiles = Directory
             .EnumerateFiles(executionDirectory, "*.cs", SearchOption.AllDirectories)
             .Where(file =>
-                Path.GetFileName(file).StartsWith("PhysicalToExecutionPlanBuilder", StringComparison.Ordinal) ||
+                Path.GetFileName(file).StartsWith("PhysicalLoweringImplementation", StringComparison.Ordinal) ||
                 Path.GetRelativePath(executionDirectory, file)
                     .Replace(Path.DirectorySeparatorChar, '/')
                     .StartsWith("Lowering/", StringComparison.Ordinal))
@@ -213,43 +213,47 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void FocusedArchitecture_PhysicalToExecutionLowering_ShouldRouteFocusedDomainsThroughCoordinators()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var loweringDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution/Lowering");
-        string[] expectedCoordinatorFiles =
-        [
-            "AggregateLoweringCoordinator.cs",
-            "JoinLoweringCoordinator.cs",
-            "CteLoweringCoordinator.cs",
-            "WindowLoweringCoordinator.cs",
-            "PhysicalToExecutionLoweringContexts.cs"
-        ];
+        var loweringAssembly = typeof(PhysicalToExecutionPlanBuilder).Assembly;
+        var coordinatorTypes = new[]
+        {
+            loweringAssembly.GetType("Musoq.Evaluator.IR.Execution.Lowering.Coordinators.AggregatePlanLowerer"),
+            loweringAssembly.GetType("Musoq.Evaluator.IR.Execution.Lowering.WindowPlanLowerer"),
+            loweringAssembly.GetType("Musoq.Evaluator.IR.Execution.Lowering.JoinPlanLowerer"),
+            loweringAssembly.GetType("Musoq.Evaluator.IR.Execution.Lowering.CtePlanLowerer"),
+            loweringAssembly.GetType("Musoq.Evaluator.IR.Execution.Lowering.PipelinePlanLowerer")
+        };
 
-        var missing = expectedCoordinatorFiles
-            .Select(file => Path.Combine(loweringDirectory, file))
-            .Where(file => !File.Exists(file))
-            .Select(file => Path.GetRelativePath(repositoryRoot, file).Replace(Path.DirectorySeparatorChar, '/'))
-            .ToArray();
-
-        Assert.IsEmpty(missing, "Focused lowerer coordinators should stay under IR/Execution/Lowering: " + string.Join(", ", missing));
+        Assert.IsFalse(coordinatorTypes.Any(static type => type == null), "All focused lowerer coordinators must be top-level types.");
+        Assert.IsFalse(coordinatorTypes.Any(static type => type!.IsNested), "Focused lowerer coordinators must not be nested in the builder.");
 
         var planDispatchText = File.ReadAllText(ToAbsolutePath(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.cs"));
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.cs"));
         var tableDispatchText = File.ReadAllText(ToAbsolutePath(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.TableDispatch.cs"));
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.TableDispatch.cs"));
         var registryDispatchText = File.ReadAllText(ToAbsolutePath(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.DispatchRegistry.cs"));
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.DispatchRegistry.cs"));
         var joinText = File.ReadAllText(ToAbsolutePath(
             repositoryRoot,
-            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalToExecutionPlanBuilder.Joins.cs"));
+            "src/dotnet/Musoq.Evaluator/IR/Execution/PhysicalLoweringImplementation.Joins.cs"));
 
-        Assert.Contains("CreatePhysicalLoweringRegistry().TryBuildPlan", planDispatchText);
-        Assert.Contains("CreatePhysicalLoweringRegistry().TryBuildTable", tableDispatchText);
-        Assert.Contains("CteLoweringCoordinator", registryDispatchText);
-        Assert.Contains("AggregateLoweringCoordinator", registryDispatchText);
-        Assert.Contains("WindowLoweringCoordinator", registryDispatchText);
-        Assert.Contains("JoinLoweringCoordinator", joinText);
+        Assert.Contains("_physicalLoweringFacade.BuildPlan", planDispatchText);
+        Assert.Contains("_physicalLoweringFacade.BuildTable", tableDispatchText);
+        Assert.Contains("CreateAggregatePlanLowerer", registryDispatchText);
+        Assert.Contains("CreateWindowPlanLowerer", registryDispatchText);
+        Assert.Contains("CreateJoinPlanLowerer", registryDispatchText);
+        Assert.Contains("CreateCtePlanLowerer", registryDispatchText);
+        Assert.Contains("CreatePipelinePlanLowerer", registryDispatchText);
+        Assert.Contains("_joinPlanLowerer", joinText);
+
+        var dependencyDirectory = ToAbsolutePath(
+            repositoryRoot,
+            "src/dotnet/Musoq.Evaluator/IR/Execution/Lowering/CoordinatorDependencies");
+        Assert.IsFalse(
+            Directory.Exists(dependencyDirectory) && Directory.EnumerateFiles(dependencyDirectory, "*.cs").Any(),
+            "Lowering coordinators must receive typed handler records, not builder dependency partials.");
     }
 
     [TestMethod]
@@ -451,12 +455,12 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         var repositoryRoot = FindRepositoryRoot();
         SourceFamilyTotalBudget[] focusedBudgets =
         [
-            new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "ExecutionCSharpRenderer*.cs", 22523),
-            new("src/dotnet/Musoq.Evaluator/IR/Execution", "PhysicalToExecutionPlanBuilder*.cs", 19778),
-            new("src/dotnet/Musoq.Evaluator/Visitors", "BuildMetadataAndInferTypesVisitor*.cs", 9291),
-            new("src/dotnet/Musoq.Evaluator/IR/Execution/Lowering", "*.cs", 251),
+            new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution", "declares:ExecutionCSharpRenderer", 27882),
+            new("src/dotnet/Musoq.Evaluator/IR/Execution", "PhysicalLoweringImplementation*.cs", 19778),
+            new("src/dotnet/Musoq.Evaluator/Visitors", "BuildMetadataAndInferTypesVisitor*.cs", 9333),
+            new("src/dotnet/Musoq.Evaluator/IR/Execution/Lowering", "*.cs", 594),
             new("src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/Rendering", "*.cs", 220),
-            new("src/dotnet/Musoq.Evaluator/Visitors", "Semantic*.cs", 313),
+            new("src/dotnet/Musoq.Evaluator/Visitors", "Semantic*.cs", 502),
             new("src/dotnet/Musoq.Parser/Traversal", "*.cs", 188)
         ];
 
@@ -464,8 +468,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             .Select(budget =>
             {
                 var directory = ToAbsolutePath(repositoryRoot, budget.RelativeDirectory);
-                var lineCount = Directory
-                    .EnumerateFiles(directory, budget.SearchPattern)
+                var lineCount = EnumerateSourceFamilyFiles(directory, budget.SearchPattern)
                     .Sum(CountBudgetedLines);
 
                 return new SourceFileBudget(

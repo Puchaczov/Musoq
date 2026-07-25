@@ -7,4 +7,4 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionStoredTableRows(
     int TableIndex,
-    GeneratedRowShape? GeneratedRowShape = null) : ExecutionExpression(ExecutionTypeRef.FromClr(typeof(object)));
+    GeneratedRowShape? GeneratedRowShape = null) : ExecutionExpression(ExecutionClrBindingFactory.FromClr(typeof(object)));

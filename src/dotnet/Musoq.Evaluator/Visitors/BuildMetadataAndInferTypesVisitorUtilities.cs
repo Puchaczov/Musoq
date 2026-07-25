@@ -1,8 +1,8 @@
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Runtime;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -11,8 +11,16 @@ namespace Musoq.Evaluator.Visitors;
 /// </summary>
 public static partial class BuildMetadataAndInferTypesVisitorUtilities
 {
-    private static readonly ConcurrentDictionary<Type, bool> HasIndexerCache = new();
-    private static readonly ConcurrentDictionary<Type, bool> IsIndexableCache = new();
+    private static readonly WeakTypeRuntimeCache<bool> HasIndexerCache =
+        new(RuntimeCacheOptions.HasIndexerCacheSize);
+    private static readonly WeakTypeRuntimeCache<bool> IsIndexableCache =
+        new(RuntimeCacheOptions.IsIndexableCacheSize);
+
+    internal static void ClearTypeInspectionCaches()
+    {
+        HasIndexerCache.Clear();
+        IsIndexableCache.Clear();
+    }
 
     /// <summary>
     ///     Finds the closest common parent type between two types in the inheritance hierarchy.

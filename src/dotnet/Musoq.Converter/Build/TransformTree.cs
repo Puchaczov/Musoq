@@ -1,8 +1,11 @@
+using System.Runtime.ExceptionServices;
+using Musoq.Evaluator;
 using Musoq.Evaluator.TemporarySchemas;
 using Musoq.Evaluator.Utils;
 using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.Visitors;
+using System.Linq;
 
 namespace Musoq.Converter.Build;
 
@@ -18,10 +21,13 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
         items.SchemaProvider = context.SchemaProvider;
 
         ParseBuildArtifacts parseArtifacts = items.ParseArtifacts;
-        var queryTree = parseArtifacts.RawQueryTree;
+        var parsedQueryTree = parseArtifacts.RawQueryTree;
+        var queryTree = parsedQueryTree;
+        if (!RecursiveCtePrevalidation.TryValidate(queryTree, context.DiagnosticContext)) return;
 
         var preLogicalNormalization = new PreLogicalNormalizer().Normalize(queryTree);
-        queryTree = preLogicalNormalization.NormalizedRoot;
+        var normalizedQueryTree = preLogicalNormalization.NormalizedRoot;
+        queryTree = normalizedQueryTree;
         context = context with
         {
             OptimizerTraceText = OptimizationTraceTextPrinter.Print(preLogicalNormalization.Trace)
@@ -29,43 +35,63 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
         items.OptimizerTraceText = context.OptimizerTraceText;
 
         var extractColumnsVisitor = new ExtractRawColumnsVisitor();
-        var extractRawColumnsTraverseVisitor = new ExtractRawColumnsTraverseVisitor(extractColumnsVisitor);
-
-        queryTree.Accept(extractRawColumnsTraverseVisitor);
+        queryTree.Accept(new ExtractRawColumnsTraverseVisitor(extractColumnsVisitor));
 
         var metadataVisitor = CreateMetadataVisitor(context, extractColumnsVisitor.Columns);
-        var metadataTraverserVisitor = new BuildMetadataAndInferTypesTraverseVisitor(metadataVisitor);
-
+        SemanticMetadataPhaseResult? metadataPhase = null;
         try
         {
-            queryTree.Accept(metadataTraverserVisitor);
-            queryTree = metadataVisitor.Root;
+            metadataPhase = new SemanticMetadataPhaseCoordinator().Analyze(queryTree, metadataVisitor);
+            queryTree = metadataPhase.Query;
         }
         catch (Exception ex)
         {
-            if (!context.DiagnosticContext.HasErrors)
+            if (ex is OperationCanceledException)
+                throw;
+
+            if (ex is SchemaProviderFailureException providerFailure)
+            {
+                ExceptionDispatchInfo.Capture(providerFailure.InnerException ?? providerFailure).Throw();
+                throw new InvalidOperationException("Schema provider failure rethrow did not propagate.");
+            }
+
+            if (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex) &&
+                !context.DiagnosticContext.HasErrors)
                 context.DiagnosticContext.ReportException(ex);
+            else if (!EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
+                throw;
         }
 
-        if (context.DiagnosticContext.HasErrors)
+        if (context.DiagnosticContext.HasErrors || metadataPhase is null)
             return;
+
+        var metadataQueryTree = queryTree;
+        var semanticMetadata = metadataPhase.Metadata;
 
         var cteExecutionPlan = context.CompilationOptions.UseCteParallelization
             ? ComputeCteExecutionPlan(queryTree)
             : null;
         items.CteExecutionPlan = cteExecutionPlan;
 
-        var rewriter = new RewriteQueryVisitor(context.CompilationOptions);
-        var rewriteTraverser = new RewriteQueryTraverseVisitor(rewriter, new ScopeWalker(metadataTraverserVisitor.Scope));
+        var scopeArtifact = metadataPhase.Scope;
+        var rewrittenQueryTree = new SemanticRewritePhaseCoordinator().Rewrite(
+            queryTree,
+            scopeArtifact,
+            context.CompilationOptions);
+        queryTree = rewrittenQueryTree;
 
-        queryTree.Accept(rewriteTraverser);
-
-        queryTree = rewriter.RootScript;
-
-        var semanticArtifacts = BuildSemanticArtifacts(queryTree, metadataVisitor, metadataTraverserVisitor, cteExecutionPlan);
+        var semanticArtifacts = BuildSemanticArtifacts(
+            parsedQueryTree,
+            normalizedQueryTree,
+            metadataQueryTree,
+            rewrittenQueryTree,
+            semanticMetadata,
+            scopeArtifact,
+            cteExecutionPlan,
+            context.DiagnosticContext.Diagnostics.ToArray());
         items.SemanticArtifacts = semanticArtifacts;
 
-        var planningStage = BuildPlans(semanticArtifacts, metadataVisitor, context);
+        var planningStage = BuildPlans(semanticArtifacts, context);
         PlanningBuildArtifacts? planningArtifacts = null;
         if (planningStage != null)
         {
@@ -93,8 +119,7 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
             semanticArtifacts,
             planningArtifacts,
             executionStage.Artifacts,
-            metadataVisitor,
-            metadataTraverserVisitor);
+            scopeArtifact);
         if (renderingStage == null)
             return;
 

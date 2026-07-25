@@ -113,21 +113,7 @@ internal static class CompiledQueryArtifactSupport
 
     public static string ComputeCompilationOptionsSignature(CompilationOptions options)
     {
-        ArgumentNullException.ThrowIfNull(options);
-
-        var builder = new StringBuilder();
-        AppendOption(builder, nameof(options.ParallelizationMode), options.ParallelizationMode);
-        AppendOption(builder, nameof(options.UseHashJoin), options.UseHashJoin);
-        AppendOption(builder, nameof(options.UseSortMergeJoin), options.UseSortMergeJoin);
-        AppendOption(builder, nameof(options.UseCommonSubexpressionElimination), options.UseCommonSubexpressionElimination);
-        AppendOption(builder, nameof(options.UseConstantFolding), options.UseConstantFolding);
-        AppendOption(builder, nameof(options.UsePrimitiveTypeValidation), options.UsePrimitiveTypeValidation);
-        AppendOption(builder, nameof(options.UseCteParallelization), options.UseCteParallelization);
-        AppendOption(builder, nameof(options.UseCteSidecarIndexes), options.UseCteSidecarIndexes);
-        AppendOption(builder, nameof(options.InstrumentationMode), options.InstrumentationMode);
-        AppendOption(builder, nameof(options.MaxDegreeOfParallelismOverride), options.MaxDegreeOfParallelismOverride);
-        AppendOption(builder, nameof(options.ForceTableResultMaterialization), options.ForceTableResultMaterialization);
-        return ComputeHash(builder.ToString());
+        return CompilationOptionsFingerprint.Compute(options);
     }
 
     public static string ComputeHash(string text)
@@ -164,15 +150,6 @@ internal static class CompiledQueryArtifactSupport
         return package.BinaryBlobs
             .FirstOrDefault(blob => string.Equals(blob.Name, blobName, StringComparison.Ordinal))
             ?.Content;
-    }
-
-    private static void AppendOption<T>(StringBuilder builder, string name, T value)
-    {
-        builder
-            .Append(name)
-            .Append('=')
-            .Append(value?.ToString() ?? "<null>")
-            .Append(';');
     }
 
     private static void AppendScriptParameters(

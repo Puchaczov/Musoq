@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT
                 Id,
                 Value,
@@ -25,27 +24,24 @@ SELECT
               AND Value < 900
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Id as Id, ko3iko.Value as Value, (ko3iko.Value * 2) as Value * 2, (ko3iko.Value + 100) as Value + 100, ExpensiveCompute(ko3iko.Value) as ExpensiveCompute(Value), (ExpensiveCompute(ko3iko.Value) * 2) as ExpensiveCompute(Value) * 2, (ExpensiveCompute(ko3iko.Value) + ko3iko.Value) as ExpensiveCompute(Value) + Value, ko3iko.Name as Name, StringTransform(ko3iko.Name) as StringTransform(Name), ko3iko.Category as Category, CASE WHEN ((ko3iko.Value > 500) AND (ExpensiveCompute(ko3iko.Value) > 1000)) THEN 'VeryHigh' WHEN ((ko3iko.Value > 200) AND (ExpensiveCompute(ko3iko.Value) > 500)) THEN 'High' WHEN (ko3iko.Value > 100) THEN 'Medium' ELSE 'Low' END as Classification, ((ko3iko.Value + ExpensiveCompute(ko3iko.Value)) + (ko3iko.Value * 2)) as Value + ExpensiveCompute(Value) + Value * 2]
     Filter [(((ko3iko.Value > 50) AND (ExpensiveCompute(ko3iko.Value) > 0)) AND (ko3iko.Value < 900))]
       SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Id as Id, ko3iko.Value as Value, (ko3iko.Value * 2) as Value * 2, (ko3iko.Value + 100) as Value + 100, ExpensiveCompute(ko3iko.Value) as ExpensiveCompute(Value), (ExpensiveCompute(ko3iko.Value) * 2) as ExpensiveCompute(Value) * 2, (ExpensiveCompute(ko3iko.Value) + ko3iko.Value) as ExpensiveCompute(Value) + Value, ko3iko.Name as Name, StringTransform(ko3iko.Name) as StringTransform(Name), ko3iko.Category as Category, CASE WHEN ((ko3iko.Value > 500) AND (ExpensiveCompute(ko3iko.Value) > 1000)) THEN 'VeryHigh' WHEN ((ko3iko.Value > 200) AND (ExpensiveCompute(ko3iko.Value) > 500)) THEN 'High' WHEN (ko3iko.Value > 100) THEN 'Medium' ELSE 'Low' END as Classification, ((ko3iko.Value + ExpensiveCompute(ko3iko.Value)) + (ko3iko.Value * 2)) as Value + ExpensiveCompute(Value) + Value * 2]
     PhysicalFilter [(((ko3iko.Value > 50) AND (ExpensiveCompute(ko3iko.Value) > 0)) AND (ko3iko.Value < 900))]
       PhysicalSchemaScan [#test.entities() as ko3iko] [pushdown: (ko3iko.Value > 50), (ko3iko.Value < 900)]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BenchmarkParityEntity]
@@ -81,6 +77,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(Id: ko3iko.Id, Value: value, Value * 2: __expr, Value + 100: (value + 100), ExpensiveCompute(Value): expensiveCompute, ExpensiveCompute(Value) * 2: (expensiveCompute * 2), ExpensiveCompute(Value) + Value: (expensiveCompute + value), Name: name, StringTransform(Name): StringTransform(name), Category: ko3iko.Category, Classification: CASE WHEN ((value > 500) AND (expensiveCompute > 1000)) THEN 'VeryHigh' WHEN ((value > 200) AND (expensiveCompute > 500)) THEN 'High' WHEN (value > 100) THEN 'Medium' ELSE 'Low' END, Value + ExpensiveCompute(Value) + Value * 2: ((value + expensiveCompute) + __expr))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q179_BenchmarkOptimizedHeavyMixedMaterialized

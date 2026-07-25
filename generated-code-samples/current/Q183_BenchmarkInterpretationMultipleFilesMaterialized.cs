@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 binary SimpleHeader {
                 Id: int le,
                 Value: int le
@@ -10,9 +9,8 @@ binary SimpleHeader {
             cross apply Interpret<SimpleHeader>(f.Content) h
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [f.Content as f.Content, h.Id as h.Id, h.Value as h.Value]
     Apply [Cross]
@@ -22,9 +20,8 @@ MultiStatement
     CteRef [fh as fh]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [f.Content as f.Content, h.Id as h.Id, h.Value as h.Value]
     PhysicalNestedLoopApply [Cross]
@@ -34,9 +31,8 @@ PhysicalMultiStatement
     PhysicalCteRef [fh as fh]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [f: BinaryEntity]
@@ -58,6 +54,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(h.Id: h.Id, h.Value: h.Value)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q183_BenchmarkInterpretationMultipleFilesMaterialized

@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
 internal sealed record FusedHashPayloadPruningResult(
     FusedHashPayload Payload,
@@ -27,9 +28,9 @@ internal sealed class SingleUseHashBuildFusionPlanner
         IReadOnlyList<RowShape> shapes,
         ExecutionBlock matchedBody,
         string payloadAlias,
-        out FusedHashPayloadPruningResult result)
+        [NotNullWhen(true)] out FusedHashPayloadPruningResult? result)
     {
-        result = null!;
+        result = null;
 
         if (payload.Shape.Fields.Count == 0)
             return false;

@@ -88,6 +88,18 @@ internal static partial class LogicalPlanRewriter
                 rewriteNode,
                 (left, right) => new SetOperationNode(setOperation.Kind, left, right, setOperation.Keys),
                 setOperation),
+            RecursiveCteNode recursiveCte => RewritePair(
+                recursiveCte.Anchor,
+                recursiveCte.RecursiveMember,
+                rewriteNode,
+                (anchor, member) => new RecursiveCteNode(
+                    recursiveCte.Name,
+                    anchor,
+                    member,
+                    recursiveCte.UnionKind,
+                    recursiveCte.Keys,
+                    recursiveCte.IdentityFieldIndexes),
+                recursiveCte),
             CteNode cte => RewriteCte(cte, rewriteNode),
             MultiStatementNode multiStatement => RewriteMultiStatement(multiStatement, rewriteNode),
             _ => node

@@ -6,7 +6,7 @@ public sealed record ExecutionAggregateResultRef(
     ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
 {
     internal ExecutionAggregateResultRef(string identifier, string? displayName, Type returnType)
-        : this(identifier, displayName, ExecutionTypeRef.FromClr(returnType))
+        : this(identifier, displayName, ExecutionClrBindingFactory.FromClr(returnType))
     {
     }
 }

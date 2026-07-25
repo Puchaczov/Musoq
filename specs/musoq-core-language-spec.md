@@ -207,6 +207,8 @@ All keywords are **case-insensitive**. `SELECT`, `select`, and `SeLeCt` are all 
 
 `ANY`, `SOME`, and `ALL` are contextual SQL keywords. They act as quantified subquery operators only in comparison predicates such as `x > ANY (SELECT ...)` or `x = SOME (FROM ...)`. Lowercase `any(...)` and `all(...)` also remain contextual predicate-quantifier names when they appear as unqualified calls immediately before a supported pattern operator, for example `any(Name, Message) LIKE '%error%'`.
 
+`EXISTS` is also contextual in expression positions. A bare `EXISTS` is an ordinary, case-sensitive column identifier unless it is followed by a parenthesized supported subquery; `EXISTS (SELECT ...)` and `exists(SELECT ...)` are equivalent existence predicates. A parenthesized non-subquery expression after `EXISTS` is invalid. `NOT EXISTS` follows the same rule.
+
 `USING` is a contextual keyword inside `PIVOT` and `UNPIVOT` statements. `KEEP` is a contextual keyword inside an `UNPIVOT` statement. Outside those clause positions they remain ordinary identifiers.
 
 `SETTINGS` is a contextual keyword inside `COUPLE ... WITH SETTINGS ...` and `DESC SETTINGS`. `QUERY` is a contextual keyword inside `DESC QUERY`. `COLUMN` is a contextual keyword inside `DESC ... COLUMN ...`. Outside those clause positions they remain ordinary identifiers.
@@ -243,6 +245,13 @@ All keywords are **case-insensitive**. `SELECT`, `select`, and `SeLeCt` are all 
 ### 2.3 Identifiers
 
 **Column names and method names are case-sensitive.** `Name`, `name`, and `NAME` reference different columns.
+
+Contextual keywords used as identifiers preserve their source casing. For example, `Exists`, `ANY`, and `Some` can be selected as ordinary columns when they are not occupying their predicate-operator positions:
+
+```sql
+select FullPath, Exists from os.files('path', true) take 5
+select Any, Some, All from A.entities()
+```
 
 **Bracket-quoted identifiers** allow reserved words and special characters:
 
@@ -1149,6 +1158,46 @@ Arguments can be literals of any type:
 select * from test.whatever(1, 2d, true, false, 'text')
 ```
 
+#### 6.1.1 Named source arguments
+
+Datasource calls may bind arguments by the reflected table-constructor parameter
+name. Names are case-insensitive and are part of the datasource's public SQL
+surface:
+
+```sql
+from #schema.method(required: '4', limit: 2)
+from #schema.method('4', limit: 2)       -- positional prefix, then named suffix
+```
+
+The binder resolves names against `GetRawConstructors()` metadata and lowers
+the invocation to the same canonical positional `object?[]` vector used by
+existing providers. Datasources never receive a dictionary. Arguments before
+the first named argument are positional; positional arguments after a named
+argument are invalid. Named arguments may be reordered, but an unknown name,
+duplicate assignment, omitted required parameter, incompatible value, or
+ambiguous reflected overload is rejected during binding. Reflected optional
+defaults are inserted into omitted slots when the reflection value is usable;
+`Missing.Value` and `DBNull.Value` are not defaults.
+
+The same rules apply to `FROM`, `JOIN`, `CROSS APPLY`, `OUTER APPLY`, coupled
+source aliases, concrete `DESC`, `DESC SETTINGS`, and datasource calls inside
+`DESC QUERY`. Named arguments are not accepted for scalar/aggregate functions,
+row access-method sources, `Interpret`/`Parse`, or `DESC FUNCTIONS`. Sources
+without reflected constructor metadata remain positional-only. The reflected
+table-constructor metadata is authoritative for public names, types, and
+defaults; injected `SourceExecutionContext` parameters and other hidden source
+parameters are not bindable names. If reflected parameter order or types do not
+match the published metadata, named binding is disabled for that signature and
+the call must remain positional.
+
+Binding selects one deterministic overload. Exact type matches outrank
+assignable matches, while two overloads that can accept the same canonical
+runtime values are rejected as ambiguous; reflection enumeration order is never
+observable. Runtime source APIs continue to receive the complete canonical
+positional vector. Metadata and planning callbacks that cannot materialize a
+row-dependent expression receive only the known canonical prefix, so a later
+static/default value is never shifted into an earlier dynamic slot.
+
 ### 6.2 Table Aliasing
 
 Data sources can be given an alias for reference in expressions:
@@ -1309,6 +1358,11 @@ couple A.Entities with table MyTable as Source;
 select Name from Source()
 select Name from Source(true, 'param')   -- with arguments
 ```
+
+Coupled aliases use the underlying schema method's reflected names and defaults
+as their signature. A declared `TABLE` controls row shape, but it does not
+rename or add constructor parameters. The same canonical positional vector is
+used for metadata, source planning, and execution.
 
 ### 6.7 `system.range(start, end)` Semantics
 
@@ -2101,6 +2155,12 @@ asof join ... on ...
 ## 9. APPLY Clause
 
 ### 9.1 CROSS APPLY
+
+When the right side is a schema datasource, its named arguments are bound
+before APPLY planning and are evaluated once per left row when they reference
+left-side columns. The canonical parameter order is preserved for every row,
+including `NULL` values and reflected defaults. A row access method such as
+`alias.Split(...)` is a different context and remains positional-only.
 
 `CROSS APPLY` is a correlated join where the right side can reference columns from the left side. Only rows with matches are returned:
 
@@ -4050,7 +4110,7 @@ The result shape is:
 - `Name`
 - `Param 0`, `Param 1`, ... as needed to fit the widest overload
 
-Each parameter cell contains `ParameterName: Full.Type.Name`. Overloads with fewer parameters leave the remaining parameter columns empty.
+Each parameter cell contains `ParameterName: Full.Type.Name`. Overloads with fewer parameters leave the remaining parameter columns empty. Usable reflected optional defaults are shown as `ParameterName: Full.Type.Name = literal` using invariant formatting; required and metadata-less parameters retain the required format.
 
 ### 16.3 Describe a Specific Constructor Result
 
@@ -4069,6 +4129,10 @@ desc dynamic.method(0, 'test', 10.5d)
 ```
 
 The argument values are matched against the selected constructor signature. The returned table describes the row shape produced by that constructor.
+
+The argument list accepts the same positional-prefix/named-suffix form as
+`FROM`. `DESC FUNCTIONS` is an inventory operation and rejects named source
+arguments; an inner datasource call in `DESC QUERY` follows normal binding.
 
 ### 16.4 Describe a Specific Column or Nested Property
 
@@ -4648,6 +4712,12 @@ When an `object`-typed column is compared to a numeric literal, runtime conversi
 | Unsupported script variable type (MQ3064) | A script variable type is not one of the supported primitive expression types | Bind diagnostic envelope |
 | Invalid script variable initializer (MQ3065) | A `let` initializer is not a compile-time constant or cannot be converted to the declared type | Bind diagnostic envelope |
 | Script variable used before declaration (MQ3066) | A `let` initializer references a variable declared later or a mistyped variable name | Bind diagnostic envelope |
+| Invalid named source argument (MQ2034) | A named argument is malformed, appears in an unsupported function/source context, or follows a named argument positionally | Parser diagnostic envelope |
+| Unknown source argument (MQ3079) | A named datasource argument is not present in the reflected table-constructor signature | Bind diagnostic envelope |
+| Duplicate source argument (MQ3080) | A parameter is assigned more than once positionally or by name | Bind diagnostic envelope |
+| Missing required source argument (MQ3081) | A required reflected parameter has no positional/name assignment and no usable default | Bind diagnostic envelope |
+| Ambiguous source invocation (MQ3082) | More than one reflected overload accepts the canonical runtime values with the same best match | Bind diagnostic envelope |
+| Named source arguments require metadata (MQ3083) | Named syntax targets a metadata-less/custom positional-only datasource signature | Bind diagnostic envelope |
 | Script parameter type mismatch (MQ3005) | A parameter declared type is incompatible with a comparison, boolean context, function argument, or other expression context | Bind diagnostic envelope |
 
 ### 23.2 Runtime Errors
@@ -4819,7 +4889,14 @@ from_clause    ::= schema_source [alias]
                  | identifier [alias]
                  | derived_table
 
-schema_source  ::= identifier '.' identifier '(' [arg_list] ')'
+schema_source  ::= identifier '.' identifier '(' [source_arg_list] ')'
+
+source_arg_list ::= source_arg {',' source_arg}
+
+source_arg     ::= expression
+                 | identifier ':' expression
+
+-- after the first named source_arg, only named source_arg forms may follow
 
 values_source  ::= VALUES '{' values_row {',' values_row} [','] '}' alias
 

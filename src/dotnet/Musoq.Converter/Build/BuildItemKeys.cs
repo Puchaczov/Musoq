@@ -15,6 +15,7 @@ internal static class BuildItemKeys
     public const string ExecutableArtifact = "EXECUTABLE_ARTIFACT";
     public const string TransformedQueryTree = "TRANSFORMED_QUERY_TREE";
     public const string RawQueryTree = "RAW_QUERY_TREE";
+    public const string SemanticPhaseArtifacts = "SEMANTIC_PHASE_ARTIFACTS";
     public const string RawQuery = "RAW_QUERY";
     public const string AssemblyName = "ASSEMBLY_NAME";
     public const string SchemaProvider = "SCHEMA_PROVIDER";
@@ -61,6 +62,7 @@ internal static class BuildItemKeys
     public const string PipelineInferredColumns = "PIPELINE_INFERRED_COLUMNS";
     public const string PipelineUsedColumns = "PIPELINE_USED_COLUMNS";
     public const string StopAfterPlanning = "STOP_AFTER_PLANNING";
+    public const string EnableContextualExecution = "ENABLE_CONTEXTUAL_EXECUTION";
 
     public const string InitialLogicalPlan = "INITIAL_LOGICAL_PLAN";
     public const string OptimizedLogicalPlan = "OPTIMIZED_LOGICAL_PLAN";

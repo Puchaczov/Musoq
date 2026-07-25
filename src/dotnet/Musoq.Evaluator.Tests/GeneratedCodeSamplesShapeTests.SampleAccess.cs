@@ -31,6 +31,27 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             .ToArray();
     }
 
+    private static string ReadGeneratedSampleSection(
+        string content,
+        string sectionName,
+        string? nextSectionName)
+    {
+        var marker = $"// === {sectionName} ===";
+        var start = content.IndexOf(marker, StringComparison.Ordinal);
+        if (start < 0)
+            throw new InvalidOperationException($"Generated sample section '{sectionName}' is missing.");
+
+        start += marker.Length;
+        if (nextSectionName is null)
+            return content[start..];
+
+        var end = content.IndexOf($"// === {nextSectionName} ===", start, StringComparison.Ordinal);
+        if (end < 0)
+            throw new InvalidOperationException($"Generated sample section '{nextSectionName}' is missing.");
+
+        return content[start..end];
+    }
+
     private static IEnumerable<GeneratedRowCastOccurrence> CreateGeneratedRowCastOccurrences(
         GeneratedCodeSampleFile sample)
     {

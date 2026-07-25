@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
 internal sealed class SidecarJoinCteLowerer(
     Func<PhysicalNode, PhysicalNode> unwrapSingleStatement,
-    Func<PhysicalNode, SupportedPipeline?> decomposeSupportedPipeline,
+    Func<PhysicalNode, CteSupportedPipeline?> decomposeSupportedPipeline,
     Func<PhysicalMultiStatementNode, MultiStatementIndexes, Dictionary<string, CteReferenceClassification>> classifyMultiStatementCteReferences,
     Func<string, IReadOnlyDictionary<string, CteReferenceClassification>, bool> canFuseReadOnceCte,
     Func<int, MultiStatementIndexes, string?> resolveStatementCteName,
@@ -59,7 +59,7 @@ internal sealed class SidecarJoinCteLowerer(
         IReadOnlyCollection<string> cteDefinitionNames,
         IReadOnlyDictionary<string, int> cteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape> cteShapesByName,
-        SupportedPipeline finalPipeline,
+        CteSupportedPipeline finalPipeline,
         out IReadOnlyList<SidecarJoinPipelineStage> stages)
     {
         stages = [];

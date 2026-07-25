@@ -9,7 +9,8 @@ namespace Musoq.Evaluator.IR.Execution;
 internal static partial class ExecutionOperationCatalog
 {
     private static readonly FrozenDictionary<Type, ExecutionOperationId> NodeOperations =
-        CreateNodeOperations().ToFrozenDictionary(static pair => pair.Key, static pair => pair.Value);
+        ExecutionNodeDefinitionCatalog.Definitions
+            .ToFrozenDictionary(static definition => definition.NodeType, static definition => definition.OperationId);
 
     private static readonly FrozenDictionary<Type, ExecutionOperationId> ExpressionOperations =
         CreateExpressionOperations().ToFrozenDictionary(static pair => pair.Key, static pair => pair.Value);
@@ -21,6 +22,15 @@ internal static partial class ExecutionOperationCatalog
     public static IReadOnlySet<Type> RegisteredNodeTypes { get; } = NodeOperations.Keys.ToFrozenSet();
 
     public static IReadOnlySet<Type> RegisteredExpressionTypes { get; } = ExpressionOperations.Keys.ToFrozenSet();
+
+    internal static IReadOnlySet<ExecutionOperationId> CSharpClrSupportedOperationIds { get; } =
+        NodeOperations
+            .Where(static pair => ExecutionNodeDefinitionCatalog.Definitions
+                .Single(definition => definition.NodeType == pair.Key)
+                .Behavior.TargetCapability == ExecutionNodeTargetCapability.Supported)
+            .Select(static pair => pair.Value)
+            .Concat(ExpressionOperations.Values)
+            .ToFrozenSet();
 
     public static ExecutionOperationId Resolve(ExecutionNode node) =>
         Resolve(NodeOperations, node.GetType(), "node");

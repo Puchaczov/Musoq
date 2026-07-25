@@ -1,32 +1,28 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT Id, TryConvertToDecimalComparison(Amount) as AmountDecimal
               FROM #test.entities()
               WHERE TryConvertToDecimalComparison(Amount) > 100.50d
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Id as Id, TryConvertToDecimalComparison(ko3iko.Amount) as AmountDecimal]
     Filter [(TryConvertToDecimalComparison(ko3iko.Amount) > 100,50)]
       SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Id as Id, TryConvertToDecimalComparison(ko3iko.Amount) as AmountDecimal]
     PhysicalFilter [(TryConvertToDecimalComparison(ko3iko.Amount) > 100,50)]
       PhysicalSchemaScan [#test.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2RegressionEntity]
@@ -48,6 +44,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(Id: ko3iko.Id, AmountDecimal: tryConvertToDecimalComparison)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q108_RuntimeV2DecimalConversion

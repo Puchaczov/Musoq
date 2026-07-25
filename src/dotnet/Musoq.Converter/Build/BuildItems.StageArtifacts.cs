@@ -1,3 +1,5 @@
+using Musoq.Evaluator.Visitors;
+
 namespace Musoq.Converter.Build;
 
 public partial class BuildItems
@@ -12,6 +14,8 @@ public partial class BuildItems
     {
         get => new()
         {
+            Phase = SemanticPhaseArtifacts ?? throw new InvalidOperationException(
+                "Semantic phase artifacts are not available."),
             TransformedQueryTree = TransformedQueryTree,
             UsedColumns = UsedColumns,
             UsedWhereNodes = UsedWhereNodes,
@@ -23,13 +27,16 @@ public partial class BuildItems
             SourceRuntimeSettingDescriptionsBySourceContextId = SourceRuntimeSettingDescriptionsBySourceContextId,
             HasDeclaredSourceRuntimeSettings = HasDeclaredSourceRuntimeSettings,
             HasSourceRuntimeSettingValues = HasSourceRuntimeSettingValues,
-            PipelineScope = PipelineScope,
+            ScopeArtifact = PipelineScope is { } scope
+                ? SemanticScopeArtifact.Capture(scope)
+                : throw new InvalidOperationException("Semantic scope artifact is not available."),
             PipelineInferredColumns = PipelineInferredColumns,
             PipelineUsedColumns = PipelineUsedColumns,
             CteExecutionPlan = CteExecutionPlan
         };
         set
         {
+            SemanticPhaseArtifacts = value.Phase;
             TransformedQueryTree = value.TransformedQueryTree;
             UsedColumns = value.UsedColumns;
             UsedWhereNodes = value.UsedWhereNodes;
@@ -41,7 +48,7 @@ public partial class BuildItems
             SourceRuntimeSettingDescriptionsBySourceContextId = value.SourceRuntimeSettingDescriptionsBySourceContextId;
             HasDeclaredSourceRuntimeSettings = value.HasDeclaredSourceRuntimeSettings;
             HasSourceRuntimeSettingValues = value.HasSourceRuntimeSettingValues;
-            PipelineScope = value.PipelineScope;
+            PipelineScope = value.ScopeArtifact.CreateScope();
             PipelineInferredColumns = value.PipelineInferredColumns;
             PipelineUsedColumns = value.PipelineUsedColumns;
             CteExecutionPlan = value.CteExecutionPlan;

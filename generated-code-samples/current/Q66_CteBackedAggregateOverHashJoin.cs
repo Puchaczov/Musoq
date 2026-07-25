@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with leftCte as (select a.City as City from #A.entities() a), rightCte as (select b.City as City, b.Name as Name from #B.entities() b) select l.City as City, Count(r.Name) as MatchCount from leftCte l inner join rightCte r on l.City = r.City group by l.City
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [leftCte]
     MultiStatement
@@ -29,9 +27,8 @@ Cte
         CteRef [lrScore as lrScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [leftCte]
     PhysicalMultiStatement
@@ -54,9 +51,8 @@ PhysicalCte
         PhysicalCteRef [lrScore as lrScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [a: BasicEntity]
@@ -113,6 +109,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(City: finalGroup.l.City, MatchCount: l.Count(r.Name))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q66_CteBackedAggregateOverHashJoin

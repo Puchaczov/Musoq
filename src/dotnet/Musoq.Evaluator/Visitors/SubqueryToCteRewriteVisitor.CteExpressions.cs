@@ -19,11 +19,11 @@ public partial class SubqueryToCteRewriteVisitor
         if (outer is CteExpressionNode innerCte)
         {
             var mergedSets = sets.Concat(innerCte.InnerExpression).ToArray();
-            Nodes.Push(new CteExpressionNode(mergedSets, innerCte.OuterExpression));
+            Nodes.Push(new CteExpressionNode(mergedSets, innerCte.OuterExpression, node.IsRecursive || innerCte.IsRecursive));
         }
         else
         {
-            Nodes.Push(new CteExpressionNode(sets, outer));
+            Nodes.Push(new CteExpressionNode(sets, outer, node.IsRecursive));
         }
     }
 }

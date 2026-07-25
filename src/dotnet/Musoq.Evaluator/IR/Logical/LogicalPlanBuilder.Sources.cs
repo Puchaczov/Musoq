@@ -2,6 +2,7 @@ using System.Linq;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
+using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 using IrNodes = Musoq.Evaluator.IR.Logical.Nodes;
@@ -34,7 +35,10 @@ public sealed partial class LogicalPlanBuilder
     public void Visit(SchemaFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var args = ConvertArguments(node.Parameters);
+        var args = node is Musoq.Evaluator.Parser.SchemaFromNode semanticSource &&
+                   semanticSource.BoundInvocation is { } invocation
+            ? ConvertArguments(node.Parameters, invocation)
+            : ConvertArguments(node.Parameters);
         var schema = BuildOutputSchema(node.Alias);
         _nodeStack.Push(new IrNodes.SchemaScanNode(node.Schema, node.Method, args, node.Alias, schema, node.Id));
     }
@@ -242,6 +246,22 @@ public sealed partial class LogicalPlanBuilder
         var result = new IrExpression[args.Args.Length];
         for (var i = 0; i < args.Args.Length; i++)
             result[i] = _converter.Convert(args.Args[i]);
+
+        return result;
+    }
+
+    private IrExpression[] ConvertArguments(ArgsListNode args, BoundSchemaInvocation invocation)
+    {
+        var result = new IrExpression[invocation.Arguments.Length];
+        for (var index = 0; index < invocation.Arguments.Length; index++)
+        {
+            var argument = invocation.Arguments[index];
+            result[index] = argument.SourceArgumentIndex is { } sourceIndex
+                ? _converter.Convert(args.Args[sourceIndex])
+                : new Literal(
+                    argument.DefaultValue,
+                    invocation.Signature.Parameters[argument.ParameterIndex].ParameterType);
+        }
 
         return result;
     }

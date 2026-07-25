@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with cte as (select Name, City, Population from #A.entities() where Population > 0) select c.Name, a.Country from cte c inner join #A.entities() a on c.Name = a.Name
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [cte]
     MultiStatement
@@ -23,9 +21,8 @@ Cte
         CteRef [ca as ca]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [cte]
     PhysicalMultiStatement
@@ -42,9 +39,8 @@ PhysicalCte
         PhysicalCteRef [ca as ca]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -81,6 +77,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(c.Name: c.Name, a.Country: a.Country)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q15_CteWithJoin

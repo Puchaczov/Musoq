@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select a.Name, a.Population, b.Name, b.Population from #A.entities() a asof join #A.entities() b on a.Population >= b.Population
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [a.Name as a.Name, a.Population as a.Population, b.Name as b.Name, b.Population as b.Population]
     Join [AsofInner] [(a.Population >= b.Population)]
@@ -16,9 +14,8 @@ MultiStatement
     CteRef [ab as ab]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [a.Name as a.Name, a.Population as a.Population, b.Name as b.Name, b.Population as b.Population]
     PhysicalNestedLoopJoin [AsofInner] [(a.Population >= b.Population)]
@@ -28,9 +25,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ab as ab]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [a: BasicEntity]
@@ -56,6 +52,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(a.Name: a.Name, a.Population: a.Population, b.Name: b.Name, b.Population: b.Population)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q33_AsOfJoin

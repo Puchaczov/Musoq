@@ -22,7 +22,7 @@ public sealed record ExecutionColumnMetadataField
         int index,
         Type type,
         IReadOnlyDictionary<string, string>? readModifiers = null)
-        : this(name, index, ExecutionTypeRef.FromClr(type), readModifiers)
+        : this(name, index, ExecutionClrBindingFactory.FromClr(type), readModifiers)
     {
     }
 

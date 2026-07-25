@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Build;
@@ -30,7 +32,7 @@ public sealed class InterpreterCompilationUnitIsolationTests
     {
         var references = new EmptyInterpreterReferenceProvider();
         var loader = new TrackingAssemblyLoader();
-        var unit = CreateUnit("broken", "namespace Musoq.Generated.Interpreters { public sealed class Broken {", references, loader);
+        using var unit = CreateUnit("broken", "namespace Musoq.Generated.Interpreters { public sealed class Broken {", references, loader);
 
         var succeeded = unit.Compile();
 
@@ -48,7 +50,7 @@ public sealed class InterpreterCompilationUnitIsolationTests
     {
         var references = new EmptyInterpreterReferenceProvider();
         var loader = new TrackingAssemblyLoader();
-        var unit = CreateUnit("valid", ValidSource, references, loader);
+        using var unit = CreateUnit("valid", ValidSource, references, loader);
 
         var succeeded = unit.Compile();
 
@@ -64,7 +66,7 @@ public sealed class InterpreterCompilationUnitIsolationTests
     [TestMethod]
     public void GetInterpreterType_WhenGenericTypeExists_ShouldReturnGenericDefinition()
     {
-        var unit = CreateUnit("generic", ValidSource, new EmptyInterpreterReferenceProvider(), new TrackingAssemblyLoader());
+        using var unit = CreateUnit("generic", ValidSource, new EmptyInterpreterReferenceProvider(), new TrackingAssemblyLoader());
 
         Assert.IsTrue(unit.Compile());
 
@@ -78,7 +80,7 @@ public sealed class InterpreterCompilationUnitIsolationTests
     [TestMethod]
     public void GetInterpreterType_WhenTypeDoesNotExist_ShouldReturnNull()
     {
-        var unit = CreateUnit("missing", ValidSource, new EmptyInterpreterReferenceProvider(), new TrackingAssemblyLoader());
+        using var unit = CreateUnit("missing", ValidSource, new EmptyInterpreterReferenceProvider(), new TrackingAssemblyLoader());
 
         Assert.IsTrue(unit.Compile());
 
@@ -89,7 +91,7 @@ public sealed class InterpreterCompilationUnitIsolationTests
     public void Compile_WhenAssemblyLoaderFails_ShouldPropagateLoadFailure()
     {
         var loader = new ThrowingAssemblyLoader();
-        var unit = CreateUnit("loadfailure", ValidSource, new EmptyInterpreterReferenceProvider(), loader);
+        using var unit = CreateUnit("loadfailure", ValidSource, new EmptyInterpreterReferenceProvider(), loader);
 
         var exception = Assert.Throws<InvalidOperationException>(() => unit.Compile());
 
@@ -97,6 +99,60 @@ public sealed class InterpreterCompilationUnitIsolationTests
         Assert.IsNotNull(unit.GetAssemblyBytes());
         Assert.IsNull(unit.CompiledAssembly);
         Assert.AreEqual(1, loader.LoadCallCount);
+    }
+
+    [TestMethod]
+    public void DefaultAssemblyLoader_ShouldLoadIntoACollectibleContext()
+    {
+        using var unit = new InterpreterCompilationUnit("collectible", ValidSource);
+
+        Assert.IsTrue(unit.Compile());
+
+        var context = AssemblyLoadContext.GetLoadContext(unit.CompiledAssembly!);
+
+        Assert.IsNotNull(context);
+        Assert.IsTrue(context.IsCollectible);
+    }
+
+    [TestMethod]
+    public void Dispose_ShouldClearAssemblyAndRejectFurtherUse()
+    {
+        var unit = new InterpreterCompilationUnit("dispose", ValidSource);
+        Assert.IsTrue(unit.Compile());
+
+        unit.Dispose();
+        unit.Dispose();
+
+        Assert.IsNull(unit.CompiledAssembly);
+        Assert.Throws<ObjectDisposedException>(() => unit.Compile());
+        Assert.Throws<ObjectDisposedException>(() => unit.GetInterpreterType("TestSchema"));
+        Assert.Throws<ObjectDisposedException>(() => unit.GetAssemblyBytes());
+        Assert.Throws<ObjectDisposedException>(() => unit.GetErrorMessages().ToArray());
+        Assert.Throws<ObjectDisposedException>(() => _ = unit.IsSuccess);
+    }
+
+    [TestMethod]
+    public void Dispose_ShouldAllowCollectibleAssemblyToUnload()
+    {
+        var assemblyReference = CompileAndDispose();
+
+        for (var attempt = 0; attempt < 10 && assemblyReference.IsAlive; attempt++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+
+        Assert.IsFalse(assemblyReference.IsAlive);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference CompileAndDispose()
+    {
+        using var unit = new InterpreterCompilationUnit("unload", ValidSource);
+        Assert.IsTrue(unit.Compile());
+
+        return new WeakReference(unit.CompiledAssembly!);
     }
 
     private static InterpreterCompilationUnit CreateUnit(
@@ -136,11 +192,11 @@ public sealed class InterpreterCompilationUnitIsolationTests
     {
         public int LoadCallCount { get; private set; }
 
-        public Assembly Load(byte[] assemblyBytes)
+        public LoadedAssemblyHandle Load(byte[] assemblyBytes)
         {
             LoadCallCount++;
 
-            return Assembly.Load(assemblyBytes);
+            return new LoadedAssemblyHandle(Assembly.Load(assemblyBytes), loadContext: null);
         }
     }
 
@@ -148,7 +204,7 @@ public sealed class InterpreterCompilationUnitIsolationTests
     {
         public int LoadCallCount { get; private set; }
 
-        public Assembly Load(byte[] assemblyBytes)
+        public LoadedAssemblyHandle Load(byte[] assemblyBytes)
         {
             LoadCallCount++;
 

@@ -56,6 +56,10 @@ internal static partial class ExecutionNodeFacts
                 return createRow.Values.Select(static value => value.Value)
                     .Concat(createRow.Contexts)
                     .Concat(GetContextLayoutExpressions(createRow.ContextLayout));
+            case ExecutionRecursiveCteAppend append:
+                return append.AppendRow.Values.Select(static value => value.Value)
+                    .Concat(append.AppendRow.Contexts)
+                    .Concat(GetContextLayoutExpressions(append.AppendRow.ContextLayout));
             case ExecutionCreateHashPayload createPayload:
                 return createPayload.Values.Select(static value => value.Value);
             case ExecutionAppendRow appendRow:

@@ -51,6 +51,7 @@ public sealed partial class RewriteQueryVisitor
 
     public void Visit(RootNode node)
     {
+        ValidatePhaseRoot(node);
         var poppedNode = Nodes.Pop();
         RootScript = new RootNode(poppedNode);
     }
@@ -129,13 +130,17 @@ public sealed partial class RewriteQueryVisitor
         for (var i = node.InnerExpression.Length - 1; i >= 0; --i)
             sets[i] = (CteInnerExpressionNode)Nodes.Pop();
 
-        Nodes.Push(new CteExpressionNode(sets, set));
+        Nodes.Push(new CteExpressionNode(sets, set, node.IsRecursive));
     }
 
     public void Visit(CteInnerExpressionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new CteInnerExpressionNode(Nodes.Pop(), node.Name));
+        Nodes.Push(new CteInnerExpressionNode(
+            Nodes.Pop(),
+            node.Name,
+            node.Columns,
+            node.IsRecursiveDefinition));
     }
 
     public void SetScope(Scope scope)

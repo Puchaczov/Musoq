@@ -16,7 +16,7 @@ public sealed record ExecutionBinary(
         ExecutionExpression left,
         ExecutionExpression right,
         Type returnType)
-        : this(kind, left, right, ExecutionTypeRef.FromClr(returnType))
+        : this(kind, left, right, ExecutionClrBindingFactory.FromClr(returnType))
     {
     }
 }

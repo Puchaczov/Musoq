@@ -18,7 +18,7 @@ public sealed record ExecutionCreateSingleKeyAggregateContext(
         ExecutionVariable? nullGroup,
         Type keyType,
         AggregateGroupPlan groupPlan)
-        : this(rootGroup, groups, groupsToFinalize, nullGroup, ExecutionTypeRef.FromClr(keyType), groupPlan)
+        : this(rootGroup, groups, groupsToFinalize, nullGroup, ExecutionClrBindingFactory.FromClr(keyType), groupPlan)
     {
     }
 

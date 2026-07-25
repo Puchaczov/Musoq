@@ -13,7 +13,7 @@ public sealed record ExecutionArrayAssign(
         ExecutionExpression index,
         ExecutionExpression value,
         Type elementType)
-        : this(array, index, value, ExecutionTypeRef.FromClr(elementType))
+        : this(array, index, value, ExecutionClrBindingFactory.FromClr(elementType))
     {
     }
 }

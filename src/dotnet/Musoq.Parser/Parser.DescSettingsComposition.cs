@@ -15,7 +15,7 @@ public partial class Parser
         {
             var sourceAlias = Current.Value;
             var schemaName = EnsureHashPrefix(sourceAlias);
-            var accessMethod = ComposeAccessMethod(sourceAlias);
+            var accessMethod = ComposeAccessMethod(sourceAlias, true);
             var fromNode = new SchemaFromNode(schemaName, accessMethod.Name, accessMethod.Arguments, string.Empty, 1);
             return new DescNode(fromNode, DescForType.Settings);
         }
@@ -31,7 +31,7 @@ public partial class Parser
 
             if (Current is FunctionToken)
             {
-                var accessMethod = ComposeAccessMethod(string.Empty);
+                var accessMethod = ComposeAccessMethod(string.Empty, true);
                 return new DescNode(
                     new SchemaFromNode(name, accessMethod.Name, accessMethod.Arguments, string.Empty, 1),
                     DescForType.Settings);

@@ -81,10 +81,10 @@ internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolv
             field.Name,
             field.QualifiedName,
             field.OutputIndex,
-            field.Type.ClrType,
+            field.Type.ResolveClrType(),
             ResolveNullability(field.Nullability),
             ResolveAccessKind(field.AccessStrategy),
-            field.PublicType?.ClrType);
+            field.PublicType?.ResolveClrType());
     }
 
     private static PlanningFieldNullability ResolveNullability(FieldNullability nullability)

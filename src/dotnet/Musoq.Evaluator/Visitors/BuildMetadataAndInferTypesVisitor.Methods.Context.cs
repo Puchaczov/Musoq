@@ -3,6 +3,7 @@ using System.Reflection;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Parser;
+using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
 
@@ -23,13 +24,23 @@ public partial class BuildMetadataAndInferTypesVisitor
                 return inferredContext;
 
             if (TryReportAmbiguousAggregateOwnerFromCandidates(identifier, node, args))
-                return default;
+                throw new VisitorException(
+                    nameof(BuildMetadataAndInferTypesVisitor),
+                    nameof(ResolveMethodContext),
+                    "Aggregate owner resolution reported an ambiguous aggregate owner.",
+                    DiagnosticCode.MQ3034_AmbiguousAggregateOwner,
+                    node.SpanOrEmpty());
 
             if (TryInferNonAggregateMethodContext(identifier, node, args, out var nonAggContext))
                 return nonAggContext;
 
             if (TryReportMissingAlias(node))
-                return default;
+                throw new VisitorException(
+                    nameof(BuildMetadataAndInferTypesVisitor),
+                    nameof(ResolveMethodContext),
+                    AliasMissingException.CreateMethodCallMessage(node.ToString()),
+                    DiagnosticCode.MQ3022_MissingAlias,
+                    node.SpanOrEmpty());
             var span = node.SpanOrEmpty();
             throw new AliasMissingException(AliasMissingException.CreateMethodCallMessage(node.ToString()), span);
         }
@@ -116,7 +127,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (DiagnosticContext != null)
         {
             DiagnosticContext.ReportAmbiguousMethodOwner(methodNode.ToString(), candidateAliases, methodNode);
-            return;
+            throw new AmbiguousMethodOwnerException(methodNode.ToString(), candidateAliases, methodNode.SpanOrEmpty());
         }
 
         var span = methodNode.SpanOrEmpty();

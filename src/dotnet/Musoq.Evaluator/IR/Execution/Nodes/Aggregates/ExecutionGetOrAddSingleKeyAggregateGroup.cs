@@ -24,7 +24,7 @@ public sealed record ExecutionGetOrAddSingleKeyAggregateGroup(
         Type keyType,
         ExecutionVariable? nullGroup,
         AggregateGroupPlan groupPlan)
-        : this(rootGroup, groups, groupsToFinalize, group, key, keyName, ExecutionTypeRef.FromClr(keyType), nullGroup, groupPlan)
+        : this(rootGroup, groups, groupsToFinalize, group, key, keyName, ExecutionClrBindingFactory.FromClr(keyType), nullGroup, groupPlan)
     {
     }
 

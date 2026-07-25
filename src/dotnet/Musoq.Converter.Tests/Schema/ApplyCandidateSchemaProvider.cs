@@ -2,9 +2,12 @@ using System;
 using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
+using Musoq.Schema.Reflection;
+using SchemaConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 
 namespace Musoq.Converter.Tests.Schema;
 
@@ -31,6 +34,32 @@ public sealed class ApplyCandidateSchema(IReadOnlyList<ApplyCandidateEntity> row
     {
         return string.Equals(schema, SchemaName, StringComparison.OrdinalIgnoreCase) ||
                string.Equals(schema, $"#{SchemaName}", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static readonly SchemaMethodInfo[] RawConstructors =
+    [
+        new(
+            Related,
+            new SchemaConstructorInfo(
+                typeof(RelatedSourceSignature)
+                    .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+                    .Single(),
+                false,
+                ("name", typeof(string)),
+                ("limit", typeof(int)))),
+        new(
+            Related,
+            new SchemaConstructorInfo(
+                typeof(RelatedLegacySignature)
+                    .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+                    .Single(),
+                false,
+                ("numbers", typeof(int[]))))
+    ];
+
+    public override SchemaMethodInfo[] GetRawConstructors(SourceMetadataContext metadataContext)
+    {
+        return RawConstructors;
     }
 
     public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext, params object?[] parameters)
@@ -70,6 +99,22 @@ public sealed class ApplyCandidateSchema(IReadOnlyList<ApplyCandidateEntity> row
         methodsManager.RegisterLibraries(new EmptyLibrary());
 
         return new MethodsAggregator(methodsManager);
+    }
+}
+
+public sealed class RelatedSourceSignature
+{
+    public RelatedSourceSignature(string name, int limit = 1)
+    {
+        _ = (name, limit);
+    }
+}
+
+public sealed class RelatedLegacySignature
+{
+    public RelatedLegacySignature(int[] numbers)
+    {
+        _ = numbers;
     }
 }
 

@@ -53,7 +53,7 @@ internal sealed class CteSidecarIndexLoweringFactory
             ExecutionCteSidecarIndexKind.Hash => new ExecutionCreateHash(
                 spec.Index,
                 spec.KeyType,
-                spec.RowType ?? ExecutionTypeRef.FromClr(typeof(Row)),
+                spec.RowType ?? ExecutionClrBindingFactory.FromClr(typeof(Row)),
                 spec.CapacityHint,
                 spec.GeneratedRowTypeName),
             ExecutionCteSidecarIndexKind.KeySet => new ExecutionCreateKeySet(
@@ -94,7 +94,7 @@ internal sealed class CteSidecarIndexLoweringFactory
                     spec.Key,
                     hashRow,
                     spec.KeyType,
-                    ExecutionTypeRef.FromClr(typeof(Row)),
+                    ExecutionClrBindingFactory.FromClr(typeof(Row)),
                     hashRowTypeName,
                     KeyVariableName: CreateIdentifierCandidate($"{spec.Index.Name}Key{ordinal}", 0),
                     BucketVariableName: CreateIdentifierCandidate($"{spec.Index.Name}Bucket{ordinal}", 0),
@@ -134,7 +134,7 @@ internal sealed class CteSidecarIndexLoweringFactory
 
     private static string CreateIdentifierCandidate(string value, int disambiguator)
     {
-        return GeneratedRowNamingPolicy.CreateLoweringIdentifierCandidate(value, disambiguator);
+        return ExecutionSymbolicNamePolicy.CreateLoweringIdentifierCandidate(value, disambiguator);
     }
 
     private static Exception CreateUnsupportedCteSidecarIndexKind(ExecutionCteSidecarIndexKind kind)

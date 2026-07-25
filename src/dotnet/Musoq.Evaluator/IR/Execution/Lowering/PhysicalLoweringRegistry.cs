@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering;
 
 internal sealed class PhysicalLoweringRegistry(
     IReadOnlyList<PhysicalPlanLoweringDescriptor> planDescriptors,
@@ -11,47 +11,41 @@ internal sealed class PhysicalLoweringRegistry(
 
     public IReadOnlyList<PhysicalTableLoweringDescriptor> TableDescriptors { get; } = tableDescriptors;
 
-    public bool TryBuildPlan(
-        PhysicalToExecutionLoweringContext context,
-        out ExecutionPlanBuildResult result)
+    public LoweringAttempt<ExecutionPlan> TryBuildPlan(
+        PhysicalToExecutionLoweringContext context)
     {
         foreach (var descriptor in PlanDescriptors)
         {
             var current = descriptor.TryBuild(context);
-            if (current == null)
+            if (current.Kind == LoweringAttemptKind.NoMatch)
                 continue;
 
-            result = current;
-            return true;
+            return current;
         }
 
-        result = null!;
-        return false;
+        return LoweringAttempt<ExecutionPlan>.NoMatch();
     }
 
-    public bool TryBuildTable(
-        PhysicalToExecutionTableLoweringContext context,
-        out TableBuildResult result)
+    public LoweringAttempt<LoweredTable> TryBuildTable(
+        PhysicalToExecutionTableLoweringContext context)
     {
         foreach (var descriptor in TableDescriptors)
         {
             var current = descriptor.TryBuild(context);
-            if (current == null)
+            if (current.Kind == LoweringAttemptKind.NoMatch)
                 continue;
 
-            result = current;
-            return true;
+            return current;
         }
 
-        result = null!;
-        return false;
+        return LoweringAttempt<LoweredTable>.NoMatch();
     }
 }
 
 internal sealed record PhysicalPlanLoweringDescriptor(
     string Name,
-    Func<PhysicalToExecutionLoweringContext, ExecutionPlanBuildResult?> TryBuild);
+    Func<PhysicalToExecutionLoweringContext, LoweringAttempt<ExecutionPlan>> TryBuild);
 
 internal sealed record PhysicalTableLoweringDescriptor(
     string Name,
-    Func<PhysicalToExecutionTableLoweringContext, TableBuildResult?> TryBuild);
+    Func<PhysicalToExecutionTableLoweringContext, LoweringAttempt<LoweredTable>> TryBuild);

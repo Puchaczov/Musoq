@@ -6,13 +6,13 @@ using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Tables;
 
 internal sealed class PostOperationProjectionPlanner(
     Func<string, ProjectedField[], IReadOnlyDictionary<string, RowShape>, GeneratedRowShape> createGeneratedShape,
     Func<IReadOnlyList<PostOperation>, IReadOnlyList<ProjectedField>, string?> validateHiddenSortFields)
 {
-    public BuildResult<PostOperationProjection> Create(
+    public LoweringAttempt<PostOperationProjection> Create(
         string resultTableName,
         string resultShapeName,
         ProjectedField[] publicFields,
@@ -21,16 +21,16 @@ internal sealed class PostOperationProjectionPlanner(
     {
         var publicShape = createGeneratedShape(resultShapeName, publicFields, sourceLookup);
         var hiddenFields = CreateHiddenSortFields(publicShape, publicFields, postOperations, sourceLookup);
-        if (!hiddenFields.Supported)
-            return BuildResult<PostOperationProjection>.Unsupported(hiddenFields.UnsupportedReason);
+        if (!hiddenFields.IsBuilt)
+            return LoweringAttempt<PostOperationProjection>.Unsupported(hiddenFields.UnsupportedReason);
 
         var hiddenSortUnsupportedReason = validateHiddenSortFields(postOperations, hiddenFields.Value);
         if (hiddenSortUnsupportedReason != null)
-            return BuildResult<PostOperationProjection>.Unsupported(hiddenSortUnsupportedReason);
+            return LoweringAttempt<PostOperationProjection>.Unsupported(hiddenSortUnsupportedReason);
 
         if (hiddenFields.Value.Count == 0)
         {
-            return BuildResult<PostOperationProjection>.Success(new PostOperationProjection(
+            return LoweringAttempt<PostOperationProjection>.Built(new PostOperationProjection(
                 publicFields,
                 publicShape,
                 new ExecutionVariable(resultTableName, typeof(object)),
@@ -49,7 +49,7 @@ internal sealed class PostOperationProjectionPlanner(
             publicShape,
             Enumerable.Range(0, publicFields.Length).ToArray());
 
-        return BuildResult<PostOperationProjection>.Success(new PostOperationProjection(
+        return LoweringAttempt<PostOperationProjection>.Built(new PostOperationProjection(
             materializedFields,
             workingShape,
             new ExecutionVariable(CreateSortWorkingTableName(resultTableName), typeof(object)),
@@ -58,7 +58,7 @@ internal sealed class PostOperationProjectionPlanner(
             [workingShape, publicShape]));
     }
 
-    public static BuildResult<IReadOnlyList<ProjectedField>> CreateHiddenSortFields(
+    public static LoweringAttempt<IReadOnlyList<ProjectedField>> CreateHiddenSortFields(
         GeneratedRowShape publicShape,
         ProjectedField[] publicFields,
         IReadOnlyList<PostOperation> postOperations,
@@ -81,7 +81,7 @@ internal sealed class PostOperationProjectionPlanner(
                 publicFields.Length + fields.Count));
         }
 
-        return BuildResult<IReadOnlyList<ProjectedField>>.Success(fields);
+        return LoweringAttempt<IReadOnlyList<ProjectedField>>.Built(fields);
     }
 
     public static PostOperation[] ReplaceSortProjectedFields(

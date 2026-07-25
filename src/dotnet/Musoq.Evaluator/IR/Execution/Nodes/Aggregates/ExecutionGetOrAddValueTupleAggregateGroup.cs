@@ -3,16 +3,37 @@ using System.Reflection;
 
 namespace Musoq.Evaluator.IR.Execution;
 
-public sealed record ExecutionGetOrAddValueTupleAggregateGroup(
-    ExecutionVariable RootGroup,
-    IReadOnlyList<AggregateGroupLookup> GroupDictionaries,
-    ExecutionVariable GroupsToFinalize,
-    ExecutionVariable Group,
-    IReadOnlyList<ExecutionExpression> Keys,
-    IReadOnlyList<string> KeyNames,
-    IReadOnlyList<ExecutionTypeRef> KeyTypes,
-    AggregateGroupPlan GroupPlan) : ExecutionNode
+public sealed record ExecutionGetOrAddValueTupleAggregateGroup : ExecutionNode
 {
+    public ExecutionGetOrAddValueTupleAggregateGroup(
+        ExecutionVariable rootGroup,
+        IReadOnlyList<AggregateGroupLookup> groupDictionaries,
+        ExecutionVariable groupsToFinalize,
+        ExecutionVariable group,
+        IReadOnlyList<ExecutionExpression> keys,
+        IReadOnlyList<string> keyNames,
+        IReadOnlyList<ExecutionTypeRef> keyTypes,
+        AggregateGroupPlan groupPlan)
+    {
+        RootGroup = rootGroup;
+        GroupDictionaries = ExecutionIrCollections.Freeze(groupDictionaries);
+        GroupsToFinalize = groupsToFinalize;
+        Group = group;
+        Keys = ExecutionIrCollections.Freeze(keys);
+        KeyNames = ExecutionIrCollections.Freeze(keyNames);
+        KeyTypes = ExecutionIrCollections.Freeze(keyTypes);
+        GroupPlan = groupPlan;
+    }
+
+    public ExecutionVariable RootGroup { get; init; }
+    public IReadOnlyList<AggregateGroupLookup> GroupDictionaries { get; init; }
+    public ExecutionVariable GroupsToFinalize { get; init; }
+    public ExecutionVariable Group { get; init; }
+    public IReadOnlyList<ExecutionExpression> Keys { get; init; }
+    public IReadOnlyList<string> KeyNames { get; init; }
+    public IReadOnlyList<ExecutionTypeRef> KeyTypes { get; init; }
+    public AggregateGroupPlan GroupPlan { get; init; }
+
     internal ExecutionGetOrAddValueTupleAggregateGroup(
         ExecutionVariable rootGroup,
         IReadOnlyList<AggregateGroupLookup> groupDictionaries,
@@ -22,7 +43,7 @@ public sealed record ExecutionGetOrAddValueTupleAggregateGroup(
         IReadOnlyList<string> keyNames,
         IReadOnlyList<Type> keyTypes,
         AggregateGroupPlan groupPlan)
-        : this(rootGroup, groupDictionaries, groupsToFinalize, group, keys, keyNames, ExecutionTypeRef.FromClrTypes(keyTypes), groupPlan)
+        : this(rootGroup, groupDictionaries, groupsToFinalize, group, keys, keyNames, ExecutionClrBindingFactory.FromClrTypes(keyTypes), groupPlan)
     {
     }
 

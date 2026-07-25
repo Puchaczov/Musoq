@@ -1,30 +1,26 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select City, Country, Population from #A.Entities() where Population > 500000
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.City as City, ko3iko.Country as Country, ko3iko.Population as Population]
     Filter [(ko3iko.Population > 500000)]
       SchemaScan [#A.Entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.City as City, ko3iko.Country as Country, ko3iko.Population as Population]
     PhysicalFilter [(ko3iko.Population > 500000)]
       PhysicalSchemaScan [#A.Entities() as ko3iko] [pushdown: (ko3iko.Population > 500000)]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -45,6 +41,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(City: ko3iko.City, Country: ko3iko.Country, Population: population)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q87_CompilationSimpleSelect

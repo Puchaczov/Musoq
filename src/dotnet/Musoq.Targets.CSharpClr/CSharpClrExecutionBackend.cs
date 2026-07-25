@@ -6,7 +6,7 @@ using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Targets.CSharpClr.Optimization.Codegen;
 using Musoq.Evaluator.Runtime;
-using Musoq.Evaluator.Visitors.CodeGeneration;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -21,7 +21,8 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
         var inputs = RequireInputs(request);
         var assemblyName = inputs.AssemblyName;
         var safeNamespaceName = inputs.NamespaceName;
-        var generator = RoslynSharedFactory.Generator;
+        using var runtimeEnvironment = new EvaluatorRuntimeEnvironment();
+        var generator = runtimeEnvironment.Generator;
 
         var renderContext = new RenderContext(
             generator,
@@ -34,9 +35,10 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
                 ResultMode: inputs.QueryResultMode,
                 FinalResultSinkKind: ResolveFinalResultSinkKind(inputs.QueryResultMode),
                 OutputType: inputs.OutputType,
-                ForceTableResultMaterialization: inputs.CompilationOptions.ForceTableResultMaterialization));
+                ForceTableResultMaterialization: inputs.CompilationOptions.ForceTableResultMaterialization,
+                EnableContextualExecution: inputs.EnableContextualExecution));
 
-        var renderer = new CSharpRenderer(renderContext);
+        var renderer = new CSharpRenderer(renderContext, inputs.ExecutionBindings);
         const string queryIdentifier = "compiled";
         var executionPlan = request.ExecutionPlan;
         var renderOutcome = renderer.TryRenderExecutionQueryMethod(executionPlan, queryIdentifier);
@@ -59,7 +61,8 @@ internal sealed class CSharpClrExecutionBackend : IQueryExecutionBackend
         compilationUnit = readabilityResult.OptimizedCode;
 
         var compilationContext = new CompilationContextManager(
-            RoslynSharedFactory.CreateCompilation(assemblyName));
+            runtimeEnvironment.CreateCompilation(assemblyName),
+            runtimeEnvironment);
         compilationContext.InitializeDefaults();
         var referenceAssemblies = inputs.ReferenceAssemblies.ToList();
         foreach (var referenceType in inputs.AdditionalReferenceTypes)

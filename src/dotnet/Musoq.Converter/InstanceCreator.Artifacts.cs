@@ -128,6 +128,7 @@ public static partial class InstanceCreator
         items.ExecutionTarget = executionTarget;
         items.EmitPdb = Debugger.IsAttached;
         items.CompilationOptions = effectiveCompilationOptions;
+        items[BuildItemKeys.EnableContextualExecution] = true;
         configureItems?.Invoke(items);
 
         Exception? caughtException = null;
@@ -141,7 +142,17 @@ public static partial class InstanceCreator
             caughtException = ce;
             diagnosticContext.ReportException(ce);
         }
-        catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
+        catch (AstValidationException ave)
+        {
+            caughtException = ave;
+            diagnosticContext.ReportException(ave);
+        }
+        catch (MultiStatementQueryException mse)
+        {
+            caughtException = mse;
+            diagnosticContext.ReportException(mse);
+        }
+        catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
             caughtException = ex;
             diagnosticContext.ReportException(ex);
@@ -332,7 +343,17 @@ public static partial class InstanceCreator
             caughtException = ce;
             diagnosticContext.ReportException(ce);
         }
-        catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
+        catch (AstValidationException ave)
+        {
+            caughtException = ave;
+            diagnosticContext.ReportException(ave);
+        }
+        catch (MultiStatementQueryException mse)
+        {
+            caughtException = mse;
+            diagnosticContext.ReportException(mse);
+        }
+        catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
             caughtException = ex;
             diagnosticContext.ReportException(ex);
@@ -379,7 +400,7 @@ public static partial class InstanceCreator
             var activator = ExecutionTargetCatalog.ResolveActivator(loadedExecutable.TargetId);
             runnable = activator.ActivateTable(
                 loadedExecutable,
-                new QueryRuntimeBinding(
+                    new QueryRuntimeBinding(
                     items.SchemaProvider,
                     items.SourceRuntimeSettingsBySourceContextId,
                     items.SourceRuntimeSettingDescriptionsBySourceContextId,

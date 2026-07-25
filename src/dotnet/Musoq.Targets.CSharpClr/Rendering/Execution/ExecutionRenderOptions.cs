@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Musoq.Evaluator.Visitors.CodeGeneration;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -11,13 +11,15 @@ internal sealed class ExecutionRenderOptions
         IReadOnlyList<ScriptVariableDefinition> scriptVariableDefinitions,
         IReadOnlyDictionary<string, string> scriptParameterLocalNames,
         IReadOnlyDictionary<string, string> scriptVariableLocalNames,
-        QueryInstrumentationMode instrumentationMode)
+        QueryInstrumentationMode instrumentationMode,
+        CSharpClrExecutionBindingContext executionBindings)
     {
         ScriptParameterDefinitions = scriptParameterDefinitions;
         ScriptVariableDefinitions = scriptVariableDefinitions;
         ScriptParameterLocalNames = scriptParameterLocalNames;
         ScriptVariableLocalNames = scriptVariableLocalNames;
         InstrumentationMode = instrumentationMode;
+        ExecutionBindings = executionBindings;
     }
 
     internal IReadOnlyList<ScriptParameterDefinition> ScriptParameterDefinitions { get; }
@@ -30,10 +32,13 @@ internal sealed class ExecutionRenderOptions
 
     internal QueryInstrumentationMode InstrumentationMode { get; }
 
+    internal CSharpClrExecutionBindingContext ExecutionBindings { get; }
+
     internal static ExecutionRenderOptions Create(
         IReadOnlyList<ScriptParameterDefinition>? scriptParameterDefinitions,
         IReadOnlyList<ScriptVariableDefinition>? scriptVariableDefinitions,
-        QueryInstrumentationMode instrumentationMode)
+        QueryInstrumentationMode instrumentationMode,
+        CSharpClrExecutionBindingContext? executionBindings = null)
     {
         var parameterDefinitions = (scriptParameterDefinitions ?? []).ToArray();
         var variableDefinitions = (scriptVariableDefinitions ?? []).ToArray();
@@ -43,6 +48,7 @@ internal sealed class ExecutionRenderOptions
             variableDefinitions,
             ScriptParameterLocalNameResolver.CreateLocalNameMap(parameterDefinitions),
             ScriptVariableLocalNameResolver.CreateLocalNameMap(variableDefinitions),
-            instrumentationMode);
+            instrumentationMode,
+            executionBindings ?? new CSharpClrExecutionBindingContext());
     }
 }

@@ -1,15 +1,13 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT Name, Department, Salary,
                      Rank() over (partition by Department order by Salary desc) as SalaryRank
               FROM #test.entities()
               QUALIFY Rank() over (partition by Department order by Salary desc) <= 3
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, ko3iko.Department as Department, ko3iko.Salary as Salary, WindowRef(0) as SalaryRank]
     Qualify [(WindowRef(0) <= 3)]
@@ -17,9 +15,8 @@ MultiStatement
         SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, ko3iko.Department as Department, ko3iko.Salary as Salary, WindowRef(0) as SalaryRank]
     PhysicalQualify [(WindowRef(0) <= 3)]
@@ -28,9 +25,8 @@ PhysicalMultiStatement
           PhysicalSchemaScan [#test.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2RegressionEntity]
@@ -53,6 +49,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(Name: ko3iko.Name, Department: ko3iko.Department, Salary: ko3iko.Salary, SalaryRank: resultRanks[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q102_RuntimeV2WindowQualifyRank

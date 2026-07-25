@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 binary TextPacket {
                 Length: byte,
                 Text: string[Length] ascii trim
@@ -12,9 +11,8 @@ binary TextPacket {
             cross apply Interpret<TextPacket>(f.Content) p
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [f.Content as f.Content, p.Length as p.Length, p.Text as p.Text]
     Apply [Cross]
@@ -24,9 +22,8 @@ MultiStatement
     CteRef [fp as fp]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [f.Content as f.Content, p.Length as p.Length, p.Text as p.Text]
     PhysicalNestedLoopApply [Cross]
@@ -36,9 +33,8 @@ PhysicalMultiStatement
     PhysicalCteRef [fp as fp]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [f: BinaryEntity]
@@ -60,6 +56,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(p.Length: p.Length, p.Text: p.Text)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q52_BinaryStringInterpret

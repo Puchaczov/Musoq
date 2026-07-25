@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 binary Point {
                 X: short le,
                 Y: short le
@@ -17,9 +16,8 @@ binary Point {
             cross apply Interpret<Vertex>(f.Content) v
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [f.Content as f.Content, v.Id as v.Id, v.Position as v.Position]
     Apply [Cross]
@@ -29,9 +27,8 @@ MultiStatement
     CteRef [fv as fv]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [f.Content as f.Content, v.Id as v.Id, v.Position as v.Position]
     PhysicalNestedLoopApply [Cross]
@@ -41,9 +38,8 @@ PhysicalMultiStatement
     PhysicalCteRef [fv as fv]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [f: BinaryEntity]
@@ -68,6 +64,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(v.Id: v.Id, X: v.Position.X, Y: v.Position.Y)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q54_BinaryNestedInterpret

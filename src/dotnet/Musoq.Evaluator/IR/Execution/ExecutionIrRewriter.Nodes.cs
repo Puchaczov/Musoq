@@ -38,6 +38,32 @@ internal abstract partial class ExecutionIrRewriter
         return ReferenceEquals(values, node.Values) ? node : node with { Values = values };
     }
 
+    protected virtual ExecutionNode RewriteRecursiveCte(ExecutionRecursiveCte node)
+    {
+        var anchor = RewriteBlock(node.Anchor);
+        var invariantSetup = RewriteBlock(node.InvariantSetup);
+        var recursiveMember = RewriteBlock(node.RecursiveMember);
+        return ReferenceEquals(anchor, node.Anchor) &&
+               ReferenceEquals(invariantSetup, node.InvariantSetup) &&
+               ReferenceEquals(recursiveMember, node.RecursiveMember)
+            ? node
+            : node with
+            {
+                Anchor = anchor,
+                InvariantSetup = invariantSetup,
+                RecursiveMember = recursiveMember
+            };
+    }
+
+    protected virtual ExecutionNode RewriteRecursiveCteAppend(ExecutionRecursiveCteAppend node)
+    {
+        var append = (ExecutionAppendRow)RewriteAppendRow(node.AppendRow);
+        return ReferenceEquals(append, node.AppendRow) ? node : node with { AppendRow = append };
+    }
+
+    protected virtual ExecutionNode RewriteRecursiveCteSnapshotRowGuard(
+        ExecutionRecursiveCteSnapshotRowGuard node) => node;
+
     protected virtual ExecutionNode RewriteCreateBoundedRecordList(ExecutionCreateBoundedRecordList node) => node;
 
     protected virtual ExecutionNode RewriteForEach(ExecutionForEach node)

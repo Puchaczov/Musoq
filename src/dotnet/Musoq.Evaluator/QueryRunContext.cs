@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using Musoq.Schema;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Evaluator;
 
@@ -12,7 +14,12 @@ public sealed class QueryRunContext
         QueryPhaseEventHandler? phaseChanged = null,
         DataSourceEventHandler? dataSourceProgress = null,
         object? sender = null,
-        string? queryId = null)
+        string? queryId = null,
+        ISchemaProvider? provider = null,
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? sourceRuntimeSettingsBySourceContextId = null,
+        IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>? sourceRuntimeSettingDescriptionsBySourceContextId = null,
+        IReadOnlyDictionary<string, SourceExecutionPlan>? sourceExecutionPlans = null,
+        ILogger? logger = null)
     {
         CancellationToken = cancellationToken;
         RuntimeParameters = ParameterSnapshot.CaptureReadOnlyOrEmpty(parameters);
@@ -20,6 +27,13 @@ public sealed class QueryRunContext
         DataSourceProgress = dataSourceProgress;
         Sender = sender ?? this;
         QueryId = queryId ?? string.Empty;
+        Provider = provider;
+        SourceRuntimeSettingsBySourceContextId = sourceRuntimeSettingsBySourceContextId ??
+            new Dictionary<string, IReadOnlyDictionary<string, string>>();
+        SourceRuntimeSettingDescriptionsBySourceContextId = sourceRuntimeSettingDescriptionsBySourceContextId ??
+            new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
+        SourceExecutionPlans = sourceExecutionPlans ?? new Dictionary<string, SourceExecutionPlan>();
+        Logger = logger;
     }
 
     public CancellationToken CancellationToken { get; }
@@ -34,12 +48,35 @@ public sealed class QueryRunContext
 
     public string QueryId { get; }
 
+    public ISchemaProvider? Provider { get; }
+
+    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> SourceRuntimeSettingsBySourceContextId { get; }
+
+    public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>> SourceRuntimeSettingDescriptionsBySourceContextId { get; }
+
+    public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; }
+
+    public ILogger? Logger { get; }
+
     public static QueryRunContext Capture(
         TypedQueryRunOptions options,
         object? sender = null,
         string? queryId = null)
     {
         ArgumentNullException.ThrowIfNull(options);
+
+        if (sender is IQueryRunnable runnable)
+        {
+            var binding = EvaluatorQueryRuntimeBinding.Capture(runnable);
+            return Create(
+                binding,
+                ParameterSnapshot.CaptureReadOnlyOrEmpty(options.Parameters),
+                options.CancellationToken,
+                options.PhaseChanged,
+                options.DataSourceProgress,
+                sender,
+                queryId ?? runnable.GetType().FullName ?? string.Empty);
+        }
 
         return new QueryRunContext(
             options.CancellationToken,
@@ -48,6 +85,34 @@ public sealed class QueryRunContext
             options.DataSourceProgress,
             sender,
             queryId);
+    }
+
+    internal static QueryRunContext Create(
+        EvaluatorQueryRuntimeBinding binding,
+        IReadOnlyDictionary<string, object?> parameters,
+        CancellationToken cancellationToken,
+        QueryPhaseEventHandler? phaseChanged,
+        DataSourceEventHandler? dataSourceProgress,
+        object sender,
+        string queryId)
+    {
+        ArgumentNullException.ThrowIfNull(binding);
+        ArgumentNullException.ThrowIfNull(parameters);
+        ArgumentNullException.ThrowIfNull(sender);
+        ArgumentNullException.ThrowIfNull(queryId);
+
+        return new QueryRunContext(
+            cancellationToken,
+            parameters,
+            phaseChanged,
+            dataSourceProgress,
+            sender,
+            queryId,
+            binding.Provider,
+            binding.SourceRuntimeSettingsBySourceContextId,
+            binding.SourceRuntimeSettingDescriptionsBySourceContextId,
+            binding.SourceExecutionPlans,
+            binding.Logger);
     }
 
     public void ThrowIfCancellationRequested()

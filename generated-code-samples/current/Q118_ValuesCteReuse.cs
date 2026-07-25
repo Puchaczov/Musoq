@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with policy as (
                   from values {
                       { Name: 'Newtonsoft.Json', Approved: true },
@@ -14,9 +13,8 @@ with policy as (
               where rightPolicy.Approved = false
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [policy]
     MultiStatement
@@ -33,9 +31,8 @@ Cte
           CteRef [leftPolicyrightPolicy as leftPolicyrightPolicy]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [policy]
     PhysicalMultiStatement
@@ -52,9 +49,8 @@ PhysicalCte
           PhysicalCteRef [leftPolicyrightPolicy as leftPolicyrightPolicy]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     UnknownShape [ValuesRowShape]
@@ -92,6 +88,8 @@ ExecutionPlan [compiled]
             AppendShape [result <- ResultShape0(leftPolicy.Name: leftPolicy.p.Name, rightPolicy.Approved: p_Approved)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q118_ValuesCteReuse

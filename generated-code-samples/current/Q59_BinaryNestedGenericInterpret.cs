@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 binary ByteValue {
                 Value: byte
             };
@@ -26,9 +25,8 @@ binary ByteValue {
             cross apply c.Items.Data p
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [f.Content as f.Content, c.Items as c.Items]
     Apply [Cross]
@@ -42,9 +40,8 @@ MultiStatement
     CteRef [fcp as fcp]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [f.Content as f.Content, c.Items as c.Items]
     PhysicalNestedLoopApply [Cross]
@@ -58,9 +55,8 @@ PhysicalMultiStatement
     PhysicalCteRef [fcp as fcp]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [f: BinaryEntity]
@@ -98,6 +94,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(LeftValue: p.LeftItem.Value, RightValue: p.RightItem.Value)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q59_BinaryNestedGenericInterpret

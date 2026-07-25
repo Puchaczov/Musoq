@@ -20,7 +20,9 @@ public class ProfilingOverheadBenchmark : BenchmarkBase
         HashJoin,
         GroupBy,
         OrderBySkipTake,
-        ParallelCteHashJoin
+        ParallelCteHashJoin,
+        RecursiveUnionAll,
+        RecursiveKeyedUnion
     }
 
     private CompiledQuery _disabledQuery = null!;
@@ -40,18 +42,21 @@ public class ProfilingOverheadBenchmark : BenchmarkBase
         ProfilingOverheadScenario.HashJoin,
         ProfilingOverheadScenario.GroupBy,
         ProfilingOverheadScenario.OrderBySkipTake,
-        ProfilingOverheadScenario.ParallelCteHashJoin)]
+        ProfilingOverheadScenario.ParallelCteHashJoin,
+        ProfilingOverheadScenario.RecursiveUnionAll,
+        ProfilingOverheadScenario.RecursiveKeyedUnion)]
     public ProfilingOverheadScenario Scenario { get; set; }
 
     [GlobalSetup]
     public void Setup()
     {
-        var script = CreateScript(Scenario);
+        var script = CreateScript(Scenario, RowsCount);
         var schemaProvider = CreateSchemaProvider(RowsCount, ChunkShape);
         var options = BenchmarkCompilationOptions.Materialized(
             new CompilationOptions(
                 parallelizationMode: ParallelizationMode.Full,
-                useCteParallelization: true));
+                useCteParallelization: true))
+            .WithRecursiveCteLimits(new RecursiveCteExecutionLimits(RowsCount, RowsCount));
 
         _disabledQuery = Compile(script, schemaProvider, options);
         _sourceBoundariesQuery = ProfiledQueryRunner.Create(
@@ -91,7 +96,7 @@ public class ProfilingOverheadBenchmark : BenchmarkBase
             options);
     }
 
-    private static string CreateScript(ProfilingOverheadScenario scenario)
+    private static string CreateScript(ProfilingOverheadScenario scenario, int rowsCount)
     {
         return scenario switch
         {
@@ -107,6 +112,10 @@ public class ProfilingOverheadBenchmark : BenchmarkBase
                 "select Id, Name, City, Population from #A.entities() order by Population desc skip 100 take 100",
             ProfilingOverheadScenario.ParallelCteHashJoin =>
                 "with leftCte as (select Id, City from #A.entities()), rightCte as (select Id, Name from #B.entities()) select l.Id, l.City, r.Name from leftCte l inner join rightCte r on l.Id = r.Id",
+            ProfilingOverheadScenario.RecursiveUnionAll =>
+                $"with recursive counter (Value) as (select 1 union all select c.Value + 1 from counter c where c.Value < {rowsCount}) select Value from counter",
+            ProfilingOverheadScenario.RecursiveKeyedUnion =>
+                $"with recursive counter (Value) as (select 1 union (Value) select case when c.Value < {rowsCount} then c.Value + 1 else 1 end from counter c) select Value from counter",
             _ => throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null)
         };
     }

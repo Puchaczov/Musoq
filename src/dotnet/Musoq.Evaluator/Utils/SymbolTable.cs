@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Musoq.Evaluator.Utils.Symbols;
 
 namespace Musoq.Evaluator.Utils;
@@ -64,5 +65,18 @@ public class SymbolTable
     public bool SymbolIsOfType<TType>(object key) where TType : Symbol
     {
         return _symbols.TryGetValue(key, out var symbol) && symbol.GetType() == typeof(TType);
+    }
+
+    internal IReadOnlyList<ScopeSymbolSnapshot> Snapshot()
+    {
+        return _symbols
+            .Select(static pair => new ScopeSymbolSnapshot(pair.Key, SymbolSnapshotCloner.Clone(pair.Value)))
+            .ToArray();
+    }
+
+    internal void Restore(IEnumerable<ScopeSymbolSnapshot> symbols)
+    {
+        foreach (var symbol in symbols)
+            _symbols.Add(symbol.Key, SymbolSnapshotCloner.Clone(symbol.Value));
     }
 }

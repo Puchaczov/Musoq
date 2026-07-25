@@ -1,9 +1,9 @@
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
 using Musoq.Plugins;
 using Musoq.Schema;
@@ -13,7 +13,10 @@ namespace Musoq.Evaluator.Helpers;
 
 public static partial class EvaluationHelper
 {
-    private static readonly ConcurrentDictionary<Type, Func<object, IReadOnlyList<object>>> ObjectChunkAdapters = new();
+    private static readonly WeakTypeRuntimeCache<Func<object, IReadOnlyList<object>>> ObjectChunkAdapters =
+        new(RuntimeCacheOptions.ObjectChunkAdapterCacheSize);
+
+    internal static void ClearObjectChunkAdapterCache() => ObjectChunkAdapters.Clear();
 
     public static Type GetRequiredType(string assemblyQualifiedName)
     {

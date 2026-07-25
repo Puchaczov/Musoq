@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT City as c,
                          Population::Int32 as pop,
                          Count(*) as cnt,
@@ -12,9 +11,8 @@ SELECT City as c,
                   ORDER BY c
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Population::Int32 as ko3iko.Population::Int32, ko3iko.City as ko3iko.City, AggRef(ko3iko.Sum(ko3iko.Amount::Decimal)) as ko3iko.Sum(ko3iko.Amount::Decimal), AggRef(ko3iko.Count(*)) as ko3iko.Count(*)]
     Having [((AggRef(ko3iko.Count(*)) > 1) AND (AggRef(ko3iko.Sum(ko3iko.Amount::Decimal)) > '10.00'::Decimal))]
@@ -26,9 +24,8 @@ MultiStatement
       CteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Population::Int32 as ko3iko.Population::Int32, ko3iko.City as ko3iko.City, AggRef(ko3iko.Sum(ko3iko.Amount::Decimal)) as ko3iko.Sum(ko3iko.Amount::Decimal), AggRef(ko3iko.Count(*)) as ko3iko.Count(*)]
     PhysicalHaving [((AggRef(ko3iko.Count(*)) > 1) AND (AggRef(ko3iko.Sum(ko3iko.Amount::Decimal)) > '10.00'::Decimal))]
@@ -40,9 +37,8 @@ PhysicalMultiStatement
       PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2CastGroupingFeatureEntity]
@@ -76,6 +72,8 @@ ExecutionPlan [compiled]
     SortShapeRows [result -> resultSorted by c ASC]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q158_RuntimeV2CombinedGrouping

@@ -59,7 +59,11 @@ public sealed class CompiledTypedQueryRunIsolationTests
         Assert.AreEqual("first", firstEnumerator.Current);
 
         var secondMaterialized = Array.Empty<string>();
-        var secondTask = Task.Run(() => secondMaterialized = secondRows.ToArray());
+        var secondTask = Task.Factory.StartNew(
+            () => secondMaterialized = secondRows.ToArray(),
+            CancellationToken.None,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default);
         var secondEnteredBeforeFirstDisposed = runnable.WaitForRunCount(2, TimeSpan.FromSeconds(2));
 
         firstEnumerator.Dispose();

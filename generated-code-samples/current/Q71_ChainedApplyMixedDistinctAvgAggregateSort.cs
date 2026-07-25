@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select i.Name as Name, Avg(n.Value) as RepeatedAvg, Avg(distinct n.Value) as DistinctAvg from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Avg(distinct n.Value) desc, Avg(n.Value) desc, i.Name
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Sort [AggRef(inm.Avg(distinct n.Value)) DESC, AggRef(inm.Avg(n.Value)) DESC, i.Name]
     Project [i.Name as Name, AggRef(inm.Avg(n.Value)) as RepeatedAvg, AggRef(inm.Avg(distinct n.Value)) as DistinctAvg]
@@ -18,9 +16,8 @@ MultiStatement
           PropertySource [i.Numbers as m] [apply: Cross] [type: Int32[]]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalSort [AggRef(inm.Avg(distinct n.Value)) DESC, AggRef(inm.Avg(n.Value)) DESC, i.Name]
     PhysicalProject [i.Name as Name, AggRef(inm.Avg(n.Value)) as RepeatedAvg, AggRef(inm.Avg(distinct n.Value)) as DistinctAvg]
@@ -32,9 +29,8 @@ PhysicalMultiStatement
           PhysicalPropertySource [i.Numbers as m] [apply: Cross] [type: Int32[]]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [i: GeneratedApplySampleEntity]
@@ -69,6 +65,8 @@ ExecutionPlan [compiled]
     SortShapeRows [result -> resultSorted by DistinctAvg DESC, RepeatedAvg DESC, Name ASC]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q71_ChainedApplyMixedDistinctAvgAggregateSort

@@ -40,17 +40,17 @@ internal static class ExecutionPortableSymbolCatalog
 
     private static readonly IReadOnlyDictionary<Type, ExecutionPortableContainerDefinition> PortableContainerDefinitions = new Dictionary<Type, ExecutionPortableContainerDefinition>
     {
-        [typeof(IEnumerable<>)] = Sequence("sequence"),
-        [typeof(IReadOnlyCollection<>)] = Sequence("sequence"),
-        [typeof(IReadOnlyList<>)] = Sequence("sequence"),
-        [typeof(ICollection<>)] = List("list"),
-        [typeof(IList<>)] = List("list"),
-        [typeof(List<>)] = List("list"),
-        [typeof(IReadOnlyDictionary<,>)] = Map("map", isMutable: false),
-        [typeof(IDictionary<,>)] = Map("map", isMutable: true),
-        [typeof(Dictionary<,>)] = Map("map", isMutable: true),
-        [typeof(KeyValuePair<,>)] = Pair("pair"),
-        [typeof(HashSet<>)] = Set("set")
+        [typeof(IEnumerable<>)] = Sequence("sequence", ExecutionPortableContainerBindingKind.Enumerable),
+        [typeof(IReadOnlyCollection<>)] = Sequence("sequence", ExecutionPortableContainerBindingKind.ReadOnlyCollection),
+        [typeof(IReadOnlyList<>)] = Sequence("sequence", ExecutionPortableContainerBindingKind.ReadOnlyList),
+        [typeof(ICollection<>)] = List("list", ExecutionPortableContainerBindingKind.Collection),
+        [typeof(IList<>)] = List("list", ExecutionPortableContainerBindingKind.ListInterface),
+        [typeof(List<>)] = List("list", ExecutionPortableContainerBindingKind.List),
+        [typeof(IReadOnlyDictionary<,>)] = Map("map", isMutable: false, ExecutionPortableContainerBindingKind.ReadOnlyDictionary),
+        [typeof(IDictionary<,>)] = Map("map", isMutable: true, ExecutionPortableContainerBindingKind.DictionaryInterface),
+        [typeof(Dictionary<,>)] = Map("map", isMutable: true, ExecutionPortableContainerBindingKind.Dictionary),
+        [typeof(KeyValuePair<,>)] = Pair("pair", ExecutionPortableContainerBindingKind.KeyValuePair),
+        [typeof(HashSet<>)] = Set("set", ExecutionPortableContainerBindingKind.HashSet)
     };
 
     private static readonly IReadOnlySet<Type> HostImportTypes = new HashSet<Type>
@@ -140,7 +140,9 @@ internal static class ExecutionPortableSymbolCatalog
             : ExecutionIntrinsicCallableKind.None;
     }
 
-    private static ExecutionPortableContainerDefinition Sequence(string stableName) =>
+    private static ExecutionPortableContainerDefinition Sequence(
+        string stableName,
+        ExecutionPortableContainerBindingKind bindingKind) =>
         new(
             stableName,
             ExecutionPortableTypeKind.Sequence,
@@ -149,9 +151,12 @@ internal static class ExecutionPortableSymbolCatalog
                 IsOrdered: true,
                 IsMutable: false,
                 RequiresKeyEquality: false,
-                RequiresKeyHashing: false));
+                RequiresKeyHashing: false,
+                bindingKind));
 
-    private static ExecutionPortableContainerDefinition List(string stableName) =>
+    private static ExecutionPortableContainerDefinition List(
+        string stableName,
+        ExecutionPortableContainerBindingKind bindingKind) =>
         new(
             stableName,
             ExecutionPortableTypeKind.List,
@@ -160,9 +165,13 @@ internal static class ExecutionPortableSymbolCatalog
                 IsOrdered: true,
                 IsMutable: true,
                 RequiresKeyEquality: false,
-                RequiresKeyHashing: false));
+                RequiresKeyHashing: false,
+                bindingKind));
 
-    private static ExecutionPortableContainerDefinition Map(string stableName, bool isMutable) =>
+    private static ExecutionPortableContainerDefinition Map(
+        string stableName,
+        bool isMutable,
+        ExecutionPortableContainerBindingKind bindingKind) =>
         new(
             stableName,
             ExecutionPortableTypeKind.Map,
@@ -171,9 +180,12 @@ internal static class ExecutionPortableSymbolCatalog
                 IsOrdered: false,
                 IsMutable: isMutable,
                 RequiresKeyEquality: true,
-                RequiresKeyHashing: true));
+                RequiresKeyHashing: true,
+                bindingKind));
 
-    private static ExecutionPortableContainerDefinition Set(string stableName) =>
+    private static ExecutionPortableContainerDefinition Set(
+        string stableName,
+        ExecutionPortableContainerBindingKind bindingKind) =>
         new(
             stableName,
             ExecutionPortableTypeKind.Set,
@@ -182,9 +194,12 @@ internal static class ExecutionPortableSymbolCatalog
                 IsOrdered: false,
                 IsMutable: true,
                 RequiresKeyEquality: true,
-                RequiresKeyHashing: true));
+                RequiresKeyHashing: true,
+                bindingKind));
 
-    private static ExecutionPortableContainerDefinition Pair(string stableName) =>
+    private static ExecutionPortableContainerDefinition Pair(
+        string stableName,
+        ExecutionPortableContainerBindingKind bindingKind) =>
         new(
             stableName,
             ExecutionPortableTypeKind.Pair,
@@ -193,7 +208,8 @@ internal static class ExecutionPortableSymbolCatalog
                 IsOrdered: true,
                 IsMutable: false,
                 RequiresKeyEquality: false,
-                RequiresKeyHashing: false));
+                RequiresKeyHashing: false,
+                bindingKind));
 
     public readonly record struct ExecutionPortableContainerDefinition(
         string StableName,

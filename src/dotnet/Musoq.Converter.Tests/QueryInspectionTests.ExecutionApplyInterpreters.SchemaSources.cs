@@ -20,6 +20,37 @@ public partial class QueryInspectionTests
     }
 
     [TestMethod]
+    public void CompileForInspection_WhenCrossApplyUsesReorderedNamedSourceArguments_ShouldCanonicalizeEverySurface()
+    {
+        var result = Inspect(
+            "select l.Name, r.Line as RightLine from #apply.items() l cross apply #apply.related(limit: 1, name: l.Name) r",
+            CreateApplyCandidateSchemaProvider());
+
+        AssertUsesExecutionBackend(result);
+        Assert.Contains("#apply.related", result.LogicalPlanText);
+        Assert.Contains("#apply.related", result.PhysicalPlanText);
+        AssertExecutionPlanContains("SourceScan [r: ApplyCandidateEntity] -> rRows", result.ExecutionPlanText);
+        Assert.IsFalse(result.LogicalPlanText.Contains("limit:", StringComparison.OrdinalIgnoreCase));
+        Assert.IsFalse(result.PhysicalPlanText.Contains("name:", StringComparison.OrdinalIgnoreCase));
+        Assert.IsFalse(result.GeneratedCSharpCode.Contains("limit:", StringComparison.OrdinalIgnoreCase));
+        Assert.IsFalse(result.GeneratedCSharpCode.Contains("name:", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [TestMethod]
+    public void CompileForExecution_WhenCrossApplyUsesNamedSourceArguments_ShouldPreserveCorrelatedRows()
+    {
+        var compiled = CompileForExecution(
+            "select l.Name, r.Line as RightLine from #apply.items() l cross apply #apply.related(limit: 1, name: l.Name) r",
+            CreateApplyCandidateSchemaProvider());
+
+        var table = compiled.Run();
+
+        Assert.AreEqual(2, table.Count);
+        Assert.IsTrue(table.Any(row => string.Equals(row[0] as string, "left", StringComparison.Ordinal)));
+        Assert.IsTrue(table.Any(row => string.Equals(row[0] as string, "right", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
     public void CompileForExecution_WhenDefaultExecutionIrRoutingCanRenderCrossApplySchemaSource_ShouldRunExecutableQuery()
     {
         var compiled = CompileForExecution("select l.Name, r.Line as RightLine from #apply.items() l cross apply #apply.related(l.Name) r", CreateApplyCandidateSchemaProvider());

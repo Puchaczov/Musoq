@@ -92,23 +92,28 @@ public partial class Parser
     private CteExpressionNode ComposeCteExpression()
     {
         Consume(TokenType.With);
+        var recursiveToken = IsContextualRecursiveKeyword() ? ConsumeAndGetToken() : null;
+        var isRecursive = recursiveToken != null && Current.TokenType is not TokenType.As and not TokenType.LeftParenthesis;
 
         PushFromAliasesScope();
         try
         {
             var expressions = new List<CteInnerExpressionNode>();
 
-            if (ComposeBaseTypes() is not IdentifierNode col)
+            var col = recursiveToken != null && !isRecursive ? new IdentifierNode(recursiveToken.Value, null, recursiveToken.Span) : ComposeBaseTypes() as IdentifierNode;
+            if (col == null)
                 throw new SyntaxException($"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
                     _lexer.AlreadyResolvedQueryPart);
 
             RegisterFromAlias(col.Name);
+            var columns = ComposeOptionalCteColumnList();
 
             Consume(TokenType.As);
             Consume(TokenType.LeftParenthesis);
             var innerSets = ComposeSetOperators(0);
-            expressions.Add(new CteInnerExpressionNode(innerSets, col.Name));
-            Consume(TokenType.RightParenthesis);
+            var closingParenthesis = ConsumeAndGetToken(TokenType.RightParenthesis);
+            expressions.Add((CteInnerExpressionNode)new CteInnerExpressionNode(innerSets, col.Name, columns)
+                .WithSpan(col.Span.Through(closingParenthesis.Span)));
 
             while (Current.TokenType == TokenType.Comma)
             {
@@ -120,23 +125,73 @@ public partial class Parser
                         _lexer.AlreadyResolvedQueryPart);
 
                 RegisterFromAlias(nextColumn.Name);
+                columns = ComposeOptionalCteColumnList();
 
                 Consume(TokenType.As);
 
                 Consume(TokenType.LeftParenthesis);
                 innerSets = ComposeSetOperators(0);
-                Consume(TokenType.RightParenthesis);
-                    expressions.Add(new CteInnerExpressionNode(innerSets, nextColumn.Name));
+                closingParenthesis = ConsumeAndGetToken(TokenType.RightParenthesis);
+                expressions.Add((CteInnerExpressionNode)new CteInnerExpressionNode(
+                        innerSets,
+                        nextColumn.Name,
+                        columns)
+                    .WithSpan(nextColumn.Span.Through(closingParenthesis.Span)));
             }
 
             var outerSets = ComposeSetOperators(0);
 
-            return new CteExpressionNode(expressions.ToArray(), outerSets);
+            return new CteExpressionNode(expressions.ToArray(), outerSets, isRecursive);
         }
         finally
         {
             PopFromAliasesScope();
         }
+    }
+
+    private CteColumnName[] ComposeOptionalCteColumnList()
+    {
+        if (Current.TokenType != TokenType.LeftParenthesis)
+            return [];
+
+        var openingParenthesis = ConsumeAndGetToken(TokenType.LeftParenthesis);
+        var columns = new List<CteColumnName>();
+
+        while (true)
+        {
+            if (columns.Count == 0 && Current.TokenType is TokenType.Select or TokenType.From or
+                TokenType.Pivot or TokenType.Unpivot or TokenType.With)
+            {
+                throw new SyntaxException(
+                    $"Expected token is {TokenType.As} but received {openingParenthesis.TokenType}.",
+                    _lexer.AlreadyResolvedQueryPart,
+                    DiagnosticCode.MQ2001_UnexpectedToken,
+                    openingParenthesis.Span);
+            }
+
+            if (ComposeBaseTypes() is not IdentifierNode column)
+                throw new SyntaxException(
+                    $"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
+                    _lexer.AlreadyResolvedQueryPart,
+                    DiagnosticCode.MQ2013_InvalidCTE,
+                    Current.Span);
+
+            columns.Add(new CteColumnName(column.Name, column.Span));
+
+            if (Current.TokenType != TokenType.Comma)
+                break;
+
+            Consume(TokenType.Comma);
+        }
+
+        Consume(TokenType.RightParenthesis);
+        return columns.ToArray();
+    }
+
+    private bool IsContextualRecursiveKeyword()
+    {
+        return Current.TokenType is TokenType.Identifier or TokenType.Word or TokenType.Function &&
+               Current.Value.Equals("recursive", StringComparison.OrdinalIgnoreCase);
     }
 
 }

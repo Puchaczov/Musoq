@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Count(Name), Sum(Population), Min(Population), Max(Population) from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [1 as 1, AggRef(ko3iko.Max(ko3iko.Population)) as ko3iko.Max(ko3iko.Population), AggRef(ko3iko.Min(ko3iko.Population)) as ko3iko.Min(ko3iko.Population), AggRef(ko3iko.Sum(ko3iko.Population)) as ko3iko.Sum(ko3iko.Population), AggRef(ko3iko.Count(ko3iko.Name)) as ko3iko.Count(ko3iko.Name)]
     Aggregate [keys: 1] [aggs: Max(Population), Min(Population), Sum(Population), Count(Name)]
@@ -15,9 +13,8 @@ MultiStatement
     CteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [1 as 1, AggRef(ko3iko.Max(ko3iko.Population)) as ko3iko.Max(ko3iko.Population), AggRef(ko3iko.Min(ko3iko.Population)) as ko3iko.Min(ko3iko.Population), AggRef(ko3iko.Sum(ko3iko.Population)) as ko3iko.Sum(ko3iko.Population), AggRef(ko3iko.Count(ko3iko.Name)) as ko3iko.Count(ko3iko.Name)]
     PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Max(Population), Min(Population), Sum(Population), Count(Name)]
@@ -26,9 +23,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -58,6 +54,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Count(Name): ko3iko.Count(ko3iko.Name), Sum(Population): ko3iko.Sum(ko3iko.Population), Min(Population): ko3iko.Min(ko3iko.Population), Max(Population): ko3iko.Max(ko3iko.Population))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q24_AggregateNoGroupBy

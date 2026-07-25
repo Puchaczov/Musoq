@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 param(baseScore: int, suffix: string = '-ok')
               let bonus: int = 5
               from values {
@@ -10,25 +9,22 @@ param(baseScore: int, suffix: string = '-ok')
               select scores.Name, scores.Score
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [scores.Name as scores.Name, scores.Score as scores.Score]
     ValuesScan [2 rows as scores]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [scores.Name as scores.Name, scores.Score as scores.Score]
     PhysicalValuesScan [2 rows as scores]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     UnknownShape [ValuesRowShape]
@@ -45,6 +41,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(scores.Name: scores.Name, scores.Score: scores.Score)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q171_ValuesStaticParametersAndLets

@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 binary TinyHeader {
                 Id: int le
             };
@@ -9,9 +8,8 @@ binary TinyHeader {
             cross apply Interpret<TinyHeader>(f.Content) h
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [f.Content as f.Content, h.Id as h.Id]
     Apply [Cross]
@@ -21,9 +19,8 @@ MultiStatement
     CteRef [fh as fh]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [f.Content as f.Content, h.Id as h.Id]
     PhysicalNestedLoopApply [Cross]
@@ -33,9 +30,8 @@ PhysicalMultiStatement
     PhysicalCteRef [fh as fh]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [f: BinaryEntity]
@@ -55,6 +51,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(h.Id: h.Id)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q184_BenchmarkInterpretationHighThroughputMaterialized

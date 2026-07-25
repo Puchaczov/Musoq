@@ -1,32 +1,28 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT City, Country, Population
               FROM #test.entities()
               WHERE Population > 500000
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.City as City, ko3iko.Country as Country, ko3iko.Population as Population]
     Filter [(ko3iko.Population > 500000)]
       SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.City as City, ko3iko.Country as Country, ko3iko.Population as Population]
     PhysicalFilter [(ko3iko.Population > 500000)]
       PhysicalSchemaScan [#test.entities() as ko3iko] [pushdown: (ko3iko.Population > 500000)]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BenchmarkParityEntity]
@@ -47,6 +43,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(City: ko3iko.City, Country: ko3iko.Country, Population: population)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q181_BenchmarkCompilationSimpleMaterialized

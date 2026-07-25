@@ -26,7 +26,7 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.IsNotNull(converted.ConstantSet);
         Assert.AreEqual(ExecutionConstantInSetKind.Array, converted.ConstantSet.Kind);
-        Assert.AreEqual(typeof(string), converted.ConstantSet.ElementType.ClrType);
+        Assert.AreEqual(typeof(string), converted.ConstantSet.ElementType.ResolveClrType());
         Assert.HasCount(3, converted.ConstantSet.Values);
     }
 
@@ -45,7 +45,7 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.IsNotNull(converted.ConstantSet);
         Assert.AreEqual(ExecutionConstantInSetKind.Switch, converted.ConstantSet.Kind);
-        Assert.AreEqual(typeof(string), converted.ConstantSet.ElementType.ClrType);
+        Assert.AreEqual(typeof(string), converted.ConstantSet.ElementType.ResolveClrType());
         Assert.HasCount(20, converted.ConstantSet.Values);
     }
 
@@ -64,7 +64,7 @@ public sealed partial class ExecutionCSharpRendererTests
 
         Assert.IsNotNull(converted.ConstantSet);
         Assert.AreEqual(ExecutionConstantInSetKind.FrozenSet, converted.ConstantSet.Kind);
-        Assert.AreEqual(typeof(string), converted.ConstantSet.ElementType.ClrType);
+        Assert.AreEqual(typeof(string), converted.ConstantSet.ElementType.ResolveClrType());
         Assert.HasCount(64, converted.ConstantSet.Values);
     }
 

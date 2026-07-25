@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with rightCte as (select d.Team as Team, d.Name as Name, d.Score as Score from #dynamic.all() d) select l.Name as LeftName, r.Name as RightName from #dynamic.all() l asof join rightCte r on l.Team = r.Team and l.Score >= r.Score
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [rightCte]
     MultiStatement
@@ -22,9 +20,8 @@ Cte
         CteRef [lr as lr]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [rightCte]
     PhysicalMultiStatement
@@ -40,9 +37,8 @@ PhysicalCte
         PhysicalCteRef [lr as lr]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     ExpandoAdapter [d: dDynamicRow0]
@@ -82,6 +78,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(LeftName: l.Name, RightName: r.Name)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin

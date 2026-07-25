@@ -6,7 +6,6 @@ using Musoq.Converter.Diagnostics;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator;
 using Musoq.Evaluator.IR.CodeGeneration;
-using Musoq.Evaluator.Runtime;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
@@ -164,8 +163,6 @@ public static partial class InstanceCreator
         modifyBuildItems(items);
 
         var compiled = true;
-
-        RuntimeLibraries.CreateReferences();
 
         var chain =
             createChain.Invoke() ??

@@ -12,19 +12,19 @@ internal static class ExecutionMethodTargetReuse
         if (CanRenderPerInvocation(method))
             return true;
 
-        if (method.Method.ClrMethod.DeclaringType != typeof(LibraryBase))
+        if (method.Method.ResolveClrMethod().DeclaringType != typeof(LibraryBase))
             return false;
 
         return method.Method.MethodName switch
         {
             nameof(LibraryBase.Contains) => method.Arguments.Count == 2 &&
-                                            method.Arguments[0].ReturnType.ClrType == typeof(string) &&
-                                            method.Arguments[1].ReturnType.ClrType == typeof(string),
+                                            method.Arguments[0].ReturnType.ResolveClrType() == typeof(string) &&
+                                            method.Arguments[1].ReturnType.ResolveClrType() == typeof(string),
             nameof(LibraryBase.StartsWith) => method.Arguments.Count == 2 &&
-                                              method.Arguments[0].ReturnType.ClrType == typeof(string) &&
-                                              method.Arguments[1].ReturnType.ClrType == typeof(string),
+                                              method.Arguments[0].ReturnType.ResolveClrType() == typeof(string) &&
+                                              method.Arguments[1].ReturnType.ResolveClrType() == typeof(string),
             nameof(LibraryBase.ToDecimal) => method.Arguments.Count == 1 &&
-                                             CanRenderToDecimalWithoutTarget(method.Arguments[0].ReturnType.ClrType),
+                                             CanRenderToDecimalWithoutTarget(method.Arguments[0].ReturnType.ResolveClrType()),
             nameof(LibraryBase.__CorrelatedScalarSubqueryResult) =>
                 IsCorrelatedScalarSubqueryResultAccessor(method),
             _ => false
@@ -33,8 +33,8 @@ internal static class ExecutionMethodTargetReuse
 
     public static bool CanRenderPerInvocation(ExecutionMethodCall method)
     {
-        var targetType = method.Method.ClrMethod.DeclaringType;
-        return method.Method.ClrMethod.GetCustomAttribute<NonDeterministicAttribute>() != null &&
+        var targetType = method.Method.ResolveClrMethod().DeclaringType;
+        return method.Method.ResolveClrMethod().GetCustomAttribute<NonDeterministicAttribute>() != null &&
                targetType != null &&
                !targetType.IsAbstract &&
                typeof(LibraryBase).IsAssignableFrom(targetType) &&
@@ -80,7 +80,7 @@ internal static class ExecutionMethodTargetReuse
         if (method.Arguments.Count != 1)
             return false;
 
-        var argumentType = method.Arguments[0].ReturnType.ClrType;
+        var argumentType = method.Arguments[0].ReturnType.ResolveClrType();
         argumentType = Nullable.GetUnderlyingType(argumentType) ?? argumentType;
         return argumentType.IsGenericType &&
                argumentType.GetGenericTypeDefinition() == typeof(CorrelatedScalarSubqueryResult<>);

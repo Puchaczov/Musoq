@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 from values {
                   {
                       PlainInt: 10,
@@ -31,25 +30,22 @@ from values {
                      literals.OctalValue
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [literals.PlainInt as literals.PlainInt, literals.UIntValue as literals.UIntValue, literals.LongValue as literals.LongValue, literals.ULongValue as literals.ULongValue, literals.ShortValue as literals.ShortValue, literals.UShortValue as literals.UShortValue, literals.SByteValue as literals.SByteValue, literals.ByteValue as literals.ByteValue, literals.DecimalValue as literals.DecimalValue, literals.HexValue as literals.HexValue, literals.BinaryValue as literals.BinaryValue, literals.OctalValue as literals.OctalValue]
     ValuesScan [1 rows as literals]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [literals.PlainInt as literals.PlainInt, literals.UIntValue as literals.UIntValue, literals.LongValue as literals.LongValue, literals.ULongValue as literals.ULongValue, literals.ShortValue as literals.ShortValue, literals.UShortValue as literals.UShortValue, literals.SByteValue as literals.SByteValue, literals.ByteValue as literals.ByteValue, literals.DecimalValue as literals.DecimalValue, literals.HexValue as literals.HexValue, literals.BinaryValue as literals.BinaryValue, literals.OctalValue as literals.OctalValue]
     PhysicalValuesScan [1 rows as literals]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     UnknownShape [ValuesRowShape]
@@ -86,6 +82,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(literals.PlainInt: literals.PlainInt, literals.UIntValue: literals.UIntValue, literals.LongValue: literals.LongValue, literals.ULongValue: literals.ULongValue, literals.ShortValue: literals.ShortValue, literals.UShortValue: literals.UShortValue, literals.SByteValue: literals.SByteValue, literals.ByteValue: literals.ByteValue, literals.DecimalValue: literals.DecimalValue, literals.HexValue: literals.HexValue, literals.BinaryValue: literals.BinaryValue, literals.OctalValue: literals.OctalValue)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q119_ValuesNumericLiterals

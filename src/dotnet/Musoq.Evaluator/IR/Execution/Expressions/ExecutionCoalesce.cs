@@ -5,12 +5,29 @@ using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.IR.Execution;
 
-public sealed record ExecutionCoalesce(
-    IReadOnlyList<ExecutionExpression> Expressions,
-    ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
+public sealed record ExecutionCoalesce : ExecutionExpression
 {
+    private IReadOnlyList<ExecutionExpression> _expressions = [];
+
+    public ExecutionCoalesce(
+        IReadOnlyList<ExecutionExpression> expressions,
+        ExecutionTypeRef returnType)
+        : base(returnType)
+    {
+        Expressions = ExecutionIrCollections.Freeze(expressions);
+        ReturnType = returnType;
+    }
+
+    public IReadOnlyList<ExecutionExpression> Expressions
+    {
+        get => _expressions;
+        init => _expressions = ExecutionIrCollections.Freeze(value);
+    }
+
+    public override ExecutionTypeRef ReturnType { get; init; }
+
     internal ExecutionCoalesce(IReadOnlyList<ExecutionExpression> expressions, Type returnType)
-        : this(expressions, ExecutionTypeRef.FromClr(returnType))
+        : this(expressions, ExecutionClrBindingFactory.FromClr(returnType))
     {
     }
 }

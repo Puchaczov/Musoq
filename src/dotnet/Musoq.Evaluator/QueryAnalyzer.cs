@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Logging;
 using Musoq.Evaluator.IR.Optimization;
 using Musoq.Evaluator.IR.Optimization.Logical;
 using Musoq.Evaluator.Visitors;
+using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
 using Musoq.Parser.Nodes;
@@ -50,6 +52,7 @@ public sealed class QueryAnalyzer
 
 
         RootNode? rootNode = null;
+        RootNode? parsedQueryTree = null;
         try
         {
             var lexer = new Lexer(query, true);
@@ -57,8 +60,21 @@ public sealed class QueryAnalyzer
             var parseResult = parser.ParseWithDiagnostics();
 
             rootNode = parseResult.Root;
+            parsedQueryTree = rootNode;
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (SchemaProviderFailureException ex)
+        {
+            RethrowProviderFailure(ex);
+        }
+        catch (ParseException ex)
+        {
+            AddParseDiagnostics(diagnosticBag, ex, sourceText);
+        }
+        catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
             diagnosticBag.AddError(ex, sourceText);
         }
@@ -72,9 +88,18 @@ public sealed class QueryAnalyzer
 
         try
         {
+            RecursiveCtePrevalidator.Validate(rootNode);
             rootNode = new PreLogicalNormalizer().Normalize(rootNode).NormalizedRoot;
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (SchemaProviderFailureException ex)
+        {
+            RethrowProviderFailure(ex);
+        }
+        catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
             diagnosticBag.AddError(ex, sourceText);
         }
@@ -87,6 +112,9 @@ public sealed class QueryAnalyzer
             };
 
         var diagnosticContext = new DiagnosticContext(sourceText);
+        SemanticMetadataSnapshot? metadataSnapshot = null;
+        SemanticScopeArtifact? scopeArtifact = null;
+        var normalizedQueryTree = rootNode;
 
         try
         {
@@ -104,9 +132,22 @@ public sealed class QueryAnalyzer
             rootNode.Accept(traverseVisitor);
 
 
-            if (metadataVisitor.Root is { } typedRoot) rootNode = typedRoot;
+            if (metadataVisitor.Root is { } typedRoot)
+            {
+                rootNode = typedRoot;
+                metadataSnapshot = metadataVisitor.CreateSemanticMetadataSnapshot();
+                scopeArtifact = SemanticScopeArtifact.Capture(traverseVisitor.Scope);
+            }
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (SchemaProviderFailureException ex)
+        {
+            RethrowProviderFailure(ex);
+        }
+        catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
             diagnosticContext.ReportException(ex);
         }
@@ -115,10 +156,27 @@ public sealed class QueryAnalyzer
         var allDiagnostics = diagnosticBag.ToSortedList().ToList();
         allDiagnostics.AddRange(diagnosticContext.Diagnostics);
 
+        var semanticArtifacts = metadataSnapshot is { } snapshot &&
+                                parsedQueryTree is { } parsed &&
+                                normalizedQueryTree is { } normalized &&
+                                rootNode is { } metadataRoot &&
+                                scopeArtifact is { } scope
+            ? new SemanticPhaseArtifacts
+            {
+                ParsedQuery = parsed,
+                NormalizedQuery = normalized,
+                MetadataQuery = metadataRoot,
+                Metadata = snapshot,
+                Scope = scope,
+                Diagnostics = allDiagnostics.ToArray()
+            }
+            : null;
+
         return new QueryAnalysisResult
         {
             Root = rootNode,
-            Diagnostics = allDiagnostics
+            Diagnostics = allDiagnostics,
+            SemanticArtifacts = semanticArtifacts
         };
     }
 
@@ -141,7 +199,19 @@ public sealed class QueryAnalyzer
             var parseResult = parser.ParseWithDiagnostics();
             rootNode = parseResult.Root;
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (SchemaProviderFailureException ex)
+        {
+            RethrowProviderFailure(ex);
+        }
+        catch (ParseException ex)
+        {
+            AddParseDiagnostics(diagnosticBag, ex, sourceText);
+        }
+        catch (Exception ex) when (EvaluatorExceptionTaxonomy.IsExpectedQueryFailure(ex))
         {
             diagnosticBag.AddError(ex, sourceText);
         }
@@ -151,5 +221,22 @@ public sealed class QueryAnalyzer
             Root = rootNode,
             Diagnostics = diagnosticBag.ToSortedList()
         };
+    }
+
+    private static void AddParseDiagnostics(DiagnosticBag diagnosticBag, ParseException exception, SourceText sourceText)
+    {
+        if (exception.Diagnostics.Count > 0)
+        {
+            diagnosticBag.AddRange(exception.Diagnostics);
+            return;
+        }
+
+        diagnosticBag.AddError(exception, sourceText);
+    }
+
+    private static void RethrowProviderFailure(SchemaProviderFailureException exception)
+    {
+        ExceptionDispatchInfo.Capture(exception.InnerException ?? exception).Throw();
+        throw new InvalidOperationException("Schema provider failure rethrow did not propagate.");
     }
 }

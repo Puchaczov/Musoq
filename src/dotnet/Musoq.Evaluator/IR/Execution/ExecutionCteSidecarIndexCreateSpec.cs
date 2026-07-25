@@ -17,7 +17,7 @@ internal sealed record ExecutionCteSidecarIndexCreateSpec(
         ExecutionCapacityHint? capacityHint,
         Type? rowType = null,
         string? generatedRowTypeName = null)
-        : this(index, kind, ExecutionTypeRef.FromClr(keyType), capacityHint, ExecutionTypeRef.FromOptionalClr(rowType), generatedRowTypeName)
+        : this(index, kind, ExecutionClrBindingFactory.FromClr(keyType), capacityHint, ExecutionClrBindingFactory.FromOptionalClr(rowType), generatedRowTypeName)
     {
     }
 }

@@ -19,7 +19,7 @@ public class CompiledQueryParameterApiTests
         var runnable = new ParameterizedRunnable();
         var query = new CompiledQuery(runnable) { Parameters = { ["author"] = "Ada" } };
 
-        Assert.AreSame(runnable.Parameters, query.Parameters);
+        Assert.AreNotSame(runnable.Parameters, query.Parameters);
         Assert.AreEqual("Ada", runnable.Parameters["author"]);
     }
 

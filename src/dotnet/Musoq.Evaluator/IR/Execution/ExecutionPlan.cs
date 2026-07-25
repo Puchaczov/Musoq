@@ -17,7 +17,7 @@ public sealed record ExecutionPlan
             throw new ArgumentOutOfRangeException(nameof(executionIrVersion));
 
         Identifier = identifier;
-        Shapes = shapes;
+        Shapes = ExecutionIrCollections.Freeze(shapes);
         Body = body;
         FinalResult = finalResult;
         SemanticsContract = semanticsContract ?? ExecutionSemanticsContract.Version1;
@@ -26,7 +26,13 @@ public sealed record ExecutionPlan
 
     public string Identifier { get; init; }
 
-    public IReadOnlyList<RowShape> Shapes { get; init; }
+    private IReadOnlyList<RowShape> _shapes = [];
+
+    public IReadOnlyList<RowShape> Shapes
+    {
+        get => _shapes;
+        init => _shapes = ExecutionIrCollections.Freeze(value);
+    }
 
     public ExecutionBlock Body { get; init; }
 

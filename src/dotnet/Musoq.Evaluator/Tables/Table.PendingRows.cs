@@ -132,27 +132,6 @@ public partial class Table
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void FlushPendingRows()
-    {
-        if (!_hasPendingRows)
-            return;
-
-        lock (_guard)
-        {
-            if (!_hasPendingRows)
-                return;
-
-            var deferredMaterializer = _deferredMaterializer;
-            _deferredMaterializer = null;
-            deferredMaterializer?.Invoke(this);
-
-            while (_pendingRows.TryDequeue(out var row)) base.Rows.Add(row);
-            FlushPendingDirectRows();
-            _hasPendingRows = false;
-        }
-    }
-
     private void FlushPendingDirectRows()
     {
         if (_pendingDirectRowCount == 0)

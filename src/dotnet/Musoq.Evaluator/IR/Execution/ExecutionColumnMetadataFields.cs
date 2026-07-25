@@ -14,6 +14,6 @@ internal static class ExecutionColumnMetadataFields
     public static Type RequireClrTypeForLegacyCodeGeneration(ExecutionColumnMetadataField field)
     {
         ArgumentNullException.ThrowIfNull(field);
-        return field.Type.ClrType;
+        return field.Type.ResolveClrType();
     }
 }

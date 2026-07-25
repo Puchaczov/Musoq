@@ -1,4 +1,4 @@
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Tables;
 
 internal sealed class TableCompletionPlanner(PostOperationPlanner postOperationPlanner)
 {
@@ -25,7 +25,7 @@ internal sealed class TableCompletionPlanner(PostOperationPlanner postOperationP
         foreach (var operation in request.PostOperations)
         {
             var operationResult = postOperationPlanner.CreatePostOperation(operation, currentTable, resultShape);
-            if (!operationResult.Supported)
+            if (!operationResult.IsBuilt)
                 return TableBuildResult.Unsupported(operationResult.UnsupportedReason);
 
             request.Nodes.Add(operationResult.Node);

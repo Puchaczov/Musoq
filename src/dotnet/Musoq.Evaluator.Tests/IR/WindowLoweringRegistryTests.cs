@@ -13,7 +13,7 @@ public sealed class WindowLoweringRegistryTests
         var registry = new WindowKeyArrayRegistry();
         var firstVariable = new ExecutionVariable("partitionKeys", typeof(int[]));
         var secondVariable = new ExecutionVariable("otherPartitionKeys", typeof(int[]));
-        var shape = new ExecutionWindowKeyShape(ExecutionTypeRef.FromClr(typeof(int)), IsTyped: true);
+        var shape = new ExecutionWindowKeyShape(ExecutionClrBindingFactory.FromClr(typeof(int)), IsTyped: true);
 
         var first = registry.GetOrAdd("partition:id", firstVariable, shape, shouldMaterialize: false);
         var second = registry.GetOrAdd("partition:id", secondVariable);

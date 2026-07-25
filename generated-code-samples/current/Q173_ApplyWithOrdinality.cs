@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select i.Name, n.Value as Number, n.Ordinal as NumberOrdinal from #apply.items() i cross apply i.Numbers n with ordinality order by i.Name, n.Ordinal
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [i.Name as i.Name, i.Numbers as i.Numbers, n.Value as n.Value, n.Ordinal as n.Ordinal]
     Apply [Cross, with ordinality]
@@ -17,9 +15,8 @@ MultiStatement
       CteRef [in as in]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [i.Name as i.Name, i.Numbers as i.Numbers, n.Value as n.Value, n.Ordinal as n.Ordinal]
     PhysicalNestedLoopApply [Cross, with ordinality]
@@ -30,9 +27,8 @@ PhysicalMultiStatement
       PhysicalCteRef [in as in]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [i: GeneratedApplySampleEntity]
@@ -70,6 +66,8 @@ ExecutionPlan [compiled]
     SortShapeRows [result -> resultSorted by i.Name ASC, NumberOrdinal ASC]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q173_ApplyWithOrdinality

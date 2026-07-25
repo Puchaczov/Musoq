@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select i.Name as Name, s.Value as Text from #apply.items() i outer apply i.JustReturnArrayOfString() s
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [i.Name as i.Name, s.Value as s.Value]
     Apply [Outer]
@@ -16,9 +14,8 @@ MultiStatement
     CteRef [is as is]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [i.Name as i.Name, s.Value as s.Value]
     PhysicalNestedLoopApply [Outer]
@@ -28,9 +25,8 @@ PhysicalMultiStatement
     PhysicalCteRef [is as is]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [i: GeneratedApplySampleEntity]
@@ -56,6 +52,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(Name: i.Name, Text: NULL)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q63_OuterAccessMethodApply

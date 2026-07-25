@@ -1,28 +1,24 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Name, case when Population > 500 then 'large' when Population > 100 then 'medium' else 'small' end as Size from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, CASE WHEN (ko3iko.Population > 500) THEN 'large' WHEN (ko3iko.Population > 100) THEN 'medium' ELSE 'small' END as Size]
     SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, CASE WHEN (ko3iko.Population > 500) THEN 'large' WHEN (ko3iko.Population > 100) THEN 'medium' ELSE 'small' END as Size]
     PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -40,6 +36,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name, Size: CASE WHEN (population > 500) THEN 'large' WHEN (population > 100) THEN 'medium' ELSE 'small' END)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q18_CaseWhen

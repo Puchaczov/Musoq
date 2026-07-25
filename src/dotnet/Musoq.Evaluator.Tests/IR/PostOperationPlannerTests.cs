@@ -96,7 +96,7 @@ public sealed class PostOperationPlannerTests
 
         var result = planner.CreatePostOperation(operation, new ExecutionVariable("rows", typeof(object)), CreateShape());
 
-        Assert.IsFalse(result.Supported);
+        Assert.IsFalse(result.IsBuilt);
         StringAssert.Contains(result.UnsupportedReason, "cannot resolve order key");
         StringAssert.Contains(result.UnsupportedReason, "Missing");
     }
@@ -108,7 +108,7 @@ public sealed class PostOperationPlannerTests
 
         var result = planner.CreatePostOperation(new UnknownPostOperation(), new ExecutionVariable("rows", typeof(object)), CreateShape());
 
-        Assert.IsFalse(result.Supported);
+        Assert.IsFalse(result.IsBuilt);
         StringAssert.Contains(result.UnsupportedReason, "UnknownPostOperation");
     }
 
@@ -165,7 +165,7 @@ public sealed class PostOperationPlannerTests
     private static TNode AssertSupportedNode<TNode>(PostOperationResult result)
         where TNode : ExecutionNode
     {
-        Assert.IsTrue(result.Supported);
+        Assert.IsTrue(result.IsBuilt);
 
         return Assert.IsInstanceOfType<TNode>(result.Node);
     }
@@ -178,10 +178,10 @@ public sealed class PostOperationPlannerTests
         Assert.HasCount(2, metadata.Fields);
         Assert.AreEqual("Name", metadata.Fields[0].Name);
         Assert.AreEqual(0, metadata.Fields[0].Index);
-        Assert.AreEqual(typeof(string), metadata.Fields[0].Type.ClrType);
+        Assert.AreEqual(typeof(string), metadata.Fields[0].Type.ResolveClrType());
         Assert.AreEqual("Age", metadata.Fields[1].Name);
         Assert.AreEqual(1, metadata.Fields[1].Index);
-        Assert.AreEqual(typeof(int), metadata.Fields[1].Type.ClrType);
+        Assert.AreEqual(typeof(int), metadata.Fields[1].Type.ResolveClrType());
     }
 
     private static ProjectedField[] ProjectedFields() =>

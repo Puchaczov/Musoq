@@ -139,7 +139,7 @@ public sealed partial class ExecutionCSharpRenderer
         {
             Variable = keyArray.Variable with
             {
-                Type = ExecutionTypeRef.FromClr(typeof(object[])),
+                Type = ExecutionClrBindingFactory.FromClr(typeof(object[])),
                 GeneratedRowTypeName = $"{typeName}[]"
             },
             Shape = new ExecutionWindowKeyShape(

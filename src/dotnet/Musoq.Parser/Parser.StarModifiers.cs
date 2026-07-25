@@ -270,7 +270,7 @@ public partial class Parser
             return name;
         }
 
-        if (IsSqlKeywordToken(Current.TokenType))
+        if (SqlKeywordTokenFacts.CanRepresentQualifiedIdentifier(Current.TokenType))
         {
             var name = Current.Value;
             Consume(Current.TokenType);

@@ -1,31 +1,27 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 let prefix: string = 'KEY'
                       let key: string = $prefix + '_1'
                       select Key, Value
                       from #parameterized.items($key)
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Key as Key, ko3iko.Value as Value]
     SchemaScan [#parameterized.items($key) as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Key as Key, ko3iko.Value as Value]
     PhysicalSchemaScan [#parameterized.items($key) as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: ScriptParameterSampleEntity]
@@ -42,6 +38,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Key: ko3iko.Key, Value: ko3iko.Value)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q132_ScriptVariableSourceArgument

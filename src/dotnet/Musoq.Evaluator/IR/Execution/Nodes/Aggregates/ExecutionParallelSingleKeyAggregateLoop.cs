@@ -39,7 +39,7 @@ public sealed record ExecutionParallelSingleKeyAggregateLoop(
             sourceRows,
             key,
             keyName,
-            ExecutionTypeRef.FromClr(keyType),
+            ExecutionClrBindingFactory.FromClr(keyType),
             rootGroup,
             groupsToFinalize,
             group,

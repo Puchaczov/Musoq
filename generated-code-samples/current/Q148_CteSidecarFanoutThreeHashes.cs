@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with names as (select Id, Name from #A.entities()), cities as (select Id, City from #A.entities()), countries as (select Id, Country from #A.entities()) select b.Name, n.Name, c.City, co.Country from #B.entities() b inner join names n on b.Id = n.Id inner join cities c on b.Id = c.Id inner join countries co on b.Id = co.Id
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [names]
     MultiStatement
@@ -38,9 +36,8 @@ Cte
         CteRef [bncco as bncco]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [names]
     PhysicalMultiStatement
@@ -72,9 +69,8 @@ PhysicalCte
         PhysicalCteRef [bncco as bncco]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -161,6 +157,8 @@ ExecutionPlan [compiled]
                   AppendShape [result <- ResultShape0(b.Name: b.Name, n.Name: n.Name, c.City: c.City, co.Country: co.Country)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q148_CteSidecarFanoutThreeHashes

@@ -1,21 +1,18 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Name, City, Rank() over (partition by City order by Population desc) as rnk, DenseRank() over (partition by City order by Population desc) as dense_rnk from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, ko3iko.City as City, WindowRef(0) as rnk, WindowRef(1) as dense_rnk]
     Window [Rank(idx:0; partition: ko3iko.City; order: ko3iko.Population DESC), DenseRank(idx:1; partition: ko3iko.City; order: ko3iko.Population DESC)]
       SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, ko3iko.City as City, WindowRef(0) as rnk, WindowRef(1) as dense_rnk]
     PhysicalWindow [Rank(idx:0; partition: ko3iko.City; order: ko3iko.Population DESC), DenseRank(idx:1; partition: ko3iko.City; order: ko3iko.Population DESC)]
@@ -23,9 +20,8 @@ PhysicalMultiStatement
         PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -49,6 +45,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Name: ko3iko.Name, City: ko3iko.City, rnk: resultRanks0[windowIndex], dense_rnk: resultDenseRanks1[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q26_WindowRankDenseRank

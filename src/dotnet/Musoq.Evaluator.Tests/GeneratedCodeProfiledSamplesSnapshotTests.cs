@@ -17,6 +17,12 @@ public sealed class GeneratedCodeProfiledSamplesSnapshotTests
         .Select(static sample => new object[] { sample });
 
     [TestMethod]
+    public void Catalog_ShouldContainThirteenProfiledSamples()
+    {
+        Assert.HasCount(13, GeneratedCodeProfiledSamplesCatalog.Samples);
+    }
+
+    [TestMethod]
     public void CompleteLocalProfiledSamples_WhenComparedToCatalog_ShouldNotContainExtraFiles()
     {
         Assert.IsTrue(

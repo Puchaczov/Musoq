@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select i.Name as Name, Sum(n.Value) as ValueSum, RowNumber() over (order by Sum(n.Value) desc, i.Name) as GroupRowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by GroupRowNo
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Sort [WindowRef(0)]
     Project [i.Name as Name, AggRef(inm.Sum(n.Value)) as ValueSum, WindowRef(0) as GroupRowNo]
@@ -19,9 +17,8 @@ MultiStatement
             PropertySource [i.Numbers as m] [apply: Cross] [type: Int32[]]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalSort [WindowRef(0)]
     PhysicalProject [i.Name as Name, AggRef(inm.Sum(n.Value)) as ValueSum, WindowRef(0) as GroupRowNo]
@@ -35,9 +32,8 @@ PhysicalMultiStatement
               PhysicalPropertySource [i.Numbers as m] [apply: Cross] [type: Int32[]]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [i: GeneratedApplySampleEntity]
@@ -82,6 +78,8 @@ ExecutionPlan [compiled]
     SortShapeRows [result -> resultSorted by GroupRowNo ASC]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q61_ChainedApplyGroupedAggregateWindow

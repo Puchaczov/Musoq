@@ -28,7 +28,10 @@ internal static class BenchmarkReportReader
         var metrics = new Dictionary<string, BenchmarkMetric>(StringComparer.Ordinal);
         foreach (var benchmark in report.Benchmarks)
         {
-            if (string.IsNullOrWhiteSpace(benchmark.Method))
+            var benchmarkName = string.IsNullOrWhiteSpace(benchmark.FullName)
+                ? benchmark.Method
+                : benchmark.FullName;
+            if (string.IsNullOrWhiteSpace(benchmarkName))
                 throw new InvalidDataException($"Benchmark report '{path}' contains a benchmark without a method name.");
 
             if (benchmark.Statistics is null ||
@@ -36,7 +39,7 @@ internal static class BenchmarkReportReader
                 benchmark.Statistics.Mean <= 0)
             {
                 throw new InvalidDataException(
-                    $"Benchmark '{benchmark.Method}' in '{path}' has no valid timing statistics. " +
+                    $"Benchmark '{benchmarkName}' in '{path}' has no valid timing statistics. " +
                     "The report is partial and cannot be used for a performance gate.");
             }
 
@@ -46,16 +49,16 @@ internal static class BenchmarkReportReader
                 allocatedBytes.Value < 0)
             {
                 throw new InvalidDataException(
-                    $"Benchmark '{benchmark.Method}' in '{path}' has no valid allocation statistics. " +
+                    $"Benchmark '{benchmarkName}' in '{path}' has no valid allocation statistics. " +
                     "Run it with MemoryDiagnoser enabled.");
             }
 
             if (!metrics.TryAdd(
-                    benchmark.Method,
+                    benchmarkName,
                     new BenchmarkMetric(benchmark.Statistics.Mean, allocatedBytes.Value)))
             {
                 throw new InvalidDataException(
-                    $"Benchmark report '{path}' contains duplicate method '{benchmark.Method}'.");
+                    $"Benchmark report '{path}' contains duplicate method '{benchmarkName}'.");
             }
         }
 
@@ -72,6 +75,9 @@ internal static class BenchmarkReportReader
     {
         [JsonPropertyName("Method")]
         public string? Method { get; init; }
+
+        [JsonPropertyName("FullName")]
+        public string? FullName { get; init; }
 
         [JsonPropertyName("Statistics")]
         public BenchmarkStatistics? Statistics { get; init; }

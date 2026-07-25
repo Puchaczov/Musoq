@@ -69,5 +69,5 @@ internal static partial class ExecutionExpressionFingerprint
         return $"{genericType.FullName}[{string.Join(",", type.GetGenericArguments().Select(HoistType))}]";
     }
 
-    private static string HoistType(ExecutionTypeRef type) => HoistType(type.ClrType);
+    private static string HoistType(ExecutionTypeRef type) => HoistType(type.ResolveClrType());
 }

@@ -11,13 +11,16 @@ namespace Musoq.Evaluator.Build;
 /// <summary>
 ///     Compiles generated interpreter C# code into executable assemblies using Roslyn.
 /// </summary>
-public class InterpreterCompilationUnit
+public class InterpreterCompilationUnit : IDisposable
 {
     private readonly ICSharpCompilationFactory _compilationFactory;
     private readonly IInterpreterReferenceProvider _interpreterReferenceProvider;
     private readonly IAssemblyLoader _assemblyLoader;
+    private readonly EvaluatorRuntimeEnvironment? _ownedRuntimeEnvironment;
     private byte[]? _assemblyBytes;
     private CSharpCompilation? _compilation;
+    private LoadedAssemblyHandle? _loadedAssembly;
+    private bool _disposed;
 
     /// <summary>
     ///     Creates a new compilation unit for interpreter code.
@@ -28,10 +31,24 @@ public class InterpreterCompilationUnit
         : this(
             assemblyName,
             sourceCode,
-            RoslynSharedFactory.Default,
-            new DefaultInterpreterReferenceProvider(MetadataReferenceCache.Default),
+            new EvaluatorRuntimeEnvironment(),
             DefaultAssemblyLoader.Instance)
     {
+    }
+
+    internal InterpreterCompilationUnit(
+        string assemblyName,
+        string sourceCode,
+        EvaluatorRuntimeEnvironment runtimeEnvironment,
+        IAssemblyLoader assemblyLoader)
+    {
+        ArgumentNullException.ThrowIfNull(runtimeEnvironment);
+        AssemblyName = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
+        SourceCode = sourceCode ?? throw new ArgumentNullException(nameof(sourceCode));
+        _compilationFactory = runtimeEnvironment.CompilationFactory;
+        _interpreterReferenceProvider = new DefaultInterpreterReferenceProvider(runtimeEnvironment.MetadataReferenceCache);
+        _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
+        _ownedRuntimeEnvironment = runtimeEnvironment;
     }
 
     internal InterpreterCompilationUnit(
@@ -66,7 +83,14 @@ public class InterpreterCompilationUnit
     /// <summary>
     ///     Gets a value indicating whether compilation succeeded.
     /// </summary>
-    public bool IsSuccess => Diagnostics?.All(d => d.Severity != DiagnosticSeverity.Error) ?? false;
+    public bool IsSuccess
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return Diagnostics?.All(d => d.Severity != DiagnosticSeverity.Error) ?? false;
+        }
+    }
 
     /// <summary>
     ///     Gets the compiled assembly, or null if compilation failed.
@@ -79,6 +103,8 @@ public class InterpreterCompilationUnit
     /// <returns>True if compilation succeeded; otherwise, false.</returns>
     public bool Compile()
     {
+        ThrowIfDisposed();
+
         var syntaxTree = CSharpSyntaxTree.ParseText(SourceCode);
 
         _compilation = _compilationFactory.CreateCompilation(AssemblyName);
@@ -96,7 +122,10 @@ public class InterpreterCompilationUnit
         if (!result.Success) return false;
 
         _assemblyBytes = ms.ToArray();
-        CompiledAssembly = _assemblyLoader.Load(_assemblyBytes);
+        var loadedAssembly = _assemblyLoader.Load(_assemblyBytes);
+        _loadedAssembly?.Dispose();
+        _loadedAssembly = loadedAssembly;
+        CompiledAssembly = loadedAssembly.Assembly;
 
         return true;
     }
@@ -108,6 +137,8 @@ public class InterpreterCompilationUnit
     /// <returns>The compiled type, or null if not found.</returns>
     public Type? GetInterpreterType(string schemaName)
     {
+        ThrowIfDisposed();
+
         if (CompiledAssembly == null)
             return null;
 
@@ -151,12 +182,15 @@ public class InterpreterCompilationUnit
     /// <returns>Error messages, or empty if successful.</returns>
     public IEnumerable<string> GetErrorMessages()
     {
+        ThrowIfDisposed();
+
         if (Diagnostics == null)
             return Enumerable.Empty<string>();
 
         return Diagnostics
             .Where(d => d.Severity == DiagnosticSeverity.Error)
-            .Select(d => d.ToString());
+            .Select(d => d.ToString())
+            .ToArray();
     }
 
     /// <summary>
@@ -164,6 +198,28 @@ public class InterpreterCompilationUnit
     /// </summary>
     public byte[]? GetAssemblyBytes()
     {
+        ThrowIfDisposed();
         return _assemblyBytes;
+    }
+
+    /// <summary>
+    ///     Unloads the generated assembly's collectible load context.
+    /// </summary>
+    public void Dispose()
+    {
+        if (_disposed)
+            return;
+
+        _disposed = true;
+        _loadedAssembly?.Dispose();
+        _loadedAssembly = null;
+        CompiledAssembly = null;
+        _ownedRuntimeEnvironment?.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
+    private void ThrowIfDisposed()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
     }
 }

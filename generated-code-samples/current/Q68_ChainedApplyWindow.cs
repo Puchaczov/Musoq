@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select i.Name, n.Value as FirstValue, m.Value as SecondValue, RowNumber() over (partition by i.Name order by n.Value, m.Value) as RowNo from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m order by i.Name, RowNo
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Sort [i.Name, WindowRef(0)]
     Project [i.Name as i.Name, n.Value as FirstValue, m.Value as SecondValue, WindowRef(0) as RowNo]
@@ -18,9 +16,8 @@ MultiStatement
           PropertySource [i.Numbers as m] [apply: Cross] [type: Int32[]]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalSort [i.Name, WindowRef(0)]
     PhysicalProject [i.Name as i.Name, n.Value as FirstValue, m.Value as SecondValue, WindowRef(0) as RowNo]
@@ -33,9 +30,8 @@ PhysicalMultiStatement
             PhysicalPropertySource [i.Numbers as m] [apply: Cross] [type: Int32[]]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [i: GeneratedApplySampleEntity]
@@ -78,6 +74,8 @@ ExecutionPlan [compiled]
     SortShapeRows [result -> resultSorted by i.Name ASC, RowNo ASC]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q68_ChainedApplyWindow

@@ -1,6 +1,11 @@
+using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Reflection;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
+using Musoq.Schema.Reflection;
+using SchemaConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -42,5 +47,45 @@ public class SchemaArgumentBinderTests
         var values = SchemaArgumentBinder.BindStaticArguments(args);
 
         CollectionAssert.AreEqual(new object[] { "static" }, values);
+    }
+
+    [TestMethod]
+    public void BoundInvocation_ShouldNotShiftStaticValuesAfterDynamicSlot()
+    {
+        var args = new ArgsListNode(
+        [
+            new IdentifierNode("rowValue", typeof(string)),
+            new IntegerNode("2")
+        ]);
+        var constructor = typeof(BoundSourceTable)
+            .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+            .Single(candidate => candidate.GetParameters().Length == 2);
+        var method = new SchemaMethodInfo(
+            "source",
+            new SchemaConstructorInfo(
+                constructor,
+                false,
+                ("first", typeof(string)),
+                ("second", typeof(int))));
+        var signature = SchemaSourceSignature.Create(method);
+        var invocation = new BoundSchemaInvocation(
+            signature,
+            [
+                new BoundSchemaArgument(0, 0, null),
+                new BoundSchemaArgument(1, 1, null)
+            ],
+            usesNamedArguments: true);
+
+        var values = SchemaArgumentBinder.BindStaticArguments(args, invocation: invocation);
+
+        CollectionAssert.AreEqual(Array.Empty<object?>(), values);
+    }
+
+    private sealed class BoundSourceTable
+    {
+        public BoundSourceTable(string first, int second)
+        {
+            _ = (first, second);
+        }
     }
 }

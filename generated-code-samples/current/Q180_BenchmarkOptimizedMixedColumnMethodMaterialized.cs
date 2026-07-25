@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT
                 Value,
                 ExpensiveCompute(Value),
@@ -15,27 +14,24 @@ SELECT
               AND Name IS NOT NULL
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Value as Value, ExpensiveCompute(ko3iko.Value) as ExpensiveCompute(Value), (ko3iko.Value + ExpensiveCompute(ko3iko.Value)) as Value + ExpensiveCompute(Value), (ko3iko.Value * ExpensiveCompute(ko3iko.Value)) as Value * ExpensiveCompute(Value), ko3iko.Name as Name, StringTransform(ko3iko.Name) as StringTransform(Name), ((ko3iko.Name || '_') || StringTransform(ko3iko.Name)) as Name + _ + StringTransform(Name)]
     Filter [(((ko3iko.Value > 100) AND (ExpensiveCompute(ko3iko.Value) > 50)) AND ko3iko.Name IS NOT NULL)]
       SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Value as Value, ExpensiveCompute(ko3iko.Value) as ExpensiveCompute(Value), (ko3iko.Value + ExpensiveCompute(ko3iko.Value)) as Value + ExpensiveCompute(Value), (ko3iko.Value * ExpensiveCompute(ko3iko.Value)) as Value * ExpensiveCompute(Value), ko3iko.Name as Name, StringTransform(ko3iko.Name) as StringTransform(Name), ((ko3iko.Name || '_') || StringTransform(ko3iko.Name)) as Name + _ + StringTransform(Name)]
     PhysicalFilter [(((ko3iko.Value > 100) AND (ExpensiveCompute(ko3iko.Value) > 50)) AND ko3iko.Name IS NOT NULL)]
       PhysicalSchemaScan [#test.entities() as ko3iko] [pushdown: (ko3iko.Value > 100), ko3iko.Name IS NOT NULL]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BenchmarkParityEntity]
@@ -65,6 +61,8 @@ ExecutionPlan [compiled]
             AppendShape [result <- ResultShape0(Value: value, ExpensiveCompute(Value): expensiveCompute, Value + ExpensiveCompute(Value): (value + expensiveCompute), Value * ExpensiveCompute(Value): (value * expensiveCompute), Name: name, StringTransform(Name): stringTransform, Name + _ + StringTransform(Name): ((name || '_') || stringTransform))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q180_BenchmarkOptimizedMixedColumnMethodMaterialized

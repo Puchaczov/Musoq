@@ -212,16 +212,8 @@ public static partial class PhysicalPlanPrinter
                 PrintNode(setOp.Right, sb, indent + 2);
                 break;
 
-            case PhysicalCteNode cte:
-                sb.Append(prefix).AppendLine("PhysicalCte");
-                foreach (var def in cte.Definitions)
-                {
-                    sb.Append(prefix).AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"  Definition [{def.Name}]");
-                    PrintNode(def.Plan, sb, indent + 4);
-                }
-                sb.Append(prefix).AppendLine("  Query");
-                PrintNode(cte.Query, sb, indent + 4);
-                break;
+            case PhysicalRecursiveCteNode recursiveCte: PrintRecursiveCte(recursiveCte, sb, prefix, indent); break;
+            case PhysicalCteNode cte: PrintCte(cte, sb, prefix, indent); break;
 
             case PhysicalDescNode desc:
                 PrintDesc(desc, sb, prefix);

@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with rightCte as (select e.Name as Name, e.Population as Population from #A.entities() e) select a.Name, a.Population, r.Name, r.Population from #A.entities() a asof join rightCte r on a.Population >= r.Population
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [rightCte]
     MultiStatement
@@ -22,9 +20,8 @@ Cte
         CteRef [ar as ar]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [rightCte]
     PhysicalMultiStatement
@@ -40,9 +37,8 @@ PhysicalCte
         PhysicalCteRef [ar as ar]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [e: BasicEntity]
@@ -78,6 +74,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(a.Name: a.Name, a.Population: a.Population, r.Name: r.Name, r.Population: r.Population)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q64_CteBackedAsOfJoin

@@ -21,7 +21,7 @@ public abstract class BinaryInterpretationTestBase
         var generator = new InterpreterCodeGenerator(registry);
         var code = generator.GenerateAll();
 
-        var compilationUnit = new InterpreterCompilationUnit(
+        using var compilationUnit = new InterpreterCompilationUnit(
             $"TestAssembly_{Guid.NewGuid():N}",
             code);
 
@@ -42,7 +42,7 @@ public abstract class BinaryInterpretationTestBase
         var generator = new InterpreterCodeGenerator(registry);
         var code = generator.GenerateAll();
 
-        var compilationUnit = new InterpreterCompilationUnit(
+        using var compilationUnit = new InterpreterCompilationUnit(
             $"TestAssembly_{Guid.NewGuid():N}",
             code);
 

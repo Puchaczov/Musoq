@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Name, City, Sum(Population) over (partition by City order by Name rows between unbounded preceding and current row) as RunSum from #A.entities() qualify Sum(Population) over (partition by City order by Name rows between unbounded preceding and current row) > 100
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, ko3iko.City as City, WindowRef(0) as RunSum]
     Qualify [(WindowRef(0) > 100)]
@@ -14,9 +12,8 @@ MultiStatement
         SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, ko3iko.City as City, WindowRef(0) as RunSum]
     PhysicalQualify [(WindowRef(0) > 100)]
@@ -25,9 +22,8 @@ PhysicalMultiStatement
           PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -49,6 +45,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(Name: ko3iko.Name, City: ko3iko.City, RunSum: resultSums[windowIndex])]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q45_QualifyWithFrameSpec

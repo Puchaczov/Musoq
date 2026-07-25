@@ -3,15 +3,34 @@ using Musoq.Evaluator.IR.Logical.Nodes;
 
 namespace Musoq.Evaluator.IR.Execution;
 
-public sealed record ExecutionSortTable(
-    ExecutionVariable Source,
-    ExecutionVariable Target,
-    IReadOnlyList<ExecutionOrderField> Keys,
-    IReadOnlyList<int> RenumberFieldIndexes,
-    ExecutionCapacityHint? CapacityHint = null,
-    ExecutionAppendMode AppendMode = ExecutionAppendMode.Checked,
-    ExecutionColumnMetadata? ColumnMetadata = null) : ExecutionNode
+public sealed record ExecutionSortTable : ExecutionNode
 {
+    public ExecutionSortTable(
+        ExecutionVariable source,
+        ExecutionVariable target,
+        IReadOnlyList<ExecutionOrderField> keys,
+        IReadOnlyList<int> renumberFieldIndexes,
+        ExecutionCapacityHint? capacityHint = null,
+        ExecutionAppendMode appendMode = ExecutionAppendMode.Checked,
+        ExecutionColumnMetadata? columnMetadata = null)
+    {
+        Source = source;
+        Target = target;
+        Keys = ExecutionIrCollections.Freeze(keys);
+        RenumberFieldIndexes = ExecutionIrCollections.Freeze(renumberFieldIndexes);
+        CapacityHint = capacityHint;
+        AppendMode = appendMode;
+        ColumnMetadata = columnMetadata;
+    }
+
+    public ExecutionVariable Source { get; init; }
+    public ExecutionVariable Target { get; init; }
+    public IReadOnlyList<ExecutionOrderField> Keys { get; init; }
+    public IReadOnlyList<int> RenumberFieldIndexes { get; init; }
+    public ExecutionCapacityHint? CapacityHint { get; init; }
+    public ExecutionAppendMode AppendMode { get; init; }
+    public ExecutionColumnMetadata? ColumnMetadata { get; init; }
+
     public ExecutionSortTable(
         ExecutionVariable source,
         ExecutionVariable target,

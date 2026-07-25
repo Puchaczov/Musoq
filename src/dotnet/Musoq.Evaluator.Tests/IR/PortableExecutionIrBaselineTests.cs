@@ -43,12 +43,12 @@ public sealed class PortableExecutionIrBaselineTests
             concreteTypes.Select(static type => type.FullName)
                 .Concat(clrShapedMembers.Select(static member => $"clr:{member}")));
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(inventory)));
-        Assert.AreEqual(85, nodeCount);
+        Assert.AreEqual(88, nodeCount);
         Assert.AreEqual(37, expressionCount);
         Assert.AreEqual(8, rowShapeCount);
         Assert.AreEqual(0, clrShapedMembers.Length);
         Assert.AreEqual(
-            "A6F15D355E06E1C2129361BB1F4D9253438BDABA0CEB53510E092890F0E93F72",
+            "3EC71C1B126D224C4E824CC536CC4ABDD0A6D65965B4F4F2A4A88698E4905A5E",
             hash,
             $"Current inventory hash: {hash}");
     }
@@ -110,8 +110,8 @@ public sealed class PortableExecutionIrBaselineTests
             executionAssembly.GetType("Musoq.Evaluator.IR.Execution.ExecutionRawExpression"),
             "Raw-expression fallback must not return to portable Execution IR.");
 
-        AssertInternalSidecar(typeof(ExecutionTypeRef), "ClrType", typeof(Type));
-        AssertInternalSidecar(typeof(ExecutionCallableRef), "ClrMethod", typeof(MethodInfo));
+        AssertNoClrSidecar(typeof(ExecutionTypeRef), "ClrType");
+        AssertNoClrSidecar(typeof(ExecutionCallableRef), "ClrMethod");
         AssertInternalSidecar(typeof(ExecutionConstantValue), "ClrOnlyValue", typeof(object));
     }
 
@@ -188,6 +188,15 @@ public sealed class PortableExecutionIrBaselineTests
         Assert.IsNotNull(property, $"Expected internal sidecar {declaringType.Name}.{propertyName}.");
         Assert.AreEqual(propertyType, property.PropertyType);
         Assert.IsFalse(property.GetMethod!.IsPublic);
+    }
+
+    private static void AssertNoClrSidecar(Type declaringType, string propertyName)
+    {
+        Assert.IsNull(
+            declaringType.GetProperty(
+                propertyName,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic),
+            $"Portable descriptor reference '{declaringType.Name}' must not retain a CLR sidecar property '{propertyName}'.");
     }
 
     private sealed record TestUnregisteredExpression() : IrExpression(typeof(int));

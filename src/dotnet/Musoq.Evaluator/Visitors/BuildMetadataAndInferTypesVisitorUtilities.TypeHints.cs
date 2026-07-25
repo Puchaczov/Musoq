@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Musoq.Evaluator.Runtime;
 using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.Visitors;
@@ -21,18 +22,14 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
         return arrayIntendedTypeName;
     }
 
-    private static readonly Dictionary<Type, DynamicObjectPropertyTypeHintAttribute[]> TypeHintAttributeCache = new();
+    private static readonly WeakTypeRuntimeCache<DynamicObjectPropertyTypeHintAttribute[]> TypeHintAttributeCache =
+        new(RuntimeCacheOptions.TypeHintAttributeCacheSize);
 
     internal static DynamicObjectPropertyTypeHintAttribute[] GetCachedTypeHintAttributes(Type type)
     {
-        lock (TypeHintAttributeCache)
-        {
-            if (TypeHintAttributeCache.TryGetValue(type, out var cached))
-                return cached;
-
-            var attributes = type.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray();
-            TypeHintAttributeCache[type] = attributes;
-            return attributes;
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        return TypeHintAttributeCache.GetOrAdd(
+            type,
+            static candidate => candidate.GetCustomAttributes<DynamicObjectPropertyTypeHintAttribute>().ToArray());
     }
 }

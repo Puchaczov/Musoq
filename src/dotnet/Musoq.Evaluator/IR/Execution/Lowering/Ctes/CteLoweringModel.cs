@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Planning;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Ctes;
 
 internal sealed record MultiStatementIndexes(
     IReadOnlyDictionary<string, int> CteIndexes,
@@ -16,11 +16,13 @@ internal sealed record ParallelCteLevel(
     IReadOnlyList<PhysicalCteDefinition> Definitions);
 
 internal sealed record CteDefinitionPrefixBuildResult(
-    bool Supported,
+    bool IsBuilt,
     IReadOnlyList<RowShape> Shapes,
     IReadOnlyList<ExecutionNode> Nodes,
     string UnsupportedReason)
 {
+    public LoweringScope? UpdatedScope { get; init; }
+
     public static CteDefinitionPrefixBuildResult Success(
         IReadOnlyList<RowShape> shapes,
         IReadOnlyList<ExecutionNode> nodes)
@@ -58,6 +60,10 @@ internal sealed record CteSidecarIndexBuild(
     ExecutionVariable Index,
     HashPayloadShape? PayloadShape);
 
+internal sealed record SidecarBuildState(
+    CteSidecarHashPayloadState Payloads,
+    IReadOnlyList<CteSidecarIndexBuild> Builds);
+
 internal sealed record CteSidecarAppendTransformResult(
     ExecutionBlock Block,
     int AppendCount,
@@ -85,15 +91,15 @@ internal sealed record FusedSiblingCteCandidate(
 
 internal sealed record ReadOnceCteProjectionFusion(
     int RootDefinitionIndex,
-    SupportedPipeline Pipeline,
+    CteSupportedPipeline Pipeline,
     int[] FusedDefinitionIndexes);
 
 internal sealed record ReadOnceCteProjectionStep(
     int DefinitionIndex,
-    SupportedPipeline Pipeline);
+    CteSupportedPipeline Pipeline);
 
 internal sealed record SidecarJoinPipelineStage(
-    SupportedPipeline Pipeline,
+    CteSupportedPipeline Pipeline,
     string? ExpectedInputCteName,
     string? OutputCteName);
 

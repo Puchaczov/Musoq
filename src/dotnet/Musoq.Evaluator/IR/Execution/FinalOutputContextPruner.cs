@@ -271,6 +271,18 @@ internal static class GeneratedRowContextPruner
                     result);
                 break;
 
+            case ExecutionFieldRead
+            {
+                AccessStrategy: GeneratedFieldAccess { FieldName: var fieldName },
+                Alias: { } alias
+            } when fieldName.StartsWith("__context", StringComparison.Ordinal):
+                TryAddAliasGeneratedRowTypes(
+                    alias,
+                    variableTypeNamesByName,
+                    contextCarryingTypeNames,
+                    result);
+                break;
+
             case ExecutionRowContextsRead rowContextsRead:
                 TryAddVariableGeneratedRowTypes(
                     rowContextsRead.Row,
@@ -388,6 +400,9 @@ internal static class GeneratedRowContextPruner
                 break;
             case ExecutionMaterializeFilteredList { GeneratedRowShape: { } shape } materialize:
                 AddVariableType(variableTypeNamesByName, materialize.Buffer.Name, shape.TypeName);
+                break;
+            case ExecutionHashProbe { GeneratedRowTypeName: { } typeName } hashProbe:
+                AddVariableType(variableTypeNamesByName, hashProbe.Matches.Name, typeName);
                 break;
         }
     }

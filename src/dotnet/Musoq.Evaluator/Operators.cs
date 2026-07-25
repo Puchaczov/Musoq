@@ -51,7 +51,10 @@ public partial class Operators
         var escaped = EscapePattern.Replace(pattern, static match => @"\" + match.Value);
         var sqlPattern = escaped.Replace("_", ".", StringComparison.Ordinal).Replace("%", ".*", StringComparison.Ordinal);
         var regex = new Regex(string.Concat(@"\A", sqlPattern, @"\z"),
-            RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled,
+            RegexOptions.Singleline |
+            RegexOptions.IgnoreCase |
+            RegexOptions.Compiled |
+            RegexOptions.NonBacktracking,
             RuntimeCacheOptions.DefaultRegexTimeout);
         return regex.IsMatch;
     }

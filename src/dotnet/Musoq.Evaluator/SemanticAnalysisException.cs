@@ -6,7 +6,7 @@ namespace Musoq.Evaluator;
 /// <summary>
 ///     Exception thrown when semantic analysis encounters unrecoverable errors.
 /// </summary>
-public sealed class SemanticAnalysisException : Exception
+public sealed class SemanticAnalysisException : Exception, IDiagnosticException
 {
     public SemanticAnalysisException(string message, Exception innerException)
         : base(message, innerException)
@@ -51,6 +51,13 @@ public sealed class SemanticAnalysisException : Exception
     ///     Gets the diagnostic code.
     /// </summary>
     public DiagnosticCode Code => PrimaryDiagnostic.Code;
+
+    public TextSpan? Span => PrimaryDiagnostic.Span;
+
+    public Diagnostic ToDiagnostic(SourceText? sourceText = null)
+    {
+        return PrimaryDiagnostic;
+    }
 
     /// <summary>
     ///     Gets the source location of the error.

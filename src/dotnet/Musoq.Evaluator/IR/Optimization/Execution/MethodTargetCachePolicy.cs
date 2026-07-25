@@ -14,20 +14,20 @@ internal static class MethodTargetCachePolicy
     {
         if (method.InjectedSource != null ||
             method.Arguments.Count != 1 ||
-            method.Method.ClrMethod.GetCustomAttribute<NonDeterministicAttribute>() != null ||
-            method.Method.ClrMethod.GetParameters().Any(static parameter => parameter.GetCustomAttribute<InjectQueryStatsAttribute>() != null))
+            method.Method.ResolveClrMethod().GetCustomAttribute<NonDeterministicAttribute>() != null ||
+            method.Method.ResolveClrMethod().GetParameters().Any(static parameter => parameter.GetCustomAttribute<InjectQueryStatsAttribute>() != null))
         {
             return false;
         }
 
-        var keyType = method.Arguments[0].ReturnType.ClrType;
+        var keyType = method.Arguments[0].ReturnType.ResolveClrType();
         if (!IsNonNullableValueType(keyType) ||
-            !IsNonNullableValueType(method.ReturnType.ClrType))
+            !IsNonNullableValueType(method.ReturnType.ResolveClrType()))
         {
             return false;
         }
 
-        return method.ReturnType.ClrType == typeof(decimal) || allowNonDecimalValueTypeMethod;
+        return method.ReturnType.ResolveClrType() == typeof(decimal) || allowNonDecimalValueTypeMethod;
     }
 
     private static bool IsNonNullableValueType(Type type)

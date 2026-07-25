@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 let flag: bool = true
                             let code: char = 'x'
                             let limit: int? = null
@@ -11,25 +10,22 @@ let flag: bool = true
                             from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [$flag as $flag, $code as $code, $limit as $limit, $id as $id, $created as $created, $elapsed as $elapsed]
     SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [$flag as $flag, $code as $code, $limit as $limit, $id as $id, $created as $created, $elapsed as $elapsed]
     PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -62,6 +58,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0($flag: $flag, $code: $code, $limit: $limit, $id: $id, $created: $created, $elapsed: $elapsed)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q131_ScriptVariablePrimitiveValues

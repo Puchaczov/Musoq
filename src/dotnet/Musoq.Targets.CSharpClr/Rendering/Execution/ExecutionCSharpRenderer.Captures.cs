@@ -100,7 +100,7 @@ public sealed partial class ExecutionCSharpRenderer
             AddHelperCapture(
                 hashProbe.Hash with
                 {
-                    Type = ExecutionTypeRef.FromClr(typeof(object)),
+                    Type = ExecutionClrBindingFactory.FromClr(typeof(object)),
                     GeneratedRowTypeName = CreateHashTypeName(
                         hashProbe.KeyType.RequireClrType(),
                         hashProbe.RowType.RequireClrType(),
@@ -115,7 +115,7 @@ public sealed partial class ExecutionCSharpRenderer
             AddHelperCapture(
                 keySetProbe.Set with
                 {
-                    Type = ExecutionTypeRef.FromClr(typeof(object)),
+                    Type = ExecutionClrBindingFactory.FromClr(typeof(object)),
                     GeneratedRowTypeName = CreateKeySetTypeName(keySetProbe.KeyType)
                 },
                 excludedNames,

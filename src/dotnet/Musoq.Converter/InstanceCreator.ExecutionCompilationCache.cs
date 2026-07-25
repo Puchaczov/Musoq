@@ -110,17 +110,7 @@ public static partial class InstanceCreator
             executionTarget,
             providerType.AssemblyQualifiedName ?? providerType.FullName ?? providerType.Name,
             CreateProviderSignature(schemaProvider),
-            options.ParallelizationMode,
-            options.UseHashJoin,
-            options.UseSortMergeJoin,
-            options.UseCommonSubexpressionElimination,
-            options.UseConstantFolding,
-            options.UsePrimitiveTypeValidation,
-            options.UseCteParallelization,
-            options.UseCteSidecarIndexes,
-            options.MaxDegreeOfParallelismOverride,
-            options.InstrumentationMode,
-            options.ForceTableResultMaterialization);
+            CompilationOptionsFingerprint.Compute(options));
     }
 
     internal static string CreateExecutionCompilationCacheKeyTestSignature(
@@ -281,17 +271,7 @@ public static partial class InstanceCreator
         ExecutionTargetId ExecutionTarget,
         string ProviderType,
         string ProviderSignature,
-        ParallelizationMode ParallelizationMode,
-        bool UseHashJoin,
-        bool UseSortMergeJoin,
-        bool UseCommonSubexpressionElimination,
-        bool UseConstantFolding,
-        bool UsePrimitiveTypeValidation,
-        bool UseCteParallelization,
-        bool UseCteSidecarIndexes,
-        int? MaxDegreeOfParallelismOverride,
-        QueryInstrumentationMode InstrumentationMode,
-        bool ForceTableResultMaterialization);
+        string CompilationOptionsFingerprint);
 
     private sealed class CachedExecutionCompilation
     {

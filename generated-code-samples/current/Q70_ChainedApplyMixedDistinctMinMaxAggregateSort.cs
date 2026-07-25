@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select i.Name as Name, Min(n.Value) as RepeatedMin, Min(distinct n.Value) as DistinctMin, Max(n.Value) as RepeatedMax, Max(distinct n.Value) as DistinctMax from #apply.items() i cross apply i.Numbers n cross apply i.Numbers m group by i.Name order by Max(distinct n.Value) desc, Max(n.Value) desc, Min(distinct n.Value), Min(n.Value), i.Name
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Sort [AggRef(inm.Max(distinct n.Value)) DESC, AggRef(inm.Max(n.Value)) DESC, AggRef(inm.Min(distinct n.Value)), AggRef(inm.Min(n.Value)), i.Name]
     Project [i.Name as Name, AggRef(inm.Min(n.Value)) as RepeatedMin, AggRef(inm.Min(distinct n.Value)) as DistinctMin, AggRef(inm.Max(n.Value)) as RepeatedMax, AggRef(inm.Max(distinct n.Value)) as DistinctMax]
@@ -18,9 +16,8 @@ MultiStatement
           PropertySource [i.Numbers as m] [apply: Cross] [type: Int32[]]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalSort [AggRef(inm.Max(distinct n.Value)) DESC, AggRef(inm.Max(n.Value)) DESC, AggRef(inm.Min(distinct n.Value)), AggRef(inm.Min(n.Value)), i.Name]
     PhysicalProject [i.Name as Name, AggRef(inm.Min(n.Value)) as RepeatedMin, AggRef(inm.Min(distinct n.Value)) as DistinctMin, AggRef(inm.Max(n.Value)) as RepeatedMax, AggRef(inm.Max(distinct n.Value)) as DistinctMax]
@@ -32,9 +29,8 @@ PhysicalMultiStatement
           PhysicalPropertySource [i.Numbers as m] [apply: Cross] [type: Int32[]]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [i: GeneratedApplySampleEntity]
@@ -73,6 +69,8 @@ ExecutionPlan [compiled]
     SortShapeRows [result -> resultSorted by DistinctMax DESC, RepeatedMax DESC, DistinctMin ASC, RepeatedMin ASC, Name ASC]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q70_ChainedApplyMixedDistinctMinMaxAggregateSort

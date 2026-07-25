@@ -1,32 +1,28 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT FirstName, LastName, Email
               FROM #test.entities()
               WHERE Contains(Email, 'gmail') AND StartsWith(FirstName, 'A')
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.FirstName as FirstName, ko3iko.LastName as LastName, ko3iko.Email as Email]
     Filter [((Contains(ko3iko.Email, 'gmail') IS NOT NULL AND (Contains(ko3iko.Email, 'gmail') = TRUE)) AND (StartsWith(ko3iko.FirstName, 'A') IS NOT NULL AND (StartsWith(ko3iko.FirstName, 'A') = TRUE)))]
       SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.FirstName as FirstName, ko3iko.LastName as LastName, ko3iko.Email as Email]
     PhysicalFilter [((Contains(ko3iko.Email, 'gmail') IS NOT NULL AND (Contains(ko3iko.Email, 'gmail') = TRUE)) AND (StartsWith(ko3iko.FirstName, 'A') IS NOT NULL AND (StartsWith(ko3iko.FirstName, 'A') = TRUE)))]
       PhysicalSchemaScan [#test.entities() as ko3iko] [pushdown: Contains(ko3iko.Email, 'gmail'), StartsWith(ko3iko.FirstName, 'A')]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2RegressionEntity]
@@ -50,6 +46,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(FirstName: firstName, LastName: ko3iko.LastName, Email: email)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q104_RuntimeV2StringFilter

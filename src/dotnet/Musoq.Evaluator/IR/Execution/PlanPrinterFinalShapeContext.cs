@@ -156,7 +156,7 @@ public static partial class ExecutionPlanPrinter
             var sourceField = sourceShape.Fields[index];
             var shapeField = shapeFields[index];
             if (sourceField.Type != shapeField.Type ||
-                !string.Equals(GeneratedRowNamingPolicy.GetGeneratedFieldName(sourceField), GeneratedRowNamingPolicy.GetGeneratedFieldName(shapeField), StringComparison.Ordinal))
+                !string.Equals(ExecutionSymbolicNamePolicy.GetGeneratedFieldName(sourceField), ExecutionSymbolicNamePolicy.GetGeneratedFieldName(shapeField), StringComparison.Ordinal))
             {
                 return false;
             }

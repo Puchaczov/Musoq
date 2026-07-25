@@ -1,8 +1,7 @@
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
+using Musoq.Evaluator.Runtime;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 
@@ -10,7 +9,8 @@ namespace Musoq.Converter;
 
 internal sealed class InMemorySourceShape
 {
-    private static readonly ConcurrentDictionary<Type, Lazy<InMemorySourceShape>> Shapes = new();
+    private static readonly WeakTypeRuntimeCache<InMemorySourceShape> Shapes =
+        new(RuntimeCacheOptions.InMemorySourceShapeCacheSize);
 
     private readonly ISchemaColumn[] _columns;
 
@@ -29,11 +29,7 @@ internal sealed class InMemorySourceShape
     {
         ArgumentNullException.ThrowIfNull(rowType);
 
-        return Shapes.GetOrAdd(
-            rowType,
-            static type => new Lazy<InMemorySourceShape>(
-                () => new InMemorySourceShape(type),
-                LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+        return Shapes.GetOrAdd(rowType, static type => new InMemorySourceShape(type));
     }
 
     public ISchemaColumn[] CreateColumnsSnapshot()

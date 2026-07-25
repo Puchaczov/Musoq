@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select City, Country, Sum(Population) from #A.entities() group by City, Country having Count(City) > 0 order by Sum(Population) desc
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Country as ko3iko.Country, ko3iko.City as ko3iko.City, AggRef(ko3iko.Sum(ko3iko.Population)) as ko3iko.Sum(ko3iko.Population)]
     Having [(AggRef(ko3iko.Count(ko3iko.City)) > 0)]
@@ -17,9 +15,8 @@ MultiStatement
       CteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Country as ko3iko.Country, ko3iko.City as ko3iko.City, AggRef(ko3iko.Sum(ko3iko.Population)) as ko3iko.Sum(ko3iko.Population)]
     PhysicalHaving [(AggRef(ko3iko.Count(ko3iko.City)) > 0)]
@@ -30,9 +27,8 @@ PhysicalMultiStatement
       PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -62,6 +58,8 @@ ExecutionPlan [compiled]
     SortShapeRows [result -> resultSorted by Sum(Population) DESC]
     ReturnDeferredTable [resultSorted: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q07_GroupByHavingOrderBy

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema;
@@ -24,7 +25,7 @@ public sealed class TypedRunStateTests
 
         var state = new TypedRunState(definitions, parameters);
 
-        Assert.AreSame(parameters, state.Parameters);
+        CollectionAssert.AreEquivalent(parameters.ToArray(), state.Parameters.ToArray());
         Assert.HasCount(2, state.ParameterDefinitions);
         Assert.HasCount(1, state.RequiredParameters);
         Assert.AreEqual("name", state.RequiredParameters[0].Name);

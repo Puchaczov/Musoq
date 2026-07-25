@@ -3,7 +3,7 @@ using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Sources;
 
 internal sealed class ApplyChainSourceCollector
 {

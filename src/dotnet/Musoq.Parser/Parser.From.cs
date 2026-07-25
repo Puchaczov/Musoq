@@ -30,7 +30,7 @@ public partial class Parser
             if (Current.TokenType == TokenType.Dot)
             {
                 Consume(TokenType.Dot);
-                var accessMethod = ComposeAccessMethod(string.Empty);
+                var accessMethod = ComposeAccessMethod(string.Empty, true);
 
                 (alias, aliasSpan) = ComposeAlias();
 
@@ -54,7 +54,7 @@ public partial class Parser
 
         if (Current.TokenType == TokenType.Function)
         {
-            var method = ComposeAccessMethod(string.Empty);
+            var method = ComposeAccessMethod(string.Empty, true);
             (alias, aliasSpan) = ComposeAlias();
 
             if (!string.IsNullOrWhiteSpace(alias))
@@ -69,7 +69,10 @@ public partial class Parser
         if (Current.TokenType == TokenType.MethodAccess)
         {
             var sourceAlias = Current.Value;
-            var accessMethod = ComposeAccessMethod(sourceAlias);
+            var allowNamedArguments = sourceAlias.StartsWith('#') ||
+                                      !isApplyContext ||
+                                      (isApplyContext && !IsKnownFromAlias(sourceAlias));
+            var accessMethod = ComposeAccessMethod(sourceAlias, allowNamedArguments);
             (alias, aliasSpan) = ComposeAlias();
 
             var isSchemaReference = sourceAlias.StartsWith('#') ||
@@ -127,7 +130,7 @@ public partial class Parser
 
             if (Current.TokenType == TokenType.Function)
             {
-                var accessMethod = ComposeAccessMethod(string.Empty);
+                var accessMethod = ComposeAccessMethod(string.Empty, true);
                 (alias, aliasSpan) = ComposeAlias();
 
                 var schemaName = EnsureHashPrefix(columnName);
@@ -186,8 +189,7 @@ public partial class Parser
             RegisterFromAlias(alias);
 
         var inMemoryNode = new InMemoryTableFromNode(columnName, alias);
-        if (!aliasSpan.IsEmpty)
-            inMemoryNode.WithSpan(aliasSpan);
+        inMemoryNode.WithSpan(baseNode.Span.Through(aliasSpan));
         return inMemoryNode;
     }
 

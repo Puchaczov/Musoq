@@ -8,7 +8,7 @@ public sealed record ExecutionCreateAggregateLibrary(
     ExecutionTypeRef LibraryType) : ExecutionNode
 {
     internal ExecutionCreateAggregateLibrary(ExecutionVariable library, Type libraryType)
-        : this(library, ExecutionTypeRef.FromClr(libraryType))
+        : this(library, ExecutionClrBindingFactory.FromClr(libraryType))
     {
     }
 }

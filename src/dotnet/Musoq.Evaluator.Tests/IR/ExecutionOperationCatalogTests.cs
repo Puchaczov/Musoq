@@ -24,9 +24,9 @@ public sealed class ExecutionOperationCatalogTests
 
         CollectionAssert.AreEquivalent(nodes, ExecutionOperationCatalog.RegisteredNodeTypes.ToArray());
         CollectionAssert.AreEquivalent(expressions, ExecutionOperationCatalog.RegisteredExpressionTypes.ToArray());
-        Assert.HasCount(85, nodes);
+        Assert.HasCount(88, nodes);
         Assert.HasCount(37, expressions);
-        Assert.HasCount(122, ExecutionOperationCatalog.AllOperationIds);
+        Assert.HasCount(125, ExecutionOperationCatalog.AllOperationIds);
     }
 
     [TestMethod]
@@ -40,6 +40,49 @@ public sealed class ExecutionOperationCatalogTests
         Assert.IsTrue(values.All(static value =>
             value.Length > 0 && value.All(static character =>
                 char.IsAsciiLetterLower(character) || char.IsAsciiDigit(character) || character is '.' or '-')));
+    }
+
+    [TestMethod]
+    public void NodeDefinitionInventory_ShouldHaveUniqueTypesAndOperationIds()
+    {
+        var definitions = ExecutionNodeDefinitionCatalog.Definitions;
+
+        Assert.HasCount(definitions.Count, definitions.Select(static definition => definition.NodeType).Distinct().ToArray());
+        Assert.HasCount(definitions.Count, definitions.Select(static definition => definition.OperationId).Distinct().ToArray());
+        CollectionAssert.AreEqual(
+            definitions.Select(static definition => definition.NodeType).ToArray(),
+            ExecutionNodeRegistry.Descriptors.Select(static descriptor => descriptor.NodeType).ToArray());
+    }
+
+    [TestMethod]
+    public void NodeDefinitionInventory_ShouldCoverEveryConcreteExecutionNode()
+    {
+        var concreteNodes = typeof(ExecutionPlan).Assembly.GetTypes()
+            .Where(static type => !type.IsAbstract && typeof(ExecutionNode).IsAssignableFrom(type))
+            .ToArray();
+        var definedNodes = ExecutionNodeDefinitionCatalog.Definitions
+            .Select(static definition => definition.NodeType)
+            .ToArray();
+
+        Assert.IsEmpty(
+            concreteNodes.Except(definedNodes).ToArray(),
+            "Concrete execution nodes missing from the authoritative node-definition inventory.");
+        Assert.IsEmpty(
+            definedNodes.Except(concreteNodes).ToArray(),
+            "Node-definition inventory contains a type that is not a concrete execution node.");
+    }
+
+    [TestMethod]
+    public void NodeDefinitionInventory_ShouldRegisterDeterministically()
+    {
+        var first = ExecutionNodeRegistry.Descriptors
+            .Select(static descriptor => descriptor.NodeType.FullName)
+            .ToArray();
+        var second = ExecutionNodeRegistry.Descriptors
+            .Select(static descriptor => descriptor.NodeType.FullName)
+            .ToArray();
+
+        CollectionAssert.AreEqual(first, second);
     }
 
     [TestMethod]
@@ -68,11 +111,37 @@ public sealed class ExecutionOperationCatalogTests
     }
 
     [TestMethod]
-    public void CSharpClrCapabilities_ShouldExplicitlySupportEveryRegisteredOperation()
+    public void CSharpClrCapabilities_ShouldMatchNodeTargetCapabilityMetadata()
     {
         CollectionAssert.AreEquivalent(
-            ExecutionOperationCatalog.AllOperationIds.ToArray(),
+            ExecutionOperationCatalog.CSharpClrSupportedOperationIds.ToArray(),
             ExecutionTargetCapabilities.CSharpClr.SupportedOperations.ToArray());
+    }
+
+    [TestMethod]
+    public void NodeDefinitionInventory_ShouldRequireRegisteredPrinterRewriterAndCapabilityMetadata()
+    {
+        var definitions = ExecutionNodeDefinitionCatalog.Definitions;
+
+        Assert.IsTrue(definitions.All(static definition =>
+            definition.Behavior.Printer is not null &&
+            definition.Behavior.Rewriter is not null));
+        Assert.IsTrue(definitions.All(static definition =>
+            definition.Behavior.TargetCapability is
+                ExecutionNodeTargetCapability.Supported or ExecutionNodeTargetCapability.Unsupported));
+    }
+
+    [TestMethod]
+    public void NodeDefinitionInventory_ShouldExposeExecutableBehaviorRegistrations()
+    {
+        var behaviorType = typeof(ExecutionNodeDefinition).GetProperty(nameof(ExecutionNodeDefinition.Behavior))!.PropertyType;
+
+        CollectionAssert.AreEquivalent(
+            new[] { "Printer", "Rewriter", "TargetCapability" },
+            behaviorType.GetProperties().Select(static property => property.Name).ToArray());
+        Assert.IsTrue(ExecutionNodeDefinitionCatalog.Definitions.All(static definition =>
+            definition.Behavior.Printer.Method != null &&
+            definition.Behavior.Rewriter.Method != null));
     }
 
     [TestMethod]
@@ -95,5 +164,5 @@ public sealed class ExecutionOperationCatalogTests
 
     private sealed record TestUnregisteredNode : ExecutionNode;
 
-    private sealed record TestUnregisteredExpression() : ExecutionExpression(ExecutionTypeRef.FromClr(typeof(int)));
+    private sealed record TestUnregisteredExpression() : ExecutionExpression(ExecutionClrBindingFactory.FromClr(typeof(int)));
 }

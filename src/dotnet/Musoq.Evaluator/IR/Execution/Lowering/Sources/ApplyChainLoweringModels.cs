@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Physical;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.Sources;
 
 internal sealed record ApplyChainSource(
     IReadOnlyList<JoinSource> Sources,
@@ -14,7 +14,7 @@ internal sealed record ApplyChainPhysicalSource(
     bool WithOrdinality);
 
 internal sealed record ApplyChainBuildResult(
-    bool Supported,
+    bool IsBuilt,
     ApplyChainSource Chain,
     string UnsupportedReason)
 {

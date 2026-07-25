@@ -67,15 +67,6 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
         TraverseSetOperatorWithScope(node);
     }
 
-    public override void Visit(CteExpressionNode node)
-    {
-        ArgumentNullException.ThrowIfNull(node);
-        LoadScope("CTE");
-        ParserNodeChildTraversal.TraverseCteInnerExpressionsThenOuter(node, this);
-        node.Accept(Visitor);
-        RestoreScope();
-    }
-
     public override void Visit(CteInnerExpressionNode node)
     {
         ArgumentNullException.ThrowIfNull(node);

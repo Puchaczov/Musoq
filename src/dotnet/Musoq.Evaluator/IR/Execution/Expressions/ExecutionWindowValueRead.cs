@@ -11,7 +11,7 @@ public sealed record ExecutionWindowValueRead(
     ExecutionTypeRef ReturnType) : ExecutionExpression(ReturnType)
 {
     internal ExecutionWindowValueRead(ExecutionVariable results, ExecutionVariable index, Type returnType)
-        : this(results, index, ExecutionTypeRef.FromClr(returnType))
+        : this(results, index, ExecutionClrBindingFactory.FromClr(returnType))
     {
     }
 }

@@ -178,42 +178,61 @@ internal static partial class CteSidecarIndexPlanner
             yield return consumer;
     }
 
-    private static IEnumerable<CteHashJoinConsumer> FindDirectConsumers(PhysicalNode node, string cteName)
+    private static IEnumerable<CteHashJoinConsumer> FindDirectConsumers(PhysicalNode node, string cteName) =>
+        FindDirectConsumers(node, cteName, cteName);
+
+    private static IEnumerable<CteHashJoinConsumer> FindDirectConsumers(
+        PhysicalNode node,
+        string cteName,
+        string referenceName)
     {
+        if (node is PhysicalRecursiveCteNode recursive)
+        {
+            foreach (var invariant in recursive.Invariants.Where(invariant =>
+                         invariant.StorageKind == PhysicalRecursiveCteInvariantStorageKind.ExistingHashIndex &&
+                         string.Equals(invariant.ExistingCteName, cteName, StringComparison.OrdinalIgnoreCase)))
+            {
+                foreach (var consumer in FindDirectConsumers(recursive.RecursiveMember, cteName, invariant.Name))
+                    yield return consumer;
+            }
+
+            yield break;
+        }
+
         switch (node)
         {
             case PhysicalHashJoinNode hashJoin:
                 if (hashJoin.Kind == JoinKind.FullOuter)
                 {
-                    if (HasDirectCteRef(hashJoin.Left, cteName) || HasDirectCteRef(hashJoin.Right, cteName))
+                    if (HasDirectCteRef(hashJoin.Left, referenceName) || HasDirectCteRef(hashJoin.Right, referenceName))
                         yield return new CteHashJoinConsumer(null, null, "Full outer hash joins track per-build-row match state and do not use CTE sidecar indexes.");
 
                     break;
                 }
 
-                if (TryFindDirectBuildCteRef(hashJoin, cteName, out var cteRef, out var skipReason))
+                if (TryFindDirectBuildCteRef(hashJoin, referenceName, out var cteRef, out var skipReason))
                 {
                     yield return new CteHashJoinConsumer(hashJoin, cteRef);
                 }
-                else if (HasDirectCteRef(hashJoin.Left, cteName) || HasDirectCteRef(hashJoin.Right, cteName))
+                else if (HasDirectCteRef(hashJoin.Left, referenceName) || HasDirectCteRef(hashJoin.Right, referenceName))
                 {
                     yield return new CteHashJoinConsumer(hashJoin, null, skipReason);
                 }
 
                 break;
             case PhysicalSortMergeJoinNode sortMergeJoin:
-                if (HasDirectCteRef(sortMergeJoin.Left, cteName) || HasDirectCteRef(sortMergeJoin.Right, cteName))
+                if (HasDirectCteRef(sortMergeJoin.Left, referenceName) || HasDirectCteRef(sortMergeJoin.Right, referenceName))
                     yield return new CteHashJoinConsumer(null, null, "Sort-merge joins keep their existing range/order-oriented lowering.");
                 break;
             case PhysicalNestedLoopJoinNode nestedLoopJoin:
-                if (HasDirectCteRef(nestedLoopJoin.Left, cteName) || HasDirectCteRef(nestedLoopJoin.Right, cteName))
+                if (HasDirectCteRef(nestedLoopJoin.Left, referenceName) || HasDirectCteRef(nestedLoopJoin.Right, referenceName))
                     yield return new CteHashJoinConsumer(null, null, "Nested-loop joins do not use a hash-build consumer.");
                 break;
         }
 
         foreach (var child in node.Children)
         {
-            foreach (var consumer in FindDirectConsumers(child, cteName))
+            foreach (var consumer in FindDirectConsumers(child, cteName, referenceName))
                 yield return consumer;
         }
     }

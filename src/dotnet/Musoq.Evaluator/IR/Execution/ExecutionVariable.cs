@@ -6,7 +6,7 @@ public sealed record ExecutionVariable(
     string? GeneratedRowTypeName = null)
 {
     internal ExecutionVariable(string name, Type type, string? generatedRowTypeName = null)
-        : this(name, ExecutionTypeRef.FromClr(type), generatedRowTypeName)
+        : this(name, ExecutionClrBindingFactory.FromClr(type), generatedRowTypeName)
     {
     }
 }

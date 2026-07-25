@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Diagnostics.CodeAnalysis;
 using Musoq.Parser.Nodes;
 
@@ -9,17 +10,52 @@ internal static class SchemaArgumentBinder
     public static object?[] BindStaticArguments(
         ArgsListNode args,
         IReadOnlyDictionary<string, ScriptParameterDefinition>? scriptParameters = null,
-        IReadOnlyDictionary<string, ScriptVariableDefinition>? scriptVariables = null)
+        IReadOnlyDictionary<string, ScriptVariableDefinition>? scriptVariables = null,
+        BoundSchemaInvocation? invocation = null)
     {
         if (args == null || args.Args.Length == 0)
-            return [];
-
-        var values = new List<object?>(args.Args.Length);
-
-        foreach (var arg in args.Args)
         {
-            if (TryBindStaticArgument(arg, scriptParameters, scriptVariables, out var value))
-                values.Add(value);
+            if (invocation == null)
+                return [];
+
+            return invocation.Arguments
+                .Where(static argument => argument.UsesDefault)
+                .Select(argument => argument.DefaultValue)
+                .ToArray();
+        }
+
+        var values = new List<object?>(invocation?.Arguments.Length ?? args.Args.Length);
+
+        if (invocation == null)
+        {
+            foreach (var arg in args.Args)
+            {
+                if (TryBindStaticArgument(arg, scriptParameters, scriptVariables, out var value))
+                    values.Add(value);
+            }
+
+            return values.ToArray();
+        }
+
+        foreach (var boundArgument in invocation.Arguments)
+        {
+            if (boundArgument.UsesDefault)
+            {
+                values.Add(boundArgument.DefaultValue);
+                continue;
+            }
+
+            var arg = args.Args[boundArgument.SourceArgumentIndex!.Value];
+            if (!TryBindStaticArgument(arg, scriptParameters, scriptVariables, out var value))
+            {
+                // Metadata/planning APIs only accept a positional object array. Once a
+                // required slot is dynamic, appending a later static slot would make it
+                // look like the dynamic slot and silently reorder the invocation. Keep
+                // the materialized values as the known canonical prefix instead.
+                break;
+            }
+
+            values.Add(value);
         }
 
         return values.ToArray();

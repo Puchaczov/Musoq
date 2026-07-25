@@ -64,6 +64,20 @@ public partial class ErrorQualityStructuralSyntaxTests : BasicEntityTestBase
         }
     }
 
+    private static void AssertHasExactlyOneErrorCode(
+        QueryAnalysisResult result,
+        string context,
+        DiagnosticCode expectedCode)
+    {
+        Assert.IsTrue(result.HasErrors || !result.IsParsed,
+            $"Expected {expectedCode} ({context}) but query succeeded");
+
+        Assert.HasCount(1, result.Errors, $"Expected exactly one diagnostic ({context}).");
+        var diagnostic = result.Errors.First();
+        Assert.AreEqual(expectedCode, diagnostic.Code,
+            $"Expected {expectedCode} ({context}) but got {diagnostic.Code}.");
+    }
+
     private static void AssertNoErrors(QueryAnalysisResult result)
     {
         if (result.HasErrors)

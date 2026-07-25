@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select Name from #A.entities() union all (Name) select Name from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 SetOp [UnionAll]
   MultiStatement
     Project [ko3iko.Name as Name]
@@ -16,9 +14,8 @@ SetOp [UnionAll]
       SchemaScan [#A.entities() as vo04qt]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalSetOp [UnionAll]
   PhysicalMultiStatement
     PhysicalProject [ko3iko.Name as Name]
@@ -28,9 +25,8 @@ PhysicalSetOp [UnionAll]
       PhysicalSchemaScan [#A.entities() as vo04qt]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -50,6 +46,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(Name: vo04qt.Name)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q25_UnionAll

@@ -9,4 +9,4 @@ public sealed record ExecutionRowStream(
     ExecutionVariable Variable,
     ExecutionRowStreamKind Kind,
     ExecutionRowStreamRowsAccess RowsAccess = ExecutionRowStreamRowsAccess.Direct)
-    : ExecutionExpression(ExecutionTypeRef.FromClr(typeof(object)));
+    : ExecutionExpression(ExecutionClrBindingFactory.FromClr(typeof(object)));

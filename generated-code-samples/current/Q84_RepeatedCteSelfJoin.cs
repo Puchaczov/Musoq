@@ -1,12 +1,10 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 with c as (select Name, City from #A.entities()) select l.Name, r.City from c l inner join c r on l.Name = r.Name
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [c]
     MultiStatement
@@ -22,9 +20,8 @@ Cte
         CteRef [lr as lr]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [c]
     PhysicalMultiStatement
@@ -40,9 +37,8 @@ PhysicalCte
         PhysicalCteRef [lr as lr]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -87,6 +83,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(l.Name: l.Name, r.City: r.City)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q84_RepeatedCteSelfJoin

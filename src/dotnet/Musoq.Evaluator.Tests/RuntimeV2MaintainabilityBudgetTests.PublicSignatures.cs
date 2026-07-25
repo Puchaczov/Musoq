@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
-using Musoq.Evaluator.Visitors.Helpers;
+using Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 
@@ -68,6 +68,9 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "ExecutionParallelSingleKeyAggregateLoop",
             "ExecutionProjectTable",
             "ExecutionRangeProbe",
+            "ExecutionRecursiveCte",
+            "ExecutionRecursiveCteAppend",
+            "ExecutionRecursiveCteSnapshotRowGuard",
             "ExecutionRelatedCtePhase",
             "ExecutionReturnDesc",
             "ExecutionReturnTable",
@@ -246,6 +249,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         string[] expectedSignatures =
         [
+            "CreateContextRunMethodWithBody(BlockSyntax):MethodDeclarationSyntax",
             "CreateDataSourceProgressEvent():EventFieldDeclarationSyntax",
             "CreateOnDataSourceProgressMethod():MethodDeclarationSyntax",
             "CreateOnPhaseChangedMethod():MethodDeclarationSyntax",

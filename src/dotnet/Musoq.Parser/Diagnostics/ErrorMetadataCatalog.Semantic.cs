@@ -13,5 +13,7 @@ internal static partial class SemanticErrorMetadataCatalog
         foreach (var metadata in BuildQueryFeatureMetadata()) yield return metadata;
         foreach (var metadata in BuildSourceRuntimeSettingsMetadata()) yield return metadata;
         foreach (var metadata in BuildSourceContractMetadata()) yield return metadata;
+        foreach (var metadata in BuildRecursiveCteMetadata()) yield return metadata;
+        foreach (var metadata in BuildNamedSourceArgumentMetadata()) yield return metadata;
     }
 }

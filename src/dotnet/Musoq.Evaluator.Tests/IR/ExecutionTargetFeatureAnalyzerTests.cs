@@ -30,7 +30,7 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
         var source = new ExecutionSourceScan(
             new ExecutionVariable("s", typeof(FeatureSource)),
             new ExecutionVariable("rows", typeof(object)),
-            new ExecutionSourceBinding("sample", "rows", "s:0", 0, [], [field], SourceType: ExecutionTypeRef.FromClr(typeof(FeatureSource))));
+            new ExecutionSourceBinding("sample", "rows", "s:0", 0, [], [field], SourceType: ExecutionClrBindingFactory.FromClr(typeof(FeatureSource))));
         var binary = new ExecutionBinary(
             BinaryOpKind.Add,
             new ExecutionLiteral(1, typeof(int)),
@@ -80,7 +80,7 @@ public sealed class ExecutionTargetFeatureAnalyzerTests
     [TestMethod]
     public void Analyze_WhenPlanUsesPortableContainer_ShouldReportContainerRequirement()
     {
-        var listType = ExecutionTypeRef.FromClr(typeof(System.Collections.Generic.List<int>));
+        var listType = ExecutionClrBindingFactory.FromClr(typeof(System.Collections.Generic.List<int>));
         var plan = new ExecutionPlan(
             "Q_ContainerFeature",
             [],

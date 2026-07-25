@@ -4,6 +4,8 @@ namespace Musoq.Targets.CSharpClr;
 
 internal static class CSharpClrExecutionCallableCompatibility
 {
+    private static readonly CSharpClrExecutionBindingContext DefaultBindingContext = new();
+
     internal static MethodInfo RequireClrMethod(this ExecutionCallableRef callableRef) =>
-        callableRef?.ClrMethod ?? throw new ArgumentNullException(nameof(callableRef));
+        DefaultBindingContext.BindMethod(callableRef);
 }

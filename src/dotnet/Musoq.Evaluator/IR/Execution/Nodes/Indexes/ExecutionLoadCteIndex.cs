@@ -19,7 +19,7 @@ public sealed record ExecutionLoadCteIndex(
         Type keyType,
         Type? rowType = null,
         string? generatedRowTypeName = null)
-        : this(index, indexSlot, kind, ExecutionTypeRef.FromClr(keyType), ExecutionTypeRef.FromOptionalClr(rowType), generatedRowTypeName)
+        : this(index, indexSlot, kind, ExecutionClrBindingFactory.FromClr(keyType), ExecutionClrBindingFactory.FromOptionalClr(rowType), generatedRowTypeName)
     {
     }
 }

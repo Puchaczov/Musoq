@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT a.City, d.City
               FROM #A.entities() a
               CROSS APPLY (
@@ -10,9 +9,8 @@ SELECT a.City, d.City
               ) d
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 Cte
   Definition [_dt_1]
     MultiStatement
@@ -28,9 +26,8 @@ Cte
         CteRef [ad as ad]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalCte
   Definition [_dt_1]
     PhysicalMultiStatement
@@ -46,9 +43,8 @@ PhysicalCte
         PhysicalCteRef [ad as ad]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [a: BasicEntity]
@@ -96,6 +92,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(a.City: a.City, d.City: d.b.City)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q143_CorrelatedApplyDerivedTable

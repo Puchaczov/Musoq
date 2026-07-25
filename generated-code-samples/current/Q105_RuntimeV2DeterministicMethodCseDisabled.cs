@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT ExpensiveCompute(Value) as Computed,
                      ExpensiveCompute(Value) + 10 as PlusTen,
                      CASE WHEN ExpensiveCompute(Value) > 300 THEN 'High' ELSE 'Low' END as Bucket
@@ -8,27 +7,24 @@ SELECT ExpensiveCompute(Value) as Computed,
               WHERE ExpensiveCompute(Value) > 50
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ExpensiveCompute(ko3iko.Value) as Computed, (ExpensiveCompute(ko3iko.Value) + 10) as PlusTen, CASE WHEN (ExpensiveCompute(ko3iko.Value) > 300) THEN 'High' ELSE 'Low' END as Bucket]
     Filter [(ExpensiveCompute(ko3iko.Value) > 50)]
       SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ExpensiveCompute(ko3iko.Value) as Computed, (ExpensiveCompute(ko3iko.Value) + 10) as PlusTen, CASE WHEN (ExpensiveCompute(ko3iko.Value) > 300) THEN 'High' ELSE 'Low' END as Bucket]
     PhysicalFilter [(ExpensiveCompute(ko3iko.Value) > 50)]
       PhysicalSchemaScan [#test.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2RegressionEntity]
@@ -48,6 +44,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(Computed: ExpensiveCompute(ko3iko.Value), PlusTen: (ExpensiveCompute(ko3iko.Value) + 10), Bucket: CASE WHEN (ExpensiveCompute(ko3iko.Value) > 300) THEN 'High' ELSE 'Low' END)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q105_RuntimeV2DeterministicMethodCseDisabled

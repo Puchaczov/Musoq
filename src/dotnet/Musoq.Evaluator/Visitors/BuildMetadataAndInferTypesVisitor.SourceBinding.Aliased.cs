@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Threading;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Utils.Symbols;
@@ -36,6 +38,12 @@ public partial class BuildMetadataAndInferTypesVisitor
             LogInterpretFunctionProcessing(_logger, node, _sourceBinding.QueryAlias);
 
             var args = (ArgsListNode)PopSemanticNode();
+
+            if (args.HasNamedArguments)
+                throw new CannotResolveMethodException(
+                    "Named arguments are not supported for Interpret or Parse sources.",
+                    Musoq.Parser.Diagnostics.DiagnosticCode.MQ2034_InvalidNamedSourceArgument,
+                    args.Span);
 
             if (node.TypeParameter is not { } schemaName)
                 throw new InvalidOperationException("Interpret function source must provide a type parameter in this branch.");
@@ -90,6 +98,19 @@ public partial class BuildMetadataAndInferTypesVisitor
             ThrowIfOldInterpretSyntax(node.Identifier, node.Args);
         }
 
+        // A function-shaped FROM item is not necessarily a datasource.  Reject
+        // named arguments before standalone function resolution so an unknown
+        // scalar/aggregate call cannot fall through to the coupled-source map
+        // and produce a misleading lookup failure.
+        if (!_sourceBinding.ExplicitlyCoupledSources.ContainsKey(node.Identifier) &&
+            node.Args.HasNamedArguments)
+        {
+            throw new CannotResolveMethodException(
+                "Named arguments are supported only for datasource source calls and explicitly coupled sources.",
+                Musoq.Parser.Diagnostics.DiagnosticCode.MQ2034_InvalidNamedSourceArgument,
+                node.Args.Span);
+        }
+
         if (!_sourceBinding.ExplicitlyCoupledSources.ContainsKey(node.Identifier) && TryResolveAsStandaloneFunction(node))
             return;
 
@@ -100,7 +121,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             : null;
         var hasExternallyProvidedTypes = table != null;
 
-        var schema = _provider.GetSchema(schemaInfo.Schema);
+        var schema = SchemaProviderBoundary.Invoke(() => _provider.GetSchema(schemaInfo.Schema));
 
         AddAssembly(schema.GetType().Assembly);
 
@@ -115,8 +136,32 @@ public partial class BuildMetadataAndInferTypesVisitor
             node.InSourcePosition,
             hasExternallyProvidedTypes
         );
-        var staticSchemaArguments = SchemaArgumentBinder.BindStaticArguments(aliasedSchemaFromNode.Parameters);
         var queryId = node.InSourcePosition.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var bindingResult = SchemaSourceArgumentBinder.Bind(
+            aliasedSchemaFromNode.Parameters,
+            SchemaProviderBoundary.Invoke(() => schema.GetRawConstructors(
+                schemaInfo.Method,
+                new SourceMetadataContext(
+                    queryId,
+                    CancellationToken.None,
+                    GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey),
+                    new Dictionary<string, string>(),
+                    _logger))));
+        if (bindingResult.Failure is { } bindingFailure)
+            throw new CannotResolveMethodException(
+                bindingFailure.Message,
+                bindingFailure.Code,
+                bindingFailure.Span);
+
+        var boundInvocation = bindingResult.Invocation;
+        if (boundInvocation != null)
+            aliasedSchemaFromNode.SetBoundInvocation(boundInvocation);
+
+        var staticSchemaArguments = SchemaArgumentBinder.BindStaticArguments(
+            aliasedSchemaFromNode.Parameters,
+            _scriptParameters.DefinitionsByName,
+            _scriptVariables.DefinitionsByName,
+            boundInvocation);
         var metadataColumns = table?.Columns ?? GetColumnsForAlias(_sourceBinding.QueryAlias, _sourceBinding.SchemaFromKey);
         var sourceRuntimeSettings = ResolveSourceRuntimeSettings(
             schema,
@@ -127,7 +172,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             definition.ProfileName,
             GetSourceRuntimeSettingsResolutionMode());
 
-        table = schema.GetTableByName(
+        table = SchemaProviderBoundary.Invoke(() => schema.GetTableByName(
             schemaInfo.Method,
             new SourceMetadataContext(
                 queryId,
@@ -137,7 +182,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 _logger
             ),
             staticSchemaArguments
-        ) ?? table ?? throw new InvalidOperationException($"Schema method '{schemaInfo.Method}' did not provide table metadata.");
+        )) ?? table ?? throw new InvalidOperationException($"Schema method '{schemaInfo.Method}' did not provide table metadata.");
         var tableSymbol = new TableSymbol(
             _sourceBinding.QueryAlias,
             schema,

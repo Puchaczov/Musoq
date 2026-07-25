@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 let threshold: int = 100
                             let label: string = 'static'
                             SELECT Name, $label as Label, HeavyComputation(Value) as Heavy
@@ -8,27 +7,24 @@ let threshold: int = 100
                             WHERE Value > $threshold
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Name as Name, $label as Label, HeavyComputation(ko3iko.Value) as Heavy]
     Filter [(ko3iko.Value > $threshold)]
       SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, $label as Label, HeavyComputation(ko3iko.Value) as Heavy]
     PhysicalFilter [(ko3iko.Value > $threshold)]
       PhysicalSchemaScan [#test.entities() as ko3iko] [pushdown: (ko3iko.Value > $threshold)]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2RegressionEntity]
@@ -50,6 +46,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(Name: ko3iko.Name, Label: $label, Heavy: HeavyComputation(value))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q137_ScriptVariableParallelHelperCapture

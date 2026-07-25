@@ -1,28 +1,24 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 select ShiftLeft(1i, 1) from #A.entities()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ShiftLeft(1, 1) as ShiftLeft(1, 1)]
     SchemaScan [#A.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ShiftLeft(1, 1) as ShiftLeft(1, 1)]
     PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BasicEntity]
@@ -52,6 +48,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(ShiftLeft(1, 1): ShiftLeft(1, 1))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q99_BitwiseShiftLeftIntDebug

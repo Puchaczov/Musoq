@@ -45,7 +45,8 @@ Instead of a script, you write a query.
   - [Inline Binary Decoding](#1-inline-binary-decoding)
   - [Declarative Text Log Parsing](#2-declarative-text-log-parsing)
   - [Strong Typing for Dynamic Data](#3-strong-typing-for-dynamic-data-table--couple)
-  - [Correlated Subqueries](#4-correlated-subqueries)
+  - [Recursive CTEs](#4-recursive-ctes)
+  - [Correlated Subqueries](#5-correlated-subqueries)
 - [The Developer Toolbox](#-the-developer-toolbox-beyond-ad-hoc-queries)
 - [How Musoq Fits in the Ecosystem](#-how-does-musoq-fit-into-the-sql-tooling-ecosystem)
 - [A Universe of Data Sources](#-available-data-sources)
@@ -182,7 +183,42 @@ from SourceOfReceipts('OpenAi', 'gpt-4o') s
 where s.Price > 100.00
 ```
 
-### 4. Correlated Subqueries
+Datasource arguments can also use the table-constructor names published by the
+schema:
+
+```sql
+select s.Shop, s.Price
+from #schema.method(required: '4', limit: 2) s
+```
+
+Names are case-insensitive. Positional arguments may form a prefix, followed by
+reordered named arguments; reflected optional constructor defaults are applied
+when a slot is omitted. Datasource authors should treat constructor parameter
+names as public SQL API and keep table/source signatures aligned with the same
+canonical positional vector. Hidden `SourceExecutionContext` parameters are
+not public names, and a signature whose reflected metadata disagrees with its
+constructor is positional-only. Custom or metadata-less signatures remain
+positional-only; overloads must resolve deterministically. Runtime calls still
+receive the ordinary ordered `object?[]` vector, never a dictionary.
+
+### 4. Recursive CTEs
+
+Musoq can traverse hierarchies and graphs directly over files, repositories, APIs, and plugin sources with PostgreSQL-shaped `WITH RECURSIVE` syntax. Full-row `UNION` and Musoq's keyed `UNION (columns)` provide global cycle handling, while invariant external sources are snapshotted once and reused across generations under independent iteration, result-row, and snapshot-row safety limits.
+
+```sql
+with recursive reachable (Id, Depth) as (
+    select RootId, 0 from graph.roots()
+    union (Id)
+    select e.TargetId, r.Depth + 1
+    from reachable r
+    inner join graph.edges() e on e.SourceId = r.Id
+)
+select Id, Depth from reachable order by Id
+```
+
+See the [recursive CTE language, identity, snapshot, and limit contract](docs/recursive-ctes.md).
+
+### 5. Correlated Subqueries
 
 Musoq decorrelates supported `IN`, `EXISTS`, quantified, scalar, and `CROSS APPLY` subqueries into hash or indexed range joins. Equality correlation, composite keys, scalar cardinality, per-key shaping, and one bounded range predicate are supported without hidden per-row execution.
 

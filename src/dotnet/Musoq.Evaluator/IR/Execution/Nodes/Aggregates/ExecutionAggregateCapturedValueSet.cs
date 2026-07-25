@@ -16,7 +16,7 @@ public sealed record ExecutionAggregateCapturedValueSet(
         ExecutionExpression value,
         Type valueType,
         AggregateCapturedField capturedField)
-        : this(group, valueName, value, ExecutionTypeRef.FromClr(valueType), capturedField)
+        : this(group, valueName, value, ExecutionClrBindingFactory.FromClr(valueType), capturedField)
     {
     }
 }

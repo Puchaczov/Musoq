@@ -1,32 +1,28 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT Value * 2, Name
               FROM #test.entities()
               WHERE ExpensiveMethod(Value) > 100
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [(ko3iko.Value * 2) as Value * 2, ko3iko.Name as Name]
     Filter [(ExpensiveMethod(ko3iko.Value) > 100)]
       SchemaScan [#test.entities() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [(ko3iko.Value * 2) as Value * 2, ko3iko.Name as Name]
     PhysicalFilter [(ExpensiveMethod(ko3iko.Value) > 100)]
       PhysicalSchemaScan [#test.entities() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: BenchmarkParityEntity]
@@ -47,6 +43,8 @@ ExecutionPlan [compiled]
           AppendShape [result <- ResultShape0(Value * 2: (value * 2), Name: ko3iko.Name)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q176_BenchmarkCseNoDuplicateMaterialized

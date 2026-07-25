@@ -19,7 +19,7 @@ public sealed record ExecutionKeySetAdd(
         ExecutionVariable? precomputedKey = null,
         string? keyVariableName = null,
         ExecutionKeyBuildNullHandling nullHandling = ExecutionKeyBuildNullHandling.Continue)
-        : this(set, key, ExecutionTypeRef.FromClr(keyType), precomputedKey, keyVariableName, nullHandling)
+        : this(set, key, ExecutionClrBindingFactory.FromClr(keyType), precomputedKey, keyVariableName, nullHandling)
     {
     }
 }

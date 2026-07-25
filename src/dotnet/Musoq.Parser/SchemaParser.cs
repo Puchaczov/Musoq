@@ -48,7 +48,7 @@ public partial class SchemaParser
         TokenType.StringType, TokenType.Utf8, TokenType.Utf16Le, TokenType.Utf16Be,
         TokenType.Ascii, TokenType.Latin1, TokenType.Ebcdic, TokenType.Trim,
         TokenType.RTrim, TokenType.LTrim, TokenType.NullTerm, TokenType.Check,
-        TokenType.At, TokenType.Nested, TokenType.Escaped, TokenType.Greedy,
+        TokenType.At, TokenType.Substream, TokenType.Nested, TokenType.Escaped, TokenType.Greedy,
         TokenType.Lazy, TokenType.Lower, TokenType.Upper, TokenType.Capture,
         TokenType.Extends
     }.ToFrozenSet();

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Musoq.Evaluator.IR.Execution;
+namespace Musoq.Evaluator.IR.Execution.Lowering.ProjectionAndApply;
 
 internal sealed class RowPresenceSubstitutionRewriter(
     IReadOnlyDictionary<string, bool> presenceByAlias) : ExecutionIrRewriter

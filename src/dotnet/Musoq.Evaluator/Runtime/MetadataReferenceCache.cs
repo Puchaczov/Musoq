@@ -3,17 +3,20 @@ using Microsoft.CodeAnalysis;
 namespace Musoq.Evaluator.Runtime;
 
 /// <summary>
-///     Thread-safe cache for MetadataReference objects to avoid repeated file loading
-///     and memory allocation when compiling multiple queries.
+///     Legacy static compatibility facade for a bounded metadata-reference cache.
+///     New compilation paths should use an explicit <see cref="EvaluatorRuntimeEnvironment"/>.
 /// </summary>
 public static class MetadataReferenceCache
 {
-    internal static IMetadataReferenceCache Default { get; } = new DefaultMetadataReferenceCache();
+    internal static IMetadataReferenceCache Default => RuntimeLibraries.MetadataReferences;
+
+    internal static IMetadataReferenceCache CreateScoped() =>
+        new DefaultMetadataReferenceCache();
 
     /// <summary>
     ///     Gets the current number of cached references.
     /// </summary>
-    public static int Count => Default.Count;
+    public static int Count => RuntimeLibraries.WithEnvironment(static environment => environment.MetadataReferenceCache.Count);
 
     /// <summary>
     ///     Gets or creates a MetadataReference for the given assembly path.
@@ -22,7 +25,7 @@ public static class MetadataReferenceCache
     /// <returns>A cached or newly created MetadataReference.</returns>
     public static MetadataReference GetOrCreate(string assemblyPath)
     {
-        return Default.GetOrCreate(assemblyPath);
+        return RuntimeLibraries.WithEnvironment(environment => environment.GetOrCreateMetadataReference(assemblyPath));
     }
 
     /// <summary>
@@ -30,6 +33,6 @@ public static class MetadataReferenceCache
     /// </summary>
     public static void Clear()
     {
-        Default.Clear();
+        RuntimeLibraries.WithEnvironment(static environment => environment.MetadataReferenceCache.Clear());
     }
 }

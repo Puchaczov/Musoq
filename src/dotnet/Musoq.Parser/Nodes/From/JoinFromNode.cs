@@ -8,6 +8,8 @@ public class JoinFromNode : BinaryFromNode
         Expression = expression;
         JoinType = joinType;
         TieBreak = tieBreak;
+        Span = ComputeSpan(source, with, expression, tieBreak);
+        FullSpan = Span;
     }
 
     public JoinFromNode(FromNode source, FromNode with, Node expression, JoinType joinType, Type returnType, FieldOrderedNode? tieBreak = null)
@@ -16,6 +18,8 @@ public class JoinFromNode : BinaryFromNode
         Expression = expression;
         JoinType = joinType;
         TieBreak = tieBreak;
+        Span = ComputeSpan(source, with, expression, tieBreak);
+        FullSpan = Span;
     }
 
     public Node Expression { get; }

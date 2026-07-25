@@ -42,6 +42,7 @@ public enum DiagnosticCode
     MQ2023_MissingAsKeyword = 2023,
     MQ2024_InvalidSubquery = 2024,
     MQ2025_MissingSelectKeyword = 2025,
+    MQ2034_InvalidNamedSourceArgument = 2034,
     MQ2026_InvalidCaseExpression = 2026,
     MQ2027_MissingWhenClause = 2027,
     MQ2028_MissingThenClause = 2028,
@@ -120,6 +121,12 @@ public enum DiagnosticCode
     MQ3066_ScriptVariableUsedBeforeDeclaration = 3066,
     MQ3067_MissingSourceRuntimeSetting = 3067,
     MQ3068_StarRenameDuplicateSource = 3068, MQ3069_StarRenameDuplicateTarget = 3069, MQ3070_StarRenameColumnNotFound = 3070, MQ3071_SourceContractError = 3071,
+    MQ3072_RecursiveCteRequiresKeyword = 3072, MQ3073_InvalidRecursiveCteShape = 3073, MQ3074_InvalidRecursiveCteReference = 3074, MQ3075_UnsupportedRecursiveCteOperator = 3075, MQ3076_RecursiveCteOutputMismatch = 3076, MQ3077_CteColumnListCountMismatch = 3077, MQ3078_DuplicateCteColumnName = 3078,
+    MQ3079_UnknownSourceArgument = 3079,
+    MQ3080_DuplicateSourceArgument = 3080,
+    MQ3081_MissingRequiredSourceArgument = 3081,
+    MQ3082_AmbiguousSourceInvocation = 3082,
+    MQ3083_NamedSourceArgumentsRequireMetadata = 3083,
 
     // Schema Definition Errors (MQ4xxx)
     MQ4001_InvalidBinarySchemaField = 4001,
@@ -163,11 +170,10 @@ public enum DiagnosticCode
     MQ7003_RequiredScriptParameterMissing = 7003,
     MQ7004_ScriptParameterTypeMismatch = 7004,
     MQ7005_ScriptParameterNullNotAllowed = 7005,
-    MQ7006_UnknownScriptParameter = 7006,
+    MQ7006_UnknownScriptParameter = 7006, MQ7007_RecursiveCteIterationLimitExceeded = 7007, MQ7008_RecursiveCteRowLimitExceeded = 7008, MQ7009_RecursiveCteSnapshotLimitExceeded = 7009,
 
     // Code Generation Errors (MQ8xxx)
-    MQ8001_CodeGenerationFailed = 8001,
-    MQ8002_CompiledArtifactIncompatible = 8002,
+    MQ8001_CodeGenerationFailed = 8001, MQ8002_CompiledArtifactIncompatible = 8002,
 
     // Internal/Unknown (MQ9xxx)
     MQ9999_Unknown = 9999

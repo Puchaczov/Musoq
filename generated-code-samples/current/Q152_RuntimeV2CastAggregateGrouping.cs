@@ -1,6 +1,5 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT City, Sum(Amount::Decimal) as TotalAmount
                   FROM #features.items()
                   WHERE Population::Int32 > 0
@@ -8,9 +7,8 @@ SELECT City, Sum(Amount::Decimal) as TotalAmount
                   HAVING Sum(Amount::Decimal) > '10.00'::Decimal
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Sum(ko3iko.Amount::Decimal)) as ko3iko.Sum(ko3iko.Amount::Decimal)]
     Having [(AggRef(ko3iko.Sum(ko3iko.Amount::Decimal)) > '10.00'::Decimal)]
@@ -21,9 +19,8 @@ MultiStatement
     CteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Sum(ko3iko.Amount::Decimal)) as ko3iko.Sum(ko3iko.Amount::Decimal)]
     PhysicalHaving [(AggRef(ko3iko.Sum(ko3iko.Amount::Decimal)) > '10.00'::Decimal)]
@@ -34,9 +31,8 @@ PhysicalMultiStatement
     PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2CastGroupingFeatureEntity]
@@ -64,6 +60,8 @@ ExecutionPlan [compiled]
         AppendShape [result <- ResultShape0(City: finalGroup.City, TotalAmount: ko3iko.Sum(ko3iko.Amount::Decimal))]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q152_RuntimeV2CastAggregateGrouping

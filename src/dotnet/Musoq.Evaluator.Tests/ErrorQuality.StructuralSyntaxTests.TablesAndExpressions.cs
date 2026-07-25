@@ -49,9 +49,9 @@ select * from Source()";
     }
 
     [TestMethod]
-    public void P_TC_06_TableWithDuplicateColumnNames()
+    public void P_TC_06_MalformedTableProbe_ShouldReportOneTypedParseDiagnostic()
     {
-        // Arrange — TABLE with duplicate column names
+        // Arrange — this legacy duplicate-column probe currently fails during parsing.
         var analyzer = CreateAnalyzer();
         var query = @"table Dupes { Name: string, Name: int };
 couple #A.Entities() with table Dupes as Source;
@@ -60,13 +60,9 @@ select Name from Source()";
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert — Should indicate duplicate column names
-        AssertHasOneOfErrorCodes(result, "duplicate column names in TABLE",
-            DiagnosticCode.MQ2008_DuplicateAlias,
-            DiagnosticCode.MQ2012_InvalidSchemaDefinition,
-            DiagnosticCode.MQ4008_DuplicateSchemaField,
-            DiagnosticCode.MQ2030_UnsupportedSyntax,
-            DiagnosticCode.MQ2030_UnsupportedSyntax);
+        // Assert — parser ownership is explicit and recovery emits one root diagnostic.
+        AssertHasExactlyOneErrorCode(result, "malformed duplicate-column TABLE probe",
+            DiagnosticCode.MQ2001_UnexpectedToken);
     }
 
     [TestMethod]

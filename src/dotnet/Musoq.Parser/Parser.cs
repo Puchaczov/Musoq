@@ -1,4 +1,3 @@
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Musoq.Parser.Diagnostics;
@@ -18,9 +17,6 @@ public partial class Parser
 
     private static readonly string[] ClauseKeywords =
             ["WHERE", "GROUP", "ORDER", "HAVING", "TAKE", "SKIP", "UNION", "EXCEPT", "INTERSECT", "JOIN", "INNER", "OUTER", "CROSS", "QUALIFY"];
-
-    private static readonly FrozenSet<TokenType> StatementRecoverySyncPoints =
-        new[] { TokenType.Select, TokenType.From, TokenType.Pivot, TokenType.Unpivot, TokenType.With, TokenType.Desc, TokenType.Table, TokenType.Couple, TokenType.Semicolon, TokenType.EndOfFile }.ToFrozenSet();
 
     private const int MinLengthForLargerDistance = 5;
     private const int ShortWordMaxDistance = 1;
@@ -222,18 +218,13 @@ public partial class Parser
 
     private bool TryRecoverToNextStatement()
     {
-        while (Current.TokenType != TokenType.EndOfFile)
-        {
-            if (StatementRecoverySyncPoints.Contains(Current.TokenType))
-            {
-                if (Current.TokenType == TokenType.Semicolon) _lexer.Next();
-                return Current.TokenType != TokenType.EndOfFile;
-            }
-
+        while (Current.TokenType is not TokenType.Semicolon and not TokenType.EndOfFile)
             _lexer.Next();
-        }
 
-        return false;
+        while (Current.TokenType == TokenType.Semicolon)
+            _lexer.Next();
+
+        return Current.TokenType != TokenType.EndOfFile;
     }
 
 }

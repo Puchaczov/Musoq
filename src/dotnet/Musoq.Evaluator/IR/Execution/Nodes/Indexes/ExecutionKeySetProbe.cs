@@ -21,7 +21,7 @@ public sealed record ExecutionKeySetProbe(
         ExecutionBlock? noMatchBody = null,
         ExecutionVariable? matchFound = null,
         string? keyVariableName = null)
-        : this(set, key, ExecutionTypeRef.FromClr(keyType), body, noMatchBody, matchFound, keyVariableName)
+        : this(set, key, ExecutionClrBindingFactory.FromClr(keyType), body, noMatchBody, matchFound, keyVariableName)
     {
     }
 }

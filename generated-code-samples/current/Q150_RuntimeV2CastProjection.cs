@@ -1,31 +1,27 @@
-﻿/*
-raw query string
-
+﻿// === Parsed Query ===
+/*
 SELECT Population::Int32 as PopulationInt,
                          Amount::Decimal as AmountDecimal,
                          Id::Guid as EntityGuid
                   FROM #features.items()
 */
 
+// === Logical Plan ===
 /*
-logical plan representation string
-
 MultiStatement
   Project [ko3iko.Population::Int32 as PopulationInt, ko3iko.Amount::Decimal as AmountDecimal, ko3iko.Id::Guid as EntityGuid]
     SchemaScan [#features.items() as ko3iko]
 */
 
+// === Physical Plan ===
 /*
-physical plan representation string
-
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Population::Int32 as PopulationInt, ko3iko.Amount::Decimal as AmountDecimal, ko3iko.Id::Guid as EntityGuid]
     PhysicalSchemaScan [#features.items() as ko3iko]
 */
 
+// === Execution Plan ===
 /*
-intermediate representation
-
 ExecutionPlan [compiled]
   Shapes
     SourceEntity [ko3iko: RuntimeV2CastGroupingFeatureEntity]
@@ -44,6 +40,8 @@ ExecutionPlan [compiled]
       AppendShape [result <- ResultShape0(PopulationInt: ko3iko.Population::Int32, AmountDecimal: ko3iko.Amount::Decimal, EntityGuid: ko3iko.Id::Guid)]
     ReturnDeferredTable [result: ResultRow0 <- ResultShape0]
 */
+
+// === Generated C# ===
 
 // === SyntaxTree:  ===
 namespace GeneratedSample_Q150_RuntimeV2CastProjection

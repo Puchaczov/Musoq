@@ -41,6 +41,10 @@ public sealed class PortableExecutionCoreFinalGuardrailTests
             string.Join(", ", sharedOffenders));
 
         var csharpFiles = RepositorySourceScan.ProductionSourceFiles(repositoryRoot, "Musoq.Targets.CSharpClr");
+        var allowedClrMetadataFiles = new[]
+        {
+            "src/dotnet/Musoq.Targets.CSharpClr/Rendering/CodeGeneration/ScriptParameterSyntaxFactory.cs"
+        }.ToHashSet(StringComparer.Ordinal);
         var directAccessFiles = csharpFiles
             .Where(file =>
             {
@@ -49,23 +53,30 @@ public sealed class PortableExecutionCoreFinalGuardrailTests
                        Regex.IsMatch(text, @"\.ClrMethod\b", RegexOptions.CultureInvariant);
             })
             .Select(file => RepositorySourceScan.ToRelative(repositoryRoot, file))
+            .Where(path => !allowedClrMetadataFiles.Contains(path))
             .OrderBy(static path => path, StringComparer.Ordinal)
             .ToArray();
         CollectionAssert.AreEqual(
-            new[]
-            {
-                "src/dotnet/Musoq.Targets.CSharpClr/CSharpClrExecutionCallableCompatibility.cs",
-                "src/dotnet/Musoq.Targets.CSharpClr/CSharpClrExecutionTypeCompatibility.cs"
-            },
+            Array.Empty<string>(),
             directAccessFiles,
-            "CSharp lowering must access CLR sidecars only through its compatibility helpers.");
+            "CSharp lowering must bind CLR types and methods from portable descriptors, not sidecar properties.");
+
+        var bindingContext = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "src",
+            "dotnet",
+            "Musoq.Targets.CSharpClr",
+            "CSharpClrExecutionBindingContext.cs"));
+        StringAssert.Contains(bindingContext, "class CSharpClrExecutionBindingContext");
+        StringAssert.Contains(bindingContext, "typeRef.ResolveClrType()");
+        StringAssert.Contains(bindingContext, "callableRef.ResolveClrMethod()");
 
         var legacyCodeGeneration = File.ReadAllText(Path.Combine(
             repositoryRoot,
             "src",
             "dotnet",
-            "Musoq.Evaluator",
-            "Visitors",
+            "Musoq.Targets.CSharpClr",
+            "Rendering",
             "CodeGeneration",
             "LegacyCodeGenerationSyntaxFactory.cs"));
         var executionMetadataCompatibility = File.ReadAllText(Path.Combine(
@@ -83,7 +94,7 @@ public sealed class PortableExecutionCoreFinalGuardrailTests
         StringAssert.Contains(
             legacyCodeGeneration,
             "ExecutionColumnMetadataFields.RequireClrTypeForLegacyCodeGeneration");
-        StringAssert.Contains(executionMetadataCompatibility, "return field.Type.ClrType;");
+        StringAssert.Contains(executionMetadataCompatibility, "return field.Type.ResolveClrType();");
     }
 
     [TestMethod]
@@ -129,7 +140,7 @@ public sealed class PortableExecutionCoreFinalGuardrailTests
     public void ProductionCapabilities_ShouldExplicitlyCoverOperationsAndSemanticsVersionOne()
     {
         CollectionAssert.AreEquivalent(
-            ExecutionOperationCatalog.AllOperationIds.ToArray(),
+            ExecutionOperationCatalog.CSharpClrSupportedOperationIds.ToArray(),
             ExecutionTargetCapabilities.CSharpClr.SupportedOperations.ToArray());
         CollectionAssert.AreEqual(
             new[] { ExecutionSemanticsContract.Version1.Version },
