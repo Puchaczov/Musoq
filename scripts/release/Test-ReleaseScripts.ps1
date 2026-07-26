@@ -29,6 +29,23 @@ Assert-Equal -Expected 2 -Actual $abiPackages.Count -Message 'Unexpected datasou
 Assert-Equal -Expected 'Musoq.Plugins' -Actual $abiPackages[0] -Message 'Musoq.Plugins must be a datasource ABI package.'
 Assert-Equal -Expected 'Musoq.Schema' -Actual $abiPackages[1] -Message 'Musoq.Schema must be a datasource ABI package.'
 
+$converterTargets = @(Get-ExpectedConsumerTargetAssemblies -Packages @(
+    [PSCustomObject]@{ PackageId = 'Musoq.Converter' }
+))
+Assert-Equal -Expected 4 -Actual $converterTargets.Count -Message 'Converter consumer target assembly count changed.'
+Assert-Equal -Expected 'Musoq.Targets.Execution.dll' -Actual $converterTargets[1] -Message 'Converter consumer must receive the execution target.'
+
+$evaluatorTargets = @(Get-ExpectedConsumerTargetAssemblies -Packages @(
+    [PSCustomObject]@{ PackageId = 'Musoq.Evaluator' }
+))
+Assert-Equal -Expected 1 -Actual $evaluatorTargets.Count -Message 'Evaluator consumer target assembly count changed.'
+Assert-Equal -Expected 'Musoq.Targets.Abstractions.dll' -Actual $evaluatorTargets[0] -Message 'Evaluator consumer must receive only target abstractions.'
+
+$parserTargets = @(Get-ExpectedConsumerTargetAssemblies -Packages @(
+    [PSCustomObject]@{ PackageId = 'Musoq.Parser' }
+))
+Assert-Equal -Expected 0 -Actual $parserTargets.Count -Message 'Parser consumer must not receive target assemblies.'
+
 $baseline = Get-DatasourceAbiBaselineVersion `
     -PackageId 'Musoq.Schema' `
     -Version '17.0.2-alpha.1' `

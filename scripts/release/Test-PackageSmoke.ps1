@@ -351,7 +351,8 @@ $packageReferenceXml
     }
 
     $consumerOutputPath = Join-Path $tempRoot 'bin/Release/net10.0'
-    foreach ($targetAssembly in @('Musoq.Targets.Abstractions.dll', 'Musoq.Targets.Execution.dll', 'Musoq.Targets.Execution.Analysis.dll', 'Musoq.Targets.CSharpClr.dll')) {
+    $expectedTargetAssemblies = @(Get-ExpectedConsumerTargetAssemblies -Packages $release.Packages)
+    foreach ($targetAssembly in $expectedTargetAssemblies) {
         if (-not (Test-Path -LiteralPath (Join-Path $consumerOutputPath $targetAssembly))) {
             throw "Consumer output did not include bundled target assembly '$targetAssembly'."
         }

@@ -4,6 +4,28 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.3-alpha.3
+
+See the curated package release notes for [Musoq.Evaluator](release-notes/evaluator/v17.0.3-alpha.3.md) and [Musoq.Converter](release-notes/converter/v17.0.3-alpha.3.md).
+
+### Musoq.Evaluator
+
+- Removed read-side lock contention from bounded runtime caches by publishing immutable lookup snapshots while preserving bounded insertion and eviction behavior.
+- Removed read-side locking from weak type caches and kept cache resets atomic.
+- Reduced dynamic nested-value lookup overhead with direct cached-accessor fast paths while preserving dictionary, dynamic-object, indexed-path, and missing-member behavior.
+
+### Musoq.Converter
+
+- Made contextual artifact rendering an explicit `BuildItems` invariant instead of relying on raw build-item dictionary access.
+- Applied the same reusable-artifact render context during compilation and strict artifact validation so validation regenerates artifacts under the original execution assumptions.
+
+### Tooling and verification
+
+- Added evaluator cache and nested-value correctness coverage, converter artifact compatibility tests, four generated performance samples, benchmark separation, and duration-reporting tooling.
+- Documented evaluator performance baselines and validation evidence for reflected joins, correlated subqueries, window/CTE/set operations, and table projection.
+- Fixed package smoke validation so an Evaluator-only consumer requires only the bundled target abstractions, while Converter consumers still require the complete bundled target set.
+- Release validation passed with 16,795 total tests: 16,791 passed, 4 skipped, and 0 failed. Both package-specific manifests contain the expected `.nupkg` and `.snupkg`, and clean consumer smoke tests passed.
+
 ## 17.0.3-alpha.2
 
 See [release-notes/v17.0.3-alpha.2.md](release-notes/v17.0.3-alpha.2.md) for the curated GitHub Release text.

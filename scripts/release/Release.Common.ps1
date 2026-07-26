@@ -93,6 +93,29 @@ function Get-ReleasePackages {
     return $packages
 }
 
+function Get-ExpectedConsumerTargetAssemblies {
+    param(
+        [Parameter(Mandatory)]
+        [object[]] $Packages
+    )
+
+    $packageIds = @($Packages | ForEach-Object { [string]$_.PackageId })
+    if ($packageIds -contains 'Musoq.Converter') {
+        return @(
+            'Musoq.Targets.Abstractions.dll',
+            'Musoq.Targets.Execution.dll',
+            'Musoq.Targets.Execution.Analysis.dll',
+            'Musoq.Targets.CSharpClr.dll'
+        )
+    }
+
+    if ($packageIds -contains 'Musoq.Evaluator') {
+        return @('Musoq.Targets.Abstractions.dll')
+    }
+
+    return @()
+}
+
 function ConvertTo-MusoqSemanticVersion {
     param(
         [Parameter(Mandatory)]
