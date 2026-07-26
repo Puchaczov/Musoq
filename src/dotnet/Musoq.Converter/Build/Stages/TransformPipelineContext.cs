@@ -58,7 +58,7 @@ internal sealed record TransformPipelineContext
             SchemaRegistry = items.SchemaRegistry,
             EmitExecutionPlanText = items.EmitExecutionPlanText,
             StopAfterPlanning = items.StopAfterPlanning,
-            EnableContextualExecution = items.TryGetValue(BuildItemKeys.EnableContextualExecution, out var contextualExecution) && contextualExecution is true,
+            EnableContextualExecution = items.EnableContextualExecution,
             QueryResultMode = items.QueryResultMode,
             ExecutionTarget = items.ExecutionTarget,
             QueryMethodRenderMetadata = items.QueryMethodRenderMetadata,

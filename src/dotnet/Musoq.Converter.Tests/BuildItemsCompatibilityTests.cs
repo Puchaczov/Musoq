@@ -49,4 +49,17 @@ public sealed class BuildItemsCompatibilityTests
 
         Assert.Throws<InvalidCastException>(() => _ = items.AssemblyName);
     }
+
+    [TestMethod]
+    public void EnableContextualExecution_ShouldDefaultToFalseAndRoundTripThroughTypedAccessor()
+    {
+        var items = new BuildItems();
+
+        Assert.IsFalse(items.EnableContextualExecution);
+
+        items.EnableContextualExecution = true;
+
+        Assert.IsTrue(items.EnableContextualExecution);
+        Assert.AreEqual(true, items[BuildItemKeys.EnableContextualExecution]);
+    }
 }

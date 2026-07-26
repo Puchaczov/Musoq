@@ -27,7 +27,7 @@ public static partial class InstanceCreator
         var items = CreateBuildItems(script, assemblyName, schemaProvider, diagnosticContext);
         items.EmitPdb = Debugger.IsAttached;
         items.CompilationOptions = compilationOptions;
-        items[BuildItemKeys.EnableContextualExecution] = true;
+        items.EnableContextualExecution = true;
         items.StopAfterPlanning = true;
 
         Exception? caughtException = null;

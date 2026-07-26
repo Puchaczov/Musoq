@@ -5,6 +5,12 @@ namespace Musoq.Converter.Build;
 
 public partial class BuildItems
 {
+    internal bool EnableContextualExecution
+    {
+        get => GetFlag(BuildItemKeys.EnableContextualExecution, defaultWhenMissing: false);
+        set => SetFlag(BuildItemKeys.EnableContextualExecution, value);
+    }
+
     internal RenderedQueryArtifact RenderingArtifact
     {
         get

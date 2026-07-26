@@ -71,7 +71,7 @@ public static partial class InstanceCreator
         items.EmitPdb = Debugger.IsAttached;
         items.EmitExecutionPlanText = requireExecutionPlan;
         items.CompilationOptions = effectiveCompilationOptions;
-        items[BuildItemKeys.EnableContextualExecution] = true;
+        items.EnableContextualExecution = true;
 
         Exception? caughtException = null;
         try

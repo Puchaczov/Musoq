@@ -128,7 +128,7 @@ public static partial class InstanceCreator
         items.ExecutionTarget = executionTarget;
         items.EmitPdb = Debugger.IsAttached;
         items.CompilationOptions = effectiveCompilationOptions;
-        items[BuildItemKeys.EnableContextualExecution] = true;
+        ConfigureReusableArtifactRendering(items);
         configureItems?.Invoke(items);
 
         Exception? caughtException = null;
@@ -215,6 +215,11 @@ public static partial class InstanceCreator
             diagnostics,
             items,
             compilationOptionsSignature);
+    }
+
+    private static void ConfigureReusableArtifactRendering(BuildItems items)
+    {
+        items.EnableContextualExecution = true;
     }
 
     private static bool TryGetTargetAnalysisForPackage(
@@ -329,7 +334,7 @@ public static partial class InstanceCreator
         var items = CreateBuildItems(script, assemblyName, schemaProvider, diagnosticContext);
         items.EmitPdb = false;
         items.CompilationOptions = effectiveCompilationOptions;
-        items[BuildItemKeys.EnableContextualExecution] = true;
+        ConfigureReusableArtifactRendering(items);
         items.StopAfterPlanning =
             effectiveLoadOptions.ValidationMode == CompiledQueryArtifactValidationMode.Fast;
 

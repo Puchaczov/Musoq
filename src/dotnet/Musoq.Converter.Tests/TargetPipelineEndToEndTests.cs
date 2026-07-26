@@ -59,9 +59,17 @@ public sealed class TargetPipelineEndToEndTests
             query,
             artifactResult.Artifact,
             new ArtifactSchemaProvider(new ArtifactSchema("loaded")),
-            _loggerResolver);
+            _loggerResolver,
+            new CompiledQueryArtifactLoadOptions
+            {
+                ValidationMode = CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash
+            });
 
         Assert.IsTrue(loaded.Succeeded, FormatDiagnostics(loaded.Diagnostics));
+        Assert.IsNotNull(loaded.BuildItems);
+        Assert.AreEqual(
+            artifactResult.Artifact.Metadata[CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256],
+            CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(loaded.BuildItems.RenderingArtifact));
         var table = loaded.CompiledQuery.Run();
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("loaded", table[0][0]);
