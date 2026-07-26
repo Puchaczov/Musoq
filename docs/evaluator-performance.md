@@ -250,7 +250,61 @@ public API was introduced.
 
 ### Wave 2 — typed/table execution paths
 
-Status: pending.
+Status: complete as a measurement-only wave; no runtime change was accepted.
+
+The controlled table cohort used three isolated reports on the Wave 1 commit as
+the before side:
+
+- `BenchmarkDotNet.Artifacts/evaluator-wave2-baseline-table-1/results/Musoq.Benchmarks.TwoModeExecutionBenchmark-report-full-compressed.json`
+- `BenchmarkDotNet.Artifacts/evaluator-wave2-baseline-table-2/results/Musoq.Benchmarks.TwoModeExecutionBenchmark-report-full-compressed.json`
+- `BenchmarkDotNet.Artifacts/evaluator-wave2-baseline-table-3/results/Musoq.Benchmarks.TwoModeExecutionBenchmark-report-full-compressed.json`
+
+The three after reports were captured from the working tree with the proposed
+table-row streaming renderer:
+
+- `BenchmarkDotNet.Artifacts/evaluator-wave2-current-table-1/results/Musoq.Benchmarks.TwoModeExecutionBenchmark-report-full-compressed.json`
+- `BenchmarkDotNet.Artifacts/evaluator-wave2-current-table-2/results/Musoq.Benchmarks.TwoModeExecutionBenchmark-report-full-compressed.json`
+- `BenchmarkDotNet.Artifacts/evaluator-wave2-current-table-3/results/Musoq.Benchmarks.TwoModeExecutionBenchmark-report-full-compressed.json`
+
+The benchmark command was:
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj -c Release -- `
+  --filter "*TwoModeExecutionBenchmark*" --job short --memory --exporters json `
+  --artifacts "BenchmarkDotNet.Artifacts/evaluator-wave2-current-table-1"
+```
+
+It was repeated for `-2` and `-3`; the baseline used the same command and
+artifact layout with `evaluator-wave2-baseline-table-N`. The median table cases
+were:
+
+| Case | Before time / allocation | After time / allocation | Ratio |
+| --- | ---: | ---: | ---: |
+| Chunk512, 5k rows | 144.9 us / 391.16 KB | 150.9 us / 391.16 KB | 1.0411x / 1.0000x |
+| Chunk4096, 5k rows | 154.1 us / 389.78 KB | 155.6 us / 389.78 KB | 1.0102x / 1.0000x |
+| SingleGiant, 5k rows | 148.8 us / 389.64 KB | 151.1 us / 389.64 KB | 1.0155x / 1.0000x |
+
+`BenchmarkComparison` correctly rejected the cohort because Chunk512 exceeded
+the 1.03x time ceiling. Allocation did not improve. Inspection showed that this
+benchmark selects the existing `TryCreateTableDirectProjectionMethod`, so the
+new shape-to-row renderer did not lie on the measured path. The hypothesis that
+the public typed table projection could be improved by removing an intermediate
+shape was therefore disproven for this workload. The proposed renderer and
+generated snapshot changes were discarded to preserve the existing typed/direct
+execution boundary and maintainability.
+
+Wave 2 full gate:
+
+- Release build passed with zero warnings and errors.
+- Full solution: 16,791 recorded results, 16,787 passed, 4 skipped; wall clock
+  6:32.14, summed individual durations 8,011.389 seconds.
+- TRXs: `TestResults/evaluator-wave-2-full`.
+- The TRX report recorded 1,334 generated-sample results, 799 repeated-
+  compilation results, 14,649 runtime results, and 9 integration results. The
+  slowest individual entries were shared generated-sample waits of about 29–32
+  seconds, while the evaluator project completed in 6:29.
+- No new profiler trace was needed: no runtime path survived the comparison.
+  The Wave 1 post-cache trace remains the applicable reflected-access evidence.
 
 ### Wave 3 — compilation cost separation
 
