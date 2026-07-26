@@ -379,4 +379,52 @@ Wave 3 full gate:
 
 ### Wave 4 — real-workload validation and hardening
 
-Status: pending.
+Status: complete.
+
+No production workload was supplied, so the final acceptance workload is the
+curated Q227-Q230 corpus plus the existing evaluator benchmark suite. The
+curated snapshot, manifest, and execution tests passed: 285 passed and 2
+expected refresh helpers skipped.
+
+The final reflected-access benchmark was run in three isolated BenchmarkDotNet
+processes. Reports are stored at:
+
+- `BenchmarkDotNet.Artifacts/evaluator-wave4-reflected-join-1/results/Musoq.Benchmarks.JoinAggregateProjectionBenchmark-report-full-compressed.json`
+- `BenchmarkDotNet.Artifacts/evaluator-wave4-reflected-join-2/results/Musoq.Benchmarks.JoinAggregateProjectionBenchmark-report-full-compressed.json`
+- `BenchmarkDotNet.Artifacts/evaluator-wave4-reflected-join-3/results/Musoq.Benchmarks.JoinAggregateProjectionBenchmark-report-full-compressed.json`
+
+The final median for the 10k-row private reflected join aggregate was
+58.988-60.338 ms and 74,614.94 KB allocated across the three runs. Against the
+Wave 0 median of 139.275 ms and 99,186.34 KB, the three-run comparison was
+0.4235x time and 0.7523x allocation. The 1k reflected case was 0.5385x time
+and 0.8329x allocation; the typed CTE equivalents were 0.7063-0.8138x time
+and 0.8923-0.9552x allocation. This preserves the Wave 1 result and exceeds
+the required 2x improvement for the reflected hotspot.
+
+The protected weather aggregate was also run three times. The 1M-row results
+were 15.960-16.553 ms serial and 4.832-5.540 ms parallel across chunk sizes,
+with the parallel path retaining roughly a 3x speedup. No weather execution
+code was redesigned.
+
+Weather reports are stored at:
+
+- `BenchmarkDotNet.Artifacts/evaluator-wave4-weather-1/results/Musoq.Benchmarks.WeatherAggregateBenchmark-report-full-compressed.json`
+- `BenchmarkDotNet.Artifacts/evaluator-wave4-weather-2/results/Musoq.Benchmarks.WeatherAggregateBenchmark-report-full-compressed.json`
+- `BenchmarkDotNet.Artifacts/evaluator-wave4-weather-3/results/Musoq.Benchmarks.WeatherAggregateBenchmark-report-full-compressed.json`
+
+Final Wave 4 gate:
+
+- Release build passed with zero warnings and errors.
+- Full solution: 16,793 recorded results, 16,789 passed, 4 skipped; wall clock
+  6:27.03, summed individual durations 7,911.274 seconds.
+- TRXs: `TestResults/evaluator-wave-4-full`.
+- The duration report identified the same shared generated-sample lazy
+  initialization waits: 1,334 generated-sample results totaling 1,165.036
+  seconds, with a 32.114-second slowest entry. Runtime results totaled
+  6,142.901 seconds across 14,649 tests. This separates shared initialization
+  from actual test work in the TRX report.
+
+The final implementation remains localized to the existing weak/bounded runtime
+cache and benchmark/test infrastructure. No public API changes or second global
+compilation cache were introduced. Every wave was completed in a separate
+commit, with the commit identifiers recorded in the repository history.
