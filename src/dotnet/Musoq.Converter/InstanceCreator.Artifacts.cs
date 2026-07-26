@@ -329,6 +329,7 @@ public static partial class InstanceCreator
         var items = CreateBuildItems(script, assemblyName, schemaProvider, diagnosticContext);
         items.EmitPdb = false;
         items.CompilationOptions = effectiveCompilationOptions;
+        items[BuildItemKeys.EnableContextualExecution] = true;
         items.StopAfterPlanning =
             effectiveLoadOptions.ValidationMode == CompiledQueryArtifactValidationMode.Fast;
 

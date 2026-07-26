@@ -8,6 +8,7 @@ using System.Runtime.Loader;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Build;
 using Musoq.Converter.Tests.Components;
+using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
@@ -74,6 +75,61 @@ public class CompiledQueryArtifactApiTests
         var table = result.CompiledQuery.Run();
         Assert.AreEqual(1, table.Count);
         Assert.AreEqual("single", table[0][0]);
+    }
+
+    [TestMethod]
+    public void CreateExecutableFromArtifactWithDiagnostics_WhenFreshArtifactIsStrictlyValidated_ShouldMatchGeneratedCodeHash()
+    {
+        const string query = "select e.Name from #test.entities() e";
+        var provider = new EntitySetSchemaProvider(
+            new Dictionary<string, IReadOnlyList<EntitySetEntity>>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["#test"] =
+                [
+                    new EntitySetEntity
+                    {
+                        Name = "cached"
+                    }
+                ]
+            });
+        var artifactResult = InstanceCreator.CompileArtifactWithDiagnostics(
+            query,
+            "ArtifactStrictRoundTrip",
+            provider,
+            _loggerResolver);
+
+        Assert.IsTrue(
+            artifactResult.Succeeded,
+            string.Join(
+                Environment.NewLine,
+                artifactResult.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())));
+        Assert.IsNotNull(artifactResult.Artifact);
+        Assert.IsTrue(
+            artifactResult.Artifact.Metadata.TryGetValue(
+                CompiledQueryArtifactSupport.MetadataGeneratedCodeSha256,
+                out var storedGeneratedCodeHash));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(storedGeneratedCodeHash));
+
+        var loadResult = InstanceCreator.CreateExecutableFromArtifactWithDiagnostics(
+            query,
+            artifactResult.Artifact,
+            provider,
+            _loggerResolver,
+            new CompiledQueryArtifactLoadOptions
+            {
+                ValidationMode = CompiledQueryArtifactValidationMode.StrictGeneratedCodeHash
+            });
+
+        Assert.IsTrue(
+            loadResult.Succeeded,
+            string.Join(
+                Environment.NewLine,
+                loadResult.Diagnostics.Select(static diagnostic => diagnostic.ToDetailedString())));
+        Assert.IsNotNull(loadResult.BuildItems);
+        var recomputedGeneratedCodeHash =
+            CSharpClrArtifactCompatibility.ComputeGeneratedCodeHash(loadResult.BuildItems.RenderingArtifact);
+        Assert.AreEqual(storedGeneratedCodeHash, recomputedGeneratedCodeHash);
+        Assert.AreEqual("cached", loadResult.CompiledQuery.Run()[0][0]);
     }
 
     [TestMethod]
