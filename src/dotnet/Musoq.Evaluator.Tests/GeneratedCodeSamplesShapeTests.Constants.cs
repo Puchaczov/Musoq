@@ -4,7 +4,7 @@ namespace Musoq.Evaluator.Tests;
 
 public sealed partial class GeneratedCodeSamplesShapeTests
 {
-    private const int ExpectedSampleFileCount = 229;
+    private const int ExpectedSampleFileCount = 233;
     private const int InlineInArrayAllocationBudget = 0;
     private const string CrossApplySampleFileName = "Q19_CrossApply.cs";
     private const string OuterApplySampleFileName = "Q20_OuterApply.cs";

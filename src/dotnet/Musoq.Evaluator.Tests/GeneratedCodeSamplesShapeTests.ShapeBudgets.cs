@@ -73,6 +73,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         ["Ordering"] = new() { ContextsAccess = 0 },
         ["Pagination"] = new() { ContextsAccess = 0 },
         ["Parameters"] = new() { ContextsAccess = 0 },
+        ["Performance"] = new() { ContextsAccess = 0 },
         ["Pivot"] = new() { ContextsAccess = 0 },
         ["RuntimeV2"] = new() { ContextsAccess = 0 },
         ["RuntimeV2CastGrouping"] = new() { ContextsAccess = 0 },
