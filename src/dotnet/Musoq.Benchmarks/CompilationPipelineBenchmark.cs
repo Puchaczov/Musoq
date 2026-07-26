@@ -10,6 +10,8 @@ using Musoq.Benchmarks.Schema;
 using Musoq.Benchmarks.Schema.Country;
 using Musoq.Converter;
 using Musoq.Evaluator;
+using Musoq.Schema.Optimization;
+using MusoqApi = Musoq.Converter.Musoq;
 
 namespace Musoq.Benchmarks;
 
@@ -27,6 +29,9 @@ public class CompilationPipelineBenchmark : BenchmarkBase
         "select City, Country, Population, City + ' (' + Country + ')' as CityCountry from #A.Entities() where Population > 500000 group by City, Country, Population having Count(City) > 0 order by Population desc";
 
     private IDictionary<string, IEnumerable<CountryEntity>> _sources = null!;
+    private GenericSchemaProvider<CountryEntity, CountryEntityTable> _cacheProvider = null!;
+    private CompiledTypedQueryArtifact _typedArtifact = null!;
+    private MusoqSourceRows _typedSourceRows = null!;
     private readonly BenchmarkLoggerResolver _loggerResolver = new();
     private static readonly object MetricsLock = new();
     private static readonly Dictionary<string, CompilationPipelineMetricSnapshot> MetricSnapshots = [];
@@ -41,8 +46,24 @@ public class CompilationPipelineBenchmark : BenchmarkBase
             { "#A", data }
         };
 
+        _cacheProvider = CreateCountrySchemaProvider();
+        var cacheOptions = BenchmarkCompilationOptions.Materialized();
+        InstanceCreator.CompileForExecution(
+            SimpleQuery,
+            "CompilationPipelineCacheWarmup",
+            _cacheProvider,
+            _loggerResolver,
+            cacheOptions);
 
-        CreateForCountryWithOptions(SimpleQuery, _sources, new CompilationOptions());
+        _typedSourceRows = MusoqApi.Source(
+            "#A",
+            "entities",
+            BenchmarkSourceChunks.Create(_sources["#A"], BenchmarkChunkShape.Chunk4096));
+        _typedArtifact = MusoqApi
+            .Query(SimpleQuery)
+            .Source<CountryEntity>("#A", "entities")
+            .WithCompilationOptions(cacheOptions)
+            .CompileArtifact<CountryProjection>();
     }
 
     [Benchmark(Description = "Simple query compile")]
@@ -51,11 +72,15 @@ public class CompilationPipelineBenchmark : BenchmarkBase
         return CreateForCountryWithOptions(SimpleQuery, _sources, new CompilationOptions());
     }
 
-    [Benchmark(Description = "Simple query compile (repeat)")]
-    public CompiledQuery CompileSimpleQuery_Warm()
+    [Benchmark(Description = "Simple query compile (eligible cache hit)")]
+    public CompiledQuery CompileSimpleQuery_CacheHit()
     {
-        CreateForCountryWithOptions(SimpleQuery, _sources, new CompilationOptions());
-        return CreateForCountryWithOptions(SimpleQuery, _sources, new CompilationOptions());
+        return InstanceCreator.CompileForExecution(
+            SimpleQuery,
+            Guid.NewGuid().ToString(),
+            _cacheProvider,
+            _loggerResolver,
+            BenchmarkCompilationOptions.Materialized());
     }
 
     [Benchmark(Description = "Complex query compile")]
@@ -64,11 +89,26 @@ public class CompilationPipelineBenchmark : BenchmarkBase
         return CreateForCountryWithOptions(ComplexQuery, _sources, new CompilationOptions());
     }
 
-    [Benchmark(Description = "Complex query compile (repeat)")]
-    public CompiledQuery CompileComplexQuery_Warm()
+    [Benchmark(Description = "Simple query compile (cache-ineligible)")]
+    public CompiledQuery CompileSimpleQuery_CacheIneligible()
     {
-        CreateForCountryWithOptions(ComplexQuery, _sources, new CompilationOptions());
-        return CreateForCountryWithOptions(ComplexQuery, _sources, new CompilationOptions());
+        var options = BenchmarkCompilationOptions.Materialized(
+            new CompilationOptions(sourceRuntimeSettingsResolver: NonDefaultSourceRuntimeSettingsResolver.Instance));
+        return InstanceCreator.CompileForExecution(
+            SimpleQuery,
+            Guid.NewGuid().ToString(),
+            _cacheProvider,
+            _loggerResolver,
+            options);
+    }
+
+    [Benchmark(Description = "Typed artifact load and run")]
+    public CountryProjection[] TypedArtifact_LoadAndRun()
+    {
+        return MusoqApi
+            .Load<CountryProjection>(_typedArtifact)
+            .Run(CancellationToken.None, _typedSourceRows)
+            .ToArray();
     }
 
     [Benchmark(Description = "Simple generated C# chars")]
@@ -194,6 +234,23 @@ public class CompilationPipelineBenchmark : BenchmarkBase
 }
 
 internal sealed record CompilationPipelineMetricSnapshot(int GeneratedCodeChars, int AssemblyBytes);
+
+public sealed record CountryProjection(string City, string Country, decimal Population);
+
+internal sealed class NonDefaultSourceRuntimeSettingsResolver : ISourceRuntimeSettingsResolver
+{
+    public static NonDefaultSourceRuntimeSettingsResolver Instance { get; } = new();
+
+    private NonDefaultSourceRuntimeSettingsResolver()
+    {
+    }
+
+    public IReadOnlyDictionary<string, string> Resolve(SourceRuntimeSettingsResolutionRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return new Dictionary<string, string>();
+    }
+}
 
 public sealed class CompilationPipelineBenchmarkConfig : ManualConfig
 {

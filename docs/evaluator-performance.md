@@ -92,7 +92,7 @@ throughput claims.
 | CTE typed equivalent, 10k rows | 14 ms | 2.9 MB |
 
 The compilation benchmark's former warm case made two compile calls inside one
-operation, so it did not isolate a cache hit. Wave 3 will split that case into
+operation, so it did not isolate a cache hit. Wave 3 splits that case into
 explicit cold, eligible cache-hit, ineligible, artifact, generated-C#, and emit
 measurements.
 
@@ -308,7 +308,74 @@ Wave 2 full gate:
 
 ### Wave 3 — compilation cost separation
 
-Status: pending.
+Status: complete as a measurement and benchmark-harness wave; no runtime cache
+change was accepted.
+
+The compilation benchmark now exposes these independent cases:
+
+- cold simple and complex execution compilation;
+- eligible execution-compilation cache hit;
+- cache-ineligible compilation using a non-default source-runtime-settings
+  resolver;
+- typed artifact load and run;
+- generated C# inspection; and
+- Roslyn DLL emission.
+
+The cache-hit setup reuses one schema-provider instance and warms the existing
+`InstanceCreator.ExecutionCompilationCache`. It does not add another global
+cache. New tests cover provider identity separation and prove that changing
+source-runtime settings does not reuse cached execution.
+
+Three pre-wave reports were captured with the refactored benchmark:
+
+- `BenchmarkDotNet.Artifacts/evaluator-wave3-before-1/results/Musoq.Benchmarks.CompilationPipelineBenchmark-report-full-compressed.json`
+- `BenchmarkDotNet.Artifacts/evaluator-wave3-before-2/results/Musoq.Benchmarks.CompilationPipelineBenchmark-report-full-compressed.json`
+- `BenchmarkDotNet.Artifacts/evaluator-wave3-before-3/results/Musoq.Benchmarks.CompilationPipelineBenchmark-report-full-compressed.json`
+
+Three post-wave reports were captured from the unchanged runtime:
+
+- `BenchmarkDotNet.Artifacts/evaluator-wave3-after-1/results/Musoq.Benchmarks.CompilationPipelineBenchmark-report-full-compressed.json`
+- `BenchmarkDotNet.Artifacts/evaluator-wave3-after-2/results/Musoq.Benchmarks.CompilationPipelineBenchmark-report-full-compressed.json`
+- `BenchmarkDotNet.Artifacts/evaluator-wave3-after-3/results/Musoq.Benchmarks.CompilationPipelineBenchmark-report-full-compressed.json`
+
+The command, repeated for each isolated artifact directory, was:
+
+```powershell
+dotnet run --project src/dotnet/Musoq.Benchmarks/Musoq.Benchmarks.csproj -c Release -- `
+  --filter "*CompilationPipelineBenchmark*" --job short --memory --exporters json `
+  --artifacts "BenchmarkDotNet.Artifacts/evaluator-wave3-before-1"
+```
+
+Median pre-wave and post-wave characterization was:
+
+| Case | Pre-wave time / allocation | Post-wave time / allocation |
+| --- | ---: | ---: |
+| Simple cold execution compilation | 150.539 ms / 12,974.07 KB | 154.070 ms / 12,974.72 KB |
+| Eligible execution-compilation cache hit | 603.5 us / 756.53 KB | 583.8 us / 757.12 KB |
+| Complex cold execution compilation | 193.716 ms / 15,953.17 KB | 190.673 ms / 15,948.13 KB |
+| Cache-ineligible compilation | 134.430 ms / 12,941.61 KB | 144.734 ms / 12,939.55 KB |
+| Typed artifact load and run | 16.456 ms / 4,841.23 KB | 16.215 ms / 4,841.23 KB |
+| Simple generated C# | 53.489 ms / 2,702.03 KB | 53.562 ms / 2,694.70 KB |
+| Simple emitted DLL | 134.680 ms / 12,966.49 KB | 122.831 ms / 12,963.50 KB |
+
+The repository comparator self-check passed at `1.0000x` for time and allocation.
+The independent before/after comparison flagged only the cache-ineligible case
+at `1.0766x`; its three post-wave samples ranged from 134.930 ms to 164.427 ms
+with no allocation increase. Since the runtime was unchanged, this is benchmark
+noise in a high-variance cold compilation stage, not an accepted regression or
+optimization. No profiler change was applicable; the Wave 1 reflected-access
+trace remains the relevant runtime profile.
+
+Wave 3 full gate:
+
+- Release build passed with zero warnings and errors.
+- Focused cache-key tests: 33 passed.
+- Full solution: 16,793 recorded results, 16,789 passed, 4 skipped; wall clock
+  6:28.26, summed individual durations 7,957.673 seconds.
+- TRXs: `TestResults/evaluator-wave-3-full`.
+- The TRX report recorded 1,334 generated-sample results, 801 repeated-
+  compilation results, 14,649 runtime results, and 9 integration results. The
+  slowest entries were shared generated-sample waits of about 29–32 seconds.
 
 ### Wave 4 — real-workload validation and hardening
 

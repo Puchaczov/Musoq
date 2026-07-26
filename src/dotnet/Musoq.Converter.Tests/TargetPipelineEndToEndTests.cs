@@ -124,6 +124,33 @@ public sealed class TargetPipelineEndToEndTests
         Assert.AreEqual("single", second.CompiledQuery.Run()[0][0]);
     }
 
+    [TestMethod]
+    public void ExecutionCompilationCache_WhenSourceSettingsResolverChanges_ShouldNotReuseCachedExecution()
+    {
+        if (Debugger.IsAttached)
+            return;
+
+        const string query = "select i.Token from #settings.items() i";
+        var first = InstanceCreator.CompileWithDiagnostics(
+            query,
+            "TargetPipelineSettingsFirst",
+            new SettingsArtifactSchemaProvider(),
+            _loggerResolver,
+            new CompilationOptions(sourceRuntimeSettingsResolver: new TokenSettingsResolver("first")));
+        var second = InstanceCreator.CompileWithDiagnostics(
+            query,
+            "TargetPipelineSettingsSecond",
+            new SettingsArtifactSchemaProvider(),
+            _loggerResolver,
+            new CompilationOptions(sourceRuntimeSettingsResolver: new TokenSettingsResolver("second")));
+
+        Assert.IsTrue(first.Succeeded, FormatDiagnostics(first.Diagnostics));
+        Assert.IsTrue(second.Succeeded, FormatDiagnostics(second.Diagnostics));
+        Assert.IsNotNull(second.BuildItems);
+        Assert.IsFalse(second.BuildItems.StopAfterPlanning);
+        Assert.AreEqual("second", second.CompiledQuery.Run()[0][0]);
+    }
+
     private static string FormatDiagnostics(System.Collections.Generic.IEnumerable<Diagnostic> diagnostics)
     {
         return string.Join(Environment.NewLine, diagnostics.Select(static diagnostic => diagnostic.ToDetailedString()));

@@ -442,6 +442,23 @@ public class CompiledQueryArtifactApiTests
     }
 
     [TestMethod]
+    public void CreateExecutionCompilationCacheKey_WhenProviderIdentityChanges_ShouldChangeSignature()
+    {
+        const string query = "select i.Value from #artifact.items() i";
+
+        var first = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
+            query,
+            new ArtifactSchemaProvider(new ArtifactSchema("first")),
+            new CompilationOptions());
+        var second = InstanceCreator.CreateExecutionCompilationCacheKeyTestSignature(
+            query,
+            new ArtifactSchemaProvider(new ArtifactSchema("second")),
+            new CompilationOptions());
+
+        Assert.AreNotEqual(first, second);
+    }
+
+    [TestMethod]
     public void CreateExecutionCompilationCacheKey_WhenCteSidecarIndexesChange_ShouldChangeSignature()
     {
         const string query = "select i.Value from #artifact.items() i";
