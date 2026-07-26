@@ -54,7 +54,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         _scriptParameters.ValidateSchemaArguments(schemaArgsNode, node);
         var queryId = node.QueryId.ToString(System.Globalization.CultureInfo.InvariantCulture);
         BoundSchemaInvocation? boundInvocation = null;
-        if (!IsDescribingConstructors)
+        if (!IsDescribingConstructors && (_sourceBinding.CurrentScope.Name != "Desc" || !string.IsNullOrWhiteSpace(node.Method)))
         {
             var bindingResult = SchemaSourceArgumentBinder.Bind(
                 schemaArgsNode,
