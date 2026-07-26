@@ -4,6 +4,20 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.3-alpha.2
+
+See [release-notes/v17.0.3-alpha.2.md](release-notes/v17.0.3-alpha.2.md) for the curated GitHub Release text.
+
+### Musoq.Evaluator
+
+- Fixed root `DESC #schema` and `DESC FUNCTIONS #schema` metadata binding so they do not dispatch the filtered raw-constructor overload with an empty method name.
+- Preserved method-specific binding for constructor, table, column, settings, query, and ordinary datasource paths.
+
+### Tooling and verification
+
+- Added an end-to-end raw-constructor dispatch matrix that fails on empty-name filtered lookups and covers the complete `DESC` surface.
+- Release validation passed with 16,779 total tests: 16,775 passed, 4 skipped, and 0 failed. The five registered packages are validated through Release packaging and package smoke tests.
+
 ## 17.0.3-alpha.1
 
 See [release-notes/v17.0.3-alpha.1.md](release-notes/v17.0.3-alpha.1.md) for the curated GitHub Release text.
