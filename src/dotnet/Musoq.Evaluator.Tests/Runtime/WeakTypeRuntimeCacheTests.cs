@@ -44,6 +44,21 @@ public sealed class WeakTypeRuntimeCacheTests
     }
 
     [TestMethod]
+    public void Cache_ShouldReadExistingValueConcurrentlyWithoutChangingIt()
+    {
+        var cache = new WeakTypeRuntimeCache<string>(8);
+        cache.GetOrAdd(typeof(WeakTypeRuntimeCacheTests), static _ => "value");
+
+        Parallel.For(0, 256, _ =>
+        {
+            Assert.IsTrue(cache.TryGetValue(typeof(WeakTypeRuntimeCacheTests), out var value));
+            Assert.AreEqual("value", value);
+        });
+
+        Assert.AreEqual(1, cache.Count);
+    }
+
+    [TestMethod]
     public void Cache_ShouldNotStronglyRetainCollectibleTypeKeys()
     {
         var cache = new WeakTypeRuntimeCache<string>(8);

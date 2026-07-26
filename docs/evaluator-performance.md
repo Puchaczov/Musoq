@@ -185,7 +185,68 @@ Status: complete before the Wave 1 runtime changes.
 
 ### Wave 1 — reflected accessor cache reads
 
-Status: pending.
+Status: complete before Wave 2.
+
+Implementation:
+
+- `BoundedRuntimeCache<TKey,TValue>` now publishes immutable dictionary snapshots
+  after locked mutation. Successful `TryGetValue` reads use a volatile snapshot
+  without entering the mutation lock; factory-at-most-once, insertion-order
+  eviction, clear, and bounded ownership remain locked.
+- `WeakTypeRuntimeCache<TValue>` keeps `ConditionalWeakTable<Type,...>` ownership
+  and uses its safe read path for successful type lookup. Clear publishes a new
+  weak table, and mutation/eviction/pruning remain serialized.
+- `EvaluationHelper.GetNestedValueAccessor` checks both cache levels before
+  `GetOrAdd`. The hot `GetNestedValue` path avoids duplicate accessor validation
+  and uses value-pattern checks for dictionary/dynamic/indexer fallback types.
+- Added 21 focused tests for concurrent hits and first creation, clear/eviction,
+  collectible types, nested CLR properties, dictionaries, dynamic objects,
+  indexers, missing members, and throwing getters.
+
+Wave 1 full gate:
+
+- Release build passed with zero warnings and errors.
+- Full solution: 16,791 recorded results, 16,787 passed, 4 skipped; wall clock
+  6:27.41, summed individual durations 7,920.037 seconds.
+- TRXs: `TestResults/evaluator-wave-1-full`; the directory reporter preserved
+  per-project files and kept generated-sample initialization separate.
+
+The three final post-Wave 1 hotspot reports are:
+
+- `BenchmarkDotNet.Artifacts/evaluator-current-reflected-join-5/results/Musoq.Benchmarks.JoinAggregateProjectionBenchmark-report-full-compressed.json`
+- `BenchmarkDotNet.Artifacts/evaluator-current-reflected-join-6/results/Musoq.Benchmarks.JoinAggregateProjectionBenchmark-report-full-compressed.json`
+- `BenchmarkDotNet.Artifacts/evaluator-current-reflected-join-7/results/Musoq.Benchmarks.JoinAggregateProjectionBenchmark-report-full-compressed.json`
+
+Compared with the three Wave 0 reports through `BenchmarkComparison`, the median
+10k private reflected join is 59.329 ms and 74,614.94 KB versus 139.275 ms and
+99,186.34 KB: 0.4244x time and 0.7523x allocation. This exceeds the 2x speedup
+target while leaving the CTE typed equivalent and smaller join cases below the
+1.03 regression ceiling.
+
+The broader single-cohort `TwoModeExecutionBenchmark` characterization also
+completed successfully. At 5k rows, direct table projection measured
+148.59–154.98 us and 399–401 KB across chunk shapes; public typed direct
+projection measured 73.10–74.04 us and 125–127 KB. Loaded typed artifacts stayed
+at 73.26–73.59 us. These are characterization measurements rather than a
+replacement for the three-report comparison gate.
+
+The protected weather cohort remained healthy. For one million rows, serial
+grouped aggregation measured 15.910–16.860 ms and parallel aggregation measured
+5.028–5.417 ms across 512 and 4096 row chunks. Parallel execution therefore
+retained the existing approximately 3x speedup; its allocation increase is the
+known parallel aggregation trade-off and was not redesigned in this wave.
+
+The weather reports are in
+`BenchmarkDotNet.Artifacts/evaluator-wave1-weather/results/`, and the broader
+characterization report is in
+`BenchmarkDotNet.Artifacts/evaluator-wave1-two-mode/results/`.
+
+The post-cache trace is
+`BenchmarkDotNet.Artifacts/evaluator-wave1-trace-2/aggregate-10k-direct.speedscope.speedscope.json`.
+The baseline `Monitor.Enter_Slowpath` frame was no longer dominant after the
+cache change; the remaining inclusive cost was `GetNestedValue`, which motivated
+the duplicate-validation and value-pattern fast paths. No second global cache or
+public API was introduced.
 
 ### Wave 2 — typed/table execution paths
 

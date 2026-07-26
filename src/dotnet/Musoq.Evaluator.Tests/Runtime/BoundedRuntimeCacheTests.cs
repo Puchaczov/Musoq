@@ -69,6 +69,23 @@ public sealed class BoundedRuntimeCacheTests
     }
 
     [TestMethod]
+    public void TryGetValue_WhenReadersAndWritersRunConcurrently_ShouldRemainConsistent()
+    {
+        var cache = new BoundedRuntimeCache<int, int>(32);
+        cache.GetOrAdd(0, static key => key);
+
+        Parallel.For(0, 256, index =>
+        {
+            cache.GetOrAdd(index % 64, static key => key);
+            cache.TryGetValue(index % 64, out _);
+        });
+
+        Assert.IsTrue(cache.Count <= 32);
+        Assert.IsTrue(cache.TryGetValue(63, out var value));
+        Assert.AreEqual(63, value);
+    }
+
+    [TestMethod]
     public void TypeKeyedCache_ShouldEvictStrongCollectibleLikeKeys()
     {
         var cache = new BoundedRuntimeCache<Type, string>(2);

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Musoq.Evaluator.Runtime;
 
@@ -9,6 +10,7 @@ internal sealed class BoundedRuntimeCache<TKey, TValue>
     private readonly Dictionary<TKey, TValue> _values;
     private readonly Queue<TKey> _insertionOrder = new();
     private readonly int _maxSize;
+    private Dictionary<TKey, TValue> _readSnapshot;
 
     public BoundedRuntimeCache(int maxSize, IEqualityComparer<TKey>? comparer = null)
     {
@@ -17,6 +19,7 @@ internal sealed class BoundedRuntimeCache<TKey, TValue>
 
         _maxSize = maxSize;
         _values = new Dictionary<TKey, TValue>(comparer);
+        _readSnapshot = new Dictionary<TKey, TValue>(_values, _values.Comparer);
     }
 
     public int Count
@@ -41,14 +44,15 @@ internal sealed class BoundedRuntimeCache<TKey, TValue>
             EvictOneIfFull();
             _values.Add(key, value);
             _insertionOrder.Enqueue(key);
+            PublishReadSnapshot();
             return value;
         }
     }
 
     public bool TryGetValue(TKey key, out TValue value)
     {
-        lock (_gate)
-            return _values.TryGetValue(key, out value!);
+        var snapshot = Volatile.Read(ref _readSnapshot);
+        return snapshot.TryGetValue(key, out value!);
     }
 
     public void Clear()
@@ -57,7 +61,15 @@ internal sealed class BoundedRuntimeCache<TKey, TValue>
         {
             _values.Clear();
             _insertionOrder.Clear();
+            PublishReadSnapshot();
         }
+    }
+
+    private void PublishReadSnapshot()
+    {
+        Volatile.Write(
+            ref _readSnapshot,
+            new Dictionary<TKey, TValue>(_values, _values.Comparer));
     }
 
     private void EvictOneIfFull()

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Musoq.Evaluator.Runtime;
 
@@ -59,13 +60,11 @@ internal sealed class WeakTypeRuntimeCache<TValue>
     {
         ArgumentNullException.ThrowIfNull(key);
 
-        lock (_gate)
+        var values = Volatile.Read(ref _values);
+        if (values.TryGetValue(key, out var entry))
         {
-            if (_values.TryGetValue(key, out var entry))
-            {
-                value = entry.Value;
-                return true;
-            }
+            value = entry.Value;
+            return true;
         }
 
         value = default!;
@@ -76,7 +75,7 @@ internal sealed class WeakTypeRuntimeCache<TValue>
     {
         lock (_gate)
         {
-            _values = new ConditionalWeakTable<Type, Entry>();
+            Volatile.Write(ref _values, new ConditionalWeakTable<Type, Entry>());
             _insertionOrder.Clear();
             _entryCount = 0;
         }

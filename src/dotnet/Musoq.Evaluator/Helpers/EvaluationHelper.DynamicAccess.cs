@@ -54,9 +54,10 @@ public static partial class EvaluationHelper
         if (value is null || string.IsNullOrWhiteSpace(columnPath))
             return value;
 
-        if (CanUseCachedClrNestedValueAccessor(value.GetType(), columnPath))
+        var valueType = value.GetType();
+        if (CanUseCachedClrNestedValueAccessor(value, columnPath))
         {
-            var accessor = GetNestedValueAccessor(value.GetType(), columnPath);
+            var accessor = GetNestedValueAccessorCore(valueType, columnPath);
             var cachedValue = accessor(value);
             if (!ReferenceEquals(cachedValue, MissingNestedValue))
                 return cachedValue;
@@ -66,7 +67,7 @@ public static partial class EvaluationHelper
         if (TryResolvePathFromObject(value, segments, out var resolvedValue))
             return resolvedValue;
 
-        throw new InvalidOperationException($"Column with name {columnPath} does not exist in value of type {value.GetType().FullName}.");
+        throw new InvalidOperationException($"Column with name {columnPath} does not exist in value of type {valueType.FullName}.");
     }
 
     public static Func<object?, object?> GetNestedValueAccessor(Type type, string columnPath)
@@ -79,11 +80,22 @@ public static partial class EvaluationHelper
             return value => GetNestedValue(value, columnPath);
         }
 
-        var accessorsForType = NestedValueAccessors.GetOrAdd(
-            type,
-            static _ => new BoundedRuntimeCache<string, Func<object?, object?>>(
-                RuntimeCacheOptions.DynamicAccessorCacheSize,
-                StringComparer.Ordinal));
+        return GetNestedValueAccessorCore(type, columnPath);
+    }
+
+    private static Func<object?, object?> GetNestedValueAccessorCore(Type type, string columnPath)
+    {
+        if (!NestedValueAccessors.TryGetValue(type, out var accessorsForType))
+        {
+            accessorsForType = NestedValueAccessors.GetOrAdd(
+                type,
+                static _ => new BoundedRuntimeCache<string, Func<object?, object?>>(
+                    RuntimeCacheOptions.DynamicAccessorCacheSize,
+                    StringComparer.Ordinal));
+        }
+
+        if (accessorsForType.TryGetValue(columnPath, out var cachedAccessor))
+            return cachedAccessor;
 
         return accessorsForType.GetOrAdd(
             columnPath,
@@ -92,10 +104,18 @@ public static partial class EvaluationHelper
 
     private static bool CanUseCachedClrNestedValueAccessor(Type type, string columnPath)
     {
-        return !columnPath.Contains('[', StringComparison.Ordinal) &&
+        return columnPath.IndexOf('[', StringComparison.Ordinal) < 0 &&
                !typeof(IDictionary<string, object>).IsAssignableFrom(type) &&
                !typeof(IDictionary).IsAssignableFrom(type) &&
                !typeof(System.Dynamic.DynamicObject).IsAssignableFrom(type);
+    }
+
+    private static bool CanUseCachedClrNestedValueAccessor(object value, string columnPath)
+    {
+        return columnPath.IndexOf('[', StringComparison.Ordinal) < 0 &&
+               value is not IDictionary<string, object> &&
+               value is not IDictionary &&
+               value is not System.Dynamic.DynamicObject;
     }
 
     private static Func<object?, object?> CreateClrNestedValueAccessor(Type type, string columnPath)
